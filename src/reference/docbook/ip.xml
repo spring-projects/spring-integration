@@ -709,23 +709,20 @@
     <para>
         <note>
             <para>
-                When a <emphasis>client</emphasis> connection factory is used by
+                Before the 2.2 release,
+                when a <emphasis>client</emphasis> connection factory was used by
                 collaborating channel
-                adapters, the <emphasis>so-timeout</emphasis> attribute defaults
-                to the default reply timeout (10 seconds). This means that if
-                no data are received by the inbound adapter for this period of
-                time, the socket will be closed.
+                adapters, the <emphasis>so-timeout</emphasis> attribute defaulted
+                to the default reply timeout (10 seconds). This meant that if
+                no data were received by the inbound adapter for this period of
+                time, the socket was closed.
             </para>
             <para>
-                This may not be appropriate in a truly asynch environment, or
-                if you expect the server to take more than 10 seconds to respond
-                in a request/reply environment.
-                The timeout can be increased by setting the
-                <emphasis>so-timeout</emphasis> attribute on the connection
-                factory.
-            </para>
-            <para>
-                Setting the attribute to 0 will enable an infinite timeout.
+                This default behavior was not appropriate in a truly asynchronous
+                environment, so it now defaults to an infinite timeout.
+                You can reinstate the previous default behavior by setting the
+                <emphasis>so-timeout</emphasis> attribute on the client connection
+                factory to 10000 milliseconds.
             </para>
         </note>
     </para>
@@ -887,13 +884,10 @@
               <entry>Y</entry>
               <entry>Y</entry>
               <entry></entry>
-              <entry>Defaults to 0 (infinity), except when the connection
-                     factory is used by collaborating adapters, and for
+              <entry>Defaults to 0 (infinity), except for
                      server connection factories with single-use="true". 
-                     In those cases, it
+                     In that case, it
                      defaults to the default reply timeout (10 seconds).
-                     See the section about collaborating adapters above
-                     and <classname>java.net.Socket. setSoTimeout()</classname>.
                      </entry>
             </row>
             <row>
