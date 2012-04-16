@@ -5,6 +5,7 @@ apply plugin: 'idea'
 
 buildscript {
     repositories {
+		mavenLocal()
         maven { url 'https://repo.springsource.org/plugins-snapshot' }
     }
     dependencies {
@@ -25,7 +26,7 @@ allprojects {
 subprojects { subproject ->
 
     apply plugin: 'java'
-    apply plugin: 'maven'
+    apply from:   "${rootProject.projectDir}/publish-maven.gradle"
     apply plugin: 'eclipse'
     apply plugin: 'idea'
     apply plugin: 'bundlor'
@@ -125,11 +126,6 @@ subprojects { subproject ->
         archives javadocJar
     }
 
-    install {
-        repositories.mavenInstaller {
-            customizePom(pom, subproject)
-        }
-    }
 }
 
 project('spring-integration-amqp') {
@@ -137,7 +133,7 @@ project('spring-integration-amqp') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-tx:$springVersion"
-        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") { ext.optional = true }
+        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
         compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
             exclude group: 'org.springframework', module: 'spring-aop'
             exclude group: 'org.springframework', module: 'spring-beans'
@@ -174,8 +170,8 @@ project('spring-integration-core') {
     dependencies {
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-context:$springVersion"
-        compile("org.springframework:spring-tx:$springVersion") { ext.optional = true }
-        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") { ext.optional = true }
+        compile("org.springframework:spring-tx:$springVersion", optional)
+        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
         testCompile "org.aspectj:aspectjrt:$aspectjVersion"
         testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
     }
@@ -273,7 +269,7 @@ project('spring-integration-ftp') {
         compile project(":spring-integration-file")
         compile "commons-net:commons-net:$commonsNetVersion"
         compile "org.springframework:spring-context-support:$springVersion"
-        compile("javax.activation:activation:$javaxActivationVersion") { ext.optional = true }
+        compile("javax.activation:activation:$javaxActivationVersion", optional)
         testCompile project(":spring-integration-test")
     }
     bundlor {
@@ -354,16 +350,16 @@ project('spring-integration-http') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-webmvc:$springVersion"
-        compile("javax.servlet:servlet-api:2.4") { ext.provided = true }
-        compile("commons-httpclient:commons-httpclient:3.1") {
-            ext.optional = true
+        compile("javax.servlet:servlet-api:2.4", provided)
+        compile("commons-httpclient:commons-httpclient:3.1") { dep ->
+            optional dep
             exclude group: 'junit', module: 'junit'
         }
-        compile("net.java.dev.rome:rome-fetcher:1.0.0") {
-            ext.optional = true
+        compile("net.java.dev.rome:rome-fetcher:1.0.0") { dep ->
+            optional dep
             exclude group: 'junit', module: 'junit'
         }
-        compile ("net.java.dev.rome:rome:1.0.0") { ext.optional = true }
+        compile ("net.java.dev.rome:rome:1.0.0", optional)
         testCompile project(":spring-integration-test")
     }
     bundlor {
@@ -448,7 +444,7 @@ project('spring-integration-jms') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-jms:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
-        compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1") { ext.provided = true }
+        compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1", provided)
         testCompile project(":spring-integration-test")
         testCompile ("org.apache.activemq:activemq-core:5.3.0") {
             exclude group: 'org.springframework', module: 'spring-context'
@@ -501,8 +497,8 @@ project('spring-integration-mail') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context-support:$springVersion"
-        compile("javax.mail:mail:1.4.4") { ext.provided = true }
-        compile("javax.activation:activation:$javaxActivationVersion") { ext.optional = true }
+        compile("javax.mail:mail:1.4.4", provided)
+        compile("javax.activation:activation:$javaxActivationVersion", optional)
         testCompile project(":spring-integration-test")
     }
     bundlor {
@@ -680,7 +676,7 @@ project('spring-integration-sftp') {
         compile project(":spring-integration-stream")
         compile "com.jcraft:jsch:0.1.45"
         compile "org.springframework:spring-context-support:$springVersion"
-        compile("javax.activation:activation:$javaxActivationVersion") { ext.optional = true }
+        compile("javax.activation:activation:$javaxActivationVersion", optional)
         testCompile project(":spring-integration-test")
     }
     bundlor {
@@ -756,7 +752,7 @@ project('spring-integration-twitter') {
             exclude group: 'org.springframework', module: 'spring-expression'
             exclude group: 'org.springframework', module: 'spring-web'
         }
-        compile("javax.activation:activation:$javaxActivationVersion") { ext.optional = true }
+        compile("javax.activation:activation:$javaxActivationVersion", optional)
         testCompile project(":spring-integration-test")
     }
     bundlor {
@@ -792,12 +788,12 @@ project('spring-integration-ws') {
             exclude group: 'org.springframework', module: 'spring-web'
             exclude group: 'org.springframework', module: 'spring-context-support'
         }
-        compile("javax.xml.soap:saaj-api:1.3") {
-            ext.optional = true
+        compile("javax.xml.soap:saaj-api:1.3") { dep ->
+            optional dep
             exclude group: 'javax.activation', module: 'activation'
         }
-        compile("com.sun.xml.messaging.saaj:saaj-impl:1.3") { ext.optional = true }
-        compile("javax.activation:activation:$javaxActivationVersion") { ext.optional = true }
+        compile("com.sun.xml.messaging.saaj:saaj-impl:1.3", optional)
+        compile("javax.activation:activation:$javaxActivationVersion", optional)
         testCompile project(":spring-integration-test")
         testCompile "stax:stax-api:1.0.1"
         testCompile "xstream:xstream:1.2.2"
@@ -836,7 +832,7 @@ project('spring-integration-xml') {
             exclude group: 'org.springframework', module: 'spring-beans'
             exclude group: 'org.springframework', module: 'spring-core'
         }
-        compile("javax.activation:activation:$javaxActivationVersion") { ext.optional = true }
+        compile("javax.activation:activation:$javaxActivationVersion", optional)
         testCompile project(":spring-integration-test")
         testCompile "xmlunit:xmlunit:1.3"
     }
@@ -863,7 +859,7 @@ project('spring-integration-xmpp') {
     description = 'Spring Integration XMPP Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile("javax.activation:activation:$javaxActivationVersion") { ext.optional = true }
+        compile("javax.activation:activation:$javaxActivationVersion", optional)
         compile "org.igniterealtime.smack:smack:3.2.1"
         compile "org.igniterealtime.smack:smackx:3.2.1"
         compile "org.springframework:spring-context-support:$springVersion"
@@ -1073,72 +1069,4 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.0-milestone-8'
     distributionUrl = 'http://repo.gradle.org/gradle/distributions-snapshots/gradle-1.0-milestone-8-20120112000036+0100-bin.zip'
     jarFile = '.wrapper/gradle-wrapper.jar'
-}
-
-def customizePom(def pom, def gradleProject) {
-    pom.whenConfigured { generatedPom ->
-        // respect 'optional' and 'provided' dependencies
-        def deps = gradleProject.configurations.runtime.allDependencies
-        def optionalDeps = deps.findAll { dep ->
-            dep.asDynamicObject.hasProperty('optional') && dep.optional
-        }
-        def providedDeps = deps.findAll { dep ->
-            dep.asDynamicObject.hasProperty('provided') && dep.provided
-        }
-        generatedPom.dependencies.each { mavenDep ->
-            mavenDep.optional = optionalDeps.any { optionalDep ->
-                optionalDep.group == mavenDep.groupId &&
-                        optionalDep.name == mavenDep.artifactId &&
-                        optionalDep.version == mavenDep.version
-            }
-            boolean isProvided = providedDeps.any { providedDep ->
-                providedDep.group == mavenDep.groupId &&
-                        providedDep.name == mavenDep.artifactId &&
-                        providedDep.version == mavenDep.version
-            }
-            if (isProvided) {
-                mavenDep.scope = 'provided'
-            }
-        }
-
-        // eliminate test-scoped dependencies (no need in maven central poms)
-        generatedPom.dependencies.removeAll { dep ->
-            dep.scope == 'test'
-        }
-
-        // add all items necessary for maven central publication
-        generatedPom.project {
-            name = gradleProject.description
-            description = gradleProject.description
-            url = 'https://github.com/SpringSource/spring-integration'
-            organization {
-                name = 'SpringSource'
-                url = 'http://springsource.org'
-            }
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-            scm {
-                url = 'https://github.com/SpringSource/spring-integration'
-                connection = 'scm:git:git://github.com/SpringSource/spring-integration'
-                developerConnection = 'scm:git:git://github.com/SpringSource/spring-integration'
-            }
-            developers {
-                developer {
-                    id = 'markfisher'
-                    name = 'Mark Fisher'
-                    email = 'markfisher@vmware.com'
-                }
-                developer {
-                    id = 'olegz'
-                    name = 'Oleg Zhurakousky'
-                    email = 'ozhurakousky@vmware.com'
-                }
-            }
-        }
-    }
 }
