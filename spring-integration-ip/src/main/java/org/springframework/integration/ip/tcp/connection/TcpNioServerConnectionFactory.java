@@ -44,7 +44,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	
 	private boolean usingDirectBuffers;
 	
-	private Map<SocketChannel, TcpNioConnection> connections = new HashMap<SocketChannel, TcpNioConnection>();
+	private Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<SocketChannel, TcpNioConnection>();
 
 	private Selector selector;
 	
@@ -123,7 +123,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 					logger.debug("CancelledKeyException during Selector.select()");
 				}
 			}
-			this.processNioSelections(selectionCount, selector, server, this.connections);			
+			this.processNioSelections(selectionCount, selector, server, this.channelMap);
 		}
 	}
 
@@ -148,7 +148,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		connection.setTaskExecutor(this.getTaskExecutor());
 		connection.setLastRead(now);
-		connections.put(channel, connection);
+		channelMap.put(channel, connection);
 		channel.register(selector, SelectionKey.OP_READ, connection);
 	}
 
@@ -200,7 +200,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * @return the connections
 	 */
 	protected Map<SocketChannel, TcpNioConnection> getConnections() {
-		return connections;
+		return channelMap;
 	}
 	
 
