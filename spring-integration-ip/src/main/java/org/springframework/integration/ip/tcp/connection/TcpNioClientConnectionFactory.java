@@ -150,4 +150,11 @@ public class TcpNioClientConnectionFactory extends
 		return this.active;		
 	}
 
+	/**
+	 * @return the connections
+	 */
+	protected Map<SocketChannel, TcpNioConnection> getConnections() {
+		return connections;
+	}
+
 }

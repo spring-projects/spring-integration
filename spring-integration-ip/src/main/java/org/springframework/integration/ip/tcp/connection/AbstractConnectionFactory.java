@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -102,7 +103,13 @@ public abstract class AbstractConnectionFactory
 	private List<TcpConnection> connections = new LinkedList<TcpConnection>();
 
 	protected final Object lifecycleMonitor = new Object();
-	
+
+	private volatile long nextCheckForClosedNioConnections;
+
+	private volatile int nioHarvestInterval = DEFAULT_NIO_HARVEST_INTERVAL;
+
+	private static final int DEFAULT_NIO_HARVEST_INTERVAL = 2000;
+
 	/**
 	 * Sets socket attributes on the socket.
 	 * @param socket The socket.
@@ -335,6 +342,18 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
+	 * How often we clean up closed NIO connections if soTimeout is 0.
+	 * Ignored when soTimeout > 0 because the clean up
+	 * process is run as part of the timeout handling.
+	 * Default 2000 milliseconds.
+	 * @param nioHarvestInterval The interval in milliseconds.
+	 */
+	public void setNioHarvestInterval(int nioHarvestInterval) {
+		Assert.isTrue(nioHarvestInterval > 0, "NIO Harvest interval must be > 0");
+		this.nioHarvestInterval = nioHarvestInterval;
+	}
+
+	/**
 	 * Closes the server.
 	 */
 	public abstract void close();
@@ -435,24 +454,28 @@ public abstract class AbstractConnectionFactory
 	/**
 	 * 
 	 * Times out any expired connections then, if selectionCount > 0, processes the selected keys.
-	 *  
-	 * @param selectionCount
-	 * @param selector
-	 * @param connections
+	 * Removes closed connections from the connections field, and from the connections parameter.
+	 *
+	 * @param selectionCount Number of IO Events, if 0 we were probably woken up by a close.
+	 * @param selector The selector
+	 * @param connections Map of connections
 	 * @throws IOException
 	 */
 	protected void processNioSelections(int selectionCount, final Selector selector, ServerSocketChannel server,
 			Map<SocketChannel, TcpNioConnection> connections) throws IOException {
-		long now = 0;
-		if (this.soTimeout > 0) {
-			Iterator<SocketChannel> it = connections.keySet().iterator();
-			now = System.currentTimeMillis();
+		long now = System.currentTimeMillis();
+		if (this.soTimeout > 0 ||
+				now >= this.nextCheckForClosedNioConnections ||
+				selectionCount == 0) {
+			this.nextCheckForClosedNioConnections = now + this.nioHarvestInterval;
+			Iterator<Entry<SocketChannel, TcpNioConnection>> it = connections.entrySet().iterator();
 			while (it.hasNext()) {
-				SocketChannel channel = it.next();
+				SocketChannel channel = it.next().getKey();
 				if (!channel.isOpen()) {
 					logger.debug("Removing closed channel");
 					it.remove();
-				} else {
+				}
+				else if (soTimeout > 0) {
 					TcpNioConnection connection = connections.get(channel);
 					if (now - connection.getLastRead() > this.soTimeout) {
 						logger.warn("Timing out TcpNioConnection " +
