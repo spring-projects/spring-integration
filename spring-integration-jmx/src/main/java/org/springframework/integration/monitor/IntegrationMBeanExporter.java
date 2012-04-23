@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -45,7 +45,6 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
@@ -581,8 +580,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			if (logger.isInfoEnabled()) {
 				logger.info("Stopping scheduler " + scheduler.getThreadNamePrefix());
 			}
-			ExecutorService executorService = ((ExecutorService) new DirectFieldAccessor(
-					scheduler).getPropertyValue("scheduledExecutor"));
+			ExecutorService executorService = scheduler.getScheduledExecutor();
 			executorServices.add(executorService);
 			if (this.shutdownForced) {
 				executorService.shutdownNow();
@@ -612,8 +610,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			if (logger.isInfoEnabled()) {
 				logger.info("Stopping executor " + executor.getThreadNamePrefix());
 			}
-			ExecutorService executorService = (ExecutorService) new DirectFieldAccessor(
-					executor).getPropertyValue("threadPoolExecutor");
+			ExecutorService executorService = executor.getThreadPoolExecutor();
 			executorServices.add(executorService);
 			if (this.shutdownForced) {
 				executorService.shutdownNow();
