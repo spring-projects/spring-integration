@@ -42,9 +42,9 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		// override single-use to true to force "close" after use
 		target.setSingleUse(true);
 		this.targetConnectionFactory = target;
-		pool = new SimplePool<TcpConnection>(poolSize, new SimplePool.Callback<TcpConnection>() {
+		pool = new SimplePool<TcpConnection>(poolSize, new SimplePool.PoolItemCallback<TcpConnection>() {
 
-			public TcpConnection getNewItemForPool() {
+			public TcpConnection createForPool() {
 				try {
 					return targetConnectionFactory.getConnection();
 				} catch (Exception e) {
@@ -52,7 +52,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				}
 			}
 
-			public boolean isItemStale(TcpConnection connection) {
+			public boolean isStale(TcpConnection connection) {
 				return !connection.isOpen();
 			}
 
@@ -74,12 +74,16 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return this.pool.getPoolSize();
 	}
 
-	public int getIdleSize() {
-		return this.pool.getIdleSize();
+	public int getIdleCount() {
+		return this.pool.getIdleCount();
 	}
 
-	public int getInUseSize() {
-		return this.pool.getInUseSize();
+	public int getActiveCount() {
+		return this.pool.getActiveCount();
+	}
+
+	public int getAllocatedCount() {
+		return this.pool.getAllocatedCount();
 	}
 
 	public TcpConnection getOrMakeConnection() throws Exception {
@@ -107,7 +111,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				if (logger.isDebugEnabled()){
 					logger.debug("Factory not running - closing " + this.getConnectionId());
 				}
-				pool.returnItem(null); // just open up a permit
+				pool.releaseItem(null); // just open up a permit
 				super.close();
 			}
 			else if(this.released) {
@@ -116,7 +120,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				}
 			}
 			else  {
-				pool.returnItem(this.getTheConnection());
+				pool.releaseItem(this.getTheConnection());
 				this.released = true;
 			}
 		}
@@ -301,7 +305,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	public synchronized void stop() {
 		targetConnectionFactory.stop();
-		this.pool.releaseAll();
+		this.pool.removeAllIdleItems();
 	}
 
 	public int getPhase() {

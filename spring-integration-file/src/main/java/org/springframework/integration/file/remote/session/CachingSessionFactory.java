@@ -50,12 +50,12 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
-		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.Callback<Session<F>>() {
-			public Session<F> getNewItemForPool() {
+		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
+			public Session<F> createForPool() {
 				return CachingSessionFactory.this.sessionFactory.getSession();
 			}
 
-			public boolean isItemStale(Session<F> session) {
+			public boolean isStale(Session<F> session) {
 				return !session.isOpen();
 			}
 
@@ -84,7 +84,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	}
 
 	public void destroy() {
-		this.pool.releaseAll();
+		this.pool.removeAllIdleItems();
 	}
 
 
@@ -108,7 +108,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 				if (logger.isDebugEnabled()){
 					logger.debug("Releasing Session back to the pool.");
 				}
-				pool.returnItem(targetSession);
+				pool.releaseItem(targetSession);
 				released = true;
 			}
 		}

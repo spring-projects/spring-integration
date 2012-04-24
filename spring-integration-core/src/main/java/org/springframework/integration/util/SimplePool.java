@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.util;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -24,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link Pool} supporting dynamic resizing and a variable
@@ -47,15 +51,17 @@ public class SimplePool<T> implements Pool<T> {
 
 	private final BlockingQueue<T> available = new LinkedBlockingQueue<T>();
 
-	private final Callback<T> callback;
+	private final Set<T> allocated = Collections.synchronizedSet(new HashSet<T>());
+
+	private final PoolItemCallback<T> callback;
 
 	/**
 	 * Creates a SimplePool with a specific limit.
 	 * @param poolSize The maximum number of items the pool supports.
-	 * @param callback A {@link Callback} implementation called during various
+	 * @param callback A {@link PoolItemCallback} implementation called during various
 	 * pool operations.
 	 */
-	public SimplePool(int poolSize, Callback<T> callback) {
+	public SimplePool(int poolSize, PoolItemCallback<T> callback) {
 		if (poolSize <= 0) {
 			this.poolSize.set(Integer.MAX_VALUE);
 			this.targetPoolSize.set(Integer.MAX_VALUE);
@@ -95,7 +101,7 @@ public class SimplePool<T> implements Pool<T> {
 				this.permits.release();
 				break;
 			}
-			this.callback.removedFromPool(item);
+			doRemoveItem(item);
 			this.poolSize.decrementAndGet();
 			delta++;
 		}
@@ -113,12 +119,16 @@ public class SimplePool<T> implements Pool<T> {
 		return this.poolSize.get();
 	}
 
-	public int getIdleSize() {
+	public int getIdleCount() {
 		return this.available.size();
 	}
 
-	public int getInUseSize() {
-		return this.poolSize.get() - this.permits.availablePermits();
+	public int getActiveCount() {
+		return this.getAllocatedCount() - this.getIdleCount();
+	}
+
+	public int getAllocatedCount() {
+		return this.allocated.size();
 	}
 
 	/**
@@ -139,7 +149,8 @@ public class SimplePool<T> implements Pool<T> {
 		try {
 			try {
 				permitted = this.permits.tryAcquire(this.waitTimeout, TimeUnit.MILLISECONDS);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new MessagingException("Interrupted awaiting a pooled resource", e);
 			}
@@ -166,11 +177,13 @@ public class SimplePool<T> implements Pool<T> {
 			logger.debug("Obtained " + item + " from pool.");
 		}
 		if (item == null) {
-			item = this.callback.getNewItemForPool();
+			item = this.callback.createForPool();
 			if (logger.isDebugEnabled()) {
 				logger.debug("Obtained new " + item + ".");
 			}
-		} else if (this.callback.isItemStale(item)) {
+			allocated.add(item);
+		}
+		else if (this.callback.isStale(item)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Received a stale item, will attempt to get a new one.");
 			}
@@ -183,11 +196,13 @@ public class SimplePool<T> implements Pool<T> {
 	 * Returns an item to the pool. Item may be null, in which case a subsequent getItem()
 	 * will return a new instance.
 	 */
-	public synchronized void returnItem(T item) {
+	public synchronized void releaseItem(T item) {
+		Assert.isTrue(item == null || this.allocated.contains(item),
+				"You can only release items that were obtained from the pool");
 		if (this.poolSize.get() > targetPoolSize.get()) {
 			poolSize.decrementAndGet();
 			if (item != null) {
-				this.callback.removedFromPool(item);
+				doRemoveItem(item);
 			}
 		}
 		else {
@@ -201,11 +216,16 @@ public class SimplePool<T> implements Pool<T> {
 		}
 	}
 
-	public synchronized void releaseAll() {
+	public synchronized void removeAllIdleItems() {
 		T item;
 		while ((item = this.available.poll()) != null) {
-			this.callback.removedFromPool(item);
+			doRemoveItem(item);
 		}
+	}
+
+	private void doRemoveItem(T item) {
+		this.allocated.remove(item);
+		this.callback.removedFromPool(item);
 	}
 
 	/**
@@ -213,24 +233,24 @@ public class SimplePool<T> implements Pool<T> {
 	 * various pool operations.
 	 *
 	 */
-	public static interface Callback<T> {
+	public static interface PoolItemCallback<T> {
 
 		/**
 		 * Called by the pool when a new instance is required to populate the pool. Only
 		 * called if no idle non-stale instances are available.
 		 * @return The item.
 		 */
-		T getNewItemForPool();
+		T createForPool();
 
 		/**
-		 * Called by the pool when an idle item us retrieved from the pool. Indicates
+		 * Called by the pool when an idle item is retrieved from the pool. Indicates
 		 * whether that item is usable, or should be discarded. The pool takes no
 		 * further action on a stale item, discards it, and attempts to find or create
 		 * another item.
 		 * @param item The item.
 		 * @return true if the item should not be used.
 		 */
-		boolean isItemStale(T item);
+		boolean isStale(T item);
 
 		/**
 		 * Called by the pool when an item is forcibly removed from the pool - for example

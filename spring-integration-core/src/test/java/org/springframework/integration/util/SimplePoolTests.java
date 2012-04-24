@@ -43,11 +43,11 @@ public class SimplePoolTests {
 		String s1 = pool.getItem();
 		String s2 = pool.getItem();
 		assertNotSame(s1, s2);
-		pool.returnItem(s1);
+		pool.releaseItem(s1);
 		String s3 = pool.getItem();
 		assertSame(s1, s3);
 		stale.set(true);
-		pool.returnItem(s3);
+		pool.releaseItem(s3);
 		s3 = pool.getItem();
 		assertNotSame(s1, s3);
 		assertFalse(strings.remove(s1));
@@ -59,54 +59,85 @@ public class SimplePoolTests {
 		final AtomicBoolean stale = new AtomicBoolean();
 		SimplePool<String> pool = stringPool(2, strings, stale);
 		String s1 = pool.getItem();
+		assertEquals(0, pool.getIdleCount());
+		assertEquals(1, pool.getActiveCount());
+		assertEquals(1, pool.getAllocatedCount());
+		pool.releaseItem(s1);
+		assertEquals(1, pool.getIdleCount());
+		assertEquals(0, pool.getActiveCount());
+		assertEquals(1, pool.getAllocatedCount());
+		s1 = pool.getItem();
+		assertEquals(0, pool.getIdleCount());
+		assertEquals(1, pool.getActiveCount());
+		assertEquals(1, pool.getAllocatedCount());
 		String s2 = pool.getItem();
 		assertNotSame(s1, s2);
 		pool.setWaitTimeout(1);
-		assertEquals(0, pool.getIdleSize());
-		assertEquals(2, pool.getInUseSize());
+		assertEquals(0, pool.getIdleCount());
+		assertEquals(2, pool.getActiveCount());
+		assertEquals(2, pool.getAllocatedCount());
 		try {
 			pool.getItem();
 			fail("Expected exception");
 		} catch (MessagingException e) {}
+
 		// resize up
 		pool.setPoolSize(4);
-		assertEquals(0, pool.getIdleSize());
-		assertEquals(2, pool.getInUseSize());
+
+		assertEquals(0, pool.getIdleCount());
+		assertEquals(2, pool.getActiveCount());
+		assertEquals(2, pool.getAllocatedCount());
 		String s3 = pool.getItem();
 		String s4 = pool.getItem();
-		assertEquals(0, pool.getIdleSize());
-		assertEquals(4, pool.getInUseSize());
-		pool.returnItem(s4);
-		assertEquals(1, pool.getIdleSize());
-		assertEquals(3, pool.getInUseSize());
+		assertEquals(0, pool.getIdleCount());
+		assertEquals(4, pool.getActiveCount());
+		assertEquals(4, pool.getAllocatedCount());
+		pool.releaseItem(s4);
+		assertEquals(1, pool.getIdleCount());
+		assertEquals(3, pool.getActiveCount());
+		assertEquals(4, pool.getAllocatedCount());
+
 		// resize down
 		pool.setPoolSize(2);
-		assertEquals(0, pool.getIdleSize());
-		assertEquals(3, pool.getInUseSize());
+
+		assertEquals(0, pool.getIdleCount());
+		assertEquals(3, pool.getActiveCount());
 		assertEquals(3, pool.getPoolSize());
-		pool.returnItem(s3);
-		assertEquals(0, pool.getIdleSize());
-		assertEquals(2, pool.getInUseSize());
+		assertEquals(3, pool.getAllocatedCount());
+		pool.releaseItem(s3);
+		assertEquals(0, pool.getIdleCount());
+		assertEquals(2, pool.getActiveCount());
+		assertEquals(2, pool.getPoolSize());
+		assertEquals(2, pool.getAllocatedCount());
+		assertEquals(2, strings.size());
+		pool.releaseItem(s2);
+		pool.releaseItem(s1);
+		assertEquals(2, pool.getIdleCount());
+		assertEquals(0, pool.getActiveCount());
 		assertEquals(2, pool.getPoolSize());
 		assertEquals(2, strings.size());
-		pool.returnItem(s2);
-		pool.returnItem(s1);
-		assertEquals(2, pool.getIdleSize());
-		assertEquals(0, pool.getInUseSize());
-		assertEquals(2, pool.getPoolSize());
-		assertEquals(2, strings.size());
+		assertEquals(2, pool.getAllocatedCount());
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testForeignObject() {
+		final Set<String> strings = new HashSet<String>();
+		final AtomicBoolean stale = new AtomicBoolean();
+		SimplePool<String> pool = stringPool(2, strings, stale);
+		pool.getItem();
+		pool.releaseItem("Hello, world!");
 	}
 
 	private SimplePool<String> stringPool(int size, final Set<String> strings,
 			final AtomicBoolean stale) {
-		SimplePool<String> pool = new SimplePool<String>(size, new SimplePool.Callback<String>() {
+		SimplePool<String> pool = new SimplePool<String>(size, new SimplePool.PoolItemCallback<String>() {
 			private int i;
-			public String getNewItemForPool() {
+			public String createForPool() {
 				String string = new String("String" + i++);
 				strings.add(string);
 				return string;
 			}
-			public boolean isItemStale(String item) {
+			public boolean isStale(String item) {
 				if (stale.get()) {
 					strings.remove(item);
 				}

@@ -220,8 +220,13 @@ public class CachingClientConnectionFactoryTests {
 	public void testReducePool() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn = makeMockConnection("conn", true);
-		when(factory.getConnection()).thenReturn(mockConn);
+		TcpConnection mockConn1 = makeMockConnection("conn", true);
+		TcpConnection mockConn2 = makeMockConnection("conn", true);
+		TcpConnection mockConn3 = makeMockConnection("conn", true);
+		TcpConnection mockConn4 = makeMockConnection("conn", true);
+		when(factory.getConnection()).thenReturn(mockConn1)
+				.thenReturn(mockConn2).thenReturn(mockConn3)
+				.thenReturn(mockConn4);
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 4);
 		cachingFactory.start();
 		TcpConnection conn1 = cachingFactory.getConnection();
@@ -235,18 +240,19 @@ public class CachingClientConnectionFactoryTests {
 		assertEquals(1, semaphore.availablePermits());
 		cachingFactory.setPoolSize(2);
 		assertEquals(0, semaphore.availablePermits());
-		assertEquals(3, cachingFactory.getInUseSize());
+		assertEquals(3, cachingFactory.getActiveCount());
 		conn2.close();
 		assertEquals(0, semaphore.availablePermits());
-		assertEquals(2, cachingFactory.getInUseSize());
+		assertEquals(2, cachingFactory.getActiveCount());
 		conn3.close();
-		assertEquals(1, cachingFactory.getInUseSize());
-		assertEquals(1, cachingFactory.getIdleSize());
+		assertEquals(1, cachingFactory.getActiveCount());
+		assertEquals(1, cachingFactory.getIdleCount());
 		conn4.close();
 		assertEquals(2, semaphore.availablePermits());
-		assertEquals(0, cachingFactory.getInUseSize());
-		assertEquals(2, cachingFactory.getIdleSize());
-		verify(mockConn, times(2)).close();
+		assertEquals(0, cachingFactory.getActiveCount());
+		assertEquals(2, cachingFactory.getIdleCount());
+		verify(mockConn1).close();
+		verify(mockConn2).close();
 	}
 
 	private TcpConnection makeMockConnection(String name) {
