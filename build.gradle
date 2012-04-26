@@ -45,7 +45,7 @@ subprojects { subproject ->
 		junitVersion = '4.8.2'
 		log4jVersion = '1.2.12'
 		mockitoVersion = '1.9.0'
-		springVersion = '3.0.7.RELEASE'
+		springVersion = '3.1.1.RELEASE'
 		springAmqpVersion = '1.0.0.RELEASE'
 		springDataMongoVersion = '1.0.0.RELEASE'
 		springDataRedisVersion = '1.0.0.RELEASE'
