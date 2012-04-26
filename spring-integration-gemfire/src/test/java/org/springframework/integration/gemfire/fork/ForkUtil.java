@@ -40,20 +40,19 @@ public class ForkUtil {
 		String home = System.getProperty("java.home");
 
 		Process proc = null;
-		String java = home + "/bin/java ".replace("\\", "/");
-		;
-		String argCp = "-cp " + cp;
+		String java = home + "/bin/java".replace("\\", "/");
+
 		String argClass = argument;
 
-		String cmd = java + argCp + " " + argClass;
+		String[] cmdArray = {java, "-cp", cp, argClass};
 		try {
 			// ProcessBuilder builder = new ProcessBuilder(cmd, argCp,
 			// argClass);
 			// builder.redirectErrorStream(true);
-			proc = Runtime.getRuntime().exec(cmd);
+			proc = Runtime.getRuntime().exec(cmdArray);
 		}
 		catch (IOException ioe) {
-			throw new IllegalStateException("Cannot start command " + cmd, ioe);
+			throw new IllegalStateException("Cannot start command " + cmdArray, ioe);
 		}
 
 		System.out.println("Started fork");
