@@ -13,4 +13,6 @@
 
 	<beans:bean id="customObjectMapper" class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomObjectMapper"/>
 
+	<object-to-json-transformer input-channel="contentTypeHeaderAddedInput" set-content-type="true"/>
+	
 </beans:beans>

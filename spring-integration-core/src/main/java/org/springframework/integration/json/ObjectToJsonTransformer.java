@@ -23,6 +23,7 @@ import java.util.Map;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
 
@@ -36,7 +37,7 @@ import org.springframework.util.Assert;
 public class ObjectToJsonTransformer extends AbstractTransformer {
 	private static final String JSON_CONTENT_TYPE = "application/json";
 	private final ObjectMapper objectMapper;
-	private boolean contentTypeShouldBePopulated = false;
+	private volatile boolean setContentType = false;
 
 
 	public ObjectToJsonTransformer(ObjectMapper objectMapper) {
@@ -55,19 +56,20 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		return writer.toString();
 	}
 
-	public void setContentType(boolean contentTypeShouldBePopulated) {
-		this.contentTypeShouldBePopulated = contentTypeShouldBePopulated;
+	public void setSetContentType(boolean contentTypeShouldBePopulated) {
+		this.setContentType = contentTypeShouldBePopulated;
 		
 	}
 
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
-		final String marshalledPayload = transformPayload(message.getPayload());
-		final Map<String, Object> headers = new HashMap<String, Object>(message.getHeaders());
-		if(contentTypeShouldBePopulated){
-			headers.put("content-type", JSON_CONTENT_TYPE);
+		MessageBuilder<?> builder = MessageBuilder
+				.withPayload(transformPayload(message.getPayload()))
+				.copyHeaders(message.getHeaders());
+		if(setContentType){
+			builder.setHeader("content-type", JSON_CONTENT_TYPE);
 		}
-		return new GenericMessage<String>(marshalledPayload, headers);
+		return builder.build();
 	}
 
 }

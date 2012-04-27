@@ -61,7 +61,7 @@ public class ObjectToJsonTransformerTests {
 	@Test
 	public void shouldAddContentTypeIfEnabled() throws Exception{
 		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
-		transformer.setContentType(true);
+		transformer.setSetContentType(true);
 		Message<?> result = transformer.transform(new GenericMessage<Integer>(123));
 		assertTrue(result.getHeaders().containsKey("content-type"));
 		assertEquals("application/json", result.getHeaders().get("content-type"));
