@@ -1,3 +1,4 @@
 http\://www.springframework.org/schema/integration/groovy/spring-integration-groovy-2.0.xsd=org/springframework/integration/groovy/config/spring-integration-groovy-2.0.xsd
 http\://www.springframework.org/schema/integration/groovy/spring-integration-groovy-2.1.xsd=org/springframework/integration/groovy/config/spring-integration-groovy-2.1.xsd
-http\://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd=org/springframework/integration/groovy/config/spring-integration-groovy-2.1.xsd
+http\://www.springframework.org/schema/integration/groovy/spring-integration-groovy-2.2.xsd=org/springframework/integration/groovy/config/spring-integration-groovy-2.2.xsd
+http\://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd=org/springframework/integration/groovy/config/spring-integration-groovy-2.2.xsd

@@ -1,3 +1,4 @@
 http\://www.springframework.org/schema/integration/feed/spring-integration-feed-2.0.xsd=org/springframework/integration/feed/config/spring-integration-feed-2.0.xsd
 http\://www.springframework.org/schema/integration/feed/spring-integration-feed-2.1.xsd=org/springframework/integration/feed/config/spring-integration-feed-2.1.xsd
-http\://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd=org/springframework/integration/feed/config/spring-integration-feed-2.1.xsd
+http\://www.springframework.org/schema/integration/feed/spring-integration-feed-2.2.xsd=org/springframework/integration/feed/config/spring-integration-feed-2.2.xsd
+http\://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd=org/springframework/integration/feed/config/spring-integration-feed-2.2.xsd
