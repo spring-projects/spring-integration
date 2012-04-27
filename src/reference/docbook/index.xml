@@ -77,15 +77,15 @@
   <part id="whats-new-part">
     <title>What's new?</title>
     <partintro id="spring-integration-intro">
-    	<para>
-    	 For those who are already familiar with Spring Integration, this chapter
-    	 provides a brief overview of the new features of version 2.1. If you are
-    	 interested in the changes and features, that were introduced in earlier
-    	 versions, please take a look at chapter:
+        <para>
+         For those who are already familiar with Spring Integration, this chapter
+         provides a brief overview of the new features of version 2.2. If you are
+         interested in the changes and features, that were introduced in earlier
+         versions, please take a look at chapter:
 
          <xref linkend="history"/>
 
-		</para>
+        </para>
     </partintro>
     <xi:include href="./whats-new.xml"/>
   </part>
