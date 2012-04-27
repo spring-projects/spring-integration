@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/redis"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/redis"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+			Defines the configuration elements for Spring Integration Redis Adapters and Channels.
+		]]></xsd:documentation>
+	</xsd:annotation>
+	
+	<xsd:element name="publish-subscribe-channel">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a publish-subscribe Message Channel that is backed by a Redis topic.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="topic-name" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+	Name of the Redis topic that backs this channel. 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:complexType name="channelType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+	Base type for Redis backed Message Channels (either 'channel' for a
+	list-backed channel or 'publish-subscribe-channel' for a topic-backed channel).
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.integration.channel.AbstractMessageChannel"/>
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="interceptors" type="integration:channelInterceptorsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A list of ChannelInterceptor instances to be applied to this channel.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+	ID for this channel. Required.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>		
+		<xsd:attribute name="connection-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference to a RedisConnectionFactory. If none is provided, the default
+	bean name for the reference will be "redisConnectionFactory".
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="task-executor" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for executing
+	JMS listener invokers. Default is a SimpleAsyncTaskExecutor in case of a
+	DefaultMessageListenerContainer, using internally managed threads. For a
+	SimpleMessageListenerContainer, listeners will always get invoked within the
+	JMS provider's receive thread by default.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.util.concurrent.Executor"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to the MessageConverter strategy for converting between Redis Messages
+	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.support.converter.MessageConverter"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="serializer" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to the RedisSerializer strategy
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+<!-- The following two attributes should be added once configurable on the RedisMessageListenerContainer -->
+<!-- 		<xsd:attribute name="auto-startup" type="xsd:string"> -->
+<!-- 			<xsd:annotation> -->
+<!-- 				<xsd:documentation><![CDATA[ -->
+<!-- 	Boolean value indicating whether this channel's listener container should start automatically. -->
+<!-- 				]]></xsd:documentation> -->
+<!-- 			</xsd:annotation> -->
+<!-- 		</xsd:attribute> -->
+<!-- 		<xsd:attribute name="phase" type="xsd:string"> -->
+<!-- 			<xsd:annotation> -->
+<!-- 				<xsd:documentation><![CDATA[ -->
+<!-- 	The lifecycle phase within which this channel's listener container should start and stop. -->
+<!-- 	The lower the value the earlier this container will start and the later it will stop. The -->
+<!-- 	default is Integer.MAX_VALUE meaning the container will start as late as possible -->
+<!-- 	and stop as soon as possible. -->
+<!-- 				]]></xsd:documentation> -->
+<!-- 			</xsd:annotation> -->
+<!-- 		</xsd:attribute> -->
+	</xsd:complexType>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an inbound Channel Adapter for subscribing to a Redis topic.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The ID for this Channel Adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a RedisConnectionFactory. If none is provided, the default
+	bean name for the reference will be "redisConnectionFactory".
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="topics" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Redis topic names as a comma-delimited list of Strings.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Channel to which Messages will be sent. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	Channel to which Error Messages will be sent.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A reference to the MessageConverter strategy for converting between Redis Messages
+	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
+					]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.support.converter.MessageConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an outbound Redis Message-sending Channel Adapter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisAdapterType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="topic" type="xsd:string"/>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="message-converter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	A reference to the MessageConverter strategy for converting between Redis Messages
+	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.support.converter.MessageConverter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Specifies the order for invocation when this adapter is connected as a
+	subscriber to a SubscribableChannel.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:complexType name="redisAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Common configuration for Redis adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="connection-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+	</xsd:complexType>
+
+</xsd:schema>

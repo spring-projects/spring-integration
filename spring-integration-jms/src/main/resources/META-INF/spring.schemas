@@ -1,4 +1,5 @@
 http\://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd=org/springframework/integration/jms/config/spring-integration-jms-1.0.xsd
 http\://www.springframework.org/schema/integration/jms/spring-integration-jms-2.0.xsd=org/springframework/integration/jms/config/spring-integration-jms-2.0.xsd
 http\://www.springframework.org/schema/integration/jms/spring-integration-jms-2.1.xsd=org/springframework/integration/jms/config/spring-integration-jms-2.1.xsd
-http\://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd=org/springframework/integration/jms/config/spring-integration-jms-2.1.xsd
+http\://www.springframework.org/schema/integration/jms/spring-integration-jms-2.2.xsd=org/springframework/integration/jms/config/spring-integration-jms-2.2.xsd
+http\://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd=org/springframework/integration/jms/config/spring-integration-jms-2.2.xsd

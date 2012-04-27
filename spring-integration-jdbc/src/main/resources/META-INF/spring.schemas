@@ -1,3 +1,4 @@
 http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-2.0.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-2.0.xsd
 http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-2.1.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-2.1.xsd
-http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-2.1.xsd
+http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-2.2.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-2.2.xsd
+http\://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd=org/springframework/integration/jdbc/config/spring-integration-jdbc-2.2.xsd

@@ -1,3 +1,4 @@
 http\://www.springframework.org/schema/integration/ip/spring-integration-ip-2.0.xsd=org/springframework/integration/ip/config/spring-integration-ip-2.0.xsd
 http\://www.springframework.org/schema/integration/ip/spring-integration-ip-2.1.xsd=org/springframework/integration/ip/config/spring-integration-ip-2.1.xsd
-http\://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd=org/springframework/integration/ip/config/spring-integration-ip-2.1.xsd
+http\://www.springframework.org/schema/integration/ip/spring-integration-ip-2.2.xsd=org/springframework/integration/ip/config/spring-integration-ip-2.2.xsd
+http\://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd=org/springframework/integration/ip/config/spring-integration-ip-2.2.xsd
