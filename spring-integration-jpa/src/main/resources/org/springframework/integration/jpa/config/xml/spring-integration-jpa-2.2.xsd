@@ -26,7 +26,6 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-				<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreJpaComponentAttributes"/>
 			<xsd:attribute name="channel" type="xsd:string">
@@ -136,21 +135,20 @@
 				<xsd:sequence>
 					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0" maxOccurs="1" />
-						<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded"
-								type="parameterSubElementType">
-							<xsd:annotation>
-								<xsd:documentation>
-									<![CDATA[
-									Provides a mechanism to provide
-									parameters for the queries that are either based
-									on the Java Persistence Query Language (JPQL) or
-									native SQL queries.
+					<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded" type="parameterSubElementType">
+						<xsd:annotation>
+							<xsd:documentation>
+								<![CDATA[
+								Provides a mechanism to provide
+								parameters for the queries that are either based
+								on the Java Persistence Query Language (JPQL) or
+								native SQL queries.
 
-									Parameters can also be provided for Named Queries.
-									]]>
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
+								Parameters can also be provided for Named Queries.
+								]]>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 				<xsd:attributeGroup ref="coreJpaComponentAttributes"/>
 				<xsd:attribute name="persist-mode" use="optional" default="MERGE">
@@ -240,8 +238,7 @@
 			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded"
-						type="parameterSubElementType">
+				<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded" type="parameterSubElementType">
 					<xsd:annotation>
 						<xsd:documentation>
 							<![CDATA[
@@ -256,152 +253,152 @@
 					</xsd:annotation>
 				</xsd:element>
 			</xsd:sequence>
-				<xsd:attributeGroup ref="coreJpaComponentAttributes" />
-				<xsd:attribute name="gateway-type" use="optional" default="UPDATING">
-					<xsd:annotation>
-						<xsd:documentation><![CDATA[
-							The outbound JPA gateway basically wraps the functionality
-							of the 'outbound-channel-adapter' and the 'inbound-channel-adapter'.
-							By specifying the gateway-type, you bascially specify which
-							set of functionlity you would like to use. The attribute defaults
-							to 'UPDATING'.
-						]]></xsd:documentation>
-					</xsd:annotation>
-					<xsd:simpleType>
-						<xsd:union memberTypes="gatewayType xsd:string"/>
-					</xsd:simpleType>
-				</xsd:attribute>
-				<xsd:attribute name="persist-mode" use="optional" default="MERGE">
-					<xsd:annotation>
-						<xsd:documentation><![CDATA[
-							Defines the persistence mode which is used when soley using
-							the entity-class. This attribute instructs to either Merge
-							entities, to Persist them. Furthermore and entity can also
-							be deleted. By Default 'MERGE' is used.
-						]]></xsd:documentation>
-					</xsd:annotation>
-					<xsd:simpleType>
-						<xsd:union memberTypes="persistMode xsd:string"/>
-					</xsd:simpleType>
-				</xsd:attribute>
-				<xsd:attribute name="use-payload-as-parameter-source">
-					<xsd:annotation>
-						<xsd:documentation>
-						<![CDATA[
-						If set to 'true', the payload of the Message will be used
-						as a source for providing parameters. If false the entire
-						Message will be available as a source for parameters.
+			<xsd:attributeGroup ref="coreJpaComponentAttributes" />
+			<xsd:attribute name="gateway-type" use="optional" default="UPDATING">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						The outbound JPA gateway basically wraps the functionality
+						of the 'outbound-channel-adapter' and the 'inbound-channel-adapter'.
+						By specifying the gateway-type, you bascially specify which
+						set of functionlity you would like to use. The attribute defaults
+						to 'UPDATING'.
+					]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="gatewayType xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="persist-mode" use="optional" default="MERGE">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Defines the persistence mode which is used when soley using
+						the entity-class. This attribute instructs to either Merge
+						entities, to Persist them. Furthermore and entity can also
+						be deleted. By Default 'MERGE' is used.
+					]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="persistMode xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="use-payload-as-parameter-source">
+				<xsd:annotation>
+					<xsd:documentation>
+					<![CDATA[
+					If set to 'true', the payload of the Message will be used
+					as a source for providing parameters. If false the entire
+					Message will be available as a source for parameters.
 
-						If no JPA Parameters are passed in, this property
-						will default to 'true'. This means that using a default
-						BeanPropertyParameterSourceFactory, the bean properties
-						of the payload will be used as a source for parameter
-						values for the to-be-executed JPA query.
+					If no JPA Parameters are passed in, this property
+					will default to 'true'. This means that using a default
+					BeanPropertyParameterSourceFactory, the bean properties
+					of the payload will be used as a source for parameter
+					values for the to-be-executed JPA query.
 
-						However, if JPA Parameters are passed in, then this
-						property will by default evaluate to 'false'. JPA Parameters
-						allow for SpEL Expressions to be provided and therefore
-						it is highly beneficial to have access to the entire Message.
+					However, if JPA Parameters are passed in, then this
+					property will by default evaluate to 'false'. JPA Parameters
+					allow for SpEL Expressions to be provided and therefore
+					it is highly beneficial to have access to the entire Message.
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The receiving Message Channel of this endpoint.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel to which replies should be
+						sent, after receiving the database response.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Allows you to specify how long this gateway will wait for
+						the reply message to be sent successfully before throwing
+						an exception. Keep in mind that when sending to a
+						DirectChannel, the invocation will occur in the sender's thread
+						so the failing of the send operation may be caused by other
+						components further downstream. By default the Gateway will
+						wait indefinitely. The value is specified in milliseconds.
 						]]>
-						</xsd:documentation>
-					</xsd:annotation>
-					<xsd:simpleType>
-						<xsd:union memberTypes="xsd:boolean xsd:string" />
-					</xsd:simpleType>
-				</xsd:attribute>
-				<xsd:attribute name="request-channel" type="xsd:string" use="required">
-					<xsd:annotation>
-						<xsd:documentation>
-							The receiving Message Channel of this endpoint.
-						</xsd:documentation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="reply-channel" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>
-							Message Channel to which replies should be
-							sent, after receiving the database response.
-						</xsd:documentation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="reply-timeout" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation><![CDATA[
-							Allows you to specify how long this gateway will wait for
-							the reply message to be sent successfully before throwing
-							an exception. Keep in mind that when sending to a
-							DirectChannel, the invocation will occur in the sender's thread
-							so the failing of the send operation may be caused by other
-							components further downstream. By default the Gateway will
-							wait indefinitely. The value is specified in milliseconds.
-							]]>
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="parameter-source-factory" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.jpa.JPAQLParameterSourceFactory" />
-							</tool:annotation>
-						</xsd:appinfo>
-						<xsd:documentation>
-							The parameter source factory that would be used for evaluating the
-							parameters of the response JPA QL that would be evaluated
-							JPA outbound gateway
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="order">
-					<xsd:annotation>
-						<xsd:documentation>
-							Specifies the order for invocation when this endpoint is connected as a
-							subscriber to a SubscribableChannel.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="max-number-of-results">
-					<xsd:annotation>
-						<xsd:documentation>
-							Specifies the maximum number of entities that shall be returned
-							by a JPA Operation. Using this attribute you basically set
-							the 'maxResults' property of the JPA Query object.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="expect-single-result" default="false">
-					<xsd:annotation>
-						<xsd:documentation><![CDATA[
-							This parameter indicates that only one result object shall be
-							returned as a result from the executed JPA operation.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="parameter-source-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.jpa.JPAQLParameterSourceFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						The parameter source factory that would be used for evaluating the
+						parameters of the response JPA QL that would be evaluated
+						JPA outbound gateway
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="max-number-of-results">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the maximum number of entities that shall be returned
+						by a JPA Operation. Using this attribute you basically set
+						the 'maxResults' property of the JPA Query object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="expect-single-result" default="false">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						This parameter indicates that only one result object shall be
+						returned as a result from the executed JPA operation.
 
-							If set to 'true' and the result list from the JPA operations
-							contains only 1 element, then that 1 element is extracted
-							and returned as payload.
+						If set to 'true' and the result list from the JPA operations
+						contains only 1 element, then that 1 element is extracted
+						and returned as payload.
 
-							If the result map contains more than 1 element and
-							'expect-single-result' is true, then a 'MessagingException'
-							is thrown.
+						If the result map contains more than 1 element and
+						'expect-single-result' is true, then a 'MessagingException'
+						is thrown.
 
-							If set to 'false', the complete result list is returned
-							as the payload.
-							]]>
-						</xsd:documentation>
-					</xsd:annotation>
-					<xsd:simpleType>
-						<xsd:union memberTypes="xsd:boolean xsd:string" />
-					</xsd:simpleType>
-				</xsd:attribute>
+						If set to 'false', the complete result list is returned
+						as the payload.
+						]]>
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -585,7 +582,7 @@
 	</xsd:simpleType>
 	<xsd:simpleType name="gatewayType">
 		<xsd:restriction base="xsd:token">
-			<xsd:enumeration value="UPDATING, "/>
+			<xsd:enumeration value="UPDATING"/>
 			<xsd:enumeration value="RETRIEVING"/>
 		</xsd:restriction>
 	</xsd:simpleType>
