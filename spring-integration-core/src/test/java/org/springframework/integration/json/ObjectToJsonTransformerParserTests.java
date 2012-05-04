@@ -17,6 +17,7 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -27,7 +28,6 @@ import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -38,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author James Carr
  * @since 2.0
  */
 @ContextConfiguration
@@ -50,21 +51,78 @@ public class ObjectToJsonTransformerParserTests {
 	@Autowired
 	private volatile MessageChannel customObjectMapperInput;
 
+	@Autowired
+	private volatile MessageChannel contentTypeHeaderAddedInput;
+
+	private QueueChannel replyChannel = new QueueChannel();
+	@Test
+	public void shouldAddJsonHeaderIfIndicated(){
+		TestPerson person = person(address(123, "Main Street"), "John", "Doe", 42);
+		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
+		
+		this.contentTypeHeaderAddedInput.send(message);
+		Message<?> reply = replyChannel.receive(0);
+
+		assertTrue(reply.getHeaders().containsKey("content-type"));
+		assertEquals("application/json", reply.getHeaders().get("content-type"));
+		assertMessageSerializedAsJson(reply);
+	}
 
 	@Test
-	public void defaultObjectMapper() {
-		TestAddress address = new TestAddress();
-		address.setNumber(123);
-		address.setStreet("Main Street");
-		TestPerson person = new TestPerson();
-		person.setFirstName("John");
-		person.setLastName("Doe");
-		person.setAge(42);
-		person.setAddress(address);
-		QueueChannel replyChannel = new QueueChannel();
+	public void shouldNotAddJsonContentTypeIfNotIndicated(){
+		TestPerson person = person(address(123, "Main Street"), "John", "Doe", 42);
+		
+
 		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
 		this.defaultObjectMapperInput.send(message);
 		Message<?> reply = replyChannel.receive(0);
+		
+		assertFalse(reply.getHeaders().containsKey("content-type"));
+	}
+	@Test
+	public void overwriteExistingHeaderIfSetContentTypeIsTrue(){
+		TestPerson person = person(address(123, "Main Street"), "John", "Doe", 42);
+		Message<TestPerson> message = MessageBuilder
+				.withPayload(person)
+				.setHeader("content-type", "x-java-serialized-object")
+				.setReplyChannel(replyChannel).build();
+		
+		this.contentTypeHeaderAddedInput.send(message);
+		Message<?> reply = replyChannel.receive(0);
+
+		assertTrue(reply.getHeaders().containsKey("content-type"));
+		assertEquals("application/json", reply.getHeaders().get("content-type"));
+		assertMessageSerializedAsJson(reply);
+		
+	}
+	
+	@Test
+	public void doNotOverwriteExistingHeaderIfSetContentTypeIsTrue(){
+		TestPerson person = person(address(123, "Main Street"), "John", "Doe", 42);
+		Message<TestPerson> message = MessageBuilder
+				.withPayload(person)
+				.setHeader("content-type", "x-java-serialized-object")
+				.setReplyChannel(replyChannel).build();
+		
+		this.defaultObjectMapperInput.send(message);
+		Message<?> reply = replyChannel.receive(0);
+
+		assertEquals("x-java-serialized-object", reply.getHeaders().get("content-type"));
+		
+	}
+
+	@Test
+	public void defaultObjectMapper() {
+		TestPerson person = person(address(123, "Main Street"), "John", "Doe", 42);
+		
+
+		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
+		this.defaultObjectMapperInput.send(message);
+		Message<?> reply = replyChannel.receive(0);
+		
+		assertMessageSerializedAsJson(reply);
+	}
+	private void assertMessageSerializedAsJson(Message<?> reply) {
 		assertNotNull(reply);
 		assertNotNull(reply.getPayload());
 		assertEquals(String.class, reply.getPayload().getClass());
@@ -79,17 +137,25 @@ public class ObjectToJsonTransformerParserTests {
 		assertTrue(addressResult.contains("\"number\":123"));
 		assertTrue(addressResult.contains("\"street\":\"Main Street\""));
 	}
+	private TestPerson person(TestAddress address, String firstName, String lastName, int age) {
+		TestPerson person = new TestPerson();
+		person.setFirstName(firstName);
+		person.setLastName(lastName);
+		person.setAge(age);
+		person.setAddress(address);
+		return person;
+	}
+	private TestAddress address(int number, String streetName) {
+		TestAddress address = new TestAddress();
+		address.setNumber(number);
+		address.setStreet(streetName);
+		return address;
+	}
 
 	@Test
 	public void customObjectMapper() {
-		TestAddress address = new TestAddress();
-		address.setNumber(123);
-		address.setStreet("Main Street");
-		TestPerson person = new TestPerson();
-		person.setFirstName("John");
-		person.setLastName("Doe");
-		person.setAge(42);
-		person.setAddress(address);
+		TestAddress address = address(123, "Main Street");
+		TestPerson person = person(address, "John", "Doe", 42);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
 		this.customObjectMapperInput.send(message);

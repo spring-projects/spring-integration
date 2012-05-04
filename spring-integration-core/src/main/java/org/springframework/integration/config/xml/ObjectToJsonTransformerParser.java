@@ -38,6 +38,7 @@ public class ObjectToJsonTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(objectMapper)) {
 			builder.addConstructorArgReference(objectMapper);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "set-content-type"); 
 	}
 
 }

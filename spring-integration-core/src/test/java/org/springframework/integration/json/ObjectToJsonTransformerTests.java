@@ -17,6 +17,7 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.regex.Matcher;
@@ -25,9 +26,12 @@ import java.util.regex.Pattern;
 import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
+import org.springframework.integration.Message;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author James Carr <james.r.carr@gmail.com>
  * @since 2.0
  */
 public class ObjectToJsonTransformerTests {
@@ -46,6 +50,22 @@ public class ObjectToJsonTransformerTests {
 		assertEquals("123", result);
 	}
 
+	@Test
+	public void shouldNotAddContentTypeByDefault() throws Exception{
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		Message<?> result = transformer.transform(new GenericMessage<Integer>(123));
+		assertFalse(result.getHeaders().containsKey("content-type"));
+		
+	}
+	
+	@Test
+	public void shouldAddContentTypeIfEnabled() throws Exception{
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setSetContentType(true);
+		Message<?> result = transformer.transform(new GenericMessage<Integer>(123));
+		assertTrue(result.getHeaders().containsKey("content-type"));
+		assertEquals("application/json", result.getHeaders().get("content-type"));
+	}
 	@Test
 	public void objectPayload() throws Exception {
 		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();

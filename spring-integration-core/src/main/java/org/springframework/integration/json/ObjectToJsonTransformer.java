@@ -17,21 +17,27 @@
 package org.springframework.integration.json;
 
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.codehaus.jackson.map.ObjectMapper;
-
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
+import org.springframework.integration.Message;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
 
 /**
  * Transformer implementation that converts a payload instance into a JSON string representation.
  *
  * @author Mark Fisher
+ * @author James Carr <james.r.carr@gmail.com>
  * @since 2.0
  */
-public class ObjectToJsonTransformer extends AbstractPayloadTransformer<Object, String> {
-
+public class ObjectToJsonTransformer extends AbstractTransformer {
+	private static final String JSON_CONTENT_TYPE = "application/json";
 	private final ObjectMapper objectMapper;
+	private volatile boolean setContentType = false;
 
 
 	public ObjectToJsonTransformer(ObjectMapper objectMapper) {
@@ -48,6 +54,22 @@ public class ObjectToJsonTransformer extends AbstractPayloadTransformer<Object, 
 		StringWriter writer = new StringWriter();
 		this.objectMapper.writeValue(writer, payload);
 		return writer.toString();
+	}
+
+	public void setSetContentType(boolean contentTypeShouldBePopulated) {
+		this.setContentType = contentTypeShouldBePopulated;
+		
+	}
+
+	@Override
+	protected Object doTransform(Message<?> message) throws Exception {
+		MessageBuilder<?> builder = MessageBuilder
+				.withPayload(transformPayload(message.getPayload()))
+				.copyHeaders(message.getHeaders());
+		if(setContentType){
+			builder.setHeader("content-type", JSON_CONTENT_TYPE);
+		}
+		return builder.build();
 	}
 
 }
