@@ -1,4 +1,6 @@
 http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting-2.1.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-2.1.xsd
-http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-2.1.xsd
+http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting-2.2.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-2.2.xsd
+http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-2.2.xsd
 http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-2.1.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-core-2.1.xsd
-http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-core-2.1.xsd
+http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-2.2.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-core-2.2.xsd
+http\://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core.xsd=org/springframework/integration/scripting/config/spring-integration-scripting-core-2.2.xsd

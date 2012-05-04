@@ -42,7 +42,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHandler {
 
-	private static final String VERSION = "2.1";
+	private static final String VERSION = "2.2";
 
 	public static final String CHANNEL_INITIALIZER_BEAN_NAME = "channelInitializer";
 

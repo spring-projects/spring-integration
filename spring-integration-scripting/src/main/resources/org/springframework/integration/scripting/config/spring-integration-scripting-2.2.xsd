@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/scripting"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.springframework.org/schema/integration/scripting"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:include
+		schemaLocation="http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-2.2.xsd" />
+
+	<xsd:element name="script">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an inner bean that will generate a
+				JSR 223 compliant script.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="Jsr223Script">
+		<xsd:complexContent>
+			<xsd:extension base="ScriptType">
+				<xsd:attribute name="lang" use="required">
+					<xsd:annotation>
+						<xsd:documentation>
+							The script language or JSR 223 scripting engine name
+					</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="return" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							The script variable to return as a result of the evaluation (Optional).
+					</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+
+</xsd:schema>
