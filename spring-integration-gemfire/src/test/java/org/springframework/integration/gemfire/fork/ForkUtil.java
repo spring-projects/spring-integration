@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -59,27 +60,14 @@ public class ForkUtil {
 		final Process p = proc;
 
 		final BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		final BufferedReader ebr = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 		final AtomicBoolean run = new AtomicBoolean(true);
 
-		Thread reader = new Thread(new Runnable() {
-
-			public void run() {
-				try {
-					String line = null;
-					do {
-						while ((line = br.readLine()) != null) {
-							System.out.println("[FORK] " + line);
-						}
-						Thread.sleep(200);
-					} while (run.get());
-				}
-				catch (Exception ex) {
-					// ignore and exit
-				}
-			}
-		});
+		Thread reader = copyStdXxx(br, run, System.out);
+		Thread errReader = copyStdXxx(ebr, run, System.err);
 
 		reader.start();
+		errReader.start();
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
@@ -100,6 +88,27 @@ public class ForkUtil {
 		});
 
 		return proc.getOutputStream();
+	}
+
+	private static Thread copyStdXxx(final BufferedReader br,
+			final AtomicBoolean run, final PrintStream out) {
+		Thread reader = new Thread(new Runnable() {
+
+			public void run() {
+				try {
+					String line = null;
+					do {
+						while ((line = br.readLine()) != null) {
+							out.println("[FORK] " + line);
+						}
+					} while (run.get());
+				}
+				catch (Exception ex) {
+					// ignore and exit
+				}
+			}
+		});
+		return reader;
 	}
 	
 	public static OutputStream cacheServer() {
