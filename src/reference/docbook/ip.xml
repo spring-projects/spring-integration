@@ -329,6 +329,28 @@
       This default behavior can be overridden by setting the <literal>lookup-host</literal>
       attribute to "false".
     </para>
+    <para>
+        <note>
+            <title>TCP Caching Client Connection Factory</title>
+            <para>
+              As noted above, TCP sockets cam be 'single-use' (one request/response)
+              or shared. Shared sockets do not perform well with outbound gateways,
+              in high-volume environments,
+              because the socket can only process one request/response at a time.
+            </para>
+            <para>
+              To improve performance, users could use collaborating channel adapters
+              instead of gateways, but that requires application-level message
+              correlation. See <xref linkend="ip-correlation" />for more information.
+            </para>
+            <para>
+              Spring Integration 2.2 introduced a caching client connection factory,
+              where a pool of shared sockets is used, allowing a gateway to
+              process multiple concurrent requests with a pool of shared
+              connections.
+            </para>
+        </note>
+    </para>
   </section>
   <section id="ip-interceptors">
     <title>TCP Connection Interceptors</title>
@@ -639,6 +661,11 @@
     <para>
      Therefore, for high-volume messages, consider using a collaborating pair of
      channel adapters. However, you will need to provide collaboration logic.
+    </para>
+    <para>
+     Another solution, introduced in Spring Integration 2.2, is to use a
+     <classname>CachingClientConnectionFactory</classname>, which allows
+     the use of a pool of shared connections.
     </para>
    </section>
    <section>
