@@ -17,7 +17,6 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.net.Socket;
-import java.net.SocketException;
 
 /**
  * Abstract class for client connection factories; client connection factories
@@ -72,20 +71,6 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		TcpListener listener = this.getListener();
 		if (listener != null) {
 			connection.registerListener(listener);
-		}
-		if (listener != null || this.isSingleUse()) {
-			if (this.getSoTimeout() < 0) {
-				try {
-					/* Default so-timeout, when we have a collaborating inbound adapter,
-					 * may go to infinity in a future release; currently it's 10 seconds.
-					 * While it makes sense in a request/reply scenario, it doesn't
-					 * really for completely asynchronous communication between peers.
-					 */
-					socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
-				} catch (SocketException e) {
-					logger.error("Error setting default reply timeout", e);
-				}
-			}
 		}
 		TcpSender sender = this.getSender();
 		if (sender != null) {
