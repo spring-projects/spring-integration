@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,20 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.Ordered;
+import org.springframework.expression.spel.SpelEvaluationException;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,19 +38,48 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class LoggingChannelAdapterParserTests {
 
-	@Autowired
-	private LoggingHandler loggingHandler;
+	@Autowired @Qualifier("logger.adapter")
+	private EventDrivenConsumer loggerConsumer;
+
+	@Autowired @Qualifier("loggerWithExpression.adapter")
+	private EventDrivenConsumer loggerWithExpression;
 
 
 	@Test
-	public void verifyLoggerName() {
+	public void verifyConfig() {
+		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerConsumer, "handler", LoggingHandler.class);
 		assertEquals("org.springframework.integration.test.logger", TestUtils.getPropertyValue(loggingHandler, "messageLogger.name"));
+		assertEquals(1, TestUtils.getPropertyValue(loggingHandler, "order"));
+		assertEquals("WARN", TestUtils.getPropertyValue(loggingHandler, "level").toString());
+		assertEquals("#root", TestUtils.getPropertyValue(loggingHandler, "expression.expression"));
+	}
+
+	@Test
+	public void verifyExpressionAndOtherDefaultConfig() {
+		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerWithExpression, "handler", LoggingHandler.class);
+		assertEquals("org.springframework.integration.handler.LoggingHandler", TestUtils.getPropertyValue(loggingHandler, "messageLogger.name"));
+		assertEquals(Ordered.LOWEST_PRECEDENCE, TestUtils.getPropertyValue(loggingHandler, "order"));
+		assertEquals("INFO", TestUtils.getPropertyValue(loggingHandler, "level").toString());
+		assertEquals("payload.foo", TestUtils.getPropertyValue(loggingHandler, "expression.expression"));
+	}
+
+	@Test
+	public void failConfigLogFullMessageAndExpression() {
+		try {
+			new ClassPathXmlApplicationContext("LoggingChannelAdapterParserTests-fail-context.xml", this.getClass());
+			fail("BeanDefinitionParsingException expected");
+		}
+		catch (BeansException e) {
+			assertTrue(e instanceof BeanDefinitionParsingException);
+			assertTrue(e.getMessage().contains("The 'expression' and 'log-full-message' attributes are mutually exclusive."));
+		}
 	}
 
 }
