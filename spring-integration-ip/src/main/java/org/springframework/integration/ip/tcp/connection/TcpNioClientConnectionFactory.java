@@ -44,7 +44,7 @@ public class TcpNioClientConnectionFactory extends
 	
 	private Selector selector;
 	
-	private Map<SocketChannel, TcpNioConnection> connections = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
+	private Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
 	
 	private BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
 
@@ -93,7 +93,7 @@ public class TcpNioClientConnectionFactory extends
 		if (this.getSoTimeout() > 0) {
 			connection.setLastRead(System.currentTimeMillis());
 		}
-		this.connections.put(socketChannel, connection);
+		this.channelMap.put(socketChannel, connection);
 		newChannels.add(socketChannel);
 		selector.wakeup();
 		return wrappedConnection;
@@ -134,14 +134,14 @@ public class TcpNioClientConnectionFactory extends
 				}
 				while ((newChannel = newChannels.poll()) != null) {
 					try {
-						newChannel.register(this.selector, SelectionKey.OP_READ, connections.get(newChannel));
+						newChannel.register(this.selector, SelectionKey.OP_READ, channelMap.get(newChannel));
 					} catch (ClosedChannelException cce) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Channel closed before registering with selector for reading");
 						}
 					}
 				}
-				this.processNioSelections(selectionCount, selector, null, this.connections);
+				this.processNioSelections(selectionCount, selector, null, this.channelMap);
 			}
 		} catch (Exception e) {
 			logger.error("Exception in read selector thread", e);
@@ -163,7 +163,7 @@ public class TcpNioClientConnectionFactory extends
 	 * @return the connections
 	 */
 	protected Map<SocketChannel, TcpNioConnection> getConnections() {
-		return connections;
+		return channelMap;
 	}
 
 	/**
