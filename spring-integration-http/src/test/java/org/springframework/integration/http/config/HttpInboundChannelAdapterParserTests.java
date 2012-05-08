@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,13 +43,12 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.annotation.ExpectedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
@@ -177,9 +175,8 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("clinton", message.getHeaders().get("lname"));
 	}
 	
-	@Test
+	@Test(expected=SpelEvaluationException.class)
 	// INT-1677
-	@ExpectedException(SpelEvaluationException.class)
 	public void withNameAndExpressionsNoPath() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
