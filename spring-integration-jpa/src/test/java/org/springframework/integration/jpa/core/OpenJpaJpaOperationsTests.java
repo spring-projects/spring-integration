@@ -31,6 +31,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
+ * Tests the functionality of {@link JpaOperations} and {@link DefaultJpaOperations}
+ * using the OpenJPA persistence provider.
+ *
+ * If you want to run these tests from your IDE, please ensure that you execute
+ * the tests using a <i>javaagent</i>:
+ *
+ * <pre>
+ * {@code
+ * -javaagent:/<path_to>/openjpa-2.1.1.jar
+ * }
+ * </pre>
+ *
  * @author Gunnar Hillert
  * @since 2.2
  *

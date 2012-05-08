@@ -40,13 +40,11 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultJpaOperations extends AbstractJpaOperations {
 
-	/** {@inheritDoc} */
 	public void delete(Object entity) {
 		Assert.notNull(entity, "The entity must not be null!");
 		entityManager.remove(entity);
 	}
 
-	/** {@inheritDoc} */
 	public void deleteInBatch(Iterable<?> entities) {
 
 		Assert.notNull(entities, "entities must not be null.");
@@ -77,44 +75,34 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	}
 
-	/** {@inheritDoc} */
 	public int executeUpdate(String updateQuery,  ParameterSource source) {
 		Query query = entityManager.createQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
-	/** {@inheritDoc} */
 	public int executeUpdateWithNamedQuery(String updateQuery, ParameterSource source) {
 		Query query = entityManager.createNamedQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
-	/** {@inheritDoc} */
 	public int executeUpdateWithNativeQuery(String updateQuery, ParameterSource source) {
 		Query query = entityManager.createNativeQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
-	/** {@inheritDoc} */
 	public <T> T find(Class<T> entityType, Object id) {
 		return entityManager.find(entityType, id);
 	}
 
-	/**
-	 * @param query
-	 * @param source
-	 * @return
-	 */
 	private Query getQuery(String queryString, ParameterSource source) {
 		Query query = entityManager.createQuery(queryString);
 		setParametersIfRequired(queryString, source, query);
 		return query;
 	}
 
-	/** {@inheritDoc} */
 	public List<?> getResultListForClass(Class<?> entityClass, int maxNumberOfResults) {
 
 		final String entityName = JpaUtils.getEntityName(entityManager, entityClass);
@@ -128,7 +116,6 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	}
 
-	/** {@inheritDoc} */
 	public List<?> getResultListForNamedQuery(String selectNamedQuery,
 			ParameterSource parameterSource, int maxNumberOfResults) {
 
@@ -143,7 +130,6 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	}
 
-	/** {@inheritDoc} */
 	public List<?> getResultListForNativeQuery(String selectQuery, Class<?> entityClass,
 			ParameterSource parameterSource, int maxNumberOfResults) {
 
@@ -164,12 +150,10 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		return query.getResultList();
 	}
 
-	/** {@inheritDoc} */
 	public List<?> getResultListForQuery(String query, ParameterSource source) {
 			return getResultListForQuery(query,source, 0);
 	}
 
-	/** {@inheritDoc} */
 	public List<?> getResultListForQuery(String queryString, ParameterSource source,
 			int maxNumberOfResults) {
 
@@ -182,29 +166,23 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		return query.getResultList();
 	}
 
-	/** {@inheritDoc} */
 	public Object getSingleResultForQuery(String queryString, ParameterSource source) {
 		Query query = getQuery(queryString,source);
 		return query.getSingleResult();
 	}
 
-	/** {@inheritDoc} */
 	public Object merge(Object entity) {
 		return entityManager.merge(entity);
 	}
 
-	/** {@inheritDoc} */
 	public void persist(Object entity) {
 		entityManager.persist(entity);
 	}
 
 	/**
-	 * Given a JPA QL, this methods gets all the parameters defined in this query and
+	 * Given a JPQL query, this method gets all parameters defined in this query and
 	 * use the {@link JPAQLParameterSource} to find their values and set them
 	 *
-	 * @param queryString
-	 * @param source
-	 * @param query
 	 */
 	private void setParametersIfRequired(String queryString,
 			ParameterSource source, Query query) {

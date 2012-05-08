@@ -22,6 +22,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
+ * Tests the functionality of {@link JpaOperations} and {@link DefaultJpaOperations}
+ * using the EclipseLink persistence provider.
+ *
+ * If you want to run these tests from your IDE, please ensure that you execute
+ * the tests using a <i>javaagent</i>:
+ *
+ * <pre>
+ * {@code
+ * -javaagent:/home/<user>/.m2/repository/org/springframework/spring-instrument/3.1.1.RELEASE/spring-instrument-3.1.1.RELEASE.jar
+ * }
+ * </pre>
+ *
  * @author Gunnar Hillert
  * @since 2.2
  *

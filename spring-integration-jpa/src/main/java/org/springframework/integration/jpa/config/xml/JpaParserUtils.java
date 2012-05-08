@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
@@ -184,9 +185,9 @@ public final class JpaParserUtils {
 	/**
 	 * Parse a "transactional" element and configure a TransactionInterceptor with "transactionManager"
 	 * and other "transactionDefinition" properties. This advisor will be applied on the Polling Task proxy
-	 * (see {@link org.springframework.integration.endpoint.AbstractPollingEndpoint}).
+	 * (see {@link AbstractPollingEndpoint}).
 	 *
-	 * FIXME Copied from {@link org.springframework.integration.config.xml.PollerParser.PollerParser} - should be refactored.
+	 * FIXME Copied from {@link org.springframework.integration.config.xml.PollerParser} - should be refactored.
 	 */
 	public static BeanDefinition configureTransactionAttributes(Element txElement) {
 		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);

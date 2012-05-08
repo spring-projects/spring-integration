@@ -458,8 +458,8 @@
 					<![CDATA[
 					The reference to the JPA Entity Manager Factory
 					that will be used by the adapter to create the EntityManager.
-					Either this attribute or the enityManager attribute must be
-					provided.
+					Either this attribute or the 'enity-manager' attribute or the
+					'jpa-operations' attribute must be provided.
 					]]>
 				</xsd:documentation>
 				<xsd:appinfo>
@@ -474,8 +474,8 @@
 				<xsd:documentation>
 				<![CDATA[
 					The reference to the JPA Entity Manager that will be used by
-					the adapter. Either this attribute or the enityManager
-					attribute must be provided.
+					the adapter. Either this attribute or the 'enity-manager-factory'
+					attribute or the 'jpa-operations' attribute must be provided.
 					]]>
 				</xsd:documentation>
 				<xsd:appinfo>
@@ -485,28 +485,17 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="transaction-manager-ref"  type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					<![CDATA[
-					The reference to the PlatformTransactionManager.
-					]]>
-				</xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="jpa-operations"  type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 					<![CDATA[
+					Reference to a bean implementing the JpaOperations interface.
+
 					In rare cases it might be advisable to provide your own implementation
-					of the JpaOperations interface. As JpaOperations wraps the necessay
-					datasource, the JPA Entity Manager or JPA Entity Manager Factory must not
-					be provided if this attribute is used.
+					of the JpaOperations interface, instead of relying on the
+					default implementation. As JpaOperations wraps the necessay
+					datasource; the JPA Entity Manager or JPA Entity Manager Factory
+					must not be provided if the 'jpa-operations' attribute is used.
 					]]>
 				</xsd:documentation>
 				<xsd:appinfo>

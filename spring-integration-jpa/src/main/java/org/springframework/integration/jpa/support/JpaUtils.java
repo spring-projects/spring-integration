@@ -28,7 +28,15 @@ import javax.persistence.Query;
 import org.springframework.util.Assert;
 
 /**
+ * This Utility contains a sub-set of utility methods from the Spring Data JPA Project.
+ * As the Spring Integration JPA adapter uses only these utility methods, they
+ * were copied into this class in order to prevent having to declare a dependency
+ * on Spring Data JPA.
+ *
+ *
+ * @author Oliver Gierke
  * @author Gunnar Hillert
+ *
  * @since 2.2
  *
  */
@@ -73,8 +81,6 @@ public final class JpaUtils {
 	/**
 	 * Resolves the alias for the entity to be retrieved from the given JPA query.
 	 *
-	 * @param query
-	 * @return
 	 */
 	public static String detectAlias(String query) {
 
@@ -87,11 +93,6 @@ public final class JpaUtils {
 	 * Creates a where-clause referencing the given entities and appends it to the given query string. Binds the given
 	 * entities to the query.
 	 *
-	 * @param <T>
-	 * @param queryString
-	 * @param entities
-	 * @param entityManager
-	 * @return Return the Query
 	 */
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
 
@@ -136,10 +137,6 @@ public final class JpaUtils {
 
 	/**
 	 * Returns the query string for the given class name.
-	 *
-	 * @param template
-	 * @param entityName
-	 * @return
 	 */
 	public static String getQueryString(String template, String entityName) {
 
