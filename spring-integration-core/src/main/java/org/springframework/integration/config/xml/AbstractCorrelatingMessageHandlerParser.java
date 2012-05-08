@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,16 +12,14 @@
  */
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.util.StringUtils;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Element;
 
 /**
  * Base class for parsers that create an instance of {@link AbstractCorrelatingMessageHandler}
@@ -31,8 +29,6 @@ import org.w3c.dom.Element;
  *
  */
 public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractConsumerEndpointParser {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private static final String CORRELATION_STRATEGY_REF_ATTRIBUTE = "correlation-strategy";
 
@@ -72,11 +68,8 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		final boolean hasExpression = StringUtils.hasText(expression);
 
 		if (hasBeanRef && hasExpression) {
-			this.logger.warn("Exactly one of the '" + beanRefAttribute + "' or '" + expressionAttribute +
-					"' attribute is allowed. The '" + expressionAttribute +
-					"' is ignored when both are provided." +
-					"NOTE: This is a warning message only, to avoid a breaking change in a point release and should " +
-					"be treated as an error. In a future release this condition will result in the actual exception");
+			parserContext.getReaderContext().error("Exactly one of the '" + beanRefAttribute + "' or '" + expressionAttribute +
+					"' attribute is allowed.", element);
 		}
 
 		BeanMetadataElement adapter = null;
