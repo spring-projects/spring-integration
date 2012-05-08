@@ -155,6 +155,8 @@ public class TcpNioConnectionTests {
 			assertEquals(1, connections.size());
 			connection.close();
 			assertTrue(!connection.isOpen());
+			// force a wakeup of the selector
+			factory.close();
 			int n = 0;
 			while (connections.size() > 0) {
 				Thread.sleep(100);
