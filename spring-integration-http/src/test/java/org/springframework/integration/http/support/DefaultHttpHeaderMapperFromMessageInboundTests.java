@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,11 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -460,7 +461,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterOnly() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
-		ConversionService cs = ConversionServiceFactory.createDefaultConversionService();
+		ConversionService cs = new DefaultConversionService();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);
 		mapper.setBeanFactory(beanFactory);
@@ -481,7 +482,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterWithCustomConverter() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
-		GenericConversionService cs = ConversionServiceFactory.createDefaultConversionService();
+		GenericConversionService cs = new DefaultConversionService();
 		cs.addConverter(new TestClassConverter());
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);
