@@ -7,6 +7,12 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<logging-channel-adapter id="logger" logger-name="org.springframework.integration.test.logger"/>
+	<logging-channel-adapter id="logger"
+							 logger-name="org.springframework.integration.test.logger"
+							 order="1"
+							 level="WARN"
+							 log-full-message="true"/>
+
+	<logging-channel-adapter id="loggerWithExpression" expression="payload.foo"/>
 
 </beans:beans>
