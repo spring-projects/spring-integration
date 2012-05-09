@@ -17,8 +17,6 @@
 package org.springframework.integration.channel;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -38,9 +36,6 @@ public class PriorityChannel extends QueueChannel {
 	private final UpperBound upperBound;
 	
 	private final AtomicLong sequenceCounter = new AtomicLong();
-	
-	private static final String SEQUENCE_HEADER_NAME = "__priorityChannelSequence__";
-
 
 	/**
 	 * Create a channel with the specified queue capacity. If the capacity
@@ -122,8 +117,8 @@ public class PriorityChannel extends QueueChannel {
 			}
 		
 			if (compareResult == 0){
-				Long sequence1 = (Long) message1.getHeaders().get(SEQUENCE_HEADER_NAME);
-				Long sequence2 = (Long) message2.getHeaders().get(SEQUENCE_HEADER_NAME);
+				Long sequence1 = ((MessageWrapper) message1).getSequence();
+				Long sequence2 = ((MessageWrapper) message2).getSequence();
 				compareResult = sequence1.compareTo(sequence2);
 			}
 			return compareResult;
@@ -133,13 +128,11 @@ public class PriorityChannel extends QueueChannel {
 	//we need this because of INT-2508
 	private class MessageWrapper implements Message<Object>{
 		private final Message<?> rootMessage;
-		private final MessageHeaders modifiedHeaders;
+		private final long sequence;
 
 		public MessageWrapper(Message<?> rootMessage){
 			this.rootMessage = rootMessage;
-			Map<String, Object> headersMap = new HashMap<String, Object>(rootMessage.getHeaders());
-			headersMap.put(SEQUENCE_HEADER_NAME, sequenceCounter.incrementAndGet());
-			modifiedHeaders = new MessageHeaders(headersMap);
+			this.sequence = sequenceCounter.incrementAndGet();
 		}
 
 		public Message<?> getRootMessage(){
@@ -147,11 +140,15 @@ public class PriorityChannel extends QueueChannel {
 		}
 
 		public MessageHeaders getHeaders() {			
-			return this.modifiedHeaders;
+			return this.rootMessage.getHeaders();
 		}
 
 		public Object getPayload() {
 			return rootMessage.getPayload();
-		}	
+		}
+		
+		long getSequence(){
+			return this.sequence;
+		}
 	}
 }
