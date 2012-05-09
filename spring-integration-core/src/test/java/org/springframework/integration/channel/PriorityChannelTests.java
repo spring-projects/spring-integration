@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -34,6 +28,12 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
@@ -80,6 +80,27 @@ public class PriorityChannelTests {
 		assertEquals("test:0", channel.receive(0).getPayload());
 		assertEquals("test:-3", channel.receive(0).getPayload());
 		assertEquals("test:-99", channel.receive(0).getPayload());
+	}
+
+	// although this test has no assertions it results in ConcurrentModificationException
+	// if executed before changes for INT-2508
+	@Test
+	public void testPriorityChannelWithConcurrentModification() throws Exception{
+		final PriorityChannel channel = new PriorityChannel();
+		final Message<String> message = new GenericMessage<String>("hello");
+		for (int i = 0; i < 1000; i++) {
+			channel.send(message);
+			new Thread(new Runnable() {
+				public void run() {
+					channel.receive();
+				}
+			}).start();
+			new Thread(new Runnable() {
+				public void run() {
+					message.getHeaders().toString();
+				}
+			}).start();
+		}
 	}
 
 	@Test
