@@ -866,6 +866,16 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specifies the order for invocation when this endpoint is connected as a
+	subscriber to a channel. This is particularly relevant when that channel
+	is using a "failover" dispatching strategy. It has no effect when this
+	endpoint itself is a Polling Consumer for a channel with a queue.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
