@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,9 @@
 package org.springframework.integration.channel;
 
 import java.util.Comparator;
-import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.util.UpperBound;
@@ -38,9 +36,6 @@ public class PriorityChannel extends QueueChannel {
 	private final UpperBound upperBound;
 	
 	private final AtomicLong sequenceCounter = new AtomicLong();
-	
-	private static final String SEQUENCE_HEADER_NAME = "__priorityChannelSequence__";
-
 
 	/**
 	 * Create a channel with the specified queue capacity. If the capacity
@@ -80,26 +75,20 @@ public class PriorityChannel extends QueueChannel {
 		this(0, null);
 	}
 
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (!upperBound.tryAcquire(timeout)) {
 			return false;
 		}
-		Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-		innerMap.put(SEQUENCE_HEADER_NAME, sequenceCounter.incrementAndGet());
+		message = new MessageWrapper(message);
 		return super.doSend(message, 0);
 	}
 
-	@SuppressWarnings({ "rawtypes"})
 	@Override
 	protected Message<?> doReceive(long timeout) {
 		Message<?> message = super.doReceive(timeout);
-
 		if (message != null) {
-			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			innerMap.remove(SEQUENCE_HEADER_NAME);
+			message = ((MessageWrapper)message).getRootMessage();
 			upperBound.release();
 		}
 		return message;
@@ -128,12 +117,38 @@ public class PriorityChannel extends QueueChannel {
 			}
 		
 			if (compareResult == 0){
-				Long sequence1 = (Long) message1.getHeaders().get(SEQUENCE_HEADER_NAME);
-				Long sequence2 = (Long) message2.getHeaders().get(SEQUENCE_HEADER_NAME);
+				Long sequence1 = ((MessageWrapper) message1).getSequence();
+				Long sequence2 = ((MessageWrapper) message2).getSequence();
 				compareResult = sequence1.compareTo(sequence2);
 			}
 			return compareResult;
 		}
 	}
+	
+	//we need this because of INT-2508
+	private class MessageWrapper implements Message<Object>{
+		private final Message<?> rootMessage;
+		private final long sequence;
 
+		public MessageWrapper(Message<?> rootMessage){
+			this.rootMessage = rootMessage;
+			this.sequence = sequenceCounter.incrementAndGet();
+		}
+
+		public Message<?> getRootMessage(){
+			return this.rootMessage;
+		}
+
+		public MessageHeaders getHeaders() {			
+			return this.rootMessage.getHeaders();
+		}
+
+		public Object getPayload() {
+			return rootMessage.getPayload();
+		}
+		
+		long getSequence(){
+			return this.sequence;
+		}
+	}
 }
