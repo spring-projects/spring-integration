@@ -55,6 +55,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
@@ -222,10 +223,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
+		Assert.notNull(applicationContext, "ApplicationContext may not be null");
 		this.applicationContext = applicationContext;
 	}
 
 	public void setShutdownExecutor(Executor shutdownExecutor) {
+		Assert.notNull(shutdownExecutor, "Shutdown Executor may not be null");
 		this.shutdownExecutor = shutdownExecutor;
 	}
 
@@ -494,7 +497,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 */
 	public void run() {
 		try {
-			this.stopOtherActiveComponents();
+			this.stopOrderlyShutdownCapableComponents();
 			this.stopActiveChannels();
 			this.stopSchedulers();
 			if (System.currentTimeMillis() > this.shutdownDeadline) {
@@ -582,12 +585,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 			ExecutorService executorService = scheduler.getScheduledExecutor();
 			executorServices.add(executorService);
-			if (this.shutdownForced) {
-				executorService.shutdownNow();
-			}
-			else {
-				executorService.shutdown();
-			}
+			doShutdownExecutorService(executorService);
 		}
 		waitForExecutors(executorServices);
 		logger.debug("Stopped schedulers");
@@ -605,18 +603,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			ThreadPoolTaskExecutor executor = entry.getValue();
 			if (executor == this.shutdownExecutor) {
 				logger.debug("Skipping shutdown of shutdown executor");
-				continue;
-			}
-			if (logger.isInfoEnabled()) {
-				logger.info("Stopping executor " + executor.getThreadNamePrefix());
-			}
-			ExecutorService executorService = executor.getThreadPoolExecutor();
-			executorServices.add(executorService);
-			if (this.shutdownForced) {
-				executorService.shutdownNow();
 			}
 			else {
-				executorService.shutdown();
+				if (logger.isInfoEnabled()) {
+					logger.info("Stopping executor " + executor.getThreadNamePrefix());
+				}
+				ExecutorService executorService = executor.getThreadPoolExecutor();
+				executorServices.add(executorService);
+				doShutdownExecutorService(executorService);
 			}
 		}
 		waitForExecutors(executorServices);
@@ -633,41 +627,25 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				.getBeansOfType(ExecutorService.class);
 		for (Entry<String, ExecutorService> entry : nonSpringExecutors.entrySet()) {
 			ExecutorService executorService = entry.getValue();
-			if (logger.isInfoEnabled()) {
-				logger.info("Stopping executor service " + executorService);
-			}
-			executorServices.add(executorService);
-			if (this.shutdownForced) {
-				executorService.shutdownNow();
+			if (!(executorService instanceof ExecutorServiceAdapter)) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Stopping executor service " + executorService);
+				}
+				executorServices.add(executorService);
+				doShutdownExecutorService(executorService);
 			}
 			else {
-				executorService.shutdown();
+				if (logger.isDebugEnabled()) {
+					logger.debug("Ignoring ExecutorServiceAdapter");
+				}
 			}
 		}
 		waitForExecutors(executorServices);
 		logger.debug("Stopped other executors");
 	}
 
-	private void waitForExecutors(List<ExecutorService> executorServices) {
-		for (ExecutorService executorService : executorServices) {
-			try {
-				if (!executorService.awaitTermination(this.shutdownDeadline
-						- System.currentTimeMillis(), TimeUnit.MILLISECONDS)) {
-					logger.error("Executor service " + executorService + " failed to terminate");
-				}
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				logger.error("Interrupted while shutting down executor service " + executorService);
-				throw new MessagingException("Interrupted while shutting down", e);
-			}
-			if (System.currentTimeMillis() > this.shutdownDeadline) {
-				logger.error("Timed out before waiting for all executor services");
-			}
-		}
-	}
-
 	@ManagedOperation
-	public void stopOtherActiveComponents() {
+	public void stopOrderlyShutdownCapableComponents() {
 		logger.debug("Stopping OrderlyShutdownCapable components");
 		Map<String, OrderlyShutdownCapable> candidates = this.applicationContext
 				.getBeansOfType(OrderlyShutdownCapable.class);
@@ -771,6 +749,33 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		if (!exposedBeans.isEmpty()) {
 			super.setBeans(exposedBeans);
 			super.registerBeans();
+		}
+	}
+
+	private void doShutdownExecutorService(ExecutorService executorService) {
+		if (this.shutdownForced) {
+			executorService.shutdownNow();
+		}
+		else {
+			executorService.shutdown();
+		}
+	}
+
+	private void waitForExecutors(List<ExecutorService> executorServices) {
+		for (ExecutorService executorService : executorServices) {
+			try {
+				if (!executorService.awaitTermination(this.shutdownDeadline
+						- System.currentTimeMillis(), TimeUnit.MILLISECONDS)) {
+					logger.error("Executor service " + executorService + " failed to terminate");
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				logger.error("Interrupted while shutting down executor service " + executorService);
+				throw new MessagingException("Interrupted while shutting down", e);
+			}
+			if (System.currentTimeMillis() > this.shutdownDeadline) {
+				logger.error("Timed out before waiting for all executor services");
+			}
 		}
 	}
 

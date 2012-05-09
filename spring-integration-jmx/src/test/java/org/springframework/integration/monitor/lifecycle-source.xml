@@ -31,4 +31,8 @@
 
 	<bean id="otherActiveComponent" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$OtherActiveComponent" />
 
+	<bean id="ignoreWrappedExecutor" class="org.springframework.core.task.support.ExecutorServiceAdapter">
+		<constructor-arg ref="someExecutor" />
+	</bean>
+
 </beans>
