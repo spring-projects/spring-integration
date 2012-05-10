@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,8 +13,10 @@
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -28,10 +30,14 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.core.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 
@@ -107,6 +113,28 @@ public class MBeanExporterIntegrationTests {
 		}
 		// Lifecycle method name
 		assertEquals("start", startName);
+		assertTrue((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null));
+		messageChannelsMonitor.stopActiveComponents(false, 3000);
+		assertFalse((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null));
+		ActiveChannel activeChannel = context.getBean("activeChannel", ActiveChannel.class);
+		assertTrue(activeChannel.isStopCalled());
+		OtherActiveComponent otherActiveComponent = context.getBean(OtherActiveComponent.class);
+		assertTrue(otherActiveComponent.isStopCalled());
+	}
+
+	@Test
+	public void testSelfDestruction() throws Exception {
+		context = new GenericXmlApplicationContext(getClass(), "self-destruction-context.xml");
+		SourcePollingChannelAdapter adapter = context.getBean(SourcePollingChannelAdapter.class);
+		adapter.start();
+		int n = 0;
+		while (adapter.isRunning()) {
+			n += 10;
+			if (n > 10000) {
+				fail("Adapter failed to stop");
+			}
+			Thread.sleep(10);
+		}
 	}
 
 	@Test
@@ -276,4 +304,55 @@ public class MBeanExporterIntegrationTests {
 		}
 	}
 
+	public static interface ActiveChannel {
+		boolean isStopCalled();
+	}
+
+	public static class ActiveChannelImpl implements MessageChannel, Lifecycle, ActiveChannel {
+
+		private boolean stopCalled;
+
+		public boolean send(Message<?> message) {
+			return false;
+		}
+
+		public boolean send(Message<?> message, long timeout) {
+			return false;
+		}
+
+		public void start() {
+		}
+
+		public void stop() {
+			this.stopCalled = true;
+		}
+
+		public boolean isRunning() {
+			return false;
+		}
+
+		public boolean isStopCalled() {
+			return this.stopCalled;
+		}
+	}
+
+	public static class OtherActiveComponent implements OrderlyShutdownCapable, Lifecycle {
+
+		private boolean stopCalled;
+
+		public void start() {
+		}
+
+		public void stop() {
+			this.stopCalled = true;
+		}
+
+		public boolean isRunning() {
+			return false;
+		}
+
+		public boolean isStopCalled() {
+			return this.stopCalled;
+		}
+	}
 }

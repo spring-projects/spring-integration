@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.core.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -34,9 +35,11 @@ import org.springframework.util.Assert;
  * Spring Integration Messages, and sends the results to a Message Channel.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
-public class AmqpInboundChannelAdapter extends MessageProducerSupport {
+public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
+		OrderlyShutdownCapable {
 
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
