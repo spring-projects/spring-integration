@@ -16,14 +16,12 @@
 
 package org.springframework.integration.file.config;
 
-import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'file'
@@ -38,30 +36,8 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder handlerBuilder = FileWritingMessageHandlerBeanDefinitionBuilder.configure(element, "", parserContext);
-		if (handlerBuilder != null){
-			String remoteFileNameGenerator = element.getAttribute("filename-generator");
-			String remoteFileNameGeneratorExpression = element.getAttribute("filename-generator-expression");
-			boolean hasRemoteFileNameGenerator = StringUtils.hasText(remoteFileNameGenerator);
-			boolean hasRemoteFileNameGeneratorExpression = StringUtils.hasText(remoteFileNameGeneratorExpression);
-			if (hasRemoteFileNameGenerator || hasRemoteFileNameGeneratorExpression) {
-				if (hasRemoteFileNameGenerator && hasRemoteFileNameGeneratorExpression) {
-					parserContext.getReaderContext().error("at most one of 'filename-generator-expression' or 'filename-generator' " +
-							"is allowed on file outbound adapter/gateway", element);
-				}
-				if (hasRemoteFileNameGenerator) {
-					handlerBuilder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
-				}
-				else {
-					BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder
-							                                     .genericBeanDefinition(DefaultFileNameGenerator.class);
-					fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileNameGeneratorExpression);
-					handlerBuilder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
-				}
-			}
-		}
-		
-		return (handlerBuilder != null ? handlerBuilder.getBeanDefinition() : null);
+		BeanDefinitionBuilder handlerBuilder = FileWritingMessageHandlerBeanDefinitionBuilder.configure(element, false, parserContext);
+		return handlerBuilder.getBeanDefinition();
 	}
 
 }

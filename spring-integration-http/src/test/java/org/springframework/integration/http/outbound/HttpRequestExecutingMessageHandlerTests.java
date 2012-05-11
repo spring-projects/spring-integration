@@ -649,7 +649,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundChannelAdapterWithinChain", MessageChannel.class);
 		channel.send(MessageBuilder.withPayload("test").build());
-//		It's just enough if it was sended sacsefully from chain without any failures
+//		It's just enough if it was sent successfully from chain without any failures
 	}
 
 	public static class City{
@@ -664,7 +664,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 	private static class MockRestTemplate extends RestTemplate {
 
-		protected final AtomicReference<HttpEntity<?>> lastRequestEntity = new AtomicReference<HttpEntity<?>>();
+		private final AtomicReference<HttpEntity<?>> lastRequestEntity = new AtomicReference<HttpEntity<?>>();
 
 		@Override
 		public <T> ResponseEntity<T> exchange(String url, HttpMethod method, HttpEntity<?> requestEntity,
