@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <jdbc:embedded-database id="dataSource" type="H2"/>
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS" >
+        <jdbc:script location="classpath:H2-DropTables.sql" />
+        <jdbc:script location="classpath:H2-CreateTables.sql" />
+        <jdbc:script location="classpath:H2-PopulateData.sql" />
+    </jdbc:initialize-database>
+
+	<bean id="lc"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="jpaVendorAdapter">
+	        <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" >
+	            <property name="showSql" value="true"/>
+	        </bean>
+        </property>
+	</bean>
+
+	<bean id="em"
+        class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
+        <property name="entityManagerFactory" ref="lc" />
+    </bean>
+
+
+	<!-- Define the JPA transaction mgr -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<constructor-arg ref="lc" />
+	</bean>
+
+<!--  -->
+
+    <int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" method="receive" />
+
+    <bean id="consumer" class="org.springframework.integration.jpa.test.Consumer" />
+
+    <bean id="testtrigger" class="org.springframework.integration.jpa.test.TestTrigger" />
+
+    <int:poller id="defaultPoller" default="true" fixed-rate="10000" />
+
+    <int:poller id="jpaPoller" trigger="testtrigger">
+        <int:transactional transaction-manager="transactionManager"/>
+    </int:poller>
+</beans>

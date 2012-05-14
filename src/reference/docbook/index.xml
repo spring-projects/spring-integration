@@ -140,6 +140,7 @@
       <xi:include href="./http.xml"/>
       <xi:include href="./ip.xml"/>
       <xi:include href="./jdbc.xml"/>
+      <xi:include href="./jpa.xml"/>
       <xi:include href="./jms.xml"/>
       <xi:include href="./mail.xml"/>
       <xi:include href="./mongodb.xml"/>

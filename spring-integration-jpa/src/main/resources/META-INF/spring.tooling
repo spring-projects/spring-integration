@@ -1,0 +1,4 @@
+# Tooling related information for the integration jpa namespace
+http\://www.springframework.org/schema/integration/jpa@name=integration JPA Namespace
+http\://www.springframework.org/schema/integration/jpa@prefix=int-jpa
+http\://www.springframework.org/schema/integration/jpa@icon=org/springframework/integration/jdbc/config/xml/spring-integration-jpa.gif
