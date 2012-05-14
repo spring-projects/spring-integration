@@ -18,6 +18,7 @@ package org.springframework.integration.amqp;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.connection.Connection;
@@ -25,6 +26,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Command;
 import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.FlowListener;
@@ -47,6 +49,7 @@ import com.rabbitmq.client.AMQP.Tx.RollbackOk;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class StubRabbitConnectionFactory implements ConnectionFactory {
@@ -132,24 +135,29 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public void abort(int closeCode, String closeMessage) throws IOException {
 		}
 
+		@SuppressWarnings("unused")
 		public ReturnListener getReturnListener() {
 			return null;
 		}
 
-		public void setReturnListener(ReturnListener listener) {
+		public void addReturnListener(ReturnListener listener) {
 		}
 
+		@SuppressWarnings("unused")
 		public FlowListener getFlowListener() {
 			return null;
 		}
 
+		@SuppressWarnings("unused")
 		public void setFlowListener(FlowListener listener) {
 		}
 
+		@SuppressWarnings("unused")
 		public ConfirmListener getConfirmListener() {
 			return null;
 		}
 
+		@SuppressWarnings("unused")
 		public void setConfirmListener(ConfirmListener listener) {
 		}
 
@@ -354,8 +362,52 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public void asyncRpc(Method method) throws IOException {
 		}
 
-		public Method rpc(Method method) throws IOException {
+		public Command rpc(Method method) throws IOException {
 			return null;
+		}
+
+		public boolean removeReturnListener(ReturnListener listener) {
+			return false;
+		}
+
+		public void clearReturnListeners() {
+		}
+
+		public void addFlowListener(FlowListener listener) {
+		}
+
+		public boolean removeFlowListener(FlowListener listener) {
+			return false;
+		}
+
+		public void clearFlowListeners() {
+		}
+
+		public void addConfirmListener(ConfirmListener listener) {
+		}
+
+		public boolean removeConfirmListener(ConfirmListener listener) {
+			return false;
+		}
+
+		public void clearConfirmListeners() {
+		}
+
+		public boolean waitForConfirms() throws InterruptedException {
+			return false;
+		}
+
+		public void waitForConfirmsOrDie() throws IOException,
+				InterruptedException {
+		}
+
+		public boolean waitForConfirms(long timeout)
+				throws InterruptedException, TimeoutException {
+			return false;
+		}
+
+		public void waitForConfirmsOrDie(long timeout) throws IOException,
+				InterruptedException, TimeoutException {
 		}
 	}
 

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
@@ -70,6 +71,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.TIMESTAMP);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.TYPE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_CORRELATION);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_TO_STACK);
 	}
 
 	/**
@@ -155,6 +158,18 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (StringUtils.hasText(userId)) {
 				headers.put(AmqpHeaders.USER_ID, userId);
 			}
+			Object replyCorrelation = amqpMessageProperties.getHeaders().get(RabbitTemplate.STACKED_CORRELATION_HEADER);
+			if (replyCorrelation instanceof String) {
+				if (StringUtils.hasText((String) replyCorrelation)) {
+					headers.put(AmqpHeaders.SPRING_REPLY_CORRELATION, replyCorrelation);
+				}
+			}
+			Object replyToStack = amqpMessageProperties.getHeaders().get(RabbitTemplate.STACKED_REPLY_TO_HEADER);
+			if (replyToStack instanceof String) {
+				if (StringUtils.hasText((String) replyToStack)) {
+					headers.put(AmqpHeaders.SPRING_REPLY_TO_STACK, replyToStack);
+				}
+			}
 		}
 		catch (Exception e) {
 			if (logger.isWarnEnabled()) {
@@ -169,7 +184,10 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 */
 	@Override
 	protected Map<String, Object> extractUserDefinedHeaders(MessageProperties amqpMessageProperties) {
-		return amqpMessageProperties.getHeaders();
+		Map<String, Object> headers = amqpMessageProperties.getHeaders();
+		headers.remove(RabbitTemplate.STACKED_CORRELATION_HEADER);
+		headers.remove(RabbitTemplate.STACKED_REPLY_TO_HEADER);
+		return headers;
 	}
 
 	/**
@@ -253,6 +271,14 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		String userId = getHeaderIfAvailable(headers, AmqpHeaders.USER_ID, String.class);
 		if (StringUtils.hasText(userId)) {
 			amqpMessageProperties.setUserId(userId);
+		}
+		String replyCorrelation = getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_CORRELATION, String.class);
+		if (StringUtils.hasLength(replyCorrelation)) {
+			amqpMessageProperties.setHeader("spring_reply_correlation", replyCorrelation);
+		}
+		String replyToStack = getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_TO_STACK, String.class);
+		if (StringUtils.hasLength(replyToStack)) {
+			amqpMessageProperties.setHeader("spring_reply_to", replyToStack);
 		}
 	}
 

@@ -18,6 +18,20 @@
               Spring Integration now uses Spring 3.1.
             </para>
         </section>
+        <section id="2.2-amqp-11">
+            <title>Spring-AMQP 1.1</title>
+            <para>
+              Spring Integration now uses Spring AMQP 1.1. This enables several features
+              to be used within a Spring Integration application, including...
+            </para>
+            <itemizedlist>
+              <listitem>A fixed reply queue for the outbound gateway</listitem>
+              <listitem>HA (mirrored) queues</listitem>
+              <listitem>Publisher Confirms</listitem>
+              <listitem>Returned Messages</listitem>
+              <listitem>Support for Dead Letter Exchanges/Dead Letter Queues</listitem>
+            </itemizedlist>
+        </section>
     </section>
 
     <section id="2.2-new-components">

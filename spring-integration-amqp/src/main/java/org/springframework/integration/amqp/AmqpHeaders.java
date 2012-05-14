@@ -72,4 +72,18 @@ public abstract class AmqpHeaders {
 
 	public static final String USER_ID = PREFIX + "userId";
 
+	public static final String SPRING_REPLY_CORRELATION = PREFIX + "springReplyCorrelation";
+
+	public static final String SPRING_REPLY_TO_STACK = PREFIX + "springReplyToStack";
+
+	public static final String PUBLISH_CONFIRM = PREFIX + "publishConfirm";
+
+	public static final String RETURN_REPLY_CODE = PREFIX + "returnReplyCode";
+
+	public static final String RETURN_REPLY_TEXT = PREFIX + "returnReplyText";
+
+	public static final String RETURN_EXCHANGE = PREFIX + "returnExchange";
+
+	public static final String RETURN_ROUTING_KEY = PREFIX + "returnRoutingKey";
+
 }
