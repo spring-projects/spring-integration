@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,7 +203,6 @@ public class MessageGroupQueueTests {
 			public void run() {
 				try {
 					boolean offered = queue.offer(new GenericMessage<String>("Hi-2"), 2, TimeUnit.SECONDS);
-					System.out.println(offered);
 					booleanHolder2.set(offered);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -214,7 +213,6 @@ public class MessageGroupQueueTests {
 			public void run() {
 				try {
 					boolean offered = queue.offer(new GenericMessage<String>("Hi-3"), 2, TimeUnit.SECONDS);
-					System.out.println(offered);
 					booleanHolder3.set(offered);
 				} catch (Exception e) {
 					e.printStackTrace();
