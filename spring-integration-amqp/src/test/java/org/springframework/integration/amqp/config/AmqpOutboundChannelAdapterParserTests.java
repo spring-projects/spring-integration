@@ -98,15 +98,15 @@ public class AmqpOutboundChannelAdapterParserTests {
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
 		Mockito.doAnswer(new Answer<Object>() {
-		      public Object answer(InvocationOnMock invocation) {
-		          Object[] args = invocation.getArguments();
-		          org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
-		          MessageProperties properties = amqpReplyMessage.getMessageProperties();
-		          assertEquals("foo", properties.getHeaders().get("foo"));
-		          assertEquals("foobar", properties.getHeaders().get("foobar"));
-		          assertNull(properties.getHeaders().get("bar"));
-		          return null;
-		      }})
+			public Object answer(InvocationOnMock invocation) {
+				Object[] args = invocation.getArguments();
+				org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
+				MessageProperties properties = amqpReplyMessage.getMessageProperties();
+				assertEquals("foo", properties.getHeaders().get("foo"));
+				assertEquals("foobar", properties.getHeaders().get("foobar"));
+				assertNull(properties.getHeaders().get("bar"));
+				return null;
+			}})
 		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
 				 Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
@@ -173,14 +173,16 @@ public class AmqpOutboundChannelAdapterParserTests {
 				assertEquals("hello", new String(amqpReplyMessage.getBody()));
 				return null;
 			}})
-				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
+				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+						Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 
 		MessageChannel requestChannel = context.getBean("amqpOutboundChannelAdapterWithinChain", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		requestChannel.send(message);
-		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
+		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
+				Mockito.any(CorrelationData.class));
 	}
 
 	@Test

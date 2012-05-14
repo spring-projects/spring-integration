@@ -280,7 +280,11 @@ this list can also be simple patterns to be matched against the header names (e.
                                exchange-name=""]]><co               id="amqp-outbound-channel-adapter-xml-4-co" linkends="amqp-outbound-channel-adapter-xml-4" /><![CDATA[
                                order="1"]]><co                      id="amqp-outbound-channel-adapter-xml-5-co" linkends="amqp-outbound-channel-adapter-xml-5" /><![CDATA[
                                routing-key=""]]><co                 id="amqp-outbound-channel-adapter-xml-6-co" linkends="amqp-outbound-channel-adapter-xml-6" /><![CDATA[
-                               routing-key-expression=""]]><co      id="amqp-outbound-channel-adapter-xml-7-co" linkends="amqp-outbound-channel-adapter-xml-7" /><![CDATA[/>]]>
+                               routing-key-expression=""]]><co      id="amqp-outbound-channel-adapter-xml-7-co" linkends="amqp-outbound-channel-adapter-xml-7" /><![CDATA[
+                               confirm-correlation-expression=""]]><co id="amqp-outbound-channel-adapter-xml-8-co" linkends="amqp-outbound-channel-adapter-xml-8" /><![CDATA[
+                               confirm-ack-channel=""]]><co         id="amqp-outbound-channel-adapter-xml-9-co" linkends="amqp-outbound-channel-adapter-xml-9" /><![CDATA[
+                               confirm-nack-channel=""]]><co        id="amqp-outbound-channel-adapter-xml-10-co" linkends="amqp-outbound-channel-adapter-xml-10" /><![CDATA[
+                               return-channel=""]]><co              id="amqp-outbound-channel-adapter-xml-11-co" linkends="amqp-outbound-channel-adapter-xml-11" /><![CDATA[/>]]>
     </programlisting>
     <para>
         <calloutlist>
@@ -319,6 +323,33 @@ this list can also be simple patterns to be matched against the header names (e.
                 <para>The routing-key to use when sending Messages 
 					  evaluated as an expression on the message (e.g. 
 					  'payload.key'). By default, this will be an empty String.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-8-co" id="amqp-outbound-channel-adapter-xml-8">
+                <para>An expression defining correlation data. When provided, this configures the underlying
+                amqp template to receive publisher confirms. Requires a RabbitTemplate and a
+                CachingConnectionFactory with publisherConfirms enabled. When a publisher confirm
+                is received, it is written to either the confirm-ack-channel, or the confirm-nack-channel,
+                depending on the confirmation type. The payload of the confirm is the correlation data as
+                defined by this expression and the message will have a header 'amqp_publishConfirm' set to
+                true (ack) or false (nack). Examples: "headers['myCorrelationData']", "payload".
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-9-co" id="amqp-outbound-channel-adapter-xml-9">
+                <para>The channel to which positive (ack) publisher confirms are sent; payload is
+                the correlation data defined by the <emphasis>confirm-correlation-expression</emphasis>.
+                <emphasis>Optional, default=nullChannel</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-10-co" id="amqp-outbound-channel-adapter-xml-10">
+                <para>The channel to which negative (nack) publisher confirms are sent; payload is
+                the correlation data defined by the <emphasis>confirm-correlation-expression</emphasis>.
+                <emphasis>Optional, default=nullChannel</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-outbound-channel-adapter-xml-11-co" id="amqp-outbound-channel-adapter-xml-11">
+                <para>The channel to which returned messages are sent. When provided, the underlying amqp template
+                is configured to return undeliverable messages. The message will be constructed from the
+                data received from amqp, with the following additional headers: <emphasis>amqp_returnReplyCode,
+                amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey</emphasis>.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
         </calloutlist>                                    
@@ -387,8 +418,9 @@ this list can also be simple patterns to be matched against the header names (e.
                            exchange-name=""]]><co                   id="amqp-outbound-gateway-adapter-xml-4-co" linkends="amqp-outbound-gateway-adapter-xml-4" /><![CDATA[
                            order="1"]]><co                          id="amqp-outbound-gateway-adapter-xml-5-co" linkends="amqp-outbound-gateway-adapter-xml-5" /><![CDATA[
                            reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6-co" linkends="amqp-outbound-gateway-adapter-xml-6" /><![CDATA[
-                           routing-key=""]]><co                     id="amqp-outbound-gateway-adapter-xml-7-co" linkends="amqp-outbound-gateway-adapter-xml-7" /><![CDATA[                               
-                           routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[/>]]>
+                           routing-key=""]]><co                     id="amqp-outbound-gateway-adapter-xml-7-co" linkends="amqp-outbound-gateway-adapter-xml-7" /><![CDATA[
+                           routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[
+                           return-channel=""]]><co                  id="amqp-outbound-gateway-adapter-xml-9-co" linkends="amqp-outbound-gateway-adapter-xml-9" /><![CDATA[/>]]>
       </programlisting>
       <para>
           <calloutlist>
@@ -434,8 +466,25 @@ this list can also be simple patterns to be matched against the header names (e.
                         By default, this will be an empty String.
                   <emphasis>Optional</emphasis>.</para>
               </callout>
-          </calloutlist>                                    
-      </para> 
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-9-co" id="amqp-outbound-gateway-adapter-xml-9">
+                <para>The channel to which returned messages are sent. When provided, the underlying amqp template
+                is configured to return undeliverable messages. The message will be constructed from the
+                data received from amqp, with the following additional headers: <emphasis>amqp_returnReplyCode,
+                amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey</emphasis>.
+                <emphasis>Optional</emphasis>.</para>
+              </callout>
+          </calloutlist>
+      </para>
+      <note>
+        <para>Prior to Spring Integration 2.2, and Spring AMQP 1.1, the outbound gateway used a new, temporary,
+        reply queue for each request. This is still the default, but now the RabbitTemplate can be configured
+        with a specific queue for replies; headers are added to the outbound message for request/reply correlation.
+        It is important that the consuming application returns these headers unchanged. The headers are
+        <classname>spring_reply_correlation</classname> and <classname>spring_reply_to</classname>. If
+        the consuming application is a Spring Integration application, these headers will be managed
+        automatically, including the case where that application might send a request/reply to a third
+        application using an outbound gateway.</para>
+      </note>
     
   </section>
 

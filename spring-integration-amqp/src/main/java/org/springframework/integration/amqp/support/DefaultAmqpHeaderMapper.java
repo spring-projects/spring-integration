@@ -166,7 +166,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			}
 			Object replyToStack = amqpMessageProperties.getHeaders().get(RabbitTemplate.STACKED_REPLY_TO_HEADER);
 			if (replyToStack instanceof String) {
-				if (StringUtils.hasText((String) replyCorrelation)) {
+				if (StringUtils.hasText((String) replyToStack)) {
 					headers.put(AmqpHeaders.SPRING_REPLY_TO_STACK, replyToStack);
 				}
 			}

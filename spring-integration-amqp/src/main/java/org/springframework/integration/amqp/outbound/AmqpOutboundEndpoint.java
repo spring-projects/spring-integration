@@ -258,7 +258,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		}
 	}
 
-	public static class CorrelationDataWrapper extends CorrelationData {
+	private static class CorrelationDataWrapper extends CorrelationData {
 
 		private final Object userData;
 
