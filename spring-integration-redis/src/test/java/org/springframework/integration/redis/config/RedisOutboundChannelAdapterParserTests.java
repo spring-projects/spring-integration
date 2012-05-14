@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import static junit.framework.Assert.assertEquals;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -67,6 +68,16 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 		Thread.sleep(1000);
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		assertEquals("Hello Redis", receiveChannel.receive(1000).getPayload());
+	}
+
+	@Test //INT-2275
+	@RedisAvailable
+	public void testOutboundChannelAdapterWithinChain() throws Exception{
+		MessageChannel sendChannel = context.getBean("redisOutboudChain", MessageChannel.class);
+		sendChannel.send(new GenericMessage<String>("Hello Redis from chain"));
+		Thread.sleep(1000);
+		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
+		assertEquals("Hello Redis from chain", receiveChannel.receive(1000).getPayload());
 	}
 
 

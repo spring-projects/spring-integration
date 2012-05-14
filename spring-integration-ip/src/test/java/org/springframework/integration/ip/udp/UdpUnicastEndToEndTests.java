@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -49,6 +50,7 @@ import org.springframework.integration.test.util.TestUtils;
  * received in the other context (and written back to the console).
  *  
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class UdpUnicastEndToEndTests implements Runnable {
@@ -67,7 +69,18 @@ public class UdpUnicastEndToEndTests implements Runnable {
 
 	private CountDownLatch readyToReceive = new CountDownLatch(1);
 
-	private static long hangAroundFor = 0;
+	private static long hangAroundFor = 10;
+
+	@Before
+	public void setup() {
+		this.testingIpText = null;
+		this.finalMessage = null;
+		this.sentFirst = new CountDownLatch(1);
+		this.firstReceived = new CountDownLatch(1);
+		this.doneProcessing = new CountDownLatch(1);
+		this.okToRun = true;
+		this.readyToReceive = new CountDownLatch(1);
+	}
 
 	@Test
 	public void runIt() throws Exception {
@@ -76,6 +89,17 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		t.start(); // launch the receiver
 		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				"testIp-out-context.xml", UdpUnicastEndToEndTests.class);	
+		launcher.launchSender(applicationContext);
+		applicationContext.stop();
+	}
+
+	@Test
+	public void tesUudpOutboundChannelAdapterWithinChain() throws Exception {
+		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
+		Thread t = new Thread(launcher);
+		t.start(); // launch the receiver
+		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+				"testIp-out-within-chain-context.xml", UdpUnicastEndToEndTests.class);
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
@@ -159,6 +183,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 	public static void main(String[] args) throws Exception {
 		hangAroundFor = 120000;
 		new UdpUnicastEndToEndTests().runIt();
+		new UdpUnicastEndToEndTests().tesUudpOutboundChannelAdapterWithinChain();
 	}
 
 }

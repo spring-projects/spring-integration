@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -42,6 +37,15 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.List;
+
+import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.both;
+import static org.junit.matchers.JUnitMatchers.containsString;
 
 /**
  * @author Mark Fisher
@@ -95,8 +99,18 @@ public class ChainParserTests {
 	private MessageChannel headerValueRouterWithMappingInput;
 
 	@Autowired
+	private MessageChannel loggingChannelAdapterChannel;
+
+	@Autowired
+	private MessageChannel outboundChannelAdapterChannel;
+
+	@Autowired
+	private TestConsumer testConsumer;
+
+	@Autowired
 	@Qualifier("claimCheckInput")
 	private MessageChannel claimCheckInput;
+
 	@Autowired
 	@Qualifier("claimCheckOutput")
 	private PollableChannel claimCheckOutput;
@@ -239,6 +253,40 @@ public class ChainParserTests {
 		this.claimCheckInput.send(message);
 		Message<?> reply = this.claimCheckOutput.receive(0);
 		assertEquals(message.getPayload(), reply.getPayload());
+	}
+
+	@Test //INT-2275
+	public void chainWithOutboundChannelAdapter() {
+		this.outboundChannelAdapterChannel.send(successMessage);
+		assertSame(successMessage, testConsumer.getLastMessage());
+	}
+
+	@Test //INT-2275
+	public void chainWithLoggingChannelAdapter() {
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		PrintStream realOut = System.out;
+		try {
+			OutputStream out = new ByteArrayOutputStream();
+			System.setOut(new PrintStream(out));
+			this.loggingChannelAdapterChannel.send(message);
+			assertEquals("LoggingHandler: TEST", out.toString().trim());
+		}
+		finally {
+			System.setOut(realOut);
+		}
+	}
+
+	@Test(expected = BeanCreationException.class) //INT-2275
+	public void invalidNestedChainWithLoggingChannelAdapter() {
+		try {
+			new ClassPathXmlApplicationContext("invalidNestedChainWithOutboundChannelAdapter-context.xml", this.getClass());
+			fail("BeanCreationException is expected!");
+		}
+		catch (BeansException e) {
+			assertEquals(IllegalArgumentException.class, e.getCause().getClass());
+			assertThat(e.getMessage(), both(containsString("output channel was provided")).and(containsString("does not implement the MessageProducer")));
+			throw e;
+		}
 	}
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {

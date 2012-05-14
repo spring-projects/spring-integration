@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,14 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,7 +37,8 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
-	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
+	@Override
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanComponentDefinition innerConsumerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 
 		String consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
@@ -61,42 +60,27 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 					"The 'method' attribute cannot be used with the 'expression' attribute.", element);
 		}
 
-		if (hasMethod | isExpression) {
-			BeanDefinitionBuilder consumerBuilder = null;
-			if (hasMethod) {
-				consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
-				if (isRef) {
-					consumerBuilder.addConstructorArgReference(consumerRef);
-				}
-				else {
-					consumerBuilder.addConstructorArgValue(innerConsumerDefinition);
-				}
-				consumerBuilder.addConstructorArgValue(methodName);
+		BeanDefinitionBuilder consumerBuilder = null;
+
+		if (isExpression) {
+			consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageHandler.class);
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(consumerExpressionString);
+			consumerBuilder.addConstructorArgValue(expressionDef);
+		}
+		else {
+			consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
+			if (isRef) {
+				consumerBuilder.addConstructorArgReference(consumerRef);
 			}
 			else {
-				consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageHandler.class);
-				RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(consumerExpressionString);
-				consumerBuilder.addConstructorArgValue(expressionDef);
+				consumerBuilder.addConstructorArgValue(innerConsumerDefinition);
 			}
-
-			consumerBuilder.addPropertyValue("componentType", "outbound-channel-adapter");
-			String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
-			if (StringUtils.hasText(order)) {
-				consumerBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, order);
-			}
-			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(consumerBuilder.getBeanDefinition(), parserContext.getRegistry());
+			consumerBuilder.addConstructorArgValue(hasMethod ? methodName : "handleMessage");
 		}
-		else if (isInnerConsumer) {
-			consumerRef = innerConsumerDefinition.getBeanName();
-		}
-		Assert.hasText(consumerRef, "cannot determine consumer for 'outbound-channel-adapter'");
-		return consumerRef;
-	}
 
-	@Override
-	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		throw new UnsupportedOperationException();
+		consumerBuilder.addPropertyValue("componentType", "outbound-channel-adapter");
+		return consumerBuilder.getBeanDefinition();
 	}
 
 }

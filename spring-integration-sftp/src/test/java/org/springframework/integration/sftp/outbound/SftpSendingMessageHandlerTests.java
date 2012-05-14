@@ -30,7 +30,10 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
@@ -106,6 +109,24 @@ public class SftpSendingMessageHandlerTests {
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
 	}
 
+	@Test //INT-2275
+	public void testSftpOutboundChannelAdapterInsideChain() throws Exception {
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
+		srcFile.deleteOnExit();
+
+		File destFile = new File(targetDir, srcFile.getName());
+		destFile.deleteOnExit();
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("SftpOutboundChannelAdapterInsideChainTests-context.xml", getClass());
+
+		MessageChannel channel = context.getBean("outboundChainChannel", MessageChannel.class);
+
+		channel.send(new GenericMessage<File>(srcFile));
+		assertTrue("destination file was not created", destFile.exists());
+	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 		

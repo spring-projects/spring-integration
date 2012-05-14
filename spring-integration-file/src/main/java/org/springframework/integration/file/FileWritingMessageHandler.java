@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import java.nio.charset.Charset;
  * @author Iwein Fuld
  * @author Alex Peters
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
@@ -71,6 +72,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile Charset charset = Charset.defaultCharset();
 
+	private volatile boolean expectReply = true;
 
 	public FileWritingMessageHandler(File destinationDirectory) {
 		Assert.notNull(destinationDirectory, "Destination directory must not be null.");
@@ -92,7 +94,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
-	
+
+	/**
+	 * Specify whether a reply Message is expected. If not, this handler will simply return null for a
+	 * successful response or throw an Exception for a non-successful response. The default is true.
+	 */
+	public void setExpectReply(boolean expectReply) {
+		this.expectReply = expectReply;
+	}
+
 	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
 	}
@@ -169,6 +179,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		catch (Exception e) {
 			throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
 		}
+
+		if (!this.expectReply) {
+			return null;
+		}
+
 		if (resultFile != null) {
 			if (originalFileFromHeader == null && payload instanceof File) {
 				return MessageBuilder.withPayload(resultFile)

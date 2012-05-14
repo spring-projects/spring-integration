@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,16 @@ import javax.xml.transform.Source;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
@@ -47,6 +50,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class HttpRequestExecutingMessageHandlerTests {
 	
@@ -639,7 +643,15 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertNull(request.getHeaders().getContentType());
 		*/
 	}
-	
+
+	@Test //INT-2275
+	public void testOutboundChannelAdapterWithinChain() {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterWithinChainTests-context.xml", this.getClass());
+		MessageChannel channel = ctx.getBean("httpOutboundChannelAdapterWithinChain", MessageChannel.class);
+		channel.send(MessageBuilder.withPayload("test").build());
+//		It's just enough if it was sent successfully from chain without any failures
+	}
+
 	public static class City{
 		private String name;
 		public City(String name){
@@ -661,4 +673,15 @@ public class HttpRequestExecutingMessageHandlerTests {
 			throw new RuntimeException("intentional");
 		}
 	}
+
+	private static class MockRestTemplate2 extends RestTemplate {
+
+		@Override
+		public <T> ResponseEntity<T> exchange(String url, HttpMethod method, HttpEntity<?> requestEntity,
+											  Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
+			return new ResponseEntity<T>(HttpStatus.OK);
+		}
+	}
+
+
 }

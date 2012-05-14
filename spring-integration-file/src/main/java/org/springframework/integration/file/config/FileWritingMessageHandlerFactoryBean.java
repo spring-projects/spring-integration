@@ -29,6 +29,7 @@ import org.springframework.integration.file.FileWritingMessageHandler;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 1.0.3
  */
 public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
@@ -48,7 +49,9 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 	private volatile Long sendTimeout;
 	
 	private volatile String temporaryFileSuffix;
-	
+
+	private volatile boolean expectReply = true;
+
 	public void setDirectory(File directory) {
 		this.directory = directory;
 	}
@@ -80,7 +83,11 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
-	
+
+	public void setExpectReply(boolean expectReply) {
+		this.expectReply = expectReply;
+	}
+
 	@Override
 	protected FileWritingMessageHandler createHandler() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(this.directory);
@@ -105,6 +112,7 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 		if (this.temporaryFileSuffix != null) {
 			handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
 		}
+		handler.setExpectReply(this.expectReply);
 		return handler;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.springframework.integration.handler;
 
-import java.util.HashSet;
-import java.util.List;
-
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
@@ -33,6 +31,9 @@ import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
+
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * A composite {@link MessageHandler} implementation that invokes a chain of
@@ -65,8 +66,9 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public class MessageHandlerChain extends AbstractMessageHandler implements MessageProducer, Ordered {
+public class MessageHandlerChain extends AbstractMessageHandler implements MessageProducer {
 
 	private volatile List<MessageHandler> handlers;
 
@@ -78,8 +80,6 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 	 * By default, it is <code>null</code>, so the actual handler configuration is used.
 	 */
 	private volatile Long sendTimeout = null;
-
-	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 	private volatile ChannelResolver channelResolver;
 
@@ -99,15 +99,6 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 	public void setSendTimeout(long sendTimeout) {
 		this.sendTimeout = sendTimeout;
 	}
-
-	public void setOrder(int order) {
-		this.order = order;
-	}
-
-	public int getOrder() {
-		return this.order;
-	}
-
 
 	@Override
 	public String getComponentType() {
@@ -156,6 +147,13 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 					}
 				};
 				((MessageProducer) handler).setOutputChannel(nextChannel);
+
+				// If this 'handler' is a nested non-last &lt;chain&gt;, it is  necessary
+				// to 'force' re-init it for check its configuration in conjunction with current MessageHandlerChain.
+				if (handler instanceof MessageHandlerChain) {
+					new DirectFieldAccessor(handler).setPropertyValue("initialized", false);
+					((MessageHandlerChain) handler).afterPropertiesSet();
+				}
 			}
 			else if (handler instanceof MessageProducer) {
 				MessageChannel replyChannel = new ReplyForwardingMessageChannel();

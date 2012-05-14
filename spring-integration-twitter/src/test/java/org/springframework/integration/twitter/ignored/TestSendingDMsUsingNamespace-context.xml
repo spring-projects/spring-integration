@@ -33,6 +33,10 @@
 
 	<twitter:dm-outbound-channel-adapter twitter-template="twitterTemplate" channel="inputChannel"/>
 
+	<chain input-channel="dmOutboundWithinChain">
+		<twitter:dm-outbound-channel-adapter twitter-template="twitterTemplate"/>
+	</chain>
+
 </beans:beans>
 
 

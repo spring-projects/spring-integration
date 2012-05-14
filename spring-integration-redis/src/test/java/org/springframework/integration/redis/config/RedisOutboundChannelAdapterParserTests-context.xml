@@ -26,4 +26,8 @@
 
 	<bean id="testConverter" class="org.springframework.integration.redis.config.RedisOutboundChannelAdapterParserTests$TestMessageConverter"/>
 
+	<int:chain input-channel="redisOutboudChain">
+		<int-redis:outbound-channel-adapter topic="foo"/>
+	</int:chain>
+
 </beans>

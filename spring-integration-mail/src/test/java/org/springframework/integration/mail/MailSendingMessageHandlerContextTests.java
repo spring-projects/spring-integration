@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -40,6 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
 @RunWith(value = SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:/org/springframework/integration/mail/mailSendingMessageHandlerContextTests.xml"})
@@ -50,6 +52,9 @@ public class MailSendingMessageHandlerContextTests {
 
 	@Autowired
 	private StubJavaMailSender mailSender;
+
+	@Autowired
+	private MessageChannel sendMailOutboundChainChannel;
 
 
 	@Before
@@ -97,6 +102,15 @@ public class MailSendingMessageHandlerContextTests {
 	public void byteArrayMessageWithoutAttachmentFileName() throws Exception {
 		byte[] payload = {1, 2, 3};
 		this.handler.handleMessage(new GenericMessage<byte[]>(payload));
+	}
+
+	@Test //INT-2275
+	public void mailOutboundChannelAdapterWithinChain() {
+		this.sendMailOutboundChainChannel.send(MailTestsHelper.createIntegrationMessage());
+		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
+		assertEquals("no mime message should have been sent", 0, this.mailSender.getSentMimeMessages().size());
+		assertEquals("only one simple message must be sent", 1, this.mailSender.getSentSimpleMailMessages().size());
+		assertEquals("message content different from expected", mailMessage, this.mailSender.getSentSimpleMailMessages().get(0));
 	}
 
 }

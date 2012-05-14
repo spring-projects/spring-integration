@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:ftp="http://www.springframework.org/schema/integration/ftp"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ftp
+			 http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+
+	<si:chain input-channel="outboundChainChannel">
+		<ftp:outbound-channel-adapter
+				auto-create-directory="true"
+				session-factory="ftpSessionFactory"
+				remote-directory="remote-target-dir"/>
+	</si:chain>
+
+	<bean id="ftpSessionFactory"
+		  class="org.springframework.integration.ftp.outbound.FtpSendingMessageHandlerTests$TestFtpSessionFactory">
+		<property name="username" value="kermit"/>
+		<property name="password" value="frog"/>
+		<property name="host" value="foo.com"/>
+	</bean>
+</beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors
+ * Copyright 2002-2012 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.Date;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -31,6 +33,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 /**
  * @author Josh Long
+ * @author Artem Bilan
  */
 @ContextConfiguration
 public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContextTests {
@@ -39,6 +42,10 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 
 	@Value("#{out}") private MessageChannel channel;
 
+	@Autowired
+	@Qualifier("outFromChain")
+	private MessageChannel outFromChain;
+
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
@@ -46,6 +53,13 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 				+ new Date(System.currentTimeMillis()));
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);
+	}
+
+	@Test
+	@Ignore
+	public void testSendingATweetFromChain() throws Throwable {
+		Message<String> m = MessageBuilder.withPayload("Early start today" + new Date(System.currentTimeMillis())).build();
+		this.outFromChain.send(m);
 	}
 
 }

@@ -705,17 +705,6 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="return-value-required" default="false">
-				<xsd:annotation>
-                    <xsd:documentation>
-                        Indicates whether this procedure's return value
-                        should be included.
-                    </xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:boolean xsd:string" />
-				</xsd:simpleType>
-			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
