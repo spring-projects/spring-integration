@@ -228,6 +228,16 @@ public class JpaExecutor implements InitializingBean {
 
 	}
 
+	/**
+	 * Execute a (typically retrieving) JPA operation. The <i>requestMessage</i>
+	 * can be used to provide additional query parameters using
+	 * {@link JpaExecutor#parameterSourceFactorymeterSourceFactory}. If the
+	 * <i>requestMessage</i> parameter is null then
+	 * {@link JpaExecutor#parameterSource} is being used for providing query parameters.
+	 *
+	 * @param requestMessage May be null.
+	 * @return The payload object, which may be null.
+	 */
 	@SuppressWarnings("unchecked")
 	public Object poll(final Message<?> requestMessage) {
 
@@ -281,9 +291,7 @@ public class JpaExecutor implements InitializingBean {
 	}
 
 	/**
-	 * Execute the select query and the update query if provided. Returns the
-	 * rows returned by the select query. If a RowMapper has been provided, the
-	 * mapped results are returned.
+	 * Execute the JPA operation. Delegates to {@link JpaExecutor#poll(Message)}.
 	 */
 	public Object poll() {
 		return poll(null);

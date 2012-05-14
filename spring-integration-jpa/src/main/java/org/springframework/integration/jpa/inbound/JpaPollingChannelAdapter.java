@@ -72,13 +72,11 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 		 super.onInit();
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 	/**
-	 * Executes the query. If a query result set contains one or more rows, the
-	 * Message payload will contain either a List of Maps for each row or, if a
-	 * RowMapper has been provided, the values mapped from those rows. If the
-	 * query returns no rows, this method will return <code>null</code>.
+	 * Uses {@link JpaExecutor#poll()} to executes the JPA operation.
+	 *
+	 * If {@link JpaExecutor#poll()} returns null, this method will return
+	 * <code>null</code>. Otherwise, a new {@link Message} is constructed and returned.
 	 */
 	public Message<Object> receive() {
 
