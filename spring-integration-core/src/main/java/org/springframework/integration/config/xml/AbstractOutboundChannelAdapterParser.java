@@ -30,18 +30,10 @@ import org.springframework.util.xml.DomUtils;
 /**
  * Base class for outbound Channel Adapter parsers.
  *
- * If its 'tag' is defined as top-level element in the Spring application context it produces via
- * {@link ConsumerEndpointFactoryBean}
- * {@link org.springframework.integration.endpoint.EventDrivenConsumer} instance
- * or
- * {@link org.springframework.integration.endpoint.PollingConsumer} instance
- * that depends on 'channel' type:
- * {@link org.springframework.integration.core.SubscribableChannel}
- * or
- * {@link org.springframework.integration.core.PollableChannel}.
- *
- * If its 'tag' is defined as nested element inside any other components e.g. &lt;chain&gt;
- * this parser produces {@link org.springframework.integration.handler.AbstractMessageHandler} instance.
+ * If this component is defined as the top-level element in the Spring application context it will produce
+ * an {@link org.springframework.integration.endpoint.AbstractEndpoint} depending on the channel type.
+ * If this component is defined as nested element (e.g., inside of the chain) it will produce
+ * a {@link org.springframework.integration.core.MessageHandler}.
  * 
  * @author Mark Fisher
  * @author Gary Russell
