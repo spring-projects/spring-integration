@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,30 @@
 
 package org.springframework.integration.gemfire.store;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+
 import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.data.gemfire.CacheFactoryBean;
+import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 /**
  * @author Mark Fisher
+ * @author David Turanski
  * @since 2.1
  */
 public class GemfireMessageStoreTests {
@@ -52,6 +55,18 @@ public class GemfireMessageStoreTests {
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());
 		assertEquals(message, retrieved);
+	}
+	
+	@Test
+	public void testRegionConstructor() throws Exception {
+		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>();
+		region.setName("someRegion");
+		region.setCache(this.cache);
+		region.afterPropertiesSet();
+
+		GemfireMessageStore store = new GemfireMessageStore(region.getObject());
+		store.afterPropertiesSet();
+		assertSame(region.getObject(),TestUtils.getPropertyValue(store, "messageStoreRegion"));
 	}
 	
 	@Test
