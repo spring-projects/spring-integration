@@ -114,7 +114,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> primeNumbers = message.getPayload();
 
@@ -157,7 +157,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> primeNumbers = message.getPayload();
 
@@ -201,7 +201,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> primeNumbers = message.getPayload();
 
@@ -244,7 +244,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
@@ -293,7 +293,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull("Message is null.", message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
@@ -376,7 +376,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull("Message is null.", message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
@@ -423,7 +423,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
@@ -466,7 +466,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+		assertTrue(message.getPayload() instanceof Collection<?>);
 
 		Collection<?> students = message.getPayload();
 
