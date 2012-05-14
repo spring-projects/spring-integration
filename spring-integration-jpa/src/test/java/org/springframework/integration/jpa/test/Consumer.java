@@ -33,12 +33,12 @@ public final class Consumer {
 
 	private static final BlockingQueue<Message<Collection<?>>> MESSAGES = new LinkedBlockingQueue<Message<Collection<?>>>();
 
-	public void receive(Message<Collection<?>>message) {
+	public synchronized void receive(Message<Collection<?>>message) {
 		logger.info("Service Activator received Message: " + message);
 		MESSAGES.add(message);
 	}
 
-	public Message<Collection<?>> poll(long timeoutInMillis) throws InterruptedException {
+	public synchronized Message<Collection<?>> poll(long timeoutInMillis) throws InterruptedException {
 		return MESSAGES.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 	}
 
