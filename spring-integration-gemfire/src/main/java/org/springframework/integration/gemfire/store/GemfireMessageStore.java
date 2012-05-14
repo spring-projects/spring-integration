@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,39 +33,86 @@ import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
 
 /**
- * Gemfire implementation of the key/value style {@link MessageStore} and {@link MessageGroupStore}
+ * Gemfire implementation of the key/value style {@link MessageStore} and
+ * {@link MessageGroupStore}
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author David Turanski
  * @since 2.1
  */
 public class GemfireMessageStore extends AbstractKeyValueMessageStore implements InitializingBean {
 
 	private volatile Region<Object, Object> messageStoreRegion;
 
+	private volatile String messageStoreRegionName;
+
 	private final Cache cache;
 
 	private volatile boolean ignoreJta = true;
 
+	/**
+	 * This constructor is only valid if a region is provided.
+	 * @see #setRegion(Region)
+	 */
+	public GemfireMessageStore() {
+		cache = null;
+	}
 
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");
 		this.cache = cache;
 	}
 
-
 	public void setIgnoreJta(boolean ignoreJta) {
 		this.ignoreJta = ignoreJta;
 	}
 
+	/**
+	 * Sets the region to be used for the message store. This is useful when
+	 * using a configured region. This is also required if using a client region
+	 * on a remote cache server.
+	 * Note that the region cannot be set if the region name is also set.
+	 * @see #setRegionName(String)
+	 * @param messageStoreRegion the region
+	 */
+	public void setRegion(Region<Object, Object> messageStoreRegion) {
+		this.messageStoreRegion = messageStoreRegion;
+	}
+	
+	/**
+	 * Sets the name of the region to create. This is useful to configure multiple message store instances. 
+	 * Note that this cannot be set if a region is also set.
+	 * @see #setRegion(Region)
+	 * @param regionName the region name
+	 */
+	public void setRegionName(String regionName) {
+		this.messageStoreRegionName = regionName;
+	}
+
 	@SuppressWarnings("unchecked")
 	public void afterPropertiesSet() {
+		Assert.isTrue(this.messageStoreRegion == null || this.messageStoreRegionName == null,
+		"The properties'messageStoreRegion' and 'messageStoreRegionName' cannot both contain non-null values");
+		
+		if (this.messageStoreRegion != null) {
+			return;
+		}
+		
 		try {
+			if (this.messageStoreRegionName == null) {
+				this.messageStoreRegionName = "messageStoreRegion";
+			}
+			
+			if (logger.isDebugEnabled()){
+				logger.debug("creating message store region '" + this.messageStoreRegionName +"'");
+			}
+			
 			RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 			attributesFactoryBean.setIgnoreJTA(this.ignoreJta);
 			attributesFactoryBean.afterPropertiesSet();
 			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
-			messageRegionFactoryBean.setBeanName("messageStoreRegion");
+			messageRegionFactoryBean.setBeanName(this.messageStoreRegionName);
 			messageRegionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 			messageRegionFactoryBean.setCache(cache);
 			messageRegionFactoryBean.afterPropertiesSet();
@@ -102,7 +149,7 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 		List<Object> keyList = new ArrayList<Object>();
 		for (Object key : keys) {
 			String keyValue = key.toString();
-			if (PatternMatchUtils.simpleMatch(keyPattern, keyValue)){
+			if (PatternMatchUtils.simpleMatch(keyPattern, keyValue)) {
 				keyList.add(keyValue);
 			}
 		}
