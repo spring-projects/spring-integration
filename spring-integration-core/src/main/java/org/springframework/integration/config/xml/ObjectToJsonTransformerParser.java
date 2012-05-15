@@ -41,8 +41,7 @@ public class ObjectToJsonTransformerParser extends AbstractTransformerParser {
 			builder.addConstructorArgReference(objectMapper);
 		}
 		if (element.hasAttribute(MessageHeaders.CONTENT_TYPE)){
-			builder.addPropertyValue("contentType", element.getAttribute(MessageHeaders.CONTENT_TYPE));
+			builder.addPropertyValue("contentType", element.getAttribute("content-type"));
 		}
 	}
-
 }
