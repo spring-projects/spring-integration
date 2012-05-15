@@ -81,7 +81,6 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 			if (this.isTimeoutOnIdle() && group.getLastModified() > 0) {
 			    timestamp = group.getLastModified();
 			}
-			
 			if (timestamp <= threshold) {
 				count++;
 				expire(group);

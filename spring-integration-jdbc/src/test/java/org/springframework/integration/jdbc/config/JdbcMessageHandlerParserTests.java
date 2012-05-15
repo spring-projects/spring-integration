@@ -76,7 +76,6 @@ public class JdbcMessageHandlerParserTests {
 	public void testMapPayloadOutboundChannelAdapter(){
 		setUp("handlingMapPayloadJdbcOutboundChannelAdapterTest.xml", getClass());
 		assertTrue(context.containsBean("jdbcAdapter"));
-		System.out.println(context.getBean("jdbcAdapter").getClass().getName());
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");

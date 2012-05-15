@@ -100,7 +100,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	}
 
 	@Test 
-	@Repeat(10)
+	//@Repeat(10)
 	public void testTransactionalSendAndReceive() throws Exception {
 
 		Service.reset(1);
