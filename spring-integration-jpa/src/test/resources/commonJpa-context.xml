@@ -16,39 +16,37 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 		http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd">
 
-    <jdbc:embedded-database id="dataSource" type="H2"/>
-    
-    <jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS" >
-        <jdbc:script location="classpath:H2-DropTables.sql" />
-        <jdbc:script location="classpath:H2-CreateTables.sql" />
-        <jdbc:script location="classpath:H2-PopulateData.sql" />
-    </jdbc:initialize-database>
+	<jdbc:embedded-database id="dataSource" type="H2"/>
+
+	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS" >
+		<jdbc:script location="classpath:H2-DropTables.sql" />
+		<jdbc:script location="classpath:H2-CreateTables.sql" />
+		<jdbc:script location="classpath:H2-PopulateData.sql" />
+	</jdbc:initialize-database>
 
 	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" c:dataSource-ref="dataSource"/>
 
 	<tx:annotation-driven transaction-manager="transactionManager"/>
-    <!-- <context:load-time-weaver />
- -->
+
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="persistenceUnitName" value="persistenceUnit" />
 		<property name="jpaVendorAdapter" ref="vendorAdaptor" />
-<!-- 		<property name="jpaProperties" ref="jpaProperties" /> -->
+<!-- 	<property name="jpaProperties" ref="jpaProperties" /> -->
 	</bean>
-	
+
 	<bean id="abstractVendorAdaptor" abstract="true">
 		<property name="generateDdl" value="true" />
 		<property name="database" value="HSQL" />
 	</bean>
-	
+
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 		<property name="dataSource" ref="dataSource"/>
 	</bean>
-	
+
 	<bean id="entityManager" class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
 		<property name="entityManagerFactory" ref="entityManagerFactory"/>
-	</bean>		
-		
+	</bean>
 </beans>
