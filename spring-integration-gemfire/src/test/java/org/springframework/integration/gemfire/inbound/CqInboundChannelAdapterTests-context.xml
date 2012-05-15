@@ -11,7 +11,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<gfe:cache use-bean-factory-locator="false" id="client-cache"/>
+	<gfe:client-cache use-bean-factory-locator="false" id="client-cache" pool-name="client-pool"/>
 	
 	<gfe:pool id="client-pool" subscription-enabled="true" >
 		<gfe:server host="localhost" port="40404"/>
