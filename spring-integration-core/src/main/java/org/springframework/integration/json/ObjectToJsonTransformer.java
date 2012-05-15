@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.json;
 
 import java.io.StringWriter;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedCaseInsensitiveMap;
+import org.springframework.util.StringUtils;
 
 /**
  * Transformer implementation that converts a payload instance into a JSON string representation.
  *
  * @author Mark Fisher
+ * @author James Carr
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ObjectToJsonTransformer extends AbstractPayloadTransformer<Object, String> {
+public class ObjectToJsonTransformer extends AbstractTransformer {
+
+	public static final String JSON_CONTENT_TYPE = "application/json";
 
 	private final ObjectMapper objectMapper;
 
+	private volatile String contentType = JSON_CONTENT_TYPE;
+	private volatile boolean contentTypeExplicitlySet = false;
 
 	public ObjectToJsonTransformer(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "objectMapper must not be null");
@@ -43,11 +53,44 @@ public class ObjectToJsonTransformer extends AbstractPayloadTransformer<Object, 
 		this.objectMapper = new ObjectMapper();
 	}
 
+	/**
+	 * Sets the content-type header value
+	 * 
+	 * @param contentType
+	 */
+	public void setContentType(String contentType){
+		// no assertion is needed since we should allow to un-set content type
+		this.contentTypeExplicitlySet = true;
+		if (!StringUtils.hasText(contentType)){
+			contentType = null;
+		}
+		this.contentType = contentType;
+	}
 
-	protected String transformPayload(Object payload) throws Exception {
+	private String transformPayload(Object payload) throws Exception {
 		StringWriter writer = new StringWriter();
 		this.objectMapper.writeValue(writer, payload);
 		return writer.toString();
 	}
 
+	@Override
+	protected Object doTransform(Message<?> message) throws Exception {
+		String payload = this.transformPayload(message.getPayload());
+		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
+		
+		LinkedCaseInsensitiveMap<Object> headers = new LinkedCaseInsensitiveMap<Object>();
+		headers.putAll(message.getHeaders());
+
+		if (headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
+			if (this.contentTypeExplicitlySet){
+				// override
+				messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
+			}
+		}
+		else {
+			messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
+		}
+
+		return messageBuilder.build();
+	}
 }

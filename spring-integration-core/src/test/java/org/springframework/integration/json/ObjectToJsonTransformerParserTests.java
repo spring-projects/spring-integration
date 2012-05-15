@@ -16,10 +16,6 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,26 +25,56 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ObjectToJsonTransformerParserTests {
+	
+	@Autowired
+	private volatile ApplicationContext context;
 
 	@Autowired
 	private volatile MessageChannel defaultObjectMapperInput;
 
 	@Autowired
 	private volatile MessageChannel customObjectMapperInput;
+	
+	@Test
+	public void testContextType(){
+		ObjectToJsonTransformer transformer = 
+				TestUtils.getPropertyValue(context.getBean("defaultTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertEquals("application/json", TestUtils.getPropertyValue(transformer, "contentType"));
+		
+		transformer = 
+				TestUtils.getPropertyValue(context.getBean("customTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertEquals("application/json", TestUtils.getPropertyValue(transformer, "contentType"));
+		
+		transformer = 
+				TestUtils.getPropertyValue(context.getBean("emptyContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertNull(TestUtils.getPropertyValue(transformer, "contentType"));
+		
+		transformer = 
+				TestUtils.getPropertyValue(context.getBean("overridenContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertEquals("text/xml", TestUtils.getPropertyValue(transformer, "contentType"));	
+	}
 
 
 	@Test

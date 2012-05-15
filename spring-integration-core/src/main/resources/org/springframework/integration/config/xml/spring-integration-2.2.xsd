@@ -2017,6 +2017,15 @@
 		<xsd:choice minOccurs="0" maxOccurs="unbounded">
 			<xsd:element ref="poller" />
 		</xsd:choice>
+		<xsd:attribute name="content-type" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Allows you to set 'content-type' Message header. In the case that a content-type header is already present, 
+					we will only override that value IF this attribute is explicitely set with 
+					content-type value (e.g., content-type="text/xml")
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="object-mapper" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
