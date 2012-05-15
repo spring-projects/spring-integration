@@ -59,6 +59,30 @@ public class ObjectToJsonTransformerTests {
 		Message<?> result = transformer.transform(message);
 		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
+	
+	@Test
+	public void withProvidedContentTypeWithOverride() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setContentType(ObjectToJsonTransformer.JSON_CONTENT_TYPE);
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals(ObjectToJsonTransformer.JSON_CONTENT_TYPE, result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+	
+	@Test
+	public void withProvidedContentTypeAsEmptyString() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setContentType("");
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals("", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void withProvidedContentTypeAsNull() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setContentType(null);
+	}
 
 	@Test
 	public void simpleIntegerPayload() throws Exception {

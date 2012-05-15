@@ -25,7 +25,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedCaseInsensitiveMap;
-import org.springframework.util.StringUtils;
 
 /**
  * Transformer implementation that converts a payload instance into a JSON string representation.
@@ -59,11 +58,9 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	 * @param contentType
 	 */
 	public void setContentType(String contentType){
-		// no assertion is needed since we should allow to un-set content type
+		// only null assertion is needed since "" is a valid value
+		Assert.notNull(contentType, "'contentType' must not be null");
 		this.contentTypeExplicitlySet = true;
-		if (!StringUtils.hasText(contentType)){
-			contentType = null;
-		}
 		this.contentType = contentType;
 	}
 
@@ -76,7 +73,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
 		String payload = this.transformPayload(message.getPayload());
-		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
+		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload);
 		
 		LinkedCaseInsensitiveMap<Object> headers = new LinkedCaseInsensitiveMap<Object>();
 		headers.putAll(message.getHeaders());
@@ -84,13 +81,13 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		if (headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
 			if (this.contentTypeExplicitlySet){
 				// override
-				messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
+				headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);		
 			}
 		}
 		else {
-			messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
+			headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 		}
-
+		messageBuilder.copyHeaders(headers);
 		return messageBuilder.build();
 	}
 }
