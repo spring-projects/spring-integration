@@ -11,8 +11,8 @@
     <para>
       VMWare vFabric GemFire (GemFire) is a distributed data management platform providing a key-value data grid along with advanced distributed system features such as event processing, continuous querying, and 
       remote function execution. This guide assumes
-      some familiarity with <ulink url="http://www.gemstone.com/docs/6.6.RC/product/docs/html/user_guide/UserGuide_GemFire.html#Getting%20Started%20with%20Gemfire">GemFire</ulink>
-       and its <ulink url="http://www.gemstone.com/docs/6.6.RC/product/docs/japi/index.html">API</ulink>. 
+      some familiarity with <ulink url="http://www.vmware.com/support/pubs/vfabric-gemfire.html">GemFire</ulink>
+       and its <ulink url="http://www.vmware.com/support/developer/vfabric-gemfire/662-api/index.html">API</ulink>.
     </para>
     <para>
     Spring integration provides support for GemFire by providing inbound adapters for entry and continuous query events, 
@@ -65,8 +65,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
   	</note> 
   
   	
-  	<programlisting language="xml">
-  	<![CDATA[<gfe:cache id="client-cache"/>
+  <programlisting language="xml"><![CDATA[<gfe:client-cache id="client-cache" pool-name="client-pool"/>
 	
 	<gfe:pool id="client-pool" subscription-enabled="true" >
 		<!--configure server or locator here required to address the cache server -->
@@ -84,7 +83,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	</programlisting>
 
 	In the above configuration, we are creating a GemFire client cache 
-	(recall a cache server is required for this implementation and its address is configured as a sub-element of the pool), a client region and a <classname>ContinuousQueryListenerContainer</classname> 
+	(recall a remote cache server is required for this implementation and its address is configured as a sub-element of the pool), a client region and a <classname>ContinuousQueryListenerContainer</classname>
 	using Spring GemFire. 	The continuous query inbound channel adapter requires a <code>cq-listener-container</code> attribute which contains a reference to the <classname>ContinuousQueryListenerContainer</classname>. Optionally,
   	it accepts an <code>expression</code> attribute which uses SpEL to transform the <code>CqEvent</code> or extract an individual property as needed. The cq-inbound-channel-adapter provides a
   	<code>query-events</code> attribute, containing a comma separated list of event types for which a message will be produced on the input channel. Available event types are CREATED, UPDATED, DESTROYED,
@@ -160,9 +159,31 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
     </para>
 
     <para>
-    Above is a sample <classname>GemfireMessageStore</classname> configuration that shows its usage by a <emphasis>QueueChannel</emphasis>
-    and an <emphasis>Aggregator</emphasis>. As you can see it is a simple bean configuration, and it expects a
-    <classname>GemFireCache</classname> (created by <classname>CacheFactoryBean</classname>) as a constructor argument.
-    </para>
-  </section>
+    Above is a sample <classname>GemfireMessageStore</classname> configuration that shows its usage by a <emphasis>QueueChannel</emphasis> and an <emphasis>Aggregator</emphasis>. As you can see it is a normal Spring bean configuration. The simplest configuration requires a reference to a <classname>GemFireCache</classname> (created by <classname>CacheFactoryBean</classname>) as a constructor argument. If the cache is standalone, i.e., embedded in the same JVM, the MessageStore will create a message store region named "messageStoreRegion" by default. An alternate name be set via the <emphasis>regionName</emphasis> property. In many cases, it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the
+<ulink url="http://www.vmware.com/support/pubs/vfabric-gemfire.html">GemFire product documentation</ulink> for more details). In this case, a client cache and client region may be configured using the spring-gemfire namespace and the region is injected into the MessageStore by setting the <emphasis>region</emphasis> property. Here is an example:
+</para>
+
+<para>
+<programlisting lang="xml"><![CDATA[
+  <bean id="gemfireMessageStore"
+        class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+        <property name="region" ref="myRegion"/>
+    </bean>
+
+    <gfe:client-cache/>
+
+    <gfe:client-region id="myRegion" shortcut="PROXY" pool-name="messageStorePool"/>
+
+    <gfe:pool id="messageStorePool">
+        <gfe:server host="localhost" port="40404" />
+    </gfe:pool>
+]]></programlisting>
+</para>
+<para>
+The above example shows a typical client cache configuration. Note the <emphasis>pool</emphasis> element is configured with the address of a cache server (a locator may be substituted here). The region is configured as a 'PROXY' so that no data will be stored locally. The region's id corresponds to a named region configured in the cache server.
+<note>
+The <classname>GemfireMessageStore</classname> <emphasis>region</emphasis> and <emphasis>regionName</emphasis> properties are mutually exclusive. The former is used to provide a configured region, the latter is intended as the name of the local region which the message store will create internally. Specifying both values will result in an error.
+</note>
+</para>
+</section>
 </chapter>
