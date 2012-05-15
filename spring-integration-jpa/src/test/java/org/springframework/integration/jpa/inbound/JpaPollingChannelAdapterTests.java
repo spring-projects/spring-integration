@@ -45,7 +45,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration tests for the Jpa Polling Channel Adapter {@link JpaPollingChannelAdapter}.
@@ -264,7 +263,6 @@ public class JpaPollingChannelAdapterTests {
 	 */
 	@Test
 	@DirtiesContext
-	@Transactional
 	public void testWithJpaQueryAndDelete() throws Exception {
 		testTrigger.reset();
 
@@ -307,7 +305,6 @@ public class JpaPollingChannelAdapterTests {
 
 	@Test
 	@DirtiesContext
-	@Transactional
 	public void testWithJpaQueryButNoResultsAndDelete() throws Exception {
 		testTrigger.reset();
 
@@ -322,15 +319,14 @@ public class JpaPollingChannelAdapterTests {
 				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
 		adapter.start();
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		Thread.sleep(1000);
 
 		final Consumer consumer = new Consumer();
 
+		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
 		received.add(consumer.poll(5000));
 
-		Message<Collection<?>> message = received.get(0);
+		final Message<Collection<?>> message = received.get(0);
 
 		adapter.stop();
 
@@ -362,27 +358,26 @@ public class JpaPollingChannelAdapterTests {
 				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
 		adapter.start();
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		Thread.sleep(1000);
 
 		final Consumer consumer = new Consumer();
 
+		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
 		received.add(consumer.poll(5000));
 
-		Message<Collection<?>> message = received.get(0);
+		final Message<Collection<?>> message = received.get(0);
 
-		//adapter.stop();
+		adapter.stop();
 
 		assertNotNull("Message is null.", message);
 		assertNotNull(message.getPayload());
 		assertTrue(message.getPayload() instanceof Collection<?>);
 
-		Collection<?> students = message.getPayload();
+		final Collection<?> students = message.getPayload();
 
 		assertTrue(students.size() == 3);
 
-		Long studentCount = entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult();
+		final Long studentCount = entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult();
 
 		assertEquals(Long.valueOf(0), studentCount);
 
