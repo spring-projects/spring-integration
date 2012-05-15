@@ -100,23 +100,22 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
   	The <emphasis>outbound-channel-adapter</emphasis> writes cache entries mapped from the message payload. In its simplest form, it expects a 
   	payload of type <classname>java.util.Map</classname> and puts the map entries into its configured region. 
   
-  	<programlisting language="xml">
-  	<![CDATA[<int-gfe:outbound-channel-adapter id="cacheChannel" region="region"/>]]>
-
-	</programlisting>
+<programlisting language="xml"><![CDATA[
+<int-gfe:outbound-channel-adapter id="cacheChannel" region="region"/>]]>
+</programlisting>
 	
 	Given the above configuration, an exception will be thrown if the payload is not a Map. Additionally, the outbound channel adapter can be configured to create a 
 	map of cache entries using SpEL of course. 
 	
-		<programlisting language="xml">
-<![CDATA[<int-gfe:outbound-channel-adapter id="cacheChannel" region="region">
-	<int-gfe:cache-entries>
-		<entry key="payload.toUpperCase()" value="payload.toLowerCase()"/> 
-		<entry key="'foo'" value="'bar'"/> 
-	</int-gfe:cache-entries>		 
+		<programlisting language="xml"><![CDATA[
+<int-gfe:outbound-channel-adapter id="cacheChannel" region="region">
+<int-gfe:cache-entries>
+        <entry key="payload.toUpperCase()" value="payload.toLowerCase()"/>
+        <entry key="'foo'" value="'bar'"/>
+</int-gfe:cache-entries>
 </int-gfe:outbound-channel-adapter>
-	]]>
-	</programlisting>
+]]>
+</programlisting>
 	In the above configuration, the inner element <code>cache-entries</code> is semantically equivalent to Spring 'map' element. The adapter interprets the <code>key</code> and 
 	<code>value</code> attributes as SpEL expressions with the message as the evaluation context. Note that this contain  
 	arbitrary cache entries (not only those derived from the message) and that literal values must be enclosed in single quotes. In the above example, if the message sent to 
@@ -141,49 +140,57 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
     the <classname>MessageStore</classname> strategy (mainly used by the <emphasis>QueueChannel</emphasis> and <emphasis>ClaimCheck</emphasis>
     patterns) and the <classname>MessageGroupStore</classname> strategy (mainly used by the <emphasis>Aggregator</emphasis> and
     <emphasis>Resequencer</emphasis> patterns).
-    </para>
-
-	<para>
-	<programlisting lang="xml"><![CDATA[<bean id="gemfireMessageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
-		<constructor-arg ref="myCache"/>
-	</bean>
+<programlisting language="xml"><![CDATA[
+<bean id="gemfireMessageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+        <constructor-arg ref="myCache"/>
+</bean>
 	
-	<bean id="myCache" class="org.springframework.data.gemfire.CacheFactoryBean"/>
+<bean id="myCache" class="org.springframework.data.gemfire.CacheFactoryBean"/>
 
 <int:channel id="somePersistentQueueChannel">
     <int:queue message-store="gemfireMessageStore"/>
 <int:channel>
 
 <int:aggregator input-channel="inputChannel" output-channel="outputChannel"
-         message-store="gemfireMessageStore"/>]]></programlisting>
-    </para>
-
-    <para>
-    Above is a sample <classname>GemfireMessageStore</classname> configuration that shows its usage by a <emphasis>QueueChannel</emphasis> and an <emphasis>Aggregator</emphasis>. As you can see it is a normal Spring bean configuration. The simplest configuration requires a reference to a <classname>GemFireCache</classname> (created by <classname>CacheFactoryBean</classname>) as a constructor argument. If the cache is standalone, i.e., embedded in the same JVM, the MessageStore will create a message store region named "messageStoreRegion" by default. An alternate name be set via the <emphasis>regionName</emphasis> property. In many cases, it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the
-<ulink url="http://www.vmware.com/support/pubs/vfabric-gemfire.html">GemFire product documentation</ulink> for more details). In this case, a client cache and client region may be configured using the spring-gemfire namespace and the region is injected into the MessageStore by setting the <emphasis>region</emphasis> property. Here is an example:
+         message-store="gemfireMessageStore"/>
+]]></programlisting>
 </para>
 
 <para>
-<programlisting lang="xml"><![CDATA[
-  <bean id="gemfireMessageStore"
-        class="org.springframework.integration.gemfire.store.GemfireMessageStore">
-        <property name="region" ref="myRegion"/>
-    </bean>
+Above is a sample <classname>GemfireMessageStore</classname> configuration that shows its usage by a <emphasis>QueueChannel</emphasis> and an <emphasis>Aggregator</emphasis>. As you can see it is a normal Spring bean configuration. The simplest configuration requires a reference to a <classname>GemFireCache</classname> (created by <classname>CacheFactoryBean</classname>) as a constructor argument. If the cache is standalone, i.e., embedded in the same JVM, the MessageStore will create a message store region named "messageStoreRegion". If your application requires customization of the messageStore region, for example, multiple Gemfire message stores each with its own region, you can configure a region for each message store instance and use the <classname>Region</classname> as the constructor argument:
 
-    <gfe:client-cache/>
+<programlisting language="xml"><![CDATA[
+<bean id="gemfireMessageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+        <constructor-arg ref="myRegion"/>
+</bean>
 
-    <gfe:client-region id="myRegion" shortcut="PROXY" pool-name="messageStorePool"/>
+<gfe:cache/>
 
-    <gfe:pool id="messageStorePool">
+<gfe:replicated-region id="myRegion"/>
+]]></programlisting>
+</para>
+
+<para>
+In the above examle, the cache and region are configured using the spring-gemfire namespace (not to be confused with the spring-integration-gemfire namespace). Often it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the
+<ulink url="http://www.vmware.com/support/pubs/vfabric-gemfire.html">GemFire product documentation</ulink> for more details). In this case, you configure a client cache, client region, and client pool and inject the region into the MessageStore. Here is an example:
+
+<programlisting language="xml"><![CDATA[
+<bean id="gemfireMessageStore"
+      class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+        <constructor-arg ref="myRegion"/>
+</bean>
+
+<gfe:client-cache/>
+
+<gfe:client-region id="myRegion" shortcut="PROXY" pool-name="messageStorePool"/>
+
+<gfe:pool id="messageStorePool">
         <gfe:server host="localhost" port="40404" />
-    </gfe:pool>
+</gfe:pool>
 ]]></programlisting>
 </para>
 <para>
-The above example shows a typical client cache configuration. Note the <emphasis>pool</emphasis> element is configured with the address of a cache server (a locator may be substituted here). The region is configured as a 'PROXY' so that no data will be stored locally. The region's id corresponds to a named region configured in the cache server.
-<note>
-The <classname>GemfireMessageStore</classname> <emphasis>region</emphasis> and <emphasis>regionName</emphasis> properties are mutually exclusive. The former is used to provide a configured region, the latter is intended as the name of the local region which the message store will create internally. Specifying both values will result in an error.
-</note>
+Note the <emphasis>pool</emphasis> element is configured with the address of a cache server (a locator may be substituted here). The region is configured as a 'PROXY' so that no data will be stored locally. The region's id corresponds to a region with the same name configured in the cache server.
 </para>
 </section>
 </chapter>

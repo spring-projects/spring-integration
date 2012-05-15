@@ -16,12 +16,15 @@
 
 package org.springframework.integration.gemfire.store;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+
 import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
@@ -33,12 +36,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
 
 /**
  * @author Mark Fisher
@@ -61,44 +58,15 @@ public class GemfireMessageStoreTests {
 	}
 	
 	@Test
-	public void testSetRegionName() {
-		assertNull(this.cache.getRegion("someRegion"));
-		GemfireMessageStore store = new GemfireMessageStore(this.cache);
-		store.setRegionName("someRegion");
-		store.afterPropertiesSet();
-		assertNotNull(this.cache.getRegion("someRegion"));
-		assertNull(this.cache.getRegion("messageStoreRegion"));
-	}
-	
-	@Test
-	public void testSetRegion() throws Exception {
+	public void testRegionConstructor() throws Exception {
 		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>();
 		region.setName("someRegion");
 		region.setCache(this.cache);
 		region.afterPropertiesSet();
-		GemfireMessageStore store = new GemfireMessageStore();
-		store.setRegion(region.getObject());
+
+		GemfireMessageStore store = new GemfireMessageStore(region.getObject());
 		store.afterPropertiesSet();
 		assertSame(region.getObject(),TestUtils.getPropertyValue(store, "messageStoreRegion"));
-	}
-	
-	@Test 
-	public void testRegionAndRegionNameAreMutuallyExclusive() {
-		try {
-			RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>();
-			region.setName("someRegion");
-			region.setCache(this.cache);
-			region.afterPropertiesSet();
-			GemfireMessageStore store = new GemfireMessageStore();
-			store.setRegion(region.getObject());
-			store.setRegionName("someRegion");
-			store.afterPropertiesSet();
-			fail("should throw exception");
-		} catch (IllegalArgumentException e) {
-			 
-		} catch (Exception e) {
-			fail("wrong exception type");
-		}
 	}
 	
 	@Test

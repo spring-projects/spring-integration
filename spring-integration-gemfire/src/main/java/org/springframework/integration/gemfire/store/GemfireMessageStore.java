@@ -43,22 +43,29 @@ import com.gemstone.gemfire.cache.Region;
  */
 public class GemfireMessageStore extends AbstractKeyValueMessageStore implements InitializingBean {
 
-	private volatile Region<Object, Object> messageStoreRegion;
+	private static final String MESSAGE_STORE_REGION_NAME = "messageStoreRegion";
 
-	private volatile String messageStoreRegionName;
+	private volatile Region<Object, Object> messageStoreRegion;
 
 	private final Cache cache;
 
 	private volatile boolean ignoreJta = true;
 
 	/**
-	 * This constructor is only valid if a region is provided.
-	 * @see #setRegion(Region)
+	 * Provides the region to be used for the message store. This is useful when
+	 * using a configured region. This is also required if using a client region
+	 * on a remote cache server.
+	 * @param messageStoreRegion the region
 	 */
-	public GemfireMessageStore() {
+	public GemfireMessageStore(Region<Object,Object> messageStoreRegion) {
 		cache = null;
+		this.messageStoreRegion = messageStoreRegion;
 	}
-
+    /**
+     * Provides a cache reference used to create a message store region named
+     * 'messageStoreRegion'
+     * @param cache
+     */
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");
 		this.cache = cache;
@@ -68,51 +75,27 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 		this.ignoreJta = ignoreJta;
 	}
 
-	/**
-	 * Sets the region to be used for the message store. This is useful when
-	 * using a configured region. This is also required if using a client region
-	 * on a remote cache server.
-	 * Note that the region cannot be set if the region name is also set.
-	 * @see #setRegionName(String)
-	 * @param messageStoreRegion the region
-	 */
+
 	public void setRegion(Region<Object, Object> messageStoreRegion) {
 		this.messageStoreRegion = messageStoreRegion;
 	}
 	
-	/**
-	 * Sets the name of the region to create. This is useful to configure multiple message store instances. 
-	 * Note that this cannot be set if a region is also set.
-	 * @see #setRegion(Region)
-	 * @param regionName the region name
-	 */
-	public void setRegionName(String regionName) {
-		this.messageStoreRegionName = regionName;
-	}
-
 	@SuppressWarnings("unchecked")
 	public void afterPropertiesSet() {
-		Assert.isTrue(this.messageStoreRegion == null || this.messageStoreRegionName == null,
-		"The properties'messageStoreRegion' and 'messageStoreRegionName' cannot both contain non-null values");
-		
 		if (this.messageStoreRegion != null) {
 			return;
 		}
 		
 		try {
-			if (this.messageStoreRegionName == null) {
-				this.messageStoreRegionName = "messageStoreRegion";
-			}
-			
 			if (logger.isDebugEnabled()){
-				logger.debug("creating message store region '" + this.messageStoreRegionName +"'");
+				logger.debug("creating message store region as '" + MESSAGE_STORE_REGION_NAME + "'");
 			}
 			
 			RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 			attributesFactoryBean.setIgnoreJTA(this.ignoreJta);
 			attributesFactoryBean.afterPropertiesSet();
 			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
-			messageRegionFactoryBean.setBeanName(this.messageStoreRegionName);
+			messageRegionFactoryBean.setBeanName(MESSAGE_STORE_REGION_NAME);
 			messageRegionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 			messageRegionFactoryBean.setCache(cache);
 			messageRegionFactoryBean.afterPropertiesSet();
