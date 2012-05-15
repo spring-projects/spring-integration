@@ -74,11 +74,6 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	public void setIgnoreJta(boolean ignoreJta) {
 		this.ignoreJta = ignoreJta;
 	}
-
-
-	public void setRegion(Region<Object, Object> messageStoreRegion) {
-		this.messageStoreRegion = messageStoreRegion;
-	}
 	
 	@SuppressWarnings("unchecked")
 	public void afterPropertiesSet() {
