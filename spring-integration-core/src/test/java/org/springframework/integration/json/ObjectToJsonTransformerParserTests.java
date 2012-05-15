@@ -27,28 +27,52 @@ import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ObjectToJsonTransformerParserTests {
+	
+	@Autowired
+	private volatile ApplicationContext context;
 
 	@Autowired
 	private volatile MessageChannel defaultObjectMapperInput;
 
 	@Autowired
 	private volatile MessageChannel customObjectMapperInput;
+
+	@Test
+	public void testContextType(){
+		ObjectToJsonTransformer transformer = 
+				TestUtils.getPropertyValue(context.getBean("defaultTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertEquals("application/json", TestUtils.getPropertyValue(transformer, "contentType"));
+
+		transformer =
+				TestUtils.getPropertyValue(context.getBean("customTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertEquals("application/json", TestUtils.getPropertyValue(transformer, "contentType"));
+
+		transformer =
+				TestUtils.getPropertyValue(context.getBean("emptyContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertEquals("", TestUtils.getPropertyValue(transformer, "contentType"));
+
+		transformer =
+				TestUtils.getPropertyValue(context.getBean("overridenContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
+		assertEquals("text/xml", TestUtils.getPropertyValue(transformer, "contentType"));
+	}
 
 
 	@Test

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp;
 
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 
 /**
@@ -44,7 +45,7 @@ public abstract class AmqpHeaders {
 
 	public static final String CONTENT_LENGTH = PREFIX + "contentLength";
 
-	public static final String CONTENT_TYPE = PREFIX + "contentType";
+	public static final String CONTENT_TYPE = MessageHeaders.CONTENT_TYPE;
 
 	public static final String CORRELATION_ID = PREFIX + "correlationId";
 
