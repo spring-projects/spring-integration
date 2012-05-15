@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,22 +284,6 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
-	public void testExpireMessageGroup() throws Exception {
-		String groupId = "X";
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
-		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				messageGroupStore.removeMessageGroup(group.getGroupId());
-			}
-		});
-		messageStore.expireMessageGroups(-10000);
-		MessageGroup group = messageStore.getMessageGroup(groupId);
-		assertEquals(0, group.size());
-	}
-	
-	@Test
-	@Transactional
 	public void testExpireMessageGroupOnCreateOnly() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -313,8 +297,8 @@ public class JdbcMessageStoreTests {
 		messageStore.expireMessageGroups(2000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(1, group.size());
-		Thread.sleep(2000);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		Thread.sleep(2001);
 		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
@@ -338,13 +322,40 @@ public class JdbcMessageStoreTests {
 		assertEquals(1, group.size());
 		Thread.sleep(2000);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
-		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(2, group.size());
-		Thread.sleep(2000);
-		messageStore.expireMessageGroups(1000);
+		Thread.sleep(1000);
+		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
+	}
+	
+	@Test
+	@Transactional
+	public void testMessagePollingFromTheGroup() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+		messageStore.addMessageToGroup(groupId, message);
+		
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("baz").setCorrelationId(groupId).build());
+		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupId).build());
+		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("bazA").setCorrelationId(groupId).build());
+		MessageGroup group = messageStore.getMessageGroup("X");
+		assertEquals(3, group.size());
+		
+		Message<?> message1 = messageStore.pollMessageFromGroup("X");
+		assertNotNull(message1);
+		assertEquals("foo", message1.getPayload());
+		System.out.println("Polled Message" + message1);
+		group = messageStore.getMessageGroup("X");
+		assertEquals(2, group.size());
+		
+		Message<?> message2 = messageStore.pollMessageFromGroup("X");
+		assertNotNull(message2);
+		assertEquals("bar", message2.getPayload());
+		group = messageStore.getMessageGroup("X");
+		assertEquals(1, group.size());
 	}
 
 }
