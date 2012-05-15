@@ -268,7 +268,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 */
 	private String addPrefixIfNecessary(String prefix, String propertyName) {
 		String headerName = propertyName;
-		if (StringUtils.hasText(prefix) && !headerName.startsWith(prefix)) {
+		if (StringUtils.hasText(prefix) && !headerName.startsWith(prefix) && !headerName.equals(MessageHeaders.CONTENT_TYPE)) {
 			headerName = prefix + propertyName;
 		}
 		return headerName;

@@ -7,9 +7,13 @@
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<object-to-json-transformer input-channel="defaultObjectMapperInput"/>
+	<object-to-json-transformer id="defaultTransformer" input-channel="defaultObjectMapperInput"/>
 
-	<object-to-json-transformer input-channel="customObjectMapperInput" object-mapper="customObjectMapper"/>
+	<object-to-json-transformer id="customTransformer" input-channel="customObjectMapperInput" object-mapper="customObjectMapper"/>
+
+	<object-to-json-transformer id="emptyContentTypeTransformer" input-channel="customObjectMapperInput" content-type=""/>
+
+	<object-to-json-transformer id="overridenContentTypeTransformer" input-channel="customObjectMapperInput" content-type="text/xml"/>
 
 	<beans:bean id="customObjectMapper" class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomObjectMapper"/>
 

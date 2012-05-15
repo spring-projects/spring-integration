@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,8 +23,17 @@ import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class ObjectToJsonTransformerTests {
@@ -35,14 +41,53 @@ public class ObjectToJsonTransformerTests {
 	@Test
 	public void simpleStringPayload() throws Exception {
 		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
-		String result = transformer.transformPayload("foo");
+		String result = (String) transformer.transform(new GenericMessage<String>("foo")).getPayload();
 		assertEquals("\"foo\"", result);
+	}
+
+	@Test
+	public void withDefaultContentType() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		Message<?> result = transformer.transform(new GenericMessage<String>("foo"));
+		assertEquals(ObjectToJsonTransformer.JSON_CONTENT_TYPE, result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void withProvidedContentType() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void withProvidedContentTypeWithOverride() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setContentType(ObjectToJsonTransformer.JSON_CONTENT_TYPE);
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals(ObjectToJsonTransformer.JSON_CONTENT_TYPE, result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void withProvidedContentTypeAsEmptyString() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setContentType("");
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals("", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void withProvidedContentTypeAsNull() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setContentType(null);
 	}
 
 	@Test
 	public void simpleIntegerPayload() throws Exception {
 		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
-		String result = transformer.transformPayload(123);
+		String result = (String) transformer.transform(new GenericMessage<Integer>(123)).getPayload();
 		assertEquals("123", result);
 	}
 
@@ -52,7 +97,7 @@ public class ObjectToJsonTransformerTests {
 		TestAddress address = new TestAddress(123, "Main Street");
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(address);
-		String result = transformer.transformPayload(person);
+		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
 		assertTrue(result.contains("\"firstName\":\"John\""));
 		assertTrue(result.contains("\"lastName\":\"Doe\""));
 		assertTrue(result.contains("\"age\":42"));
@@ -71,7 +116,7 @@ public class ObjectToJsonTransformerTests {
 		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(customMapper);
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
-		String result = transformer.transformPayload(person);
+		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
 		assertTrue(result.contains("firstName:\"John\""));
 		assertTrue(result.contains("lastName:\"Doe\""));
 		assertTrue(result.contains("age:42"));
