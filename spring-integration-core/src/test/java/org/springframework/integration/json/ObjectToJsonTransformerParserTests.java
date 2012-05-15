@@ -69,7 +69,7 @@ public class ObjectToJsonTransformerParserTests {
 		
 		transformer = 
 				TestUtils.getPropertyValue(context.getBean("emptyContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
-		assertNull(TestUtils.getPropertyValue(transformer, "contentType"));
+		assertEquals("", TestUtils.getPropertyValue(transformer, "contentType"));
 		
 		transformer = 
 				TestUtils.getPropertyValue(context.getBean("overridenContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
