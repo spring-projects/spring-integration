@@ -55,7 +55,6 @@ import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -190,6 +189,16 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	protected String getQuery(String base) {
 		return StringUtils.replace(base, "%PREFIX%", tablePrefix);
+	}
+	
+	/**
+	 * To be used to get a reference to JdbcOperations
+	 * in case this class is subclassed
+	 * 
+	 * @return
+	 */
+	protected JdbcOperations getJdbcOperations(){
+		return this.jdbcTemplate;
 	}
 
 	/**
@@ -513,20 +522,31 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		this.updateMessageGroup(groupKey);
 	}
 	
-	public Message<?> pollMessageFromGroup(final Object groupId) {
+	public Message<?> pollMessageFromGroup(Object groupId) {
 		String key = getKey(groupId);
 		
-		List<Message<?>> messages = jdbcTemplate.query(getQuery(POLL_FROM_GROUP), new Object[] { key, region }, mapper);
-		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
-		if (CollectionUtils.isEmpty(messages)){
-			return null;
-		}
-		else {
+		Message<?> polledMessage = this.doPollForMessage(key);
+		if (polledMessage != null){
 			this.updateMessageGroup(key);
-			Message<?> message = messages.get(0);
-			this.removeMessageFromGroup(groupId, message);
-			return message;
+			this.removeMessageFromGroup(groupId, polledMessage);
 		}
+		return polledMessage;
+	}
+	
+	/**
+	 * This method executes a call to the DB to get the oldest Message in the MessageGroup
+	 * Override this method if need to. For example if you DB supports advanced function such as FIRST etc.
+	 * 
+	 * @param String representation of message group ID
+	 * @return could be null if query produced no Messages
+	 */
+	protected Message<?> doPollForMessage(String groupIdKey) {
+		List<Message<?>> messages = jdbcTemplate.query(getQuery(POLL_FROM_GROUP), new Object[] { groupIdKey, region }, mapper);
+		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
+		if (messages.size() > 0){
+			return messages.get(0);
+		}
+		return null;
 	}
 	
 	public Iterator<MessageGroup> iterator() {
