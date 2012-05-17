@@ -78,7 +78,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	
 	public static final String GROUP_EXISTS = "SELECT COUNT(GROUP_KEY) FROM %PREFIX%MESSAGE_GROUP where GROUP_KEY = ?";
 	
-	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP" +
+	private static final String CREATE_MESSAGE_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP" +
 			"(GROUP_KEY, REGION, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE)"
 			+ " values (?, ?, 0, 0, 0, ?, ?)";
 	private static final String UPDATE_MESSAGE_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?";
@@ -354,7 +354,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			    jdbcTemplate.queryForObject(getQuery(GET_GROUP_CREATED_DATE), new Object[] { groupKey, region}, Timestamp.class);
 		
 		if (groupNotExist){
-			jdbcTemplate.update(getQuery(CREATE_MESSAGE_IN_GROUP), new PreparedStatementSetter() {
+			jdbcTemplate.update(getQuery(CREATE_MESSAGE_GROUP), new PreparedStatementSetter() {
 				public void setValues(PreparedStatement ps) throws SQLException {
 					if (logger.isDebugEnabled()){
 						logger.debug("Creating message group with id key=" + groupKey + " and created date=" + createdDate);
@@ -527,7 +527,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		
 		Message<?> polledMessage = this.doPollForMessage(key);
 		if (polledMessage != null){
-			this.updateMessageGroup(key);
 			this.removeMessageFromGroup(groupId, polledMessage);
 		}
 		return polledMessage;
