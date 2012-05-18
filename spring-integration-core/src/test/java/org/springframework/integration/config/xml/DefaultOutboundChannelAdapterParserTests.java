@@ -19,11 +19,9 @@ package org.springframework.integration.config.xml;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
 import org.junit.runner.RunWith;
-
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.config.TestConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
@@ -34,6 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -42,6 +41,15 @@ public class DefaultOutboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	@SuppressWarnings("unused") // testing auto wiring only
+	@Autowired
+	@Qualifier("org.springframework.integration.handler.MethodInvokingMessageHandler#0")
+	private MethodInvokingMessageHandler adapterByGeneratedName;
+
+	@SuppressWarnings("unused") // testing auto wiring only
+	@Autowired
+	@Qualifier("adapter.handler")
+	private MethodInvokingMessageHandler adapterByAlias;
 
 	@Test
 	public void checkConfig() {

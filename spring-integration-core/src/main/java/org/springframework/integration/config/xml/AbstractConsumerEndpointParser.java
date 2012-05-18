@@ -40,6 +40,7 @@ import org.springframework.util.xml.DomUtils;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinitionParser {
 
@@ -88,7 +89,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 
 		String handlerBeanName = BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
-		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName));
+		String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName, handlerAlias));
 
 		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);

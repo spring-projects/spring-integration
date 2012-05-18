@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
@@ -53,6 +56,15 @@ public class ServiceActivatorParserTests {
 	@Autowired
 	private MessageChannel multipleArgsFromPayloadInput;
 
+	@SuppressWarnings("unused") // testing auto wiring only
+	@Autowired
+	@Qualifier("org.springframework.integration.config.ServiceActivatorFactoryBean#0")
+	private ServiceActivatingHandler testAliasByGeneratedName;
+
+	@SuppressWarnings("unused") // testing auto wiring only
+	@Autowired
+	@Qualifier("testAlias.handler")
+	private ServiceActivatingHandler testAlias;
 
 	@Test
 	public void literalExpression() {

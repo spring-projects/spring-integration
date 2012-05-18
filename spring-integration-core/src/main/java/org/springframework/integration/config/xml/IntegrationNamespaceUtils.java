@@ -13,6 +13,8 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser.ID_ATTRIBUTE;
+
 import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -45,6 +47,8 @@ public abstract class IntegrationNamespaceUtils {
 	static final String METHOD_ATTRIBUTE = "method";
 	static final String ORDER = "order";
 	static final String EXPRESSION_ATTRIBUTE = "expression";
+	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
+
 
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
@@ -253,5 +257,14 @@ public abstract class IntegrationNamespaceUtils {
 			
 			rootBuilder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
+	}
+
+	public static String[] generateAlias(Element element) {
+		String[] handlerAlias = null;
+		String id = element.getAttribute(ID_ATTRIBUTE);
+		if (StringUtils.hasText(id)) {
+			handlerAlias = new String[] {id + HANDLER_ALIAS_SUFFIX};
+		}
+		return handlerAlias;
 	}
 }
