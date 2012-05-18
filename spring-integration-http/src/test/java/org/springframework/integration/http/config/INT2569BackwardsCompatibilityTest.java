@@ -49,5 +49,14 @@ public class INT2569BackwardsCompatibilityTest{
 		
 		channel.send(new GenericMessage<String>("ctxs"));
 		assertNotNull(replyChannel.receive(5000));
+		
+		channel.send(new GenericMessage<String>("fb"));
+		assertNotNull(replyChannel.receive(5000));
+		
+		channel.send(new GenericMessage<String>("t"));
+		assertNotNull(replyChannel.receive(5000));
+		
+		channel.send(new GenericMessage<String>("aapl"));
+		assertNotNull(replyChannel.receive(5000));
 	}
 }

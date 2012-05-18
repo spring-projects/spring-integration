@@ -12,10 +12,18 @@
 	<int:channel id="ibmChannel"/>
 	<int:channel id="orclChannel"/>
 	<int:channel id="ctxsChannel"/>
+	<int:channel id="fbChannel"/>
+	<int:channel id="tChannel"/>
+	<int:channel id="aaplChannel"/>
 	
 	<int-http:outbound-gateway url="{url}" request-channel="vmwChannel" reply-channel="replyChannel"
 								expected-response-type="java.lang.String" http-method="GET">
 		<int-http:uri-variable name="url" expression="'http://www.google.com/finance/info?q=vmw'" encode="false"/>
+	</int-http:outbound-gateway>
+	
+	<int-http:outbound-gateway url="{Url}" request-channel="aaplChannel" reply-channel="replyChannel"
+								expected-response-type="java.lang.String" http-method="GET">
+		<int-http:uri-variable name="url" expression="'http://www.google.com/finance/info?q=aapl'" encode="false"/>
 	</int-http:outbound-gateway>
 	
 	<int-http:outbound-gateway url="http://www.google.com/{url}" request-channel="ibmChannel" reply-channel="replyChannel"
@@ -30,6 +38,16 @@
 	</int-http:outbound-gateway>
 	
 	<int-http:outbound-gateway url="http://www.google.com/finance/info?q={ticker}" request-channel="ctxsChannel" reply-channel="replyChannel"
+								expected-response-type="java.lang.String" http-method="GET">
+		<int-http:uri-variable name="ticker" expression="payload" />
+	</int-http:outbound-gateway>
+	
+	<int-http:outbound-gateway url="http://www.google.com/finance/info?q={ticker}" request-channel="fbChannel" reply-channel="replyChannel"
+								expected-response-type="java.lang.String" http-method="GET">
+		<int-http:uri-variable name="TICKER" expression="payload" />
+	</int-http:outbound-gateway>
+	
+	<int-http:outbound-gateway url="http://www.google.com/finance/info?q={TICKER}" request-channel="tChannel" reply-channel="replyChannel"
 								expected-response-type="java.lang.String" http-method="GET">
 		<int-http:uri-variable name="ticker" expression="payload" />
 	</int-http:outbound-gateway>

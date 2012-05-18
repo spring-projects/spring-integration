@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.Source;
 
@@ -261,7 +262,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 						uriVariables.put(entry.getKey(), value);
 					}
 					else {
-						this.uri = this.uri.replace("{" + entry.getKey() + "}", value);					
+						this.uri = Pattern.compile("\\{" + entry.getKey() + "\\}", Pattern.CASE_INSENSITIVE).matcher(uri).replaceAll(value);				
 					}
 				}
 				else {
