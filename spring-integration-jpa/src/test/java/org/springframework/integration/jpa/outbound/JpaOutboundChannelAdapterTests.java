@@ -15,21 +15,21 @@ package org.springframework.integration.jpa.outbound;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.sql.DataSource;
 
 import junit.framework.Assert;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
@@ -41,6 +41,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 /**
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -53,16 +54,23 @@ public class JpaOutboundChannelAdapterTests {
 	private EntityManager entityManager;
 
 	@Autowired
-	DataSource dataSource;
+	JdbcTemplate jdbcTemplate;
 
 	@Autowired
 	private PlatformTransactionManager transactionManager;
 
+	@Autowired
+	private MessageChannel jpaOutboundChannelAdapterWithinChain;
+
+	@After
+	public void cleanUp() {
+		this.jdbcTemplate.execute("delete from Student where rollNumber > 1003");
+	}
+
 	@Test
-	@DirtiesContext
 	public void saveEntityWithMerge() throws InterruptedException {
 
-		List<?> results1 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
+		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results1);
 		Assert.assertTrue(results1.size() == 3);
 
@@ -85,7 +93,7 @@ public class JpaOutboundChannelAdapterTests {
 		jpaOutboundChannelAdapter.handleMessage(message);
 		transactionManager.commit(status);
 
-		List<?> results2 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
+		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results2);
 		Assert.assertTrue(results2.size() == 4);
 
@@ -94,10 +102,9 @@ public class JpaOutboundChannelAdapterTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void saveEntityWithMergeWithoutSpecifyingEntityClass() throws InterruptedException {
 
-		List<?> results1 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
+		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results1);
 		Assert.assertTrue(results1.size() == 3);
 
@@ -119,7 +126,7 @@ public class JpaOutboundChannelAdapterTests {
 		jpaOutboundChannelAdapter.handleMessage(message);
 		transactionManager.commit(status);
 
-		List<?> results2 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
+		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results2);
 		Assert.assertTrue(results2.size() == 4);
 
@@ -130,7 +137,7 @@ public class JpaOutboundChannelAdapterTests {
 	@Test
 	public void saveEntityWithPersist() throws InterruptedException {
 
-		List<?> results1 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
+		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results1);
 		Assert.assertTrue(results1.size() == 3);
 
@@ -159,7 +166,27 @@ public class JpaOutboundChannelAdapterTests {
 		jpaOutboundChannelAdapter.handleMessage(message);
 		transactionManager.commit(status);
 
-		List<?> results2 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
+		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
+		Assert.assertNotNull(results2);
+		Assert.assertTrue(results2.size() == 4);
+
+		Assert.assertNotNull(testStudent.getRollNumber());
+	}
+
+	@Test //INT-2557
+	public void saveEntityWithPersistWithinChain() throws InterruptedException {
+
+		List<?> results1 = this.jdbcTemplate.queryForList("Select * from Student");
+		Assert.assertNotNull(results1);
+		Assert.assertTrue(results1.size() == 3);
+
+		StudentDomain testStudent = JpaTestUtils.getTestStudent();
+
+		Assert.assertNull(testStudent.getRollNumber());
+
+		this.jpaOutboundChannelAdapterWithinChain.send(MessageBuilder.withPayload(testStudent).build());
+
+		List<?> results2 = this.jdbcTemplate.queryForList("Select * from Student");
 		Assert.assertNotNull(results2);
 		Assert.assertTrue(results2.size() == 4);
 
