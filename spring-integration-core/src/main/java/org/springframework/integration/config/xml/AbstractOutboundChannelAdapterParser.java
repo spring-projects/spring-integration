@@ -76,7 +76,8 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 			definition.getPropertyValues().addPropertyValue(IntegrationNamespaceUtils.ORDER, order);
 		}
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry());
-		parserContext.registerBeanComponent(new BeanComponentDefinition(definition, beanName));
+		String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(definition, beanName, handlerAlias));
 		return beanName;
 	}
 

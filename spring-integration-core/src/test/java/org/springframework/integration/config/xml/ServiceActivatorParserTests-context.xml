@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<service-activator input-channel="literalExpressionInput" expression="'foo'"/>
+	<service-activator id="testAlias" input-channel="literalExpressionInput" expression="'foo'"/>
 
 	<service-activator input-channel="beanAsTargetInput" expression="@testBean.caps(payload)"/>
 

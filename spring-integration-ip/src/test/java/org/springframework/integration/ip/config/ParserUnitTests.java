@@ -84,15 +84,15 @@ public class ParserUnitTests {
 	TcpReceivingChannelAdapter tcpIn;
 
 	@Autowired
-	@Qualifier(value="org.springframework.integration.ip.udp.UnicastSendingMessageHandler#0")
+	@Qualifier(value="testOutUdp.handler")
 	UnicastSendingMessageHandler udpOut;
 
 	@Autowired
-	@Qualifier(value="org.springframework.integration.ip.udp.MulticastSendingMessageHandler#0")
+	@Qualifier(value="testOutUdpiMulticast.handler")
 	MulticastSendingMessageHandler udpOutMulticast;
 
 	@Autowired
-	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#0")
+	@Qualifier(value="testOutTcpNio.handler")
 	TcpSendingMessageHandler tcpOut;
 
 	@Autowired
@@ -107,8 +107,13 @@ public class ParserUnitTests {
 	TcpInboundGateway tcpInboundGateway2;
 
 	@Autowired
-	@Qualifier(value="org.springframework.integration.ip.tcp.TcpOutboundGateway#0")
+	@Qualifier(value="outGateway.handler")
 	TcpOutboundGateway tcpOutboundGateway;
+
+	// verify we can still inject by generated name
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpOutboundGateway#0")
+	TcpOutboundGateway tcpOutboundGatewayByGeneratedName;
 
 	@Autowired
 	EventDrivenConsumer outGateway;
@@ -160,11 +165,11 @@ public class ParserUnitTests {
 	AbstractConnectionFactory cfS3;
 
 	@Autowired
-	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#1")
+	@Qualifier(value="tcpNewOut1.handler")
 	TcpSendingMessageHandler tcpNewOut1;
 
 	@Autowired
-	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#2")
+	@Qualifier(value="tcpNewOut2.handler")
 	TcpSendingMessageHandler tcpNewOut2;
 
 	@Autowired
@@ -192,7 +197,7 @@ public class ParserUnitTests {
 	TaskScheduler sched;
 
 	@Autowired
-	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#3")
+	@Qualifier(value="tcpOutClientMode.handler")
 	TcpSendingMessageHandler tcpOutClientMode;
 
 	@Autowired
