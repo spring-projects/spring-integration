@@ -36,6 +36,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.store.AbstractMessageGroupStore;
@@ -179,26 +180,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public JdbcMessageStore(DataSource dataSource) {
 		this();
 		jdbcTemplate = new JdbcTemplate(dataSource);
-	}
-
-	/**
-	 * Replace patterns in the input to produce a valid SQL query. This implementation replaces the table prefix.
-	 * 
-	 * @param base the SQL query to be transformed
-	 * @return a transformed query with replacements
-	 */
-	protected String getQuery(String base) {
-		return StringUtils.replace(base, "%PREFIX%", tablePrefix);
-	}
-	
-	/**
-	 * To be used to get a reference to JdbcOperations
-	 * in case this class is subclassed
-	 * 
-	 * @return
-	 */
-	protected JdbcOperations getJdbcOperations(){
-		return this.jdbcTemplate;
 	}
 
 	/**
@@ -354,29 +335,16 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			    jdbcTemplate.queryForObject(getQuery(GET_GROUP_CREATED_DATE), new Object[] { groupKey, region}, Timestamp.class);
 		
 		if (groupNotExist){
-			jdbcTemplate.update(getQuery(CREATE_MESSAGE_GROUP), new PreparedStatementSetter() {
-				public void setValues(PreparedStatement ps) throws SQLException {
-					if (logger.isDebugEnabled()){
-						logger.debug("Creating message group with id key=" + groupKey + " and created date=" + createdDate);
-					}
-					ps.setString(1, groupKey);
-					ps.setString(2, region);
-					ps.setTimestamp(3, createdDate);						
-					ps.setTimestamp(4, createdDate);
-				}
-			});
+			try { 
+				this.doCreateMessageGroup(groupKey, createdDate);
+			} catch (DuplicateKeyException e) {
+				logger.warn("Attempt was made to create a new MessageGroup whiel adding Message to the group which is already created. " +
+						"Will attempt to update the group instead", e);
+				this.doUpdateMessageGroup(groupKey, updatedDate);
+			}
 		}
 		else {
-			jdbcTemplate.update(getQuery(UPDATE_MESSAGE_GROUP), new PreparedStatementSetter() {
-				public void setValues(PreparedStatement ps) throws SQLException {
-					if (logger.isDebugEnabled()){
-						logger.debug("Updating message group with id key=" + groupKey + " and updated date=" + updatedDate);
-					}					
-					ps.setTimestamp(1, createdDate);
-					ps.setString(2, groupKey);
-					ps.setString(3, region);
-				}
-			});
+			this.doUpdateMessageGroup(groupKey, updatedDate);
 		}
 		
 		this.addMessage(message);
@@ -532,22 +500,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return polledMessage;
 	}
 	
-	/**
-	 * This method executes a call to the DB to get the oldest Message in the MessageGroup
-	 * Override this method if need to. For example if you DB supports advanced function such as FIRST etc.
-	 * 
-	 * @param String representation of message group ID
-	 * @return could be null if query produced no Messages
-	 */
-	protected Message<?> doPollForMessage(String groupIdKey) {
-		List<Message<?>> messages = jdbcTemplate.query(getQuery(POLL_FROM_GROUP), new Object[] { groupIdKey, region }, mapper);
-		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
-		if (messages.size() > 0){
-			return messages.get(0);
-		}
-		return null;
-	}
-	
 	public Iterator<MessageGroup> iterator() {
 
 		final Iterator<String> iterator = jdbcTemplate.query(getQuery(LIST_GROUP_KEYS), new Object[] { region },
@@ -567,6 +519,69 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				throw new UnsupportedOperationException("Cannot remove MessageGroup from this iterator.");
 			}
 		};
+	}
+	
+	/**
+	 * Replace patterns in the input to produce a valid SQL query. This implementation replaces the table prefix.
+	 * 
+	 * @param base the SQL query to be transformed
+	 * @return a transformed query with replacements
+	 */
+	protected String getQuery(String base) {
+		return StringUtils.replace(base, "%PREFIX%", tablePrefix);
+	}
+	
+	/**
+	 * To be used to get a reference to JdbcOperations
+	 * in case this class is subclassed
+	 * 
+	 * @return
+	 */
+	protected JdbcOperations getJdbcOperations(){
+		return this.jdbcTemplate;
+	}
+	
+	/**
+	 * This method executes a call to the DB to get the oldest Message in the MessageGroup
+	 * Override this method if need to. For example if you DB supports advanced function such as FIRST etc.
+	 * 
+	 * @param String representation of message group ID
+	 * @return could be null if query produced no Messages
+	 */
+	protected Message<?> doPollForMessage(String groupIdKey) {
+		List<Message<?>> messages = jdbcTemplate.query(getQuery(POLL_FROM_GROUP), new Object[] { groupIdKey, region }, mapper);
+		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
+		if (messages.size() > 0){
+			return messages.get(0);
+		}
+		return null;
+	}
+	
+	private void doCreateMessageGroup(final String groupKey, final Timestamp createdDate){
+		jdbcTemplate.update(getQuery(CREATE_MESSAGE_GROUP), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				if (logger.isDebugEnabled()){
+					logger.debug("Creating message group with id key=" + groupKey + " and created date=" + createdDate);
+				}
+				ps.setString(1, groupKey);
+				ps.setString(2, region);
+				ps.setTimestamp(3, createdDate);						
+				ps.setTimestamp(4, createdDate);
+			}
+		});
+	}
+	
+	private void doUpdateMessageGroup(final String groupKey, final Timestamp updatedDate){
+		jdbcTemplate.update(getQuery(UPDATE_MESSAGE_GROUP), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				if (logger.isDebugEnabled()){
+					logger.debug("Updating message group with id key=" + groupKey + " and updated date=" + updatedDate);
+				}					
+				ps.setTimestamp(1, updatedDate);
+				ps.setString(2, groupKey);
+				ps.setString(3, region);
+			}
+		});
 	}
 	
 	private void updateMessageGroup(final String groupId){

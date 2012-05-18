@@ -324,7 +324,7 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(2, group.size());
-		Thread.sleep(1000);
+		Thread.sleep(2000);
 		messageStore.expireMessageGroups(2000);
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
