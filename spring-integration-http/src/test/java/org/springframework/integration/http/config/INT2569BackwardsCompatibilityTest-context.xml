@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-2.2.xsd">
+	
+	<int:router input-channel="inputChannel" expression="payload + 'Channel'"/>
+	
+	<int:channel id="vmwChannel"/>
+	<int:channel id="ibmChannel"/>
+	<int:channel id="orclChannel"/>
+	<int:channel id="ctxsChannel"/>
+	
+	<int-http:outbound-gateway url="{url}" request-channel="vmwChannel" reply-channel="replyChannel"
+								expected-response-type="java.lang.String" http-method="GET">
+		<int-http:uri-variable name="url" expression="'http://www.google.com/finance/info?q=vmw'" encode="false"/>
+	</int-http:outbound-gateway>
+	
+	<int-http:outbound-gateway url="http://www.google.com/{url}" request-channel="ibmChannel" reply-channel="replyChannel"
+								expected-response-type="java.lang.String" http-method="GET">
+		<int-http:uri-variable name="url" expression="'finance/info?q=' + payload" encode="false"/>
+	</int-http:outbound-gateway>
+	
+	<int-http:outbound-gateway url="http://www.google.com/{url}{ticker}" request-channel="orclChannel" reply-channel="replyChannel"
+								expected-response-type="java.lang.String" http-method="GET">
+		<int-http:uri-variable name="url" expression="'finance/info?q='" encode="false"/>
+		<int-http:uri-variable name="ticker" expression="payload" encode="false"/>
+	</int-http:outbound-gateway>
+	
+	<int-http:outbound-gateway url="http://www.google.com/finance/info?q={ticker}" request-channel="ctxsChannel" reply-channel="replyChannel"
+								expected-response-type="java.lang.String" http-method="GET">
+		<int-http:uri-variable name="ticker" expression="payload" />
+	</int-http:outbound-gateway>
+	
+	<int:channel id="replyChannel">
+		<int:queue/>
+	</int:channel>
+
+</beans>
