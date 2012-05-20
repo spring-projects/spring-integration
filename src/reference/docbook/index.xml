@@ -65,6 +65,10 @@
         <firstname>Artem</firstname>
         <surname>Bilan</surname>
       </author>
+      <author>
+        <firstname>Amol</firstname>
+        <surname>Nayak</surname>
+      </author>
     </authorgroup>
 
     <legalnotice><para>© SpringSource Inc., 2012</para></legalnotice>
