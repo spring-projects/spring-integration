@@ -338,8 +338,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			try { 
 				this.doCreateMessageGroup(groupKey, createdDate);
 			} catch (DuplicateKeyException e) {
-				logger.warn("Attempt was made to create a new MessageGroup whiel adding Message to the group which is already created. " +
-						"Will attempt to update the group instead", e);
+				logger.warn("Lost race to create group; attempting update instead", e);
 				this.doUpdateMessageGroup(groupKey, updatedDate);
 			}
 		}
