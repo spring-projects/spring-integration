@@ -624,6 +624,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="encode" use="optional" default="true" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Allows you to manage if this variable should be processed by 
+					UriTemplate (which also send it through url encoding) or not.
+					Default is 'true'.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="headerType">

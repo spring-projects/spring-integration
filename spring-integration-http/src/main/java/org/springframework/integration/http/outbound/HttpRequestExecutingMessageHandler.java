@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.Source;
 
@@ -48,15 +48,18 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
+import org.springframework.integration.http.outbound.UriVariableExpressionDelegateFactoryBean.UriVariableExpressionDelegate;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriTemplate;
 
 /**
  * A {@link MessageHandler} implementation that executes HTTP requests by delegating
@@ -75,7 +78,7 @@ import org.springframework.web.client.RestTemplate;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private final String uri;
+	private volatile String uri;
 
 	private volatile HttpMethod httpMethod = HttpMethod.POST;
 
@@ -93,7 +96,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
-	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+	private final Map<String, Expression> uriVariableExpressions = new LinkedCaseInsensitiveMap<Expression>();
 
 	private final RestTemplate restTemplate;
 
@@ -209,6 +212,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
 	 * when replacing the variable placeholders in a URI template.
+	 * Replacement is done by the {@link UriTemplate}
 	 */
 	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
 		synchronized (this.uriVariableExpressions) {
@@ -249,11 +253,23 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		try {
-			Map<String, Object> uriVariables = new HashMap<String, Object>();
+			Map<String, String> uriVariables = new LinkedCaseInsensitiveMap<String>();
 			for (Map.Entry<String, Expression> entry : this.uriVariableExpressions.entrySet()) {
-				Object value = entry.getValue().getValue(this.evaluationContext, requestMessage, String.class);
-				uriVariables.put(entry.getKey(), value);
+				Expression expression = entry.getValue();
+				String value = expression.getValue(this.evaluationContext, requestMessage, String.class);
+				if (expression instanceof UriVariableExpressionDelegate){
+					if (((UriVariableExpressionDelegate)expression).isEncode()){
+						uriVariables.put(entry.getKey(), value);
+					}
+					else {
+						this.uri = Pattern.compile("\\{" + entry.getKey() + "\\}", Pattern.CASE_INSENSITIVE).matcher(uri).replaceAll(value);				
+					}
+				}
+				else {
+					uriVariables.put(entry.getKey(), value);
+				}	
 			}
+			
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
