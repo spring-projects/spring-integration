@@ -14,19 +14,38 @@ package org.springframework.integration.jpa.core;
 
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.Message;
+import org.springframework.integration.jpa.support.JpaParameter;
+import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
+import org.springframework.integration.jpa.test.entity.StudentDomain;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Amol Nayak
  * @since 2.2
  *
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class JpaExecutorTests {
+
+	@Autowired
+	protected EntityManager entityManager;
 
 	/**
 	 * In this test, the {@link JpaExecutor}'s poll method will be called without
@@ -68,5 +87,87 @@ public class JpaExecutorTests {
 		}
 
 	}
+
+	@Test
+	@Transactional
+	public void selectWithMessageAsParameterSource() {
+		String query = "select s from Student s where s.firstName = :firstName";
+		Message<Map<String, String>> message =
+			MessageBuilder.withPayload(Collections.singletonMap("firstName", "First One")).build();
+		JpaExecutor executor = getJpaExecutorForMessageAsParamSource(query);
+		StudentDomain student = (StudentDomain) executor.poll(message);
+		Assert.assertNotNull(student);
+	}
+
+	@Test
+	@Transactional
+	public void selectWithPayloadAsParameterSource() {
+		String query = "select s from Student s where s.firstName = :firstName";
+		Message<String> message =
+			MessageBuilder.withPayload("First One").build();
+		JpaExecutor executor = getJpaExecutorForPayloadAsParamSource(query);
+		StudentDomain student = (StudentDomain) executor.poll(message);
+		Assert.assertNotNull(student);
+	}
+
+	@Test
+	@Transactional
+	public void updateWithMessageAsParameterSource() {
+		String query = "update Student s set s.firstName = :firstName where s.lastName = 'Last One'";
+		Message<Map<String, String>> message =
+			MessageBuilder.withPayload(Collections.singletonMap("firstName", "First One")).build();
+		JpaExecutor executor = getJpaExecutorForMessageAsParamSource(query);
+		Integer rowsAffected = (Integer) executor.executeOutboundJpaOperation(message);
+		Assert.assertTrue(1 == rowsAffected);
+	}
+
+	@Test
+	@Transactional
+	public void updateWithPayloadAsParameterSource() {
+		String query = "update Student s set s.firstName = :firstName where s.lastName = 'Last One'";
+		Message<String> message =
+			MessageBuilder.withPayload("First One").build();
+		JpaExecutor executor = getJpaExecutorForPayloadAsParamSource(query);
+		Integer rowsAffected = (Integer) executor.executeOutboundJpaOperation(message);
+		Assert.assertTrue(1 == rowsAffected);
+	}
+
+	/**
+	 * @param query
+	 * @return
+	 */
+	private JpaExecutor getJpaExecutorForMessageAsParamSource(String query) {
+		JpaExecutor executor = new JpaExecutor(entityManager);
+		ExpressionEvaluatingParameterSourceFactory factory =
+				new ExpressionEvaluatingParameterSourceFactory();
+		factory.setParameters(
+				Collections.singletonList(new JpaParameter("firstName", null, "payload['firstName']")));
+		executor.setParameterSourceFactory(factory);
+		executor.setJpaQuery(query);
+		executor.setExpectSingleResult(true);
+		executor.setUsePayloadAsParameterSource(false);
+		executor.afterPropertiesSet();
+		return executor;
+	}
+
+	/**
+	 * @param query
+	 * @return
+	 */
+	private JpaExecutor getJpaExecutorForPayloadAsParamSource(String query) {
+		JpaExecutor executor = new JpaExecutor(entityManager);
+		ExpressionEvaluatingParameterSourceFactory factory =
+				new ExpressionEvaluatingParameterSourceFactory();
+		factory.setParameters(
+				Collections.singletonList(new JpaParameter("firstName", null, "#this")));
+		executor.setParameterSourceFactory(factory);
+		executor.setJpaQuery(query);
+		executor.setExpectSingleResult(true);
+		executor.setUsePayloadAsParameterSource(true);
+		executor.afterPropertiesSet();
+		return executor;
+	}
+
+
 
 }

@@ -52,6 +52,7 @@ import org.springframework.util.Assert;
  * is "guessed" from the {@link Message} payload.
  *
  * @author Gunnar Hillert
+ * @author Amol Nayak
  * @since 2.2
  *
  */
@@ -143,7 +144,7 @@ public class JpaExecutor implements InitializingBean {
 	 */
 	public void afterPropertiesSet() {
 
-		if (this.jpaParameters != null ) {
+		if (this.jpaParameters != null) {
 
 			if (this.parameterSourceFactory == null) {
 				ExpressionEvaluatingParameterSourceFactory expressionSourceFactory =
@@ -195,17 +196,24 @@ public class JpaExecutor implements InitializingBean {
 
 		final Object result;
 
+		ParameterSource paramSource = null;
+		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
+			if (usePayloadAsParameterSource)
+				paramSource = parameterSourceFactory.createParameterSource(message.getPayload());
+			else
+				paramSource = parameterSourceFactory.createParameterSource(message);
+		}
 		if (this.jpaQuery != null) {
 
-			result = this.jpaOperations.executeUpdate(this.jpaQuery, parameterSourceFactory.createParameterSource(message));
+			result = this.jpaOperations.executeUpdate(this.jpaQuery, paramSource);
 
 		} else if (this.nativeQuery != null) {
 
-			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, parameterSourceFactory.createParameterSource(message));
+			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, paramSource);
 
 		} else if (this.namedQuery != null) {
 
-			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, parameterSourceFactory.createParameterSource(message));
+			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, paramSource);
 
 		} else {
 
@@ -248,7 +256,13 @@ public class JpaExecutor implements InitializingBean {
 		if (requestMessage == null) {
 			result = doPoll(this.parameterSource);
 		} else {
-			result = doPoll(this.parameterSourceFactory.createParameterSource(requestMessage));
+			ParameterSource parameterSource;
+			if (usePayloadAsParameterSource)
+				parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
+			else
+				parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage);
+
+			result = doPoll(parameterSource);
 		}
 
 		if (result.isEmpty()) {
@@ -337,8 +351,8 @@ public class JpaExecutor implements InitializingBean {
 	public void setJpaQuery(String jpaQuery) {
 
 		if (this.nativeQuery != null || this.namedQuery != null) {
-			throw new IllegalArgumentException("You can define only one of the " +
-							"properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+			throw new IllegalArgumentException("You can define only one of the "
+							+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		}
 
 		Assert.hasText(jpaQuery, "jpaQuery must neither be null nor empty.");
@@ -357,8 +371,8 @@ public class JpaExecutor implements InitializingBean {
 	public void setNativeQuery(String nativeQuery) {
 
 		if (this.jpaQuery != null || this.namedQuery != null) {
-			throw new IllegalArgumentException("You can define only one of the " +
-							"properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+			throw new IllegalArgumentException("You can define only one of the "
+							+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		}
 
 		Assert.hasText(nativeQuery, "nativeQuery must neither be null nor empty.");
@@ -375,8 +389,8 @@ public class JpaExecutor implements InitializingBean {
 	public void setNamedQuery(String namedQuery) {
 
 		if (this.jpaQuery != null || this.nativeQuery != null) {
-			throw new IllegalArgumentException("You can define only one of the " +
-							"properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
+			throw new IllegalArgumentException("You can define only one of the "
+							+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 		}
 
 		Assert.hasText(namedQuery, "namedQuery must neither be null nor empty.");
