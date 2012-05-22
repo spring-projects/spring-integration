@@ -33,10 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.util.Assert;
 
 /**
  * A TcpConnection that uses and underlying {@link SocketChannel}.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
@@ -79,6 +80,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		this.channelOutputStream = new ChannelOutputStream();
 	}
 
+	@Override
 	public void close() {
 		doClose();
 	}
@@ -131,9 +133,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * If there is no listener, and this connection is not for single use, 
+	 * If there is no listener, and this connection is not for single use,
 	 * this method exits. When there is a listener, this method assembles
-	 * data into messages by invoking convertAndSend whenever there is 
+	 * data into messages by invoking convertAndSend whenever there is
 	 * data in the input Stream. Method exits when a message is complete
 	 * and there is no more data; thus freeing the thread to work on other
 	 * sockets.
@@ -170,7 +172,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				} else {
 					logger.error("Read exception " +
 								 this.getConnectionId() + " " +
-								 e.getClass().getSimpleName() + 
+								 e.getClass().getSimpleName() +
 							     ":" + e.getCause() + ":" + e.getMessage());
 				}
 				this.closeConnection();
@@ -244,7 +246,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 		/*
 		 * For single use sockets, we close after receipt if we are on the client
-		 * side, and the data was not intercepted, 
+		 * side, and the data was not intercepted,
 		 * or the server side has no outbound adapter registered
 		 */
 		if (this.isSingleUse() && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
@@ -292,6 +294,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	protected void sendToPipe(ByteBuffer rawBuffer) throws IOException {
+		Assert.notNull(rawBuffer, "rawBuffer cannot be null");
 		this.pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
 		this.pipedOutputStream.flush();
 		rawBuffer.clear();
@@ -324,8 +327,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			}
 			this.closeConnection();
 		} catch (Exception e) {
-			logger.error("Exception on Read " + 
-					     this.getConnectionId() + " " + 
+			logger.error("Exception on Read " +
+					     this.getConnectionId() + " " +
 					     e.getMessage(), e);
 			this.closeConnection();
 		}
@@ -339,7 +342,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param taskExecutor the taskExecutor to set
 	 */
 	public void setTaskExecutor(Executor taskExecutor) {
@@ -364,7 +367,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return Time of last read.
 	 */
 	public long getLastRead() {
@@ -372,7 +375,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param lastRead The time of the last read.
 	 */
 	public void setLastRead(long lastRead) {
@@ -380,7 +383,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * OutputStream to wrap a SocketChannel; implements timeout on write. 
+	 * OutputStream to wrap a SocketChannel; implements timeout on write.
 	 *
 	 */
 	class ChannelOutputStream extends OutputStream {

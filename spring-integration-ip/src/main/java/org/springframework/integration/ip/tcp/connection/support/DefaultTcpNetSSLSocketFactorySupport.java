@@ -34,9 +34,9 @@ public class DefaultTcpNetSSLSocketFactorySupport implements TcpSocketFactorySup
 		InitializingBean {
 
 	private final TcpSSLContextSupport sslContextSupport;
-	
+
 	private volatile SSLContext sslContext;
-	
+
 	public DefaultTcpNetSSLSocketFactorySupport(TcpSSLContextSupport sslContextSupport) {
 		Assert.notNull(sslContextSupport, "TcpSSLContextSupport must not be null");
 		this.sslContextSupport = sslContextSupport;

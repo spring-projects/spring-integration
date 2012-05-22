@@ -35,5 +35,5 @@ public interface TcpSSLContextSupport {
 	 * @throws Exception
 	 */
 	SSLContext getSSLContext() throws GeneralSecurityException, IOException;
-	
+
 }

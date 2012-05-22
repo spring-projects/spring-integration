@@ -31,21 +31,22 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioConnectionSupport;
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSocketSupport;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSocketFactorySupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpNioConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioSSLConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSocketSupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.util.Assert;
 
 /**
  * Instantiates a TcpN(et|io)(Server|Client)ConnectionFactory, depending
  * on type and using-nio attributes.
- * 
+ *
  * @author Gary Russell
  * @since 2.0.5
  */
@@ -109,7 +110,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	@Override
 	public Class<?> getObjectType() {
-		return this.connectionFactory != null ? this.connectionFactory.getClass() 
+		return this.connectionFactory != null ? this.connectionFactory.getClass()
 											  : AbstractConnectionFactory.class;
 	}
 
@@ -121,14 +122,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
-				connectionFactory.setTcpNioConnectionSupport(this.getNioConnectionSupport());
+				connectionFactory.setTcpNioConnectionSupport(this.getOrCreateNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			} else {
 				TcpNioClientConnectionFactory connectionFactory = new TcpNioClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
-				connectionFactory.setTcpNioConnectionSupport(this.getNioConnectionSupport());
+				connectionFactory.setTcpNioConnectionSupport(this.getOrCreateNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			}
 		} else {
@@ -136,13 +137,13 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(this.port);
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
-				connectionFactory.setTcpSocketFactorySupport(this.getSocketFactorySupport());
+				connectionFactory.setTcpSocketFactorySupport(this.getOrCreateSocketFactorySupport());
 				this.connectionFactory = connectionFactory;
 			} else {
 				TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
-				connectionFactory.setTcpSocketFactorySupport(this.getSocketFactorySupport());
+				connectionFactory.setTcpSocketFactorySupport(this.getOrCreateSocketFactorySupport());
 				this.connectionFactory = connectionFactory;
 			}
 		}
@@ -174,7 +175,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setLocalAddress(this.localAddress);
 	}
 
-	private TcpSocketFactorySupport getSocketFactorySupport() {
+	private TcpSocketFactorySupport getOrCreateSocketFactorySupport() {
 		if (this.socketFactorySupport != null) {
 			return this.socketFactorySupport;
 		}
@@ -186,7 +187,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		}
 	}
 
-	private TcpNioConnectionSupport getNioConnectionSupport() {
+	private TcpNioConnectionSupport getOrCreateNioConnectionSupport() {
 		if (this.nioConnectionSupport != null) {
 			return this.nioConnectionSupport;
 		}
@@ -196,9 +197,9 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		else {
 			return new DefaultTcpNioSSLConnectionSupport(this.sslContextSupport);
 		}
-			
+
 	}
-	
+
 	/**
 	 * @param port the port to set
 	 */
@@ -210,6 +211,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 * @param host the host to set
 	 */
 	public void setHost(String host) {
+		Assert.notNull(host, "Host may not be null");
 		this.host = host;
 	}
 
@@ -225,6 +227,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory#setLocalAddress(java.lang.String)
 	 */
 	public void setLocalAddress(String localAddress) {
+		Assert.notNull(localAddress, "LocalAddress may not be null");
 		this.localAddress = localAddress;
 	}
 
@@ -304,6 +307,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#setTaskExecutor(java.util.concurrent.Executor)
 	 */
 	public void setTaskExecutor(Executor taskExecutor) {
+		Assert.notNull(taskExecutor, "Executor may not be null");
 		this.taskExecutor = taskExecutor;
 	}
 
@@ -312,6 +316,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#setDeserializer(org.springframework.core.serializer.Deserializer)
 	 */
 	public void setDeserializer(Deserializer<?> deserializer) {
+		Assert.notNull(deserializer, "Deserializer may not be null");
 		this.deserializer = deserializer;
 	}
 
@@ -320,6 +325,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#setSerializer(org.springframework.core.serializer.Serializer)
 	 */
 	public void setSerializer(Serializer<?> serializer) {
+		Assert.notNull(serializer, "Serializer may not be null");
 		this.serializer = serializer;
 	}
 
@@ -328,7 +334,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#setMapper(org.springframework.integration.ip.tcp.connection.TcpMessageMapper)
 	 */
 	public void setMapper(TcpMessageMapper mapper) {
-		this.mapper = mapper; 
+		Assert.notNull(mapper, "TcpMessageMapper may not be null");
+		this.mapper = mapper;
 	}
 
 	/**
@@ -353,6 +360,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 */
 	public void setInterceptorFactoryChain(
 			TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
+		Assert.notNull(interceptorFactoryChain, "InterceptorFactoryChain may not be null");
 		this.interceptorFactoryChain = interceptorFactoryChain;
 	}
 
@@ -365,7 +373,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#start()
 	 */
 	public void start() {
@@ -373,7 +381,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#stop()
 	 */
 	public void stop() {
@@ -420,10 +428,12 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	public void setSslContextSupport(TcpSSLContextSupport sslContextSupport) {
+		Assert.notNull(sslContextSupport, "TcpSSLConstextSupport may not be null");
 		this.sslContextSupport = sslContextSupport;
 	}
 
 	public void setSocketSupport(TcpSocketSupport tcpSocketSupport) {
+		Assert.notNull(tcpSocketSupport, "TcpSocketSupport may not be null");
 		this.socketSupport = tcpSocketSupport;
 	}
 
@@ -432,11 +442,13 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 * @param tcpNioSupport
 	 */
 	public void setNioConnectionSupport(TcpNioConnectionSupport tcpNioSupport) {
+		Assert.notNull(tcpNioSupport, "TcpNioConnectionSupport may not be null");
 		this.nioConnectionSupport = tcpNioSupport;
 	}
 
 	public void setSocketFactorySupport(
 			TcpSocketFactorySupport tcpSocketFactorySupport) {
+		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
 		this.socketFactorySupport = tcpSocketFactorySupport;
 	}
 

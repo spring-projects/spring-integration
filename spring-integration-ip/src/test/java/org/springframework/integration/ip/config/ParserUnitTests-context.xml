@@ -67,7 +67,7 @@
 		<constructor-arg value="secret"/>
 		<constructor-arg value="secret"/>
 	</bean>
-	
+
 	<ip:tcp-connection-factory id="secureServer"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(5250)}"

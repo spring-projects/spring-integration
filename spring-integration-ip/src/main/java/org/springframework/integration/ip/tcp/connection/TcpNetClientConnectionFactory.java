@@ -27,7 +27,7 @@ import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactor
 import org.springframework.util.Assert;
 
 /**
- * A client connection factory that creates {@link TcpNetConnection}s. 
+ * A client connection factory that creates {@link TcpNetConnection}s.
  * @author Gary Russell
  * @since 2.0
  *
@@ -36,7 +36,7 @@ public class TcpNetClientConnectionFactory extends
 		AbstractClientConnectionFactory {
 
 	private volatile TcpSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSocketFactorySupport();
-	
+
 	/**
 	 * Creates a TcpNetClientConnectionFactory for connections to the host and port.
 	 * @param host the host
@@ -51,6 +51,7 @@ public class TcpNetClientConnectionFactory extends
 	 * @throws SocketException
 	 * @throws Exception
 	 */
+	@Override
 	protected TcpConnection getOrMakeConnection() throws Exception {
 		TcpConnection theConnection = this.getTheConnection();
 		if (theConnection != null && theConnection.isOpen()) {
@@ -82,6 +83,7 @@ public class TcpNetClientConnectionFactory extends
 		return this.tcpSocketFactorySupport.getSocketFactory().createSocket(host, port);
 	}
 
+	@Override
 	public void close() {
 	}
 

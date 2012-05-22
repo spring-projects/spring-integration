@@ -29,7 +29,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
 /**
- * Default implementation of {@link TcpSSLContextSupport}; uses a 
+ * Default implementation of {@link TcpSSLContextSupport}; uses a
  * 'TLS' (by default) {@link SSLContext}, initialized with 'JKS'
  * keystores, managed by 'SunX509' Key and Trust managers.
  * @author Gary Russell
@@ -37,15 +37,15 @@ import org.springframework.util.Assert;
  *
  */
 public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
-	
+
 	private final String keyStore;
-	
+
 	private final String trustStore;
 
 	private final char[] keyStorePassword;
-	
+
 	private final char[] trustStorePassword;
-	
+
 	private volatile String protocol = "TLS";
 
 	/**
@@ -80,9 +80,9 @@ public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 		SSLContext sslContext = SSLContext.getInstance(protocol);
 
 		sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-		
+
 		return sslContext;
-		
+
 	}
 
 	/**

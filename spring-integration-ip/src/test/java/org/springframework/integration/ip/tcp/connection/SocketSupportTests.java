@@ -41,9 +41,9 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioSSLConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
@@ -72,13 +72,13 @@ public class SocketSupportTests {
 		when(socket.getInetAddress()).thenReturn(inetAddress);
 		when(factory.createSocket("x", 0)).thenReturn(socket);
 		TcpSocketSupport socketSupport = Mockito.mock(TcpSocketSupport.class);
-		
+
 		TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory("x", 0);
 		connectionFactory.setTcpSocketFactorySupport(factorySupport);
 		connectionFactory.setTcpSocketSupport(socketSupport);
 		connectionFactory.start();
 		connectionFactory.getConnection();
-		
+
 		verify(socketSupport).postProcessSocket(socket);
 		connectionFactory.stop();
 	}
@@ -106,13 +106,13 @@ public class SocketSupportTests {
 				return null;
 			}});
 		TcpSocketSupport socketSupport = mock(TcpSocketSupport.class);
-		
+
 		TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(0);
 		connectionFactory.setTcpSocketFactorySupport(factorySupport);
 		connectionFactory.setTcpSocketSupport(socketSupport);
 		connectionFactory.registerListener(mock(TcpListener.class));
 		connectionFactory.start();
-		
+
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		verify(socketSupport).postProcessServerSocket(serverSocket);
 		verify(socketSupport).postProcessSocket(socket);
@@ -313,7 +313,7 @@ Certificate fingerprints:
 		waitListening(server);
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", port);
-		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks", "client.truststore.ks", 
+		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks", "client.truststore.ks",
 				"secret", "secret");
 		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
 		clientTcpSocketFactorySupport.afterPropertiesSet();

@@ -24,7 +24,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioConnection;
  * Implementations for SSL and non-SSL {@link TcpNioConnection}s are provided.
  * @author Gary Russell
  * @since 2.2
- * 
+ *
  */
 public interface TcpNioConnectionSupport {
 

@@ -33,11 +33,11 @@ import org.springframework.util.Assert;
  *
  */
 public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSupport, InitializingBean {
-	
+
 	private volatile SSLContext sslContext;
-	
+
 	private final TcpSSLContextSupport sslContextSupport;
-	
+
 	public DefaultTcpNioSSLConnectionSupport(TcpSSLContextSupport sslContextSupport) {
 		Assert.notNull(sslContextSupport, "TcpSSLContextSupport must not be null");
 		this.sslContextSupport = sslContextSupport;

@@ -28,6 +28,7 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link TcpConnection} supporting SSL/TLS over NIO.
@@ -48,9 +49,9 @@ import org.springframework.integration.MessagingException;
  *
  */
 public class TcpNioSSLConnection extends TcpNioConnection {
-	
+
 	private final SSLEngine sslEngine;
-	
+
 	private volatile ByteBuffer decoded;
 
 	private volatile ByteBuffer encoded;
@@ -74,13 +75,14 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	/**
 	 * Overrides super class method to perform decryption and/or participate
 	 * in handshaking. Decrypted data is sent to the super class to be
-	 * assembled into an Message. Data received from the network may
+	 * assembled into a Message. Data received from the network may
 	 * constitute multiple SSL packets, and may end with a partial
 	 * packet. In that case, the buffer is compacted, ready to receive
 	 * the remainder of the packet.
 	 */
 	@Override
 	protected void sendToPipe(final ByteBuffer networkBuffer) throws IOException {
+		Assert.notNull(networkBuffer, "rawBuffer cannot be null");
 		if (logger.isDebugEnabled()) {
 			logger.debug("sendToPipe " + sslEngine.getHandshakeStatus() + ", remaining:" + networkBuffer.remaining());
 		}
@@ -102,7 +104,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			logger.debug("sendToPipe.x " + resultToString(result) + ", remaining:" + networkBuffer.remaining());
 		}
 	}
-	
+
 	/**
 	 * Performs the actual decryption of a received packet - which may be real
 	 * data, or handshaking data. Appropriate action is taken with the data.
@@ -205,7 +207,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 		HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
 		if (logger.isDebugEnabled()) {
-			logger.debug("New handshakstatus " + handshakeStatus);
+			logger.debug("New handshake status " + handshakeStatus);
 		}
 		return handshakeStatus;
 	}
@@ -220,7 +222,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 			this.initilizeEngine();
 		}
 	}
-	
+
 	private ByteBuffer allocateEncryptionBuffer(int size) {
 		if (this.isUsingDirectBuffers()) {
 			return ByteBuffer.allocateDirect(size);
@@ -254,7 +256,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		}
 	}
 
-	protected String resultToString(SSLEngineResult result) {
+	private String resultToString(SSLEngineResult result) {
 		return result.toString().replace('\n', ' ');
 	}
 
@@ -265,11 +267,11 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 *
 	 */
 	class SSLChannelOutputStream extends ChannelOutputStream  {
-		
+
 		private final ChannelOutputStream channelOutputStream;
-		
+
 		public SSLChannelOutputStream(ChannelOutputStream channelOutputStream) {
-			this.channelOutputStream = channelOutputStream; 
+			this.channelOutputStream = channelOutputStream;
 		}
 
 		/**
@@ -278,6 +280,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		 * data, the SSL packets will be limited by the engine's buffer sizes
 		 * and multiple writes will be necessary.
 		 */
+		@Override
 		protected synchronized void doWrite(ByteBuffer plainText)
 				throws IOException {
 			try {
