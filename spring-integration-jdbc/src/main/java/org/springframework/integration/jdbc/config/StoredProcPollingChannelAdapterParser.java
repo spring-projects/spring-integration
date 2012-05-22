@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,9 +19,11 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcPollingChannelAdapter;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -44,12 +46,19 @@ public class StoredProcPollingChannelAdapterParser extends AbstractPollingInboun
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcPollingChannelAdapter.class);
 
-		String dataSourceRef       = element.getAttribute("data-source");
-		String storedProcedureName = element.getAttribute("stored-procedure-name");
+		String dataSourceRef = element.getAttribute("data-source");
+		String storedProcedureNameExpression = element.getAttribute("stored-procedure-name-expression");
 
 		builder.addConstructorArgReference(dataSourceRef);
-		builder.addConstructorArgValue(storedProcedureName);
 
+		if (StringUtils.hasText(storedProcedureNameExpression)) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
+			builder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
+		}
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "stored-procedure-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "jdbc-call-operations-cache-size");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-column-meta-data");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "return-value-required");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");

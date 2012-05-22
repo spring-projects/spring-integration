@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public final class StoredProcParserUtils {
 	private StoredProcParserUtils() {
 		throw new AssertionError();
 	}
-	
+
 	/**
 	 * @param storedProcComponent
 	 * @param parserContext
@@ -56,16 +56,16 @@ public final class StoredProcParserUtils {
 			Element storedProcComponent, ParserContext parserContext) {
 		List<Element> sqlParameterDefinitionChildElements = DomUtils.getChildElementsByTagName(storedProcComponent, "sql-parameter-definition");
 		ManagedList<BeanDefinition> sqlParameterList = new ManagedList<BeanDefinition>();
-		
+
 		for (Element childElement : sqlParameterDefinitionChildElements) {
-						
+
 			String name        = childElement.getAttribute("name");
 			String sqlType     = childElement.getAttribute("type");
 			String direction   = childElement.getAttribute("direction");
 			String scale       = childElement.getAttribute("scale");
-			
+
 			final BeanDefinitionBuilder parameterBuilder;
-			
+
 			if ("OUT".equalsIgnoreCase(direction)) {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlOutParameter.class);
 			} else if ("INOUT".equalsIgnoreCase(direction)) {
@@ -80,30 +80,30 @@ public final class StoredProcParserUtils {
 					parserContext.getReaderContext().error(
 							"The 'name' attribute must be set for the Sql parameter element.", storedProcComponent);
 			}
-			
+
 			if (StringUtils.hasText(sqlType)) {
-				
+
 				JdbcTypesEnum jdbcTypeEnum = JdbcTypesEnum.convertToJdbcTypesEnum(sqlType);
-				
+
 				if (jdbcTypeEnum != null) {
 					parameterBuilder.addConstructorArgValue(jdbcTypeEnum.getCode());
 				} else {
 					parameterBuilder.addConstructorArgValue(sqlType);
 				}
-				
+
 			} else {
 				parameterBuilder.addConstructorArgValue(Types.VARCHAR);
 			}
-			
+
 			if (StringUtils.hasText(scale)) {
 				parameterBuilder.addConstructorArgValue(new TypedStringValue(scale, Integer.class));
 			}
-			
+
 			sqlParameterList.add(parameterBuilder.getBeanDefinition());
 		}
-		return sqlParameterList;		
+		return sqlParameterList;
 	}
-	
+
 	/**
 	 * @param storedProcComponent
 	 * @param parserContext
@@ -127,7 +127,7 @@ public final class StoredProcParserUtils {
 
 			if (StringUtils.hasText(name)) {
 				parameterBuilder.addPropertyValue("name", name);
-			} 
+			}
 
 			if (StringUtils.hasText(expression)) {
 				parameterBuilder.addPropertyValue("expression", expression);
@@ -136,14 +136,14 @@ public final class StoredProcParserUtils {
 			if (StringUtils.hasText(value)) {
 
 				if (!StringUtils.hasText(type)) {
-					
+
 					if (LOGGER.isInfoEnabled()) {
 						LOGGER.info(String
-								.format("Type attribute not set for Store " 
-						              + "Procedure parameter '%s'. Defaulting to " 
+								.format("Type attribute not set for Store "
+						              + "Procedure parameter '%s'. Defaulting to "
 									  + "'java.lang.String'.", value));
 					}
-					
+
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, String.class));
 
@@ -169,26 +169,26 @@ public final class StoredProcParserUtils {
 			Element storedProcComponent, ParserContext parserContext) {
 
 		List<Element> returningResultsetChildElements = DomUtils.getChildElementsByTagName(storedProcComponent, "returning-resultset");
-		
+
 		ManagedMap<String, BeanDefinition> returningResultsetMap = new ManagedMap<String, BeanDefinition>();
 
 		for (Element childElement : returningResultsetChildElements) {
-			
+
 			String name       = childElement.getAttribute("name");
 			String rowMapperAsString = childElement.getAttribute("row-mapper");
 
 			if (!StringUtils.hasText(name)) {
 				parserContext.getReaderContext().error(
 						"The 'name' attribute must be set for the 'returning-resultset' element.", storedProcComponent);
-			} 
-			
+			}
+
 			if (!StringUtils.hasText(rowMapperAsString)) {
 				parserContext.getReaderContext().error(
 						"The 'row-mapper' attribute must be set for the 'returning-resultset' element.", storedProcComponent);
 			}
-			
+
 			BeanDefinitionBuilder rowMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(rowMapperAsString);
-			
+
 			returningResultsetMap.put(name, rowMapperBuilder.getBeanDefinition());
 		}
 

@@ -14,8 +14,9 @@
 
 	<int-jdbc:stored-proc-inbound-channel-adapter id="storedProcedurePollingChannelAdapter"
 				data-source="dataSource" channel="target"
-				stored-procedure-name="GET_PRIME_NUMBERS"
-				is-function="false">
+				stored-procedure-name-expression="'GET_PRIME_NUMBERS'"
+				is-function="false"
+				jdbc-call-operations-cache-size="77">
 			<int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
 			<int-jdbc:sql-parameter-definition name="password" direction="OUT" />
 			<int-jdbc:sql-parameter-definition name="age"      direction="INOUT" type="INTEGER"  scale="5"/>

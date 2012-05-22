@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.springframework.expression.Expression;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
@@ -40,90 +41,133 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  */
 public class StoredProcMessageHandlerDerbyIntegrationTests {
 
-    private EmbeddedDatabase embeddedDatabase;
+	private EmbeddedDatabase embeddedDatabase;
 
-    private JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 
-    @Before
-    public void setUp() throws SQLException {
-        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        builder.setType(EmbeddedDatabaseType.DERBY);
+	@Before
+	public void setUp() throws SQLException {
+		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+		builder.setType(EmbeddedDatabaseType.DERBY);
+		builder.addScript("classpath:derby-stored-procedures.sql");
+		this.embeddedDatabase = builder.build();
+		this.jdbcTemplate = new JdbcTemplate(this.embeddedDatabase);
+	}
 
-        builder.addScript("classpath:derby-stored-procedures.sql");
-        this.embeddedDatabase = builder.build();
-        this.jdbcTemplate = new JdbcTemplate(this.embeddedDatabase);
+	@After
+	public void tearDown() {
+		this.embeddedDatabase.shutdown();
+	}
 
-    }
+	@Test
+	public void testDerbyStoredProcedureInsertWithDefaultSqlSource() {
 
-    @After
-    public void tearDown() {
-        this.embeddedDatabase.shutdown();
-    }
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
+		messageHandler.setStoredProcedureName("CREATE_USER");
+		messageHandler.afterPropertiesSet();
+		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
+		messageHandler.handleMessage(message.build());
 
-    @Test
-    public void testDerbyStoredProcedureInsertWithDefaultSqlSource() {
+		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
 
-        StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase, "CREATE_USER");
-        messageHandler.afterPropertiesSet();
-        MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
-        messageHandler.handleMessage(message.build());
+		assertEquals("Wrong username", "username", map.get("USERNAME"));
+		assertEquals("Wrong password", "password", map.get("PASSWORD"));
+		assertEquals("Wrong email", "email", map.get("EMAIL"));
 
-        Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
+	}
 
-        assertEquals("Wrong username", "username", map.get("USERNAME"));
-        assertEquals("Wrong password", "password", map.get("PASSWORD"));
-        assertEquals("Wrong email", "email", map.get("EMAIL"));
+	@Test
+	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndDynamicProcName() {
 
-    }
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
+		messageHandler.setAllowDynamicStoredProcedureNames(true);
+		messageHandler.afterPropertiesSet();
+		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
+		message.setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "CREATE_USER");
+		messageHandler.handleMessage(message.build());
 
-    @Test
-    public void testDerbyStoredProcedureInsertWithExpression() {
+		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
 
-        StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase, "CREATE_USER");
+		assertEquals("Wrong username", "username", map.get("USERNAME"));
+		assertEquals("Wrong password", "password", map.get("PASSWORD"));
+		assertEquals("Wrong email", "email", map.get("EMAIL"));
 
-        final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
-        procedureParameters.add(new ProcedureParameter("username", null, "payload.username.toUpperCase()"));
-        procedureParameters.add(new ProcedureParameter("password", null, "payload.password.toUpperCase()"));
-        procedureParameters.add(new ProcedureParameter("email",    null, "payload.email.toUpperCase()"));
+	}
 
-        messageHandler.setProcedureParameters(procedureParameters);
-        messageHandler.afterPropertiesSet();
+	@Test
+	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndSpelProcName() throws Exception {
 
-        MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
-        messageHandler.handleMessage(message.build());
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
+		ExpressionFactoryBean efb = new ExpressionFactoryBean("headers.headerWithProcedureName");
+		efb.afterPropertiesSet();
+
+		Expression expression = efb.getObject();
+
+		messageHandler.setStoredProcedureNameExpression(expression);
+
+		messageHandler.afterPropertiesSet();
+		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
+		message.setHeader("headerWithProcedureName", "CREATE_USER");
+		messageHandler.handleMessage(message.build());
+
+		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");
+
+		assertEquals("Wrong username", "username", map.get("USERNAME"));
+		assertEquals("Wrong password", "password", map.get("PASSWORD"));
+		assertEquals("Wrong email", "email", map.get("EMAIL"));
+
+	}
+
+	@Test
+	public void testDerbyStoredProcedureInsertWithExpression() {
+
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
+		messageHandler.setStoredProcedureName("CREATE_USER");
+
+		final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
+		procedureParameters.add(new ProcedureParameter("username", null, "payload.username.toUpperCase()"));
+		procedureParameters.add(new ProcedureParameter("password", null, "payload.password.toUpperCase()"));
+		procedureParameters.add(new ProcedureParameter("email",    null, "payload.email.toUpperCase()"));
+
+		messageHandler.setProcedureParameters(procedureParameters);
+		messageHandler.afterPropertiesSet();
+
+		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
+		messageHandler.handleMessage(message.build());
 
 
 
-        Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "ERIC.CARTMAN");
+		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "ERIC.CARTMAN");
 
-        assertEquals("Wrong username", "ERIC.CARTMAN", map.get("USERNAME"));
-        assertEquals("Wrong password", "C4RTM4N", map.get("PASSWORD"));
-        assertEquals("Wrong email", "ERIC@CARTMAN.COM", map.get("EMAIL"));
+		assertEquals("Wrong username", "ERIC.CARTMAN", map.get("USERNAME"));
+		assertEquals("Wrong password", "C4RTM4N", map.get("PASSWORD"));
+		assertEquals("Wrong email", "ERIC@CARTMAN.COM", map.get("EMAIL"));
 
-    }
+	}
 
-    @Test
-    public void testDerbyStoredProcedureInsertWithHeaderExpression() {
+	@Test
+	public void testDerbyStoredProcedureInsertWithHeaderExpression() {
 
-        StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase, "CREATE_USER");
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
+		messageHandler.setStoredProcedureName("CREATE_USER");
 
-        final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
-        procedureParameters.add(new ProcedureParameter("USERNAME", null, "headers[business_id] + '_' + payload.username"));
-        procedureParameters.add(new ProcedureParameter("password", "static_password", null));
-        procedureParameters.add(new ProcedureParameter("email",    "static_email"   , null));
+		final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
+		procedureParameters.add(new ProcedureParameter("USERNAME", null, "headers[business_id] + '_' + payload.username"));
+		procedureParameters.add(new ProcedureParameter("password", "static_password", null));
+		procedureParameters.add(new ProcedureParameter("email",    "static_email"   , null));
 
-        messageHandler.setProcedureParameters(procedureParameters);
-        messageHandler.afterPropertiesSet();
+		messageHandler.setProcedureParameters(procedureParameters);
+		messageHandler.afterPropertiesSet();
 
-        MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
-        message.setHeader("business_id", "1234");
-        messageHandler.handleMessage(message.build());
+		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
+		message.setHeader("business_id", "1234");
+		messageHandler.handleMessage(message.build());
 
-        Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "1234_Eric.Cartman");
+		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "1234_Eric.Cartman");
 
-        assertEquals("Wrong username", "1234_Eric.Cartman", map.get("USERNAME"));
-        assertEquals("Wrong password", "static_password", map.get("PASSWORD"));
-        assertEquals("Wrong email", "static_email", map.get("EMAIL"));
-    }
+		assertEquals("Wrong username", "1234_Eric.Cartman", map.get("USERNAME"));
+		assertEquals("Wrong password", "static_password", map.get("PASSWORD"));
+		assertEquals("Wrong email", "static_email", map.get("EMAIL"));
+	}
 
 }

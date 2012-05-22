@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.util.Assert;
+
+import com.google.common.cache.CacheBuilder;
 
 /**
  * A polling channel adapter that creates messages from the payload returned by
@@ -46,167 +49,240 @@ import org.springframework.util.Assert;
  */
 public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
 
-    private final StoredProcExecutor executor;
+	private final StoredProcExecutor executor;
 
 	private volatile boolean expectSingleResult = false;
 
-    /**
-     * Constructor taking {@link DataSource} from which the DB Connection can be
-     * obtained and the stored procedure name to execute.
-     *
-     * @param dataSource used to create a {@link SimpleJdbcCall}
-     * @param storedProcedureName Name of the Stored Procedure or Function to execute
-     */
-    public StoredProcPollingChannelAdapter(DataSource dataSource, String storedProcedureName) {
+	/**
+	 * Constructor taking {@link DataSource} from which the DB Connection can be
+	 * obtained and the stored procedure name to execute.
+	 *
+	 * @param dataSource used to create a {@link SimpleJdbcCall}
+	 * @param storedProcedureName Name of the Stored Procedure or Function to execute
+	 *
+	 * @deprecated Since 2.2 the storedProcedureName property is optional.
+	 */
+	@Deprecated
+	public StoredProcPollingChannelAdapter(DataSource dataSource, String storedProcedureName) {
 
-    	Assert.notNull(dataSource, "dataSource must not be null.");
-    	Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
+		Assert.notNull(dataSource, "dataSource must not be null.");
+		Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
 
-    	this.executor = new StoredProcExecutor(dataSource, storedProcedureName);
+		this.executor = new StoredProcExecutor(dataSource);
+		this.executor.setStoredProcedureName(storedProcedureName);
 
-    }
+	}
 
-    @Override
+	/**
+	 * Constructor taking {@link DataSource} from which the DB Connection can be
+	 * obtained.
+	 *
+	 * @param dataSource Must not be null.
+	 *
+	 */
+	public StoredProcPollingChannelAdapter(DataSource dataSource) {
+
+		Assert.notNull(dataSource, "dataSource must not be null.");
+		this.executor = new StoredProcExecutor(dataSource);
+
+	}
+
+	@Override
 	protected void onInit() throws Exception {
-    	super.onInit();
+		super.onInit();
+		this.executor.setBeanFactory(this.getBeanFactory());
 		this.executor.afterPropertiesSet();
 	}
 
 	/**
-     * Executes the query. If a query result set contains one or more rows, the
-     * Message payload will contain either a List of Maps for each row or, if a
-     * RowMapper has been provided, the values mapped from those rows. If the
-     * query returns no rows, this method will return <code>null</code>.
-     */
-    public Message<Object> receive() {
-        Object payload = poll();
-        if (payload == null) {
-            return null;
-        }
-        return MessageBuilder.withPayload(payload).build();
-    }
+	 * Executes the query. If a query result set contains one or more rows, the
+	 * Message payload will contain either a List of Maps for each row or, if a
+	 * RowMapper has been provided, the values mapped from those rows. If the
+	 * query returns no rows, this method will return <code>null</code>.
+	 */
+	public Message<Object> receive() {
+		Object payload = poll();
+		if (payload == null) {
+			return null;
+		}
+		return MessageBuilder.withPayload(payload).build();
+	}
 
-    /**
-     * Execute the select query and the update query if provided. Returns the
-     * rows returned by the select query. If a RowMapper has been provided, the
-     * mapped results are returned.
-     */
-    private Object poll() {
+	/**
+	 * Execute the select query and the update query if provided. Returns the
+	 * rows returned by the select query. If a RowMapper has been provided, the
+	 * mapped results are returned.
+	 */
+	private Object poll() {
 
-        final Object payload;
+		final Object payload;
 
-        Map<String, ?> resultMap = doPoll();
+		Map<String, ?> resultMap = doPoll();
 
-        if (resultMap.isEmpty()) {
-            payload = null;
-        } else {
+		if (resultMap.isEmpty()) {
+			payload = null;
+		} else {
 
-        	if (this.expectSingleResult && resultMap.size() == 1) {
-                payload = resultMap.values().iterator().next();
-        	} else if (this.expectSingleResult && resultMap.size() > 1) {
+			if (this.expectSingleResult && resultMap.size() == 1) {
+				payload = resultMap.values().iterator().next();
+			} else if (this.expectSingleResult && resultMap.size() > 1) {
 
-        		throw new MessagingException(
-        				"Stored Procedure/Function call returned more than "
-        		      + "1 result object and expectSingleResult was 'true'. ");
+				throw new MessagingException(
+						"Stored Procedure/Function call returned more than "
+					  + "1 result object and expectSingleResult was 'true'. ");
 
-        	} else {
-        		payload = resultMap;
-        	}
+			} else {
+				payload = resultMap;
+			}
 
-        }
+		}
 
-        return payload;
+		return payload;
 
-    }
+	}
 
-    protected Map<String, ?> doPoll() {
-        return this.executor.executeStoredProcedure();
-    }
+	protected Map<String, ?> doPoll() {
+		return this.executor.executeStoredProcedure();
+	}
 
-    public String getComponentType(){
-        return "stored-proc:inbound-channel-adapter";
-    }
+	public String getComponentType(){
+		return "stored-proc:inbound-channel-adapter";
+	}
+
+	/**
+	 * The name of the Stored Procedure or Stored Function to be executed.
+	 * If {@link StoredProcExecutor#isFunction} is set to "true", then this
+	 * property specifies the Stored Function name.
+	 *
+	 * Alternatively you can also specify the Stored Procedure name via
+	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)}.
+	 *
+	 * @param storedProcedureName Must not be null and must not be empty
+	 *
+	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
+	 */
+	public void setStoredProcedureName(String storedProcedureName) {
+		this.executor.setStoredProcedureName(storedProcedureName);
+	}
+
+	/**
+	 * Using the {@link StoredProcExecutor#storedProcedureNameExpression} SpEL
+	 * can be used to determine the Stored Procedure or Stored Function Name.
+	 *
+	 * If {@link StoredProcExecutor#isFunction} is set to "true", then this
+	 * property specifies the Stored Function name.
+	 *
+	 * For instance the following SpEL expressions (among others) are possible:
+	 *
+	 * <ul>
+	 *    <li>new java.util.Date()</li>
+	 *    <li>'foo' + 'bar'</li>
+	 * </ul>
+	 *
+	 * Alternatively you can also specify the Stored Procedure name via
+	 * {@link StoredProcExecutor#setStoredProcedureName(String)}
+	 *
+	 * @param storedProcedureNameExpression Must not be null.
+	 *
+	 */
+	public void setStoredProcedureNameExpression(Expression storedProcedureNameExpression) {
+		this.executor.setStoredProcedureNameExpression(storedProcedureNameExpression);
+	}
+
+	/**
+	 * Defines the maximum number of {@link SimpleJdbcCallOperations}
+	 * ({@link SimpleJdbcCall}) instances to be held by
+	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
+	 *
+	 * A value of zero will disable the cache. The default is 10.
+	 *
+	 * @see CacheBuilder#maximumSize(long)
+	 * @param jdbcCallOperationsCacheSize Must not be negative.
+	 */
+	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
+		this.executor.setJdbcCallOperationsCacheSize(jdbcCallOperationsCacheSize);
+	}
 
 	/**
 	 * Provides the ability to set a custom {@link SqlParameterSourceFactory}.
 	 * Keep in mind that if {@link ProcedureParameter} are set explicitly and
 	 * you would like to provide a custom {@link SqlParameterSourceFactory},
-     * then you must provide an instance of {@link ExpressionEvaluatingSqlParameterSourceFactory}.
+	 * then you must provide an instance of {@link ExpressionEvaluatingSqlParameterSourceFactory}.
 	 *
 	 * If not the SqlParameterSourceFactory will be replaced by the default
 	 * {@link ExpressionEvaluatingSqlParameterSourceFactory}.
 	 *
 	 * @param sqlParameterSourceFactory
 	 */
-    public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-    	this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
-    }
+	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+		this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
+	}
 
-    /**
-     * Explicit declarations are necessary if the database you use is not a
-     * Spring-supported database. Currently Spring supports metadata lookup of
-     * stored procedure calls for the following databases:
-     *
-     * <ul>
-     *  <li>Apache Derby</li>
-     *  <li>DB2</li>
-     *  <li>MySQL</li>
-     *  <li>Microsoft SQL Server</li>
-     *  <li>Oracle</li>
-     *  <li>Sybase</li>
-     *  <li>PostgreSQL</li>
-     * </ul>
-     * , ,
-     * We also support metadata lookup of stored functions for the following
-     * databases:
-     *
-     * <ul>
-     *  <li>MySQL</li>
-     *  <li>Microsoft SQL Server</li>
-     *  <li>Oracle</li>
-     *  <li>PostgreSQL</li>
-     * </ul>
-     *
-     * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
-     */
-    public void setSqlParameters(List<SqlParameter> sqlParameters) {
-    	this.executor.setSqlParameters(sqlParameters);
-    }
+	/**
+	 * Explicit declarations are necessary if the database you use is not a
+	 * Spring-supported database. Currently Spring supports metadata lookup of
+	 * stored procedure calls for the following databases:
+	 *
+	 * <ul>
+	 *  <li>Apache Derby</li>
+	 *  <li>DB2</li>
+	 *  <li>MySQL</li>
+	 *  <li>Microsoft SQL Server</li>
+	 *  <li>Oracle</li>
+	 *  <li>Sybase</li>
+	 *  <li>PostgreSQL</li>
+	 * </ul>
+	 * , ,
+	 * We also support metadata lookup of stored functions for the following
+	 * databases:
+	 *
+	 * <ul>
+	 *  <li>MySQL</li>
+	 *  <li>Microsoft SQL Server</li>
+	 *  <li>Oracle</li>
+	 *  <li>PostgreSQL</li>
+	 * </ul>
+	 *
+	 * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
+	 */
+	public void setSqlParameters(List<SqlParameter> sqlParameters) {
+		this.executor.setSqlParameters(sqlParameters);
+	}
 
-    /**
-     *  Does your stored procedure return one or more result sets? If so, you
-     *  can use the provided method for setting the respective Rowmappers.
-     */
-    public void setReturningResultSetRowMappers(
-            Map<String, RowMapper<?>> returningResultSetRowMappers) {
-    	this.executor.setReturningResultSetRowMappers(returningResultSetRowMappers);
-    }
+	/**
+	 *  Does your stored procedure return one or more result sets? If so, you
+	 *  can use the provided method for setting the respective Rowmappers.
+	 */
+	public void setReturningResultSetRowMappers(
+			Map<String, RowMapper<?>> returningResultSetRowMappers) {
+		this.executor.setReturningResultSetRowMappers(returningResultSetRowMappers);
+	}
 
-    /**
-     * If true, the JDBC parameter definitions for the stored procedure are not
-     * automatically derived from the underlying JDBC connection. In that case
-     * you must pass in {@link SqlParameter} explicitly..
-     *
-     * @param ignoreColumnMetaData Defaults to <code>false</code>.
-     */
-    public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
-        this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
-    }
+	/**
+	 * If true, the JDBC parameter definitions for the stored procedure are not
+	 * automatically derived from the underlying JDBC connection. In that case
+	 * you must pass in {@link SqlParameter} explicitly..
+	 *
+	 * @param ignoreColumnMetaData Defaults to <code>false</code>.
+	 */
+	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
+		this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
+	}
 
-    /**
-     * Indicates the procedure's return value should be included in the results
-     * returned.
-     *
-     * @param returnValueRequired
-     */
-    public void setReturnValueRequired(boolean returnValueRequired) {
-    	this.executor.setReturnValueRequired(returnValueRequired);
-    }
+	/**
+	 * Indicates the procedure's return value should be included in the results
+	 * returned.
+	 *
+	 * @param returnValueRequired
+	 */
+	public void setReturnValueRequired(boolean returnValueRequired) {
+		this.executor.setReturnValueRequired(returnValueRequired);
+	}
 
-    /**
-     * Custom Stored Procedure parameters that may contain static values
-     * or Strings representing an {@link Expression}.
-     */
+	/**
+	 * Custom Stored Procedure parameters that may contain static values
+	 * or Strings representing an {@link Expression}.
+	 */
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
 		this.executor.setProcedureParameters(procedureParameters);
 	}
@@ -260,8 +336,8 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * the value defaults to <code>true</code>.
 	 *
 	 */
-    public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
-    	this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
+	public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
+		this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
 	}
 
 }

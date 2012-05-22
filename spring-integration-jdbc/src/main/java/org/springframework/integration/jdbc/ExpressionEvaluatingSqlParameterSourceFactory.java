@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -28,7 +28,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 /**
  * An implementation of {@link SqlParameterSourceFactory} which creates an {@link SqlParameterSource} that evaluates
  * Spring EL expressions. In addition the user can supply static parameters that always take precedence.
- * 
+ *
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -53,7 +53,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * Define some static parameter values. These take precedence over those defined as expressions in the
 	 * {@link #setParameterExpressions(Map) parameterExpressions}, so a parameter in the query will be filled from here
 	 * first, and then from the expressions.
-	 * 
+	 *
 	 * @param staticParameters the static parameters to set
 	 */
 	public void setStaticParameters(Map<String, ?> staticParameters) {
@@ -68,7 +68,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * context: generally in an outbound setting it is a Message, and in an inbound setting it is a result set row (a
 	 * Map or a domain object if a RowMapper has been provided). The {@link #setStaticParameters(Map) static parameters}
 	 * can be referred to in an expression using the variable <code>#staticParameters</code>, for example:
-	 * 
+	 *
 	 * <table border="1" cellspacing="1" cellpadding="1">
 	 * <tr>
 	 * <th><b>Key</b></th>
@@ -91,7 +91,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * <td>select * from items where name=:key</td>
 	 * </tr>
 	 * </pre>
-	 * 
+	 *
 	 * @param parameterExpressions the parameter expressions to set
 	 */
 	public void setParameterExpressions(Map<String, String> parameterExpressions) {

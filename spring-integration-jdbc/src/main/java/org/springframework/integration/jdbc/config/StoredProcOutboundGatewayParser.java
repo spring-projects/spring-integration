@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcOutboundGateway;
@@ -45,11 +46,20 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(StoredProcOutboundGateway.class);
 
-		String dataSourceRef       = gatewayElement.getAttribute("data-source");
-		String storedProcedureName = gatewayElement.getAttribute("stored-procedure-name");
+		String dataSourceRef = gatewayElement.getAttribute("data-source");
+		String storedProcedureNameExpression = gatewayElement.getAttribute("stored-procedure-name-expression");
 
 		builder.addConstructorArgReference(dataSourceRef);
-		builder.addConstructorArgValue(storedProcedureName);
+
+		if (StringUtils.hasText(storedProcedureNameExpression)) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
+			builder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
+		}
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "stored-procedure-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "jdbc-call-operations-cache-size");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "allow-dynamic-stored-procedure-names");
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "is-function");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "ignore-column-meta-data");
@@ -59,7 +69,7 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, gatewayElement, "sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "skip-undeclared-results");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "reply-timeout", "sendTimeout");
-		 
+
 		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(gatewayElement, parserContext);
 		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(gatewayElement, parserContext);
 		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(gatewayElement, parserContext);

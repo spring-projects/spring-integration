@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,12 @@ import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 /**
  * A polling channel adapter that creates messages from the payload returned by
  * executing a select query. Optionally an update can be executed after the
  * select in order to update processed rows.
- * 
+ *
  * @author Jonas Partner
  * @author Dave Syer
  * @since 2.0
@@ -68,8 +67,8 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
 	 * obtained and the select query to execute to retrieve new rows.
-	 * 
-	 * @param dataSource used to create a {@link SimpleJdbcTemplate}
+	 *
+	 * @param dataSource Must not be null
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(DataSource dataSource, String selectQuery) {
@@ -80,7 +79,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	/**
 	 * Constructor taking {@link JdbcOperations} instance to use for query
 	 * execution and the select query to execute to retrieve new rows.
-	 * 
+	 *
 	 * @param jdbcOperations instance to use for query execution
 	 * @param selectQuery query to execute
 	 */
@@ -107,7 +106,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 
 	/**
 	 * A source of parameters for the select query used for polling.
-	 * 
+	 *
 	 * @param sqlQueryParameterSource the sql query parameter source to set
 	 */
 	public void setSelectSqlParameterSource(SqlParameterSource sqlQueryParameterSource) {
@@ -118,7 +117,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 * The maximum number of rows to pull out of the query results per poll (if
 	 * greater than zero, otherwise all rows will be packed into the outgoing
 	 * message). Default is zero.
-	 * 
+	 *
 	 * @param maxRows the max rows to set
 	 */
 	public void setMaxRowsPerPoll(int maxRows) {

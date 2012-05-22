@@ -10,20 +10,27 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.jdbc.storedproc;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+package org.springframework.integration.jdbc;
 
-import org.springframework.jdbc.core.RowMapper;
+import org.junit.Test;
+
+import junit.framework.Assert;
+
 
 /**
- *
  * @author Gunnar Hillert
- *
  */
-public class UserMapper implements RowMapper<User> {
-	public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new User(rs.getString("username"), rs.getString("password"), rs.getString("email"));
+public class JdbcHeadersTest {
+
+	@Test
+	public void testJdbcHeadersPrefix() {
+		Assert.assertEquals("jdbc_", JdbcHeaders.PREFIX);
 	}
+
+	@Test
+	public void testJdbcHeadersStoredProcedureName() {
+		Assert.assertEquals("jdbc_storedProcedureName", JdbcHeaders.STORED_PROCEDURE_NAME);
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.sql.DataSource;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
@@ -33,9 +34,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.util.Assert;
+
+import com.google.common.cache.CacheBuilder;
 
 /**
  * @author Gunnar Hillert
@@ -48,128 +51,226 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private volatile boolean expectSingleResult = false;
 
-    /**
-     * Constructor taking {@link DataSource} from which the DB Connection can be
-     * obtained and the name of the stored procedure or function to
-     * execute to retrieve new rows.
-     *
-     * @param dataSource used to create a {@link SimpleJdbcTemplate}
-     * @param storedProcedureName
-     */
-    public StoredProcOutboundGateway(DataSource dataSource, String storedProcedureName) {
+	/**
+	 * Constructor taking {@link DataSource} from which the DB Connection can be
+	 * obtained and the name of the stored procedure or function to
+	 * execute to retrieve new rows.
+	 *
+	 * @param dataSource used to create a {@link SimpleJdbcCall} instance
+	 * @param storedProcedureName Must not be null.
+	 *
+	 * @deprecated Since 2.2 the storedProcedureName property is optional.
+	 */
+	@Deprecated
+	public StoredProcOutboundGateway(DataSource dataSource, String storedProcedureName) {
 
-    	Assert.notNull(dataSource, "dataSource must not be null.");
-    	Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
+		Assert.notNull(dataSource, "dataSource must not be null.");
+		Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
 
-    	this.executor = new StoredProcExecutor(dataSource, storedProcedureName);
+		this.executor = new StoredProcExecutor(dataSource);
+		this.executor.setStoredProcedureName(storedProcedureName);
 
-    }
+	}
 
-    /**
-     * Verifies parameters, sets the parameters on {@link SimpleJdbcCallOperations}
-     * and ensures the appropriate {@link SqlParameterSourceFactory} is defined
-     * when {@link ProcedureParameter} are passed in.
-     */
-    @Override
-    protected void onInit() {
-    	super.onInit();
-    	this.executor.afterPropertiesSet();
-    };
+	/**
+	 * Constructor taking {@link DataSource} from which the DB Connection can be
+	 * obtained.
+	 *
+	 * @param dataSource Must not be null.
+	 *
+	 */
+	public StoredProcOutboundGateway(DataSource dataSource) {
 
-    @Override
-    protected Object handleRequestMessage(Message<?> requestMessage) {
+		Assert.notNull(dataSource, "dataSource must not be null.");
+		this.executor = new StoredProcExecutor(dataSource);
 
-        Map<String, Object> resultMap = executor.executeStoredProcedure(requestMessage);
+	}
 
-        final Object payload;
+	/**
+	 * Verifies parameters, sets the parameters on {@link SimpleJdbcCallOperations}
+	 * and ensures the appropriate {@link SqlParameterSourceFactory} is defined
+	 * when {@link ProcedureParameter} are passed in.
+	 */
+	@Override
+	protected void onInit() {
+		super.onInit();
+		this.executor.setBeanFactory(this.getBeanFactory());
+		this.executor.afterPropertiesSet();
+	};
 
-        if (resultMap.isEmpty()) {
-            payload = null;
-        } else {
+	@Override
+	protected Object handleRequestMessage(Message<?> requestMessage) {
 
-        	if (this.expectSingleResult && resultMap.size() == 1) {
-                payload = resultMap.values().iterator().next();
-        	} else if (this.expectSingleResult && resultMap.size() > 1) {
+		Map<String, Object> resultMap = executor.executeStoredProcedure(requestMessage);
 
-        		throw new MessageHandlingException(requestMessage,
-        				"Stored Procedure/Function call returned more than "
-        		      + "1 result object and expectSingleResult was 'true'. ");
+		final Object payload;
 
-        	} else {
-        		payload = resultMap;
-        	}
+		if (resultMap.isEmpty()) {
+			return null;
+		} else {
 
-        }
+			if (this.expectSingleResult && resultMap.size() == 1) {
+				payload = resultMap.values().iterator().next();
+			} else if (this.expectSingleResult && resultMap.size() > 1) {
 
-        return MessageBuilder.withPayload(payload).copyHeaders(requestMessage.getHeaders()).build();
+				throw new MessageHandlingException(requestMessage,
+						"Stored Procedure/Function call returned more than "
+					  + "1 result object and expectSingleResult was 'true'. ");
 
-    }
+			} else {
+				payload = resultMap;
+			}
 
-    /**
-     * Explicit declarations are necessary if the database you use is not a
-     * Spring-supported database. Currently Spring supports metadata lookup of
-     * stored procedure calls for the following databases:
-     *
-     * <ul>
-     *  <li>Apache Derby</li>
-     *  <li>DB2</li>
-     *  <li>MySQL</li>
-     *  <li>Microsoft SQL Server</li>
-     *  <li>Oracle</li>
-     *  <li>Sybase</li>
-     *  <li>PostgreSQL</li>
-     * </ul>
-     * , ,
-     * We also support metadata lookup of stored functions for the following
-     * databases:
-     *
-     * <ul>
-     *  <li>MySQL</li>
-     *  <li>Microsoft SQL Server</li>
-     *  <li>Oracle</li>
-     *  <li>PostgreSQL</li>
-     * </ul>
-     *
-     * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
-     */
-    public void setSqlParameters(List<SqlParameter> sqlParameters) {
-    	this.executor.setSqlParameters(sqlParameters);
-    }
+		}
 
-    /**
-     *  Does your stored procedure return one or more result sets? If so, you
-     *  can use the provided method for setting the respective RowMappers.
-     */
-    public void setReturningResultSetRowMappers(
-            Map<String, RowMapper<?>> returningResultSetRowMappers) {
-    	this.executor.setReturningResultSetRowMappers(returningResultSetRowMappers);
-    }
+		return MessageBuilder.withPayload(payload).copyHeaders(requestMessage.getHeaders()).build();
 
-    /**
-     * If true, the JDBC parameter definitions for the stored procedure are not
-     * automatically derived from the underlying JDBC connection. In that case
-     * you must pass in {@link SqlParameter} explicitly..
-     *
-     * @param ignoreColumnMetaData Defaults to <code>false</code>.
-     */
-    public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
-        this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
-    }
+	}
 
-    /**
-     * Indicates the procedure's return value should be included in the results
-     * returned.
-     *
-     * @param returnValueRequired
-     */
-    public void setReturnValueRequired(boolean returnValueRequired) {
-    	this.executor.setReturnValueRequired(returnValueRequired);
-    }
+	/**
+	 * The name of the Stored Procedure or Stored Function to be executed.
+	 * If {@link StoredProcExecutor#isFunction} is set to "true", then this
+	 * property specifies the Stored Function name.
+	 *
+	 * Alternatively you can also specify the Stored Procedure name via
+	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)} or
+	 * through {@link MessageHeaders} by enabling
+	 * StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
+	 *
+	 * @param storedProcedureName Must not be null and must not be empty
+	 *
+	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
+	 * @see StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
+	 */
+	public void setStoredProcedureName(String storedProcedureName) {
+		this.executor.setStoredProcedureName(storedProcedureName);
+	}
 
-    /**
-     * Custom Stored Procedure parameters that may contain static values
-     * or Strings representing an {@link Expression}.
-     */
+	/**
+	 * Using the {@link StoredProcExecutor#storedProcedureNameExpression} the
+	 * {@link Message} can be used as source for the name of the
+	 * Stored Procedure or Stored Function.
+	 *
+	 * If {@link StoredProcExecutor#isFunction} is set to "true", then this
+	 * property specifies the Stored Function name.
+	 *
+	 * By providing a SpEL expression as value for this setter, a subset of the
+	 * original payload, a header value or any other resolvable SpEL expression
+	 * can be used as the basis for the Stored Procedure / Function.
+	 *
+	 * For the Expression evaluation the full message is available as the <b>root object</b>.
+	 *
+	 * For instance the following SpEL expressions (among others) are possible:
+	 *
+	 * <ul>
+	 * <li>payload.foo</li>
+	 *    <li>headers.foobar</li>
+	 *    <li>new java.util.Date()</li>
+	 *    <li>'foo' + 'bar'</li>
+	 * </ul>
+	 *
+	 * Alternatively you can also specify the Stored Procedure name via
+	 * {@link StoredProcExecutor#setStoredProcedureName(String)} or
+	 * through {@link MessageHeaders} by enabling
+	 * StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
+	 *
+	 * @param storedProcedureNameExpression Must not be null.
+	 *
+	 */
+	public void setStoredProcedureNameExpression(Expression storedProcedureNameExpression) {
+		this.executor.setStoredProcedureNameExpression(storedProcedureNameExpression);
+	}
+
+	/**
+	 * Defines the maximum number of {@link SimpleJdbcCallOperations}
+	 * ({@link SimpleJdbcCall}) instances to be held by
+	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
+	 *
+	 * A value of zero will disable the cache. The default is 10.
+	 *
+	 * @see CacheBuilder#maximumSize(long)
+	 * @param jdbcCallOperationsCacheSize Must not be negative.
+	 */
+	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
+		this.executor.setJdbcCallOperationsCacheSize(jdbcCallOperationsCacheSize);
+	}
+
+	/**
+	 * If set to <code>true</code>, the Stored Procedure name can also be defined
+	 * through {@link MessageHeaders}. If not set, this property will default to
+	 * <code>false</code>.
+	 *
+	 * @see JdbcHeaders
+	 */
+	public void setAllowDynamicStoredProcedureNames(boolean allowDynamicStoredProcedureNames) {
+		this.executor.setAllowDynamicStoredProcedureNames(allowDynamicStoredProcedureNames);
+	}
+
+	/**
+	 * Explicit declarations are necessary if the database you use is not a
+	 * Spring-supported database. Currently Spring supports metadata lookup of
+	 * stored procedure calls for the following databases:
+	 *
+	 * <ul>
+	 *  <li>Apache Derby</li>
+	 *  <li>DB2</li>
+	 *  <li>MySQL</li>
+	 *  <li>Microsoft SQL Server</li>
+	 *  <li>Oracle</li>
+	 *  <li>Sybase</li>
+	 *  <li>PostgreSQL</li>
+	 * </ul>
+	 * , ,
+	 * We also support metadata lookup of stored functions for the following
+	 * databases:
+	 *
+	 * <ul>
+	 *  <li>MySQL</li>
+	 *  <li>Microsoft SQL Server</li>
+	 *  <li>Oracle</li>
+	 *  <li>PostgreSQL</li>
+	 * </ul>
+	 *
+	 * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
+	 */
+	public void setSqlParameters(List<SqlParameter> sqlParameters) {
+		this.executor.setSqlParameters(sqlParameters);
+	}
+
+	/**
+	 *  Does your stored procedure return one or more result sets? If so, you
+	 *  can use the provided method for setting the respective RowMappers.
+	 */
+	public void setReturningResultSetRowMappers(
+			Map<String, RowMapper<?>> returningResultSetRowMappers) {
+		this.executor.setReturningResultSetRowMappers(returningResultSetRowMappers);
+	}
+
+	/**
+	 * If true, the JDBC parameter definitions for the stored procedure are not
+	 * automatically derived from the underlying JDBC connection. In that case
+	 * you must pass in {@link SqlParameter} explicitly..
+	 *
+	 * @param ignoreColumnMetaData Defaults to <code>false</code>.
+	 */
+	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
+		this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
+	}
+
+	/**
+	 * Indicates the procedure's return value should be included in the results
+	 * returned.
+	 *
+	 * @param returnValueRequired
+	 */
+	public void setReturnValueRequired(boolean returnValueRequired) {
+		this.executor.setReturnValueRequired(returnValueRequired);
+	}
+
+	/**
+	 * Custom Stored Procedure parameters that may contain static values
+	 * or Strings representing an {@link Expression}.
+	 */
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
 		this.executor.setProcedureParameters(procedureParameters);
 	}
@@ -212,16 +313,16 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * Provides the ability to set a custom {@link SqlParameterSourceFactory}.
 	 * Keep in mind that if {@link ProcedureParameter} are set explicitly and
 	 * you would like to provide a custom {@link SqlParameterSourceFactory},
-     * then you must provide an instance of {@link ExpressionEvaluatingSqlParameterSourceFactory}.
+	 * then you must provide an instance of {@link ExpressionEvaluatingSqlParameterSourceFactory}.
 	 *
 	 * If not the SqlParameterSourceFactory will be replaced by the default
 	 * {@link ExpressionEvaluatingSqlParameterSourceFactory}.
 	 *
 	 * @param sqlParameterSourceFactory
 	 */
-    public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-    	this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
-    }
+	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+		this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
+	}
 
 	/**
 	 * If set to 'true', the payload of the Message will be used as a source for
@@ -240,9 +341,9 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source.
 	 */
-    public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
-    	this.executor.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
-    }
+	public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
+		this.executor.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
+	}
 
 	/**
 	 * If this variable is set to <code>true</code> then all results from a stored
@@ -258,8 +359,8 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * Only few developers will probably ever like to process update counts, thus
 	 * the value defaults to <code>true</code>.
 	 */
-    public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
-    	this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
+	public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
+		this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
 	}
 
 }

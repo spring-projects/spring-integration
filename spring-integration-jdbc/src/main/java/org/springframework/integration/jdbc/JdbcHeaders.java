@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.jdbc;
 
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.integration.MessageHeaders;
 
 /**
- * Collaborator for JDBC adapters which allows creation of
- * instances of {@link SqlParameterSource} for use in update operations.
+ * Pre-defined names and prefixes to be used for setting JDBC
+ * specific attributes via Spring Integration {@link MessageHeaders}.
  *
- * @author Jonas Partner
- * @since 2.0
+ * @author Gunnar Hillert
+ * @since 2.2
+ *
  */
-public interface SqlParameterSourceFactory {
+public abstract class JdbcHeaders {
 
 	/**
-	 * Return a new {@link SqlParameterSource}.
-	 * @param input the raw message or query result to be transformed into a SqlParameterSource
+	 * Prefix used for JMS API related headers in order to distinguish from
+	 * user-defined headers and other internal headers (e.g. correlationId).
 	 */
-	public SqlParameterSource createParameterSource(Object input);
+	public static final String PREFIX = "jdbc_";
+
+	/** Identifies the name of the Store Procedure or Stored Function. */
+	public static final String STORED_PROCEDURE_NAME = PREFIX + "storedProcedureName";
 
 }
