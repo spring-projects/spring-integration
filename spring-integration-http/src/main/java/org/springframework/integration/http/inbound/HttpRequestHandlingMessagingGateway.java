@@ -29,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
 import org.springframework.util.CollectionUtils;
@@ -53,7 +54,7 @@ import org.springframework.web.HttpRequestHandler;
  * <p/>
  * By default a number of {@link HttpMessageConverter}s are already configured. The list can be overridden by calling
  * the {@link #setMessageConverters(List)} method.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -76,7 +77,7 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	 * Flag to determine if conversion and writing out of message handling exceptions should be attempted (default
 	 * false, in which case they will simply be re-thrown). If the flag is true and no message converter can convert the
 	 * exception a new exception will be thrown.
-	 * 
+	 *
 	 * @param convertExceptions the flag to set
 	 */
 	public void setConvertExceptions(boolean convertExceptions) {
@@ -91,8 +92,12 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws ServletException, IOException {
 		Object responseContent = null;
+		Message<?> responseMessage;
 		try {
-			responseContent = super.doHandleRequest(servletRequest, servletResponse);
+			responseMessage = super.doHandleRequest(servletRequest, servletResponse);
+			if (responseMessage != null) {
+				responseContent = setupResponseAndConvertReply(servletResponse, responseMessage);
+			}
 		}
 		catch (Exception e) {
 			responseContent = handleExceptionInternal(e);

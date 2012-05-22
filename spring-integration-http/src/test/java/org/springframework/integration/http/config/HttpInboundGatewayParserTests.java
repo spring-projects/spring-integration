@@ -37,6 +37,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpHeaders;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -61,21 +63,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class HttpInboundGatewayParserTests {
-	
+
 	@Autowired
 	@Qualifier("inboundGateway")
 	private HttpRequestHandlingMessagingGateway gateway;
-	
+
 	@Autowired
 	@Qualifier("withMappedHeaders")
 	private HttpRequestHandlingMessagingGateway withMappedHeaders;
-	
+
 	@Autowired
 	@Qualifier("withMappedHeadersAndConverter")
 	private HttpRequestHandlingMessagingGateway withMappedHeadersAndConverter;
 
 	@Autowired
 	private HttpRequestHandlingController inboundController;
+
+	@Autowired
+	private HttpRequestHandlingController inboundControllerViewExp;
 
 	@Autowired
 	private SubscribableChannel requests;
@@ -96,7 +101,7 @@ public class HttpInboundGatewayParserTests {
 		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
 		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 	}
-	
+
 	@Test(timeout=1000)
 	public void checkFlow() throws Exception {
 		requests.subscribe(handlerExpecting(any(Message.class)));
@@ -115,13 +120,25 @@ public class HttpInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
 		String errorCode =  (String) accessor.getPropertyValue("errorCode");
 		assertEquals("oops", errorCode);
+		LiteralExpression viewExpression = (LiteralExpression) accessor.getPropertyValue("viewExpression");
+		assertEquals("foo", viewExpression.getValue());
 	}
-	
+
+	@Test
+	public void testControllerViewExp() throws Exception {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundControllerViewExp);
+		String errorCode =  (String) accessor.getPropertyValue("errorCode");
+		assertEquals("oops", errorCode);
+		SpelExpression viewExpression = (SpelExpression) accessor.getPropertyValue("viewExpression");
+		assertNotNull(viewExpression);
+		assertEquals("'bar'", viewExpression.getExpressionString());
+	}
+
 	@Test
 	public void requestWithHeaders() throws Exception {
-		DefaultHttpHeaderMapper headerMapper = 
+		DefaultHttpHeaderMapper headerMapper =
 			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
@@ -130,7 +147,7 @@ public class HttpInboundGatewayParserTests {
 		assertTrue(map.size() == 2);
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));
-		
+
 		Map<String, Object> mapOfHeaders = new HashMap<String, Object>();
 		mapOfHeaders.put("abc", "abc");
 		MessageHeaders mh = new MessageHeaders(mapOfHeaders);
@@ -140,12 +157,12 @@ public class HttpInboundGatewayParserTests {
 		List<String> abc = headers.get("X-abc");
 		assertEquals("abc", abc.get(0));
 	}
-	
+
 	@Test
 	public void requestWithHeadersWithConversionService() throws Exception {
-		DefaultHttpHeaderMapper headerMapper = 
+		DefaultHttpHeaderMapper headerMapper =
 			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeadersAndConverter, "headerMapper");
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
@@ -154,7 +171,7 @@ public class HttpInboundGatewayParserTests {
 		assertTrue(map.size() == 2);
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));
-		
+
 		Map<String, Object> mapOfHeaders = new HashMap<String, Object>();
 		mapOfHeaders.put("abc", "abc");
 		Person person = new Person();
@@ -169,7 +186,7 @@ public class HttpInboundGatewayParserTests {
 		List<String> personHeaders = headers.get("X-person");
 		assertEquals("Oleg", personHeaders.get(0));
 	}
-	
+
 	public static class Person{
 		private String name;
 
@@ -181,13 +198,13 @@ public class HttpInboundGatewayParserTests {
 			this.name = name;
 		}
 	}
-	
+
 	public static class PersonConverter implements Converter<Person, String>{
 
 		public String convert(Person source) {
 			return source.getName();
 		}
-		
+
 	}
 
 }

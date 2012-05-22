@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.MessageSource;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.Message;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.MapBindingResult;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.mvc.Controller;
 
 /**
@@ -40,8 +47,9 @@ import org.springframework.web.servlet.mvc.Controller;
  * reply Message or payload depending on the value of {@link #extractReplyPayload} (true by default, meaning just the
  * payload). The corresponding key in the map is determined by the {@link #replyKey} property (with a default of
  * "reply").
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSupport implements Controller {
@@ -52,7 +60,9 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 
 	private static final String DEFAULT_ERRORS_KEY = "errors";
 
-	private volatile String viewName;
+	private volatile Expression viewExpression;
+
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile String replyKey = DEFAULT_REPLY_KEY;
 
@@ -72,7 +82,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * Specify the view name.
 	 */
 	public void setViewName(String viewName) {
-		this.viewName = viewName;
+		Assert.isTrue(StringUtils.hasText(viewName), "View name must contain text");
+		this.viewExpression = new LiteralExpression(viewName);
 	}
 
 	/**
@@ -98,11 +109,25 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * provided in an object error to be optionally translated in the standard MVC way using a {@link MessageSource}.
 	 * The default value is <code>spring.integration.http.handler.error</code>. Three arguments are provided: the
 	 * exception, its message and its stack trace as a String.
-	 * 
+	 *
 	 * @param errorCode the error code to set
 	 */
 	public void setErrorCode(String errorCode) {
 		this.errorCode = errorCode;
+	}
+
+	/**
+	 * Specifies a SpEL expression to evaluate in order to generate the view name.
+	 * The EvaluationContext will be populated with the reply message as the root object,
+	 */
+	public void setViewExpression(Expression viewExpression) {
+		this.viewExpression = viewExpression;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.evaluationContext = this.createEvaluationContext();
 	}
 
 	/**
@@ -112,13 +137,29 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	public final ModelAndView handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws Exception {
 		ModelAndView modelAndView = new ModelAndView();
-		if (this.viewName != null) {
-			modelAndView.setViewName(this.viewName);
-		}
 		try {
-			Object reply = super.doHandleRequest(servletRequest, servletResponse);
-			if (reply != null) {
+			Message<?> replyMessage = super.doHandleRequest(servletRequest, servletResponse);
+			if (replyMessage != null) {
+				Object reply = setupResponseAndConvertReply(servletResponse, replyMessage);
 				modelAndView.addObject(this.replyKey, reply);
+			}
+			if (this.viewExpression != null) {
+				Object view;
+				if (replyMessage != null) {
+					view = this.viewExpression.getValue(this.evaluationContext, replyMessage);
+				}
+				else {
+					view = this.viewExpression.getValue(this.evaluationContext);
+				}
+				if (view instanceof View) {
+					modelAndView.setView((View) view);
+				}
+				else if (view instanceof String) {
+					modelAndView.setViewName((String) view);
+				}
+				else {
+					throw new IllegalStateException("view expression must resolve to a View or String");
+				}
 			}
 		}
 		catch (Exception e) {
