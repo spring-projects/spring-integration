@@ -30,6 +30,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.http.inbound.HttpRequestHandlingController;
+import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -39,8 +41,8 @@ import org.w3c.dom.Element;
  * Parser for the 'inbound-channel-adapter' and 'inbound-gateway' elements
  * of the 'http' namespace. The constructor's boolean value specifies whether
  * a reply is to be expected. This value should be 'false' for the
- * 'inbound-channel-adapter' and 'true' for the 'inbound-gateway'.  
- * 
+ * 'inbound-channel-adapter' and 'true' for the 'inbound-gateway'.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -57,9 +59,9 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return element.hasAttribute("view-name")
-				? "org.springframework.integration.http.inbound.HttpRequestHandlingController"
-				: "org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway";
+		return element.hasAttribute("view-name") || element.hasAttribute("view-expression")
+				? HttpRequestHandlingController.class.getName()
+				: HttpRequestHandlingMessagingGateway.class.getName();
 	}
 
 	@Override
@@ -96,18 +98,18 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		}
 		builder.addPropertyReference("requestChannel", inputChannelRef);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
-		
-		
+
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "path");
 		String payloadExpression = element.getAttribute("payload-expression");
-		if (StringUtils.hasText(payloadExpression)){
+		if (StringUtils.hasText(payloadExpression)) {
 			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(payloadExpression);
 			builder.addPropertyValue("payloadExpression", expressionDef);
 		}
-		
+
 		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "header");
-		
+
 		if (!CollectionUtils.isEmpty(headerElements)) {
 			ManagedMap<String, Object> headerElementsMap = new ManagedMap<String, Object>();
 			for (Element headerElement : headerElements) {
@@ -117,11 +119,11 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 					RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
 					headerElementsMap.put(name, expressionDef);
-				}			
+				}
 			}
 			builder.addPropertyValue("headerExpressions", headerElementsMap);
 		}
-		
+
 		if (this.expectReply) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
@@ -137,17 +139,23 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "supported-methods", "supportedMethodNames");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "view-name");
+		String viewExpression = element.getAttribute("view-expression");
+		if (StringUtils.hasText(viewExpression)) {
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(viewExpression);
+			builder.addPropertyValue("viewExpression", expressionDef);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "errors-key");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "error-code");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
-		
-		
+
+
 		//IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
 		String headerMapper = element.getAttribute("header-mapper");
 		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
 		String mappedResponseHeaders = element.getAttribute("mapped-response-headers");
-		
-		
+
+
 		if (StringUtils.hasText(headerMapper)) {
 			if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
 				parserContext.getReaderContext().error("Neither 'mappped-request-headers' or 'mapped-response-headers' " +
@@ -159,7 +167,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 									"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
 			headerMapperBuilder.setFactoryMethod("inboundMapper");
-			
+
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "inboundHeaderNames");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-response-headers", "outboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());

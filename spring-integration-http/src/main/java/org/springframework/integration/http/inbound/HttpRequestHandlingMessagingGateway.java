@@ -53,7 +53,7 @@ import org.springframework.web.HttpRequestHandler;
  * <p/>
  * By default a number of {@link HttpMessageConverter}s are already configured. The list can be overridden by calling
  * the {@link #setMessageConverters(List)} method.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -76,7 +76,7 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	 * Flag to determine if conversion and writing out of message handling exceptions should be attempted (default
 	 * false, in which case they will simply be re-thrown). If the flag is true and no message converter can convert the
 	 * exception a new exception will be thrown.
-	 * 
+	 *
 	 * @param convertExceptions the flag to set
 	 */
 	public void setConvertExceptions(boolean convertExceptions) {
@@ -93,6 +93,9 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		Object responseContent = null;
 		try {
 			responseContent = super.doHandleRequest(servletRequest, servletResponse);
+			if (responseContent != null) {
+				responseContent = setupResponseAndConvertReply(servletResponse, responseContent);
+			}
 		}
 		catch (Exception e) {
 			responseContent = handleExceptionInternal(e);
