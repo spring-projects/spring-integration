@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,8 +15,9 @@ package org.springframework.integration.jdbc.config;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
@@ -44,31 +45,27 @@ public class StoredProcPollingChannelAdapterParser extends AbstractPollingInboun
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcPollingChannelAdapter.class);
 
-		String dataSourceRef       = element.getAttribute("data-source");
-		String storedProcedureName = element.getAttribute("stored-procedure-name");
+		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		builder.addConstructorArgReference(dataSourceRef);
-		builder.addConstructorArgValue(storedProcedureName);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "return-value-required");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "function");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "skip-undeclared-results");
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-column-meta-data");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "return-value-required");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "function");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "skip-undeclared-results");
-
-		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
-		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);
 		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
 
-		if (!procedureParameterList.isEmpty()) {
-			builder.addPropertyValue("procedureParameters", procedureParameterList);
-		}
-		if (!sqlParameterDefinitionList.isEmpty()) {
-			builder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
-		}
 		if (!returningResultsetMap.isEmpty()) {
-			builder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
+			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
 		}
+
+		final AbstractBeanDefinition storedProcExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final String storedProcPollingChannelAdapterId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
+		final String storedProcExecutorBeanName = storedProcPollingChannelAdapterId + ".storedProcExecutor";
+
+		parserContext.registerBeanComponent(new BeanComponentDefinition(storedProcExecutorBuilderBeanDefinition, storedProcExecutorBeanName));
+
+		builder.addConstructorArgReference(storedProcExecutorBeanName);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
 
 		return builder.getBeanDefinition();
 

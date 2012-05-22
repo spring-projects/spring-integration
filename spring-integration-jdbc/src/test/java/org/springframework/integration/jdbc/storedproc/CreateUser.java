@@ -15,6 +15,11 @@
  */
 package org.springframework.integration.jdbc.storedproc;
 
+/**
+ *
+ * @author Gunnar Hillert
+ *
+ */
 public interface CreateUser {
-    void createUser(User user);
+	void createUser(User user);
 }

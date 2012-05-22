@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,15 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -47,7 +52,7 @@ public final class StoredProcParserUtils {
 	private StoredProcParserUtils() {
 		throw new AssertionError();
 	}
-	
+
 	/**
 	 * @param storedProcComponent
 	 * @param parserContext
@@ -56,54 +61,59 @@ public final class StoredProcParserUtils {
 			Element storedProcComponent, ParserContext parserContext) {
 		List<Element> sqlParameterDefinitionChildElements = DomUtils.getChildElementsByTagName(storedProcComponent, "sql-parameter-definition");
 		ManagedList<BeanDefinition> sqlParameterList = new ManagedList<BeanDefinition>();
-		
+
 		for (Element childElement : sqlParameterDefinitionChildElements) {
-						
+
 			String name        = childElement.getAttribute("name");
 			String sqlType     = childElement.getAttribute("type");
 			String direction   = childElement.getAttribute("direction");
 			String scale       = childElement.getAttribute("scale");
-			
+
 			final BeanDefinitionBuilder parameterBuilder;
-			
+
 			if ("OUT".equalsIgnoreCase(direction)) {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlOutParameter.class);
-			} else if ("INOUT".equalsIgnoreCase(direction)) {
+			}
+			else if ("INOUT".equalsIgnoreCase(direction)) {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlInOutParameter.class);
-			} else {
+			}
+			else {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlParameter.class);
 			}
 
 			if (StringUtils.hasText(name)) {
 				parameterBuilder.addConstructorArgValue(name);
-			} else {
+			}
+			else {
 					parserContext.getReaderContext().error(
 							"The 'name' attribute must be set for the Sql parameter element.", storedProcComponent);
 			}
-			
+
 			if (StringUtils.hasText(sqlType)) {
-				
+
 				JdbcTypesEnum jdbcTypeEnum = JdbcTypesEnum.convertToJdbcTypesEnum(sqlType);
-				
+
 				if (jdbcTypeEnum != null) {
 					parameterBuilder.addConstructorArgValue(jdbcTypeEnum.getCode());
-				} else {
+				}
+				else {
 					parameterBuilder.addConstructorArgValue(sqlType);
 				}
-				
-			} else {
+
+			}
+			else {
 				parameterBuilder.addConstructorArgValue(Types.VARCHAR);
 			}
-			
+
 			if (StringUtils.hasText(scale)) {
 				parameterBuilder.addConstructorArgValue(new TypedStringValue(scale, Integer.class));
 			}
-			
+
 			sqlParameterList.add(parameterBuilder.getBeanDefinition());
 		}
-		return sqlParameterList;		
+		return sqlParameterList;
 	}
-	
+
 	/**
 	 * @param storedProcComponent
 	 * @param parserContext
@@ -127,7 +137,7 @@ public final class StoredProcParserUtils {
 
 			if (StringUtils.hasText(name)) {
 				parameterBuilder.addPropertyValue("name", name);
-			} 
+			}
 
 			if (StringUtils.hasText(expression)) {
 				parameterBuilder.addPropertyValue("expression", expression);
@@ -136,18 +146,19 @@ public final class StoredProcParserUtils {
 			if (StringUtils.hasText(value)) {
 
 				if (!StringUtils.hasText(type)) {
-					
+
 					if (LOGGER.isInfoEnabled()) {
 						LOGGER.info(String
-								.format("Type attribute not set for Store " 
-						              + "Procedure parameter '%s'. Defaulting to " 
-									  + "'java.lang.String'.", value));
+								.format("Type attribute not set for Store "
+									+ "Procedure parameter '%s'. Defaulting to "
+									+ "'java.lang.String'.", value));
 					}
-					
+
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, String.class));
 
-				} else {
+				}
+				else {
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, type));
 				}
@@ -169,30 +180,88 @@ public final class StoredProcParserUtils {
 			Element storedProcComponent, ParserContext parserContext) {
 
 		List<Element> returningResultsetChildElements = DomUtils.getChildElementsByTagName(storedProcComponent, "returning-resultset");
-		
+
 		ManagedMap<String, BeanDefinition> returningResultsetMap = new ManagedMap<String, BeanDefinition>();
 
 		for (Element childElement : returningResultsetChildElements) {
-			
+
 			String name       = childElement.getAttribute("name");
 			String rowMapperAsString = childElement.getAttribute("row-mapper");
 
 			if (!StringUtils.hasText(name)) {
 				parserContext.getReaderContext().error(
 						"The 'name' attribute must be set for the 'returning-resultset' element.", storedProcComponent);
-			} 
-			
+			}
+
 			if (!StringUtils.hasText(rowMapperAsString)) {
 				parserContext.getReaderContext().error(
 						"The 'row-mapper' attribute must be set for the 'returning-resultset' element.", storedProcComponent);
 			}
-			
+
 			BeanDefinitionBuilder rowMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(rowMapperAsString);
-			
+
 			returningResultsetMap.put(name, rowMapperBuilder.getBeanDefinition());
 		}
 
 		return returningResultsetMap;
+
+	}
+
+	/**
+	 * Create a new {@link BeanDefinitionBuilder} for the class {@link StoredProcExecutor}.
+	 * Initialize the wrapped {@link StoredProcExecutor} with common properties.
+	 *
+	 * @param element Must not be Null
+	 * @param parserContext Must not be Null
+	 * @return The {@link BeanDefinitionBuilder} for the {@link StoredProcExecutor}
+	 */
+	public static BeanDefinitionBuilder getStoredProcExecutorBuilder(final Element element,
+														final ParserContext parserContext) {
+
+		Assert.notNull(element,       "The provided element must not be Null.");
+		Assert.notNull(parserContext, "The provided parserContext must not be Null.");
+
+		final String dataSourceRef = element.getAttribute("data-source");
+
+		final BeanDefinitionBuilder storedProcExecutorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcExecutor.class);
+		storedProcExecutorBuilder.addConstructorArgReference(dataSourceRef);
+
+		final String storedProcedureName = element.getAttribute("stored-procedure-name");
+		final String storedProcedureNameExpression = element.getAttribute("stored-procedure-name-expression");
+		boolean hasStoredProcedureName = StringUtils.hasText(storedProcedureName);
+		boolean hasStoredProcedureNameExpression = StringUtils.hasText(storedProcedureNameExpression);
+
+		if (!(hasStoredProcedureName ^ hasStoredProcedureNameExpression)) {
+			parserContext.getReaderContext()
+					.error("Exactly one of 'stored-procedure-name' or 'stored-procedure-name-expression' is required",
+							element);
+		}
+
+		BeanDefinitionBuilder expressionBuilder;
+		if (hasStoredProcedureNameExpression) {
+			expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
+		}
+		else {
+			expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(LiteralExpression.class);
+			expressionBuilder.addConstructorArgValue(storedProcedureName);
+		}
+		storedProcExecutorBuilder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "ignore-column-meta-data");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "jdbc-call-operations-cache-size");
+
+		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
+		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);
+
+		if (!procedureParameterList.isEmpty()) {
+			storedProcExecutorBuilder.addPropertyValue("procedureParameters", procedureParameterList);
+		}
+		if (!sqlParameterDefinitionList.isEmpty()) {
+			storedProcExecutorBuilder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
+		}
+
+		return storedProcExecutorBuilder;
 
 	}
 

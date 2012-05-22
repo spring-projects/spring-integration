@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,10 +13,9 @@
 
 package org.springframework.integration.jdbc.config;
 
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -41,29 +40,20 @@ public class StoredProcMessageHandlerParser extends AbstractOutboundChannelAdapt
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(StoredProcMessageHandler.class);
+		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcMessageHandler.class);
 
-		String dataSourceRef       = element.getAttribute("data-source");
-		String storedProcedureName = element.getAttribute("stored-procedure-name");
+		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		builder.addConstructorArgReference(dataSourceRef);
-		builder.addConstructorArgValue(storedProcedureName);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-column-meta-data");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "use-payload-as-parameter-source");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "sql-parameter-source-factory");
+		final AbstractBeanDefinition storedProcExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final String messageHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
+		final String storedProcExecutorBeanName = messageHandlerId + ".storedProcExecutor";
 
-		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
-		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(storedProcExecutorBuilderBeanDefinition, storedProcExecutorBeanName));
 
-		if (!procedureParameterList.isEmpty()) {
-			builder.addPropertyValue("procedureParameters", procedureParameterList);
-		}
-
-		if (!sqlParameterDefinitionList.isEmpty()) {
-			builder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
-		}
+		builder.addConstructorArgReference(storedProcExecutorBeanName);
 
 		return builder.getBeanDefinition();
 

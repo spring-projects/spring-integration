@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -28,14 +27,20 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.jdbc.storedproc.CreateUser;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.jdbc.storedproc.User;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -44,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
+public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 	@Autowired
 	private AbstractApplicationContext context;
@@ -53,32 +58,66 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 	private Consumer consumer;
 
 	@Autowired
-	CreateUser createUser;
+	@Qualifier("startChannel")
+	DirectChannel channel;
 
 	@Test
-	public void test() throws Exception {
+	@DirtiesContext
+	public void executeStoredProcedureWithMessageHeader() throws Exception {
 
-		createUser.createUser(new User("myUsername", "myPassword", "myEmail"));
+		User user1 = new User("First User", "my first password", "email1");
+		User user2 = new User("Second User", "my second password", "email2");
+
+		Message<User> user1Message = MessageBuilder.withPayload(user1)
+										.setHeader("my_stored_procedure", "CREATE_USER")
+										.build();
+		Message<User> user2Message = MessageBuilder.withPayload(user2)
+				.setHeader("my_stored_procedure", "CREATE_USER_RETURN_ALL")
+				.build();
+
+		channel.send(user1Message);
+		channel.send(user2Message);
 
 		List<Message<Collection<User>>> received = new ArrayList<Message<Collection<User>>>();
 
 		received.add(consumer.poll(2000));
 
+		Assert.assertEquals(Integer.valueOf(1), Integer.valueOf(received.size()));
+
 		Message<Collection<User>> message = received.get(0);
+
 		context.stop();
 		assertNotNull(message);
+
 		assertNotNull(message.getPayload());
 		assertNotNull(message.getPayload() instanceof Collection<?>);
 
 		Collection<User> allUsers = message.getPayload();
 
-		assertTrue(allUsers.size() == 1);
+		assertTrue(allUsers.size() == 2);
 
-		User userFromDb = allUsers.iterator().next();
+	}
 
-		assertEquals("Wrong username", "myUsername", userFromDb.getUsername());
-		assertEquals("Wrong password", "myPassword", userFromDb.getPassword());
-		assertEquals("Wrong email",    "myEmail",    userFromDb.getEmail());
+	@Test
+	@DirtiesContext
+	public void testWithMissingMessageHeader() throws Exception {
+
+		User user1 = new User("First User", "my first password", "email1");
+
+		Message<User> user1Message = MessageBuilder.withPayload(user1).build();
+
+		try {
+			channel.send(user1Message);
+		} catch (MessageHandlingException e) {
+
+			String expectedMessage = "Unable to resolve Stored Procedure/Function name " +
+					"for the provided Expression 'headers['my_stored_procedure']'.";
+			String actualMessage = e.getCause().getMessage();
+			Assert.assertEquals(expectedMessage, actualMessage);
+			return;
+		}
+
+		Assert.fail("Expected a MessageHandlingException to be thrown.");
 
 	}
 
@@ -95,10 +134,14 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 		}
 	}
 
-
+	/**
+	 * This class is called by the Service Activator and populates {@link Consumer#messages}
+	 * with the Gateway's response message and is used by the Test to verify that
+	 * the Gateway executed correctly.
+	 */
 	static class Consumer {
 
-		private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<Message<Collection<User>>>();
+		private volatile BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<Message<Collection<User>>>();
 
 		@ServiceActivator
 		public void receive(Message<Collection<User>> message) {
@@ -108,5 +151,6 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 		Message<Collection<User>> poll(long timeoutInMillis) throws InterruptedException {
 			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
+
 	}
 }
