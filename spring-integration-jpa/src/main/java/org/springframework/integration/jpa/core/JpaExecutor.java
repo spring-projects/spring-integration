@@ -152,7 +152,8 @@ public class JpaExecutor implements InitializingBean {
 				expressionSourceFactory.setParameters(jpaParameters);
 				this.parameterSourceFactory = expressionSourceFactory;
 
-			} else {
+			}
+			else {
 
 				if (!(this.parameterSourceFactory instanceof ExpressionEvaluatingParameterSourceFactory)) {
 					throw new IllegalStateException("You are providing 'JpaParameters'. "
@@ -167,7 +168,8 @@ public class JpaExecutor implements InitializingBean {
 				this.usePayloadAsParameterSource = false;
 			}
 
-		} else {
+		}
+		else {
 
 			if (this.parameterSourceFactory == null) {
 				this.parameterSourceFactory = new BeanPropertyParameterSourceFactory();
@@ -198,35 +200,43 @@ public class JpaExecutor implements InitializingBean {
 
 		ParameterSource paramSource = null;
 		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
-			if (usePayloadAsParameterSource)
+			if (usePayloadAsParameterSource) {
 				paramSource = parameterSourceFactory.createParameterSource(message.getPayload());
-			else
+			}
+			else {
 				paramSource = parameterSourceFactory.createParameterSource(message);
+			}
 		}
 		if (this.jpaQuery != null) {
 
 			result = this.jpaOperations.executeUpdate(this.jpaQuery, paramSource);
 
-		} else if (this.nativeQuery != null) {
+		}
+		else if (this.nativeQuery != null) {
 
 			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, paramSource);
 
-		} else if (this.namedQuery != null) {
+		}
+		else if (this.namedQuery != null) {
 
 			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, paramSource);
 
-		} else {
+		}
+		else {
 
 			if (PersistMode.PERSIST.equals(this.persistMode)) {
 				this.jpaOperations.persist(message.getPayload());
 				result = message.getPayload();
-			} else if (PersistMode.MERGE.equals(this.persistMode)) {
+			}
+			else if (PersistMode.MERGE.equals(this.persistMode)) {
 				final Object mergedEntity = this.jpaOperations.merge(message.getPayload());
 				result = mergedEntity;
-			} else if (PersistMode.DELETE.equals(this.persistMode)) {
+			}
+			else if (PersistMode.DELETE.equals(this.persistMode)) {
 				this.jpaOperations.delete(message.getPayload());
 				result = message.getPayload();
-			} else {
+			}
+			else {
 				throw new IllegalStateException(String.format("Unsupported PersistMode: '%s'", this.persistMode.name()));
 			}
 
@@ -255,31 +265,37 @@ public class JpaExecutor implements InitializingBean {
 
 		if (requestMessage == null) {
 			result = doPoll(this.parameterSource);
-		} else {
+		}
+		else {
 			ParameterSource parameterSource;
-			if (usePayloadAsParameterSource)
+			if (usePayloadAsParameterSource) {
 				parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
-			else
+			}
+			else {
 				parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage);
+			}
 
 			result = doPoll(parameterSource);
 		}
 
 		if (result.isEmpty()) {
 			payload = null;
-		} else {
+		}
+		else {
 
 			if (this.expectSingleResult) {
 				if (result.size() == 1) {
 					payload = result.iterator().next();
-				} else {
+				}
+				else {
 
 					throw new MessageHandlingException(requestMessage,
 						"The Jpa operation returned more than "
 					  + "1 result object but expectSingleResult was 'true'.");
 				}
 
-			} else {
+			}
+			else {
 				payload = result;
 			}
 
@@ -292,10 +308,12 @@ public class JpaExecutor implements InitializingBean {
 					for (Object entity : (Iterable<?>) payload) {
 						this.jpaOperations.delete(entity);
 					}
-				} else {
+				}
+				else {
 					this.jpaOperations.deleteInBatch((Iterable<Object>) payload);
 				}
-			} else {
+			}
+			else {
 				this.jpaOperations.delete(payload);
 			}
 
@@ -317,13 +335,17 @@ public class JpaExecutor implements InitializingBean {
 
 		if (this.jpaQuery != null) {
 			payload = jpaOperations.getResultListForQuery(this.jpaQuery, jpaQLParameterSource, maxNumberOfResults);
-		} else if (this.nativeQuery != null) {
+		}
+		else if (this.nativeQuery != null) {
 			payload = jpaOperations.getResultListForNativeQuery(this.nativeQuery, this.entityClass, jpaQLParameterSource, maxNumberOfResults);
-		} else if (this.namedQuery != null) {
+		}
+		else if (this.namedQuery != null) {
 			payload = jpaOperations.getResultListForNamedQuery(this.namedQuery, jpaQLParameterSource, maxNumberOfResults);
-		} else if (this.entityClass != null) {
+		}
+		else if (this.entityClass != null) {
 			payload = jpaOperations.getResultListForClass(this.entityClass, maxNumberOfResults);
-		} else {
+		}
+		else {
 			throw new IllegalStateException("For the polling operation, one of "
 								+ "the following properties must be specified: "
 								+ "query, namedQuery or entityClass.");
@@ -349,14 +371,9 @@ public class JpaExecutor implements InitializingBean {
 	 * @param jpaQuery The provided JPA query must neither be null nor empty.
 	 */
 	public void setJpaQuery(String jpaQuery) {
-
-		if (this.nativeQuery != null || this.namedQuery != null) {
-			throw new IllegalArgumentException("You can define only one of the "
+		Assert.isTrue(this.nativeQuery == null && this.namedQuery == null, "You can define only one of the "
 							+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-		}
-
 		Assert.hasText(jpaQuery, "jpaQuery must neither be null nor empty.");
-
 		this.jpaQuery = jpaQuery;
 	}
 
@@ -370,11 +387,8 @@ public class JpaExecutor implements InitializingBean {
 	 */
 	public void setNativeQuery(String nativeQuery) {
 
-		if (this.jpaQuery != null || this.namedQuery != null) {
-			throw new IllegalArgumentException("You can define only one of the "
-							+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-		}
-
+		Assert.isTrue(this.namedQuery == null && this.jpaQuery == null, "You can define only one of the "
+				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");;
 		Assert.hasText(nativeQuery, "nativeQuery must neither be null nor empty.");
 
 		this.nativeQuery = nativeQuery;
@@ -388,10 +402,8 @@ public class JpaExecutor implements InitializingBean {
 	 */
 	public void setNamedQuery(String namedQuery) {
 
-		if (this.jpaQuery != null || this.nativeQuery != null) {
-			throw new IllegalArgumentException("You can define only one of the "
-							+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
-		}
+		Assert.isTrue(this.jpaQuery == null && this.nativeQuery == null, "You can define only one of the "
+				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'");
 
 		Assert.hasText(namedQuery, "namedQuery must neither be null nor empty.");
 		this.namedQuery = namedQuery;
@@ -463,5 +475,30 @@ public class JpaExecutor implements InitializingBean {
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
 	}
+
+	//Exposing getters for the unit test cases
+
+	/**
+	 * Returns the JPA Query that would be executed using the executor
+	 */
+	public String getJpaQuery() {
+		return jpaQuery;
+	}
+
+	/**
+	 * Returns the Native Query that would be executed using the executor
+	 */
+	public String getNativeQuery() {
+		return nativeQuery;
+	}
+
+	/**
+	 * Returns the Named Query that would be executed using the executor
+	 */
+	public String getNamedQuery() {
+		return namedQuery;
+	}
+
+
 
 }

@@ -89,6 +89,42 @@ public class JpaExecutorTests {
 	}
 
 	@Test
+	public void testSetMultipleQueryTypes() {
+		JpaExecutor executor = new JpaExecutor(mock(EntityManager.class));
+		executor.setJpaQuery("select s from Student s");
+		Assert.assertNotNull(executor.getJpaQuery());
+
+		try {
+			executor.setNamedQuery("NamedQuery");
+		} catch (IllegalArgumentException e) {
+			Assert.assertEquals("You can define only one of the "
+				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
+		}
+		Assert.assertNull(executor.getNamedQuery());
+
+		try {
+			executor.setNativeQuery("select * from Student");
+		} catch (IllegalArgumentException e) {
+			Assert.assertEquals("You can define only one of the "
+					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
+		}
+		Assert.assertNull(executor.getNativeQuery());
+
+		executor = new JpaExecutor(mock(EntityManager.class));
+		executor.setNamedQuery("NamedQuery");
+		Assert.assertNotNull(executor.getNamedQuery());
+
+		try {
+			executor.setJpaQuery("select s from Student s");
+		} catch (IllegalArgumentException e) {
+			Assert.assertEquals("You can define only one of the "
+					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
+		}
+		Assert.assertNull(executor.getJpaQuery());
+
+	}
+
+	@Test
 	@Transactional
 	public void selectWithMessageAsParameterSource() {
 		String query = "select s from Student s where s.firstName = :firstName";
