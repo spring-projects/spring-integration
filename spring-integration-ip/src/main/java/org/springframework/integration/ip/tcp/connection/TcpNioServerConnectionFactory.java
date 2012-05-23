@@ -30,6 +30,10 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpNioConnectionSupport;
+import org.springframework.util.Assert;
+
 /**
 /**
  * Implements a server connection factory that produces {@link TcpNioConnection}s using
@@ -40,14 +44,16 @@ import java.util.Map;
  */
 public class TcpNioServerConnectionFactory extends AbstractServerConnectionFactory {
 
-	private ServerSocketChannel serverChannel;
-	
-	private boolean usingDirectBuffers;
-	
-	private Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<SocketChannel, TcpNioConnection>();
+	private volatile ServerSocketChannel serverChannel;
 
-	private Selector selector;
-	
+	private volatile boolean usingDirectBuffers;
+
+	private final Map<SocketChannel, TcpNioConnection> channelMap = new HashMap<SocketChannel, TcpNioConnection>();
+
+	private volatile Selector selector;
+
+	private volatile TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
+
 	/**
 	 * Listens for incoming connections on the port.
 	 * @param port The port.
@@ -71,7 +77,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			this.serverChannel = ServerSocketChannel.open();
 			int port = this.getPort();
-			logger.info("Listening on port " + port);
+			this.getTcpSocketSupport().postProcessServerSocket(this.serverChannel.socket());
+			if (logger.isInfoEnabled()) {
+				logger.info("Listening on port " + port);
+			}
 			this.serverChannel.configureBlocking(false);
 			if (this.getLocalAddress() == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(port),
@@ -154,7 +163,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	private TcpNioConnection createTcpNioConnection(SocketChannel socketChannel) {
 		try {
-			TcpNioConnection connection = new TcpNioConnection(socketChannel, true, this.isLookupHost());
+			TcpNioConnection connection = this.tcpNioConnectionSupport
+					.createNewConnection(socketChannel, true,
+							this.isLookupHost());
 			connection.setUsingDirectBuffers(this.usingDirectBuffers);
 			TcpConnection wrappedConnection = wrapConnection(connection);
 			this.initializeConnection(wrappedConnection, socketChannel.socket());
@@ -182,6 +193,11 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		this.usingDirectBuffers = usingDirectBuffers;
 	}
 
+	public void setTcpNioConnectionSupport(TcpNioConnectionSupport tcpNioSupport) {
+		Assert.notNull(tcpNioSupport, "TcpNioSupport must not be null");
+		this.tcpNioConnectionSupport = tcpNioSupport;
+	}
+
 	/**
 	 * @return the serverChannel
 	 */
@@ -202,6 +218,5 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	protected Map<SocketChannel, TcpNioConnection> getConnections() {
 		return channelMap;
 	}
-	
 
 }

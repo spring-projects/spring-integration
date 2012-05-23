@@ -41,6 +41,8 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.OrderlyShutdownCapable;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSocketSupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.util.Assert;
 
@@ -100,6 +102,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile List<TcpConnection> connections = new LinkedList<TcpConnection>();
 
+	private volatile TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
+
 	protected final Object lifecycleMonitor = new Object();
 
 	private volatile long nextCheckForClosedNioConnections;
@@ -141,6 +145,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			socket.setTrafficClass(this.soTrafficClass);
 		}
 		socket.setKeepAlive(this.soKeepAlive);
+		this.tcpSocketSupport.postProcessSocket(socket);
 	}
 
 	/**
@@ -676,6 +681,15 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		if (!this.isActive()) {
 			throw new IOException(this + " connection factory has not been started");
 		}
+	}
+
+	protected TcpSocketSupport getTcpSocketSupport() {
+		return tcpSocketSupport;
+	}
+
+	public void setTcpSocketSupport(TcpSocketSupport tcpSocketSupport) {
+		Assert.notNull(tcpSocketSupport, "TcpSocketSupport must not be null");
+		this.tcpSocketSupport = tcpSocketSupport;
 	}
 
 }

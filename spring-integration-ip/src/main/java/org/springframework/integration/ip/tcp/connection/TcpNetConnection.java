@@ -109,7 +109,11 @@ public class TcpNetConnection extends AbstractTcpConnection {
 						logger.debug("Closing single use socket after timeout");
 					} else {
 						if (this.noReadErrorOnClose) {
-							if (logger.isDebugEnabled()) {
+							if (logger.isTraceEnabled()) {
+								logger.trace("Read exception " +
+										 this.getConnectionId(), e);
+							}
+							else if (logger.isDebugEnabled()) {
 								logger.debug("Read exception " +
 										 this.getConnectionId() + " " +
 										 e.getClass().getSimpleName() + 

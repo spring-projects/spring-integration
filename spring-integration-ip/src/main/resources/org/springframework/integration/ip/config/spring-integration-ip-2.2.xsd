@@ -491,6 +491,52 @@ connections created by this factory. Facilitates resequencing if necessary. Defa
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="ssl-context-support" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A reference to a TcpSSLContextSupport strategy implementation. Providing this reference
+enables SSL on connections created by this factory. A DefaultTcpSSLContextSupport implementation
+is provided that takes keystore and trustore names and passwords. The SSLContext created by
+this implementation is used to obtain socket factories (when using-nio="false") or SSLEngine
+instances (when using-nio="true"). When this attribute is omitted, normal plain text
+sockets are used.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="socket-support" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A reference to a TcpSocketSupport strategy implementation. Allows post-processing Socket
+and ServerSocket instances after creation and after configured attributes are applied.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="socket-factory-support" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A reference to a TcpSocketFactorySupport strategy implementation. Allows customization
+of the factories used to create sockets. The default implementation returns default.
+ServerSocketFactory and SocketFactory instances, unless an 'ssl-context-support'
+attribute has been supplied, in which case the SSLContext obtained therefrom is
+used to create SSLServerSocketFactory and SSLSocketFactory instances.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

@@ -22,19 +22,21 @@ import java.io.OutputStream;
 
 /**
  * Reads data in an InputStream to a byte[]; data must be terminated by \r\n
- * (not included in resulting byte[]). 
+ * (not included in resulting byte[]).
  * Writes a byte[] to an OutputStream and adds \r\n.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
 public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 
+	private static final byte[] CRLF = "\r\n".getBytes();
+
 	/**
 	 * Reads the data in the inputstream to a byte[]. Data must be terminated
 	 * by CRLF (\r\n). Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed immediately after the \r\n (i.e. no data is in the process of
-	 * being read). 
+	 * being read).
 	 */
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[this.maxMessageSize];
@@ -69,8 +71,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 	 */
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(bytes);
-		outputStream.write('\r');
-		outputStream.write('\n');
+		outputStream.write(CRLF);
 		outputStream.flush();
 	}
 
