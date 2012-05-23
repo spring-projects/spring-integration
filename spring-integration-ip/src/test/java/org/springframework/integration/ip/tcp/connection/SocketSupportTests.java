@@ -144,9 +144,11 @@ public class SocketSupportTests {
 		});
 		final AtomicInteger ppSocketCountServer = new AtomicInteger();
 		final AtomicInteger ppServerSocketCountServer = new AtomicInteger();
+		final CountDownLatch latch = new CountDownLatch(1);
 		TcpSocketSupport serverSocketSupport = new TcpSocketSupport() {
 			public void postProcessSocket(Socket socket) {
 				ppSocketCountServer.incrementAndGet();
+				latch.countDown();
 			}
 			public void postProcessServerSocket(ServerSocket serverSocket) {
 				ppServerSocketCountServer.incrementAndGet();
@@ -156,6 +158,7 @@ public class SocketSupportTests {
 		serverConnectionFactory.start();
 		waitListening(serverConnectionFactory);
 		clientConnectionFactory.getConnection().send(new GenericMessage<String>("Hello, world!"));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, ppServerSocketCountClient.get());
 		assertEquals(1, ppSocketCountClient.get());
 
