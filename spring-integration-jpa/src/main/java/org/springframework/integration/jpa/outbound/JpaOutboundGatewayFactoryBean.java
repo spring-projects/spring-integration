@@ -52,6 +52,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	private boolean producesReply = true;
 	private MessageChannel outputChannel;
 	private int order;
+	private long replyTimeout;
 
 	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
@@ -81,6 +82,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		jpaOutboundGateway.setProducesReply(this.producesReply);
 		jpaOutboundGateway.setOutputChannel(this.outputChannel);
 		jpaOutboundGateway.setOrder(this.order);
+		jpaOutboundGateway.setSendTimeout(replyTimeout);
 
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 
@@ -112,5 +114,18 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	public void setOrder(int order) {
 		this.order = order;
 	}
+
+	/**
+	 * Specifies the time the gateway will wait to send the result to the reply channel.
+	 * Only applies when the reply channel itself might block the send (for example a bounded QueueChannel that is currently full).
+	 * By default the Gateway will wait indefinitely.
+	 *
+	 * @param replyTimeout The timeout in milliseconds
+	 */
+	public void setReplyTimeout(long replyTimeout) {
+		this.replyTimeout = replyTimeout;
+	}
+
+
 
 }
