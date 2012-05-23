@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,14 +122,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
-				connectionFactory.setTcpNioConnectionSupport(this.getOrCreateNioConnectionSupport());
+				connectionFactory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			} else {
 				TcpNioClientConnectionFactory connectionFactory = new TcpNioClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
-				connectionFactory.setTcpNioConnectionSupport(this.getOrCreateNioConnectionSupport());
+				connectionFactory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			}
 		} else {
@@ -137,13 +137,13 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(this.port);
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
-				connectionFactory.setTcpSocketFactorySupport(this.getOrCreateSocketFactorySupport());
+				connectionFactory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
 				this.connectionFactory = connectionFactory;
 			} else {
 				TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
-				connectionFactory.setTcpSocketFactorySupport(this.getOrCreateSocketFactorySupport());
+				connectionFactory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
 				this.connectionFactory = connectionFactory;
 			}
 		}
@@ -175,7 +175,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setLocalAddress(this.localAddress);
 	}
 
-	private TcpSocketFactorySupport getOrCreateSocketFactorySupport() {
+	private TcpSocketFactorySupport obtainSocketFactorySupport() {
 		if (this.socketFactorySupport != null) {
 			return this.socketFactorySupport;
 		}
@@ -187,7 +187,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		}
 	}
 
-	private TcpNioConnectionSupport getOrCreateNioConnectionSupport() {
+	private TcpNioConnectionSupport obtainNioConnectionSupport() {
 		if (this.nioConnectionSupport != null) {
 			return this.nioConnectionSupport;
 		}
