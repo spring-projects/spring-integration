@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
@@ -47,12 +46,12 @@ import org.springframework.integration.ip.util.SocketTestUtils;
 public class TcpNioConnectionReadTests {
 
 	private CountDownLatch latch = new CountDownLatch(1);
-	
+
 	private AbstractServerConnectionFactory getConnectionFactory(int port,
 			AbstractByteArraySerializer serializer, TcpListener listener) throws Exception {
 		return getConnectionFactory(port, serializer, listener, null);
 	}
-	
+
 	private AbstractServerConnectionFactory getConnectionFactory(int port,
 			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
@@ -72,7 +71,7 @@ public class TcpNioConnectionReadTests {
 		}
 		return scf;
 	}
-	
+
 	/**
 	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
 	 */
@@ -90,17 +89,17 @@ public class TcpNioConnectionReadTests {
 				return false;
 			}
 		});
-		
+
 		// Fire up the sender.
-		
+
 		SocketTestUtils.testSendLength(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
 	}
@@ -124,20 +123,20 @@ public class TcpNioConnectionReadTests {
 				return false;
 			}
 		});
-		
+
 		int howMany = 2;
-		scf.setPoolSize(howMany + 5);
+		scf.setBacklog(howMany + 5);
 		// Fire up the sender.
 		SocketTestUtils.testSendFragmented(port, howMany, false);
 		assertTrue(semaphore.tryAcquire(howMany, 20000, TimeUnit.MILLISECONDS));
 		assertEquals("Expected", howMany, responses.size());
 		for (int i = 0; i < howMany; i++) {
-			assertEquals("Data", "xx", 
+			assertEquals("Data", "xx",
 				new String(((Message<byte[]>) responses.get(0)).getPayload()));
 		}
 		scf.close();
 	}
-	
+
 	/**
 	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
 	 */
@@ -155,17 +154,17 @@ public class TcpNioConnectionReadTests {
 				return false;
 			}
 		});
-		
+
 		// Fire up the sender.
-		
+
 		SocketTestUtils.testSendStxEtx(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
 	}
@@ -187,17 +186,17 @@ public class TcpNioConnectionReadTests {
 				return false;
 			}
 		});
-		
+
 		// Fire up the sender.
-		
+
 		SocketTestUtils.testSendCrLf(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
 	}
@@ -229,9 +228,9 @@ public class TcpNioConnectionReadTests {
 				semaphore.release();
 			}
 		});
-		
+
 		// Fire up the sender.
-		
+
 		SocketTestUtils.testSendLengthOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
@@ -268,9 +267,9 @@ public class TcpNioConnectionReadTests {
 				semaphore.release();
 			}
 		});
-		
+
 		// Fire up the sender.
-		
+
 		SocketTestUtils.testSendStxEtxOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
@@ -307,9 +306,9 @@ public class TcpNioConnectionReadTests {
 				semaphore.release();
 			}
 		});
-		
+
 		// Fire up the sender.
-		
+
 		SocketTestUtils.testSendCrLfOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
@@ -320,7 +319,7 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when no data received.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -359,7 +358,7 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when no data received.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -399,7 +398,7 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -407,10 +406,10 @@ public class TcpNioConnectionReadTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		testClosureMidMessageGuts(serializer, "xx");
 	}
-	
+
 	/**
 	 * Tests socket closure when mid-message
-	 * 
+	 *
 	 * @throws Exception
 	 */
 
@@ -422,7 +421,7 @@ public class TcpNioConnectionReadTests {
 
 	/**
 	 * Tests socket closure when mid-message
-	 * 
+	 *
 	 * @throws Exception
 	 */
 

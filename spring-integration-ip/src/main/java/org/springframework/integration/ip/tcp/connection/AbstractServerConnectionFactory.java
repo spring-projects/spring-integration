@@ -20,6 +20,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+import org.springframework.util.Assert;
+
 /**
  * Base class for all server connection factories. Server connection factories
  * listen on a port for incoming connections and create new TcpConnection objects
@@ -30,9 +32,13 @@ import java.net.SocketException;
  */
 public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory {
 
-	private boolean listening;
+	private static final int DEFAULT_BACKLOG = 5;
 
-	private String localAddress;
+	private volatile boolean listening;
+
+	private volatile String localAddress;
+
+	private volatile int backlog = DEFAULT_BACKLOG;
 
 
 	/**
@@ -119,5 +125,35 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 */
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
+	}
+
+
+	/**
+	 * The number of sockets in the server connection backlog.
+	 * @return The backlog.
+	 */
+	public int getBacklog() {
+		return backlog;
+	}
+
+	/**
+	 * The number of sockets in the connection backlog. Default 5;
+	 * increase if you expect high connection rates.
+	 * @param backlog
+	 */
+	public void setBacklog(int backlog) {
+		Assert.isTrue(backlog >= 0, "You cannot set backlog negative");
+		this.backlog = backlog;
+	}
+
+	/**
+	 * @deprecated Default task executor is now a cached rather
+	 * than a fixed pool executor.
+	 * Use {@link #setBacklog(int)} to set the connection backlog.
+	 */
+	@Override
+	@Deprecated
+	public void setPoolSize(int poolSize) {
+		this.setBacklog(poolSize);
 	}
 }

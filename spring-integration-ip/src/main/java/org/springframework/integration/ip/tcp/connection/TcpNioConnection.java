@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,15 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.util.Assert;
 
@@ -43,6 +46,8 @@ import org.springframework.util.Assert;
  *
  */
 public class TcpNioConnection extends AbstractTcpConnection {
+
+	private static final long DEFAULT_PIPE_TIMEOUT = 60000;
 
 	private final SocketChannel socketChannel;
 
@@ -66,6 +71,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private volatile boolean writingToPipe;
 
+	private volatile long pipeTimeout = DEFAULT_PIPE_TIMEOUT;
+
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
 	 * @param socketChannel the socketChannel
@@ -78,6 +85,10 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		this.pipedInputStream = new PipedInputStream();
 		this.pipedOutputStream = new PipedOutputStream(this.pipedInputStream);
 		this.channelOutputStream = new ChannelOutputStream();
+	}
+
+	public void setPipeTimeout(long pipeTimeout) {
+		this.pipeTimeout = pipeTimeout;
 	}
 
 	@Override
@@ -265,7 +276,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		this.writingToPipe = true;
 		try {
 			if (this.taskExecutor == null) {
-				this.taskExecutor = Executors.newSingleThreadExecutor();
+				this.taskExecutor = Executors.newCachedThreadPool();
 			}
 			// If there is no assembler running, start one
 			checkForAssembler();
@@ -287,7 +298,28 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
 			}
-			this.sendToPipe(this.rawBuffer);
+			final CountDownLatch latch = new CountDownLatch(1);
+			/*
+			 * If there are insufficient threads, either to run the
+			 * write to the pipe, or to assemble the data, we need
+			 * avoid a deadlock (block on the write to the pipe).
+			 * Hence the count down latch.
+			 */
+			this.taskExecutor.execute(new Runnable() {
+				public void run() {
+					try {
+						TcpNioConnection.this.sendToPipe(rawBuffer);
+						latch.countDown();
+					}
+					catch (Exception e) {
+						logger.error(getConnectionId() + " Failed to write to pipe", e);
+					}
+				}
+			});
+			if (!latch.await(this.pipeTimeout , TimeUnit.MILLISECONDS)) {
+				throw new MessagingException("Timed out writing to pipe, probably due to insufficient threads in " +
+						"a fixed thread pool; consider increasing this task executor pool size");
+			}
 		} finally {
 			this.writingToPipe = false;
 		}
@@ -295,6 +327,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	protected void sendToPipe(ByteBuffer rawBuffer) throws IOException {
 		Assert.notNull(rawBuffer, "rawBuffer cannot be null");
+		if (logger.isTraceEnabled()) {
+			logger.trace("Sending " + rawBuffer.limit() + " to pipe");
+		}
 		this.pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
 		this.pipedOutputStream.flush();
 		rawBuffer.clear();
