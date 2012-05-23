@@ -456,13 +456,29 @@ apply to TCP outbound adapters and gateways.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="task-executor" type="xsd:string" />
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A task executor for managing connections; if not specified a
+cached thread pool task executor is used.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="pool-size" type="xsd:string" >
 				<xsd:annotation>
 					<xsd:documentation>
-The number of threads that will be used for socket/channel handling. Only applies
-if an external task-executor is NOT being used. When using an external task executor,
-its configuration specifies the number of threads.
+Deprecated since 2.2; previously it specified the thread pool size if
+an external task executor was not provided; it was also used to set
+the connection backlog for server factories. That setting is now
+specified by the backlog attribute.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="backlog" type="xsd:string" >
+				<xsd:annotation>
+					<xsd:documentation>
+Specifies the connection backlog for server sockets. Does not
+apply to client factories.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

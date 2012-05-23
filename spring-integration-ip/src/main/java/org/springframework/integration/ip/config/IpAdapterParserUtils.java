@@ -25,7 +25,7 @@ import org.w3c.dom.Element;
 
 /**
  * Utility methods and constants for IP adapter parsers.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -119,13 +119,15 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String SOCKET_FACTORY_SUPPORT = "socket-factory-support";
 
+	public static final String BACKLOG = "backlog";
+
 	private IpAdapterParserUtils() {}
 
 	/**
-	 * Adds a constructor-arg to the provided bean definition builder 
+	 * Adds a constructor-arg to the provided bean definition builder
 	 * with the value of the attribute whose name is provided if that
 	 * attribute is defined in the given element.
-	 * 
+	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be
@@ -142,7 +144,7 @@ public abstract class IpAdapterParserUtils {
 	/**
 	 * @param element
 	 * @param builder
-	 * @param parserContext 
+	 * @param parserContext
 	 */
 	public static void addHostAndPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
@@ -159,18 +161,18 @@ public abstract class IpAdapterParserUtils {
 	/**
 	 * @param element
 	 * @param builder
-	 * @param parserContext 
+	 * @param parserContext
 	 */
 	public static void addPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String port = IpAdapterParserUtils.getPort(element, parserContext);
 		builder.addConstructorArgValue(port);
 	}
-	
+
 	/**
 	 * Asserts that a port attribute is supplied.
 	 * @param element
-	 * @param parserContext 
+	 * @param parserContext
 	 * @return The value of the attribute.
 	 * @throws BeanCreationException if attribute is not provided.
 	 */
@@ -199,7 +201,7 @@ public abstract class IpAdapterParserUtils {
 	/**
 	 * Sets the common port attributes on the bean being built (timeout, receive buffer size,
 	 * send buffer size).
-	 * @param builder 
+	 * @param builder
 	 * @param element
 	 */
 	static void addCommonSocketOptions(BeanDefinitionBuilder builder, Element element) {

@@ -206,7 +206,6 @@
 		using-nio="#{props['use.nio']}"
 		single-use="true"
 		task-executor="externalTE"
-		pool-size="321"
 		using-direct-buffers="true"
 		interceptor-factory-chain="interceptors"
 	/>
@@ -232,9 +231,16 @@
 		using-nio="true"
 		single-use="true"
 		task-executor="externalTE"
-		pool-size="123"
+		backlog="123"
 		using-direct-buffers="true"
 		interceptor-factory-chain="interceptors"
+	/>
+
+	<ip:tcp-connection-factory
+		id="serverBackwardsCompatible"
+		type="server"
+		port="#{client1.port}"
+		pool-size="123"
 	/>
 
 	<ip:tcp-connection-factory
@@ -254,7 +260,6 @@
 		using-nio="false"
 		single-use="true"
 		task-executor="externalTE"
-		pool-size="321"
 		interceptor-factory-chain="interceptors"
 	/>
 
@@ -275,7 +280,7 @@
 		using-nio="false"
 		single-use="true"
 		task-executor="externalTE"
-		pool-size="123"
+		backlog="123"
 		interceptor-factory-chain="interceptors"
 	/>
 

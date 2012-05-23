@@ -30,51 +30,53 @@ import org.w3c.dom.Element;
  *
  */
 public class TcpConnectionParser extends AbstractBeanDefinitionParser {
-	
+
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element,
 			ParserContext parserContext) {
 		BeanDefinitionBuilder builder = null;
 		String type = element.getAttribute(IpAdapterParserUtils.TCP_CONNECTION_TYPE);
 		if (!StringUtils.hasText(type)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE + 
+			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE +
 					" is required for a tcp connection", element);
 		} else if (!"server".equals(type) && !"client".equals(type)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE + 
+			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE +
 					" must be 'client' or 'server' for a TCP Connection Factory", element);
-		}		
+		}
 		builder = BeanDefinitionBuilder.genericBeanDefinition(TcpConnectionFactoryFactoryBean.class);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "type");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.HOST);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.PORT);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.USING_NIO);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.USING_DIRECT_BUFFERS);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SO_KEEP_ALIVE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SO_LINGER);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SO_TCP_NODELAY);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SO_TRAFFIC_CLASS);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.POOL_SIZE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.BACKLOG);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TASK_EXECUTOR);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SERIALIZER);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.DESERIALIZER);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.SINGLE_USE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.INTERCEPTOR_FACTORY_CHAIN);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.LOOKUP_HOST);
