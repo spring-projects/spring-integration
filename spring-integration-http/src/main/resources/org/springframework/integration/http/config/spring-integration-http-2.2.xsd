@@ -188,7 +188,6 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						<xsd:annotation>
 							<xsd:documentation>
 								View name to be resolved when rendering a response.
-								Deprecated in 2.2 - use a literal string in view-expression instead.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
