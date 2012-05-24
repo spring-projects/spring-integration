@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,32 +20,51 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.handler.DelayHandler;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;delayer&gt; element.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 1.0.3
  */
 public class DelayerParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.DelayHandler");
-		String defaultDelay = element.getAttribute("default-delay");
-		if (!StringUtils.hasText(defaultDelay)) {
-			parserContext.getReaderContext().error("The 'default-delay' attribute is required.", element);
-			return null;
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DelayHandler.class);
+
+		String id = element.getAttribute(ID_ATTRIBUTE);
+		if (!StringUtils.hasText(id)) {
+			parserContext.getReaderContext().error("The 'id' attribute is required.", element);
 		}
-		builder.addConstructorArgValue(defaultDelay);
+		builder.addConstructorArgValue(id + ".messageGroupId");
 		String scheduler = element.getAttribute("scheduler");
 		if (StringUtils.hasText(scheduler)) {
 			builder.addConstructorArgReference(scheduler);
 		}
+
+		String defaultDelay = element.getAttribute("default-delay");
+		String delayHeaderName = element.getAttribute("delay-header-name");
+
+		boolean hasDefaultDelay = StringUtils.hasText(defaultDelay);
+		boolean hasDelayHeaderName = StringUtils.hasText(delayHeaderName);
+
+		if (!(hasDefaultDelay | hasDelayHeaderName)) {
+			parserContext.getReaderContext()
+					.error("The 'default-delay' or 'delay-header-name' attributes should be provided.", element);
+		}
+
+		if (hasDefaultDelay) {
+			builder.addPropertyValue("defaultDelay", defaultDelay);
+		}
+		if (hasDelayHeaderName) {
+			builder.addPropertyValue("delayHeaderName", delayHeaderName);
+		}
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-store");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delay-header-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "wait-for-tasks-to-complete-on-shutdown");
 		return builder;

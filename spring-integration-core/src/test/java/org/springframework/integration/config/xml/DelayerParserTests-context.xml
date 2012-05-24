@@ -16,15 +16,6 @@
 		<queue />
 	</channel>
 
-	<delayer id="delayerWithDefaultScheduler"
-			 input-channel="input"
-			 output-channel="output"
-			 default-delay="1234"
-			 delay-header-name="foo"
-			 order="99"
-			 send-timeout="987"
-			 wait-for-tasks-to-complete-on-shutdown="true"/>
-
 	<delayer id="delayerWithCustomScheduler"
 			 input-channel="input"
 			 output-channel="output"
@@ -36,6 +27,15 @@
 			 output-channel="output"
 			 default-delay="0"
 			 message-store="testMessageStore"/>
+
+	<delayer id="delayerWithDefaultScheduler"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="1234"
+			 delay-header-name="foo"
+			 order="99"
+			 send-timeout="987"
+			 wait-for-tasks-to-complete-on-shutdown="true"/>
 
 	<task:scheduler id="testScheduler" pool-size="7"/>
 

@@ -30,18 +30,24 @@
 	<channel id="outputB1">
 		<queue />
 	</channel>
- 
+
 	<delayer id="delayerWithCustomScheduler"
 			 input-channel="inputB"
 			 output-channel="outputB"
 			 default-delay="1000"
 			 send-timeout="20000"
-			 scheduler="multiThreadScheduler"/> 
+			 scheduler="multiThreadScheduler"/>
+
+	<chain input-channel="delayerInsideChain" output-channel="outputA">
+		<transformer expression="payload.toUpperCase()"/>
+		<delayer id="delayerInsideChain" default-delay="1000"/>
+		<transformer expression="payload.toLowerCase()"/>
+	</chain>
 
 	<task:scheduler id="multiThreadScheduler" pool-size="5"/>
-	
+
 	<service-activator input-channel="outputB" output-channel="outputB1" method="processMessage" ref="sampleHandler"/>
-	
+
 	<beans:bean id="sampleHandler" class="org.springframework.integration.config.xml.DelayerUsageTests$SampleService"/>
- 
+
 </beans:beans>
