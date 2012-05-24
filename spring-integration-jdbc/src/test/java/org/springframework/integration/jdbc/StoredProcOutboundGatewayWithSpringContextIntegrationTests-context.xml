@@ -19,17 +19,15 @@
 	<int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
 
 	<int:gateway id="startGateway" default-request-channel="startChannel"
-				service-interface="org.springframework.integration.jdbc.storedproc.CreateUser" />
+		service-interface="org.springframework.integration.jdbc.storedproc.CreateUser" />
 
 	<int:channel id="startChannel"/>
 
-	<bean  id="gateway" class="org.springframework.integration.jdbc.StoredProcOutboundGateway">
-		<constructor-arg name="dataSource"          ref="dataSource" />
-		<constructor-arg name="storedProcedureName" value="CREATE_USER_RETURN_ALL"/>
+	<bean id="storedProcExecutor" class="org.springframework.integration.jdbc.StoredProcExecutor">
+		<constructor-arg name="dataSource" ref="dataSource"/>
+		<property name="storedProcedureName" value="CREATE_USER_RETURN_ALL"/>
 		<property name="isFunction"          value="false"/>
-		<property name="expectSingleResult"  value="true"/>
-		<property name="outputChannel" ref="outputChannel"/>
-		<property name="procedureParameters" >
+		<property name="procedureParameters">
 			<util:list>
 				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
 					<property name="name"       value="username"/>
@@ -50,6 +48,12 @@
 				<entry key="out" value-ref="rowMapper"/>
 			</util:map>
 		</property>
+	</bean>
+
+	<bean  id="gateway" class="org.springframework.integration.jdbc.StoredProcOutboundGateway">
+		<constructor-arg name="storedProcExecutor" ref="storedProcExecutor" />
+		<property name="expectSingleResult"  value="true"/>
+		<property name="outputChannel"       ref="outputChannel"/>
 	</bean>
 
 	<bean id="storedProcedureEndpoint"

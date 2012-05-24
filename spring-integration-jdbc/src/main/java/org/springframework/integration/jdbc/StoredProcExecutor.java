@@ -15,6 +15,7 @@ package org.springframework.integration.jdbc;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map.Entry;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -40,6 +42,9 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 
 import com.google.common.cache.CacheBuilder;
@@ -56,7 +61,8 @@ import com.google.common.cache.LoadingCache;
  * @since 2.1
  *
  */
-public class StoredProcExecutor implements InitializingBean {
+@ManagedResource
+public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 	private volatile BeanFactory beanFactory = null;
@@ -412,6 +418,7 @@ public class StoredProcExecutor implements InitializingBean {
 	/**
 	 * @return the name of the Stored Procedure or Function
 	 * */
+	@ManagedAttribute
 	public String getStoredProcedureName() {
 		return this.storedProcedureName;
 	}
@@ -499,7 +506,18 @@ public class StoredProcExecutor implements InitializingBean {
 	 *
 	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
 	 */
+	@Deprecated
 	public void setFunction(boolean isFunction) {
+		this.isFunction = isFunction;
+	}
+
+	/**
+	 * Indicates whether a Stored Procedure or a Function is being executed.
+	 * The default value is false.
+	 *
+	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
+	 */
+	public void setIsFunction(boolean isFunction) {
 		this.isFunction = isFunction;
 	}
 
@@ -569,6 +587,35 @@ public class StoredProcExecutor implements InitializingBean {
 	 */
 	public CacheStats getJdbcCallOperationsCacheStatistics() {
 		return this.jdbcCallOperationsCache.stats();
+	}
+
+	/**
+	 * Allows for the retrieval of metrics ({@link CacheStats}}) for the
+	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
+	 *
+	 * Provides the properties of {@link CacheStats} as a {@link Map}. This allows
+	 * for exposing the those properties easily via JMX.
+	 *
+	 * @return Map containing metrics of the JdbcCallOperationsCache
+	 *
+	 * @see StoredProcExecutor#getJdbcCallOperationsCacheStatistics()
+	 */
+	@ManagedMetric
+	public Map<String, Object> getJdbcCallOperationsCacheStatisticsAsMap() {
+		final CacheStats cacheStats = this.getJdbcCallOperationsCacheStatistics();
+		final Map<String, Object> cacheStatistics  = new HashMap<String, Object>(11);
+		cacheStatistics.put("averageLoadPenalty", cacheStats.averageLoadPenalty());
+		cacheStatistics.put("evictionCount", cacheStats.evictionCount());
+		cacheStatistics.put("hitCount", cacheStats.hitCount());
+		cacheStatistics.put("hitRate", cacheStats.hitRate());
+		cacheStatistics.put("loadCount", cacheStats.loadCount());
+		cacheStatistics.put("loadExceptionCount", cacheStats.loadExceptionCount());
+		cacheStatistics.put("loadExceptionRate", cacheStats.loadExceptionRate());
+		cacheStatistics.put("loadSuccessCount", cacheStats.loadSuccessCount());
+		cacheStatistics.put("missCount", cacheStats.missCount());
+		cacheStatistics.put("missRate", cacheStats.missRate());
+		cacheStatistics.put("totalLoadTime", cacheStats.totalLoadTime());
+		return Collections.unmodifiableMap(cacheStatistics);
 	}
 
 	/**

@@ -27,10 +27,14 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jdbc.StoredProcExecutor;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -193,6 +197,51 @@ public final class StoredProcParserUtils {
 		}
 
 		return returningResultsetMap;
+
+	}
+
+	/**
+	 * Create a new {@link BeanDefinitionBuilder} for the class {@link StoredProcExecutor}.
+	 * Initialize the wrapped {@link StoredProcExecutor} with common properties.
+	 *
+	 * @param element Must not be Null
+	 * @param parserContext Must not be Null
+	 * @return The BeanDefinitionBuilder for the JpaExecutor
+	 */
+	public static BeanDefinitionBuilder getStoredProcExecutorBuilder(final Element element,
+														final ParserContext parserContext) {
+
+		Assert.notNull(element,       "The provided element must not be Null.");
+		Assert.notNull(parserContext, "The provided parserContext must not be Null.");
+
+		final String dataSourceRef = element.getAttribute("data-source");
+
+		final BeanDefinitionBuilder storedProcExecutorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcExecutor.class);
+		storedProcExecutorBuilder.addConstructorArgReference(dataSourceRef);
+
+		final String storedProcedureNameExpression = element.getAttribute("stored-procedure-name-expression");
+
+		if (StringUtils.hasText(storedProcedureNameExpression)) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
+			storedProcExecutorBuilder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
+		}
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "ignore-column-meta-data");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "jdbc-call-operations-cache-size");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "stored-procedure-name");
+
+		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
+		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);
+
+		if (!procedureParameterList.isEmpty()) {
+			storedProcExecutorBuilder.addPropertyValue("procedureParameters", procedureParameterList);
+		}
+		if (!sqlParameterDefinitionList.isEmpty()) {
+			storedProcExecutorBuilder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
+		}
+
+		return storedProcExecutorBuilder;
 
 	}
 

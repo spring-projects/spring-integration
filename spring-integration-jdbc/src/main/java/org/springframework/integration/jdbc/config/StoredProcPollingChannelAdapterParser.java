@@ -15,15 +15,14 @@ package org.springframework.integration.jdbc.config;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcPollingChannelAdapter;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -46,38 +45,27 @@ public class StoredProcPollingChannelAdapterParser extends AbstractPollingInboun
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcPollingChannelAdapter.class);
 
-		String dataSourceRef = element.getAttribute("data-source");
-		String storedProcedureNameExpression = element.getAttribute("stored-procedure-name-expression");
+		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		builder.addConstructorArgReference(dataSourceRef);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "return-value-required");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "function");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "skip-undeclared-results");
 
-		if (StringUtils.hasText(storedProcedureNameExpression)) {
-			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
-			builder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
-		}
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "stored-procedure-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "jdbc-call-operations-cache-size");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-column-meta-data");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "return-value-required");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "function");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "skip-undeclared-results");
-
-		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
-		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);
 		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
 
-		if (!procedureParameterList.isEmpty()) {
-			builder.addPropertyValue("procedureParameters", procedureParameterList);
-		}
-		if (!sqlParameterDefinitionList.isEmpty()) {
-			builder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
-		}
 		if (!returningResultsetMap.isEmpty()) {
-			builder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
+			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
 		}
+
+		final AbstractBeanDefinition jpaExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final String storedProcPollingChannelAdapterId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
+		final String jpaExecutorBeanName = storedProcPollingChannelAdapterId + ".storedProcExecutor";
+
+		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+
+		builder.addConstructorArgReference(jpaExecutorBeanName);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
 
 		return builder.getBeanDefinition();
 

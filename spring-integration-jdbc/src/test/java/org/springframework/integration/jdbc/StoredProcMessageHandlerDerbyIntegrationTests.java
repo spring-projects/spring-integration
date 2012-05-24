@@ -62,9 +62,14 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 	@Test
 	public void testDerbyStoredProcedureInsertWithDefaultSqlSource() {
 
-		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
-		messageHandler.setStoredProcedureName("CREATE_USER");
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(this.embeddedDatabase);
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
+
+		storedProcExecutor.setStoredProcedureName("CREATE_USER");
+
+		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
+
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
 		messageHandler.handleMessage(message.build());
 
@@ -79,9 +84,13 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 	@Test
 	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndDynamicProcName() {
 
-		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
-		messageHandler.setAllowDynamicStoredProcedureNames(true);
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(this.embeddedDatabase);
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
+		storedProcExecutor.setAllowDynamicStoredProcedureNames(true);
+
+		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
+
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
 		message.setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "CREATE_USER");
 		messageHandler.handleMessage(message.build());
@@ -97,15 +106,18 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 	@Test
 	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndSpelProcName() throws Exception {
 
-		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(this.embeddedDatabase);
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 		ExpressionFactoryBean efb = new ExpressionFactoryBean("headers.headerWithProcedureName");
 		efb.afterPropertiesSet();
 
 		Expression expression = efb.getObject();
 
-		messageHandler.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.setStoredProcedureNameExpression(expression);
 
+		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
+
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
 		message.setHeader("headerWithProcedureName", "CREATE_USER");
 		messageHandler.handleMessage(message.build());
@@ -121,15 +133,19 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 	@Test
 	public void testDerbyStoredProcedureInsertWithExpression() {
 
-		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
-		messageHandler.setStoredProcedureName("CREATE_USER");
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(this.embeddedDatabase);
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
+
+		storedProcExecutor.setStoredProcedureName("CREATE_USER");
 
 		final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
 		procedureParameters.add(new ProcedureParameter("username", null, "payload.username.toUpperCase()"));
 		procedureParameters.add(new ProcedureParameter("password", null, "payload.password.toUpperCase()"));
 		procedureParameters.add(new ProcedureParameter("email",    null, "payload.email.toUpperCase()"));
 
-		messageHandler.setProcedureParameters(procedureParameters);
+		storedProcExecutor.setProcedureParameters(procedureParameters);
+
+		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));
@@ -148,15 +164,19 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 	@Test
 	public void testDerbyStoredProcedureInsertWithHeaderExpression() {
 
-		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(this.embeddedDatabase);
-		messageHandler.setStoredProcedureName("CREATE_USER");
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(this.embeddedDatabase);
+		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
+
+		storedProcExecutor.setStoredProcedureName("CREATE_USER");
 
 		final List<ProcedureParameter> procedureParameters = new ArrayList<ProcedureParameter>();
 		procedureParameters.add(new ProcedureParameter("USERNAME", null, "headers[business_id] + '_' + payload.username"));
 		procedureParameters.add(new ProcedureParameter("password", "static_password", null));
 		procedureParameters.add(new ProcedureParameter("email",    "static_email"   , null));
 
-		messageHandler.setProcedureParameters(procedureParameters);
+		storedProcExecutor.setProcedureParameters(procedureParameters);
+
+		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("Eric.Cartman", "c4rtm4n", "eric@cartman.com"));

@@ -13,16 +13,13 @@
 
 package org.springframework.integration.jdbc.config;
 
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcMessageHandler;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -43,35 +40,21 @@ public class StoredProcMessageHandlerParser extends AbstractOutboundChannelAdapt
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(StoredProcMessageHandler.class);
+		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcMessageHandler.class);
 
-		String dataSourceRef       = element.getAttribute("data-source");
-		String storedProcedureNameExpression = element.getAttribute("stored-procedure-name-expression");
+		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		builder.addConstructorArgReference(dataSourceRef);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "allow-dynamic-stored-procedure-names");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
 
-		if (StringUtils.hasText(storedProcedureNameExpression)) {
-			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
-			builder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
-		}
+		final AbstractBeanDefinition jpaExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final String messageHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
+		final String jpaExecutorBeanName = messageHandlerId + ".storedProcExecutor";
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "stored-procedure-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-column-meta-data");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "use-payload-as-parameter-source");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "sql-parameter-source-factory");
+		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
 
-		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
-		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);
-
-		if (!procedureParameterList.isEmpty()) {
-			builder.addPropertyValue("procedureParameters", procedureParameterList);
-		}
-
-		if (!sqlParameterDefinitionList.isEmpty()) {
-			builder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
-		}
+		builder.addConstructorArgReference(jpaExecutorBeanName);
 
 		return builder.getBeanDefinition();
 

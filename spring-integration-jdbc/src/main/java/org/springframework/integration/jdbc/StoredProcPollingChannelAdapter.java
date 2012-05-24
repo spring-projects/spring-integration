@@ -34,6 +34,7 @@ import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 
 import com.google.common.cache.CacheBuilder;
@@ -47,6 +48,7 @@ import com.google.common.cache.CacheBuilder;
  * @author Gunnar Hillert
  * @since 2.1
  */
+@ManagedResource
 public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
 
 	private final StoredProcExecutor executor;
@@ -74,24 +76,21 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	}
 
 	/**
-	 * Constructor taking {@link DataSource} from which the DB Connection can be
-	 * obtained.
+	 * Constructor taking {@link StoredProcExecutor}.
 	 *
-	 * @param dataSource Must not be null.
+	 * @param storedProcExecutor Must not be null.
 	 *
 	 */
-	public StoredProcPollingChannelAdapter(DataSource dataSource) {
+	public StoredProcPollingChannelAdapter(StoredProcExecutor storedProcExecutor) {
 
-		Assert.notNull(dataSource, "dataSource must not be null.");
-		this.executor = new StoredProcExecutor(dataSource);
+		Assert.notNull(storedProcExecutor, "storedProcExecutor must not be null.");
+		this.executor = storedProcExecutor;
 
 	}
 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.executor.setBeanFactory(this.getBeanFactory());
-		this.executor.afterPropertiesSet();
 	}
 
 	/**
@@ -161,6 +160,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
 	 */
+	@Deprecated
 	public void setStoredProcedureName(String storedProcedureName) {
 		this.executor.setStoredProcedureName(storedProcedureName);
 	}
@@ -185,6 +185,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * @param storedProcedureNameExpression Must not be null.
 	 *
 	 */
+	@Deprecated
 	public void setStoredProcedureNameExpression(Expression storedProcedureNameExpression) {
 		this.executor.setStoredProcedureNameExpression(storedProcedureNameExpression);
 	}
@@ -199,6 +200,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * @see CacheBuilder#maximumSize(long)
 	 * @param jdbcCallOperationsCacheSize Must not be negative.
 	 */
+	@Deprecated
 	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
 		this.executor.setJdbcCallOperationsCacheSize(jdbcCallOperationsCacheSize);
 	}
@@ -214,6 +216,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * @param sqlParameterSourceFactory
 	 */
+	@Deprecated
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
 	}
@@ -245,6 +248,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
 	 */
+	@Deprecated
 	public void setSqlParameters(List<SqlParameter> sqlParameters) {
 		this.executor.setSqlParameters(sqlParameters);
 	}
@@ -253,6 +257,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *  Does your stored procedure return one or more result sets? If so, you
 	 *  can use the provided method for setting the respective Rowmappers.
 	 */
+	@Deprecated
 	public void setReturningResultSetRowMappers(
 			Map<String, RowMapper<?>> returningResultSetRowMappers) {
 		this.executor.setReturningResultSetRowMappers(returningResultSetRowMappers);
@@ -265,6 +270,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * @param ignoreColumnMetaData Defaults to <code>false</code>.
 	 */
+	@Deprecated
 	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
 		this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
 	}
@@ -275,6 +281,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * @param returnValueRequired
 	 */
+	@Deprecated
 	public void setReturnValueRequired(boolean returnValueRequired) {
 		this.executor.setReturnValueRequired(returnValueRequired);
 	}
@@ -283,6 +290,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
 	 */
+	@Deprecated
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
 		this.executor.setProcedureParameters(procedureParameters);
 	}
@@ -293,6 +301,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
 	 */
+	@Deprecated
 	public void setFunction(boolean isFunction) {
 		this.executor.setFunction(isFunction);
 	}
@@ -336,6 +345,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * the value defaults to <code>true</code>.
 	 *
 	 */
+	@Deprecated
 	public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
 		this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
 	}

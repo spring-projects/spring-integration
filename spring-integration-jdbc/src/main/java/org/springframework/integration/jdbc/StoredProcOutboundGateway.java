@@ -73,16 +73,15 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * Constructor taking {@link DataSource} from which the DB Connection can be
-	 * obtained.
+	 * Constructor taking {@link StoredProcExecutor}.
 	 *
-	 * @param dataSource Must not be null.
+	 * @param storedProcExecutor Must not be null.
 	 *
 	 */
-	public StoredProcOutboundGateway(DataSource dataSource) {
+	public StoredProcOutboundGateway(StoredProcExecutor storedProcExecutor) {
 
-		Assert.notNull(dataSource, "dataSource must not be null.");
-		this.executor = new StoredProcExecutor(dataSource);
+		Assert.notNull(storedProcExecutor, "storedProcExecutor must not be null.");
+		this.executor = storedProcExecutor;
 
 	}
 
@@ -94,8 +93,6 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.executor.setBeanFactory(this.getBeanFactory());
-		this.executor.afterPropertiesSet();
 	};
 
 	@Override
@@ -142,6 +139,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
 	 * @see StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
 	 */
+	@Deprecated
 	public void setStoredProcedureName(String storedProcedureName) {
 		this.executor.setStoredProcedureName(storedProcedureName);
 	}
@@ -177,6 +175,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * @param storedProcedureNameExpression Must not be null.
 	 *
 	 */
+	@Deprecated
 	public void setStoredProcedureNameExpression(Expression storedProcedureNameExpression) {
 		this.executor.setStoredProcedureNameExpression(storedProcedureNameExpression);
 	}
@@ -191,6 +190,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * @see CacheBuilder#maximumSize(long)
 	 * @param jdbcCallOperationsCacheSize Must not be negative.
 	 */
+	@Deprecated
 	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
 		this.executor.setJdbcCallOperationsCacheSize(jdbcCallOperationsCacheSize);
 	}
@@ -202,6 +202,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @see JdbcHeaders
 	 */
+	@Deprecated
 	public void setAllowDynamicStoredProcedureNames(boolean allowDynamicStoredProcedureNames) {
 		this.executor.setAllowDynamicStoredProcedureNames(allowDynamicStoredProcedureNames);
 	}
@@ -233,6 +234,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
 	 */
+	@Deprecated
 	public void setSqlParameters(List<SqlParameter> sqlParameters) {
 		this.executor.setSqlParameters(sqlParameters);
 	}
@@ -241,6 +243,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *  Does your stored procedure return one or more result sets? If so, you
 	 *  can use the provided method for setting the respective RowMappers.
 	 */
+	@Deprecated
 	public void setReturningResultSetRowMappers(
 			Map<String, RowMapper<?>> returningResultSetRowMappers) {
 		this.executor.setReturningResultSetRowMappers(returningResultSetRowMappers);
@@ -253,6 +256,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @param ignoreColumnMetaData Defaults to <code>false</code>.
 	 */
+	@Deprecated
 	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
 		this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
 	}
@@ -263,6 +267,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @param returnValueRequired
 	 */
+	@Deprecated
 	public void setReturnValueRequired(boolean returnValueRequired) {
 		this.executor.setReturnValueRequired(returnValueRequired);
 	}
@@ -271,6 +276,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
 	 */
+	@Deprecated
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
 		this.executor.setProcedureParameters(procedureParameters);
 	}
@@ -281,6 +287,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
 	 */
+	@Deprecated
 	public void setIsFunction(boolean isFunction) {
 		this.executor.setFunction(isFunction);
 	}
@@ -320,6 +327,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @param sqlParameterSourceFactory
 	 */
+	@Deprecated
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
 	}
@@ -341,6 +349,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source.
 	 */
+	@Deprecated
 	public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
 		this.executor.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
 	}
@@ -359,6 +368,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * Only few developers will probably ever like to process update counts, thus
 	 * the value defaults to <code>true</code>.
 	 */
+	@Deprecated
 	public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
 		this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
 	}

@@ -14,11 +14,11 @@
 package org.springframework.integration.jdbc.config;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcOutboundGateway;
@@ -41,50 +41,39 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 	}
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(StoredProcOutboundGateway.class);
+		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcOutboundGateway.class);
 
-		String dataSourceRef = gatewayElement.getAttribute("data-source");
-		String storedProcedureNameExpression = gatewayElement.getAttribute("stored-procedure-name-expression");
+		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		builder.addConstructorArgReference(dataSourceRef);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "allow-dynamic-stored-procedure-names");
 
-		if (StringUtils.hasText(storedProcedureNameExpression)) {
-			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
-			builder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "is-function");
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "stored-procedure-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "jdbc-call-operations-cache-size");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "allow-dynamic-stored-procedure-names");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "return-value-required");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "skip-undeclared-results");
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "is-function");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "ignore-column-meta-data");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "expect-single-result");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "return-value-required");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "use-payload-as-parameter-source");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, gatewayElement, "sql-parameter-source-factory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "skip-undeclared-results");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "reply-timeout", "sendTimeout");
+		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
 
-		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(gatewayElement, parserContext);
-		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(gatewayElement, parserContext);
-		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(gatewayElement, parserContext);
-
-		if (!procedureParameterList.isEmpty()) {
-			builder.addPropertyValue("procedureParameters", procedureParameterList);
-		}
-		if (!sqlParameterDefinitionList.isEmpty()) {
-			builder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
-		}
 		if (!returningResultsetMap.isEmpty()) {
-			builder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
+			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
 		}
 
-		String replyChannel = gatewayElement.getAttribute("reply-channel");
+		final AbstractBeanDefinition jpaExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final String gatewayId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
+		final String jpaExecutorBeanName = gatewayId + ".storedProcExecutor";
+
+		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+
+		builder.addConstructorArgReference(jpaExecutorBeanName);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
+
+		String replyChannel = element.getAttribute("reply-channel");
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addPropertyReference("outputChannel", replyChannel);
 		}

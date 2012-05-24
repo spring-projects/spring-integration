@@ -55,7 +55,7 @@ import com.google.common.cache.CacheBuilder;
  */
 public class StoredProcMessageHandler extends AbstractMessageHandler implements InitializingBean {
 
-	final StoredProcExecutor executor;
+	private final StoredProcExecutor executor;
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
@@ -79,16 +79,16 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	}
 
 	/**
-	 * Constructor taking {@link DataSource} from which the DB Connection can be
-	 * obtained.
 	 *
-	 * @param dataSource Must not be null.
+	 * Constructor passing in the {@link StoredProcExecutor}.
+	 *
+	 * @param storedProcExecutor Must not be null.
 	 *
 	 */
-	public StoredProcMessageHandler(DataSource dataSource) {
+	public StoredProcMessageHandler(StoredProcExecutor storedProcExecutor) {
 
-		Assert.notNull(dataSource, "dataSource must not be null.");
-		this.executor = new StoredProcExecutor(dataSource);
+		Assert.notNull(storedProcExecutor, "storedProcExecutor must not be null.");
+		this.executor = storedProcExecutor;
 
 	}
 
@@ -100,8 +100,6 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.executor.setBeanFactory(this.getBeanFactory());
-		this.executor.afterPropertiesSet();
 	};
 
 	/**
@@ -142,6 +140,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
 	 * @see StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
 	 */
+	@Deprecated
 	public void setStoredProcedureName(String storedProcedureName) {
 		this.executor.setStoredProcedureName(storedProcedureName);
 	}
@@ -177,6 +176,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 * @param storedProcedureNameExpression Must not be null.
 	 *
 	 */
+	@Deprecated
 	public void setStoredProcedureNameExpression(Expression storedProcedureNameExpression) {
 		this.executor.setStoredProcedureNameExpression(storedProcedureNameExpression);
 	}
@@ -188,6 +188,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 *
 	 * @see JdbcHeaders
 	 */
+	@Deprecated
 	public void setAllowDynamicStoredProcedureNames(boolean allowDynamicStoredProcedureNames) {
 		this.executor.setAllowDynamicStoredProcedureNames(allowDynamicStoredProcedureNames);
 	}
@@ -202,6 +203,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 * @see CacheBuilder#maximumSize(long)
 	 * @param jdbcCallOperationsCacheSize Must not be negative.
 	 */
+	@Deprecated
 	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
 		this.executor.setJdbcCallOperationsCacheSize(jdbcCallOperationsCacheSize);
 	}
@@ -213,6 +215,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 * meta data lookups or if you like to provide customized parameter definitions,
 	 * this flag can be set to <code>true</code>. It defaults to <code>false</code>.
 	 */
+	@Deprecated
 	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
 		this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
 	}
@@ -221,6 +224,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
 	 */
+	@Deprecated
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
 		this.executor.setProcedureParameters(procedureParameters);
 	}
@@ -230,6 +234,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 * parameter definitions from the JDBC Meta-data is not possible, you must define
 	 * the {@link SqlParameter} explicitly.
 	 */
+	@Deprecated
 	public void setSqlParameters(List<SqlParameter> sqlParameters) {
 		this.executor.setSqlParameters(sqlParameters);
 	}
@@ -245,6 +250,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 *
 	 * @param sqlParameterSourceFactory
 	 */
+	@Deprecated
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
 	}
@@ -266,6 +272,7 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 *
 	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source.
 	 */
+	@Deprecated
 	public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
 		this.executor.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
 	}
