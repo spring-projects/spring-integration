@@ -333,11 +333,21 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" />
-			<xsd:attribute name="url" type="xsd:string" use="required">
+			<xsd:attribute name="url" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
 						<![CDATA[
-	URL to which the requests should be sent. It may include {placeholders}.
+	URL to which the requests should be sent. It may include {placeholders} for
+	evaluation against uri-variables.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="url-expression" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+	SpEL Expression resolving to a URL to which the requests should be sent. The resolved
+	value may include {placeholders} for further evaluation against uri-variables.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -463,11 +473,21 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:sequence>
 						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
-					<xsd:attribute name="url" type="xsd:string" use="required">
+					<xsd:attribute name="url" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
-								URL to be used as a fallback for any request Message does not contain the request URL Message header.
+			URL to which the requests should be sent. It may include {placeholders} for
+			evaluation against uri-variables.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="url-expression" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								<![CDATA[
+			SpEL Expression resolving to a URL to which the requests should be sent. The resolved
+			value may include {placeholders} for further evaluation against uri-variables.
+							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="http-method" default="POST">

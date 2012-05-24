@@ -34,6 +34,16 @@
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-channel-adapter>
 
+	<outbound-channel-adapter id="withUrlAndTemplate"
+		url="http://localhost/test1" channel="requests"
+		rest-template="customRestTemplate"/>
+
+	<outbound-channel-adapter id="withUrlExpression" url-expression="'http://localhost/test1'" channel="requests"/>
+
+	<outbound-channel-adapter id="withUrlExpressionAndTemplate"
+		url-expression="'http://localhost/test1'" channel="requests"
+		rest-template="customRestTemplate"/>
+
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 
 	<beans:bean id="testErrorHandler" class="org.springframework.integration.http.config.HttpOutboundChannelAdapterParserTests$StubErrorHandler"/>

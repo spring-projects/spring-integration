@@ -18,7 +18,9 @@ package org.springframework.integration.http.config;
 
 import static junit.framework.Assert.assertNotSame;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -33,6 +35,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -58,12 +61,21 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Autowired @Qualifier("fullConfig")
 	private AbstractEndpoint fullConfig;
-	
+
 	@Autowired @Qualifier("restTemplateConfig")
 	private AbstractEndpoint restTemplateConfig;
 
 	@Autowired @Qualifier("customRestTemplate")
 	private RestTemplate customRestTemplate;
+
+	@Autowired @Qualifier("withUrlAndTemplate")
+	private AbstractEndpoint withUrlAndTemplate;
+
+	@Autowired @Qualifier("withUrlExpression")
+	private AbstractEndpoint withUrlExpression;
+
+	@Autowired @Qualifier("withUrlExpressionAndTemplate")
+	private AbstractEndpoint withUrlExpressionAndTemplate;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -72,7 +84,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	public void minimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.minimalConfig);
-		RestTemplate restTemplate = 
+		RestTemplate restTemplate =
 			TestUtils.getPropertyValue(this.minimalConfig, "handler.restTemplate", RestTemplate.class);
 		assertNotSame(customRestTemplate, restTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
@@ -128,10 +140,10 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
 	}
-	
+
 	@Test
 	public void restTemplateConfig() {
-		RestTemplate restTemplate = 
+		RestTemplate restTemplate =
 			TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
 		assertEquals(customRestTemplate, restTemplate);
 	}
@@ -141,6 +153,77 @@ public class HttpOutboundChannelAdapterParserTests {
 		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml", this.getClass());
 	}
 
+	@Test
+	public void withUrlAndTemplate() {
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlAndTemplate);
+		RestTemplate restTemplate =
+			TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restTemplate", RestTemplate.class);
+		assertSame(customRestTemplate, restTemplate);
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
+		assertEquals(this.applicationContext.getBean("requests"), endpointAccessor.getPropertyValue("inputChannel"));
+		assertNull(handlerAccessor.getPropertyValue("outputChannel"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
+				templateAccessor.getPropertyValue("requestFactory");
+		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("uri"));
+		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
+		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+	}
+
+	@Test
+	public void withUrlExpression() {
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpression);
+		RestTemplate restTemplate =
+			TestUtils.getPropertyValue(this.withUrlExpression, "handler.restTemplate", RestTemplate.class);
+		assertNotSame(customRestTemplate, restTemplate);
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
+		assertEquals(this.applicationContext.getBean("requests"), endpointAccessor.getPropertyValue("inputChannel"));
+		assertNull(handlerAccessor.getPropertyValue("outputChannel"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
+				templateAccessor.getPropertyValue("requestFactory");
+		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
+		assertNotNull(expression);
+		assertEquals("'http://localhost/test1'", expression.getExpressionString());
+		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
+		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+	}
+
+	@Test
+	public void withUrlExpressionAndTemplate() {
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpressionAndTemplate);
+		RestTemplate restTemplate =
+			TestUtils.getPropertyValue(this.withUrlExpressionAndTemplate, "handler.restTemplate", RestTemplate.class);
+		assertSame(customRestTemplate, restTemplate);
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
+		assertEquals(this.applicationContext.getBean("requests"), endpointAccessor.getPropertyValue("inputChannel"));
+		assertNull(handlerAccessor.getPropertyValue("outputChannel"));
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
+				templateAccessor.getPropertyValue("requestFactory");
+		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
+		assertNotNull(expression);
+		assertEquals("'http://localhost/test1'", expression.getExpressionString());
+		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
+		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+	}
+
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void failWithUrlAndExpression() {
+		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-url-fail-context.xml", this.getClass());
+	}
 
 	public static class StubErrorHandler implements ResponseErrorHandler {
 

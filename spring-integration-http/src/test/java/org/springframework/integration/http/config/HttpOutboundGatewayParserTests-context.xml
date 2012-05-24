@@ -40,6 +40,8 @@
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 
+	<outbound-gateway id="withUrlExpression" url-expression="'http://localhost/test1'" request-channel="requests"/>
+
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 
 	<beans:bean id="testErrorHandler" class="org.springframework.integration.http.config.HttpOutboundGatewayParserTests$StubErrorHandler"/>
