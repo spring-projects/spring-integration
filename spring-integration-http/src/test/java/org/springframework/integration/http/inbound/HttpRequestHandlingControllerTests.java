@@ -19,21 +19,28 @@ package org.springframework.integration.http.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.View;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class HttpRequestHandlingControllerTests {
@@ -51,6 +58,26 @@ public class HttpRequestHandlingControllerTests {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
 		assertEquals("foo", modelAndView.getViewName());
+		assertEquals(0, modelAndView.getModel().size());
+		Message<?> requestMessage = requestChannel.receive(0);
+		assertNotNull(requestMessage);
+		assertEquals("hello", requestMessage.getPayload());
+	}
+
+	@Test
+	public void sendOnlyViewExpression() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
+		controller.setRequestChannel(requestChannel);
+		Expression viewExpression = new SpelExpressionParser().parseExpression("'baz'");
+		controller.setViewExpression(viewExpression);
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContent("hello".getBytes());
+		request.setContentType("text/plain");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		ModelAndView modelAndView = controller.handleRequest(request, response);
+		assertEquals("baz", modelAndView.getViewName());
 		assertEquals(0, modelAndView.getModel().size());
 		Message<?> requestMessage = requestChannel.receive(0);
 		assertNotNull(requestMessage);
@@ -81,6 +108,63 @@ public class HttpRequestHandlingControllerTests {
 		Object reply = modelAndView.getModel().get("reply");
 		assertNotNull(reply);
 		assertEquals("HELLO", reply);
+	}
+
+	@Test
+	public void requestReplyViewExpressionString() throws Exception {
+		DirectChannel requestChannel = new DirectChannel();
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Message<String> handleRequestMessage(Message<?> requestMessage) {
+				return MessageBuilder.withPayload("foo")
+						.setHeader("bar", "baz").build();
+			}
+		};
+		requestChannel.subscribe(handler);
+		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setRequestChannel(requestChannel);
+		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
+		controller.setViewExpression(viewExpression);
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContent("hello".getBytes());
+		request.setContentType("text/plain");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		ModelAndView modelAndView = controller.handleRequest(request, response);
+		assertEquals("baz", modelAndView.getViewName());
+		assertEquals(1, modelAndView.getModel().size());
+		Object reply = modelAndView.getModel().get("reply");
+		assertNotNull(reply);
+		assertEquals("foo", reply);
+	}
+
+	@Test
+	public void requestReplyViewExpressionView() throws Exception {
+		final View view = mock(View.class);
+		DirectChannel requestChannel = new DirectChannel();
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Message<String> handleRequestMessage(Message<?> requestMessage) {
+				return MessageBuilder.withPayload("foo")
+						.setHeader("bar", view).build();
+			}
+		};
+		requestChannel.subscribe(handler);
+		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setRequestChannel(requestChannel);
+		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
+		controller.setViewExpression(viewExpression);
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContent("hello".getBytes());
+		request.setContentType("text/plain");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		ModelAndView modelAndView = controller.handleRequest(request, response);
+		assertSame(view, modelAndView.getView());
+		assertEquals(1, modelAndView.getModel().size());
+		Object reply = modelAndView.getModel().get("reply");
+		assertNotNull(reply);
+		assertEquals("foo", reply);
 	}
 
 	@Test

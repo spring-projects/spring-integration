@@ -44,6 +44,7 @@ import org.springframework.util.SerializationUtils;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class HttpRequestHandlingMessagingGatewayTests {
@@ -89,6 +90,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 	public void stringExpectedWithReply() throws Exception {
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload().toString().toUpperCase();
 			}
@@ -110,6 +112,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 	public void noAcceptHeaderOnRequest() throws Exception {
 		DirectChannel requestChannel = new DirectChannel();
 		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage.getPayload().toString().toUpperCase();
 			}
@@ -149,7 +152,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 
 	@Test
 	public void multiValueParameterMap() throws Exception {
-		QueueChannel channel = new QueueChannel(); 
+		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setRequestChannel(channel);
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/test");
@@ -175,7 +178,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 
 	@Test
 	public void serializableRequestBody() throws Exception {
-		QueueChannel channel = new QueueChannel(); 
+		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setRequestPayloadType(TestBean.class);
 		gateway.setRequestChannel(channel);
@@ -200,7 +203,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 
 
 	private static class TestHttpMessageConverter extends AbstractHttpMessageConverter<Exception> {
-		
+
 		public TestHttpMessageConverter() {
 			setSupportedMediaTypes(Arrays.asList(MediaType.ALL));
 		}
