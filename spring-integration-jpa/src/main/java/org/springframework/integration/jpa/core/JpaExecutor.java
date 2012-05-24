@@ -249,7 +249,7 @@ public class JpaExecutor implements InitializingBean {
 	/**
 	 * Execute a (typically retrieving) JPA operation. The <i>requestMessage</i>
 	 * can be used to provide additional query parameters using
-	 * {@link JpaExecutor#parameterSourceFactorymeterSourceFactory}. If the
+	 * {@link JpaExecutor#parameterSourceFactory}. If the
 	 * <i>requestMessage</i> parameter is null then
 	 * {@link JpaExecutor#parameterSource} is being used for providing query parameters.
 	 *
