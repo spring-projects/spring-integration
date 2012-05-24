@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -67,7 +68,7 @@ import org.springframework.web.client.RestTemplate;
  * When there is a response body, the {@link HttpStatus} enum instance will instead be
  * copied to the MessageHeaders of the reply. In both cases, the response headers will
  * be mapped to the reply Message's headers by this handler's {@link HeaderMapper} instance.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -77,6 +78,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final String uri;
 
+	private final Expression uriExpression;
+
 	private volatile HttpMethod httpMethod = HttpMethod.POST;
 
 	private volatile boolean expectReply = true;
@@ -84,7 +87,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private volatile Class<?> expectedResponseType;
 
 	private volatile boolean extractPayload = true;
-	
+
 	private volatile boolean extractPayloadExplicitlySet = false;
 
 	private volatile String charset = "UTF-8";
@@ -110,7 +113,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * Create a handler that will send requests to the provided URI.
 	 */
 	public HttpRequestExecutingMessageHandler(String uri) {
-		this(uri, null);
+		this(uri, null, null);
+	}
+
+	/**
+	 * Create a handler that will send requests to the provided URI Expression.
+	 */
+	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
+		this(null, uriExpression, null);
 	}
 
 	/**
@@ -119,13 +129,28 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @param restTemplate
 	 */
 	public HttpRequestExecutingMessageHandler(String uri, RestTemplate restTemplate) {
-		Assert.hasText(uri, "URI is required");
+		this(uri, null, restTemplate);
+	}
+
+	/**
+	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
+	 * @param uriExpression A SpEL Expression that can be resolved agains the message object and
+	 * bean factory.
+	 * @param restTemplateq
+	 */
+	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestTemplate restTemplate) {
+		this(null, uriExpression, restTemplate);
+	}
+
+	private HttpRequestExecutingMessageHandler(String uri, Expression uriExpression, RestTemplate restTemplate) {
+		Assert.isTrue(StringUtils.hasText(uri) ^ uriExpression != null, "Exactly one of uri or uriExpression is required");
 		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
 		this.restTemplate.getMessageConverters().add(0, new SerializingHttpMessageConverter());
 		this.uri = uri;
 		StandardEvaluationContext sec = new StandardEvaluationContext();
 		sec.addPropertyAccessor(new MapAccessor());
 		this.evaluationContext = sec;
+		this.uriExpression = uriExpression;
 	}
 
 
@@ -205,7 +230,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
 		this.restTemplate.setRequestFactory(requestFactory);
 	}
-	
+
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
 	 * when replacing the variable placeholders in a URI template.
@@ -230,24 +255,29 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	@Override
 	public void onInit() {
 		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-		}
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-		}
+		configureEvaluationContext(this.evaluationContext);
 		if (!this.shouldIncludeRequestBody() && this.extractPayloadExplicitlySet){
 			if (logger.isWarnEnabled()){
-				logger.warn("The 'extractPayload' attribute has no meaning in the context of this handler since the provided HTTP Method is '" + 
+				logger.warn("The 'extractPayload' attribute has no meaning in the context of this handler since the provided HTTP Method is '" +
 			           this.httpMethod + "', and no request body will be sent for that method.");
 			}
 		}
 	}
 
+	private void configureEvaluationContext(StandardEvaluationContext evaluationContext) {
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		}
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService != null) {
+			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
+	}
+
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
+		String uri = determineUri(requestMessage);
 		try {
 			Map<String, Object> uriVariables = new HashMap<String, Object>();
 			for (Map.Entry<String, Expression> entry : this.uriVariableExpressions.entrySet()) {
@@ -255,7 +285,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				uriVariables.put(entry.getKey(), value);
 			}
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage);
-			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
+			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
 				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
@@ -281,8 +311,20 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			throw e;
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + this.uri + "]", e);
+			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + uri + "]", e);
 		}
+	}
+
+	private String determineUri(Message<?> requestMessage) {
+		String uri = this.uri;
+		if (uri == null) {
+			StandardEvaluationContext uriContext = new StandardEvaluationContext();
+			configureEvaluationContext(uriContext);
+			uriContext.setRootObject(requestMessage);
+			uri = (String) this.uriExpression.getValue(uriContext);
+			Assert.notNull(uri, "URI Expression cannot resolve to null");
+		}
+		return uri;
 	}
 
 	/**
@@ -367,7 +409,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			if (this.isFormData((Map<Object, ?>) content)) {
 				if (this.isMultipart((Map<String, ?>)content)) {
 					contentType = MediaType.MULTIPART_FORM_DATA;
-				} 
+				}
 				else {
 					contentType = MediaType.APPLICATION_FORM_URLENCODED;
 				}
@@ -393,7 +435,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			Object value = simpleMap.get(key);
 			if (value instanceof Object[]) {
 				Object[] valueArray = (Object[]) value;
-				value = Arrays.asList(valueArray);	
+				value = Arrays.asList(valueArray);
 			}
 			if (value instanceof Collection) {
 				multipartValueMap.put(key, new ArrayList<Object>((Collection<?>) value));
@@ -406,7 +448,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
-	 * If all keys are Strings, and some values are not Strings we'll consider 
+	 * If all keys are Strings, and some values are not Strings we'll consider
 	 * the Map to be multipart/form-data
 	 */
 	private boolean isMultipart(Map<String, ?> map) {
@@ -414,7 +456,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			Object value = map.get(key);
 			if (value != null) {
 				if (value.getClass().isArray()) {
-					value = CollectionUtils.arrayToList(value);	
+					value = CollectionUtils.arrayToList(value);
 				}
 				if (value instanceof Collection) {
 					Collection<?> cValues = (Collection<?>) value;
@@ -423,7 +465,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 							return true;
 						}
 					}
-				} 
+				}
 				else if (!(value instanceof String)) {
 					return true;
 				}
@@ -439,7 +481,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		for (Object	 key : map.keySet()) {
 			if (!(key instanceof String)) {
 				return false;
-			} 	
+			}
 		}
 		return true;
 	}

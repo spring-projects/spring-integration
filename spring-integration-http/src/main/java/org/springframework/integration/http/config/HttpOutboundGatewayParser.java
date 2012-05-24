@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package org.springframework.integration.http.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the 'outbound-gateway' element of the http namespace.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -41,9 +41,9 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
-		builder.addConstructorArgValue(element.getAttribute("url"));
+		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
-		
+
 		String restTemplate = element.getAttribute("rest-template");
 		if (StringUtils.hasText(restTemplate)) {
 			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
@@ -54,7 +54,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
 			}
 		}
-		
+
 		String headerMapper = element.getAttribute("header-mapper");
 		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
 		String mappedResponseHeaders = element.getAttribute("mapped-response-headers");

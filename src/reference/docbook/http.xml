@@ -279,6 +279,22 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       order="3"
       auto-startup="false"/>]]></programlisting>
   </para>
+  <note>
+    <para>
+      2.2. Introduced a second method to specify the URL; you can use either the 'url' attribute
+      or the 'url-expression' attribute. The 'url' is a simple string (with placedholders for
+      URI variables, as
+      described below); the 'url-expression' is a SpEL expression, with the Message as the
+      root object, enabling dynamic urls. The url resulting from the expression evaluation can
+      still have placeholders for URI variables.
+    </para>
+    <para>
+      Some users, previously, used the place holders to replace the entire URL with a URI variable.
+      Changes in Spring 3.1 can cause some issues with escaped characters, such as '?'. For this
+      reason, it is recommended that if you wish to generate the URL entirely at runtime, you
+      use the 'url-expression' attribute.
+    </para>
+  </note>
   <para>
   	<emphasis>Mapping URI variables</emphasis>
   </para>
