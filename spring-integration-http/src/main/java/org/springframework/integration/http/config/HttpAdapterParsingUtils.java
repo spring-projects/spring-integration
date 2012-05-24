@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,20 @@ package org.springframework.integration.http.config;
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0.2
  */
 abstract class HttpAdapterParsingUtils {
@@ -62,5 +64,24 @@ abstract class HttpAdapterParsingUtils {
 			builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
 		}
 	}
+
+	static void configureUrlConstructorArg(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		String urlAttribute = element.getAttribute("url");
+		String urlExpressionAttribute = element.getAttribute("url-expression");
+		boolean hasUrlAttribute = StringUtils.hasText(urlAttribute);
+		boolean hasUrlExpressionAttribute = StringUtils.hasText(urlExpressionAttribute);
+		if (!(hasUrlAttribute ^ hasUrlExpressionAttribute)) {
+			parserContext.getReaderContext().error("Adapter must have exactly one of 'url' or 'url-expression'", element);
+		}
+		if (hasUrlAttribute) {
+			builder.addConstructorArgValue(urlAttribute);
+		}
+		else {
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(urlExpressionAttribute);
+			builder.addConstructorArgValue(expressionDef);
+		}
+	}
+
 
 }

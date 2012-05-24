@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -51,9 +52,12 @@ import org.springframework.web.client.RestTemplate;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class HttpRequestExecutingMessageHandlerTests {
-	
+
+	private String resolvedUri;
+
 	@Test
 	public void simpleStringKeyStringValueFormData() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
@@ -85,7 +89,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("3", map.get("c").iterator().next());
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
-	
+
 	@Test
 	public void simpleStringKeyObjectValueFormData() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
@@ -116,7 +120,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("Mohnton", map.get("c").get(0).toString());
 		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
 	}
-	
+
 	@Test
 	public void simpleObjectKeyObjectValueFormData() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
@@ -173,13 +177,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
-		
+
 		List<?> aValue = map.get("a");
 		assertEquals(3, aValue.size());
 		assertEquals("1", aValue.get(0));
 		assertEquals("2", aValue.get(1));
 		assertEquals("3", aValue.get(2));
-		
+
 		List<?> bValue = map.get("b");
 		assertEquals(1, bValue.size());
 		assertEquals("4", bValue.get(0));
@@ -187,13 +191,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		List<?> cValue = map.get("c");
 		assertEquals(1, cValue.size());
 		assertEquals("5", cValue.get(0));
-		
+
 		List<?> dValue = map.get("d");
 		assertEquals(1, dValue.size());
 		assertEquals("6", dValue.get(0));
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
-	
+
 	@Test
 	public void stringKeyPrimitiveArrayValueMixedFormData() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
@@ -218,7 +222,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
-		
+
 		List<?> aValue = map.get("a");
 		assertEquals(1, aValue.size());
 		Object value = aValue.get(0);
@@ -227,7 +231,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals(1, y[0]);
 		assertEquals(2, y[1]);
 		assertEquals(3, y[2]);
-		
+
 		List<?> bValue = map.get("b");
 		assertEquals(1, bValue.size());
 		assertEquals("4", bValue.get(0));
@@ -235,7 +239,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		List<?> cValue = map.get("c");
 		assertEquals(1, cValue.size());
 		assertEquals("5", cValue.get(0));
-		
+
 		List<?> dValue = map.get("d");
 		assertEquals(1, dValue.size());
 		assertEquals("6", dValue.get(0));
@@ -263,13 +267,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
-		
+
 		List<?> aValue = map.get("a");
 		assertEquals(3, aValue.size());
 		assertNull(aValue.get(0));
 		assertEquals(4, aValue.get(1));
 		assertNull(aValue.get(2));
-		
+
 		List<?> bValue = map.get("b");
 		assertEquals(1, bValue.size());
 		assertEquals("4", bValue.get(0));
@@ -278,8 +282,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 	}
 	/**
 	 * This test and the one below might look identical, but they are not.
-	 * This test injected "5" into the list as String resulting in 
-	 * the Content-TYpe being application/x-www-form-urlencoded 
+	 * This test injected "5" into the list as String resulting in
+	 * the Content-TYpe being application/x-www-form-urlencoded
 	 * @throws Exception
 	 */
 	@Test
@@ -308,13 +312,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
-		
+
 		List<?> aValue = map.get("a");
 		assertEquals(3, aValue.size());
 		assertNull(aValue.get(0));
 		assertEquals("5", aValue.get(1));
 		assertNull(aValue.get(2));
-		
+
 		List<?> bValue = map.get("b");
 		assertEquals(1, bValue.size());
 		assertEquals("4", bValue.get(0));
@@ -323,7 +327,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	}
 	/**
 	 * This test and the one above might look identical, but they are not.
-	 * This test injected 5 into the list as int resulting in 
+	 * This test injected 5 into the list as int resulting in
 	 * Content-type being multipart/form-data
 	 * @throws Exception
 	 */
@@ -353,13 +357,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
-		
+
 		List<?> aValue = map.get("a");
 		assertEquals(3, aValue.size());
 		assertNull(aValue.get(0));
 		assertEquals(5, aValue.get(1));
 		assertNull(aValue.get(2));
-		
+
 		List<?> bValue = map.get("b");
 		assertEquals(1, bValue.size());
 		assertEquals("4", bValue.get(0));
@@ -393,23 +397,23 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
-		
-		
+
+
 		List<?> aValue = map.get("a");
 		assertEquals(2, aValue.size());
 		assertEquals("1", aValue.get(0));
 		assertEquals("2", aValue.get(1));
-		
+
 		List<?> bValue = map.get("b");
 		assertEquals(0, bValue.size());
-		
+
 		List<?> cValue = map.get("c");
 		assertEquals(1, cValue.size());
 		assertEquals("3", cValue.get(0));
-		
+
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
-	
+
 	@Test
 	public void stringKeyObjectCollectionValueFormData() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
@@ -436,20 +440,20 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
-		
-		
+
+
 		List<?> aValue = map.get("a");
 		assertEquals(2, aValue.size());
 		assertEquals("Philadelphia", aValue.get(0).toString());
 		assertEquals("Ambler", aValue.get(1).toString());
-		
+
 		List<?> bValue = map.get("b");
 		assertEquals(0, bValue.size());
-		
+
 		List<?> cValue = map.get("c");
 		assertEquals(1, cValue.size());
 		assertEquals("Mohnton", cValue.get(0).toString());
-		
+
 		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
 	}
 
@@ -486,7 +490,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertNull(map.get("c").get(0));
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
-	
+
 	@SuppressWarnings("cast")
 	@Test
 	public void contentAsByteArray() throws Exception {
@@ -494,7 +498,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
-		
+
 		byte[] bytes = "Hello World".getBytes();
 		Message<?> message = MessageBuilder.withPayload(bytes).build();
 		Exception exception = null;
@@ -511,14 +515,14 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("Hello World", new String((byte[])bytes));
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM, request.getHeaders().getContentType());
 	}
-	
+
 	@Test
 	public void contentAsXmlSource() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
-		
+
 		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
 		Exception exception = null;
 		try {
@@ -533,28 +537,28 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertTrue(body instanceof Source);
 		assertEquals(MediaType.TEXT_XML, request.getHeaders().getContentType());
 	}
-	
+
 	@Test // no asertions just a warn message in a log
 	public void testWarnMessageForNonPostPutAndExtractPayload() throws Exception {
 		// should see a warn message
-		
+
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
 		handler.setExtractPayload(true);
 		handler.afterPropertiesSet();
-		
+
 		// should not see  a warn message since 'setExtractPayload' is not set explicitly
-		
+
 		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
 		handler.afterPropertiesSet();
-		
+
 		// should not see  a warn message since HTTP method is not GET
-		
+
 		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
@@ -562,7 +566,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		handler.setExtractPayload(true);
 		handler.afterPropertiesSet();
 	}
-	
+
 	@Test
 	public void contentTypeIsNotSetForGetRequest() throws Exception {
 		//GET
@@ -570,7 +574,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
-		
+
 		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
 		Exception exception = null;
 		try {
@@ -582,18 +586,18 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		assertNull(request.getHeaders().getContentType());
-		
+
 		/* TODO: reconsider the inclusion of content-type for various HttpMethods (only ignoring for GET as of 2.0.5)
 		 *       uncomment code below accordingly (see INT-1951)
-		 */ 
-		
+		 */
+
 		/*
 		//HEAD
 		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.HEAD);
-		
+
 		message = MessageBuilder.withPayload(mock(Source.class)).build();
 		exception = null;
 		try {
@@ -605,13 +609,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		request = template.lastRequestEntity.get();
 		assertNull(request.getHeaders().getContentType());
-		
+
 		//DELETE
 		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.DELETE);
-		
+
 		message = MessageBuilder.withPayload(mock(Source.class)).build();
 		exception = null;
 		try {
@@ -623,13 +627,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		request = template.lastRequestEntity.get();
 		assertNull(request.getHeaders().getContentType());
-		
+
 		//TRACE
 		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.TRACE);
-		
+
 		message = MessageBuilder.withPayload(mock(Source.class)).build();
 		exception = null;
 		try {
@@ -652,11 +656,24 @@ public class HttpRequestExecutingMessageHandlerTests {
 //		It's just enough if it was sent successfully from chain without any failures
 	}
 
+	@Test
+	public void testUriExpression() {
+		RestTemplate restTemplate = new MockRestTemplate3();
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
+				new SpelExpressionParser().parseExpression("headers['foo']"),
+				restTemplate);
+		String theURL = "http://bar/baz";
+		Message<?> message = MessageBuilder.withPayload("").setHeader("foo", theURL).build();
+		handler.handleRequestMessage(message);
+		assertEquals(theURL, this.resolvedUri);
+	}
+
 	public static class City{
 		private String name;
 		public City(String name){
 			this.name = name;
 		}
+		@Override
 		public String toString(){
 			return name;
 		}
@@ -674,6 +691,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static class MockRestTemplate2 extends RestTemplate {
 
 		@Override
@@ -683,5 +701,14 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 	}
 
+	private class MockRestTemplate3 extends RestTemplate {
+
+		@Override
+		public <T> ResponseEntity<T> exchange(String url, HttpMethod method, HttpEntity<?> requestEntity,
+											  Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
+			resolvedUri = url;
+			return new ResponseEntity<T>(HttpStatus.OK);
+		}
+	}
 
 }
