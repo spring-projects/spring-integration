@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,20 @@
 
 package org.springframework.integration.http.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the 'outbound-channel-adapter' element of the http namespace.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -39,9 +39,9 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
 		builder.addPropertyValue("expectReply", false);
-		builder.addConstructorArgValue(element.getAttribute("url"));
+		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
-		
+
 		String restTemplate = element.getAttribute("rest-template");
 		if (StringUtils.hasText(restTemplate)) {
 			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
@@ -52,7 +52,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
 			}
 		}
-		
+
 		String headerMapper = element.getAttribute("header-mapper");
 		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
 		if (StringUtils.hasText(headerMapper)) {
@@ -66,7 +66,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		else if (StringUtils.hasText(mappedRequestHeaders)) {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");	
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");

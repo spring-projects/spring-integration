@@ -26,12 +26,12 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -56,6 +56,9 @@ public class HttpOutboundGatewayParserTests {
 
 	@Autowired @Qualifier("fullConfig")
 	private AbstractEndpoint fullConfigEndpoint;
+
+	@Autowired @Qualifier("withUrlExpression")
+	private AbstractEndpoint withUrlExpressionEndpoint;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -127,6 +130,29 @@ public class HttpOutboundGatewayParserTests {
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
 		assertEquals("responseHeader", mappedResponseHeaders[0]);
 		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
+	}
+
+	@Test
+	public void withUrlExpression() {
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) new DirectFieldAccessor(
+				this.withUrlExpressionEndpoint).getPropertyValue("handler");
+		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
+				this.withUrlExpressionEndpoint).getPropertyValue("inputChannel");
+		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
+		assertNull(replyChannel);
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
+				templateAccessor.getPropertyValue("requestFactory");
+		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
+		assertNotNull(expression);
+		assertEquals("'http://localhost/test1'", expression.getExpressionString());
+		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
+		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
 	}
 
 
