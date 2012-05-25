@@ -78,7 +78,8 @@ public class HttpOutboundGatewayParserTests {
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
-		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("uri"));
+		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
+		assertEquals("http://localhost/test1", uriExpression.getValue());
 		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
@@ -106,7 +107,8 @@ public class HttpOutboundGatewayParserTests {
 		Object converterListBean = this.applicationContext.getBean("converterList");
 		assertEquals(converterListBean, templateAccessor.getPropertyValue("messageConverters"));
 		assertEquals(String.class, handlerAccessor.getPropertyValue("expectedResponseType"));
-		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("uri"));
+		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
+		assertEquals("http://localhost/test2", uriExpression.getValue());
 		assertEquals(HttpMethod.PUT, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
