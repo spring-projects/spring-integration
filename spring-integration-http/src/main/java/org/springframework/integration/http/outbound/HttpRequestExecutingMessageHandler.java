@@ -128,13 +128,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 */
 	public HttpRequestExecutingMessageHandler(String uri, RestTemplate restTemplate) {
 		this(new LiteralExpression(uri), restTemplate);
+		/*
+		 *  We'd prefer to do this assertion first, but the compiler doesn't allow it. However,
+		 *  it's safe because the literal expression simply wraps the String variable, even
+		 *  when null.
+		 */
 		Assert.hasText(uri, "URI is required");
 	}
 
 	/**
 	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
-	 * @param uriExpression A SpEL Expression that can be resolved agains the message object and
-	 * bean factory.
+	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
+	 * {@link BeanFactory}.
 	 * @param restTemplate
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestTemplate restTemplate) {
