@@ -138,7 +138,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private volatile boolean returnValueRequired = false;
 	private volatile Map<String, RowMapper<?>> returningResultSetRowMappers = new HashMap<String, RowMapper<?>>(0);
 
-	private volatile DataSource dataSource;
+	private final DataSource dataSource;
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
