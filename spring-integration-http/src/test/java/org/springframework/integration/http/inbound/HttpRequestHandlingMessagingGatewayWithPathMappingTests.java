@@ -16,10 +16,12 @@
 
 package org.springframework.integration.http.inbound;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Map;
 
 import org.junit.Test;
-
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
@@ -30,21 +32,20 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
-	
+
 	private static ExpressionParser PARSER = new SpelExpressionParser();
-	
-	
+
+
 	@Test
 	public void withoutExpression() throws Exception {
 		DirectChannel echoChannel = new DirectChannel();
 		echoChannel.subscribe(new MessageHandler() {
-			
+
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);
@@ -56,18 +57,19 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
-		
+
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
-		
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		
+
 		Object result =  gateway.doHandleRequest(request, response);
-		assertEquals("hello", result);
-		
+		assertTrue(result instanceof Message);
+		assertEquals("hello", ((Message<?>) result).getPayload());
+
 	}
-	
+
 	@Test
 	public void withPayloadExpressionPointingToPathVariable() throws Exception {
 		DirectChannel echoChannel = new DirectChannel();
@@ -92,16 +94,17 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables.f"));
 
 		Object result =  gateway.doHandleRequest(request, response);
-		assertEquals("bill", result);
+		assertTrue(result instanceof Message);
+		assertEquals("bill", ((Message<?>)result).getPayload());
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void withoutPayloadExpressionPointingToUriVariables() throws Exception {
-		
+
 		DirectChannel echoChannel = new DirectChannel();
 		echoChannel.subscribe(new MessageHandler() {
-			
+
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);
@@ -109,20 +112,21 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		
+
 		request.setMethod("POST");
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
-		
+
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables"));
-			
+
 		Object result =  gateway.doHandleRequest(request, response);
-		assertEquals("bill", ((Map<String, Object>)result).get("f"));
+		assertTrue(result instanceof Message);
+		assertEquals("bill", ((Map<String, Object>) ((Message<?>)result).getPayload()).get("f"));
 	}
-	
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,13 +91,14 @@ import org.springframework.web.util.UrlPathHelper;
  * In a request-reply scenario, the reply Message's payload will be extracted prior to generating a response by default.
  * To have the entire serialized Message available for the response, switch the {@link #extractReplyPayload} value to
  * <code>false</code>.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport {
-	
+
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
@@ -105,7 +106,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			HttpRequestHandlingEndpointSupport.class.getClassLoader())
 			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingEndpointSupport.class
 					.getClassLoader());
-	
+
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
@@ -128,7 +129,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile MultipartResolver multipartResolver;
-	
+
 	private volatile Expression payloadExpression;
 
 	private volatile Map<String, Expression> headerExpressions;
@@ -154,10 +155,10 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		}
 		if (romePresent) {
 			this.messageConverters.add(new AtomFeedHttpMessageConverter());
-			this.messageConverters.add(new RssChannelHttpMessageConverter()); 	
+			this.messageConverters.add(new RssChannelHttpMessageConverter());
 		}
 	}
-	
+
 	/**
 	 * @return whether to expect reply
 	 */
@@ -167,12 +168,12 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 
 	/**
 	 * Set the path template for which this endpoint expects requests.
-	 * May include path variable {keys} to match against. 
+	 * May include path variable {keys} to match against.
 	 */
 	public void setPath(String path) {
 		this.path = path;
 	}
-	
+
 	String getPath() {
 		return path;
 	}
@@ -300,9 +301,10 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	/**
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
+	 * @return a the response Message
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
+	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
 		try {
 			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
 			if (!this.supportedMethods.contains(request.getMethod())) {
@@ -351,13 +353,13 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 
 			if (payload == null) {
 				if (requestBody != null) {
-					payload = requestBody;		
+					payload = requestBody;
 				}
 				else {
 					payload = requestParams;
 				}
 			}
-			
+
 			MessageBuilder<?> messageBuilder = null;
 
 			if (payload instanceof Message<?>){
@@ -366,28 +368,16 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			else {
 				messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(headers);
 			}
-			
+
 			Message<?> message = messageBuilder
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
 					.build();
-			
-			Object reply = null;
+
+			Message<?> reply = null;
 			if (this.expectReply) {
 				reply = this.sendAndReceiveMessage(message);
-				if (reply != null) {
-					ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-					this.headerMapper.fromHeaders(((Message<?>) reply).getHeaders(), response.getHeaders());
-					HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(((Message<?>) reply).getHeaders());
-					if (httpStatus != null) {
-						response.setStatusCode(httpStatus);
-					}	
-					response.close();
-					if (this.extractReplyPayload) {
-						reply = ((Message<?>) reply).getPayload();
-					}
-				}
 			}
 			else {
 				this.send(message);
@@ -397,6 +387,29 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		finally {
 			this.postProcessRequest(servletRequest);
 		}
+	}
+
+	/**
+	 * Converts the reply message to the appropriate HTTP reply object and
+	 * sets up the servlet response.
+	 * @param servletResponse The servlet response.
+	 * @param replyMessage The reply message.
+	 * @return The message payload (if {@link #extractReplyPayload}) otherwise the
+	 * message.
+	 */
+	protected final Object setupResponseAndConvertReply(HttpServletResponse servletResponse, Message<?> replyMessage) {
+		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+		this.headerMapper.fromHeaders(replyMessage.getHeaders(), response.getHeaders());
+		HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(((Message<?>) replyMessage).getHeaders());
+		if (httpStatus != null) {
+			response.setStatusCode(httpStatus);
+		}
+		response.close();
+		Object reply = replyMessage;
+		if (this.extractReplyPayload) {
+			reply = replyMessage.getPayload();
+		}
+		return reply;
 	}
 
 	/**
@@ -485,8 +498,8 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		}
 		return httpStatus;
 	}
-	
-	private StandardEvaluationContext createEvaluationContext(){
+
+	protected StandardEvaluationContext createEvaluationContext(){
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
 		BeanFactory beanFactory = this.getBeanFactory();

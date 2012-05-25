@@ -28,6 +28,12 @@
 
 	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo" error-code="oops"/>
 	
+	<inbound-gateway id="inboundControllerViewExp"
+		request-channel="requests"
+		reply-channel="responses"
+		view-expression="'bar'"
+		error-code="oops"/>
+
 	<inbound-gateway id="withMappedHeaders" request-channel="requests"
 								mapped-response-headers="abc, xyz"
 								mapped-request-headers="foo,bar"/>
