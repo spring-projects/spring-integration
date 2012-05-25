@@ -40,7 +40,6 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.test.annotation.ExpectedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -130,7 +129,7 @@ public class CachingClientConnectionFactoryTests {
 		conn2a.close();
 	}
 
-	@Test @ExpectedException(MessagingException.class)
+	@Test(expected=MessagingException.class)
 	public void testLimit() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
