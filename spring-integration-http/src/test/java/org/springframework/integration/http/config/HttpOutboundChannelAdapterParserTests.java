@@ -96,7 +96,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
-		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("uri"));
+		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
+		assertEquals("http://localhost/test1", uriExpression.getValue());
 		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
@@ -124,7 +125,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(requestFactoryBean, requestFactory);
 		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
 		assertEquals(errorHandlerBean, templateAccessor.getPropertyValue("errorHandler"));
-		assertEquals("http://localhost/test2/{foo}", handlerAccessor.getPropertyValue("uri"));
+		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
+		assertEquals("http://localhost/test2/{foo}", uriExpression.getValue());
 		assertEquals(HttpMethod.GET, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
@@ -168,7 +170,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
-		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("uri"));
+		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
+		assertEquals("http://localhost/test1", uriExpression.getValue());
 		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
