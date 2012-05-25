@@ -28,6 +28,8 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.MapBindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -80,6 +82,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	 * Specify the view name.
 	 */
 	public void setViewName(String viewName) {
+		Assert.isTrue(StringUtils.hasText(viewName), "View name must contain text");
 		this.viewExpression = new LiteralExpression(viewName);
 	}
 

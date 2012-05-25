@@ -390,8 +390,8 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	}
 
 	/**
-	 * Converts the reply message to the appropriate HTTP reply object as well as
-	 * setting up the servlet response.
+	 * Converts the reply message to the appropriate HTTP reply object and
+	 * sets up the servlet response.
 	 * @param servletResponse The servlet response.
 	 * @param replyMessage The reply message.
 	 * @return The message payload (if {@link #extractReplyPayload}) otherwise the
