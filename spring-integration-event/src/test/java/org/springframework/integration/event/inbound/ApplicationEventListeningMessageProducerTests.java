@@ -19,7 +19,6 @@ package org.springframework.integration.event.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.springframework.context.ApplicationEvent;
@@ -36,7 +35,6 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.test.annotation.ExpectedException;
 
 /**
  * @author Mark Fisher
@@ -150,10 +148,11 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertEquals("test", message2.getPayload());
 	}
 
-	@Test @ExpectedException(value=MessageHandlingException.class)
+	@Test(expected=MessageHandlingException.class)
 	public void anyApplicationEventCausesExceptionWithErrorHandling() {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				throw new RuntimeException("Failed");
 			}
@@ -168,10 +167,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertNotNull(message);
 		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
 		adapter.setErrorChannel(null);
-		try {
-			adapter.onApplicationEvent(new TestApplicationEvent1());
-			fail("Expected MessageHandlingException");
-		} catch (MessageHandlingException e) { }
+		adapter.onApplicationEvent(new TestApplicationEvent1());
 	}
 
 
