@@ -23,6 +23,7 @@
 		gateway-type="RETRIEVING"
 		order="1"
 		request-channel="in"
-		reply-channel="out"/>
+		reply-channel="out"
+		reply-timeout="100"/>
 
 </beans>

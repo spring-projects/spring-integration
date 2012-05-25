@@ -31,6 +31,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gunnar Hillert
+ * @author Amol Nayak
  * @since 2.2
  *
  */
@@ -55,6 +56,11 @@ public class JpaOutboundGatewayParserTests {
 
 		assertEquals(OutboundGatewayType.RETRIEVING, gatewayType);
 
+		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout", Long.class);
+
+		assertEquals(100, sendTimeout);
+
+
 		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
 
 		assertNotNull(jpaExecutor);
@@ -76,13 +82,13 @@ public class JpaOutboundGatewayParserTests {
 	}
 
 	@After
-	public void tearDown(){
-		if(context != null){
+	public void tearDown() {
+		if (context != null) {
 			context.close();
 		}
 	}
 
-	public void setUp(String name, Class<?> cls){
+	public void setUp(String name, Class<?> cls) {
 		context    = new ClassPathXmlApplicationContext(name, cls);
 		consumer   = this.context.getBean("jpaOutboundGateway", EventDrivenConsumer.class);
 	}

@@ -41,14 +41,8 @@ import org.w3c.dom.Element;
  */
 public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 
-	protected boolean shouldGenerateId() {
-		return false;
-	}
 
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
+	@Override
 	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
 
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(gatewayElement, parserContext);
@@ -72,6 +66,7 @@ public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "gateway-type");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "reply-timeout");
 
 		final String replyChannel = gatewayElement.getAttribute("reply-channel");
 
@@ -81,7 +76,7 @@ public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 
 		final Element transactionalElement = DomUtils.getChildElementByTagName(gatewayElement, "transactional");
 
-		if(transactionalElement != null) {
+		if (transactionalElement != null) {
 			BeanDefinition txAdviceDefinition = JpaParserUtils.configureTransactionAttributes(transactionalElement);
 			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
 			adviceChain.add(txAdviceDefinition);
@@ -92,6 +87,7 @@ public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 
 	}
 
+	@Override
 	protected String getInputChannelAttributeName() {
 		return "request-channel";
 	}
