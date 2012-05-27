@@ -38,5 +38,4 @@
 	<beans:bean id="groovyCustomizer"
 			class="org.springframework.integration.groovy.config.GroovyControlBusTests$MyGroovyCustomizer"/>
 
-
 </beans:beans>

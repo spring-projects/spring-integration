@@ -72,14 +72,14 @@ public class GroovyControlBusTests {
 		assertTrue(this.groovyCustomizer.executed);
 	}
 
-	@Test
+	@Test //INT-2567
 	public void testOperationWithCustomScope() {
 		Message<?> message = MessageBuilder.withPayload("def result = threadScopedService.convert('testString')").build();
 		this.input.send(message);
 		assertEquals("cat", output.receive(0).getPayload());
 	}
 
-	@Test
+	@Test //INT-2567
 	public void testFailOperationWithCustomScope() {
 		try {
 			Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
@@ -93,7 +93,7 @@ public class GroovyControlBusTests {
 		}
 	}
 
-	@Test
+	@Test //INT-2567
 	public void testOperationWithRequestCustomScope() {
 		RequestContextHolder.setRequestAttributes(new MockRequestAttributes());
 		Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
@@ -101,7 +101,7 @@ public class GroovyControlBusTests {
 		assertEquals("cat", output.receive(0).getPayload());
 	}
 
-	@Test
+	@Test //INT-2567
 	public void testFailOperationOnNonManagedComponent() {
 		try {
 			Message<?> message = MessageBuilder.withPayload("def result = nonManagedService.convert('testString')").build();

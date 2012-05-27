@@ -17,14 +17,14 @@
 
   <section id="groovy-config">
     <title>Groovy configuration</title>
-    <para>  
+    <para>
     With Spring Integration 2.1, Groovy Support's configuration namespace
-    is an extension of Spring Integration's Scripting Support and shares the core configuration 
-    and behavior described in detail in the 
+    is an extension of Spring Integration's Scripting Support and shares the core configuration
+    and behavior described in detail in the
     <xref linkend="scripting">Scripting Support</xref> section. Even though Groovy scripts are
-    well supported by generic Scripting Support, Groovy Support provides the 
-    <emphasis>Groovy</emphasis> configuration namespace which is backed by the Spring Framework's 
-    <classname>org.springframework.scripting.groovy.GroovyScriptFactory</classname> and related components, 
+    well supported by generic Scripting Support, Groovy Support provides the
+    <emphasis>Groovy</emphasis> configuration namespace which is backed by the Spring Framework's
+    <classname>org.springframework.scripting.groovy.GroovyScriptFactory</classname> and related components,
     offering extended capabilities for using Groovy. Below are a couple of sample configurations:</para>
     <para><emphasis>Filter</emphasis> <programlisting language="xml">&lt;int:filter input-channel="referencedScriptInput"&gt;
    &lt;int-groovy:script location="some/path/to/groovy/file/GroovyFilterTests.groovy"/&gt;
@@ -35,20 +35,20 @@
      return payload == 'good'
    ]]&gt;&lt;/int-groovy:script&gt;
 &lt;/int:filter&gt;</programlisting>
-	As the above examples show, the configuration looks identical to the general Scripting Support configuration. The only 
-	difference is the use of the Groovy namespace as indicated in the examples by the <emphasis>int-groovy</emphasis> namespace prefix. 
-	Also note that the <code>lang</code> attribute on the <code>&lt;script&gt;</code> tag is not valid in this namespace. 
+	As the above examples show, the configuration looks identical to the general Scripting Support configuration. The only
+	difference is the use of the Groovy namespace as indicated in the examples by the <emphasis>int-groovy</emphasis> namespace prefix.
+	Also note that the <code>lang</code> attribute on the <code>&lt;script&gt;</code> tag is not valid in this namespace.
   </para>
 
-   
+
     <para><emphasis>Groovy object customization</emphasis> </para>
-    
+
    <para>
 	  If you need to customize the Groovy object itself, beyond setting variables, you can reference
 	  a bean that implements <classname>org.springframework.scripting.groovy.GroovyObjectCustomizer</classname> via the
 	  <code>customizer</code> attribute. For example, this might be useful if you want to implement a domain-specific
 	  language (DSL) by modifying the MetaClass and registering functions to be available within the script:
-	  
+
 	   <programlisting language="xml"><![CDATA[<int:service-activator input-channel="groovyChannel">
     <int-groovy:script location="foo/SomeScript.groovy" customizer="groovyCustomizer"/>
 </int:service-activator>
@@ -78,31 +78,28 @@
     <para>The Groovy Control Bus executes messages on the input channel as
     Groovy scripts. It takes a message, compiles the body to a Script,
     customizes it with a <classname>GroovyObjectCustomizer</classname>, and then executes it. The
-    Control Bus' customizer exposes all the beans in the application context
+    Control Bus' <classname>MessageProcessor</classname> exposes all beans in the application context
     that are annotated with <code>@ManagedResource</code>, implement Spring's
     <classname>Lifecycle</classname> interface or extend Spring's <classname>CustomizableThreadCreator</classname> base class
     (e.g. several of the <classname>TaskExecutor</classname> and <classname>TaskScheduler</classname> implementations).</para>
     <para>
        <important>
         Be careful about using managed beans with custom scopes (e.g. 'request') in the Control Bus' command scripts, especially
-        inside an <emphasis>async</emphasis> message flow. <emphasis>The Control Bus' customizer</emphasis> injects
-        <classname>GroovyVariableResolverBinding</classname> with delegation to <classname>ApplicationContext</classname>
-        into <emphasis>Command scripts</emphasis>, which resolves Groovy variables as managed Spring beans at runtime.
-        <classname>GroovyVariableResolverBinding</classname> applies <classname>ControlBusBeanFilter</classname> on resolved beans
-        to determine if they are <emphasis>managed beans</emphasis>. And you may end up with some <classname>BeansException</classname>
-        during <emphasis>Command script's</emphasis> executing. For example, if a custom scope's context is not established, the attempt
-        to get a bean within that scope will trigger a <classname>BeanCreationException</classname>.
+        inside an <emphasis>async</emphasis> message flow. If The Control Bus' <classname>MessageProcessor</classname>
+        can't expose a bean from the application context, you may end up with some <classname>BeansException</classname>
+        during <emphasis>command script's</emphasis> executing. For example, if a custom scope's context is not established,
+        the attempt to get a bean within that scope will trigger a <classname>BeanCreationException</classname>.
        </important>
     </para>
     <para>
      If you need to further customize the Groovy objects, you can also provide a reference to a bean
      that implements <classname>org.springframework.scripting.groovy.GroovyObjectCustomizer</classname> via
      the <code>customizer</code> attribute.
-	  
+
 	   <programlisting language="xml"><![CDATA[<int-groovy:control-bus input-channel="input"
         output-channel="output"
         customizer="groovyCustomizer"/>
-				   
+
 <beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>]]></programlisting>
     </para>
   </section>

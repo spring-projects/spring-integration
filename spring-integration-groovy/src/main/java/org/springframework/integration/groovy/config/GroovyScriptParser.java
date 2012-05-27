@@ -16,6 +16,7 @@
 
 package org.springframework.integration.groovy.config;
 
+import groovy.lang.Script;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
@@ -34,7 +35,7 @@ import org.w3c.dom.Element;
  */
 public class GroovyScriptParser extends AbstractScriptParser {
 
-	
+
 	@Override
 	protected String getBeanClassName(Element element) {
 		return GroovyScriptExecutingMessageProcessor.class.getName();
@@ -45,14 +46,14 @@ public class GroovyScriptParser extends AbstractScriptParser {
 	 */
 	@Override
 	protected String getScriptSourceClassName() {
-		return "groovy.lang.Script";
+		return Script.class.getName();
 	}
-	
+
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "customizer");
 	}
 
-	
 
-	
+
+
 }
