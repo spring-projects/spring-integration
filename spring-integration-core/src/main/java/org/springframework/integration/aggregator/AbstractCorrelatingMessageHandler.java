@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2012 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -44,10 +44,10 @@ import org.springframework.util.CollectionUtils;
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
  * {@link MessageStore}. This class takes care of correlated groups of messages
- * that can be completed in batches. It is useful for custom implementation of MessageHandlers that require correlation 
+ * that can be completed in batches. It is useful for custom implementation of MessageHandlers that require correlation
  * and is used as a base class for Aggregator - {@link AggregatingMessageHandler} and
  * Resequencer - {@link ResequencingMessageHandler},
- * or custom implementations requiring correlation. 
+ * or custom implementations requiring correlation.
  * <p/>
  * To customize this handler inject {@link CorrelationStrategy},
  * {@link ReleaseStrategy}, and {@link MessageGroupProcessor} implementations as
@@ -60,6 +60,7 @@ import org.springframework.util.CollectionUtils;
  * @author Iwein Fuld
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
@@ -83,7 +84,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private volatile MessageChannel discardChannel = new NullChannel();
 
 	private boolean sendPartialResultOnExpiry = false;
-	
+
 	private volatile boolean sequenceAware = false;
 
 	private volatile LockRegistry lockRegistry = new DefaultLockRegistry();
@@ -151,6 +152,19 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
+		/*
+		 * If we have a custom lock registry, it probably has a different
+		 * sized pool of locks than the default, so pass it into the
+		 * message store.
+		 */
+		if (this.lockRegistrySet && this.messageStore instanceof SimpleMessageStore) {
+			((SimpleMessageStore) this.messageStore).setLockRegistry(this.lockRegistry);
+		}
+		/*
+		 * Disallow any further changes to the lock registry
+		 * (checked in the setter).
+		 */
+		this.lockRegistrySet = true;
 	}
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
@@ -176,7 +190,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	public String getComponentType() {
 		return "aggregator";
 	}
-	
+
 	protected MessageGroupStore getMessageStore() {
 		return messageStore;
 	}
@@ -205,7 +219,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 					logger.trace("Adding message to group [ " + messageGroup + "]");
 				}
 				messageGroup = this.store(correlationKey, message);
-				
+
 				if (releaseStrategy.canRelease(messageGroup)) {
 					Collection<Message<?>> completedMessages = null;
 					try {
@@ -213,11 +227,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 					}
 					finally {
 						// Always clean up even if there was an exception
-						// processing messages						
+						// processing messages
 						this.afterRelease(messageGroup, completedMessages);
 					}
-				} 				
-			} 
+				}
+			}
 			else {
 				discardChannel.send(message);
 			}
@@ -228,7 +242,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	/**
-	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released. 
+	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released.
 	 * @param group
 	 * @param completedMessages
 	 */
@@ -273,11 +287,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	}
 
 	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence){
-		List<Message<?>> sorted = new ArrayList<Message<?>>((Collection<? extends Message<?>>)partialSequence);
+		List<Message<?>> sorted = new ArrayList<Message<?>>(partialSequence);
 		Collections.sort(sorted, new SequenceNumberComparator());
-		
+
 		Message<?> lastReleasedMessage = sorted.get(partialSequence.size()-1);
-		
+
 		return lastReleasedMessage.getHeaders().getSequenceNumber();
 	}
 
@@ -319,7 +333,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (logger.isDebugEnabled()) {
 			logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 		}
-		
+
 		Object result = outputProcessor.processMessageGroup(group);
 		Collection<Message<?>> partialSequence = null;
 		if (result instanceof Collection<?>) {
@@ -329,7 +343,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.sendReplies(result, message);
 		return partialSequence;
 	}
-	
+
 	private void verifyResultCollectionConsistsOfMessages(Collection<?> elements){
 		Class<?> commonElementType = CollectionUtils.findCommonElementType(elements);
 		Assert.isAssignable(Message.class, commonElementType, "The expected collection of Messages contains non-Message element: " + commonElementType);
@@ -393,6 +407,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
 		 * or sequences that are missing certain sequence numbers.
 		 */
+		@Override
 		public boolean canAdd(Message<?> message) {
 			if (this.size() == 0) {
 				return true;
