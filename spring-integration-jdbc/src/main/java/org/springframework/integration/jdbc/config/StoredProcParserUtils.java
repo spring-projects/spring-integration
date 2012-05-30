@@ -72,15 +72,18 @@ public final class StoredProcParserUtils {
 
 			if ("OUT".equalsIgnoreCase(direction)) {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlOutParameter.class);
-			} else if ("INOUT".equalsIgnoreCase(direction)) {
+			}
+			else if ("INOUT".equalsIgnoreCase(direction)) {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlInOutParameter.class);
-			} else {
+			}
+			else {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlParameter.class);
 			}
 
 			if (StringUtils.hasText(name)) {
 				parameterBuilder.addConstructorArgValue(name);
-			} else {
+			}
+			else {
 					parserContext.getReaderContext().error(
 							"The 'name' attribute must be set for the Sql parameter element.", storedProcComponent);
 			}
@@ -91,11 +94,13 @@ public final class StoredProcParserUtils {
 
 				if (jdbcTypeEnum != null) {
 					parameterBuilder.addConstructorArgValue(jdbcTypeEnum.getCode());
-				} else {
+				}
+				else {
 					parameterBuilder.addConstructorArgValue(sqlType);
 				}
 
-			} else {
+			}
+			else {
 				parameterBuilder.addConstructorArgValue(Types.VARCHAR);
 			}
 
@@ -144,14 +149,15 @@ public final class StoredProcParserUtils {
 					if (LOGGER.isInfoEnabled()) {
 						LOGGER.info(String
 								.format("Type attribute not set for Store "
-						              + "Procedure parameter '%s'. Defaulting to "
-									  + "'java.lang.String'.", value));
+									+ "Procedure parameter '%s'. Defaulting to "
+									+ "'java.lang.String'.", value));
 					}
 
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, String.class));
 
-				} else {
+				}
+				else {
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, type));
 				}
@@ -206,7 +212,7 @@ public final class StoredProcParserUtils {
 	 *
 	 * @param element Must not be Null
 	 * @param parserContext Must not be Null
-	 * @return The BeanDefinitionBuilder for the JpaExecutor
+	 * @return The {@link BeanDefinitionBuilder} for the {@link StoredProcExecutor}
 	 */
 	public static BeanDefinitionBuilder getStoredProcExecutorBuilder(final Element element,
 														final ParserContext parserContext) {

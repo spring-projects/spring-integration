@@ -33,11 +33,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
-import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
-
-import com.google.common.cache.CacheBuilder;
 
 /**
  * A polling channel adapter that creates messages from the payload returned by
@@ -48,7 +44,6 @@ import com.google.common.cache.CacheBuilder;
  * @author Gunnar Hillert
  * @since 2.1
  */
-@ManagedResource
 public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
 
 	private final StoredProcExecutor executor;
@@ -62,7 +57,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * @param dataSource used to create a {@link SimpleJdbcCall}
 	 * @param storedProcedureName Name of the Stored Procedure or Function to execute
 	 *
-	 * @deprecated Since 2.2 the storedProcedureName property is optional.
+	 * @deprecated Since 2.2 use the constructor that expects a {@link StoredProcExecutor} instead
 	 */
 	@Deprecated
 	public StoredProcPollingChannelAdapter(DataSource dataSource, String storedProcedureName) {
@@ -120,17 +115,20 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 
 		if (resultMap.isEmpty()) {
 			payload = null;
-		} else {
+		}
+		else {
 
 			if (this.expectSingleResult && resultMap.size() == 1) {
 				payload = resultMap.values().iterator().next();
-			} else if (this.expectSingleResult && resultMap.size() > 1) {
+			}
+			else if (this.expectSingleResult && resultMap.size() > 1) {
 
 				throw new MessagingException(
 						"Stored Procedure/Function call returned more than "
 					  + "1 result object and expectSingleResult was 'true'. ");
 
-			} else {
+			}
+			else {
 				payload = resultMap;
 			}
 
@@ -158,51 +156,13 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * @param storedProcedureName Must not be null and must not be empty
 	 *
-	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setStoredProcedureName(String)
 	 */
 	@Deprecated
 	public void setStoredProcedureName(String storedProcedureName) {
 		this.executor.setStoredProcedureName(storedProcedureName);
-	}
-
-	/**
-	 * Using the {@link StoredProcExecutor#storedProcedureNameExpression} SpEL
-	 * can be used to determine the Stored Procedure or Stored Function Name.
-	 *
-	 * If {@link StoredProcExecutor#isFunction} is set to "true", then this
-	 * property specifies the Stored Function name.
-	 *
-	 * For instance the following SpEL expressions (among others) are possible:
-	 *
-	 * <ul>
-	 *    <li>new java.util.Date()</li>
-	 *    <li>'foo' + 'bar'</li>
-	 * </ul>
-	 *
-	 * Alternatively you can also specify the Stored Procedure name via
-	 * {@link StoredProcExecutor#setStoredProcedureName(String)}
-	 *
-	 * @param storedProcedureNameExpression Must not be null.
-	 *
-	 */
-	@Deprecated
-	public void setStoredProcedureNameExpression(Expression storedProcedureNameExpression) {
-		this.executor.setStoredProcedureNameExpression(storedProcedureNameExpression);
-	}
-
-	/**
-	 * Defines the maximum number of {@link SimpleJdbcCallOperations}
-	 * ({@link SimpleJdbcCall}) instances to be held by
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
-	 *
-	 * A value of zero will disable the cache. The default is 10.
-	 *
-	 * @see CacheBuilder#maximumSize(long)
-	 * @param jdbcCallOperationsCacheSize Must not be negative.
-	 */
-	@Deprecated
-	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
-		this.executor.setJdbcCallOperationsCacheSize(jdbcCallOperationsCacheSize);
 	}
 
 	/**
@@ -215,6 +175,10 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * {@link ExpressionEvaluatingSqlParameterSourceFactory}.
 	 *
 	 * @param sqlParameterSourceFactory
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setSqlParameterSourceFactory(SqlParameterSourceFactory)
 	 */
 	@Deprecated
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
@@ -247,6 +211,10 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * </ul>
 	 *
 	 * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setSqlParameters(List)
 	 */
 	@Deprecated
 	public void setSqlParameters(List<SqlParameter> sqlParameters) {
@@ -254,8 +222,12 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	}
 
 	/**
-	 *  Does your stored procedure return one or more result sets? If so, you
-	 *  can use the provided method for setting the respective Rowmappers.
+	 * Does your stored procedure return one or more result sets? If so, you
+	 * can use the provided method for setting the respective Rowmappers.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setReturningResultSetRowMappers(Map)
 	 */
 	@Deprecated
 	public void setReturningResultSetRowMappers(
@@ -269,6 +241,10 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * you must pass in {@link SqlParameter} explicitly..
 	 *
 	 * @param ignoreColumnMetaData Defaults to <code>false</code>.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setIgnoreColumnMetaData(boolean)
 	 */
 	@Deprecated
 	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
@@ -280,6 +256,10 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * returned.
 	 *
 	 * @param returnValueRequired
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setReturnValueRequired(boolean)
 	 */
 	@Deprecated
 	public void setReturnValueRequired(boolean returnValueRequired) {
@@ -289,6 +269,10 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	/**
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setProcedureParameters(List)
 	 */
 	@Deprecated
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
@@ -300,10 +284,14 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 * The default value is false.
 	 *
 	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setIsFunction(boolean)
 	 */
 	@Deprecated
 	public void setFunction(boolean isFunction) {
-		this.executor.setFunction(isFunction);
+		this.executor.setIsFunction(isFunction);
 	}
 
 	/**
@@ -343,6 +331,10 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
 	 *
 	 * Only few developers will probably ever like to process update counts, thus
 	 * the value defaults to <code>true</code>.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setSkipUndeclaredResults(boolean)
 	 *
 	 */
 	@Deprecated

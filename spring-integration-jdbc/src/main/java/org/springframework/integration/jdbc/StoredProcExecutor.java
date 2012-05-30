@@ -121,10 +121,10 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = null;
 
 	/**
-	 * Indicates that whether only the payload of the passed in {@link Message}
-	 * will be used as a source of parameters. The is 'true' by default because as a
-	 * default a {@link BeanPropertySqlParameterSourceFactory} implementation is
-	 * used for the sqlParameterSourceFactory property.
+	 * Indicates that whether only the payload of the passed-in {@link Message}
+	 * shall be used as a source of parameters.
+	 *
+	 * @see #setUsePayloadAsParameterSource(boolean)
 	 */
 	private volatile Boolean usePayloadAsParameterSource = null;
 
@@ -182,7 +182,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 				this.sqlParameterSourceFactory = expressionSourceFactory;
 
-			} else {
+			}
+			else {
 
 				if (!(this.sqlParameterSourceFactory instanceof ExpressionEvaluatingSqlParameterSourceFactory)) {
 					throw new IllegalStateException("You are providing 'ProcedureParameters'. "
@@ -197,7 +198,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 				this.usePayloadAsParameterSource = false;
 			}
 
-		} else {
+		}
+		else {
 
 			if (this.sqlParameterSourceFactory == null) {
 				this.sqlParameterSourceFactory = new BeanPropertySqlParameterSourceFactory();
@@ -255,7 +257,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		if (this.isFunction) {
 			simpleJdbcCall.withFunctionName(storedProcedureName);
-		} else {
+		}
+		else {
 			simpleJdbcCall.withProcedureName(storedProcedureName);
 		}
 
@@ -286,39 +289,43 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		Assert.notNull(usePayloadAsParameterSource, "Property usePayloadAsParameterSource "
 												  + "was Null. Did you call afterPropertiesSet()?");
 
-		if (message.getHeaders().containsKey(JdbcHeaders.STORED_PROCEDURE_NAME)) {
-			final String storedProcedureName = (String) message.getHeaders().get(JdbcHeaders.STORED_PROCEDURE_NAME);
-			Assert.hasText(storedProcedureName, "The Stored Procedure name (from the Message Header) must must not be empty.");
+		final Object input;
 
-			if (usePayloadAsParameterSource) {
-				return executeStoredProcedureInternal(message.getPayload(), storedProcedureName);
-			} else {
-				return executeStoredProcedureInternal(message, storedProcedureName);
-			}
-		} else {
+		if (usePayloadAsParameterSource) {
+			input = message.getPayload();
+		}
+		else {
+			input = message;
+		}
+
+		final String storedProcedureNameToUse;
+
+		if (this.allowDynamicStoredProcedureNames && message.getHeaders().containsKey(JdbcHeaders.STORED_PROCEDURE_NAME)) {
+
+			storedProcedureNameToUse = (String) message.getHeaders().get(JdbcHeaders.STORED_PROCEDURE_NAME);
+			Assert.hasText(storedProcedureNameToUse, "The Stored Procedure name (from the Message Header) must must not be empty.");
+
+		}
+		else {
 
 			if (this.allowDynamicStoredProcedureNames &&
-					(this.storedProcedureName == null || this.storedProcedureNameExpression == null)) {
+					(this.storedProcedureName == null && this.storedProcedureNameExpression == null)) {
 				throw new IllegalArgumentException("No Stored Procedure Name " +
 						"provided. You must either provide a Stored Procedure " +
 						"Name as a Message header or set one of the properties " +
 						"'storedProcedureName' or 'storedProcedureNameExpression'");
 			}
 
-			final String storedProcedureNameToUse;
-
 			if (this.storedProcedureNameExpression == null) {
 				storedProcedureNameToUse = this.storedProcedureName;
-			} else {
+			}
+			else {
 				storedProcedureNameToUse = this.storedProcedureNameExpression.getValue(this.evaluationContext, message, String.class);
 			}
 
-			if (usePayloadAsParameterSource) {
-				return executeStoredProcedureInternal(message.getPayload(), storedProcedureNameToUse);
-			} else {
-				return executeStoredProcedureInternal(message, storedProcedureNameToUse);
-			}
 		}
+
+		return executeStoredProcedureInternal(input, storedProcedureNameToUse);
 
 	}
 
@@ -416,11 +423,19 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	}
 
 	/**
-	 * @return the name of the Stored Procedure or Function
+	 * @return the name of the Stored Procedure or Function if set. Null otherwise.
 	 * */
-	@ManagedAttribute
+	@ManagedAttribute(defaultValue="Null if not Set.")
 	public String getStoredProcedureName() {
 		return this.storedProcedureName;
+	}
+
+	/**
+	 * @return the Stored Procedure Name Expression as a String if set. Null otherwise.
+	 * */
+	@ManagedAttribute(defaultValue="Null if not Set.")
+	public String getStoredProcedureNameExpressionAsString() {
+		return this.storedProcedureNameExpression != null ? this.storedProcedureNameExpression.getExpressionString() : null;
 	}
 
 	/**
@@ -481,18 +496,18 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	/**
 	 * If set to 'true', the payload of the Message will be used as a source for
-	 * providing parameters. If false the entire Message will be available as a
-	 * source for parameters.
+	 * providing parameters. If false the entire {@link Message} will be available
+	 * as a source for parameters.
 	 *
 	 * If no {@link ProcedureParameter} are passed in, this property will default to
-	 * 'true'. This means that using a default {@link BeanPropertySqlParameterSourceFactory}
-	 * the bean properties of the payload will be used as a source for parameter values for
-	 * the to-be-executed Stored Procedure or Function.
+	 * <code>true</code>. This means that using a default {@link BeanPropertySqlParameterSourceFactory}
+	 * the bean properties of the payload will be used as a source for parameter
+	 * values for the to-be-executed Stored Procedure or Function.
 	 *
-	 * However, if {@link ProcedureParameter} are passed in, then this property
-	 * will by default evaluate to 'false'. {@link ProcedureParameter} allow for
-	 * SpEl Expressions to be provided and therefore it is highly beneficial to
-	 * have access to the entire {@link Message}.
+	 * However, if {@link ProcedureParameter}s are passed in, then this property
+	 * will by default evaluate to <code>false</code>. {@link ProcedureParameter}
+	 * allow for SpEl Expressions to be provided and therefore it is highly
+	 * beneficial to have access to the entire {@link Message}.
 	 *
 	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source.
 	 */
@@ -505,6 +520,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * The default value is false.
 	 *
 	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
+	 *
+	 * @deprecated Please use {@link #setIsFunction(boolean)} instead.
 	 */
 	@Deprecated
 	public void setFunction(boolean isFunction) {

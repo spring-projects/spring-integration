@@ -48,13 +48,13 @@ public class StoredProcMessageHandlerParser extends AbstractOutboundChannelAdapt
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "use-payload-as-parameter-source");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
 
-		final AbstractBeanDefinition jpaExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final AbstractBeanDefinition storedProcExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
 		final String messageHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
-		final String jpaExecutorBeanName = messageHandlerId + ".storedProcExecutor";
+		final String storedProcExecutorBeanName = messageHandlerId + ".storedProcExecutor";
 
-		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+		parserContext.registerBeanComponent(new BeanComponentDefinition(storedProcExecutorBuilderBeanDefinition, storedProcExecutorBeanName));
 
-		builder.addConstructorArgReference(jpaExecutorBeanName);
+		builder.addConstructorArgReference(storedProcExecutorBeanName);
 
 		return builder.getBeanDefinition();
 

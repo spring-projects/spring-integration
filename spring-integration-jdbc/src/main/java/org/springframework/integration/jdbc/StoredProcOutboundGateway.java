@@ -38,8 +38,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.util.Assert;
 
-import com.google.common.cache.CacheBuilder;
-
 /**
  * @author Gunnar Hillert
  *
@@ -59,7 +57,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * @param dataSource used to create a {@link SimpleJdbcCall} instance
 	 * @param storedProcedureName Must not be null.
 	 *
-	 * @deprecated Since 2.2 the storedProcedureName property is optional.
+	 * @deprecated Since 2.2 use the constructor that expects a {@link StoredProcExecutor} instead
 	 */
 	@Deprecated
 	public StoredProcOutboundGateway(DataSource dataSource, String storedProcedureName) {
@@ -104,17 +102,20 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 
 		if (resultMap.isEmpty()) {
 			return null;
-		} else {
+		}
+		else {
 
 			if (this.expectSingleResult && resultMap.size() == 1) {
 				payload = resultMap.values().iterator().next();
-			} else if (this.expectSingleResult && resultMap.size() > 1) {
+			}
+			else if (this.expectSingleResult && resultMap.size() > 1) {
 
 				throw new MessageHandlingException(requestMessage,
 						"Stored Procedure/Function call returned more than "
 					  + "1 result object and expectSingleResult was 'true'. ");
 
-			} else {
+			}
+			else {
 				payload = resultMap;
 			}
 
@@ -138,73 +139,14 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
 	 * @see StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setStoredProcedureName(String)
 	 */
 	@Deprecated
 	public void setStoredProcedureName(String storedProcedureName) {
 		this.executor.setStoredProcedureName(storedProcedureName);
-	}
-
-	/**
-	 * Using the {@link StoredProcExecutor#storedProcedureNameExpression} the
-	 * {@link Message} can be used as source for the name of the
-	 * Stored Procedure or Stored Function.
-	 *
-	 * If {@link StoredProcExecutor#isFunction} is set to "true", then this
-	 * property specifies the Stored Function name.
-	 *
-	 * By providing a SpEL expression as value for this setter, a subset of the
-	 * original payload, a header value or any other resolvable SpEL expression
-	 * can be used as the basis for the Stored Procedure / Function.
-	 *
-	 * For the Expression evaluation the full message is available as the <b>root object</b>.
-	 *
-	 * For instance the following SpEL expressions (among others) are possible:
-	 *
-	 * <ul>
-	 * <li>payload.foo</li>
-	 *    <li>headers.foobar</li>
-	 *    <li>new java.util.Date()</li>
-	 *    <li>'foo' + 'bar'</li>
-	 * </ul>
-	 *
-	 * Alternatively you can also specify the Stored Procedure name via
-	 * {@link StoredProcExecutor#setStoredProcedureName(String)} or
-	 * through {@link MessageHeaders} by enabling
-	 * StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
-	 *
-	 * @param storedProcedureNameExpression Must not be null.
-	 *
-	 */
-	@Deprecated
-	public void setStoredProcedureNameExpression(Expression storedProcedureNameExpression) {
-		this.executor.setStoredProcedureNameExpression(storedProcedureNameExpression);
-	}
-
-	/**
-	 * Defines the maximum number of {@link SimpleJdbcCallOperations}
-	 * ({@link SimpleJdbcCall}) instances to be held by
-	 * {@link StoredProcExecutor#jdbcCallOperationsCache}.
-	 *
-	 * A value of zero will disable the cache. The default is 10.
-	 *
-	 * @see CacheBuilder#maximumSize(long)
-	 * @param jdbcCallOperationsCacheSize Must not be negative.
-	 */
-	@Deprecated
-	public void setJdbcCallOperationsCacheSize(int jdbcCallOperationsCacheSize) {
-		this.executor.setJdbcCallOperationsCacheSize(jdbcCallOperationsCacheSize);
-	}
-
-	/**
-	 * If set to <code>true</code>, the Stored Procedure name can also be defined
-	 * through {@link MessageHeaders}. If not set, this property will default to
-	 * <code>false</code>.
-	 *
-	 * @see JdbcHeaders
-	 */
-	@Deprecated
-	public void setAllowDynamicStoredProcedureNames(boolean allowDynamicStoredProcedureNames) {
-		this.executor.setAllowDynamicStoredProcedureNames(allowDynamicStoredProcedureNames);
 	}
 
 	/**
@@ -233,6 +175,10 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * </ul>
 	 *
 	 * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setSqlParameters(List)
 	 */
 	@Deprecated
 	public void setSqlParameters(List<SqlParameter> sqlParameters) {
@@ -240,8 +186,12 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 *  Does your stored procedure return one or more result sets? If so, you
-	 *  can use the provided method for setting the respective RowMappers.
+	 * Does your stored procedure return one or more result sets? If so, you
+	 * can use the provided method for setting the respective RowMappers.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setReturningResultSetRowMappers(Map)
 	 */
 	@Deprecated
 	public void setReturningResultSetRowMappers(
@@ -255,6 +205,10 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * you must pass in {@link SqlParameter} explicitly..
 	 *
 	 * @param ignoreColumnMetaData Defaults to <code>false</code>.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setIgnoreColumnMetaData(boolean)
 	 */
 	@Deprecated
 	public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
@@ -266,6 +220,10 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * returned.
 	 *
 	 * @param returnValueRequired
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setReturnValueRequired(boolean)
 	 */
 	@Deprecated
 	public void setReturnValueRequired(boolean returnValueRequired) {
@@ -275,6 +233,10 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	/**
 	 * Custom Stored Procedure parameters that may contain static values
 	 * or Strings representing an {@link Expression}.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setProcedureParameters(List)
 	 */
 	@Deprecated
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
@@ -286,10 +248,14 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * The default value is false.
 	 *
 	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setIsFunction(boolean)
 	 */
 	@Deprecated
 	public void setIsFunction(boolean isFunction) {
-		this.executor.setFunction(isFunction);
+		this.executor.setIsFunction(isFunction);
 	}
 
 	/**
@@ -326,6 +292,10 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * {@link ExpressionEvaluatingSqlParameterSourceFactory}.
 	 *
 	 * @param sqlParameterSourceFactory
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setSqlParameterSourceFactory(SqlParameterSourceFactory)
 	 */
 	@Deprecated
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
@@ -348,6 +318,10 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * have access to the entire {@link Message}.
 	 *
 	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setUsePayloadAsParameterSource(boolean)
 	 */
 	@Deprecated
 	public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
@@ -367,6 +341,10 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * Only few developers will probably ever like to process update counts, thus
 	 * the value defaults to <code>true</code>.
+	 *
+	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
+	 *
+	 * @see StoredProcExecutor#setSkipUndeclaredResults(boolean)
 	 */
 	@Deprecated
 	public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {

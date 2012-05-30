@@ -62,7 +62,8 @@ public class JdbcMessageHandlerParser extends AbstractOutboundChannelAdapterPars
 		}
 		if (refToDataSourceSet) {
 			builder.addConstructorArgReference(dataSourceRef);
-		} else {
+		}
+		else {
 			builder.addConstructorArgReference(jdbcOperationsRef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "sql-parameter-source-factory");

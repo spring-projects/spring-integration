@@ -51,7 +51,8 @@ public class JdbcMessageStoreParser extends AbstractBeanDefinitionParser {
 
 		if (refToDataSourceSet) {
 			builder.addPropertyReference("dataSource", dataSourceRef);
-		} else {
+		}
+		else {
 			builder.addPropertyReference("jdbcTemplate", simpleJdbcOperationsRef);
 		}
 

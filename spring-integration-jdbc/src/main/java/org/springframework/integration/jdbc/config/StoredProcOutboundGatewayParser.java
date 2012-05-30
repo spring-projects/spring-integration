@@ -62,13 +62,13 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
 		}
 
-		final AbstractBeanDefinition jpaExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final AbstractBeanDefinition storedProcExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
 		final String gatewayId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
-		final String jpaExecutorBeanName = gatewayId + ".storedProcExecutor";
+		final String storedProcExecutorBeanName = gatewayId + ".storedProcExecutor";
 
-		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+		parserContext.registerBeanComponent(new BeanComponentDefinition(storedProcExecutorBuilderBeanDefinition, storedProcExecutorBeanName));
 
-		builder.addConstructorArgReference(jpaExecutorBeanName);
+		builder.addConstructorArgReference(storedProcExecutorBeanName);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
