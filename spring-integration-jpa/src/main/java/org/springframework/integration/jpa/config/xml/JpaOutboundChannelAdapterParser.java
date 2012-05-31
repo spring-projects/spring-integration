@@ -19,7 +19,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
@@ -52,19 +51,19 @@ public class JpaOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 
+		final BeanDefinitionBuilder jpaOutboundChannelAdapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaOutboundGatewayFactoryBean.class);
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "persist-mode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "use-payload-as-parameter-source");
 
-
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
-		final String jpaExecutorBeanName = BeanDefinitionReaderUtils.generateBeanName(jpaExecutorBuilderBeanDefinition, parserContext.getRegistry());
+		final String channelAdapterId = this.resolveId(element, jpaOutboundChannelAdapterBuilder.getRawBeanDefinition(), parserContext);
+		final String jpaExecutorBeanName = channelAdapterId + ".jpaExecutor";
 
 		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
 
-		final BeanDefinitionBuilder jpaOutboundChannelAdapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaOutboundGatewayFactoryBean.class);
 		jpaOutboundChannelAdapterBuilder.addConstructorArgReference(jpaExecutorBeanName);
 		jpaOutboundChannelAdapterBuilder.addPropertyValue("producesReply", Boolean.FALSE);
 

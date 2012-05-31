@@ -19,7 +19,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * The namespace handler for the JPA namespace
- * 
+ *
  * @author Amol Nayak
  * @author Gunnar Hillert
  * @since 2.2
@@ -33,6 +33,7 @@ public class JpaNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 	public void init() {
 		this.registerBeanDefinitionParser("inbound-channel-adapter",  new JpaInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new JpaOutboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("outbound-gateway", new JpaOutboundGatewayParser());
+		this.registerBeanDefinitionParser("updating-outbound-gateway", new UpdatingJpaOutboundGatewayParser());
+		this.registerBeanDefinitionParser("retrieving-outbound-gateway", new RetrievingJpaOutboundGatewayParser());
 	}
 }

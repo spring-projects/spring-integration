@@ -19,7 +19,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.test.annotation.DirtiesContext;
@@ -71,7 +71,7 @@ public class JpaOutboundGatewayTests {
 	public void getStudentWithException() {
 		try {
 			studentService.getStudentWithException(1001L);
-		} catch (MessageHandlingException e) {
+		} catch (MessagingException e) {
 			Assert.assertEquals("The Jpa operation returned more than 1 result object but expectSingleResult was 'true'.",
 					e.getMessage());
 
