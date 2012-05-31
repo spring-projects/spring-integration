@@ -19,10 +19,14 @@ package org.springframework.integration.jdbc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThat;
+
+import org.hamcrest.Matchers;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -35,7 +39,6 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-
 
 
 /**
@@ -63,7 +66,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	}
 
 	@Test
-	public void testDelayerHandlerRescheduleWithJdbcMessageStore() {
+	public void testDelayerHandlerRescheduleWithJdbcMessageStore() throws Exception {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
@@ -74,6 +77,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		// Emulate restart and check DB state before next start
 		context.destroy();
+
+		Thread.sleep(100);
 
 		try {
 			context.getBean("input", MessageChannel.class);
@@ -94,8 +99,14 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		assertEquals(testPayload, messageGroup.getMessages().iterator().next().getPayload());
 
 		context.refresh();
+
 		PollableChannel output = context.getBean("output", PollableChannel.class);
+
+		long timeBeforeReceive = System.currentTimeMillis();
 		Message<?> message = output.receive();
+		long timeAfterReceive = System.currentTimeMillis();
+		assertThat(timeAfterReceive - timeBeforeReceive, Matchers.lessThanOrEqualTo(100L));
+
 		assertEquals(testPayload, message.getPayload());
 		assertEquals(1, messageStore.getMessageGroupCount());
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));

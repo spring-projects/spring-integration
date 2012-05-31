@@ -15,7 +15,7 @@
 	<delayer id="#{T (org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests).DELAYER_ID}"
 			 input-channel="input"
 			 output-channel="output"
-			 default-delay="1000"
+			 default-delay="200"
 			 message-store="messageStore"/>
 
 </beans:beans>

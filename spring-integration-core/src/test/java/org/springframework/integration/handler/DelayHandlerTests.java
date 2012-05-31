@@ -19,6 +19,9 @@ package org.springframework.integration.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+
+import org.hamcrest.Matchers;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +43,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.annotation.Repeat;
 
 /**
  * @author Mark Fisher
@@ -353,12 +357,13 @@ public class DelayHandlerTests {
 	@Test //INT-1132
 	public void testReschedulePersistedMessagesOnStartup() throws Exception {
 		MessageGroupStore messageGroupStore = new SimpleMessageStore();
-		this.delayHandler.setDefaultDelay(1000);
+		this.delayHandler.setDefaultDelay(200);
 		this.delayHandler.setMessageStore(messageGroupStore);
 		this.delayHandler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 
+		Thread.sleep(110);
 		// emulate restart
 		this.delayHandler.destroy();
 		assertEquals(1, messageGroupStore.getMessageGroupCount());
@@ -367,16 +372,19 @@ public class DelayHandlerTests {
 		assertEquals(1, messageGroupStore.getMessageCountForAllMessageGroups());
 		MessageGroup messageGroup = messageGroupStore.getMessageGroup(DELAYER_MESSAGE_GROUP_ID);
 		assertEquals(message.getPayload(), messageGroup.getMessages().iterator().next().getPayload());
-		taskScheduler.afterPropertiesSet();
 
+		taskScheduler.afterPropertiesSet();
 		DelayHandler delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
 		delayHandler.setOutputChannel(output);
-		delayHandler.setDefaultDelay(100);
+		delayHandler.setDefaultDelay(200);
 		delayHandler.setMessageStore(messageGroupStore);
 		delayHandler.afterPropertiesSet();
 
-		this.waitForLatch(1000);
-		messageGroupStore.expireMessageGroups(-1000);
+		long timeBeforeReceive = System.currentTimeMillis();
+		this.latch.await();
+		long timeAfterReceive = System.currentTimeMillis();
+		assertThat(timeAfterReceive - timeBeforeReceive, Matchers.lessThanOrEqualTo(100L));
+
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 		assertEquals(1, messageGroupStore.getMessageGroupCount());

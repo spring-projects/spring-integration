@@ -24,11 +24,14 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -65,6 +68,11 @@ import org.springframework.util.Assert;
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	/**
+	 * The name of the message header that stores a timestamp for the time the message was requested to delayer.
+	 */
+	private static final String REQUEST_DATE = DelayHandler.class.getSimpleName() + ".REQUEST_DATE";
 
 	private volatile String messageGroupId;
 
@@ -170,6 +178,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			throw new MessagingException("Interrupted while awaiting Delayer initialization", e);
 		}
 		boolean delayed = requestMessage instanceof DelayedMessageWrapper;
 
@@ -209,19 +218,20 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
 		Assert.state(this.messageStore != null, "MessageStore must not be null");
-		this.messageStore.addMessageToGroup(this.messageGroupId, message);
+		final Message<?> messageToSchedule = this.addRequestDateHeaderIfAbsent(message);
+		this.messageStore.addMessageToGroup(this.messageGroupId, messageToSchedule);
 		this.getTaskScheduler().schedule(new Runnable() {
 			public void run() {
-				releaseMessage(message);
+				releaseMessage(messageToSchedule);
 			}
-		}, new Date(System.currentTimeMillis() + delay));
+		}, new Date(messageToSchedule.getHeaders().get(REQUEST_DATE, Long.class) + delay));
 	}
 
 	private void releaseMessage(Message<?> message) {
 		Assert.state(this.messageStore != null, "MessageStore must not be null");
-		MessageGroup messageGroup = this.messageStore.removeMessageFromGroup(messageGroupId, message);
-		//	TODO add 'notNull' check for a complete removal message during current transaction
-		this.handleMessageInternal(new DelayedMessageWrapper(message));
+		this.messageStore.removeMessageFromGroup(messageGroupId, message);
+		Message messageToHandle = MessageBuilder.fromMessage(message).removeHeader(REQUEST_DATE).build();
+		this.handleMessageInternal(new DelayedMessageWrapper(messageToHandle));
 	}
 
 	/**
@@ -242,6 +252,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			}
 			messageGroupSize--;
 		}
+	}
+
+	private Message<?> addRequestDateHeaderIfAbsent(Message<?> message){
+		return MessageBuilder.fromMessage(message).setHeaderIfAbsent(REQUEST_DATE, System.currentTimeMillis()).build();
 	}
 
 	public void destroy() throws Exception {
