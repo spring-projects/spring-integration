@@ -42,8 +42,8 @@ public class JpaOutboundGatewayParserTests {
 	private EventDrivenConsumer consumer;
 
 	@Test
-	public void testJpaOutboundGatewayParser() throws Exception {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass());
+	public void testRetrievingJpaOutboundGatewayParser() throws Exception {
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGateway");
 
 
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
@@ -73,11 +73,56 @@ public class JpaOutboundGatewayParserTests {
 
 		assertNotNull(jpaOperations);
 
+		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class));
+
+		final Integer maxNumberOfResults = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResults", Integer.class);
+
+		assertEquals(Integer.valueOf(55), maxNumberOfResults);
+
+	}
+
+	@Test
+	public void testUpdatingJpaOutboundGatewayParser() throws Exception {
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "updatingJpaOutboundGateway");
+
+
+		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
+
+		assertEquals("in", inputChannel.getComponentName());
+
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+
+		final OutboundGatewayType gatewayType = TestUtils.getPropertyValue(jpaOutboundGateway, "gatewayType", OutboundGatewayType.class);
+
+		assertEquals(OutboundGatewayType.UPDATING, gatewayType);
+
+		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout", Long.class);
+
+		assertEquals(100, sendTimeout);
+
+		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
+
+		assertNotNull(jpaExecutor);
+
+		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+
+		assertEquals("org.springframework.integration.jpa.test.entity.StudentDomain", entityClass.getName());
+
+		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+
+		assertNotNull(jpaOperations);
+
+		final Boolean usePayloadAsParameterSource = TestUtils.getPropertyValue(jpaExecutor, "usePayloadAsParameterSource", Boolean.class);
+
+		assertTrue(usePayloadAsParameterSource);
+
+		final Integer order = TestUtils.getPropertyValue(jpaOutboundGateway, "order", Integer.class);
+
+		assertEquals(Integer.valueOf(2), order);
+
 		final PersistMode persistMode = TestUtils.getPropertyValue(jpaExecutor, "persistMode", PersistMode.class);
 
 		assertEquals(PersistMode.PERSIST, persistMode);
-
-		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class));
 
 	}
 
@@ -88,9 +133,9 @@ public class JpaOutboundGatewayParserTests {
 		}
 	}
 
-	public void setUp(String name, Class<?> cls) {
+	public void setUp(String name, Class<?> cls, String gatewayId) {
 		context    = new ClassPathXmlApplicationContext(name, cls);
-		consumer   = this.context.getBean("jpaOutboundGateway", EventDrivenConsumer.class);
+		consumer   = this.context.getBean(gatewayId, EventDrivenConsumer.class);
 	}
 
 }

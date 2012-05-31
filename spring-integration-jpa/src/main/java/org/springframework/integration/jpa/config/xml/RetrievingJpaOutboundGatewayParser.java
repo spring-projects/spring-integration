@@ -15,19 +15,17 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
-import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
+import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.w3c.dom.Element;
 
 /**
- * The JPA Inbound Channel adapter parser
+ * The Parser for the Retrieving Jpa Outbound Gateway.
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
@@ -35,28 +33,29 @@ import org.w3c.dom.Element;
  * @since 2.2
  *
  */
-public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser{
+public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatewayParser {
 
+	@Override
+	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
 
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+		final BeanDefinitionBuilder jpaOutboundGatewayBuilder = super.parseHandler(gatewayElement, parserContext);
 
-		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
+		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "max-number-of-results");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-after-poll");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-per-row");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "expect-single-result");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "max-number-of-results");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-per-row");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "expect-single-result");
 
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
 		final String jpaExecutorBeanName = BeanDefinitionReaderUtils.generateBeanName(jpaExecutorBuilderBeanDefinition, parserContext.getRegistry());
 
 		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
 
-		final BeanDefinitionBuilder jpaPollingChannelAdapterBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(JpaPollingChannelAdapter.class);
+		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
+		jpaOutboundGatewayBuilder.addPropertyValue("gatewayType", OutboundGatewayType.RETRIEVING);
+		return jpaOutboundGatewayBuilder;
 
-		jpaPollingChannelAdapterBuilder.addConstructorArgReference(jpaExecutorBeanName);
-
-		return jpaPollingChannelAdapterBuilder.getBeanDefinition();
 	}
+
 }

@@ -41,7 +41,7 @@ public class JpaInboundChannelAdapterParserTests {
 	@Test
 	public void testJpaInboundChannelAdapterParser() throws Exception {
 
-		setUp("JpaInboundChannelAdapterParserTests.xml", getClass());
+		setUp("JpaInboundChannelAdapterParserTests.xml", getClass(), "jpaInboundChannelAdapter1");
 
 		final AbstractMessageChannel outputChannel = TestUtils.getPropertyValue(this.consumer, "outputChannel", AbstractMessageChannel.class);
 
@@ -61,7 +61,32 @@ public class JpaInboundChannelAdapterParserTests {
 
 		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class));
 
-}
+	}
+
+	@Test
+	public void testJpaInboundChannelAdapterParserWithMaxResults() throws Exception {
+
+		setUp("JpaInboundChannelAdapterParserTests.xml", getClass(), "jpaInboundChannelAdapter2");
+
+		final AbstractMessageChannel outputChannel = TestUtils.getPropertyValue(this.consumer, "outputChannel", AbstractMessageChannel.class);
+
+		assertEquals("out", outputChannel.getComponentName());
+
+		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "source.jpaExecutor", JpaExecutor.class);
+
+		assertNotNull(jpaExecutor);
+
+		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+
+		assertEquals("org.springframework.integration.jpa.test.entity.StudentDomain", entityClass.getName());
+
+		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+
+		assertNotNull(jpaOperations);
+
+		assertEquals(Integer.valueOf(13), TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResults", Integer.class));
+
+	}
 
 	@After
 	public void tearDown(){
@@ -70,9 +95,9 @@ public class JpaInboundChannelAdapterParserTests {
 		}
 	}
 
-	public void setUp(String name, Class<?> cls){
+	public void setUp(String name, Class<?> cls, String consumerId){
 		context    = new ClassPathXmlApplicationContext(name, cls);
-		consumer   = this.context.getBean("jpaInboundChannelAdapter", SourcePollingChannelAdapter.class);
+		consumer   = this.context.getBean(consumerId, SourcePollingChannelAdapter.class);
 	}
 
 }

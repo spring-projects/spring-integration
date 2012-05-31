@@ -37,8 +37,8 @@ import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
- * The common method for generating the BeanDefinition for the common MessageHandler
- * is implemented in this class
+ * Contains various utility methods for parsing JPA Adapter specific namesspace
+ * elements and generation the respective {@link BeanDefinition}s.
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
@@ -64,7 +64,7 @@ public final class JpaParserUtils {
 	 * @return The BeanDefinitionBuilder for the JpaExecutor
 	 */
 	public static BeanDefinitionBuilder getJpaExecutorBuilder(final Element element,
-			                                                  final ParserContext parserContext) {
+															final ParserContext parserContext) {
 
 		Assert.notNull(element,       "The provided element must not be Null.");
 		Assert.notNull(parserContext, "The provided parserContext must not be Null.");
@@ -127,11 +127,43 @@ public final class JpaParserUtils {
 	}
 
 	/**
-	 * @param jpaComponent
-	 * @param parserContext
+	 * Create a new {@link BeanDefinitionBuilder} for the class {@link JpaExecutor}
+	 * that is specific for JPA Outbound Gateways.
+	 *
+	 * Initializes the wrapped {@link JpaExecutor} with common properties.
+	 * Delegates to {@link JpaParserUtils#getJpaExecutorBuilder(Element, ParserContext)}
+	 *
+	 * @param element Must not be Null
+	 * @param parserContext Must not be Null
+	 *
+	 * @return The BeanDefinitionBuilder for the JpaExecutor
+	 */
+	public static BeanDefinitionBuilder getOutboundGatewayJpaExecutorBuilder(final Element gatewayElement,
+			final ParserContext parserContext) {
+
+		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(gatewayElement, parserContext);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "parameter-source-factory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "use-payload-as-parameter-source");
+
+		return jpaExecutorBuilder;
+
+	}
+
+	/**
+	 * Create a {@link ManagedList} of {@link BeanDefinition}s containing parsed
+	 * JPA Parameters.
+	 *
+	 * @param jpaComponent Must not be Null
+	 * @param parserContext Must not be Null
+	 *
+	 * @return {@link ManagedList} of {@link BeanDefinition}s
 	 */
 	public static ManagedList<BeanDefinition> getJpaParameterBeanDefinitions(
 			Element jpaComponent, ParserContext parserContext) {
+
+		Assert.notNull(jpaComponent,  "The provided element must not be Null.");
+		Assert.notNull(parserContext, "The provided parserContext must not be Null.");
 
 		final ManagedList<BeanDefinition> parameterList = new ManagedList<BeanDefinition>();
 

@@ -19,10 +19,12 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.jpa.support.parametersource.BeanPropertyParameterSourceFactory;
@@ -87,8 +89,6 @@ public class JpaExecutor implements InitializingBean {
 	 */
 	private volatile Boolean usePayloadAsParameterSource = null;
 
-	//~~~~Constructors~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 	/**
 	 * Constructor taking an {@link EntityManagerFactory} from which the
 	 * {@link EntityManager} can be obtained.
@@ -132,9 +132,6 @@ public class JpaExecutor implements InitializingBean {
 		Assert.notNull(jpaOperations, "jpaOperations must not be null.");
 		this.jpaOperations = jpaOperations;
 	}
-
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 	/**
 	 *
@@ -354,11 +351,9 @@ public class JpaExecutor implements InitializingBean {
 		return payload;
 	}
 
-	//~~~~Setters~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 	/**
-	 * Sets the class type which is being used to poll the database or to also
-	 * update the persistence store.
+	 * Sets the class type which is being used for retrieving entities from the
+	 * database.
 	 *
 	 * @param entityClass Must not be null.
 	 */
@@ -426,9 +421,11 @@ public class JpaExecutor implements InitializingBean {
 	 * occur on a per object basis.
 	 *
 	 * If set to 'false' the elements of the payload are deleted as a batch
-	 * operation. Be aware that this exhibit issues in regards to cascaded deletes. //TODO further information needed
+	 * operation. Be aware that this exhibits issues in regards to cascaded deletes.
 	 *
-	 * @param deletePerRow Defaults to 'true'.
+	 * //TODO further information needed
+	 *
+	 * @param deletePerRow Defaults to 'false'.
 	 */
 	public void setDeletePerRow(boolean deletePerRow) {
 		this.deletePerRow = deletePerRow;
@@ -446,16 +443,7 @@ public class JpaExecutor implements InitializingBean {
 
 	/**
 	 *
-	 * @param maxNumberOfResults Must not be negative.
-	 */
-	public void setMaxRows(int maxNumberOfResults) {
-		Assert.isTrue(maxNumberOfResults >= 0, "maxRows must not be negative.");
-		this.maxNumberOfResults = maxNumberOfResults;
-	}
-
-	/**
-	 *
-	 * @param parameterSourceFactory
+	 * @param parameterSourceFactory Must not be null
 	 */
 	public void setParameterSourceFactory(
 			ParameterSourceFactory parameterSourceFactory) {
@@ -464,41 +452,46 @@ public class JpaExecutor implements InitializingBean {
 	}
 
 	/**
+	 * Specifies the {@link ParameterSource} that would be used to provide
+	 * additional parameters.
 	 *
-	 * @param parameterSource
+	 * @param parameterSource Must not be null.
 	 */
 	public void setParameterSource(ParameterSource parameterSource) {
 		Assert.notNull(parameterSource, "parameterSource must not be null.");
 		this.parameterSource = parameterSource;
 	}
 
+	/**
+	 *
+	 * This parameter indicates that only one result object shall be returned as
+	 * a result from the executed JPA operation. If set to <code>true</code> and
+	 * the result list from the JPA operations contains only 1 element, then that
+	 * 1 element is extracted and returned as payload.
+	 *
+	 * If the result map contains more than 1 element and
+	 * {@link JpaExecutor#expectSingleResult} is <code>true</code>, then a
+	 * {@link MessagingException} is thrown.
+	 *
+	 * If set to <code>false</code>, the complete result list is returned as the
+	 * payload.
+	 *
+	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
 	}
 
-	//Exposing getters for the unit test cases
-
 	/**
-	 * Returns the JPA Query that would be executed using the executor
+	 * Set the max number of results to retrieve from the database. Defaults to
+	 * 0, which means that all possible objects shall be retrieved.
+	 *
+	 * @param maxNumberOfResults Must not be negative.
+	 *
+	 * @see Query#setMaxResults(int)
 	 */
-	public String getJpaQuery() {
-		return jpaQuery;
+	public void setMaxNumberOfResults(int maxNumberOfResults) {
+		Assert.isTrue(maxNumberOfResults >= 0, "maxNumberOfResults must not be negative.");
+		this.maxNumberOfResults = maxNumberOfResults;
 	}
-
-	/**
-	 * Returns the Native Query that would be executed using the executor
-	 */
-	public String getNativeQuery() {
-		return nativeQuery;
-	}
-
-	/**
-	 * Returns the Named Query that would be executed using the executor
-	 */
-	public String getNamedQuery() {
-		return namedQuery;
-	}
-
-
 
 }

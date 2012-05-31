@@ -14,14 +14,24 @@
 	<int:channel id="in"/>
 	<int:channel id="out"/>
 
-	<int-jpa:outbound-gateway id="jpaOutboundGateway"
+	<int-jpa:retrieving-outbound-gateway id="retrievingJpaOutboundGateway"
 		entity-manager-factory="entityManagerFactory"
 		auto-startup="true"
 		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 		expect-single-result="true"
-		persist-mode="PERSIST"
-		gateway-type="RETRIEVING"
 		order="1"
+		max-number-of-results="55"
+		request-channel="in"
+		reply-channel="out"
+		reply-timeout="100"/>
+
+	<int-jpa:updating-outbound-gateway id="updatingJpaOutboundGateway"
+		entity-manager-factory="entityManagerFactory"
+		auto-startup="false"
+		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+		persist-mode="PERSIST"
+		use-payload-as-parameter-source="true"
+		order="2"
 		request-channel="in"
 		reply-channel="out"
 		reply-timeout="100"/>
