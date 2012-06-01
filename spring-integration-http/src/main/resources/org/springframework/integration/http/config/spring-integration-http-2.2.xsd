@@ -360,7 +360,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="http-method" default="POST">
+			<xsd:attribute name="http-method">
 				<xsd:annotation>
 					<xsd:documentation>
 						The HTTP method to use when executing requests with this adapter.
@@ -369,6 +369,13 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				<xsd:simpleType>
 					<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
 				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="http-method-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The SpEL expression to determine HTTP method, use when executing requests with this adapter, dynamically.
+					</xsd:documentation>
+				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
@@ -499,7 +506,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="http-method" default="POST">
+					<xsd:attribute name="http-method">
 						<xsd:annotation>
 							<xsd:documentation>
 								The HTTP method to use when executing requests with this adapter.
@@ -508,6 +515,13 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						<xsd:simpleType>
 							<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
 						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="http-method-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The SpEL expression to determine HTTP method, use when executing requests with this adapter, dynamically.
+							</xsd:documentation>
+						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="message-converters" type="xsd:string">
 						<xsd:annotation>

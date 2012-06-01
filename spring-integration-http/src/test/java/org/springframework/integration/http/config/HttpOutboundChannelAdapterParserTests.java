@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -98,7 +99,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 	}
@@ -127,7 +128,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(errorHandlerBean, templateAccessor.getPropertyValue("errorHandler"));
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertEquals("http://localhost/test2/{foo}", uriExpression.getValue());
-		assertEquals(HttpMethod.GET, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals(HttpMethod.GET.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
 		Map<String, Expression> uriVariableExpressions =
@@ -172,7 +173,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 	}
@@ -195,7 +196,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
 		assertNotNull(expression);
 		assertEquals("'http://localhost/test1'", expression.getExpressionString());
-		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 	}
@@ -218,7 +219,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		SpelExpression expression = (SpelExpression) handlerAccessor.getPropertyValue("uriExpression");
 		assertNotNull(expression);
 		assertEquals("'http://localhost/test1'", expression.getExpressionString());
-		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
+		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 	}

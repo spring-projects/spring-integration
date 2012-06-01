@@ -16,12 +16,17 @@
 
 package org.springframework.integration.http.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the 'outbound-gateway' element of the http namespace.
@@ -39,9 +44,34 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
+
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
+
+		String httpMethod = element.getAttribute("http-method");
+		String httpMethodExpression = element.getAttribute("http-method-expression");
+
+		boolean hasHttpMethod = StringUtils.hasText(httpMethod);
+		boolean hasHttpMethodExpression = StringUtils.hasText(httpMethodExpression);
+
+		if (hasHttpMethod && hasHttpMethodExpression){
+			parserContext.getReaderContext().error("The 'http-method' and 'http-method-expression' are mutually exclusive. " +
+					"You can only have one or the other", element);
+		}
+
+		RootBeanDefinition expressionDef = null;
+		if (hasHttpMethod) {
+			expressionDef = new RootBeanDefinition(LiteralExpression.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(httpMethod);
+		}
+		else if (hasHttpMethodExpression){
+			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(httpMethodExpression);
+		}
+		if (expressionDef != null){
+			builder.addPropertyValue("httpMethodExpression", expressionDef);
+		}
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
 
 		String restTemplate = element.getAttribute("rest-template");
