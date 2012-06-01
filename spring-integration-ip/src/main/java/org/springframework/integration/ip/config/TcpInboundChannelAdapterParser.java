@@ -25,16 +25,17 @@ import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.w3c.dom.Element;
 
 /**
- * Channel Adapter that receives UDP datagram packets and maps them to Messages.
- * 
+ * Channel Adapter that receives TCP stream frames and maps them to Messages.
+ *
  * @author Gary Russell
  * @since 2.0
  */
 public class TcpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
-	
+
+	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TcpReceivingChannelAdapter.class);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
@@ -48,7 +49,7 @@ public class TcpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RETRY_INTERVAL);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-				IpAdapterParserUtils.SCHEDULER);
+				IpAdapterParserUtils.SCHEDULER, "taskScheduler");
 		return builder.getBeanDefinition();
 	}
 

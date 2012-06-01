@@ -52,6 +52,7 @@ import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 public class TcpInboundGatewayTests {
 
@@ -152,6 +153,10 @@ public class TcpInboundGatewayTests {
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setPoolSize(1);
+		taskScheduler.initialize();
+		gateway.setTaskScheduler(taskScheduler);
 		gateway.start();
 		Message<?> message = channel.receive(10000);
 		assertNotNull(message);
