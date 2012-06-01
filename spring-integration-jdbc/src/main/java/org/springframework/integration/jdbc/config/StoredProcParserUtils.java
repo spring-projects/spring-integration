@@ -27,6 +27,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcExecutor;
@@ -225,17 +226,30 @@ public final class StoredProcParserUtils {
 		final BeanDefinitionBuilder storedProcExecutorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcExecutor.class);
 		storedProcExecutorBuilder.addConstructorArgReference(dataSourceRef);
 
+		final String storedProcedureName = element.getAttribute("stored-procedure-name");
 		final String storedProcedureNameExpression = element.getAttribute("stored-procedure-name-expression");
+		boolean hasStoredProcedureName = StringUtils.hasText(storedProcedureName);
+		boolean hasStoredProcedureNameExpression = StringUtils.hasText(storedProcedureNameExpression);
 
-		if (StringUtils.hasText(storedProcedureNameExpression)) {
-			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
-			storedProcExecutorBuilder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
+		if (!(hasStoredProcedureName ^ hasStoredProcedureNameExpression)) {
+			parserContext.getReaderContext()
+					.error("Exactly one of 'stored-procedure-name' or 'stored-procedure-name-expression' is required",
+							element);
 		}
+
+		BeanDefinitionBuilder expressionBuilder;
+		if (hasStoredProcedureNameExpression) {
+			expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(storedProcedureNameExpression);
+		}
+		else {
+			expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(LiteralExpression.class);
+			expressionBuilder.addConstructorArgValue(storedProcedureName);
+		}
+		storedProcExecutorBuilder.addPropertyValue("storedProcedureNameExpression", expressionBuilder.getBeanDefinition());
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "ignore-column-meta-data");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "jdbc-call-operations-cache-size");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "stored-procedure-name");
 
 		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
 		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);

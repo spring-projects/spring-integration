@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
@@ -58,8 +59,8 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  storedProcedureName = accessor.getPropertyValue("storedProcedureName");
-		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName);
+		Expression  storedProcedureName = (Expression) accessor.getPropertyValue("storedProcedureNameExpression");
+		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName.getValue());
 	}
 
 	@Test
@@ -125,7 +126,7 @@ public class StoredProcOutboundGatewayParserTests {
 		assertEquals("kenny",              parameter1.getValue());
 		assertEquals("Who killed Kenny?",  parameter2.getValue());
 		assertNull(parameter3.getValue());
-		assertEquals(Integer.valueOf(30),  (Integer) parameter4.getValue());
+		assertEquals(Integer.valueOf(30),  parameter4.getValue());
 
 		assertNull(parameter1.getExpression());
 		assertNull(parameter2.getExpression());

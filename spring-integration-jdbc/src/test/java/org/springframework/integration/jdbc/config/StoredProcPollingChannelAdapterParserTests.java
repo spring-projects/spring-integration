@@ -61,8 +61,8 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
-		Object  storedProcedureName = accessor.getPropertyValue("storedProcedureName");
-		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName);
+		Expression  storedProcedureName = (Expression) accessor.getPropertyValue("storedProcedureNameExpression");
+		assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName.getValue());
 	}
 
 	@Test
@@ -149,7 +149,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 		assertEquals("kenny",              parameter1.getValue());
 		assertEquals("Who killed Kenny?",  parameter2.getValue());
 		assertNull(parameter3.getValue());
-		assertEquals(Integer.valueOf(30),  (Integer) parameter4.getValue());
+		assertEquals(Integer.valueOf(30),  parameter4.getValue());
 
 		assertNull(parameter1.getExpression());
 		assertNull(parameter2.getExpression());

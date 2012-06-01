@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.jdbc.core.SqlInOutParameter;
@@ -54,8 +55,8 @@ public class StoredProcMessageHandlerParserTests {
 		Object executor = accessor.getPropertyValue("executor");
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 
-		Object  testProcedure1 = executorAccessor.getPropertyValue("storedProcedureName");
-		assertEquals("Resolution Required should be 'testProcedure1' but was " + testProcedure1, "testProcedure1",  testProcedure1);
+		Expression testProcedure1 = (Expression) executorAccessor.getPropertyValue("storedProcedureNameExpression");
+		assertEquals("Resolution Required should be 'testProcedure1' but was " + testProcedure1, "testProcedure1",  testProcedure1.getValue());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -91,7 +92,7 @@ public class StoredProcMessageHandlerParserTests {
 		assertEquals("kenny",              parameter1.getValue());
 		assertEquals("Who killed Kenny?",  parameter2.getValue());
 		assertNull(parameter3.getValue());
-		assertEquals(Integer.valueOf(30),  (Integer) parameter4.getValue());
+		assertEquals(Integer.valueOf(30),  parameter4.getValue());
 
 		assertNull(parameter1.getExpression());
 		assertNull(parameter2.getExpression());

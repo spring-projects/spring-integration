@@ -30,6 +30,7 @@ import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -73,11 +74,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * Uses the {@link SimpleJdbcCall} implementation for executing Stored Procedures.
 	 */
 	private volatile LoadingCache<String, SimpleJdbcCallOperations> jdbcCallOperationsCache = null;
-
-	/**
-	 * Name of the stored procedure or function to be executed.
-	 */
-	private volatile String storedProcedureName;
 
 	private volatile Expression storedProcedureNameExpression;
 
@@ -161,7 +157,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	public void afterPropertiesSet() {
 
-		if (this.storedProcedureName == null && this.storedProcedureNameExpression == null) {
+		if (this.storedProcedureNameExpression == null) {
 			throw new IllegalArgumentException("You must either provide a "
 				+ "Stored Procedure Name or a Stored Procedure Name Expression.");
 		}
@@ -210,14 +206,16 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 				.maximumSize(jdbcCallOperationsCacheSize)
 				.recordStats()
 				.build(new CacheLoader<String, SimpleJdbcCallOperations>() {
+					@Override
 					public SimpleJdbcCall load(String storedProcedureName) {
 						return createSimpleJdbcCall(storedProcedureName);
 					}
 				});
 
-		if (this.storedProcedureName != null) {
-			final SimpleJdbcCall simpleJdbcCall = createSimpleJdbcCall(this.storedProcedureName);
-			this.jdbcCallOperationsCache.put(this.storedProcedureName, simpleJdbcCall);
+		if (this.storedProcedureNameExpression instanceof LiteralExpression) {
+			String storedProcedureName = this.storedProcedureNameExpression.getValue(String.class);
+			final SimpleJdbcCall simpleJdbcCall = createSimpleJdbcCall(storedProcedureName);
+			this.jdbcCallOperationsCache.put(storedProcedureName, simpleJdbcCall);
 		}
 
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
@@ -269,7 +267,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * @return Map containing the stored procedure results if any.
 	 */
 	public Map<String, Object> executeStoredProcedure() {
-		return executeStoredProcedureInternal(new Object(), this.storedProcedureName);
+		return executeStoredProcedureInternal(new Object(), this.evaluateExpression(null));
 	}
 
 	/**
@@ -293,21 +291,18 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 			input = message;
 		}
 
-		final String storedProcedureNameToUse;
+		return executeStoredProcedureInternal(input, evaluateExpression(message));
 
-		if (this.storedProcedureNameExpression == null) {
-			storedProcedureNameToUse = this.storedProcedureName;
-		}
-		else {
-			storedProcedureNameToUse = this.storedProcedureNameExpression.getValue(this.evaluationContext, message, String.class);
+	}
 
-			Assert.hasText(storedProcedureNameToUse, String.format(
-					"Unable to resolve Stored Procedure/Function name for the provided Expression '%s'.",
-					this.storedProcedureNameExpression.getExpressionString()));
-		}
+	private String evaluateExpression(Message<?> message) {
+		final String storedProcedureNameToUse = this.storedProcedureNameExpression.getValue(this.evaluationContext,
+				message, String.class);
 
-		return executeStoredProcedureInternal(input, storedProcedureNameToUse);
-
+		Assert.hasText(storedProcedureNameToUse, String.format(
+				"Unable to resolve Stored Procedure/Function name for the provided Expression '%s'.",
+				this.storedProcedureNameExpression.getExpressionString()));
+		return storedProcedureNameToUse;
 	}
 
 	/**
@@ -408,7 +403,8 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * */
 	@ManagedAttribute(defaultValue="Null if not Set.")
 	public String getStoredProcedureName() {
-		return this.storedProcedureName;
+		return this.storedProcedureNameExpression instanceof LiteralExpression ?
+				storedProcedureNameExpression.getValue(String.class) : null;
 	}
 
 	/**
@@ -436,7 +432,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	public void setStoredProcedureName(String storedProcedureName) {
 		Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
-		this.storedProcedureName = storedProcedureName;
+		this.storedProcedureNameExpression = new LiteralExpression(storedProcedureName);
 	}
 
 	/**

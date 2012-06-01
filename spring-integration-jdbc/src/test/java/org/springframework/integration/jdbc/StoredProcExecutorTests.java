@@ -17,7 +17,6 @@
 package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -123,7 +122,8 @@ public class StoredProcExecutorTests {
 		storedProcExecutor.setStoredProcedureName("123");
 		storedProcExecutor.afterPropertiesSet();
 
-		assertNull(storedProcExecutor.getStoredProcedureNameExpressionAsString());
+		assertEquals("123", storedProcExecutor.getStoredProcedureName());
+		assertEquals("123", storedProcExecutor.getStoredProcedureNameExpressionAsString());
 	}
 
 	@Test
