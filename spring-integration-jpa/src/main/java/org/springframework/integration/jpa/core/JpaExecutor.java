@@ -23,7 +23,6 @@ import javax.persistence.Query;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.PersistMode;
@@ -275,7 +274,7 @@ public class JpaExecutor implements InitializingBean {
 				}
 				else {
 
-					throw new MessageHandlingException(requestMessage,
+					throw new MessagingException(requestMessage,
 						"The Jpa operation returned more than "
 					  + "1 result object but expectSingleResult was 'true'.");
 				}
