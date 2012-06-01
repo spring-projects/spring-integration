@@ -29,7 +29,6 @@ import org.springframework.integration.ip.tcp.connection.ClientModeConnectionMan
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -50,8 +49,6 @@ public class TcpReceivingChannelAdapter
 	private AbstractConnectionFactory serverConnectionFactory;
 
 	private volatile boolean isClientMode;
-
-	private volatile TaskScheduler scheduler;
 
 	private volatile long retryInterval = 60000;
 
@@ -110,7 +107,8 @@ public class TcpReceivingChannelAdapter
 				ClientModeConnectionManager manager = new ClientModeConnectionManager(
 						this.clientConnectionFactory);
 				this.clientModeConnectionManager = manager;
-				this.scheduledFuture = this.getScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+				Assert.state(this.getTaskScheduler() != null, "Client mode requires a task scheduler");
+				this.scheduledFuture = this.getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
 			}
 		}
 	}
@@ -194,23 +192,12 @@ public class TcpReceivingChannelAdapter
 	}
 
 	/**
-	 * @return the scheduler
+	 * @param scheduler the scheduler to set
+	 * @deprecated Use {@link #setTaskScheduler(TaskScheduler)}
 	 */
-	protected TaskScheduler getScheduler() {
-		if (this.scheduler == null) {
-			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-			scheduler.initialize();
-			this.scheduler = scheduler;
-		}
-		return this.scheduler;
-	}
-
-	/**
-	 * @param scheduler
-	 *            the scheduler to set
-	 */
+	@Deprecated
 	public void setScheduler(TaskScheduler scheduler) {
-		this.scheduler = scheduler;
+		this.setTaskScheduler(scheduler);
 	}
 
 	/**

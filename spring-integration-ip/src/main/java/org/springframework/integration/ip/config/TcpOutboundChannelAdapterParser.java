@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,25 @@
 
 package org.springframework.integration.ip.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.w3c.dom.Element;
+import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 
 /**
  * @author Gary Russell
  * @since 2.0
  */
 public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-	
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
 
+	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-				".TcpSendingMessageHandler");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TcpSendingMessageHandler.class);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.AUTO_STARTUP);
@@ -45,7 +45,7 @@ public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RETRY_INTERVAL);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-				IpAdapterParserUtils.SCHEDULER);
+				IpAdapterParserUtils.SCHEDULER, "taskScheduler");
 		return builder.getBeanDefinition();
 	}
 

@@ -165,7 +165,7 @@ task executors such as a WorkManagerTaskExecutor.
 							 If set to true, causes the adapter to act as a client with respect to
 							 establishing the connection, rather than listening for incoming connections.
 							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to true.
+							 Defaults to false.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -221,7 +221,7 @@ task executors such as a WorkManagerTaskExecutor.
 							 If set to true, causes the adapter to establish a connection when started,
 							 rather than when the first message is sent.
 							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to true.
+							 Defaults to false.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -290,7 +290,7 @@ task executors such as a WorkManagerTaskExecutor.
 							 If set to true, causes the gateway to act as a client with respect to
 							 establishing the connection, rather than listening for incoming connections.
 							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to true.
+							 Defaults to false.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

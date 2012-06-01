@@ -15,11 +15,15 @@
  */
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -38,6 +42,9 @@ public class ClientModeControlBusTests {
 	@Autowired
 	TcpReceivingChannelAdapter tcpIn;
 
+	@Autowired
+	TaskScheduler taskScheduler; // default
+
 	@Test
 	public void test() throws Exception {
 		assertTrue(controlBus.boolResult("@tcpIn.isClientMode()"));
@@ -50,6 +57,7 @@ public class ClientModeControlBusTests {
 			}
 		}
 		assertTrue(controlBus.boolResult("@tcpIn.isRunning()"));
+		assertSame(taskScheduler, TestUtils.getPropertyValue(tcpIn, "taskScheduler"));
 		controlBus.voidResult("@tcpIn.retryConnection()");
 	}
 
