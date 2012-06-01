@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -97,6 +98,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private final RestTemplate restTemplate;
 
 	private final StandardEvaluationContext evaluationContext;
+
+	private volatile boolean extractPayloadExplicitlySet = false;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -281,7 +284,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				uriVariables.put(entry.getKey(), value);
 			}
 
-			HttpMethod httpMethod = HttpMethod.valueOf( httpMethodExpression.getValue(this.evaluationContext, requestMessage, String.class) );
+			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
+
+			if (!this.shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet){
+				if (logger.isWarnEnabled()){
+					logger.warn("The 'extractPayload' attribute has no meaning in the context of this handler since the provided HTTP Method is '" +
+		               httpMethod + "', and no request body will be sent for that method.");
+				}
+			}
+
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
@@ -472,4 +483,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return true;
 	}
 
+	private HttpMethod determineHttpMethod(Message<?> requestMessage) {
+		String strHttpMethod = httpMethodExpression.getValue(this.evaluationContext, requestMessage, String.class);
+		Assert.isTrue(StringUtils.hasText(strHttpMethod) && !Arrays.asList(HttpMethod.values()).contains(strHttpMethod),
+				"The 'httpMethodExpression' returned a value not compatible with valid HTTP Methods: " + strHttpMethod);
+		return HttpMethod.valueOf(strHttpMethod);
+	}
 }

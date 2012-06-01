@@ -266,7 +266,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     to better reflect the intent.
   </important>
   <para>
-    Beginning with Spring Integration 2.2 you can also determine HTTP Method dynamically using SpEL and  <emphasis>http-method-expression</emphasis> attribute.
+    Beginning with Spring Integration 2.2 you can also determine the HTTP Method dynamically using SpEL and  the <emphasis>http-method-expression</emphasis> attribute.
     Note that this attribute is obviously murually exclusive with <emphasis>http-method</emphasis>
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
     request-channel="requests"
