@@ -153,14 +153,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
 		/*
-		 * If we have a custom lock registry, it probably has a different
-		 * sized pool of locks than the default, so pass it into the
-		 * message store.
-		 */
-		if (this.lockRegistrySet && this.messageStore instanceof SimpleMessageStore) {
-			((SimpleMessageStore) this.messageStore).setLockRegistry(this.lockRegistry);
-		}
-		/*
 		 * Disallow any further changes to the lock registry
 		 * (checked in the setter).
 		 */

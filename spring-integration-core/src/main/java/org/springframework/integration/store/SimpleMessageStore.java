@@ -70,11 +70,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	/**
-	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
-	 * capacity is less than 1. The capacities are applied independently to messages stored via
-	 * {@link #addMessage(Message)} and to those stored via {@link #addMessageToGroup(Object, Message)}. In both cases
-	 * the capacity applies to the number of messages that can be stored, and once that limit is reached attempting to
-	 * store another will result in an exception. Also allows the provision of a {@link LockRegistry}
+	 * See {@link #SimpleMessageStore(int, int, LockRegistry)}.
+	 * Also allows the provision of a custom {@link LockRegistry}
 	 * rather than using the default.
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity, LockRegistry lockRegistry) {
