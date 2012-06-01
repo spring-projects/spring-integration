@@ -18,6 +18,8 @@ package org.springframework.integration.http.config;
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -27,7 +29,6 @@ import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
@@ -87,5 +88,30 @@ abstract class HttpAdapterParsingUtils {
 
 	}
 
+	static void setHttpMethodOrExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
+		String httpMethod = element.getAttribute("http-method");
+		String httpMethodExpression = element.getAttribute("http-method-expression");
+
+		boolean hasHttpMethod = StringUtils.hasText(httpMethod);
+		boolean hasHttpMethodExpression = StringUtils.hasText(httpMethodExpression);
+
+		if (hasHttpMethod && hasHttpMethodExpression){
+			parserContext.getReaderContext().error("The 'http-method' and 'http-method-expression' are mutually exclusive. " +
+					"You can only have one or the other", element);
+		}
+
+		RootBeanDefinition expressionDef = null;
+		if (hasHttpMethod) {
+			expressionDef = new RootBeanDefinition(LiteralExpression.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(httpMethod);
+		}
+		else if (hasHttpMethodExpression){
+			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(httpMethodExpression);
+		}
+		if (expressionDef != null){
+			builder.addPropertyValue("httpMethodExpression", expressionDef);
+		}
+	}
 
 }
