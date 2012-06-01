@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2012 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -37,6 +37,7 @@ import javax.management.modelmbean.ModelMBean;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
@@ -46,7 +47,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -100,7 +100,7 @@ import org.springframework.util.ReflectionUtils;
  * handlers. It doesn't register itself to avoid conflicts with the standard <code>&lt;context:mbean-export/&gt;</code>
  * from Spring (which should therefore be used any time you need to expose those features).
  * </p>
- * 
+ *
  * @author Dave Syer
  * @author Helena Edelson
  * @author Oleg Zhurakousky
@@ -120,31 +120,31 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private ApplicationContext applicationContext;
 
-	private Map<Object, AtomicLong> anonymousHandlerCounters = new HashMap<Object, AtomicLong>();
+	private final Map<Object, AtomicLong> anonymousHandlerCounters = new HashMap<Object, AtomicLong>();
 
-	private Map<Object, AtomicLong> anonymousSourceCounters = new HashMap<Object, AtomicLong>();
+	private final Map<Object, AtomicLong> anonymousSourceCounters = new HashMap<Object, AtomicLong>();
 
-	private Set<SimpleMessageHandlerMetrics> handlers = new HashSet<SimpleMessageHandlerMetrics>();
+	private final Set<SimpleMessageHandlerMetrics> handlers = new HashSet<SimpleMessageHandlerMetrics>();
 
-	private Set<SimpleMessageSourceMetrics> sources = new HashSet<SimpleMessageSourceMetrics>();
+	private final Set<SimpleMessageSourceMetrics> sources = new HashSet<SimpleMessageSourceMetrics>();
 
-	private Set<DirectChannelMetrics> channels = new HashSet<DirectChannelMetrics>();
+	private final Set<DirectChannelMetrics> channels = new HashSet<DirectChannelMetrics>();
 
-	private Map<String, Object> exposedBeans = new HashMap<String, Object>();
+	private final Map<String, Object> exposedBeans = new HashMap<String, Object>();
 
-	private Map<String, DirectChannelMetrics> channelsByName = new HashMap<String, DirectChannelMetrics>();
+	private final Map<String, DirectChannelMetrics> channelsByName = new HashMap<String, DirectChannelMetrics>();
 
-	private Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
+	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
 
-	private Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
+	private final Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
 
-	private Map<String, DirectChannelMetrics> allChannelsByName = new HashMap<String, DirectChannelMetrics>();
+	private final Map<String, DirectChannelMetrics> allChannelsByName = new HashMap<String, DirectChannelMetrics>();
 
-	private Map<String, MessageHandlerMetrics> allHandlersByName = new HashMap<String, MessageHandlerMetrics>();
+	private final Map<String, MessageHandlerMetrics> allHandlersByName = new HashMap<String, MessageHandlerMetrics>();
 
-	private Map<String, MessageSourceMetrics> allSourcesByName = new HashMap<String, MessageSourceMetrics>();
+	private final Map<String, MessageSourceMetrics> allSourcesByName = new HashMap<String, MessageSourceMetrics>();
 
-	private Map<String, String> beansByEndpointName = new HashMap<String, String>();
+	private final Map<String, String> beansByEndpointName = new HashMap<String, String>();
 
 	private ClassLoader beanClassLoader;
 
@@ -157,8 +157,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 	private String domain = DEFAULT_DOMAIN;
-
-	private boolean initialized = false;
 
 	private final Properties objectNameStaticProperties = new Properties();
 
@@ -192,7 +190,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	/**
 	 * Static properties that will be added to all object names.
-	 * 
+	 *
 	 * @param objectNameStaticProperties the objectNameStaticProperties to set
 	 */
 	public void setObjectNameStaticProperties(Map<String, String> objectNameStaticProperties) {
@@ -202,7 +200,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	/**
 	 * The JMX domain to use for MBeans registered. Defaults to <code>spring.application</code> (which is useful in
 	 * SpringSource HQ).
-	 * 
+	 *
 	 * @param domain the domain name to set
 	 */
 	public void setDefaultDomain(String domain) {
@@ -215,6 +213,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.componentNamePatterns = componentNamePatterns;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		super.setBeanFactory(beanFactory);
 		Assert.isTrue(beanFactory instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
@@ -245,13 +244,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 		}
 
-		boolean foundMetrics = false;
-
 		if (bean instanceof MessageHandler) {
 			SimpleMessageHandlerMetrics monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
-			foundMetrics = true;
 			bean = advised;
 		}
 
@@ -259,7 +255,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
 			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
 			sources.add(monitor);
-			foundMetrics = true;
 			bean = advised;
 		}
 
@@ -279,25 +274,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
-			foundMetrics = true;
 			bean = advised;
-		}
-
-		if (foundMetrics) {
-			// Only force the other exporters to initialize if we are sure we need to...
-			if (!initialized) {
-				try {
-					collectMBeanExporters();
-					initialized = true;
-				}
-				catch (BeanCreationException e) {
-					// Ignore
-					if (logger.isDebugEnabled()) {
-						logger.debug("Ignoring BeanCreationException while instantiating MBeanExporter during creation of metrics for beanName=["
-								+ beanName + "]");
-					}
-				}
-			}
 		}
 
 		return bean;
@@ -307,7 +284,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	/**
 	 * Copy of private method in super class. Needed so we can avoid using the bean factory to extract the bean again,
 	 * and risk it being a proxy (which it almost certainly is by now).
-	 * 
+	 *
 	 * @param bean the bean instance to register
 	 * @param beanKey the bean name or human readable version if autogenerated
 	 * @return the JMX object name of the MBean that was registered
@@ -426,17 +403,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		registerHandlers();
 		registerSources();
 		registerEndpoints();
-	}
-
-	/**
-	 * Force early initialization of other MBean exporters to ensure that they don't try to register the same beans that
-	 * this exporter is covering.
-	 */
-	private void collectMBeanExporters() {
-		String[] beanNames = beanFactory.getBeanNamesForType(MBeanExporter.class, false, false);
-		for (String beanName : beanNames) {
-			beanFactory.getBean(beanName, MBeanExporter.class);
-		}
 	}
 
 	@Override
