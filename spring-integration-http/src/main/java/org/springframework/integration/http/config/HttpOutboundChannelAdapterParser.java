@@ -16,13 +16,15 @@
 
 package org.springframework.integration.http.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the 'outbound-channel-adapter' element of the http namespace.
@@ -36,11 +38,11 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
 		builder.addPropertyValue("expectReply", false);
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
+
+		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
 		String restTemplate = element.getAttribute("rest-template");
 		if (StringUtils.hasText(restTemplate)) {

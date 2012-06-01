@@ -16,12 +16,14 @@
 
 package org.springframework.integration.http.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the 'outbound-gateway' element of the http namespace.
@@ -39,10 +41,11 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
+
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
+
+		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
 		String restTemplate = element.getAttribute("rest-template");
 		if (StringUtils.hasText(restTemplate)) {
