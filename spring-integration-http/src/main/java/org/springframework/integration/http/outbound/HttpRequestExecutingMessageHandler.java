@@ -77,6 +77,12 @@ import org.springframework.web.client.RestTemplate;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+
+	private final RestTemplate restTemplate;
+
+	private final StandardEvaluationContext evaluationContext;
+
 	private final Expression uriExpression;
 
 	private volatile Expression httpMethodExpression = new LiteralExpression(HttpMethod.POST.name());
@@ -91,15 +97,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile boolean transferCookies = false;
 
-	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
-
-	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
-
-	private final RestTemplate restTemplate;
-
-	private final StandardEvaluationContext evaluationContext;
-
 	private volatile boolean extractPayloadExplicitlySet = false;
+
+	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -177,6 +177,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
+		this.extractPayloadExplicitlySet = true;
 	}
 
 	/**
