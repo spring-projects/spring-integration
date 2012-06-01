@@ -798,30 +798,30 @@
    </para>
    <para><emphasis>Pool Size</emphasis></para>
    <para>
-    When using NIO, it is important to understand how threads are used, in order set the pool-size
-    appropriately. One thread from the pool is used to handle all socket events (e.g. data is
-    ready to be read). This thread is not available for other tasks. When data are ready to be
-    read, this thread dispatches the actual I/O to another thread from the pool, which reads
-    from the channel and writes the data to a temporary buffer; if this read is the start of
-    a new message, a third thread is used to read from that buffer to assemble the data into
-    a message.
+    The pool size attribute is no longer used; previously, it specified the size
+    of the default thread pool when a task-executor was not specified. It was also
+    used to set the connection backlog on server sockets. The first function is
+    no longer needed (see below); the second function is replaced by the
+    <emphasis>backlog</emphasis> attribute.
    </para>
    <para>
-    If there is not enough room in the temporary buffer to receive the newly read data, the
-    reader thread will block until the assembler thread consumes some data. If the pool is
-    exhausted, this will cause a deadlock, until another thread becomes available. The temporary
-    buffer is currently 1024 bytes. In the simplest case, with one connection, and data greater
-    than 1024 bytes, a pool-size of 2 will cause this deadlock to occur because a thread will
-    never be made available.
+    Previously, when using a fixed thread pool task executor (which was the default), with NIO, it
+    was possible to get a deadlock and processing would stop. The problem occurred when
+    a buffer was full, a thread reading from the socket was trying to add more data
+    to the buffer, and there were no threads available to make space in the buffer.
+    This only occurred with a very small pool size, but it could be possible under
+    extreme conditions. Since 2.2, two changes have eliminated this problem. First,
+    the default task executor is a cached thread pool executor. Second, deadlock
+    detection logic has been added such that if thread starvation occurs, instead of
+    deadlocking, an exception is thrown, thus releasing the deadlocked resources.
    </para>
-   <para>
-    For this reason, when using NIO, the pool-size should be set to a minimum of 3. This does not
-    mean you have to reserve 2 threads for each socket because, aside from the selector thread,
-    the threads in the pool are shared across all the connections. The actual pool-size needed
-    will depend on a number of factors including the number of active connections, how
-    much utilization there is on those connections, and how long message processing takes when
-    a new message is received.
-   </para>
+   <note>
+    Now that the default task executor is unbounded, it is possible that an out of
+    memory condition might occur with high rates of incoming messages, if message
+    processing takes extended time. If your application exhibits this type of
+    behavior, you are advised to use a pooled task executor with an appropriate
+    pool size.
+   </note>
   </section>
   <section id="ssl-tls">
     <title>SSL/TLS Support</title>
@@ -1136,9 +1136,8 @@
               <entry></entry>
               <entry>
                      Specifies a specific Executor to be used for socket handling. If not supplied, an internal
-                     pooled executor will be used. Needed on some platforms that require the use of specific
-                     task executors such as a WorkManagerTaskExecutor. See pool-size for thread
-                     requirements, depending on other options.</entry>
+                     cached thread executor will be used. Needed on some platforms that require the use of specific
+                     task executors such as a WorkManagerTaskExecutor.</entry>
             </row>
             <row>
               <entry>single-use</entry>
@@ -1150,16 +1149,20 @@
             </row>
             <row>
               <entry>pool-size</entry>
-              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>N</entry>
+              <entry></entry>
+              <entry>This attribute is no longer used. For backward
+                     compatibility, it sets the backlog but users should
+                     use backlog to specify the
+                     connection backlog in server factories</entry>
+            </row>
+            <row>
+              <entry>backlog</entry>
+              <entry>N</entry>
               <entry>Y</entry>
               <entry></entry>
-              <entry>Specifies the concurrency.  For tcp, not using nio, specifies the
-                     number of concurrent connections supported by the adapter. For tcp,
-                     using nio, it should be set to a minimum of 3; see 'Pool Size' in
-                     <xref linkend="note_nio" />.
-                     It only applies in this sense if task-executor is not configured.
-                     However, pool-size is also used for the server socket backlog,
-                     regardless of whether an external task executor is used. Defaults to 5.</entry>
+              <entry>Sets the connection backlog for server factories.</entry>
             </row>
             <row>
               <entry>lookup-host</entry>

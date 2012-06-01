@@ -51,7 +51,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
@@ -80,7 +79,7 @@ public class TcpSendingMessageHandlerTests {
 			buff[i] = (byte) is.read();
 		}
 	}
-	
+
 	@Test
 	public void testNetCrLf() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
@@ -111,7 +110,7 @@ public class TcpSendingMessageHandlerTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
-		ccf.setSoTimeout(10000);		
+		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -119,7 +118,7 @@ public class TcpSendingMessageHandlerTests {
 		adapter.setConnectionFactory(ccf);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
@@ -239,7 +238,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(results.remove("Reply2"));
 		done.set(true);
 	}
-	
+
 	@Test
 	public void testNetStxEtx() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
@@ -277,7 +276,7 @@ public class TcpSendingMessageHandlerTests {
 		adapter.setConnectionFactory(ccf);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
@@ -381,7 +380,7 @@ public class TcpSendingMessageHandlerTests {
 		adapter.setConnectionFactory(ccf);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
@@ -484,7 +483,7 @@ public class TcpSendingMessageHandlerTests {
 		adapter.setConnectionFactory(ccf);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
@@ -679,7 +678,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		assertTrue(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS));		
+		assertTrue(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS));
 		Set<String> replies = new HashSet<String>();
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
@@ -736,7 +735,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		assertTrue(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS));		
+		assertTrue(semaphore.tryAcquire(2, 10000, TimeUnit.MILLISECONDS));
 		Set<String> replies = new HashSet<String>();
 		for (int i = 0; i < 2; i++) {
 			Message<?> mOut = channel.receive(10000);
@@ -859,9 +858,9 @@ public class TcpSendingMessageHandlerTests {
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
-		ccf.setSoTimeout(10000);		
+		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
 		     {new HelloWorldInterceptorFactory(),
 		      new HelloWorldInterceptorFactory()});
 		ccf.setInterceptorFactoryChain(fc);
@@ -872,7 +871,7 @@ public class TcpSendingMessageHandlerTests {
 		adapter.setConnectionFactory(ccf);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		Message<?> mOut = channel.receive(10000);
@@ -921,7 +920,7 @@ public class TcpSendingMessageHandlerTests {
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
-		ccf.setSoTimeout(10000);		
+		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
 		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {new HelloWorldInterceptorFactory()});
 		ccf.setInterceptorFactoryChain(fc);
@@ -932,7 +931,7 @@ public class TcpSendingMessageHandlerTests {
 		adapter.setConnectionFactory(ccf);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		for (int i = 0; i < 1000; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		}
@@ -991,9 +990,9 @@ public class TcpSendingMessageHandlerTests {
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
-		ccf.setSoTimeout(10000);		
+		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
             		     {new HelloWorldInterceptorFactory(),
                		      new HelloWorldInterceptorFactory()});
 		ccf.setInterceptorFactoryChain(fc);
@@ -1001,7 +1000,7 @@ public class TcpSendingMessageHandlerTests {
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		done.set(true);
 	}
@@ -1047,9 +1046,9 @@ public class TcpSendingMessageHandlerTests {
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
-		ccf.setSoTimeout(10000);		
+		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
             		     {new HelloWorldInterceptorFactory(),
                		      new HelloWorldInterceptorFactory()});
 		ccf.setInterceptorFactoryChain(fc);
@@ -1057,7 +1056,7 @@ public class TcpSendingMessageHandlerTests {
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
-		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		done.set(true);
 	}

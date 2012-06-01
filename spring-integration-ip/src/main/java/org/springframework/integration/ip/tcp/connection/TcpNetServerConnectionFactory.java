@@ -52,8 +52,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 
 	/**
 	 * If no listener registers, exits.
-	 * Accepts incoming connections and creates TcpConnections for each new connection. 
-	 * Invokes {{@link #initializeConnection(TcpConnection, Socket)} and executes the 
+	 * Accepts incoming connections and creates TcpConnections for each new connection.
+	 * Invokes {{@link #initializeConnection(TcpConnection, Socket)} and executes the
 	 * connection {@link TcpConnection#run()} using the task executor.
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
@@ -65,10 +65,10 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		try {
 			if (this.getLocalAddress() == null) {
-				theServerSocket = createServerSocket(this.getPort(), this.getPoolSize(), null);
+				theServerSocket = createServerSocket(this.getPort(), this.getBacklog(), null);
 			} else {
 				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
-				theServerSocket = createServerSocket(this.getPort(), this.getPoolSize(), whichNic);
+				theServerSocket = createServerSocket(this.getPort(), this.getBacklog(), whichNic);
 			}
 			this.getTcpSocketSupport().postProcessServerSocket(theServerSocket);
 			this.serverSocket = theServerSocket;
@@ -132,6 +132,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 	}
 
+	@Override
 	public void close() {
 		if (this.serverSocket == null) {
 			return;
@@ -158,5 +159,5 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
 		this.tcpSocketFactorySupport = tcpSocketFactorySupport;
 	}
-	
+
 }

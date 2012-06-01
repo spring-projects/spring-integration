@@ -92,8 +92,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile boolean singleUse;
 
-	private volatile int poolSize = 5;
-
 	private volatile boolean active;
 
 	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
@@ -296,10 +294,14 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
+	 * @deprecated This property is no longer used. If you wish
+	 * to use a fixed thread pool, provide your own Executor
+	 * in {@link #setTaskExecutor(Executor)}.
 	 * @return the poolSize
 	 */
+	@Deprecated
 	public int getPoolSize() {
-		return poolSize;
+		return 0;
 	}
 
 	/**
@@ -372,8 +374,14 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 
+	/**
+	 * @deprecated Default task executor is now a cached rather
+	 * than a fixed pool executor. To use a pool, supply an
+	 * appropriate Executor in {@link AbstractConnectionFactory#setTaskExecutor(Executor)}.
+	 * Use {@link AbstractServerConnectionFactory#setBacklog(int)} to set the connection backlog.
+	 */
+	@Deprecated
 	public void setPoolSize(int poolSize) {
-		this.poolSize = poolSize;
 	}
 
 	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
@@ -438,7 +446,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			}
 			if (this.taskExecutor == null) {
 				this.privateExecutor = true;
-				this.taskExecutor = Executors.newFixedThreadPool(this.poolSize);
+				this.taskExecutor = Executors.newCachedThreadPool();
 			}
 			return this.taskExecutor;
 		}

@@ -84,7 +84,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile boolean singleUse;
 
-	private volatile int poolSize = 5;
+	private volatile int backlog = 5;
 
 	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 
@@ -156,7 +156,6 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setLookupHost(this.lookupHost);
 		this.mapper.setApplySequence(this.applySequence);
 		factory.setMapper(this.mapper);
-		factory.setPoolSize(this.poolSize);
 		factory.setSerializer(this.serializer);
 		factory.setSingleUse(this.singleUse);
 		factory.setSoKeepAlive(this.soKeepAlive);
@@ -173,6 +172,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private void setServerAttributes(AbstractServerConnectionFactory factory) {
 		factory.setLocalAddress(this.localAddress);
+		factory.setBacklog(this.backlog);
 	}
 
 	private TcpSocketFactorySupport obtainSocketFactorySupport() {
@@ -349,9 +349,20 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	/**
 	 * @param poolSize
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#setPoolSize(int)
+	 * @deprecated
 	 */
+	@Deprecated
 	public void setPoolSize(int poolSize) {
-		this.poolSize = poolSize;
+		logger.warn("poolSize is deprecated; use backlog instead");
+		this.backlog = poolSize;
+	}
+
+	/**
+	 * @param backlog
+	 * @see AbstractServerConnectionFactory#setBacklog(int)
+	 */
+	public void setBacklog(int backlog) {
+		this.backlog = backlog;
 	}
 
 	/**

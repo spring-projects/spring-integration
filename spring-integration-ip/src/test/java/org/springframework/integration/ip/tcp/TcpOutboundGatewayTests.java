@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
@@ -54,7 +53,7 @@ import org.springframework.integration.support.MessageBuilder;
  */
 public class TcpOutboundGatewayTests {
 
-	@Test 
+	@Test
 	public void testGoodNetSingle() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
@@ -84,7 +83,6 @@ public class TcpOutboundGatewayTests {
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
-		ccf.setPoolSize(10);
 		ccf.start();
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
@@ -98,7 +96,7 @@ public class TcpOutboundGatewayTests {
 			gateway.handleMessage(MessageBuilder.withPayload("Test" + i).build());
 		}
 		Set<String> replies = new HashSet<String>();
-		for (int i = 100; i < 200; i++) { 
+		for (int i = 100; i < 200; i++) {
 			Message<?> m = replyChannel.receive(10000);
 			assertNotNull(m);
 			replies.add((String) m.getPayload());
@@ -108,7 +106,7 @@ public class TcpOutboundGatewayTests {
 		}
 	}
 
-	@Test 
+	@Test
 	public void testGoodNetMultiplex() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -149,7 +147,7 @@ public class TcpOutboundGatewayTests {
 			gateway.handleMessage(MessageBuilder.withPayload("Test" + i).build());
 		}
 		Set<String> replies = new HashSet<String>();
-		for (int i = 100; i < 110; i++) { 
+		for (int i = 100; i < 110; i++) {
 			Message<?> m = replyChannel.receive(10000);
 			assertNotNull(m);
 			replies.add((String) m.getPayload());
@@ -160,7 +158,7 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 	}
 
-	@Test 
+	@Test
 	public void testGoodNetTimeout() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -212,11 +210,11 @@ public class TcpOutboundGatewayTests {
 		}
 		Set<String> replies = new HashSet<String>();
 		int timeouts = 0;
-		for (int i = 0; i < 2; i++) { 
+		for (int i = 0; i < 2; i++) {
 			try {
 				results[i].get();
 			} catch (InterruptedException e) {
-				
+
 			} catch (ExecutionException e) {
 				if (timeouts > 0) {
 					fail("Unexpected " + e.getMessage());

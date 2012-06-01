@@ -151,7 +151,7 @@ public class TcpReceivingChannelAdapterTests {
 		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		scf.setSerializer(serializer);
-		scf.setDeserializer(serializer);		
+		scf.setDeserializer(serializer);
 		scf.setSoTimeout(5000);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
@@ -168,7 +168,7 @@ public class TcpReceivingChannelAdapterTests {
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		for (int i = 0; i < 1000; i++) {
 			socket.getOutputStream().write(("Test" + i + "\r\n").getBytes());
-		}	
+		}
 		Set<String> results = new HashSet<String>();
 		for (int i = 0; i < 1000; i++) {
 			Message<?> message = channel.receive(10000);
@@ -210,14 +210,14 @@ public class TcpReceivingChannelAdapterTests {
 		handler.handleMessage(message);
 		message = channel.receive(10000);
 		assertNotNull(message);
-		handler.handleMessage(message);		
+		handler.handleMessage(message);
 		byte[] b = new byte[6];
 		readFully(socket.getInputStream(), b);
 		assertEquals("Test\r\n", new String(b));
 		readFully(socket.getInputStream(), b);
 		assertEquals("Test\r\n", new String(b));
 	}
-	
+
 	@Test
 	public void testNioShared() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
@@ -248,14 +248,14 @@ public class TcpReceivingChannelAdapterTests {
 		handler.handleMessage(message);
 		message = channel.receive(10000);
 		assertNotNull(message);
-		handler.handleMessage(message);		
+		handler.handleMessage(message);
 		byte[] b = new byte[6];
 		readFully(socket.getInputStream(), b);
 		assertEquals("Test\r\n", new String(b));
 		readFully(socket.getInputStream(), b);
 		assertEquals("Test\r\n", new String(b));
 	}
-	
+
 	@Test
 	public void testNetSingleNoOutbound() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
@@ -316,7 +316,7 @@ public class TcpReceivingChannelAdapterTests {
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test2\r\n".getBytes());
-		Message<?> message = channel.receive(10000);
+		Message<?> message = channel.receive(60000);
 		assertNotNull(message);
 		// with single use, results may come back in a different order
 		Set<String> results = new HashSet<String>();
@@ -371,15 +371,15 @@ public class TcpReceivingChannelAdapterTests {
 		handler.handleMessage(message);
 		message = channel.receive(10000);
 		assertNotNull(message);
-		handler.handleMessage(message);		
+		handler.handleMessage(message);
 		byte[] b = new byte[7];
 		readFully(socket1.getInputStream(), b);
 		assertEquals("Test1\r\n", new String(b));
 		readFully(socket2.getInputStream(), b);
 		assertEquals("Test2\r\n", new String(b));
 	}
-	
-	@Test  
+
+	@Test
 	public void testNioSingleShared() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
 		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
@@ -412,15 +412,15 @@ public class TcpReceivingChannelAdapterTests {
 		handler.handleMessage(message);
 		message = channel.receive(10000);
 		assertNotNull(message);
-		handler.handleMessage(message);		
+		handler.handleMessage(message);
 		byte[] b = new byte[7];
 		readFully(socket1.getInputStream(), b);
 		assertEquals("Test1\r\n", new String(b));
 		readFully(socket2.getInputStream(), b);
 		assertEquals("Test2\r\n", new String(b));
 	}
-	
-	@Test  
+
+	@Test
 	public void testNioSingleSharedMany() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
 		TcpNioServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
@@ -428,12 +428,12 @@ public class TcpReceivingChannelAdapterTests {
 		scf.setSerializer(serializer);
 		scf.setDeserializer(serializer);
 		scf.setSingleUse(true);
-		scf.setPoolSize(100);
+		scf.setBacklog(100);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
-		Executor te = Executors.newFixedThreadPool(10);
+		Executor te = Executors.newCachedThreadPool();
 		scf.setTaskExecutor(te);
 		scf.start();
 		QueueChannel channel = new QueueChannel();
@@ -453,17 +453,17 @@ public class TcpReceivingChannelAdapterTests {
 			sockets.add(socket1);
 		}
 		for (int i = 100; i < 200; i++) {
-			Message<?> message = channel.receive(10000);
+			Message<?> message = channel.receive(60000);
 			assertNotNull(message);
 			handler.handleMessage(message);
 		}
 		byte[] b = new byte[9];
-		for (int i = 100; i < 200; i++) { 
+		for (int i = 100; i < 200; i++) {
 			readFully(sockets.remove(0).getInputStream(), b);
 			assertEquals("Test" + i + "\r\n", new String(b));
 		}
 	}
-	
+
 	@Test
 	public void testNetInterceptors() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
@@ -484,7 +484,7 @@ public class TcpReceivingChannelAdapterTests {
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
 		singleSharedInterceptorsGuts(port, scf);
 	}
-	
+
 	@Test
 	public void testNioInterceptors() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
@@ -509,11 +509,11 @@ public class TcpReceivingChannelAdapterTests {
 	private void interceptorsGuts(final int port, AbstractServerConnectionFactory scf) throws Exception {
 		scf.setSerializer(new DefaultSerializer());
 		scf.setDeserializer(new DefaultDeserializer());
-		scf.setSingleUse(false);		
+		scf.setSingleUse(false);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
             		     {new HelloWorldInterceptorFactory(),
                		      new HelloWorldInterceptorFactory()});
 		scf.setInterceptorFactoryChain(fc);
@@ -553,7 +553,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.setSingleUse(true);
 		scf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
             		     {new HelloWorldInterceptorFactory(),
                		      new HelloWorldInterceptorFactory()});
 		scf.setInterceptorFactoryChain(fc);
@@ -576,7 +576,7 @@ public class TcpReceivingChannelAdapterTests {
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
 		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test1");
-		
+
 		socket = SocketFactory.getDefault().createSocket("localhost", port);
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
 		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
@@ -601,7 +601,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.setSingleUse(true);
 		scf.setSoTimeout(60000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
             		     {new HelloWorldInterceptorFactory(),
                		      new HelloWorldInterceptorFactory()});
 		scf.setInterceptorFactoryChain(fc);
@@ -641,7 +641,7 @@ public class TcpReceivingChannelAdapterTests {
 		message = channel.receive(10000);
 		assertNotNull(message);
 		handler.handleMessage(message);
-		
+
 		assertEquals("Test1", new ObjectInputStream(socket1.getInputStream()).readObject());
 		assertEquals("Test2", new ObjectInputStream(socket2.getInputStream()).readObject());
 	}

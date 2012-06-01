@@ -64,8 +64,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	/**
 	 * If no listener registers, exits.
-	 * Accepts incoming connections and creates TcpConnections for each new connection. 
-	 * Invokes {{@link #initializeConnection(TcpConnection, Socket)} and executes the 
+	 * Accepts incoming connections and creates TcpConnections for each new connection.
+	 * Invokes {{@link #initializeConnection(TcpConnection, Socket)} and executes the
 	 * connection {@link TcpConnection#run()} using the task executor.
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
@@ -84,11 +84,11 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			this.serverChannel.configureBlocking(false);
 			if (this.getLocalAddress() == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(port),
-					Math.abs(this.getPoolSize()));
+					Math.abs(this.getBacklog()));
 			} else {
 				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
 				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port),
-						Math.abs(this.getPoolSize()));
+						Math.abs(this.getBacklog()));
 			}
 			final Selector selector = Selector.open();
 			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
@@ -109,11 +109,11 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	/**
 	 * Listens for incoming connections and for notifications that a connected
 	 * socket is ready for reading.
-	 * Accepts incoming connections, registers the new socket with the 
+	 * Accepts incoming connections, registers the new socket with the
 	 * selector for reading.
 	 * When a socket is ready for reading, unregisters the read interest and
 	 * schedules a call to doRead which reads all available data. When the read
-	 * is complete, the socket is again registered for read interest. 
+	 * is complete, the socket is again registered for read interest.
 	 * @param server
 	 * @param selector
 	 * @throws IOException
@@ -176,6 +176,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 	}
 
+	@Override
 	public void close() {
 		if (this.selector != null) {
 			this.selector.wakeup();
