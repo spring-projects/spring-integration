@@ -1,82 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:int="http://www.springframework.org/schema/integration"
-  xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-  xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
-  xmlns:tx="http://www.springframework.org/schema/tx"
-  xmlns:util="http://www.springframework.org/schema/util"
-  xmlns:p="http://www.springframework.org/schema/p"
-  xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
-    http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-    http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
-    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
-    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-    <jdbc:embedded-database id="dataSource" type="H2">
-        <jdbc:script location="classpath:h2-stored-procedures.sql"/>
-    </jdbc:embedded-database>
+	<jdbc:embedded-database id="dataSource" type="H2">
+		<jdbc:script location="classpath:h2-stored-procedures.sql"/>
+	</jdbc:embedded-database>
 
-    <int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
+	<int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
 
-    <bean  id="source" class="org.springframework.integration.jdbc.StoredProcPollingChannelAdapter">
-        <constructor-arg name="dataSource"          ref="dataSource" />
-        <constructor-arg name="storedProcedureName" value="GET_PRIME_NUMBERS"/>
-        <property name="function" value="false"/>
-        <property name="expectSingleResult" value="true"/>
-        <property name="procedureParameters" >
-            <util:list>
-                <bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
-                    <property name="name"  value="beginRange"/>
-                    <property name="value" value="1"/>
-                </bean>
-                <bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
-                    <property name="name"  value="endRange"/>
-                    <property name="value" value="10"/>
-                </bean>
-            </util:list>
-        </property>
-        <property name="sqlParameters">
-            <util:list>
-                <bean class="org.springframework.jdbc.core.SqlParameter">
-                    <constructor-arg name="name" value="beginRange"/>
-                    <constructor-arg name="sqlType"><util:constant static-field="java.sql.Types.INTEGER"/></constructor-arg>
-                </bean>
-                <bean class="org.springframework.jdbc.core.SqlParameter">
-                    <constructor-arg name="name" value="endRange"/>
-                    <constructor-arg name="sqlType"><util:constant static-field="java.sql.Types.INTEGER"/></constructor-arg>
-                </bean>
-            </util:list>
-        </property>
-        <property name="returningResultSetRowMappers">
-            <util:map map-class="java.util.Hashtable">
-                <entry key="out" value-ref="rowMapper"/>
-            </util:map>
-        </property>
-        <property name="ignoreColumnMetaData" value="true"/>
-    </bean>
+	<bean  id="storedProcExecutor" class="org.springframework.integration.jdbc.StoredProcExecutor">
+		<constructor-arg name="dataSource" ref="dataSource" />
+		<property name="storedProcedureName" value="GET_PRIME_NUMBERS"/>
+		<property name="function" value="false"/>
+		<property name="procedureParameters" >
+			<util:list>
+				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
+					<property name="name"  value="beginRange"/>
+					<property name="value" value="1"/>
+				</bean>
+				<bean class="org.springframework.integration.jdbc.storedproc.ProcedureParameter">
+					<property name="name"  value="endRange"/>
+					<property name="value" value="10"/>
+				</bean>
+			</util:list>
+		</property>
+		<property name="sqlParameters">
+			<util:list>
+				<bean class="org.springframework.jdbc.core.SqlParameter">
+					<constructor-arg name="name" value="beginRange"/>
+					<constructor-arg name="sqlType"><util:constant static-field="java.sql.Types.INTEGER"/></constructor-arg>
+				</bean>
+				<bean class="org.springframework.jdbc.core.SqlParameter">
+					<constructor-arg name="name" value="endRange"/>
+					<constructor-arg name="sqlType"><util:constant static-field="java.sql.Types.INTEGER"/></constructor-arg>
+				</bean>
+			</util:list>
+		</property>
+		<property name="returningResultSetRowMappers">
+			<util:map map-class="java.util.Hashtable">
+				<entry key="out" value-ref="rowMapper"/>
+			</util:map>
+		</property>
+		<property name="ignoreColumnMetaData" value="true"/>
+	</bean>
 
-    <bean id="rowMapper" class="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
+	<bean  id="source" class="org.springframework.integration.jdbc.StoredProcPollingChannelAdapter">
+		<constructor-arg name="storedProcExecutor" ref="storedProcExecutor"/>
+		<property name="expectSingleResult" value="true"/>
+	</bean>
 
-    <bean id="storedProcedureEndpoint"
-          class="org.springframework.integration.endpoint.SourcePollingChannelAdapter">
-        <property name="source" ref="source"/>
-        <property name="outputChannel" ref="outputChannel"/>
-         <property name="pollerMetadata" ref="defaultPoller"/>
-    </bean>
+	<bean id="rowMapper" class="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
 
-    <int:channel id="outputChannel"/>
-<!--     <int:channel id="errorChannel" /> -->
+	<bean id="storedProcedureEndpoint"
+				class="org.springframework.integration.endpoint.SourcePollingChannelAdapter">
+		<property name="source" ref="source"/>
+		<property name="outputChannel" ref="outputChannel"/>
+		<property name="pollerMetadata" ref="defaultPoller"/>
+	</bean>
 
-    <int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
-    <bean id="consumer" class="org.springframework.integration.jdbc.StoredProcPollingChannelAdapterWithSpringContextIntegrationTests$Consumer"/>
+	<int:channel id="outputChannel"/>
+<!-- <int:channel id="errorChannel" /> -->
 
-    <int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
+	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
+	<bean id="consumer" class="org.springframework.integration.jdbc.StoredProcPollingChannelAdapterWithSpringContextIntegrationTests$Consumer"/>
 
-    <bean id="transactionManager"
-        class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="dataSource" />
-    </bean>
+	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
+
+	<bean id="transactionManager"
+			class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
 
 </beans>

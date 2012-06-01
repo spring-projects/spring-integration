@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -29,7 +29,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.LinkedCaseInsensitiveMap;
@@ -38,14 +37,14 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * A message handler that executes an SQL update. Dynamic query parameters are supported through the
  * {@link SqlParameterSourceFactory} abstraction, the default implementation of which wraps the message so that its bean
  * properties can be referred to by name in the query string E.g.
- * 
+ *
  * <pre>
  * INSERT INTO FOOS (MESSAGE_ID, PAYLOAD) VALUES (:headers[id], :payload)
  * </pre>
- * 
+ *
  * N.B. do not use quotes to escape the header keys. The default SQL parameter source (from Spring JDBC) can also handle
  * headers with dotted names (e.g. <code>business.id</code>)
- * 
+ *
  * @author Dave Syer
  * @since 2.0
  */
@@ -62,8 +61,8 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be obtained and the select query to
 	 * execute to retrieve new rows.
-	 * 
-	 * @param dataSource used to create a {@link SimpleJdbcTemplate}
+	 *
+	 * @param dataSource Must not be null
 	 * @param updateSql query to execute
 	 */
 	public JdbcMessageHandler(DataSource dataSource, String updateSql) {
@@ -74,7 +73,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Constructor taking {@link JdbcOperations} instance to use for query execution and the select query to execute to
 	 * retrieve new rows.
-	 * 
+	 *
 	 * @param jdbcOperations instance to use for query execution
 	 * @param updateSql query to execute
 	 */
