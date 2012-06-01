@@ -32,6 +32,31 @@
               <listitem>Support for Dead Letter Exchanges/Dead Letter Queues</listitem>
             </itemizedlist>
         </section>
+		<section id="2.2-jdbc-11">
+			<title>JDBC Adapter - Stored Procedures Components</title>
+			<para><emphasis>SpEL Support</emphasis></para>
+			<para>
+				When using the Stored Procedure components of the Spring Integration
+				JDBC Adapter, you can now provide Stored Procedure Names or
+				Stored Function Names using Spring Expression Language (SpEL).
+			</para>
+			<para>
+				This allows you to specify the Stored Procedures to be invoked
+				at runtime. For example, you can provide Stored Procedure names
+				that you would like to execute via Message Headers. For more
+				information please see <xref linkend="stored-procedures"/>.
+			</para>
+			<para><emphasis>JMX Support</emphasis></para>
+			<para>
+				The Stored Procedure components now provide basic JMX support,
+				exposing some of their properties as MBeans:
+			</para>
+            <itemizedlist>
+              <listitem>Stored Procedure Name</listitem>
+              <listitem>Stored Procedure Name Expression</listitem>
+              <listitem>JdbcCallOperations Cache Statistics</listitem>
+            </itemizedlist>
+		</section>
     </section>
 
     <section id="2.2-new-components">
