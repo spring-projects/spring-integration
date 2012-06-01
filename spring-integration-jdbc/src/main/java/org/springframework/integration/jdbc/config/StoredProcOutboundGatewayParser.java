@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,8 +14,9 @@
 package org.springframework.integration.jdbc.config;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -40,41 +41,37 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 	}
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(StoredProcOutboundGateway.class);
+		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StoredProcOutboundGateway.class);
 
-		String dataSourceRef       = gatewayElement.getAttribute("data-source");
-		String storedProcedureName = gatewayElement.getAttribute("stored-procedure-name");
+		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		builder.addConstructorArgReference(dataSourceRef);
-		builder.addConstructorArgValue(storedProcedureName);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "is-function");
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "is-function");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "ignore-column-meta-data");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "expect-single-result");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "return-value-required");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "use-payload-as-parameter-source");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, gatewayElement, "sql-parameter-source-factory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "skip-undeclared-results");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "reply-timeout", "sendTimeout");
-		 
-		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(gatewayElement, parserContext);
-		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(gatewayElement, parserContext);
-		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(gatewayElement, parserContext);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "return-value-required");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "skip-undeclared-results");
 
-		if (!procedureParameterList.isEmpty()) {
-			builder.addPropertyValue("procedureParameters", procedureParameterList);
-		}
-		if (!sqlParameterDefinitionList.isEmpty()) {
-			builder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
-		}
+		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
+
 		if (!returningResultsetMap.isEmpty()) {
-			builder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
+			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
 		}
 
-		String replyChannel = gatewayElement.getAttribute("reply-channel");
+		final AbstractBeanDefinition storedProcExecutorBuilderBeanDefinition = storedProcExecutorBuilder.getBeanDefinition();
+		final String gatewayId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
+		final String storedProcExecutorBeanName = gatewayId + ".storedProcExecutor";
+
+		parserContext.registerBeanComponent(new BeanComponentDefinition(storedProcExecutorBuilderBeanDefinition, storedProcExecutorBeanName));
+
+		builder.addConstructorArgReference(storedProcExecutorBeanName);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
+
+		String replyChannel = element.getAttribute("reply-channel");
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addPropertyReference("outputChannel", replyChannel);
 		}

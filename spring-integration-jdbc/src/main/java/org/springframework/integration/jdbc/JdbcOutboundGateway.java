@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,8 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	private volatile boolean keysGenerated;
 
-	private volatile Integer maxRowsPerPoll; 
-	
+	private volatile Integer maxRowsPerPoll;
+
 	public JdbcOutboundGateway(DataSource dataSource, String updateQuery) {
 		this(new JdbcTemplate(dataSource), updateQuery, null);
 	}
@@ -73,15 +73,15 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	/**
 	 * The maximum number of rows to pull out of the query results per poll (if
 	 * greater than zero, otherwise all rows will be packed into the outgoing
-	 * message). 
-	 * 
+	 * message).
+	 *
 	 * The value is ultimately set on the underlying {@link JdbcPollingChannelAdapter}.
 	 * If not specified this value will default to <code>zero</code>.
-	 * 
+	 *
 	 * This parameter is only applicable if a selectQuery was provided. Null values
-	 * are not permitted. 
-	 * 
-	 * @param maxRowsPerPoll Must not be null. 
+	 * are not permitted.
+	 *
+	 * @param maxRowsPerPoll Must not be null.
 	 */
 	public void setMaxRowsPerPoll(Integer maxRowsPerPoll) {
 		Assert.notNull(maxRowsPerPoll, "MaxRowsPerPoll must not be null.");
@@ -90,14 +90,14 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	@Override
 	protected void onInit() {
-		
+
 		if (this.maxRowsPerPoll != null) {
 			Assert.notNull(poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");
-			poller.setMaxRowsPerPoll(this.maxRowsPerPoll);			
+			poller.setMaxRowsPerPoll(this.maxRowsPerPoll);
 		}
 
 		handler.afterPropertiesSet();
-		
+
 	}
 
 	@Override
