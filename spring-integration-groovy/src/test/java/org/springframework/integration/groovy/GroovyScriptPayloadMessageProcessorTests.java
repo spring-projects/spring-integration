@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -14,10 +14,15 @@
 package org.springframework.integration.groovy;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import groovy.lang.Binding;
+import groovy.lang.MissingPropertyException;
+import junit.framework.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.integration.Message;
@@ -29,6 +34,7 @@ import org.springframework.test.annotation.Repeat;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
  * @since 2.0
  */
 public class GroovyScriptPayloadMessageProcessorTests {
@@ -65,11 +71,53 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecutionWithContext() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam foo is $headers.foo\"")
 				.setHeader("foo", "bar").build();
-		ScriptVariableGenerator scriptVariableGenerator = 
+		ScriptVariableGenerator scriptVariableGenerator =
 				new DefaultScriptVariableGenerator(Collections.singletonMap("spam",(Object)"bucket"));
 		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableGenerator);
 		Object result = processor.processMessage(message);
 		assertEquals("spam is bucket foo is bar", result.toString());
+	}
+
+	@Test //INT-2567
+	public void testBindingOverwrite() throws Exception {
+		Binding binding = new Binding() {
+			@Override
+			public Object getVariable(String name) {
+				throw new RuntimeException("intentional");
+			}
+		};
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		processor = new GroovyCommandMessageProcessor(binding);
+		try {
+			processor.processMessage(message);
+			fail("Expected RuntimeException");
+		}
+		catch (Exception e) {
+			Assert.assertEquals("intentional", e.getCause().getMessage());
+		}
+	}
+
+	@Test //INT-2567
+	public void testBindingOverwriteWithContext() throws Exception {
+		final String defaultValue = "default";
+		Binding binding = new Binding() {
+			@Override
+			public Object getVariable(String name) {
+				try {
+					return super.getVariable(name);
+				}
+				catch (MissingPropertyException e) {
+				// ignore
+				}
+				return defaultValue;
+			}
+		};
+		ScriptVariableGenerator scriptVariableGenerator =
+				new DefaultScriptVariableGenerator(Collections.singletonMap("spam",(Object)"bucket"));
+		Message<?> message = MessageBuilder.withPayload("\"spam is $spam, foo is $foo\"").build();
+		processor = new GroovyCommandMessageProcessor(binding, scriptVariableGenerator);
+		Object result = processor.processMessage(message);
+		assertEquals("spam is bucket, foo is default", result.toString());
 	}
 
 }
