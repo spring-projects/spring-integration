@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,29 @@
 
 package org.springframework.integration.groovy.config;
 
+import groovy.lang.Script;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.config.AbstractScriptParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
 /**
+ * Parser for the &lt;groovy:script/&gt; element.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.0
  */
 public class GroovyScriptParser extends AbstractScriptParser {
 
-	
+
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor";
+		return GroovyScriptExecutingMessageProcessor.class.getName();
 	}
 
 	/* (non-Javadoc)
@@ -41,14 +46,14 @@ public class GroovyScriptParser extends AbstractScriptParser {
 	 */
 	@Override
 	protected String getScriptSourceClassName() {
-		return "groovy.lang.Script";
+		return Script.class.getName();
 	}
-	
+
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "customizer");
 	}
 
-	
 
-	
+
+
 }
