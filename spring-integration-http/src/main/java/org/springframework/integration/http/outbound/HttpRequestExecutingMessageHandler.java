@@ -288,7 +288,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 			if (!this.shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet){
 				if (logger.isWarnEnabled()){
-					logger.warn("The 'extractPayload' attribute has no meaning in the context of this handler since the provided HTTP Method is '" +
+					logger.warn("The 'extractPayload' attribute has no relevance for the current request since the HTTP Method is '" +
 		               httpMethod + "', and no request body will be sent for that method.");
 				}
 			}
@@ -486,7 +486,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private HttpMethod determineHttpMethod(Message<?> requestMessage) {
 		String strHttpMethod = httpMethodExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.isTrue(StringUtils.hasText(strHttpMethod) && !Arrays.asList(HttpMethod.values()).contains(strHttpMethod),
-				"The 'httpMethodExpression' returned a value not compatible with valid HTTP Methods: " + strHttpMethod);
+				"The 'httpMethodExpression' returned an invalid HTTP Method value: " + strHttpMethod);
 		return HttpMethod.valueOf(strHttpMethod);
 	}
 }
