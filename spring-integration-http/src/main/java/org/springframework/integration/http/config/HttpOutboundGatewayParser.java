@@ -47,8 +47,6 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
-
 		String restTemplate = element.getAttribute("rest-template");
 		if (StringUtils.hasText(restTemplate)) {
 			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
