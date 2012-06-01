@@ -82,17 +82,22 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 	}
 
 	@Test
-	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndDynamicProcName() {
+	public void testDerbyStoredProcInsertWithDefaultSqlSourceAndDynamicProcName() throws Exception {
 
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(this.embeddedDatabase);
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
-		storedProcExecutor.setAllowDynamicStoredProcedureNames(true);
+
+		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
+		efb.afterPropertiesSet();
+		final Expression expression = efb.getObject();
+
+		storedProcExecutor.setStoredProcedureNameExpression(expression);
 
 		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
 
 		MessageBuilder<User> message = MessageBuilder.withPayload(new User("username", "password", "email"));
-		message.setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "CREATE_USER");
+		message.setHeader("stored_procedure_name", "CREATE_USER");
 		messageHandler.handleMessage(message.build());
 
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM USERS WHERE USERNAME=?", "username");

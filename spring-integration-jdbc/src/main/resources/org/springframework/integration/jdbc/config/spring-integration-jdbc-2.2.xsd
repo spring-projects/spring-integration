@@ -623,26 +623,6 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
-			<xsd:attribute name="allow-dynamic-stored-procedure-names" default="false" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						This attribute defines, whether a Message Header is allowed
-						to set the Stored Procedure/Stored Function name. This attribute
-						defaults to "false". If set to "false", either the
-						"stored-procedure-name" attribute or the
-						"stored-procedure-name-expression" must be set.
-
-						If "allow-dynamic-stored-procedure-names" is set to "true",
-						then neither "stored-procedure-name" nor
-						"stored-procedure-name-expression" must be set. However, in
-						case they are being set, they are used when the Message header
-						setting the Stored Procedure name is not available.
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:boolean xsd:string" />
-				</xsd:simpleType>
-			</xsd:attribute>
 			<xsd:attribute name="use-payload-as-parameter-source">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -779,26 +759,6 @@
 				</xsd:sequence>
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
-			<xsd:attribute name="allow-dynamic-stored-procedure-names" default="false" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						This attribute defines, whether a Message Header is allowed
-						to set the Stored Procedure/Stored Function name. This attribute
-						defaults to "false". If set to "false", either the
-						"stored-procedure-name" attribute or the
-						"stored-procedure-name-expression" must be set.
-
-						If "allow-dynamic-stored-procedure-names" is set to "true",
-						then neither "stored-procedure-name" nor
-						"stored-procedure-name-expression" must be set. However, in
-						case they are being set, they are used when the Message header
-						setting the Stored Procedure name is not available.
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="xsd:boolean xsd:string" />
-				</xsd:simpleType>
-			</xsd:attribute>
 			<xsd:attribute name="use-payload-as-parameter-source">
 				<xsd:annotation>
 					<xsd:documentation>

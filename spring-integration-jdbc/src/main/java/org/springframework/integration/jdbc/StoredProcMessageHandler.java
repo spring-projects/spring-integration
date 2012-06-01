@@ -21,7 +21,6 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.jdbc.core.SqlParameter;
@@ -129,14 +128,11 @@ public class StoredProcMessageHandler extends AbstractMessageHandler implements 
 	 * property specifies the Stored Function name.
 	 *
 	 * Alternatively you can also specify the Stored Procedure name via
-	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)} or
-	 * through {@link MessageHeaders} by enabling
-	 * StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
+	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)}.
 	 *
 	 * @param storedProcedureName Must not be null and must not be empty
 	 *
 	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
-	 * @see StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
 	 *
 	 * @deprecated Since 2.2 set the respective property on the passed-in {@link StoredProcExecutor}
 	 *

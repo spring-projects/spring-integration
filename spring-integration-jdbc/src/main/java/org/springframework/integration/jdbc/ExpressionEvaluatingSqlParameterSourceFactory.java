@@ -104,7 +104,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		return toReturn;
 	}
 
-	private class ExpressionEvaluatingSqlParameterSource extends AbstractSqlParameterSource {
+	private final class ExpressionEvaluatingSqlParameterSource extends AbstractSqlParameterSource {
 
 		private final Object input;
 

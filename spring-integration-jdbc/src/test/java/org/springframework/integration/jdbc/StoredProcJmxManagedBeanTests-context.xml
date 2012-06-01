@@ -29,7 +29,9 @@
 	<int:channel id="startChannel"/>
 
 	<int-jdbc:stored-proc-outbound-gateway id="my gateway"
-			request-channel="startChannel" allow-dynamic-stored-procedure-names="true" data-source="dataSource"
+			request-channel="startChannel"
+			stored-procedure-name="CREATE_USER_RETURN_ALL"
+			data-source="dataSource"
 			auto-startup="true"
 			ignore-column-meta-data="false"
 			is-function="false"

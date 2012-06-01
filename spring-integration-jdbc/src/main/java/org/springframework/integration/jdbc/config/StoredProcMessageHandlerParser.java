@@ -44,7 +44,6 @@ public class StoredProcMessageHandlerParser extends AbstractOutboundChannelAdapt
 
 		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "allow-dynamic-stored-procedure-names");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "use-payload-as-parameter-source");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
 

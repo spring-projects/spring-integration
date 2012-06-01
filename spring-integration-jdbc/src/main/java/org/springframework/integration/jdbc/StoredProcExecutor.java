@@ -81,8 +81,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	private volatile Expression storedProcedureNameExpression;
 
-	private volatile boolean allowDynamicStoredProcedureNames = false;
-
 	/**
 	 * For fully supported databases, the underlying  {@link SimpleJdbcCall} can
 	 * retrieve the parameter information for the to be invoked Stored Procedure
@@ -163,12 +161,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 */
 	public void afterPropertiesSet() {
 
-		if (!this.allowDynamicStoredProcedureNames) {
-			if (this.storedProcedureName == null && this.storedProcedureNameExpression == null) {
-				throw new IllegalArgumentException("Because, dynamic stored procedure "
-					+ "names are disallowed, you must either provide a "
-					+ "Stored Procedure Name or a Stored Procedure Name Expression.");
-			}
+		if (this.storedProcedureName == null && this.storedProcedureNameExpression == null) {
+			throw new IllegalArgumentException("You must either provide a "
+				+ "Stored Procedure Name or a Stored Procedure Name Expression.");
 		}
 
 		if (this.procedureParameters != null ) {
@@ -300,29 +295,15 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 		final String storedProcedureNameToUse;
 
-		if (this.allowDynamicStoredProcedureNames && message.getHeaders().containsKey(JdbcHeaders.STORED_PROCEDURE_NAME)) {
-
-			storedProcedureNameToUse = (String) message.getHeaders().get(JdbcHeaders.STORED_PROCEDURE_NAME);
-			Assert.hasText(storedProcedureNameToUse, "The Stored Procedure name (from the Message Header) must must not be empty.");
-
+		if (this.storedProcedureNameExpression == null) {
+			storedProcedureNameToUse = this.storedProcedureName;
 		}
 		else {
+			storedProcedureNameToUse = this.storedProcedureNameExpression.getValue(this.evaluationContext, message, String.class);
 
-			if (this.allowDynamicStoredProcedureNames &&
-					(this.storedProcedureName == null && this.storedProcedureNameExpression == null)) {
-				throw new IllegalArgumentException("No Stored Procedure Name " +
-						"provided. You must either provide a Stored Procedure " +
-						"Name as a Message header or set one of the properties " +
-						"'storedProcedureName' or 'storedProcedureNameExpression'");
-			}
-
-			if (this.storedProcedureNameExpression == null) {
-				storedProcedureNameToUse = this.storedProcedureName;
-			}
-			else {
-				storedProcedureNameToUse = this.storedProcedureNameExpression.getValue(this.evaluationContext, message, String.class);
-			}
-
+			Assert.hasText(storedProcedureNameToUse, String.format(
+					"Unable to resolve Stored Procedure/Function name for the provided Expression '%s'.",
+					this.storedProcedureNameExpression.getExpressionString()));
 		}
 
 		return executeStoredProcedureInternal(input, storedProcedureNameToUse);
@@ -444,14 +425,14 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * property specifies the Stored Function name.
 	 *
 	 * Alternatively you can also specify the Stored Procedure name via
-	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)} or
-	 * through {@link MessageHeaders} by enabling
-	 * StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
+	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)}.
+	 *
+	 * E.g., that way you can specify the name of the Stored Procedure or Stored Function
+	 * through {@link MessageHeaders}.
 	 *
 	 * @param storedProcedureName Must not be null and must not be empty
 	 *
 	 * @see StoredProcExecutor#setStoredProcedureNameExpression(Expression)
-	 * @see StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
 	 */
 	public void setStoredProcedureName(String storedProcedureName) {
 		Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
@@ -482,9 +463,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * </ul>
 	 *
 	 * Alternatively you can also specify the Stored Procedure name via
-	 * {@link StoredProcExecutor#setStoredProcedureName(String)} or
-	 * through {@link MessageHeaders} by enabling
-	 * StoredProcExecutor#setAllowDynamicStoredProcedureNames(boolean)
+	 * {@link StoredProcExecutor#setStoredProcedureName(String)}
 	 *
 	 * @param storedProcedureNameExpression Must not be null.
 	 *
@@ -582,17 +561,6 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 		}
 
 		this.returningResultSetRowMappers = returningResultSetRowMappers;
-	}
-
-	/**
-	 * If set to <code>true</code>, the Stored Procedure name can also be defined
-	 * through {@link MessageHeaders}. If not set, this property will default to
-	 * <code>false</code>.
-	 *
-	 * @see JdbcHeaders
-	 */
-	public void setAllowDynamicStoredProcedureNames(boolean allowDynamicStoredProcedureNames) {
-		this.allowDynamicStoredProcedureNames = allowDynamicStoredProcedureNames;
 	}
 
 	/**

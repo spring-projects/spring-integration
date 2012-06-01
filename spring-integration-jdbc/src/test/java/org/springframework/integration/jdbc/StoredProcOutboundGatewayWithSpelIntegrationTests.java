@@ -69,10 +69,10 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		User user2 = new User("Second User", "my second password", "email2");
 
 		Message<User> user1Message = MessageBuilder.withPayload(user1)
-										.setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "CREATE_USER")
+										.setHeader("my_stored_procedure", "CREATE_USER")
 										.build();
 		Message<User> user2Message = MessageBuilder.withPayload(user2)
-				.setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "CREATE_USER_RETURN_ALL")
+				.setHeader("my_stored_procedure", "CREATE_USER_RETURN_ALL")
 				.build();
 
 		channel.send(user1Message);
@@ -109,10 +109,11 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		try {
 			channel.send(user1Message);
 		} catch (MessageHandlingException e) {
-			Assert.assertEquals("No Stored Procedure Name " +
-					"provided. You must either provide a Stored Procedure " +
-					"Name as a Message header or set one of the properties " +
-					"'storedProcedureName' or 'storedProcedureNameExpression'", e.getCause().getMessage());
+
+			String expectedMessage = "Unable to resolve Stored Procedure/Function name " +
+					"for the provided Expression 'headers['my_stored_procedure']'.";
+			String actualMessage = e.getCause().getMessage();
+			Assert.assertEquals(expectedMessage, actualMessage);
 			return;
 		}
 

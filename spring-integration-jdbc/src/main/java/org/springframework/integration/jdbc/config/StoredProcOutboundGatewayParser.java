@@ -47,8 +47,6 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 
 		final BeanDefinitionBuilder storedProcExecutorBuilder = StoredProcParserUtils.getStoredProcExecutorBuilder(element, parserContext);
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "allow-dynamic-stored-procedure-names");
-
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "is-function");
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "return-value-required");

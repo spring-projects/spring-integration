@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -35,6 +36,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.expression.Expression;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.RowMapper;
@@ -69,31 +72,14 @@ public class StoredProcExecutorTests {
 
 		try {
 			StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-			storedProcExecutor.setAllowDynamicStoredProcedureNames(false);
 			storedProcExecutor.afterPropertiesSet();
 		} catch (IllegalArgumentException e) {
-			assertEquals("Because, dynamic stored procedure "
-						+ "names are disallowed, you must either provide a "
+			assertEquals("You must either provide a "
 						+ "Stored Procedure Name or a Stored Procedure Name Expression.", e.getMessage());
 			return;
 		}
 
 		fail("Exception expected.");
-	}
-
-	@Test
-	public void testStoredProcExecutorWithNullProcedureName2() {
-
-		DataSource datasource = mock(DataSource.class);
-
-		try {
-			StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-			storedProcExecutor.setAllowDynamicStoredProcedureNames(true);
-			storedProcExecutor.afterPropertiesSet();
-		} catch (IllegalArgumentException e) {
-			fail("storedProcedureName can be null if allowDynamicStoredProcedureNames=true.");
-		}
-
 	}
 
 	@Test
@@ -110,6 +96,34 @@ public class StoredProcExecutorTests {
 		}
 
 		fail("Exception expected.");
+	}
+
+	@Test
+	public void testGetStoredProcedureNameExpressionAsString() throws Exception {
+
+		DataSource datasource = mock(DataSource.class);
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
+
+		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
+		efb.afterPropertiesSet();
+		final Expression expression = efb.getObject();
+
+		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.afterPropertiesSet();
+
+		assertEquals("headers['stored_procedure_name']", storedProcExecutor.getStoredProcedureNameExpressionAsString());
+	}
+
+	@Test
+	public void testGetStoredProcedureNameExpressionAsString2() throws Exception {
+
+		DataSource datasource = mock(DataSource.class);
+		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
+
+		storedProcExecutor.setStoredProcedureName("123");
+		storedProcExecutor.afterPropertiesSet();
+
+		assertNull(storedProcExecutor.getStoredProcedureNameExpressionAsString());
 	}
 
 	@Test
@@ -291,39 +305,8 @@ public class StoredProcExecutorTests {
 
 	}
 
-//	@Test
-//	public void testStoredProcExecutorJdbcCallOperationsCache() throws Exception {
-//
-//		final DataSource datasource = mock(DataSource.class);
-//
-//		PowerMockito.mockStatic(StoredProcExecutor.class);
-//
-//		PowerMockito.spy(StoredProcExecutor.class);
-//		PowerMockito.doReturn(null).when(StoredProcExecutor.class, "executeStoredProcedure", Mockito.any(), Mockito.any());
-//
-//		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-//		storedProcExecutor.setAllowDynamicStoredProcedureNames(true);
-//		storedProcExecutor.afterPropertiesSet();
-//
-//		for (int i = 1; i <= 3; i++) {
-//			storedProcExecutor.executeStoredProcedure(
-//					MessageBuilder.withPayload("test")
-//					              .setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "123")
-//					              .build());
-//		}
-//
-//		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
-//		LOGGER.info(stats);
-//		LOGGER.info(stats.totalLoadTime() / 1000 / 1000);
-//
-//		assertEquals(stats.hitCount(), 2);
-//		assertEquals(stats.missCount(), 1);
-//		assertEquals(stats.loadCount(), 1);
-//
-//	}
-
 	@Test
-	public void testStoredProcExecutorJdbcCallOperationsCache2() throws Exception {
+	public void testStoredProcExecutorWithNonResolvingExpression() throws Exception {
 
 		final DataSource datasource = mock(DataSource.class);
 
@@ -333,20 +316,72 @@ public class StoredProcExecutorTests {
 		PowerMockito.doReturn(null).when(StoredProcExecutor.class, "executeStoredProcedure", Mockito.any(), Mockito.any());
 
 		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-		storedProcExecutor.setAllowDynamicStoredProcedureNames(true);
-		storedProcExecutor.setJdbcCallOperationsCacheSize(2000);
+
+		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
+		efb.afterPropertiesSet();
+		final Expression expression = efb.getObject();
+
+		storedProcExecutor.setStoredProcedureNameExpression(expression);
+
 		storedProcExecutor.afterPropertiesSet();
 
-		for (int i = 1; i <= 1000; i++) {
+		//This should work
+
+		storedProcExecutor.executeStoredProcedure(
+			MessageBuilder.withPayload("test")
+				.setHeader("stored_procedure_name", "123")
+				.build());
+
+		//This should cause an exception
+
+		try {
 			storedProcExecutor.executeStoredProcedure(
 					MessageBuilder.withPayload("test")
-					              .setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "123")
-					              .build());
+						.setHeader("some_other_header", "123")
+						.build());
+		} catch (IllegalArgumentException e) {
+			assertEquals("Unable to resolve Stored Procedure/Function name for the provided Expression 'headers['stored_procedure_name']'.", e.getMessage());
+			return;
+		}
+
+		fail("IllegalArgumentException expected.");
+
+	}
+
+	@Test
+	public void testStoredProcExecutorJdbcCallOperationsCache() throws Exception {
+
+		final DataSource datasource = mock(DataSource.class);
+
+		PowerMockito.mockStatic(StoredProcExecutor.class);
+
+		PowerMockito.spy(StoredProcExecutor.class);
+		PowerMockito.doReturn(null).when(StoredProcExecutor.class, "executeStoredProcedure", Mockito.any(), Mockito.any());
+
+		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
+
+		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
+		efb.afterPropertiesSet();
+		final Expression expression = efb.getObject();
+
+		storedProcExecutor.setStoredProcedureNameExpression(expression);
+
+		storedProcExecutor.afterPropertiesSet();
+
+		for (int i = 1; i <= 3; i++) {
+			storedProcExecutor.executeStoredProcedure(
+					MessageBuilder.withPayload("test")
+						.setHeader("stored_procedure_name", "123")
+						.build());
 		}
 
 		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();
 		LOGGER.info(stats);
 		LOGGER.info(stats.totalLoadTime() / 1000 / 1000);
+
+		assertEquals(stats.hitCount(), 2);
+		assertEquals(stats.missCount(), 1);
+		assertEquals(stats.loadCount(), 1);
 
 	}
 
@@ -361,15 +396,21 @@ public class StoredProcExecutorTests {
 		PowerMockito.doReturn(null).when(StoredProcExecutor.class, "executeStoredProcedure", Mockito.any(), Mockito.any());
 
 		final StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
-		storedProcExecutor.setAllowDynamicStoredProcedureNames(true);
 		storedProcExecutor.setJdbcCallOperationsCacheSize(0);
+
+		final ExpressionFactoryBean efb = new ExpressionFactoryBean("headers['stored_procedure_name']");
+		efb.afterPropertiesSet();
+		final Expression expression = efb.getObject();
+
+		storedProcExecutor.setStoredProcedureNameExpression(expression);
+
 		storedProcExecutor.afterPropertiesSet();
 
 		for (int i = 1; i <= 10; i++) {
 			storedProcExecutor.executeStoredProcedure(
 					MessageBuilder.withPayload("test")
-					              .setHeader(JdbcHeaders.STORED_PROCEDURE_NAME, "123")
-					              .build());
+						.setHeader("stored_procedure_name", "123")
+						.build());
 		}
 
 		final CacheStats stats = storedProcExecutor.getJdbcCallOperationsCacheStatistics();

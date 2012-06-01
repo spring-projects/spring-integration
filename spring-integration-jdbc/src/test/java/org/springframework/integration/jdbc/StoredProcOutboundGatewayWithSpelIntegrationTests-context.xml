@@ -22,7 +22,7 @@
 
 	<int-jdbc:stored-proc-outbound-gateway request-channel="startChannel"
 			data-source="dataSource"
-			allow-dynamic-stored-procedure-names="true"
+			stored-procedure-name-expression="headers['my_stored_procedure']"
 			auto-startup="true"
 			id="gateway"
 			ignore-column-meta-data="false"
