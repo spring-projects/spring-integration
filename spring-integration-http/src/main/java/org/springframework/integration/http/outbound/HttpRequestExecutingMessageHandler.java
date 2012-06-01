@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -76,9 +77,15 @@ import org.springframework.web.client.RestTemplate;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+
+	private final RestTemplate restTemplate;
+
+	private final StandardEvaluationContext evaluationContext;
+
 	private final Expression uriExpression;
 
-	private volatile HttpMethod httpMethod = HttpMethod.POST;
+	private volatile Expression httpMethodExpression = new LiteralExpression(HttpMethod.POST.name());
 
 	private volatile boolean expectReply = true;
 
@@ -86,19 +93,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile boolean extractPayload = true;
 
-	private volatile boolean extractPayloadExplicitlySet = false;
-
 	private volatile String charset = "UTF-8";
 
 	private volatile boolean transferCookies = false;
 
+	private volatile boolean extractPayloadExplicitlySet = false;
+
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
-
-	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
-
-	private final RestTemplate restTemplate;
-
-	private final StandardEvaluationContext evaluationContext;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -152,12 +153,21 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		this.evaluationContext = sec;
 	}
 
+	/**
+	 * Specify the SpEL {@link Expression} to determine {@link HttpMethod} dynamically
+	 *
+	 * @param httpMethodExpression
+	 */
+	public void setHttpMethodExpression(Expression httpMethodExpression) {
+		Assert.notNull(httpMethodExpression, "'httpMethodExpression' must not be null");
+		this.httpMethodExpression = httpMethodExpression;
+	}
 
 	/**
 	 * Specify the {@link HttpMethod} for requests. The default method will be POST.
 	 */
 	public void setHttpMethod(HttpMethod httpMethod) {
-		this.httpMethod = httpMethod;
+		this.httpMethodExpression = new LiteralExpression(httpMethod.name());
 	}
 
 	/**
@@ -262,12 +272,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		if (conversionService != null) {
 			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
-		if (!this.shouldIncludeRequestBody() && this.extractPayloadExplicitlySet){
-			if (logger.isWarnEnabled()){
-				logger.warn("The 'extractPayload' attribute has no meaning in the context of this handler since the provided HTTP Method is '" +
-			           this.httpMethod + "', and no request body will be sent for that method.");
-			}
-		}
 	}
 
 	@Override
@@ -280,8 +284,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				Object value = entry.getValue().getValue(this.evaluationContext, requestMessage, String.class);
 				uriVariables.put(entry.getKey(), value);
 			}
-			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage);
-			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
+
+			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
+
+			if (!this.shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet){
+				if (logger.isWarnEnabled()){
+					logger.warn("The 'extractPayload' attribute has no relevance for the current request since the HTTP Method is '" +
+		               httpMethod + "', and no request body will be sent for that method.");
+				}
+			}
+
+			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
+			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
 				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
@@ -332,20 +346,20 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
-	private HttpEntity<?> generateHttpRequest(Message<?> message) throws Exception {
+	private HttpEntity<?> generateHttpRequest(Message<?> message, HttpMethod httpMethod) throws Exception {
 		Assert.notNull(message, "message must not be null");
-		return (this.extractPayload) ? this.createHttpEntityFromPayload(message)
-				: this.createHttpEntityFromMessage(message);
+		return (this.extractPayload) ? this.createHttpEntityFromPayload(message, httpMethod)
+				: this.createHttpEntityFromMessage(message, httpMethod);
 	}
 
-	private HttpEntity<?> createHttpEntityFromPayload(Message<?> message) {
+	private HttpEntity<?> createHttpEntityFromPayload(Message<?> message, HttpMethod httpMethod) {
 		Object payload = message.getPayload();
 		if (payload instanceof HttpEntity<?>) {
 			// payload is already an HttpEntity, just return it as-is
 			return (HttpEntity<?>) payload;
 		}
 		HttpHeaders httpHeaders = this.mapHeaders(message);
-		if (!shouldIncludeRequestBody()) {
+		if (!shouldIncludeRequestBody(httpMethod)) {
 			return new HttpEntity<Object>(httpHeaders);
 		}
 		// otherwise, we are creating a request with a body and need to deal with the content-type header as well
@@ -363,9 +377,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return new HttpEntity<Object>(payload, httpHeaders);
 	}
 
-	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message) {
+	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message, HttpMethod httpMethod) {
 		HttpHeaders httpHeaders = mapHeaders(message);
-		if (shouldIncludeRequestBody()) {
+		if (shouldIncludeRequestBody(httpMethod)) {
 			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
 			return new HttpEntity<Object>(message, httpHeaders);
 		}
@@ -405,8 +419,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return contentType;
 	}
 
-	private boolean shouldIncludeRequestBody() {
-		return !HttpMethod.GET.equals(this.httpMethod);
+	private boolean shouldIncludeRequestBody(HttpMethod httpMethod) {
+		return !HttpMethod.GET.equals(httpMethod);
 	}
 
 	private MediaType resolveContentType(String content, String charset) {
@@ -470,4 +484,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return true;
 	}
 
+	private HttpMethod determineHttpMethod(Message<?> requestMessage) {
+		String strHttpMethod = httpMethodExpression.getValue(this.evaluationContext, requestMessage, String.class);
+		Assert.isTrue(StringUtils.hasText(strHttpMethod) && !Arrays.asList(HttpMethod.values()).contains(strHttpMethod),
+				"The 'httpMethodExpression' returned an invalid HTTP Method value: " + strHttpMethod);
+		return HttpMethod.valueOf(strHttpMethod);
+	}
 }

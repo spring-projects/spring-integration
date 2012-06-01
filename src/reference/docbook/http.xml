@@ -265,6 +265,20 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     of the HTTP Outbound Gateway was renamed to <emphasis>reply-timeout</emphasis>
     to better reflect the intent.
   </important>
+  <para>
+    Beginning with Spring Integration 2.2 you can also determine the HTTP Method dynamically using SpEL and  the <emphasis>http-method-expression</emphasis> attribute.
+    Note that this attribute is obviously murually exclusive with <emphasis>http-method</emphasis>
+    <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
+    request-channel="requests"
+    url="http://localhost/test"
+    http-method-expression="headers.httpMethod"
+    extract-request-payload="false"
+    expected-response-type="java.lang.String"
+    charset="UTF-8"
+    request-factory="requestFactory"
+    reply-timeout="1234"
+    reply-channel="replies"/>]]></programlisting>
+  </para>
   <para>If your outbound adapter is to be used in a unidirectional way, then you can use an outbound-channel-adapter instead. This means that
     a successful response will simply execute without sending any Messages to a reply channel. In the case of any non-successful response
     status code, it will throw an exception. The configuration looks very similar to the gateway:
