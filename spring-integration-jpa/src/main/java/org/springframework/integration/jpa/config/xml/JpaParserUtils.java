@@ -59,15 +59,15 @@ public final class JpaParserUtils {
 	 * Create a new {@link BeanDefinitionBuilder} for the class {@link JpaExecutor}.
 	 * Initialize the wrapped {@link JpaExecutor} with common properties.
 	 *
-	 * @param element Must not be Null
-	 * @param parserContext Must not be Null
+	 * @param element Must not be null
+	 * @param parserContext Must not be null
 	 * @return The BeanDefinitionBuilder for the JpaExecutor
 	 */
 	public static BeanDefinitionBuilder getJpaExecutorBuilder(final Element element,
 															final ParserContext parserContext) {
 
-		Assert.notNull(element,       "The provided element must not be Null.");
-		Assert.notNull(parserContext, "The provided parserContext must not be Null.");
+		Assert.notNull(element,       "The provided element must not be null.");
+		Assert.notNull(parserContext, "The provided parserContext must not be null.");
 
 		final Object source = parserContext.extractSource(element);
 
@@ -133,8 +133,8 @@ public final class JpaParserUtils {
 	 * Initializes the wrapped {@link JpaExecutor} with common properties.
 	 * Delegates to {@link JpaParserUtils#getJpaExecutorBuilder(Element, ParserContext)}
 	 *
-	 * @param element Must not be Null
-	 * @param parserContext Must not be Null
+	 * @param element Must not be null
+	 * @param parserContext Must not be null
 	 *
 	 * @return The BeanDefinitionBuilder for the JpaExecutor
 	 */
@@ -154,16 +154,16 @@ public final class JpaParserUtils {
 	 * Create a {@link ManagedList} of {@link BeanDefinition}s containing parsed
 	 * JPA Parameters.
 	 *
-	 * @param jpaComponent Must not be Null
-	 * @param parserContext Must not be Null
+	 * @param jpaComponent Must not be null
+	 * @param parserContext Must not be null
 	 *
 	 * @return {@link ManagedList} of {@link BeanDefinition}s
 	 */
 	public static ManagedList<BeanDefinition> getJpaParameterBeanDefinitions(
 			Element jpaComponent, ParserContext parserContext) {
 
-		Assert.notNull(jpaComponent,  "The provided element must not be Null.");
-		Assert.notNull(parserContext, "The provided parserContext must not be Null.");
+		Assert.notNull(jpaComponent,  "The provided element must not be null.");
+		Assert.notNull(parserContext, "The provided parserContext must not be null.");
 
 		final ManagedList<BeanDefinition> parameterList = new ManagedList<BeanDefinition>();
 

@@ -417,13 +417,11 @@ public class JpaExecutor implements InitializingBean {
 	}
 
 	/**
-	 * If not set, this property default to 'true', which means that deletion
+	 * If not set, this property defaults to 'true', which means that deletion
 	 * occur on a per object basis.
 	 *
 	 * If set to 'false' the elements of the payload are deleted as a batch
 	 * operation. Be aware that this exhibits issues in regards to cascaded deletes.
-	 *
-	 * //TODO further information needed
 	 *
 	 * @param deletePerRow Defaults to 'false'.
 	 */
