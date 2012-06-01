@@ -815,6 +815,13 @@
     detection logic has been added such that if thread starvation occurs, instead of
     deadlocking, an exception is thrown, thus releasing the deadlocked resources.
    </para>
+   <note>
+    Now that the default task executor is unbounded, it is possible that an out of
+    memory condition might occur with high rates of incoming messages, if message
+    processing takes extended time. If your application exhibits this type of
+    behavior, you are advised to use a pooled task executor with an appropriate
+    pool size.
+   </note>
   </section>
   <section id="ssl-tls">
     <title>SSL/TLS Support</title>
