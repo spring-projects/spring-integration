@@ -88,6 +88,16 @@ public class JpaInboundChannelAdapterParserTests {
 
 	}
 
+	@Test
+	public void testJpaExecutorBeanIdNaming() throws Exception {
+
+		this.context = new ClassPathXmlApplicationContext("JpaInboundChannelAdapterParserTests.xml", getClass());
+
+		assertNotNull(context.getBean("jpaInboundChannelAdapter1.jpaExecutor", JpaExecutor.class));
+		assertNotNull(context.getBean("jpaInboundChannelAdapter2.jpaExecutor", JpaExecutor.class));
+
+	}
+
 	@After
 	public void tearDown(){
 		if(context != null){

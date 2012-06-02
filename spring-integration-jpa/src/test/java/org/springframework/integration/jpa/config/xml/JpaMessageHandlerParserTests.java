@@ -148,6 +148,15 @@ public class JpaMessageHandlerParserTests {
 
 	}
 
+	@Test
+	public void testJpaExecutorBeanIdNaming() throws Exception {
+
+		setUp("JpaMessageHandlerParserTestsWithEmFactory.xml", getClass());
+
+		assertNotNull(context.getBean("jpaOutboundChannelAdapter.jpaExecutor", JpaExecutor.class));
+
+	}
+	
 	@After
 	public void tearDown(){
 		if(context != null){

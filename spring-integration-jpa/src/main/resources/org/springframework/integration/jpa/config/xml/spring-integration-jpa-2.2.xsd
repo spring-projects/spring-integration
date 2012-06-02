@@ -418,14 +418,14 @@
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="delete-per-row" default="false" use="optional">
+		<xsd:attribute name="delete-in-batch" default="false" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
 					If you want to automatically remove retrieved entities from
-					the database you can also specify using the 'delete-per-row'
+					the database you can also specify using the 'delete-in-batch'
 					attribute, whether the list of retrieved objects shall be
-					deleted on a 'per-object-basis (true) or whether the objects
-					shall be removed using a batch operation (false). The
+					deleted on a 'per-object-basis (false) or whether the objects
+					shall be removed using a batch operation (true). The
 					attribute defaults to 'false'.
 				</xsd:documentation>
 			</xsd:annotation>

@@ -126,6 +126,16 @@ public class JpaOutboundGatewayParserTests {
 
 	}
 
+	@Test
+	public void testJpaExecutorBeanIdNaming() throws Exception {
+
+		this.context = new ClassPathXmlApplicationContext("JpaOutboundGatewayParserTests.xml", getClass());
+
+		assertNotNull(context.getBean("retrievingJpaOutboundGateway.jpaExecutor", JpaExecutor.class));
+		assertNotNull(context.getBean("updatingJpaOutboundGateway.jpaExecutor", JpaExecutor.class));
+
+	}
+
 	@After
 	public void tearDown() {
 		if (context != null) {

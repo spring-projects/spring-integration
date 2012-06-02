@@ -76,7 +76,7 @@ public class JpaExecutor implements InitializingBean {
 	private volatile ParameterSource parameterSource;
 
 	private volatile boolean  deleteAfterPoll = false;
-	private volatile boolean  deletePerRow = false;
+	private volatile boolean  deleteInBatch = false;
 
 	private volatile boolean  expectSingleResult = false;
 
@@ -289,13 +289,13 @@ public class JpaExecutor implements InitializingBean {
 		if (payload != null && this.deleteAfterPoll) {
 
 			if (payload instanceof Iterable) {
-				if (this.deletePerRow) {
+				if (this.deleteInBatch) {
+					this.jpaOperations.deleteInBatch((Iterable<Object>) payload);
+				}
+				else {
 					for (Object entity : (Iterable<?>) payload) {
 						this.jpaOperations.delete(entity);
 					}
-				}
-				else {
-					this.jpaOperations.deleteInBatch((Iterable<Object>) payload);
 				}
 			}
 			else {
@@ -416,16 +416,24 @@ public class JpaExecutor implements InitializingBean {
 	}
 
 	/**
-	 * If not set, this property defaults to 'true', which means that deletion
-	 * occur on a per object basis.
+	 * If not set, this property defaults to <code>false</code>, which means that
+	 * deletion occurs on a per object basis if a collection of entities is being
+	 * deleted.
 	 *
-	 * If set to 'false' the elements of the payload are deleted as a batch
+	 * If set to 'true' the elements of the payload are deleted as a batch
 	 * operation. Be aware that this exhibits issues in regards to cascaded deletes.
 	 *
-	 * @param deletePerRow Defaults to 'false'.
+	 * The specification 'JSR 317: Java Persistence API, Version 2.0' does not
+	 * support cascaded deletes in batch operations. The specification states in
+	 * chapter 4.10:
+	 *
+	 * "A delete operation only applies to entities of the specified class and
+	 * its subclasses. It does not cascade to related entities."
+	 *
+	 * @param deleteInBatch Defaults to 'false' if not set.
 	 */
-	public void setDeletePerRow(boolean deletePerRow) {
-		this.deletePerRow = deletePerRow;
+	public void setDeleteInBatch(boolean deleteInBatch) {
+		this.deleteInBatch = deleteInBatch;
 	}
 
 	/**

@@ -350,7 +350,7 @@ public class JpaPollingChannelAdapterTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(jpaOperations);
 		jpaExecutor.setJpaQuery("from Student s");
 		jpaExecutor.setDeleteAfterPoll(true);
-		jpaExecutor.setDeletePerRow(true);
+		jpaExecutor.setDeleteInBatch(false);
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
