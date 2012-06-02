@@ -61,12 +61,31 @@
 
     <section id="2.2-new-components">
         <title>New Components</title>
-        <section id="2.2-jpa">
-            <title>JPA Endpoints</title>
-            <para>
-              Endpoints are now available for manipulating JPA entity objects.
-            </para>
-        </section>
+		<section id="2.2-jpa">
+			<title>JPA Endpoints</title>
+			<para>
+				Spring Integration now includes components for the Java Persistence
+				API (JPA) for retrieving and persisting JPA entity objects. The
+				JPA Adapter includes the following components:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para><emphasis><link linkend='jpa-inbound-channel-adapter'>Inbound Channel Adapter</link></emphasis></para>
+				</listitem>
+				<listitem>
+					<para><emphasis><link linkend='jpa-outbound-channel-adapter'>Outbound Channel Adapter</link></emphasis></para>
+				</listitem>
+				<listitem>
+					<para><emphasis><link linkend='jpa-updating-outbound-gateway'>Updating Outbound Gateway</link></emphasis></para>
+				</listitem>
+				<listitem>
+					<para><emphasis><link linkend='jpa-retrieving-outbound-gateway'>Retrieving Outbound Gateway</link></emphasis></para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				For more information please see <xref linkend="jpa"/>
+			</para>
+		</section>
     </section>
     <section id="2.2-framework-refactorings">
         <title>Framework Refactoring</title>
