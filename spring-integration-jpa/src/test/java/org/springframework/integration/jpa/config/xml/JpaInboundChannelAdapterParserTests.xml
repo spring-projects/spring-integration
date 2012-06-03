@@ -13,7 +13,7 @@
 
 	<int:channel id="out"/>
 
-	<int-jpa:inbound-channel-adapter id="jpaInboundChannelAdapter"
+	<int-jpa:inbound-channel-adapter id="jpaInboundChannelAdapter1"
 		entity-manager-factory="entityManagerFactory"
 		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 		expect-single-result="true"
@@ -21,4 +21,12 @@
 		<int:poller fixed-rate="5000"/>
 	</int-jpa:inbound-channel-adapter>
 
+	<int-jpa:inbound-channel-adapter id="jpaInboundChannelAdapter2"
+		entity-manager-factory="entityManagerFactory"
+		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+		max-number-of-results="13"
+		channel="out">
+		<int:poller fixed-rate="5000"/>
+	</int-jpa:inbound-channel-adapter>
+	
 </beans>

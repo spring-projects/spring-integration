@@ -16,9 +16,7 @@
 package org.springframework.integration.jpa.config.xml;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -29,43 +27,24 @@ import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
- * The Parser for JPA Outbound Gateway, the MessageHandler implementation is same as the
- * outbound chanel adapter and hence we extend the class and setting the few additional
- * attributes that we wish to in the MessageSource
+ * The Abstract Parser for the JPA Outbound Gateways.
  *
- * @author Amol Nayak
  * @author Gunnar Hillert
  *
  * @since 2.2
  *
+ * @see RetrievingJpaOutboundGatewayParser
+ * @see UpdatingJpaOutboundGatewayParser
+ *
  */
-public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
-
+public abstract class AbstractJpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
 
-		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(gatewayElement, parserContext);
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "persist-mode");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "parameter-source-factory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "use-payload-as-parameter-source");
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-per-row");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "expect-single-result");
-
-		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
-		final String jpaExecutorBeanName = BeanDefinitionReaderUtils.generateBeanName(jpaExecutorBuilderBeanDefinition, parserContext.getRegistry());
-
-		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
-
 		final BeanDefinitionBuilder jpaOutboundGatewayBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(JpaOutboundGatewayFactoryBean.class);
 
-		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "gateway-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "reply-timeout");
 
 		final String replyChannel = gatewayElement.getAttribute("reply-channel");

@@ -29,6 +29,7 @@ import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,7 +93,7 @@ public class JpaExecutorTests {
 	public void testSetMultipleQueryTypes() {
 		JpaExecutor executor = new JpaExecutor(mock(EntityManager.class));
 		executor.setJpaQuery("select s from Student s");
-		Assert.assertNotNull(executor.getJpaQuery());
+		Assert.assertNotNull(TestUtils.getPropertyValue(executor, "jpaQuery", String.class));
 
 		try {
 			executor.setNamedQuery("NamedQuery");
@@ -100,7 +101,8 @@ public class JpaExecutorTests {
 			Assert.assertEquals("You can define only one of the "
 				+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
 		}
-		Assert.assertNull(executor.getNamedQuery());
+
+		Assert.assertNull(TestUtils.getPropertyValue(executor, "namedQuery"));
 
 		try {
 			executor.setNativeQuery("select * from Student");
@@ -108,11 +110,11 @@ public class JpaExecutorTests {
 			Assert.assertEquals("You can define only one of the "
 					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
 		}
-		Assert.assertNull(executor.getNativeQuery());
+		Assert.assertNull(TestUtils.getPropertyValue(executor, "nativeQuery"));
 
 		executor = new JpaExecutor(mock(EntityManager.class));
 		executor.setNamedQuery("NamedQuery");
-		Assert.assertNotNull(executor.getNamedQuery());
+		Assert.assertNotNull(TestUtils.getPropertyValue(executor, "namedQuery", String.class));
 
 		try {
 			executor.setJpaQuery("select s from Student s");
@@ -120,7 +122,7 @@ public class JpaExecutorTests {
 			Assert.assertEquals("You can define only one of the "
 					+ "properties 'jpaQuery', 'nativeQuery', 'namedQuery'", e.getMessage());
 		}
-		Assert.assertNull(executor.getJpaQuery());
+		Assert.assertNull(TestUtils.getPropertyValue(executor, "jpaQuery"));
 
 	}
 
@@ -204,6 +206,20 @@ public class JpaExecutorTests {
 		return executor;
 	}
 
+	@Test
+	public void testNegativeMaxNumberOfResults() throws Exception {
 
+		final JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
+
+		try {
+			jpaExecutor.setMaxNumberOfResults(-10);
+		} catch (IllegalArgumentException e) {
+			Assert.assertEquals("maxNumberOfResults must not be negative.", e.getMessage());
+			return;
+		}
+
+		Assert.fail("Was expecting an IllegalStateException to be thrown.");
+
+	}
 
 }
