@@ -39,8 +39,8 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.UriUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
@@ -256,10 +256,12 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			super(uriTemplate);
 		}
 
+		@SuppressWarnings("deprecation")
 		@Override
 		protected URI encodeUri(String uri) {
 			try {
-				return UriComponentsBuilder.fromUri(new URI(uri)).build().encode("UTF-8").toUri();
+				String encoded = UriUtils.encodeHttpUrl(uri, "UTF-8");
+				return new URI(encoded);
 			}
 			catch (UnsupportedEncodingException ex) {
 				// should not happen, UTF-8 is always supported
