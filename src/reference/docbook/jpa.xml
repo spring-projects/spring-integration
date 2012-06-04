@@ -916,133 +916,143 @@ public class Student {
 						provided will be evaluated to compute the value of the parameter.<emphasis>Optional</emphasis>.
 					</para>
 				</callout>
-
 			</calloutlist>
 		</section>
 	</section>
 	<section id="jpa-outbound-gateways">
-			<title>Outbound Gateways</title>
+		<title>Outbound Gateways</title>
+		<para>
+			The JPA <emphasis>Inbound Channel Adapter</emphasis> allows you to poll a database in
+			order to retrieve one or more JPA entities and the retrieved data
+			is consequently used to start a Spring Integration flow using the
+			retrieved data as message payload.
+		</para>
+		<para>
+			Additionally, you may use JPA <emphasis>Outbound Channel Adapters</emphasis> at
+			the end of your flow in order to persist data, essentially terminating
+			the flow at the end of the persistence operation.
+		</para>
+		<para>
+			However, how can you execute JPA persistence operation in the middle
+			of a flow? For example, you may have business data that you are
+			processing in your Spring Integration message flow, that you would
+			like to persist, yet you still need to execute other components
+			further downstream. Or instead of polling the database using a
+			poller, you rather have the need to execute JPQL queries and retrieve
+			data actively which then is used to being processed in subsequent
+			components within your flow.
+		</para>
+		<para>
+			This is where JPA Outbound Gateways come into play. They give you
+			the ability to persist data as well as retrieving data. To facilitate
+			these uses, Spring Integration provides two types of JPA Outbound
+			Gateways:
+		</para>
+		<itemizedlist>
+			<listitem><emphasis>Updating Outbound Gateway</emphasis></listitem>
+			<listitem><emphasis>Retrieving Outbound Gateway</emphasis></listitem>
+		</itemizedlist>
+		<para>
+			Whenever the Outbound Gateway is used to perform an action that
+			saves, updates or soley deletes some records in the database, you
+			need to use an <emphasis>Updating Outbound Gateway</emphasis> gateway.
+			If for example an <emphasis>entity</emphasis> is used to persist it,
+			then a merged/persisted entity is returned as a result. In
+			other cases the number of records affected (updated or deleted)
+			is returned instead.
+		</para>
+		<para>
+			When retrieving (selecting) data from the database, we
+			use a <emphasis>Retrieving Outbound Gateway</emphasis>.  With a
+			<emphasis>Retrieving Outbound Gateway</emphasis> gateway, we can
+			use either JPQL, Named Queries (native or JPQL-based) or Native
+			Queries (SQL) for selecting the data and retrieving the results.
+		</para>
+		<para>
+			An <emphasis>Updating Outbound Gateway</emphasis> is
+			functionally very similar to an <emphasis>Outbound Channel Adapter</emphasis>,
+			except that an <emphasis>Updating Outbound Gateway</emphasis>
+			is used to send a result to the Gateway's <emphasis>reply channel</emphasis>
+			after performing the given JPA operation.
+		</para>
+		<para>
+			A <emphasis>Retrieving Outbound Gateway</emphasis>
+			is quite similar to an <emphasis>Inbound Channel Adapter</emphasis>.
+		</para>
+		<note>
+			We recommend you to first refer to the JPA Outbound Channel Adapter
+			section and the JPA Inbound Channel Adapter sections above, as
+			most of the common concepts are being explained there.
+		</note>
+		<para>
+			This similarity was the main factor to use the central
+			<classname>JpaExecutor</classname> class to unify common functionality
+			as much as possible.
+		</para>
+		<para>
+			Common for all JPA Outbound Gateways and simlar to the
+			<emphasis>outbound-channel-adapter</emphasis>, we can use
+		</para>
+		<itemizedlist>
+			<listitem>
+				<para><emphasis>Entity classes</emphasis></para>
+			</listitem>
+			<listitem>
+				<para><emphasis>JPA Query Language (JPQL)</emphasis></para>
+			</listitem>
+			<listitem>
+				<para><emphasis>Native query</emphasis></para>
+			</listitem>
+			<listitem>
+				<para><emphasis>Named query</emphasis></para>
+			</listitem>
+		</itemizedlist>
+		<para>
+			for performing various JPA operations. For configuration examples
+			please see <xref linkend="outboundGatewaySamples"/>.
+		</para>
+		<section id="jpa-outbound-gateway-common-parameters">
+			<title>Common Configuration Parameters</title>
 			<para>
-				The JPA <emphasis>Inbound Channel Adapter</emphasis> allows you to poll a database in
-				order to retrieve one or more JPA entities and the retrieved data
-				is consequently used to start a Spring Integration flow using the
-				retrieved data as message payload.
+				JPA Outbound Gateways always have access to the Spring Integration
+				Message as input. As such the following parameters are available:
 			</para>
+			<para><emphasis>parameter-source-factory</emphasis></para>
 			<para>
-				Additionally, you may use JPA <emphasis>Outbound Channel Adapters</emphasis> at
-				the end of your flow in order to persist data, essentially terminating
-				the flow at the end of the persistence operation.
+				An instance of
+				<interfacename>o.s.i.jpa.support.parametersource.ParameterSourceFactory</interfacename>
+				that will be used to get an instance of
+				<interfacename>o.s.i.jpa.support.parametersource.ParameterSource</interfacename>.
+				The <emphasis>ParameterSource</emphasis> is used to resolve the
+				values of the parameters provided in the query. The
+				<emphasis>parameter-source-factory</emphasis> attribute is ignored,
+				if operations are performed using a JPA entity. If a
+				<emphasis>parameter</emphasis> sub-element is used, the factory
+				must be of type <classname>ExpressionEvaluatingParameterSourceFactory</classname>,
+				located in package <emphasis>o.s.i.jpa.support.parametersource</emphasis>.
+				<emphasis>Optional</emphasis>.
 			</para>
+			<para><emphasis>use-payload-as-parameter-source</emphasis></para>
 			<para>
-				However, how can you execute JPA persistence operation in the middle
-				of a flow? For example, you may have business data that you are
-				processing in your Spring Integration message flow, that you would
-				like to persist, yet you still need to execute other components
-				further downstream. Or instead of polling the database using a
-				poller, you rather have the need to execute JPQL queries and retrieve
-				data actively which then is used to being processed in subsequent
-				components within your flow.
+				If set to <emphasis>true</emphasis>, the payload of the Message
+				will be used as a source for providing parameters. If set to
+				<emphasis>false</emphasis>, the entire Message will be available
+				as a source for parameters. If no JPA Parameters are passed in,
+				this property will default to <emphasis>true</emphasis>.
+				This means that using a default
+				<classname>BeanPropertyParameterSourceFactory</classname>, the
+				bean properties of the payload will be used as a source for
+				parameter values for the to-be-executed JPA query. However, if
+				JPA Parameters are passed in, then this property will by default
+				evaluate to <emphasis>false</emphasis>. The reason is that JPA
+				Parameters allow for SpEL Expressions to be provided and therefore
+				it is highly beneficial to have access to the entire Message,
+				including the Headers.
 			</para>
-			<para>
-				This is where JPA Outbound Gateways come into play. They give you
-				the ability to persist data as well as retrieving data. To facilitate
-				these uses, Spring Integration provides two types of JPA Outbound
-				Gateways:
-			</para>
-			<itemizedlist>
-				<listitem><emphasis>Updating Outbound Gateway</emphasis></listitem>
-				<listitem><emphasis>Retrieving Outbound Gateway</emphasis></listitem>
-			</itemizedlist>
-			<para>
-				Whenever the Outbound Gateway is used to perform an action that
-				saves, updates or soley deletes some records in the database, you
-				need to use an <emphasis>Updating Outbound Gateway</emphasis> gateway.
-				If for example an <emphasis>entity</emphasis> is used to persist it,
-				then a merged/persisted entity is returned as a result. In
-				other cases the number of records affected (updated or deleted)
-				is returned instead.
-			</para>
-			<para>
-				When retrieving (selecting) data from the database, we
-				use a <emphasis>Retrieving Outbound Gateway</emphasis>.  With a
-				<emphasis>Retrieving Outbound Gateway</emphasis> gateway, we can
-				use either JPQL, Named Queries (native or JPQL-based) or Native
-				Queries (SQL) for selecting the data and retrieving the results.
-			</para>
-			<para>
-				An <emphasis>Updating Outbound Gateway</emphasis> is
-				functionally very similar to an <emphasis>Outbound Channel Adapter</emphasis>,
-				except that an <emphasis>Updating Outbound Gateway</emphasis>
-				is used to send a result to the Gateway's <emphasis>reply channel</emphasis>
-				after performing the given JPA operation.
-			</para>
-			<para>
-				A <emphasis>Retrieving Outbound Gateway</emphasis>
-				is quite similar to an <emphasis>Inbound Channel Adapter</emphasis>.
-			</para>
-			<note>
-				We recommend you to first refer to the JPA Outbound Channel Adapter
-				section and the JPA Inbound Channel Adapter sections above, as
-				most of the common concepts are being explained there.
-			</note>
-			<para>
-				This similarity was the main factor to use the central
-				<classname>JpaExecutor</classname> class to unify common functionality
-				as much as possible.
-			</para>
-			<para>
-				Common for all JPA Outbound Gateways and simlar to the
-				<emphasis>outbound-channel-adapter</emphasis>, we can use
-			</para>
-			<itemizedlist>
-				<listitem>
-					<para><emphasis>Entity classes</emphasis></para>
-				</listitem>
-				<listitem>
-					<para><emphasis>JPA Query Language (JPQL)</emphasis></para>
-				</listitem>
-				<listitem>
-					<para><emphasis>Native query</emphasis></para>
-				</listitem>
-				<listitem>
-					<para><emphasis>Named query</emphasis></para>
-				</listitem>
-			</itemizedlist>
-			<para>
-				for performing various JPA operations. For configuration examples
-				please see <xref linkend="outboundGatewaySamples"/>.
-			</para>
-			<section id="jpa-outbound-gateway-common-parameters">
-				<title>Common Configuration Parameters</title>
-				<para>
-					JPA Outbound Gateways always have access to the Spring Integration
-					Message as input. As such the following parameters are available:
-				</para>
-				<para><emphasis>parameter-source-factory</emphasis></para>
-				<para>
-					TBD
-				</para>
-				<para><emphasis>use-payload-as-parameter-source</emphasis></para>
-				<para>
-					If set to <emphasis>true</emphasis>, the payload of the Message
-					will be used as a source for providing parameters. If set to
-					<emphasis>false</emphasis>, the entire Message will be available
-					as a source for parameters. If no JPA Parameters are passed in,
-					this property will default to <emphasis>true</emphasis>.
-					This means that using a default
-					<classname>BeanPropertyParameterSourceFactory</classname>, the
-					bean properties of the payload will be used as a source for
-					parameter values for the to-be-executed JPA query. However, if
-					JPA Parameters are passed in, then this property will by default
-					evaluate to <emphasis>false</emphasis>. The reason is that JPA
-					Parameters allow for SpEL Expressions to be provided and therefore
-					it is highly beneficial to have access to the entire Message,
-					including the Headers.
-				</para>
-			</section>
-			<section id="jpa-updating-outbound-gateway">
-				<title>Updating Outbound Gateway</title>
-				<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="" ]]><co id="outGateRequestChannel"/><![CDATA[
+		</section>
+		<section id="jpa-updating-outbound-gateway">
+			<title>Updating Outbound Gateway</title>
+			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="" ]]><co id="outGateRequestChannel"/><![CDATA[
 		auto-startup="true"
 		entity-class=""
 		entity-manager=""
@@ -1067,31 +1077,31 @@ public class Student {
 
 	</int-jpa:updating-outbound-gateway>]]></programlisting>
 
-				<calloutlist>
-					<callout arearefs="outGateRequestChannel">
-						<para>
-							The channel from which the outbound gateway will receive messages for performing
-							the desired operation. This attribute is similar to <emphasis>channel</emphasis> attribute of the outbound-channel-adapter.<emphasis>Optional</emphasis>.
-						</para>
-					</callout>
-					<callout arearefs="outGateReplyChannel">
-						<para>
-							The channel to which the gateway will send the response after performing the required JPA operation.
-							If this attribute is not defined, the request message must have a replyChannel header. <emphasis>Optional</emphasis>.
-						</para>
-					</callout>
-					<callout arearefs="outGateReplyTimeout">
-						<para>
-							Specifies the time the gateway will wait to send the result to the reply channel.
-							Only applies when the reply channel itself might block the send (for example a bounded QueueChannel that is currently full).
-							By default the Gateway will wait indefinitely. The value is specified in milliseconds. <emphasis>Optional</emphasis>.
-						</para>
-					</callout>
-				</calloutlist>
-			</section>
-			<section id="jpa-retrieving-outbound-gateway">
-				<title>Retrieving Outbound Gateway</title>
-				<programlisting language="xml"><![CDATA[<int-jpa:retrieving-outbound-gateway request-channel=""
+			<calloutlist>
+				<callout arearefs="outGateRequestChannel">
+					<para>
+						The channel from which the outbound gateway will receive messages for performing
+						the desired operation. This attribute is similar to <emphasis>channel</emphasis> attribute of the outbound-channel-adapter.<emphasis>Optional</emphasis>.
+					</para>
+				</callout>
+				<callout arearefs="outGateReplyChannel">
+					<para>
+						The channel to which the gateway will send the response after performing the required JPA operation.
+						If this attribute is not defined, the request message must have a replyChannel header. <emphasis>Optional</emphasis>.
+					</para>
+				</callout>
+				<callout arearefs="outGateReplyTimeout">
+					<para>
+						Specifies the time the gateway will wait to send the result to the reply channel.
+						Only applies when the reply channel itself might block the send (for example a bounded QueueChannel that is currently full).
+						By default the Gateway will wait indefinitely. The value is specified in milliseconds. <emphasis>Optional</emphasis>.
+					</para>
+				</callout>
+			</calloutlist>
+		</section>
+		<section id="jpa-retrieving-outbound-gateway">
+			<title>Retrieving Outbound Gateway</title>
+			<programlisting language="xml"><![CDATA[<int-jpa:retrieving-outbound-gateway request-channel=""
 		auto-startup="true"
 		delete-after-poll="false"
 		delete-in-batch="false"
@@ -1117,129 +1127,129 @@ public class Student {
 		<int-jpa:parameter name="" expression=""/>
 
 	</int-jpa:retrieving-outbound-gateway>]]></programlisting>
-				<calloutlist>
-					<callout arearefs="outGateExpectSingleResult">
-						<para>
-							A boolean flag indicating whether the select operation is expected to return a single result or a <classname>List</classname> of results.
-							If this flag is set to <code>true</code>, the single entity selected is sent as the payload
-							of the message. If multiple entities are returned, an exception is thrown.
-							If <code>false</code>, the <classname>List</classname> of entities is being sent as the payload of the message.
-							By default the value is <code>false</code>.<emphasis>Optional</emphasis>.
-						</para>
-					</callout>
-					<callout arearefs="outGateMaxNumOfResults">
-						<para>
-							This non zero, non negative integer value tells the adapter not to select more than given number
-							of rows on execution of the select operation. By default, if this attribute is not set,
-							all the possible records are selected by given query.<emphasis>Optional</emphasis>.
-						</para>
-					</callout>
-				</calloutlist>
-				<important>
+			<calloutlist>
+				<callout arearefs="outGateExpectSingleResult">
 					<para>
-						When choosing to delete entities upon retrieval and you have
-						retrieved a collection of entities, please be aware that by
-						default entities are deleted on a per entity basis. This may
-						cause performance issues.
+						A boolean flag indicating whether the select operation is expected to return a single result or a <classname>List</classname> of results.
+						If this flag is set to <code>true</code>, the single entity selected is sent as the payload
+						of the message. If multiple entities are returned, an exception is thrown.
+						If <code>false</code>, the <classname>List</classname> of entities is being sent as the payload of the message.
+						By default the value is <code>false</code>.<emphasis>Optional</emphasis>.
 					</para>
+				</callout>
+				<callout arearefs="outGateMaxNumOfResults">
 					<para>
-						Alternatively, you can set attribute <emphasis>deleteInBatch</emphasis>
-						to <emphasis>true</emphasis>, which will perform a batch delete.
-						However, please be aware of the limitation that in that case
-						cascading deletes are not supported.
+						This non zero, non negative integer value tells the adapter not to select more than given number
+						of rows on execution of the select operation. By default, if this attribute is not set,
+						all the possible records are selected by given query.<emphasis>Optional</emphasis>.
 					</para>
-					<para>
-						<emphasis>JSR 317: Java™ Persistence 2.0</emphasis> states
-						in chapter Chapter 4.10, Bulk Update and Delete Operations
-						that:
-					</para>
-					<para>
-						"A delete operation only applies to entities of the specified
-						class and its subclasses. It does not cascade to related
-						entities."
-					</para>
-					<para>
-						For more information please see
-						<ulink url="http://jcp.org/en/jsr/detail?id=317">JSR 317: Java™ Persistence 2.0</ulink>
-					</para>
-				</important>
-			</section>
-			<section id="outboundGatewaySamples">
-				<title>JPA Outbound Gateway Samples</title>
+				</callout>
+			</calloutlist>
+			<important>
 				<para>
-					This section contains various examples of the <emphasis>Updating Outbound Gateway</emphasis>
-					and <emphasis>Retrieving Outbound Gateway</emphasis>
+					When choosing to delete entities upon retrieval and you have
+					retrieved a collection of entities, please be aware that by
+					default entities are deleted on a per entity basis. This may
+					cause performance issues.
 				</para>
-				<para><emphasis>Update using an Entity Class</emphasis></para>
 				<para>
-					In this example an <emphasis>Updating Outbound Gateway</emphasis>
-					is persisted using solely the entity class
-					<classname>org.springframework.integration.jpa.test.entity.Student</classname>
-					as JPA defining parameter.
+					Alternatively, you can set attribute <emphasis>deleteInBatch</emphasis>
+					to <emphasis>true</emphasis>, which will perform a batch delete.
+					However, please be aware of the limitation that in that case
+					cascading deletes are not supported.
 				</para>
-				<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="entityRequestChannel" ]]><co id="gatewayEntityReqChannel"/><![CDATA[
+				<para>
+					<emphasis>JSR 317: Java™ Persistence 2.0</emphasis> states
+					in chapter Chapter 4.10, Bulk Update and Delete Operations
+					that:
+				</para>
+				<para>
+					"A delete operation only applies to entities of the specified
+					class and its subclasses. It does not cascade to related
+					entities."
+				</para>
+				<para>
+					For more information please see
+					<ulink url="http://jcp.org/en/jsr/detail?id=317">JSR 317: Java™ Persistence 2.0</ulink>
+				</para>
+			</important>
+		</section>
+		<section id="outboundGatewaySamples">
+			<title>JPA Outbound Gateway Samples</title>
+			<para>
+				This section contains various examples of the <emphasis>Updating Outbound Gateway</emphasis>
+				and <emphasis>Retrieving Outbound Gateway</emphasis>
+			</para>
+			<para><emphasis>Update using an Entity Class</emphasis></para>
+			<para>
+				In this example an <emphasis>Updating Outbound Gateway</emphasis>
+				is persisted using solely the entity class
+				<classname>org.springframework.integration.jpa.test.entity.Student</classname>
+				as JPA defining parameter.
+			</para>
+			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="entityRequestChannel" ]]><co id="gatewayEntityReqChannel"/><![CDATA[
 	    reply-channel="entityResponseChannel" ]]><co id="gatewayEntityRepChannel"/><![CDATA[
 	    entity-class="org.springframework.integration.jpa.test.entity.Student"
 	    entity-manager="em"/>]]></programlisting>
-				<calloutlist>
-					<callout arearefs="gatewayEntityReqChannel">
-						<para>
-							This is the request channel for the outbound gateway,
-							this is similar to the <emphasis>channel</emphasis>
-							attribute of the <emphasis>outbound-channel-adapter</emphasis>
-						</para>
-					</callout>
-					<callout arearefs="gatewayEntityRepChannel">
-						<para>
-							This is where a gateway differs from an outbound adapter,
-							this is the channel over which the reply of the performed
-							JPA operation is received. If,however, you are not
-							interested in the reply received and just want to perform
-							the operation, then using a JPA <emphasis>outbound-channel-adapter</emphasis>
-							is the appropriate choice. In above case, where we are
-							using entity class, the reply will be the entity object
-							that was created/merged as a result of the JPA operation.
-						</para>
-					</callout>
-				</calloutlist>
-				<para><emphasis>Update using JPQL</emphasis></para>
-				<para>
-					In this example, we will see how we can update an entity using
-					the Java Persistence Query Language (JPQL). For this we use an
-					<emphasis>Updating Outbound Gateway</emphasis>.
-				</para>
-				<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="jpaqlRequestChannel"
+			<calloutlist>
+				<callout arearefs="gatewayEntityReqChannel">
+					<para>
+						This is the request channel for the outbound gateway,
+						this is similar to the <emphasis>channel</emphasis>
+						attribute of the <emphasis>outbound-channel-adapter</emphasis>
+					</para>
+				</callout>
+				<callout arearefs="gatewayEntityRepChannel">
+					<para>
+						This is where a gateway differs from an outbound adapter,
+						this is the channel over which the reply of the performed
+						JPA operation is received. If,however, you are not
+						interested in the reply received and just want to perform
+						the operation, then using a JPA <emphasis>outbound-channel-adapter</emphasis>
+						is the appropriate choice. In above case, where we are
+						using entity class, the reply will be the entity object
+						that was created/merged as a result of the JPA operation.
+					</para>
+				</callout>
+			</calloutlist>
+			<para><emphasis>Update using JPQL</emphasis></para>
+			<para>
+				In this example, we will see how we can update an entity using
+				the Java Persistence Query Language (JPQL). For this we use an
+				<emphasis>Updating Outbound Gateway</emphasis>.
+			</para>
+			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="jpaqlRequestChannel"
 	  reply-channel="jpaqlResponseChannel"
 	  jpa-query="update Student s set s.lastName = :lastName where s.rollNumber = :rollNumber" ]]><co id="jpaQlGatewayQuery"/><![CDATA[
 	  entity-manager="em">
 	    <int-jpa:parameter name="lastName" expression="payload"/>
 	    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
 	</int-jpa:updating-outbound-gateway>]]></programlisting>
-				<calloutlist>
-					<callout arearefs="jpaQlGatewayQuery">
-						<para>
-							The JPQL query that will be executed by the gateway. Since
-							an <emphasis>Updating Outbound Gateway</emphasis> is used,
-							only <emphasis>update</emphasis> and <emphasis>delete</emphasis>
-							JPQL queries would be sensible choices.
-						</para>
-					</callout>
-				</calloutlist>
-				<para>
-					When sending a message with a String payload and containing a header <emphasis>rollNumber</emphasis>
-					with a <emphasis>long</emphasis> value, the last name of the student with the provided roll number
-					is updated to the value provided in the message payload. When using an
-					<emphasis>UPDATING</emphasis> gateway, the return value is <emphasis>always</emphasis> an integer
-					value which denotes the number of records affected by execution of the JPA QL.
-				</para>
-				<para><emphasis>Retrieving an Entity using JPQL</emphasis></para>
-				<para>
-					The following examples uses a <emphasis>Retrieving Outbound Gateway</emphasis>
-					together with JPQL to retrieve (select) one or more entities from
-					the database.
-				</para>
+			<calloutlist>
+				<callout arearefs="jpaQlGatewayQuery">
+					<para>
+						The JPQL query that will be executed by the gateway. Since
+						an <emphasis>Updating Outbound Gateway</emphasis> is used,
+						only <emphasis>update</emphasis> and <emphasis>delete</emphasis>
+						JPQL queries would be sensible choices.
+					</para>
+				</callout>
+			</calloutlist>
+			<para>
+				When sending a message with a String payload and containing a header <emphasis>rollNumber</emphasis>
+				with a <emphasis>long</emphasis> value, the last name of the student with the provided roll number
+				is updated to the value provided in the message payload. When using an
+				<emphasis>UPDATING</emphasis> gateway, the return value is <emphasis>always</emphasis> an integer
+				value which denotes the number of records affected by execution of the JPA QL.
+			</para>
+			<para><emphasis>Retrieving an Entity using JPQL</emphasis></para>
+			<para>
+				The following examples uses a <emphasis>Retrieving Outbound Gateway</emphasis>
+				together with JPQL to retrieve (select) one or more entities from
+				the database.
+			</para>
 
-				<programlisting language="xml"><![CDATA[<int-jpa:retrieving-outbound-gateway request-channel="retrievingGatewayReqChannel"
+			<programlisting language="xml"><![CDATA[<int-jpa:retrieving-outbound-gateway request-channel="retrievingGatewayReqChannel"
 	    reply-channel="retrievingGatewayReplyChannel"
 	    jpa-query="select s from Student s where s.firstName = :firstName and s.lastName = :lastName"
 	    entity-manager="em">
@@ -1247,27 +1257,26 @@ public class Student {
 	    <int-jpa:parameter name="lastName" expression="headers['lastName']"/>
 	</int-jpa:outbound-gateway>]]></programlisting>
 
-				<para><emphasis>Update using a Named Query</emphasis></para>
-				<para>
-					Using a Named Query is basically the same as using a JPQL query
-					directly. The difference is that the <emphasis>named-query</emphasis>
-					attribute is used instead, as seen in the xml snippet below.
-				</para>
-				<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="namedQueryRequestChannel"
+			<para><emphasis>Update using a Named Query</emphasis></para>
+			<para>
+				Using a Named Query is basically the same as using a JPQL query
+				directly. The difference is that the <emphasis>named-query</emphasis>
+				attribute is used instead, as seen in the xml snippet below.
+			</para>
+			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="namedQueryRequestChannel"
 	    reply-channel="namedQueryResponseChannel"
 	    named-query="updateStudentByRollNumber"
 	    entity-manager="em">
 	    <int-jpa:parameter name="lastName" expression="payload"/>
 	    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
 	</int-jpa:outbound-gateway>]]></programlisting>
-				<note>
-					<para>
-						You can find more samples for using spring integration's
-						JPA adapter at:
-					</para>
-					<para><ulink url="https://github.com/SpringSource/spring-integration-samples/tree/master/basic/jpa">https://github.com/SpringSource/spring-integration-samples/tree/master/basic/jpa</ulink></para>
-				</note>
-			</section>
+			<note>
+				<para>
+					You can find a complete Sample application for using Spring
+					Integration's JPA adapter at:
+				</para>
+				<para><ulink url="https://github.com/SpringSource/spring-integration-samples/tree/master/basic/jpa">https://github.com/SpringSource/spring-integration-samples/tree/master/basic/jpa</ulink></para>
+			</note>
 		</section>
-
+	</section>
 </chapter>
