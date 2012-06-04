@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
-import org.springframework.web.util.UriUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
@@ -55,9 +55,10 @@ import org.springframework.xml.transform.TransformerObjectSupport;
 
 /**
  * Base class for outbound Web Service-invoking Messaging Gateways.
- * 
+ *
  * @author Mark Fisher
  * @author Jonas Partner
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -74,7 +75,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	private volatile WebServiceMessageCallback requestCallback;
 
 	private volatile boolean ignoreEmptyResponses = true;
-	
+
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	public AbstractWebServiceOutboundGateway(String uri, WebServiceMessageFactory messageFactory) {
@@ -198,12 +199,12 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		}
 		return this.uriTemplate.expand(uriVariables);
 	}
-	
+
 	protected abstract class RequestMessageCallback extends TransformerObjectSupport implements WebServiceMessageCallback {
-		
+
 		private final WebServiceMessageCallback requestCallback;
 		private final Message<?> requestMessage;
-		
+
 		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
 			this.requestCallback = requestCallback;
 			this.requestMessage = requestMessage;
@@ -218,20 +219,20 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	                requestCallback.doWithMessage(message);
 	            }
 			}
-			
-		}	
-		
+
+		}
+
 		public abstract void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException, TransformerException;
 	}
-	
+
 	protected abstract class ResponseMessageExtractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
-		
+
 		public Object extractData(WebServiceMessage message)
 				throws IOException, TransformerException {
-		
+
 			Object resultObject = this.doExtractData(message);
-            
-            if (message instanceof SoapMessage){			
+
+            if (message instanceof SoapMessage){
 				Map<String, Object> mappedMessageHeaders = headerMapper.toHeadersFromReply((SoapMessage) message);
 				Message<?> siMessage = MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
 				return siMessage;
@@ -239,8 +240,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			else {
 				return resultObject;
 			}
-		}	
-		
+		}
+
 		public abstract Object doExtractData(WebServiceMessage message) throws IOException, TransformerException;
 	}
 
@@ -258,8 +259,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		@Override
 		protected URI encodeUri(String uri) {
 			try {
-				String encoded = UriUtils.encodeHttpUrl(uri, "UTF-8");
-				return new URI(encoded);
+				return UriComponentsBuilder.fromUri(new URI(uri)).build().encode("UTF-8").toUri();
 			}
 			catch (UnsupportedEncodingException ex) {
 				// should not happen, UTF-8 is always supported
@@ -270,5 +270,5 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			}
 		}
 	}
-	
+
 }
