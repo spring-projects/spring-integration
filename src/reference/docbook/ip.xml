@@ -627,7 +627,7 @@
     reply-channel="replyChannel"
     connection-factory="cfClient"
     request-timeout="10000"
-    reply-timeout="10000"
+    remote-timeout="10000"
     />]]></programlisting>
         A simple outbound TCP gateway.
   </para>
@@ -1669,16 +1669,24 @@
                      </entry>
             </row>
             <row>
-              <entry>reply-timeout</entry>
+              <entry>remote-timeout</entry>
               <entry></entry>
-              <entry>The time in milliseconds for which the gateway will wait for a reply.
-                     Default: 10000 (10 seconds).</entry>
+              <entry>The time in milliseconds for which the gateway will wait for a reply from the
+                     remote system.
+                     Default: Same value as reply-timeout, if specified, or 10000 (10 seconds) otherwise.</entry>
             </row>
             <row>
               <entry>request-timeout</entry>
               <entry></entry>
               <entry>If a single-use connection factory is not being used, The time in milliseconds 
                      for which the gateway will wait to get access to the shared connection.</entry>
+            </row>
+            <row>
+              <entry>reply-timeout</entry>
+              <entry></entry>
+              <entry>The time in milliseconds for which the gateway will wait when sending the reply
+                     to the reply-channel. Only applies if the reply-channel might block, such as a
+                     bounded QueueChannel that is currently full.</entry>
             </row>
           </tbody>
         </tgroup>

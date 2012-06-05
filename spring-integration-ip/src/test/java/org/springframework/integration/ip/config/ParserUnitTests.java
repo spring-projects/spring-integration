@@ -39,6 +39,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -382,7 +383,10 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutboundGateway);
 		assertSame(cfC2, dfa.getPropertyValue("connectionFactory"));
 		assertEquals(234L, dfa.getPropertyValue("requestTimeout"));
-		assertEquals(567L, dfa.getPropertyValue("replyTimeout"));
+		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(tcpOutboundGateway, "messagingTemplate",
+				MessagingTemplate.class);
+		assertEquals(Long.valueOf(567), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout", Long.class));
+		assertEquals(789L, dfa.getPropertyValue("remoteTimeout"));
 		assertEquals("outGateway",tcpOutboundGateway.getComponentName());
 		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
 		assertTrue(cfC2.isLookupHost());

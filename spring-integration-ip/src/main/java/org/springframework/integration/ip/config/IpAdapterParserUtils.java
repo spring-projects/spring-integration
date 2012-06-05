@@ -95,6 +95,8 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String REQUEST_TIMEOUT = "request-timeout";
 
+	public static final String REMOTE_TIMEOUT = "remote-timeout";
+
 	public static final String REPLY_TIMEOUT = "reply-timeout";
 
 	public static final String REPLY_CHANNEL = "reply-channel";

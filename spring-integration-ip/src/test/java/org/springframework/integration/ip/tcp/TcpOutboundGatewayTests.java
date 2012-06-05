@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,6 +47,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
@@ -90,7 +92,15 @@ public class TcpOutboundGatewayTests {
 		QueueChannel replyChannel = new QueueChannel();
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
-		gateway.setReplyTimeout(60000);
+		// check the default remote timeout
+		assertEquals(Long.valueOf(10000), TestUtils.getPropertyValue(gateway, "remoteTimeout", Long.class));
+		gateway.setSendTimeout(123);
+		// ensure this also changed the remote timeout
+		assertEquals(Long.valueOf(123), TestUtils.getPropertyValue(gateway, "remoteTimeout", Long.class));
+		gateway.setRemoteTimeout(60000);
+		gateway.setSendTimeout(61000);
+		// ensure this did NOT change the remote timeout
+		assertEquals(Long.valueOf(60000), TestUtils.getPropertyValue(gateway, "remoteTimeout", Long.class));
 		gateway.setRequestTimeout(60000);
 		for (int i = 100; i < 200; i++) {
 			gateway.handleMessage(MessageBuilder.withPayload("Test" + i).build());

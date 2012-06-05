@@ -184,6 +184,7 @@
 		connection-factory="cfC2"
 		request-timeout="234"
 		reply-timeout="567"
+		remote-timeout="789"
 		order="24"
 		auto-startup="false"
 		phase="127"
