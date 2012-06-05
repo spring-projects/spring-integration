@@ -42,8 +42,8 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.test.annotation.Repeat;
 
 /**
  * @author Mark Fisher
@@ -228,7 +228,7 @@ public class DelayHandlerTests {
 	@Test
 	public void verifyShutdownWithWait() throws Exception {
 		delayHandler.setDefaultDelay(5000);
-		delayHandler.setWaitForTasksToCompleteOnShutdown(true);
+		taskScheduler.setWaitForTasksToCompleteOnShutdown(true);
 		delayHandler.afterPropertiesSet();
 		delayHandler.handleMessage(new GenericMessage<String>("foo"));
 		delayHandler.destroy();
@@ -363,15 +363,20 @@ public class DelayHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 
-		Thread.sleep(110);
 		// emulate restart
 		this.delayHandler.destroy();
+
+		Thread.sleep(100);
+
 		assertEquals(1, messageGroupStore.getMessageGroupCount());
 		assertEquals(DELAYER_MESSAGE_GROUP_ID, messageGroupStore.iterator().next().getGroupId());
 		assertEquals(1, messageGroupStore.messageGroupSize(DELAYER_MESSAGE_GROUP_ID));
 		assertEquals(1, messageGroupStore.getMessageCountForAllMessageGroups());
 		MessageGroup messageGroup = messageGroupStore.getMessageGroup(DELAYER_MESSAGE_GROUP_ID);
-		assertEquals(message.getPayload(), messageGroup.getMessages().iterator().next().getPayload());
+		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
+		Object payload = messageInStore.getPayload();
+		assertEquals("DelayedMessageWrapper", payload.getClass().getSimpleName());
+		assertEquals(message.getPayload(), TestUtils.getPropertyValue(payload, "original.payload"));
 
 		taskScheduler.afterPropertiesSet();
 		DelayHandler delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
@@ -379,6 +384,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(200);
 		delayHandler.setMessageStore(messageGroupStore);
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 
 		long timeBeforeReceive = System.currentTimeMillis();
 		this.latch.await();

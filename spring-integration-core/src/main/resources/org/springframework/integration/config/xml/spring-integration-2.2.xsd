@@ -1272,6 +1272,15 @@
 						<xsd:element name="poller" type="basePollerType" />
 					</xsd:sequence>
 					<xsd:attributeGroup ref="inputOutputChannelGroup"/>
+					<xsd:attribute name="phase" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+							The lifecycle phase within which this endpoint should start and stop.
+							The lower the value the earlier this endpoint will start and the later it will stop. The
+							default is Integer.MAX_VALUE. Values can be negative. See SmartLifecycle.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

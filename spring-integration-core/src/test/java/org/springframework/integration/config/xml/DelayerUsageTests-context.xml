@@ -22,8 +22,7 @@
 			 default-delay="1000"
 			 delay-header-name="foo"
 			 order="99"
-			 send-timeout="1000"
-			 wait-for-tasks-to-complete-on-shutdown="true"/>
+			 send-timeout="1000"/>
 
 	<channel id="inputB"/>
 	<channel id="outputB"/>
@@ -36,7 +35,8 @@
 			 output-channel="outputB"
 			 default-delay="1000"
 			 send-timeout="20000"
-			 scheduler="multiThreadScheduler"/>
+			 scheduler="multiThreadScheduler"
+			 wait-for-tasks-to-complete-on-shutdown="true"/>
 
 	<chain input-channel="delayerInsideChain" output-channel="outputA">
 		<transformer expression="payload.toUpperCase()"/>

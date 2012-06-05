@@ -35,6 +35,7 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -96,7 +97,10 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
 		assertEquals(1, messageStore.getMessageCountForAllMessageGroups());
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
-		assertEquals(testPayload, messageGroup.getMessages().iterator().next().getPayload());
+		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
+		Object payload = messageInStore.getPayload();
+		assertEquals("DelayedMessageWrapper", payload.getClass().getSimpleName());
+		assertEquals(testPayload, TestUtils.getPropertyValue(payload, "original.payload"));
 
 		context.refresh();
 

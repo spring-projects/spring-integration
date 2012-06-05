@@ -16,18 +16,15 @@
 
 package org.springframework.integration.handler;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -65,14 +62,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 1.0.3
  */
-public class DelayHandler extends AbstractReplyProducingMessageHandler implements DisposableBean {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
-
-	/**
-	 * The name of the message header that stores a timestamp for the time the message was requested to delayer.
-	 */
-	private static final String REQUEST_DATE = DelayHandler.class.getSimpleName() + ".REQUEST_DATE";
+public class DelayHandler extends AbstractReplyProducingMessageHandler implements SmartLifecycle, DisposableBean {
 
 	private volatile String messageGroupId;
 
@@ -80,11 +70,18 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private volatile String delayHeaderName;
 
-	private boolean waitForTasksToCompleteOnShutdown = false;
-
 	private volatile MessageGroupStore messageStore;
 
-	private final CountDownLatch initializingLatch = new CountDownLatch(1);
+	private boolean taskSchedulerProvided;
+
+	private volatile boolean autoStartup = true;
+
+	private volatile int phase = Integer.MAX_VALUE;
+
+	private volatile boolean running;
+
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
+
 	/**
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
 	 * to store delayed Messages in the {@link MessageGroupStore}. The sending of Messages after
@@ -131,21 +128,22 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * while awaiting the delay.
 	 */
 	public void setMessageStore(MessageGroupStore messageStore) {
+		Assert.state(messageStore != null, "MessageStore must not be null");
 		this.messageStore = messageStore;
 	}
 
-	/**
-	 * Set whether to wait for scheduled tasks to complete on shutdown.
-	 * <p>Default is "false". Switch this to "true" if you prefer
-	 * fully completed tasks at the expense of a longer shutdown phase.
-	 * <p/>
-	 * This property will only have an effect for TaskScheduler implementations
-	 * that extend from {@link ExecutorConfigurationSupport}.
-	 *
-	 * @see ExecutorConfigurationSupport#setWaitForTasksToCompleteOnShutdown(boolean)
-	 */
-	public void setWaitForTasksToCompleteOnShutdown(boolean waitForJobsToCompleteOnShutdown) {
-		this.waitForTasksToCompleteOnShutdown = waitForJobsToCompleteOnShutdown;
+	@Override
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		super.setTaskScheduler(taskScheduler);
+		this.taskSchedulerProvided = true;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	@Override
@@ -153,34 +151,18 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		return "delayer";
 	}
 
+	@Override
 	protected void onInit() {
 		super.onInit();
-
-		if (this.getTaskScheduler() instanceof ExecutorConfigurationSupport) {
-			((ExecutorConfigurationSupport) this.getTaskScheduler()).setWaitForTasksToCompleteOnShutdown(this.waitForTasksToCompleteOnShutdown);
-		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("The 'waitForJobsToCompleteOnShutdown' property is not supported for TaskScheduler of type [" +
-					this.getTaskScheduler().getClass() + "]");
-		}
 		if (this.messageStore == null) {
 			this.messageStore = new SimpleMessageStore();
 		}
-
-		this.reschedulePersistedMessagesOnStartup();
-		this.initializingLatch.countDown();
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		try {
-			this.initializingLatch.await();
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException("Interrupted while awaiting Delayer initialization", e);
-		}
-		boolean delayed = requestMessage instanceof DelayedMessageWrapper;
+
+		boolean delayed = requestMessage.getPayload() instanceof DelayedMessageWrapper;
 
 		if (!delayed) {
 			long delay = this.determineDelayForMessage(requestMessage);
@@ -191,7 +173,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 
 		// no delay
-		return requestMessage.getPayload();
+		Object payload = requestMessage.getPayload();
+		return delayed ? ((DelayedMessageWrapper) payload).getOriginal().getPayload() : payload;
 	}
 
 	private long determineDelayForMessage(Message<?> message) {
@@ -217,21 +200,26 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
-		Assert.state(this.messageStore != null, "MessageStore must not be null");
-		final Message<?> messageToSchedule = this.addRequestDateHeaderIfAbsent(message);
+
+		DelayedMessageWrapper messageWrapper = null;
+		if (message.getPayload() instanceof DelayedMessageWrapper) {
+			messageWrapper = (DelayedMessageWrapper) message.getPayload();
+		}
+		else {
+			messageWrapper = new DelayedMessageWrapper(message);
+		}
+		final Message messageToSchedule = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
 		this.messageStore.addMessageToGroup(this.messageGroupId, messageToSchedule);
 		this.getTaskScheduler().schedule(new Runnable() {
 			public void run() {
 				releaseMessage(messageToSchedule);
 			}
-		}, new Date(messageToSchedule.getHeaders().get(REQUEST_DATE, Long.class) + delay));
+		}, new Date(messageWrapper.getRequestDate() + delay));
 	}
 
 	private void releaseMessage(Message<?> message) {
-		Assert.state(this.messageStore != null, "MessageStore must not be null");
 		this.messageStore.removeMessageFromGroup(messageGroupId, message);
-		Message messageToHandle = MessageBuilder.fromMessage(message).removeHeader(REQUEST_DATE).build();
-		this.handleMessageInternal(new DelayedMessageWrapper(messageToHandle));
+		this.handleMessageInternal(message);
 	}
 
 	/**
@@ -242,7 +230,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * This behavior is dictated by the avoidance of overhead on the initializing phase.
 	 */
 	private void reschedulePersistedMessagesOnStartup() {
-		Assert.state(this.messageStore != null, "MessageStore must not be null");
 		int messageGroupSize = this.messageStore.messageGroupSize(this.messageGroupId);
 		while (messageGroupSize > 0) {
 			Message<?> message = this.messageStore.pollMessageFromGroup(messageGroupId);
@@ -254,30 +241,119 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 	}
 
-	private Message<?> addRequestDateHeaderIfAbsent(Message<?> message){
-		return MessageBuilder.fromMessage(message).setHeaderIfAbsent(REQUEST_DATE, System.currentTimeMillis()).build();
+	// SmartLifecycle implementation
+
+	@Override
+	public final boolean isAutoStartup() {
+		return this.autoStartup;
 	}
 
-	public void destroy() throws Exception {
-		if (this.getTaskScheduler() instanceof DisposableBean) {
-			((DisposableBean) this.getTaskScheduler()).destroy();
+	@Override
+	public final int getPhase() {
+		return this.phase;
+	}
+
+	@Override
+	public final boolean isRunning() {
+		this.lifecycleLock.lock();
+		try {
+			return this.running;
+		}
+		finally {
+			this.lifecycleLock.unlock();
 		}
 	}
 
-	private class DelayedMessageWrapper implements Message<Object> {
+	@Override
+	public final void start() {
+		this.lifecycleLock.lock();
+		try {
+			if (!this.running) {
+				this.doStart();
+				this.running = true;
+				if (logger.isInfoEnabled()) {
+					logger.info("started " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	@Override
+	public final void stop() {
+		this.lifecycleLock.lock();
+		try {
+			if (this.running) {
+				this.doStop();
+				this.running = false;
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	@Override
+	public final void stop(Runnable callback) {
+		this.lifecycleLock.lock();
+		try {
+			this.stop();
+			callback.run();
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	private void doStart() {
+		if (this.taskSchedulerProvided) {
+			if (this.getTaskScheduler() instanceof ExecutorConfigurationSupport) {
+				((ExecutorConfigurationSupport) this.getTaskScheduler()).initialize();
+			}
+		}
+		else {
+			this.logger.warn("'SmartLifecycle#start()' is prevented when delayer uses global shared TaskScheduler.");
+		}
+		this.reschedulePersistedMessagesOnStartup();
+	}
+
+	private void doStop() {
+	  if (this.taskSchedulerProvided) {
+		  if (this.getTaskScheduler() instanceof ExecutorConfigurationSupport) {
+			  ((ExecutorConfigurationSupport) this.getTaskScheduler()).destroy();
+		  }
+	  }
+		else {
+		  this.logger.warn("'SmartLifecycle#stop()' is prevented when delayer uses global shared TaskScheduler.");
+	  }
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		this.doStop();
+	}
+
+	private static final class DelayedMessageWrapper implements Serializable {
+
+		private final long requestDate = System.currentTimeMillis();
 
 		private final Message<?> original;
 
-		public DelayedMessageWrapper(Message<?> original){
+		public DelayedMessageWrapper(Message<?> original) {
 			this.original = original;
 		}
 
-		public MessageHeaders getHeaders() {
-			return this.original.getHeaders();
+		public long getRequestDate() {
+			return this.requestDate;
 		}
 
-		public Object getPayload() {
-			return original.getPayload();
+		public Message<?> getOriginal() {
+			return this.original;
 		}
 	}
 
