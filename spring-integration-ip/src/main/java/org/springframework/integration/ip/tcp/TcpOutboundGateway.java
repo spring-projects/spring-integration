@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private Semaphore semaphore = new Semaphore(1, true);
 
-	private volatile long replyTimeout = 10000;
+	private volatile long remoteTimeout = 10000L;
+
+	private volatile boolean remoteTimeoutSet = false;
 
 	private volatile long requestTimeout = 10000;
 
@@ -73,10 +75,24 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
-	 * @param replyTimeout the replyTimeout to set
+	 * @param remoteTimeout the remoteTimeout to set
 	 */
-	public void setReplyTimeout(long replyTimeout) {
-		this.replyTimeout = replyTimeout;
+	public void setRemoteTimeout(long remoteTimeout) {
+		this.remoteTimeout = remoteTimeout;
+		this.remoteTimeoutSet = true;
+	}
+
+	@Override
+	public void setSendTimeout(long sendTimeout) {
+		super.setSendTimeout(sendTimeout);
+		/*
+		 * For backwards compatibility, also set the remote
+		 * timeout to this value, unless it has been
+		 * explicitly set.
+		 */
+		if (!this.remoteTimeoutSet) {
+			this.remoteTimeout = sendTimeout;
+		}
 	}
 
 	@Override
@@ -167,6 +183,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
 	}
+	@Override
 	public String getComponentType(){
 		return "ip:tcp-outbound-gateway";
 	}
@@ -233,7 +250,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		 */
 		public Message<?> getReply() throws Exception {
 			try {
-				if (!this.latch.await(replyTimeout, TimeUnit.MILLISECONDS)) {
+				if (!this.latch.await(remoteTimeout, TimeUnit.MILLISECONDS)) {
 					return null;
 				}
 			}

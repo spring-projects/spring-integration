@@ -329,8 +329,38 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-timeout" type="xsd:string"/>
-					<xsd:attribute name="reply-timeout" type="xsd:string"/>
+					<xsd:attribute name="request-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								When using a shared socket, specifies the time the gateway will wait
+								to get access to the socket to send the request.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the time the gateway will wait while sending
+								the reply to the reply channel; only applies when the
+								channel might block (such as a bounded queue channel that
+								is currently full).
+								Prior to 2.2, this attribute served the function of
+								the remote-timeout attribute; it has been changed
+								to make it consistent with other endpoints.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="remote-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the time the gateway will wait for a reply
+								from the remote system. Prior to 2.2, this was specified
+								with the reply-timeout attribute. To provide easier migration,
+								this attribute defaults to the same value of the reply-timeout,
+								if supplied, or 10 seconds otherwise.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="order">
 						<xsd:annotation>
 							<xsd:documentation>
