@@ -114,4 +114,30 @@ abstract class HttpAdapterParsingUtils {
 		}
 	}
 
+	static void setExpectedResponseOrExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
+		String expectedResponseType = element.getAttribute("expected-response-type");
+		String expectedResponseTypeExpression = element.getAttribute("expected-response-type-expression");
+
+		boolean hasExpectedResponseType = StringUtils.hasText(expectedResponseType);
+		boolean hasExpectedResponseTypeExpression = StringUtils.hasText(expectedResponseTypeExpression);
+
+		if (hasExpectedResponseType && hasExpectedResponseTypeExpression){
+			parserContext.getReaderContext().error("The 'expected-response-type' and 'expected-response-type-expression' are mutually exclusive. " +
+					"You can only have one or the other", element);
+		}
+
+		RootBeanDefinition expressionDef = null;
+		if (hasExpectedResponseType) {
+			expressionDef = new RootBeanDefinition(LiteralExpression.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expectedResponseType);
+		}
+		else if (hasExpectedResponseTypeExpression){
+			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expectedResponseTypeExpression);
+		}
+		if (expressionDef != null){
+			builder.addPropertyValue("expectedResponseTypeExpression", expressionDef);
+		}
+	}
+
 }

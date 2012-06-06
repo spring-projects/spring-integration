@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
-		assertEquals(Boolean.class, handlerAccessor.getPropertyValue("expectedResponseType"));
+		assertEquals(Boolean.class.getName(), TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue());
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		Object converterListBean = this.applicationContext.getBean("converterList");
 		assertEquals(converterListBean, templateAccessor.getPropertyValue("messageConverters"));

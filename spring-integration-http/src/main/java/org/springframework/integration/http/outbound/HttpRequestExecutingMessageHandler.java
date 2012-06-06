@@ -31,6 +31,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -89,7 +91,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile boolean expectReply = true;
 
-	private volatile Class<?> expectedResponseType;
+	private volatile Expression expectedResponseTypeExpression;
 
 	private volatile boolean extractPayload = true;
 
@@ -198,13 +200,26 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
-	 * Specify the expected response type for the REST request.
-	 * If this is null (the default), only the status code will be returned
-	 * as the reply Message payload. To take advantage of the HttpMessageConverters
+	 * Specify the expected response type for the REST request
+	 * otherwise the default response type is {@link ResponseEntity} and will
+	 * be returned as a payload of the reply Message.
+	 * To take advantage of the HttpMessageConverters
 	 * registered on this adapter, provide a different type).
+	 * Also see {@link #setExpectedResponseTypeExpression(Expression)}
 	 */
 	public void setExpectedResponseType(Class<?> expectedResponseType) {
-		this.expectedResponseType = expectedResponseType;
+		Assert.notNull(expectedResponseType, "'expectedResponseType' must not be null");
+		this.expectedResponseTypeExpression = new LiteralExpression(expectedResponseType.getName());
+	}
+
+	/**
+	 * Specify the {@link Expression} to determine the type for the expected response
+	 * The returned value of the expression could be an instance of {@link Class} or
+	 * {@link String} representing a fully qualified class name
+	 * Also see {@link #setExpectedResponseTypeExpression(Expression)}
+	 */
+	public void setExpectedResponseTypeExpression(Expression expectedResponseTypeExpression) {
+		this.expectedResponseTypeExpression = expectedResponseTypeExpression;
 	}
 
 	/**
@@ -269,8 +284,19 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
 		ConversionService conversionService = this.getConversionService();
+		if (conversionService == null){
+			conversionService = new GenericConversionService();
+		}
+		Assert.isInstanceOf(GenericConversionService.class, conversionService);
+		GenericConversionService gConversionService = (GenericConversionService) conversionService;
+		gConversionService.addConverter(new Converter<Class<?>, String>() {
+			public String convert(Class<?> source) {
+				return source.getName();
+			}
+		});
+
 		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+			this.evaluationContext.setTypeConverter(new StandardTypeConverter(gConversionService));
 		}
 	}
 
@@ -294,8 +320,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				}
 			}
 
+			Class<?> expectedResponseType = this.determineExpectedResponseType(requestMessage);
+
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
-			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
+			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
 				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
@@ -310,7 +338,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 					return replyBuilder.copyHeaders(headers).build();
 				}
 				else {
-					return MessageBuilder.withPayload(httpResponse.getStatusCode()).
+					return MessageBuilder.withPayload(httpResponse).
 							copyHeaders(headers).setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode()).
 							build();
 				}
@@ -489,5 +517,17 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		Assert.isTrue(StringUtils.hasText(strHttpMethod) && !Arrays.asList(HttpMethod.values()).contains(strHttpMethod),
 				"The 'httpMethodExpression' returned an invalid HTTP Method value: " + strHttpMethod);
 		return HttpMethod.valueOf(strHttpMethod);
+	}
+
+	private Class<?> determineExpectedResponseType(Message<?> requestMessage) throws Exception{
+		Class<?> expectedResponseType = null;
+		String expectedResponseTypeName = null;
+		if (this.expectedResponseTypeExpression != null){
+			expectedResponseTypeName = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage, String.class);
+		}
+		if (StringUtils.hasText(expectedResponseTypeName)){
+			expectedResponseType = Class.forName(expectedResponseTypeName);
+		}
+		return expectedResponseType;
 	}
 }

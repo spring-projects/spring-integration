@@ -411,13 +411,25 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			<xsd:attribute name="expected-response-type" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						The expected type to which the response body should be converted.
+						The expected type to which the response body should be converted. 
+						Default is 'org.springframework.http.ResponseEntity'.
+						This attribute cannot be provided if expected-response-type-expression has a value
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
 							<tool:expected-type type="java.lang.Class" />
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="expected-response-type-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						SpEL expression to determine the type for the expected response to which the response body should be converted
+	                    The returned value of the expression could be an instance of java.lang.Class or
+	                    java.lang.String representing a fully qualified class name.
+						This attribute cannot be provided if expected-response-type has a value
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="message-converters" type="xsd:string">
@@ -595,13 +607,25 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:attribute name="expected-response-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								The expected type to which the response body should be converted.
+								The expected type to which the response body should be converted. 
+								Default is 'org.springframework.http.ResponseEntity'.
+								This attribute cannot be provided if expected-response-type-expression has a value
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="direct">
 									<tool:expected-type type="java.lang.Class" />
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expected-response-type-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression to determine the type for the expected response to which the response body should be converted
+	                            The returned value of the expression could be an instance of java.lang.Class or
+	                            java.lang.String representing a fully qualified class name.
+						        This attribute cannot be provided if expected-response-type has a value
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="charset" type="xsd:string" />
