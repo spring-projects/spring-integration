@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -13,33 +13,31 @@
 
 package org.springframework.integration.config;
 
-import java.util.Comparator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
-import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
-
 /**
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  */
 public class ResequencerParserTests {
 
@@ -118,18 +116,6 @@ public class ResequencerParserTests {
 		assertEquals("foo", adapter.getCorrelationKey(MessageBuilder.withPayload("not important").build()));
 	}
 
-	@Test
-	public void testComparator() throws Exception {
-		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithComparator");
-		ResequencingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		ResequencingMessageGroupProcessor resequencer = TestUtils.getPropertyValue(handler, "outputProcessor",
-				ResequencingMessageGroupProcessor.class);
-		Object comparator = getPropertyValue(resequencer, "comparator");
-		assertEquals("The Resequencer is not configured with a TestComparator", TestComparator.class, comparator
-				.getClass());
-	}
-
 	@SuppressWarnings("unused")
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel outputChannel) {
@@ -148,13 +134,6 @@ public class ResequencerParserTests {
 
 		public Object foo(Object o) {
 			return "foo";
-		}
-	}
-
-	static class TestComparator implements Comparator<Message<?>> {
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		public int compare(Message<?> o1, Message<?> o2) {
-			return ((Comparable) o1.getPayload()).compareTo(o2.getPayload());
 		}
 	}
 
