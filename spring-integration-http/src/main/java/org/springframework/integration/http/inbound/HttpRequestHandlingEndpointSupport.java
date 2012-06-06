@@ -296,6 +296,8 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				}
 			}
 		}
+
+		this.validateSupportedMethods();
 	}
 
 	/**
@@ -511,5 +513,18 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
 		return evaluationContext;
+	}
+
+	private void validateSupportedMethods() {
+		if (this.requestPayloadType != null){
+			for (HttpMethod httpMethod : this.supportedMethods) {
+				if (HttpMethod.GET.equals(httpMethod) || HttpMethod.HEAD.equals(httpMethod) || HttpMethod.OPTIONS.equals(httpMethod)){
+					if (logger.isWarnEnabled()){
+						logger.warn("The 'requestPayloadType' attribute will have no relevance for one of the specified HTTP methods '" +
+			               httpMethod + "'");
+					}
+				}
+			}
+		}
 	}
 }
