@@ -122,6 +122,20 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="search-term-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.mail.SearchTermStrategy" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to a custom implementation of org.springframework.integration.mail.SearchTermStrategy
+								to use when retrieving email
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
