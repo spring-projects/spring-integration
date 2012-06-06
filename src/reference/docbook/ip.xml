@@ -329,8 +329,14 @@
       This default behavior can be overridden by setting the <literal>lookup-host</literal>
       attribute to "false".
     </para>
-    <para>
-        <note>
+    <note>
+     <para>
+      It is possible to modify the creation of and/or attributes of sockets - see
+      <xref linkend="ssl-tls"/>. As is noted there, such modifications are possible whether
+      or not SSL is being used.
+     </para>
+    </note>
+    <section id="caching-cf">
             <title>TCP Caching Client Connection Factory</title>
             <para>
               As noted above, TCP sockets cam be 'single-use' (one request/response)
@@ -349,15 +355,35 @@
               process multiple concurrent requests with a pool of shared
               connections.
             </para>
-        </note>
-    </para>
-    <note>
-     <para>
-      It is possible to modify the creation of and/or attributes of sockets - see
-      <xref linkend="ssl-tls"/>. As is noted there, such modifications are possible whether
-      or not SSL is being used.
-     </para>
-    </note>
+    </section>
+    <section id="failover-cf">
+            <title>TCP Failover Client Connection Factory</title>
+            <para>
+              It is now possible to configure a TCP connection factory that
+              supports failover to one or more other servers. When sending
+              a message, the factory will iterate over all its configured
+              factories until either the message can be sent, or no connection
+              can be found. Initially, the first factory in the configured
+              list is used; if a connection subsequently fails the next
+              factory will become the current factory. 
+            </para>
+            <para>
+              <programlisting language="xml"><![CDATA[<bean id="failCF" class="o.s.i.ip.tcp.connection.FailoverClientConnectionFactory">
+    <constructor-arg>
+        <list>
+            <ref bean="clientFactory1"/>
+            <ref bean="clientFactory2"/>
+        </list>
+    </constructor-arg>
+</bean>              
+              ]]></programlisting>
+            </para>
+            <para>
+              <note>When using the failover connection factory, the singleUse property must be consistent between
+                the factory itself and the list of factories it is configured to use.
+              </note>
+            </para>
+    </section>    
   </section>
   <section id="ip-interceptors">
     <title>TCP Connection Interceptors</title>

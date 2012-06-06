@@ -66,10 +66,12 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		this.pool.setWaitTimeout(connectionWaitTimeout);
 	}
 
+	@Override
 	public synchronized void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
+	@Override
 	public int getPoolSize() {
 		return this.pool.getPoolSize();
 	}
@@ -86,7 +88,8 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return this.pool.getAllocatedCount();
 	}
 
-	public TcpConnection getOrMakeConnection() throws Exception {
+	@Override
+	public TcpConnection obtainConnection() throws Exception {
 		return new CachedConnection(this.pool.getItem());
 	}
 
@@ -139,10 +142,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 ///////////////// DELEGATE METHODS ///////////////////////
 
-	public void run() {
-
-	}
-
+	@Override
 	public boolean isRunning() {
 		return targetConnectionFactory.isRunning();
 	}
@@ -152,170 +152,212 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		targetConnectionFactory.close();
 	}
 
+	@Override
 	public int hashCode() {
 		return targetConnectionFactory.hashCode();
 	}
 
+	@Override
 	public void setComponentName(String componentName) {
 		targetConnectionFactory.setComponentName(componentName);
 	}
 
+	@Override
 	public String getComponentType() {
 		return targetConnectionFactory.getComponentType();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		return targetConnectionFactory.equals(obj);
 	}
 
+	@Override
 	public int getSoTimeout() {
 		return targetConnectionFactory.getSoTimeout();
 	}
 
+	@Override
 	public void setSoTimeout(int soTimeout) {
 		targetConnectionFactory.setSoTimeout(soTimeout);
 	}
 
+	@Override
 	public int getSoReceiveBufferSize() {
 		return targetConnectionFactory.getSoReceiveBufferSize();
 	}
 
+	@Override
 	public void setSoReceiveBufferSize(int soReceiveBufferSize) {
 		targetConnectionFactory.setSoReceiveBufferSize(soReceiveBufferSize);
 	}
 
+	@Override
 	public int getSoSendBufferSize() {
 		return targetConnectionFactory.getSoSendBufferSize();
 	}
 
+	@Override
 	public void setSoSendBufferSize(int soSendBufferSize) {
 		targetConnectionFactory.setSoSendBufferSize(soSendBufferSize);
 	}
 
+	@Override
 	public boolean isSoTcpNoDelay() {
 		return targetConnectionFactory.isSoTcpNoDelay();
 	}
 
+	@Override
 	public void setSoTcpNoDelay(boolean soTcpNoDelay) {
 		targetConnectionFactory.setSoTcpNoDelay(soTcpNoDelay);
 	}
 
+	@Override
 	public int getSoLinger() {
 		return targetConnectionFactory.getSoLinger();
 	}
 
+	@Override
 	public void setSoLinger(int soLinger) {
 		targetConnectionFactory.setSoLinger(soLinger);
 	}
 
+	@Override
 	public boolean isSoKeepAlive() {
 		return targetConnectionFactory.isSoKeepAlive();
 	}
 
+	@Override
 	public void setSoKeepAlive(boolean soKeepAlive) {
 		targetConnectionFactory.setSoKeepAlive(soKeepAlive);
 	}
 
+	@Override
 	public int getSoTrafficClass() {
 		return targetConnectionFactory.getSoTrafficClass();
 	}
 
+	@Override
 	public void setSoTrafficClass(int soTrafficClass) {
 		targetConnectionFactory.setSoTrafficClass(soTrafficClass);
 	}
 
+	@Override
 	public String getHost() {
 		return targetConnectionFactory.getHost();
 	}
 
+	@Override
 	public int getPort() {
 		return targetConnectionFactory.getPort();
 	}
 
+	@Override
 	public TcpListener getListener() {
 		return targetConnectionFactory.getListener();
 	}
 
+	@Override
 	public TcpSender getSender() {
 		return targetConnectionFactory.getSender();
 	}
 
+	@Override
 	public Serializer<?> getSerializer() {
 		return targetConnectionFactory.getSerializer();
 	}
 
+	@Override
 	public Deserializer<?> getDeserializer() {
 		return targetConnectionFactory.getDeserializer();
 	}
 
+	@Override
 	public TcpMessageMapper getMapper() {
 		return targetConnectionFactory.getMapper();
 	}
 
+	@Override
 	public void registerListener(TcpListener listener) {
 		targetConnectionFactory.registerListener(listener);
 	}
 
+	@Override
 	public void registerSender(TcpSender sender) {
 		targetConnectionFactory.registerSender(sender);
 	}
 
+	@Override
 	public void setTaskExecutor(Executor taskExecutor) {
 		targetConnectionFactory.setTaskExecutor(taskExecutor);
 	}
 
+	@Override
 	public void setDeserializer(Deserializer<?> deserializer) {
 		targetConnectionFactory.setDeserializer(deserializer);
 	}
 
+	@Override
 	public void setSerializer(Serializer<?> serializer) {
 		targetConnectionFactory.setSerializer(serializer);
 	}
 
+	@Override
 	public void setMapper(TcpMessageMapper mapper) {
 		targetConnectionFactory.setMapper(mapper);
 	}
 
+	@Override
 	public boolean isSingleUse() {
 		return targetConnectionFactory.isSingleUse();
 	}
 
+	@Override
 	public void setSingleUse(boolean singleUse) {
 		targetConnectionFactory.setSingleUse(singleUse);
 	}
 
+	@Override
 	public void setInterceptorFactoryChain(
 			TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
 		targetConnectionFactory
 				.setInterceptorFactoryChain(interceptorFactoryChain);
 	}
 
+	@Override
 	public void setLookupHost(boolean lookupHost) {
 		targetConnectionFactory.setLookupHost(lookupHost);
 	}
 
+	@Override
 	public boolean isLookupHost() {
 		return targetConnectionFactory.isLookupHost();
 	}
 
+	@Override
 	public void start() {
 		this.setActive(true);
 		targetConnectionFactory.start();
+		super.start();
 	}
 
+	@Override
 	public synchronized void stop() {
 		targetConnectionFactory.stop();
 		this.pool.removeAllIdleItems();
 	}
 
+	@Override
 	public int getPhase() {
 		return targetConnectionFactory.getPhase();
 	}
 
+	@Override
 	public boolean isAutoStartup() {
 		return targetConnectionFactory.isAutoStartup();
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		targetConnectionFactory.stop(callback);
 	}

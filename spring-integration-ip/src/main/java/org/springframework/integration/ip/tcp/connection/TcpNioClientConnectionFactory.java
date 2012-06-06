@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,18 +42,18 @@ import org.springframework.util.Assert;
  *
  */
 public class TcpNioClientConnectionFactory extends
-		AbstractClientConnectionFactory {
+		AbstractClientConnectionFactory implements Runnable {
 
 	private volatile boolean usingDirectBuffers;
-	
+
 	private volatile Selector selector;
-	
+
 	private final Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
-	
+
 	private final BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
 
 	private volatile TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
-	
+
 	/**
 	 * Creates a TcpNioClientConnectionFactory for connections to the host and port.
 	 * @param host the host
@@ -68,7 +68,8 @@ public class TcpNioClientConnectionFactory extends
 	 * @throws IOException
 	 * @throws SocketException
 	 */
-	protected TcpConnection getOrMakeConnection() throws Exception {
+	@Override
+	protected TcpConnection obtainConnection() throws Exception {
 		int n = 0;
 		while (this.selector == null) {
 			try {
@@ -120,10 +121,22 @@ public class TcpNioClientConnectionFactory extends
 		this.tcpNioConnectionSupport = tcpNioSupport;
 	}
 
+	@Override
 	public void close() {
 		if (this.selector != null) {
 			this.selector.wakeup();
 		}
+	}
+
+	@Override
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.isActive()) {
+				this.setActive(true);
+				this.getTaskExecutor().execute(this);
+			}
+		}
+		super.start();
 	}
 
 	public void run() {

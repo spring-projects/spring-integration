@@ -19,24 +19,24 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 
 /**
  * A TcpConnection that uses and underlying {@link Socket}.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
  */
 public class TcpNetConnection extends AbstractTcpConnection {
 
-	private final Socket socket; 
-	
+	private final Socket socket;
+
 	private boolean noReadErrorOnClose;
-	
+
 	/**
 	 * Constructs a TcpNetConnection for the socket.
 	 * @param socket the socket
@@ -47,10 +47,11 @@ public class TcpNetConnection extends AbstractTcpConnection {
 		super(socket, server, lookupHost);
 		this.socket = socket;
 	}
-	
+
 	/**
 	 * Closes this connection.
 	 */
+	@Override
 	public void close() {
 		this.noReadErrorOnClose = true;
 		try {
@@ -77,15 +78,15 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	public int getPort() {
 		return this.socket.getPort();
 	}
-	
+
 	/**
-	 * If there is no listener, and this connection is not for single use, 
+	 * If there is no listener, and this connection is not for single use,
 	 * this method exits. When there is a listener, the method runs in a
 	 * loop reading input from the connections's stream, data is converted
 	 * to an object using the {@link Deserializer} and the listener's
 	 * {@link TcpListener#onMessage(Message)} method is called. For single use
 	 * connections with no listener, the socket is closed after its timeout
-	 * expires. If data is received on a single use socket with no listener, 
+	 * expires. If data is received on a single use socket with no listener,
 	 * a warning is logged.
 	 */
 	public void run() {
@@ -116,7 +117,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 							else if (logger.isDebugEnabled()) {
 								logger.debug("Read exception " +
 										 this.getConnectionId() + " " +
-										 e.getClass().getSimpleName() + 
+										 e.getClass().getSimpleName() +
 									     ":" + e.getCause() + ":" + e.getMessage());
 							}
 						} else if (logger.isTraceEnabled()) {
@@ -125,7 +126,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 						} else {
 							logger.error("Read exception " +
 										 this.getConnectionId() + " " +
-										 e.getClass().getSimpleName() + 
+										 e.getClass().getSimpleName() +
 									     ":" + e.getCause() + ":" + e.getMessage());
 						}
 					}
@@ -140,7 +141,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 					logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
 					continue;
 				}
-				intercepted = listener.onMessage(message);
+				intercepted = this.getListener().onMessage(message);
 			} catch (Exception e) {
 				if (e instanceof NoListenerException) {
 					if (singleUse) {
@@ -151,12 +152,12 @@ public class TcpNetConnection extends AbstractTcpConnection {
 						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
 					}
 				} else {
-					logger.error("Exception sending meeeage: " + message, e);				
+					logger.error("Exception sending meeeage: " + message, e);
 				}
 			}
 			/*
 			 * For single use sockets, we close after receipt if we are on the client
-			 * side, and the data was not intercepted, 
+			 * side, and the data was not intercepted,
 			 * or the server side has no outbound adapter registered
 			 */
 			if (singleUse && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {

@@ -98,11 +98,13 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 		} catch (IOException e) {
 			this.close();
-			this.setListening(false);
 			if (this.isActive()) {
 				logger.error("Error on ServerSocketChannel", e);
-				this.setActive(false);
 			}
+		}
+		finally {
+			this.setListening(false);
+			this.setActive(false);
 		}
 	}
 

@@ -99,13 +99,15 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				this.harvestClosedConnections();
 			}
 		} catch (Exception e) {
-			this.setListening(false);
 			// don't log an error if we had a good socket once and now it's closed
 			if (e instanceof SocketException && theServerSocket != null) {
 				logger.warn("Server Socket closed");
 			} else if (this.isActive()) {
 				logger.error("Error on ServerSocket", e);
 			}
+		}
+		finally {
+			this.setListening(false);
 			this.setActive(false);
 		}
 	}

@@ -37,7 +37,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	public AbstractClientConnectionFactory(String host, int port) {
 		super(host, port);
 	}
-	
+
 	/**
 	 * Obtains a connection - if {@link #setSingleUse(boolean)} was called with
 	 * true, a new connection is returned; otherwise a single connection is
@@ -46,26 +46,26 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	public TcpConnection getConnection() throws Exception {
 		this.checkActive();
 		if (this.isSingleUse()) {
-			return getOrMakeConnection();
+			return obtainConnection();
 		} else {
 			synchronized(this) {
-				TcpConnection connection = getOrMakeConnection();
+				TcpConnection connection = obtainConnection();
 				this.setTheConnection(connection);
 				return connection;
 			}
 		}
 	}
 
-	protected abstract TcpConnection getOrMakeConnection() throws Exception;
+	protected abstract TcpConnection obtainConnection() throws Exception;
 
 	/**
 	 * Transfers attributes such as (de)serializers, singleUse etc to a new connection.
-	 * When the connection factory has a reference to a TCPListener (to read 
+	 * When the connection factory has a reference to a TCPListener (to read
 	 * responses), or for single use connections, the connection is executed.
-	 * Single use connections need to read from the connection in order to 
+	 * Single use connections need to read from the connection in order to
 	 * close it after the socket timeout.
 	 * @param connection The new connection.
-	 * @param socket The new socket. 
+	 * @param socket The new socket.
 	 */
 	protected void initializeConnection(TcpConnection connection, Socket socket) {
 		TcpListener listener = this.getListener();
