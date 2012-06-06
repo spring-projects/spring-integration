@@ -311,6 +311,9 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 				return null;
 			}
+			if (this.requestPayloadType != null){
+				this.shouldHonorRequestPayloadType(request.getMethod());
+			}
 
 			Object requestBody = null;
 			if (this.isReadable(request)) {
@@ -511,5 +514,14 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
 		return evaluationContext;
+	}
+
+	private void shouldHonorRequestPayloadType(HttpMethod httpMethod) {
+		if (HttpMethod.GET.equals(httpMethod) || HttpMethod.HEAD.equals(httpMethod) || HttpMethod.OPTIONS.equals(httpMethod)){
+			if (logger.isWarnEnabled()){
+				logger.warn("The 'requestPayloadType' attribute has no relevance for the current request since HTTP method is '" +
+	               httpMethod + "'");
+			}
+		}
 	}
 }
