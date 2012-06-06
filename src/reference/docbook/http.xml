@@ -247,7 +247,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
     default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would 
-    contain the ResponseEntity as long as it's httpa successful status (non-successful status codes will throw Exceptions). If you are expecting a different
+    contain the ResponseEntity as long as it's http status is a success (non-successful status codes will throw Exceptions). If you are expecting a different
     type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
     </para>
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
