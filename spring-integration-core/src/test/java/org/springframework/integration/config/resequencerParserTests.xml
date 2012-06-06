@@ -46,27 +46,10 @@
 		correlation-strategy="testCorrelationStrategyPojo"
 		correlation-strategy-method="foo"/>
 
-	<resequencer id="resequencerWithComparator"
-		input-channel="inputChannel5"
-		comparator="testComparator"/>
-		
-<!-- 	<resequencer id="resequencerWithReleaseStrategy" -->
-<!-- 		input-channel="inputChannel6" -->
-<!-- 		release-strategy="pojoReleaseStrategy" -->
-<!-- 		release-strategy-method="checkCompletenessAsList"/> -->
-
-	<beans:bean id="testComparator"
-		class="org.springframework.integration.config.ResequencerParserTests$TestComparator"/>
-
 	<beans:bean id="testCorrelationStrategy"
 		class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategy"/>
 
 	<beans:bean id="testCorrelationStrategyPojo"
 		class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategyPojo"/>
-
-<!-- 	<beans:bean id="pojoReleaseStrategy" -->
-<!-- 		class="org.springframework.integration.config.MaxValueReleaseStrategy"> -->
-<!-- 		<beans:constructor-arg value="10" /> -->
-<!-- 	</beans:bean> -->
 
 </beans:beans>

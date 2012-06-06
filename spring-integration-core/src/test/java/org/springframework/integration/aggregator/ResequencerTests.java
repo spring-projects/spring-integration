@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,25 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.hamcrest.Matchers.is;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Marius Bogoevici
@@ -48,9 +47,9 @@ public class ResequencerTests {
 
 	private ResequencingMessageHandler resequencer;
 
-	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
+	private final ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
-	private MessageGroupStore store = new SimpleMessageStore();
+	private final MessageGroupStore store = new SimpleMessageStore();
 
 	@Before
 	public void configureResequencer() {
@@ -76,31 +75,31 @@ public class ResequencerTests {
 		assertNotNull(reply3);
 		assertThat( reply3.getHeaders().getSequenceNumber(), is(3));
 	}
-	
+
 	@Test
 	public void testBasicResequencingA() throws InterruptedException {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
-		
+
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
-		
+
 		this.resequencer.handleMessage(message3);
 		assertNull(replyChannel.receive(0));
 		this.resequencer.handleMessage(message1);
 		assertNotNull(replyChannel.receive(0));
 		assertNull(replyChannel.receive(0));
 	}
-	
+
 	@Test
 	public void testBasicUnboundedResequencing() throws InterruptedException {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
 		QueueChannel replyChannel = new QueueChannel();
-		this.resequencer.setCorrelationStrategy(new CorrelationStrategy() {	
+		this.resequencer.setCorrelationStrategy(new CorrelationStrategy() {
 			public Object getCorrelationKey(Message<?> message) {
 				return "A";
 			}
@@ -111,49 +110,22 @@ public class ResequencerTests {
 		Message<?> message3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setReplyChannel(replyChannel).build();
 		Message<?> message4 = MessageBuilder.withPayload("4").setSequenceNumber(4).setReplyChannel(replyChannel).build();
 		Message<?> message5 = MessageBuilder.withPayload("5").setSequenceNumber(5).setReplyChannel(replyChannel).build();
-		
+
 		this.resequencer.handleMessage(message3);
 		assertNull(replyChannel.receive(0));
 		this.resequencer.handleMessage(message1);
 		assertNotNull(replyChannel.receive(0));
-		
+
 		this.resequencer.handleMessage(message2);
 
 		assertNotNull(replyChannel.receive(0));
 		assertNotNull(replyChannel.receive(0));
 		assertNull(replyChannel.receive(0));
-		
+
 		this.resequencer.handleMessage(message5);
 		assertNull(replyChannel.receive(0));
 		this.resequencer.handleMessage(message4);
 		assertNotNull(replyChannel.receive(0));
-	}
-
-
-	@Test
-	public void testBasicResequencingWithCustomComparator() throws InterruptedException {
-		this.processor.setComparator(new Comparator<Message<?>>() {			
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			public int compare(Message<?> o1, Message<?> o2) {
-				return ((Comparable)o1.getPayload()).compareTo(o2.getPayload());
-			}
-		});
-		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message1 = createMessage("789", "ABC", 3, 1, replyChannel);
-		Message<?> message2 = createMessage("123", "ABC", 3, 2, replyChannel);
-		Message<?> message3 = createMessage("456", "ABC", 3, 3, replyChannel);
-		this.resequencer.handleMessage(message1);
-		this.resequencer.handleMessage(message3);
-		this.resequencer.handleMessage(message2);
-		Message<?> reply1 = replyChannel.receive(0);
-		Message<?> reply2 = replyChannel.receive(0);
-		Message<?> reply3 = replyChannel.receive(0);
-		assertNotNull(reply1);
-		assertEquals(new Integer(2), reply1.getHeaders().getSequenceNumber());
-		assertNotNull(reply2);
-		assertEquals(new Integer(3), reply2.getHeaders().getSequenceNumber());
-		assertNotNull(reply3);
-		assertEquals(new Integer(1), reply3.getHeaders().getSequenceNumber());
 	}
 
 	@Test
@@ -210,12 +182,6 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithPartialSequenceAndComparator() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
-		this.processor.setComparator(new Comparator<Message<?>>() {			
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			public int compare(Message<?> o1, Message<?> o2) {
-				return ((Comparable)o1.getPayload()).compareTo(o2.getPayload());
-			}
-		});
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("456", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("123", "ABC", 4, 1, replyChannel);
