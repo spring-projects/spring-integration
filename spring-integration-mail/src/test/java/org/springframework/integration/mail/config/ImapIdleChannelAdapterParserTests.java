@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,14 @@ import static org.junit.Assert.assertSame;
 
 import java.util.Properties;
 
+import javax.mail.Flags;
+import javax.mail.Folder;
 import javax.mail.URLName;
+import javax.mail.search.SearchTerm;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,6 +37,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
+import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -111,7 +116,7 @@ public class ImapIdleChannelAdapterParserTests {
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 	}
-	
+
 	@Test
 	public void simpleAdapterWithMarkeMessagesAsReadFalse() {
 		Object adapter = context.getBean("simpleAdapterMarkAsReadFalse");
@@ -147,10 +152,20 @@ public class ImapIdleChannelAdapterParserTests {
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
 		assertEquals("bar", properties.getProperty("foo"));
 		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
+		SearchTermStrategy stStrategy = context.getBean("searchTermStrategy", SearchTermStrategy.class);
+		assertEquals(stStrategy, TestUtils.getPropertyValue(adapter, "mailReceiver.searchTermStrategy"));
 	}
 
 	@Test
 	public void testAutoChannel() {
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+	}
+
+	public static class TestSearchTermStrategy implements SearchTermStrategy {
+
+		public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {
+			return null;
+		}
+
 	}
 }

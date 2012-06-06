@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -26,11 +28,10 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;imap-idle-channel-adapter&gt; element in the 'mail' namespace.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -38,6 +39,7 @@ import org.w3c.dom.Element;
  */
 public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 
+	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ImapIdleChannelAdapter.class);
 		builder.addConstructorArgValue(this.parseImapMailReceiver(element, parserContext));
@@ -49,6 +51,7 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	private BeanDefinition parseImapMailReceiver(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(ImapMailReceiver.class);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "search-term-strategy");
 		Object source = parserContext.extractSource(element);
 		String uri = element.getAttribute("store-uri");
 		if (StringUtils.hasText(uri)) {
@@ -72,16 +75,16 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 		if (StringUtils.hasText(markAsRead)){
 			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
 		}
-		
+
 		String selectorExpression = element.getAttribute("mail-filter-expression");
-		
+
 		RootBeanDefinition expressionDef = null;
 		if (StringUtils.hasText(selectorExpression)){
 			expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
 		}
-		
-		return receiverBuilder.getBeanDefinition(); 
+
+		return receiverBuilder.getBeanDefinition();
 	}
 }

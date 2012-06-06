@@ -62,9 +62,9 @@ import com.sun.mail.imap.IMAPFolder;
  *
  */
 public class ImapMailReceiverTests {
-	
-	private AtomicInteger failed = new AtomicInteger(0);
-	
+
+	private final AtomicInteger failed = new AtomicInteger(0);
+
 	@Test
 	public void receiveAndMarkAsReadDontDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -80,7 +80,7 @@ public class ImapMailReceiverTests {
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
@@ -88,17 +88,17 @@ public class ImapMailReceiverTests {
 				if (folderOpenMode != Folder.READ_WRITE){
 					throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 				}
-				
+
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -116,13 +116,13 @@ public class ImapMailReceiverTests {
 		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -136,13 +136,13 @@ public class ImapMailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -159,14 +159,14 @@ public class ImapMailReceiverTests {
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
-		
+
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -175,13 +175,13 @@ public class ImapMailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -199,13 +199,13 @@ public class ImapMailReceiverTests {
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -219,13 +219,13 @@ public class ImapMailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -243,13 +243,13 @@ public class ImapMailReceiverTests {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -263,13 +263,13 @@ public class ImapMailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -283,22 +283,22 @@ public class ImapMailReceiverTests {
 	@Test
 	@Ignore
 	public void testMessageHistory() throws Exception{
-		ApplicationContext context = 
+		ApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
-		
+
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-		
+
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
-	
+
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
 		when(mailMessage.getFlags()).thenReturn(flags);
 		final Message[] messages = new Message[]{mailMessage};
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				DirectFieldAccessor accesor = new DirectFieldAccessor((invocation.getMock()));
@@ -308,19 +308,19 @@ public class ImapMailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
 		}).when(receiver).fetchMessages(messages);
-		
+
 		PollableChannel channel = context.getBean("channel", PollableChannel.class);
 
 		adapter.start();
@@ -334,16 +334,17 @@ public class ImapMailReceiverTests {
 
 	@Test
 	public void testIdleChannelAdapterException() throws Exception{
-		ApplicationContext context = 
+		ApplicationContext context =
 			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
 		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
 
 		//ImapMailReceiver receiver = (ImapMailReceiver) TestUtils.getPropertyValue(adapter, "mailReceiver");
-		
-		
-	
+
+
+
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
 			protected Object handleRequestMessage(org.springframework.integration.Message<?> requestMessage) {
 				throw new RuntimeException("Failed");
 			}
@@ -351,58 +352,58 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
-		
+
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(IMAPFolder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return true;
 			}
 		}).when(folder).isOpen();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
-	
+
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
 		when(mailMessage.getFlags()).thenReturn(flags);
 		final Message[] messages = new Message[]{mailMessage};
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
 			}
 		}).when(receiver).fetchMessages(messages);
-		
+
 		adapter.start();
 		org.springframework.integration.Message<?> replMessage = errorChannel.receive(10000);
 		assertNotNull(replMessage);
 		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
 	}
-	
+
 	@Test // see INT-1801
 	public void testImapLifecycleForRaceCondition() throws Exception{
-	
+
 		for (int i = 0; i < 1000; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 			Store store = mock(Store.class);
@@ -412,12 +413,12 @@ public class ImapMailReceiverTests {
 			when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[]{});
 			when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
 			when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-			
-			
+
+
 			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
 			df.setPropertyValue("store", store);
 			receiver.afterPropertiesSet();
-			
+
 			new Thread(new Runnable() {
 				public void run(){
 					try {
@@ -428,10 +429,10 @@ public class ImapMailReceiverTests {
 							failed.getAndIncrement();
 						}
 					}
-					
+
 				}
 			}).start();
-			
+
 			new Thread(new Runnable() {
 				public void run(){
 					try {
@@ -444,5 +445,14 @@ public class ImapMailReceiverTests {
 			}).start();
 		}
 		assertEquals(0, failed.get());
+	}
+
+	@Test
+	public void testCustomSearchTermStrategy() throws Exception{
+		ImapMailReceiver receiver = new ImapMailReceiver();
+		SearchTermStrategy stStrategy = mock(SearchTermStrategy.class);
+
+		receiver.setSearchTermStrategy(stStrategy);
+		assertEquals(stStrategy, TestUtils.getPropertyValue(receiver, "searchTermStrategy"));
 	}
 }
