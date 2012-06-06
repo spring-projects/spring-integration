@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,8 @@ public class HttpOutboundGatewayParserTests {
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		Object converterListBean = this.applicationContext.getBean("converterList");
 		assertEquals(converterListBean, templateAccessor.getPropertyValue("messageConverters"));
-		assertEquals(String.class, handlerAccessor.getPropertyValue("expectedResponseType"));
+
+		assertEquals(String.class.getName(), TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue());
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertEquals("http://localhost/test2", uriExpression.getValue());
 		assertEquals(HttpMethod.PUT.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());

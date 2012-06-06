@@ -246,8 +246,8 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
-    default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would only
-    contain the status code (e.g. 200) as long as it's a successful status (non-successful status codes will throw Exceptions). If you are expecting a different
+    default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would 
+    contain the ResponseEntity as long as it's httpa successful status (non-successful status codes will throw Exceptions). If you are expecting a different
     type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
     </para>
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
@@ -268,12 +268,14 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
   <para>
     Beginning with Spring Integration 2.2 you can also determine the HTTP Method dynamically using SpEL and  the <emphasis>http-method-expression</emphasis> attribute.
     Note that this attribute is obviously murually exclusive with <emphasis>http-method</emphasis>
+    You can also use <code>expected-response-type-expression</code> attribute instead of <code>expected-response-type</code> and 
+    provide any valid SpEL expression that determines the type of the response.
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
     request-channel="requests"
     url="http://localhost/test"
     http-method-expression="headers.httpMethod"
     extract-request-payload="false"
-    expected-response-type="java.lang.String"
+    expected-response-type-expression="payload"
     charset="UTF-8"
     request-factory="requestFactory"
     reply-timeout="1234"
