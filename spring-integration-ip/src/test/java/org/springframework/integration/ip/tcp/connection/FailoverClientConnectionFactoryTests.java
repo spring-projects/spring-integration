@@ -311,7 +311,7 @@ public class FailoverClientConnectionFactoryTests {
 		QueueChannel replyChannel = new QueueChannel();
 		outGateway.setReplyChannel(replyChannel);
 		Message<String> message = new GenericMessage<String>("foo");
-		outGateway.setReplyTimeout(120000);
+		outGateway.setRemoteTimeout(120000);
 		outGateway.handleMessage(message);
 		Socket socket = getSocket(client1);
 		port1 = socket.getLocalPort();
@@ -319,6 +319,7 @@ public class FailoverClientConnectionFactoryTests {
 		Message<?> replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		server1.stop();
+		waitStopListening(server1);
 		outGateway.handleMessage(message);
 		socket = getSocket(client2);
 		port2 = socket.getLocalPort();
@@ -344,6 +345,16 @@ public class FailoverClientConnectionFactoryTests {
 			Thread.sleep(100);
 			if (n++ > 200) {
 				fail("Failed to listen");
+			}
+		}
+	}
+
+	private void waitStopListening(AbstractServerConnectionFactory scf) throws Exception {
+		int n = 0;
+		while (scf.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 200) {
+				fail("Failed to stop listening");
 			}
 		}
 	}
