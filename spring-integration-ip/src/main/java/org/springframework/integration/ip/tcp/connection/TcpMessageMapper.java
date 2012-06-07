@@ -29,7 +29,7 @@ import org.springframework.integration.support.MessageBuilder;
  * If StringToBytes is true (default),
  * payloads of type String are converted to a byte[] using the supplied
  * charset (UTF-8 by default).
- * Inbound messages include headers representing the remote end of the 
+ * Inbound messages include headers representing the remote end of the
  * connection as well as a connection id that can be used by a {@link TcpSender}
  * to correlate which connection to send a reply.
  * @author Gary Russell
@@ -37,7 +37,7 @@ import org.springframework.integration.support.MessageBuilder;
  *
  */
 public class TcpMessageMapper implements
-		InboundMessageMapper<TcpConnection>, 
+		InboundMessageMapper<TcpConnection>,
 		OutboundMessageMapper<Object> {
 
 	private volatile String charset = "UTF-8";
@@ -46,7 +46,6 @@ public class TcpMessageMapper implements
 
 	private volatile boolean applySequence = false;
 
-	@SuppressWarnings("deprecation")
 	public Message<Object> toMessage(TcpConnection connection) throws Exception {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
@@ -67,7 +66,6 @@ public class TcpMessageMapper implements
 						.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
 						.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
 						.setHeader(IpHeaders.CONNECTION_ID, connectionId)
-						.setHeader(IpHeaders.CONNECTION_SEQ, connection.incrementAndGetConnectionSequence())
 						.build();
 			}
 		}
@@ -102,7 +100,7 @@ public class TcpMessageMapper implements
 			}
 		}
 		else {
-			throw new MessageHandlingException(message, 
+			throw new MessageHandlingException(message,
 					"When using a byte array serializer, the socket mapper expects " +
 					"either a byte array or String payload, but received: " + payload.getClass());
 		}
@@ -121,7 +119,7 @@ public class TcpMessageMapper implements
 	/**
 	 * Sets whether outbound String payloads are to be converted
 	 * to byte[]. Default is true.
-	 * @param stringToBytes 
+	 * @param stringToBytes
 	 */
 	public void setStringToBytes(boolean stringToBytes) {
 		this.stringToBytes = stringToBytes;
