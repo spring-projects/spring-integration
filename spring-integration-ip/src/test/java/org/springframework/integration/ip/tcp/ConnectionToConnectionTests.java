@@ -36,6 +36,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -50,16 +51,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ConnectionToConnectionTests {
-	
+
 	@Autowired
 	AbstractApplicationContext ctx;
-	
+
 	@Autowired
 	private AbstractClientConnectionFactory client;
-	
+
 	@Autowired
 	private AbstractServerConnectionFactory server;
-	
+
 	@Autowired
 	private QueueChannel serverSideChannel;
 
@@ -74,18 +75,12 @@ public class ConnectionToConnectionTests {
 				ConnectionToConnectionTests.class.getPackage().getName()
 						.replaceAll("\\.", "/")
 						+ "/ConnectionToConnectionTests-context.xml");
-		ctx.close();		
+		ctx.close();
 	}
-	
+
 	@Test
 	public void testConnect() throws Exception {
-		int n = 0;
-		while (!server.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				throw new Exception("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(server, null);
 		client.start();
 		for (int i = 0; i < 100; i++) {
 			TcpConnection connection = client.getConnection();
@@ -118,7 +113,7 @@ public class ConnectionToConnectionTests {
 		assertNotNull(message);
 		assertEquals("Test", new String((byte[]) message.getPayload()));
 	}
-	
+
 	@Test
 	public void testLookup() throws Exception {
 		client.start();
@@ -134,5 +129,5 @@ public class ConnectionToConnectionTests {
 		assertFalse(connection.getConnectionId().contains("localhost"));
 		connection.close();
 	}
-	
+
 }

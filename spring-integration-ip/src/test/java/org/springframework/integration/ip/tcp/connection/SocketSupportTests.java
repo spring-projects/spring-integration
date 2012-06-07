@@ -17,7 +17,6 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,6 +48,7 @@ import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactor
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -156,7 +156,7 @@ public class SocketSupportTests {
 		};
 		serverConnectionFactory.setTcpSocketSupport(serverSocketSupport);
 		serverConnectionFactory.start();
-		waitListening(serverConnectionFactory);
+		TestingUtilities.waitListening(serverConnectionFactory, null);
 		clientConnectionFactory.getConnection().send(new GenericMessage<String>("Hello, world!"));
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, ppServerSocketCountClient.get());
@@ -281,7 +281,7 @@ Certificate fingerprints:
 			}
 		});
 		server.start();
-		waitListening(server);
+		TestingUtilities.waitListening(server, null);
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", port);
 		client.setTcpSocketFactorySupport(tcpSocketFactorySupport);
@@ -313,7 +313,7 @@ Certificate fingerprints:
 			}
 		});
 		server.start();
-		waitListening(server);
+		TestingUtilities.waitListening(server, null);
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", port);
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks", "client.truststore.ks",
@@ -351,7 +351,7 @@ Certificate fingerprints:
 			}
 		});
 		server.start();
-		waitListening(server);
+		TestingUtilities.waitListening(server, null);
 
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", port);
 		client.setTcpNioConnectionSupport(tcpNioConnectionSupport);
@@ -400,7 +400,7 @@ Certificate fingerprints:
 		deserializer.setMaxMessageSize(120000);
 		server.setDeserializer(deserializer);
 		server.start();
-		waitListening(server);
+		TestingUtilities.waitListening(server, null);
 
 		TcpNioClientConnectionFactory client = new TcpNioClientConnectionFactory("localhost", port);
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
@@ -429,16 +429,6 @@ Certificate fingerprints:
 		payload = (byte[]) messages.get(1).getPayload();
 		assertEquals(13 + bytes.length, payload.length);
 		assertEquals("Hello, world!", new String(payload).substring(0, 13));
-	}
-
-	private void waitListening(AbstractServerConnectionFactory scf) throws Exception {
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (++n > 100) {
-				fail("Server failed to start listening");
-			}
-		}
 	}
 
 	private class Replier implements TcpSender {

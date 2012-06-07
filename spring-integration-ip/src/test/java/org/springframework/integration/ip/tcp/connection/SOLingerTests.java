@@ -29,6 +29,7 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -43,22 +44,22 @@ public class SOLingerTests {
 
 	@Autowired
 	private AbstractServerConnectionFactory inCFNet;
-	
+
 	@Autowired
 	private AbstractServerConnectionFactory inCFNio;
-	
+
 	@Autowired
 	private AbstractServerConnectionFactory inCFNetRst;
-	
+
 	@Autowired
 	private AbstractServerConnectionFactory inCFNioRst;
-	
+
 	@Autowired
 	private AbstractServerConnectionFactory inCFNetLinger;
-	
+
 	@Autowired
 	private AbstractServerConnectionFactory inCFNioLinger;
-	
+
 	@Test
 	public void configOk() {}
 
@@ -71,7 +72,7 @@ public class SOLingerTests {
 	public void finReceivedNio() {
 		finReceived(inCFNio);
 	}
-	
+
 	@Test
 	public void rstReceivedNet() {
 		rstReceived(inCFNetRst);
@@ -81,7 +82,7 @@ public class SOLingerTests {
 	public void rstReceivedNio() {
 		rstReceived(inCFNioRst);
 	}
-	
+
 	@Test
 	public void finReceivedNetLinger() {
 		finReceived(inCFNetLinger);
@@ -91,21 +92,10 @@ public class SOLingerTests {
 	public void finReceivedNioLinger() {
 		finReceived(inCFNioLinger);
 	}
-	
+
 	private void finReceived(AbstractServerConnectionFactory inCF) {
 		int port = inCF.getPort();
-		int n = 0;
-		while (!inCF.isListening()) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				fail("Interrupted");
-			}
-			if (n++ > 100) {
-				fail("Failed to start");
-			}
-		}
+		TestingUtilities.waitListening(inCF, null);
 		try {
 			Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 			String test = "Test\r\n";
@@ -113,30 +103,19 @@ public class SOLingerTests {
 			byte[] buff = new byte[test.length() + 5];
 			readFully(socket.getInputStream(), buff);
 			assertEquals("echo:" + test, new String(buff));
-			n = socket.getInputStream().read();
+			int n = socket.getInputStream().read();
 			// we expect an orderly close
 			assertEquals(-1, n);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Unexpected Exception  " + e.getMessage());
 		}
-	
+
 	}
-	
+
 	private void rstReceived(AbstractServerConnectionFactory inCF) {
 		int port = inCF.getPort();
-		int n = 0;
-		while (!inCF.isListening()) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				fail("Interrupted");
-			}
-			if (n++ > 100) {
-				fail("Failed to start");
-			}
-		}
+		TestingUtilities.waitListening(inCF, null);
 		try {
 			Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 			socket.setSoTimeout(10000);
@@ -146,7 +125,7 @@ public class SOLingerTests {
 			readFully(socket.getInputStream(), buff);
 			assertEquals("echo:" + test, new String(buff));
 			try {
-				n = socket.getInputStream().read();
+				socket.getInputStream().read();
 				fail("Expected IOException");
 			} catch (IOException ioe) {
 				assertTrue(ioe instanceof SocketException);
@@ -155,12 +134,12 @@ public class SOLingerTests {
 			e.printStackTrace();
 			fail("Unexpected Exception  " + e.getMessage());
 		}
-	
+
 	}
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
 			buff[i] = (byte) is.read();
 		}
 	}
-	
+
 }
