@@ -19,7 +19,7 @@ package org.springframework.integration.xmpp.config;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Set;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,7 +56,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 				.getPropertyValue(pollingConsumer, "handler");
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
 	}
-	
+
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserEventConsumer(){
 		Object eventConsumer = context.getBean("eventOutboundRosterAdapter");
@@ -65,7 +65,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 				.getPropertyValue(eventConsumer, "handler");
 		assertEquals(34, TestUtils.getPropertyValue(handler, "order"));
 	}
-	
+
 	@Test
 	public void testRosterEventOutboundChannel(){
 		Object channel = context.getBean("eventOutboundRosterChannel");
@@ -73,7 +73,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 		UnicastingDispatcher dispatcher = (UnicastingDispatcher) TestUtils
 				.getPropertyValue(channel, "dispatcher");
 		@SuppressWarnings("unchecked")
-		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+		List<MessageHandler> handlers = (List<MessageHandler>) TestUtils
 				.getPropertyValue(dispatcher, "handlers");
 		assertEquals(45, TestUtils.getPropertyValue(handlers.toArray()[0], "order"));
 	}

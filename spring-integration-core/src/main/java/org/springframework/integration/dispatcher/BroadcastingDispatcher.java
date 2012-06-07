@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.Message;
@@ -34,10 +34,11 @@ import org.springframework.integration.support.MessageBuilder;
  * If the 'ignoreFailures' flag is set to <code>true</code> on the other hand, it will make a best effort to send the
  * message to each of its handlers. In other words, when 'ignoreFailures' is <code>true</code>, if it fails to send to
  * any one handler, it will simply log a warn-level message but continue to send the Message to any other handlers.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  */
 public class BroadcastingDispatcher extends AbstractDispatcher {
 
@@ -91,7 +92,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 	public boolean dispatch(Message<?> message) {
 		boolean dispatched = false;
 		int sequenceNumber = 1;
-		List<MessageHandler> handlers = this.getHandlers();
+		Collection<MessageHandler> handlers = this.getHandlers();
 		if (this.requireSubscribers && handlers.size() == 0) {
 			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}

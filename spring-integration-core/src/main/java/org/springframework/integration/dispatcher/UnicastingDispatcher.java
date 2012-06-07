@@ -42,7 +42,7 @@ import org.springframework.integration.core.MessageHandler;
  * <p/>
  * A load-balancing strategy may be provided to this class to control the order in
  * which the handlers will be tried.
- * 
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Gary Russell
@@ -52,7 +52,7 @@ import org.springframework.integration.core.MessageHandler;
 public class UnicastingDispatcher extends AbstractDispatcher {
 
 	private volatile boolean failover = true;
-	private ReadWriteLock rwLock = new ReentrantReadWriteLock();
+	private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
 	private final Executor executor;
@@ -84,7 +84,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		lock.lock();
 		try {
 			this.loadBalancingStrategy = loadBalancingStrategy;
-		} 
+		}
 		finally {
 			lock.unlock();
 		}
@@ -141,11 +141,11 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		lock.lock();
 		try {
 			if (this.loadBalancingStrategy != null) {
-				return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
+				return this.loadBalancingStrategy.getHandlerIterator(message, new ArrayList<MessageHandler>(this.getHandlers()));
 			}
 		} finally {
 			lock.unlock();
-		}	
+		}
 		return this.getHandlers().iterator();
 	}
 

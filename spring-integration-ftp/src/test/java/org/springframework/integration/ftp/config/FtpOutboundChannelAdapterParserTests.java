@@ -23,7 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class FtpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpOutboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac = 
+		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = ac.getBean("ftpOutbound");
 		assertTrue(consumer instanceof EventDrivenConsumer);
@@ -70,9 +70,9 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals("localhost", TestUtils.getPropertyValue(sessionFactory, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(sessionFactory, "port"));
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
-		//verify subscription order		
+		//verify subscription order
 		@SuppressWarnings("unchecked")
-		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+		List<MessageHandler> handlers = (List<MessageHandler>) TestUtils
 				.getPropertyValue(
 						TestUtils.getPropertyValue(channel, "dispatcher"),
 						"handlers");
@@ -80,7 +80,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertSame(TestUtils.getPropertyValue(ac.getBean("ftpOutbound2"), "handler"), iterator.next());
 		assertSame(handler, iterator.next());
 	}
-	
+
 	@Test(expected=BeanCreationException.class)
 	public void testFailWithEmptyRfsAndAcdTrue() throws Exception{
 		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass());

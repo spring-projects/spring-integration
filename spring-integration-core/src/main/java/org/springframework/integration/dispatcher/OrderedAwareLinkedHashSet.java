@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -44,9 +47,10 @@ import org.springframework.util.StringUtils;
  * <p>
  * The class is package-protected and only intended for use by the AbstractDispatcher. It
  * <emphasis>must</emphasis> enforce safe concurrent access for all usage by the dispatcher.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Diego Belfer
  * @since 1.0.3
  */
 @SuppressWarnings({"unchecked", "serial"})
@@ -60,40 +64,55 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 
 	private final WriteLock writeLock = rwl.writeLock();
 
+	private final transient CopyOnWriteArraySet<E> elements;
+
+    private final transient Set<E> unmodifiableElements;
+
+    public OrderedAwareLinkedHashSet() {
+        elements = new CopyOnWriteArraySet<E>();
+        unmodifiableElements = Collections.unmodifiableSet(elements);
+    }
+
+    public Set<E> asUnmodifiableSet() {
+        return unmodifiableElements;
+    }
+
 
 	/**
 	 * Every time an Ordered element is added via this method this
 	 * Set will be re-sorted, otherwise the element is simply added
 	 * to the end. Added element must not be null.
 	 */
+	@Override
 	public boolean add(E o) {
 		Assert.notNull(o,"Can not add NULL object");
 		writeLock.lock();
-		try {			
+		try {
 			boolean present = false;
 			if (o instanceof Ordered){
 				present = this.addOrderedElement((Ordered) o);
 			}
 			else {
-				present = super.add(o);
+				present = elements.add(o);
 			}
 			return present;
 		}
 		finally {
 			writeLock.unlock();
-		}	
+		}
 	}
 
 	/**
 	 * Adds all elements in this Collection.
 	 */
+	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		Assert.notNull(c,"Can not merge with NULL set");
 		writeLock.lock();
 		try {
-			for (E object : c) {		
+			for (E object : c) {
 				this.add(object);
-			}		
+			}
 			return true;
 		}
 		finally {
@@ -102,12 +121,15 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	}
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
+	@Override
 	public boolean remove(Object o) {
 		writeLock.lock();
 		try {
-			return super.remove(o);
+			boolean removed = elements.remove(o);
+			//unmodifiableElements = Collections.unmodifiableSet(this);
+			return removed;
 		}
 		finally {
 			writeLock.unlock();
@@ -115,15 +137,16 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	}
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
+	@Override
 	public boolean removeAll(Collection<?> c){
 		if (CollectionUtils.isEmpty(c)){
 			return false;
 		}
 		writeLock.lock();
 		try {
-			return super.removeAll(c);
+			return elements.removeAll(c);
 		}
 		finally {
 			writeLock.unlock();
@@ -134,7 +157,7 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	public <T> T[] toArray(T[] a) {
 		readLock.lock();
 		try {
-			return super.toArray(a);
+			return elements.toArray(a);
 		}
 		finally {
 			readLock.unlock();
@@ -145,7 +168,7 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	public String toString() {
 		readLock.lock();
 		try {
-			return StringUtils.collectionToCommaDelimitedString(this);
+			return StringUtils.collectionToCommaDelimitedString(elements);
 		}
 		finally {
 			readLock.unlock();
@@ -153,27 +176,27 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private boolean addOrderedElement(Ordered adding) {	
+	private boolean addOrderedElement(Ordered adding) {
 		boolean added = false;
-		E[] tempUnorderedElements = (E[]) this.toArray();
-		if (super.contains(adding)) {
+		E[] tempUnorderedElements = (E[]) elements.toArray();
+		if (elements.contains(adding)) {
 			return false;
 		}
-		super.clear();
+		elements.clear();
 
 		if (tempUnorderedElements.length == 0) {
-			added = super.add((E) adding);
+			added = elements.add((E) adding);
 		}
 		else {
 			Set tempSet = new LinkedHashSet();
 			for (E current : tempUnorderedElements) {
 				if (current instanceof Ordered) {
 					if (this.comparator.compare(adding, current) < 0) {
-						added = super.add((E) adding);
-						super.add(current);
+						added = elements.add((E) adding);
+						elements.add(current);
 					}
 					else {
-						super.add(current);
+						elements.add(current);
 					}
 				}
 				else {
@@ -181,13 +204,22 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 				}
 			}
 			if (!added) {
-				added = super.add((E) adding);
+				added = elements.add((E) adding);
 			}
 			for (Object object : tempSet) {
-				super.add((E) object);
+				elements.add((E) object);
 			}
 		}
 		return added;
 	}
 
+	@Override
+    public Iterator<E> iterator() {
+        return this.elements.iterator();
+    }
+
+	@Override
+	public int size(){
+		return elements.size();
+	}
 }

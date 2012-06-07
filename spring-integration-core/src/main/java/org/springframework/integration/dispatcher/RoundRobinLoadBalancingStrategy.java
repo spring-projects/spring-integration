@@ -28,7 +28,7 @@ import org.springframework.integration.core.MessageHandler;
  * Round-robin implementation of {@link LoadBalancingStrategy}. This
  * implementation will keep track of the index of the handler that has been
  * tried first and use a different starting handler every dispatch.
- * 
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @since 1.0.3
@@ -49,6 +49,7 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 		if (size == 0) {
 			return handlers.iterator();
 		}
+
 		int nextHandlerStartIndex = getNextHandlerStartIndex(size);
 		List<MessageHandler> reorderedHandlers = new ArrayList<MessageHandler>(
 				handlers.subList(nextHandlerStartIndex, size));
