@@ -52,6 +52,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
@@ -61,6 +62,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -1068,6 +1070,8 @@ public class TcpSendingMessageHandlerTests {
 		AbstractConnectionFactory ccf = ctx.getBean("ccf", AbstractConnectionFactory.class);
 //		TODO Lifecycle#start() isn't invoked within chain...
 		ccf.start();
+		AbstractServerConnectionFactory scf = ctx.getBean(AbstractServerConnectionFactory.class);
+		TestingUtilities.waitListening(scf, null);
 		MessageChannel channelAdapterWithinChain = ctx.getBean("tcpOutboundChannelAdapterWithinChain", MessageChannel.class);
 		PollableChannel inbound = ctx.getBean("inbound", PollableChannel.class);
 		String testPayload = "Hello, world!";

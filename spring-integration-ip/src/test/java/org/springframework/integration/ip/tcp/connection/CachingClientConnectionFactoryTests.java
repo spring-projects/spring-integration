@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -38,6 +37,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -270,14 +270,7 @@ public class CachingClientConnectionFactoryTests {
 
 	@Test
 	public void integrationTest() throws Exception {
-		int n = 0;
-		while (!serverCf.isListening()) {
-			Thread.sleep(100);
-			n++;
-			if (n > 10000) {
-				fail("Server didn't begin listening");
-			}
-		}
+		TestingUtilities.waitListening(serverCf, null);
 		outbound.send(new GenericMessage<String>("Hello, world!"));
 		Message<?> m = inbound.receive(1000);
 		assertNotNull(m);

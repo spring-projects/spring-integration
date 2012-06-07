@@ -19,7 +19,6 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +49,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.channel.ChannelResolver;
 
@@ -63,13 +63,7 @@ public class TcpInboundGatewayTests {
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
@@ -99,13 +93,7 @@ public class TcpInboundGatewayTests {
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
@@ -184,13 +172,7 @@ public class TcpInboundGatewayTests {
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
@@ -220,13 +202,7 @@ public class TcpInboundGatewayTests {
 		TcpInboundGateway gateway = new TcpInboundGateway();
 		gateway.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, 20000L);
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
@@ -262,13 +238,7 @@ public class TcpInboundGatewayTests {
 		});
 		gateway.setErrorChannel(errorChannel);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, 20000L);
 		final SubscribableChannel channel = new DirectChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());

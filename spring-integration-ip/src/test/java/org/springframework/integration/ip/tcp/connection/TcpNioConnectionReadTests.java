@@ -38,6 +38,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
 
 /**
  * @author Gary Russell
@@ -62,13 +63,7 @@ public class TcpNioConnectionReadTests {
 			scf.registerSender(sender);
 		}
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		return scf;
 	}
 

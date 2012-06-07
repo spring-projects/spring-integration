@@ -17,13 +17,13 @@ package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -58,19 +58,8 @@ public class AutoStartTests {
 	 */
 	private void startAndStop() throws InterruptedException {
 		tcpNetIn.start();
-		int n = 0;
-		while (!cfS1.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(cfS1, null);
 		tcpNetIn.stop();
-		while (cfS1.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to stop listening");
-			}
-		}
+		TestingUtilities.waitStopListening(cfS1, null);
 	}
 }
