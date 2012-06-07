@@ -370,4 +370,13 @@
 
 	<int:bridge input-channel="udpAutoChannel" output-channel="nullChannel" />
 
+	<bean id="failCF" class="org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory">
+		<constructor-arg>
+			<list>
+				<ref bean="cfC1"/>
+				<ref bean="cfC2"/>
+			</list>
+		</constructor-arg>
+	</bean>
+
 </beans>

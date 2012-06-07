@@ -30,7 +30,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0
  */
-public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory {
+public abstract class AbstractServerConnectionFactory
+		extends AbstractConnectionFactory implements Runnable {
 
 	private static final int DEFAULT_BACKLOG = 5;
 
@@ -49,6 +50,16 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 		super(port);
 	}
 
+	@Override
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.isActive()) {
+				this.setActive(true);
+				this.getTaskExecutor().execute(this);
+			}
+		}
+		super.start();
+	}
 
 	/**
 	 * Not supported because the factory manages multiple connections and this
