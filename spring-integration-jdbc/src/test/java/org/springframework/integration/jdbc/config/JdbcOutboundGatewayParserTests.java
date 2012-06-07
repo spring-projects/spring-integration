@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -41,6 +41,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
@@ -99,7 +100,7 @@ public class JdbcOutboundGatewayParserTests {
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
 		assertEquals(1, payload.get("updated"));
 	}
-	
+
 	@Test
 	public void testWithPoller() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundGatewayWithPollerTest-context.xml", this.getClass());
@@ -123,21 +124,21 @@ public class JdbcOutboundGatewayParserTests {
         setUp("JdbcOutboundGatewayWithPollerTest-context.xml", getClass());
 
         PollingConsumer outboundGateway = this.context.getBean("jdbcOutboundGateway", PollingConsumer.class);
-        
+
         DirectFieldAccessor accessor = new DirectFieldAccessor(outboundGateway);
         Object source = accessor.getPropertyValue("handler");
         accessor = new DirectFieldAccessor(source);
         source = accessor.getPropertyValue("messagingTemplate");
-        
+
         MessagingTemplate messagingTemplate = (MessagingTemplate) source;
 
         accessor = new DirectFieldAccessor(messagingTemplate);
 
         Long  sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
         assertEquals("Wrong sendTimeout", Long.valueOf(444L),  sendTimeout);
-        
+
     }
-	
+
     @Test
     public void testDefaultMaxMessagesPerPollIsSet() throws Exception {
 
@@ -171,6 +172,21 @@ public class JdbcOutboundGatewayParserTests {
         assertEquals("maxRowsPerPoll should default to 10", Integer.valueOf(10),  maxRowsPerPoll);
 
     }
+
+	@Test //INT-1029
+	public void testOutboundGatewayInsideChain() {
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("handlingMapPayloadJdbcOutboundGatewayTest.xml", getClass());
+		MessageChannel channel = context.getBean("jdbcOutboundGatewayInsideChain", MessageChannel.class);
+		channel.send(MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build());
+
+		PollableChannel outbound = context.getBean("replyChannel", PollableChannel.class);
+		Message<?> reply = outbound.receive();
+		assertNotNull(reply);
+		@SuppressWarnings("unchecked")
+		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
+		assertEquals("bar", payload.get("name"));
+	}
+
 
 	@After
 	public void tearDown() {

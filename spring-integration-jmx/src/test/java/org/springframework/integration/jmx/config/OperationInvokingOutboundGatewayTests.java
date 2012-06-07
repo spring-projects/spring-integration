@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
- * 
+ * @author Artem Bilan
+ *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -50,6 +52,9 @@ public class OperationInvokingOutboundGatewayTests {
 	@Autowired
 	@Qualifier("withNoReplyChannel")
 	private MessageChannel withNoReplyChannel;
+
+	@Autowired
+	private MessageChannel jmxOutboundGatewayInsideChain;
 
 	@Autowired
 	private TestBean testBean;
@@ -77,6 +82,16 @@ public class OperationInvokingOutboundGatewayTests {
 		assertEquals(2, testBean.messages.size());
 		withNoReplyChannel.send(new GenericMessage<String>("3"));
 		assertEquals(3, testBean.messages.size());
+	}
+
+	@Test //INT-1029
+	public void testOutboundGatewayInsideChain() throws Exception {
+		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("1").build());
+		assertEquals(1, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
+		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("2").build());
+		assertEquals(2, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
+		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("3").build());
+		assertEquals(3, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 	}
 
 }

@@ -16,12 +16,14 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -42,15 +45,22 @@ public class JpaOutboundGatewayTests {
 	@Autowired
 	private StudentService studentService;
 
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	@After
+	public void cleanUp() {
+		this.jdbcTemplate.execute("delete from Student where rollNumber > 1003");
+	}
+
+
 	@Test
-	@DirtiesContext
 	public void getStudent() {
 		final StudentDomain student = studentService.getStudent(1001L);
 		Assert.assertNotNull(student);
 	}
 
 	@Test
-	@DirtiesContext
 	@Transactional
 	public void deleteNonExistingStudent() {
 
@@ -67,7 +77,6 @@ public class JpaOutboundGatewayTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void getStudentWithException() {
 		try {
 			studentService.getStudentWithException(1001L);
@@ -82,7 +91,6 @@ public class JpaOutboundGatewayTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void getStudentStudentWithPositionalParameters() {
 
 		StudentDomain student = studentService.getStudentWithParameters("First Two");
@@ -92,7 +100,6 @@ public class JpaOutboundGatewayTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void getAllStudents() {
 
 		final List<StudentDomain> students = studentService.getAllStudents();
@@ -102,7 +109,6 @@ public class JpaOutboundGatewayTests {
 	}
 
 	@Test
-	@DirtiesContext
 	@Transactional
 	public void persistStudent() {
 
@@ -116,7 +122,6 @@ public class JpaOutboundGatewayTests {
 	}
 
 	@Test
-	@DirtiesContext
 	@Transactional
 	public void persistStudentUsingMerge() {
 
@@ -124,6 +129,25 @@ public class JpaOutboundGatewayTests {
 		Assert.assertNull(studentToPersist.getRollNumber());
 
 		final StudentDomain persistedStudent = studentService.persistStudentUsingMerge(studentToPersist);
+		Assert.assertNotNull(persistedStudent);
+		Assert.assertNotNull(persistedStudent.getRollNumber());
+
+	}
+
+	@Test
+	public void testRetrievingGatewayInsideChain() {
+		final StudentDomain student = studentService.getStudent2(1001L);
+		Assert.assertNotNull(student);
+	}
+
+	@Test
+	@Transactional
+	public void testUpdatingGatewayInsideChain() {
+
+		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
+		Assert.assertNull(studentToPersist.getRollNumber());
+
+		final StudentDomain persistedStudent = studentService.persistStudent2(studentToPersist);
 		Assert.assertNotNull(persistedStudent);
 		Assert.assertNotNull(persistedStudent.getRollNumber());
 

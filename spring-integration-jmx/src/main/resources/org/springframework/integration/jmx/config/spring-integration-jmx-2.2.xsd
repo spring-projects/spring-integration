@@ -42,7 +42,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="operationInvokingType">
-					<xsd:attribute name="request-channel" type="xsd:string" use="required" />
+					<xsd:attribute name="request-channel" type="xsd:string" />
 					<xsd:attribute name="reply-channel" type="xsd:string" use="optional" />
 				</xsd:extension>
 			</xsd:complexContent>
