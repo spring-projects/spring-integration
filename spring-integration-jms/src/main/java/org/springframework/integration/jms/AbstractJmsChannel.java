@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class AbstractJmsChannel extends AbstractMessageChannel {
+public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 
 	private final JmsTemplate jmsTemplate;
 
