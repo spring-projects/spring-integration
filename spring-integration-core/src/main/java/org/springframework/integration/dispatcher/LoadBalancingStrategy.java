@@ -1,4 +1,4 @@
-/* Copyright 2002-2009 the original author or authors.
+/* Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,21 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 
 /**
  * Strategy for determining the iteration order of a MessageHandler list.
- * 
+ *
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.3
  */
 public interface LoadBalancingStrategy {
 
-	public Iterator<MessageHandler> getHandlerIterator(Message<?> message, List<MessageHandler> handlers);
+	public Iterator<MessageHandler> getHandlerIterator(Message<?> message, Collection<MessageHandler> handlers);
 
 }

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -35,31 +32,32 @@ import org.springframework.util.Assert;
  * dispatching strategies may invoke handles in different ways (e.g. round-robin
  * vs. failover), this class does maintain the order of the underlying
  * collection. See the {@link OrderedAwareLinkedHashSet} for more detail.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Diego Belfer
  */
 public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
+	private final OrderedAwareCopyOnWriteArraySet<MessageHandler> handlers =
+			new OrderedAwareCopyOnWriteArraySet<MessageHandler>();
 
 
 	/**
-	 * Returns a copied, unmodifiable List of this dispatcher's handlers. This
+	 * Returns an unmodifiable {@link Set} of this dispatcher's handlers. This
 	 * is provided for access by subclasses.
 	 */
-	protected List<MessageHandler> getHandlers() {
-		return Collections.<MessageHandler>unmodifiableList(Arrays.<MessageHandler>asList(
-				this.handlers.toArray(new MessageHandler[this.handlers.size()])));
+	protected Set<MessageHandler> getHandlers() {
+		return handlers.asUnmodifiableSet();
 	}
 
 	/**
 	 * Add the handler to the internal Set.
-	 * 
+	 *
 	 * @return the result of {@link Set#add(Object)}
 	 */
 	public boolean addHandler(MessageHandler handler) {
@@ -69,7 +67,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	/**
 	 * Remove the handler from the internal handler Set.
-	 * 
+	 *
 	 * @return the result of {@link Set#remove(Object)}
 	 */
 	public boolean removeHandler(MessageHandler handler) {
@@ -77,6 +75,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.handlers.remove(handler);
 	}
 
+	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
 	}

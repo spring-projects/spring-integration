@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 				.getPropertyValue(pollingConsumer, "handler");
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
 	}
-	
+
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserEventConsumer(){
 		Object eventConsumer = context.getBean("eventOutboundRosterAdapter");
@@ -65,7 +65,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 				.getPropertyValue(eventConsumer, "handler");
 		assertEquals(34, TestUtils.getPropertyValue(handler, "order"));
 	}
-	
+
 	@Test
 	public void testRosterEventOutboundChannel(){
 		Object channel = context.getBean("eventOutboundRosterChannel");

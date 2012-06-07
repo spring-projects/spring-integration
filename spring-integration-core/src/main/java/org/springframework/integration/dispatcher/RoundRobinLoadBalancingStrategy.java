@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
@@ -28,32 +27,56 @@ import org.springframework.integration.core.MessageHandler;
  * Round-robin implementation of {@link LoadBalancingStrategy}. This
  * implementation will keep track of the index of the handler that has been
  * tried first and use a different starting handler every dispatch.
- * 
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.3
  */
 public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 
 	private final AtomicInteger currentHandlerIndex = new AtomicInteger();
 
-
 	/**
-	 * Returns an iterator that starts at a new point in the list every time the
+	 * Returns an iterator that starts at a new point in the collection every time the
 	 * first part of the list that is skipped will be used at the end of the
 	 * iteration, so it guarantees all handlers are returned once on subsequent
 	 * <code>next()</code> invocations.
 	 */
-	public final Iterator<MessageHandler> getHandlerIterator(final Message<?> message, final List<MessageHandler> handlers) {
+	public final Iterator<MessageHandler> getHandlerIterator(final Message<?> message, final Collection<MessageHandler> handlers) {
 		int size = handlers.size();
-		if (size == 0) {
+		if (size < 2) {
+			this.getNextHandlerStartIndex(size);
 			return handlers.iterator();
 		}
+
+		return this.buildHandlerIterator(size, handlers.toArray(new MessageHandler[size]));
+	}
+
+	private Iterator<MessageHandler> buildHandlerIterator(int size, final MessageHandler[] handlers){
+
 		int nextHandlerStartIndex = getNextHandlerStartIndex(size);
-		List<MessageHandler> reorderedHandlers = new ArrayList<MessageHandler>(
-				handlers.subList(nextHandlerStartIndex, size));
-		reorderedHandlers.addAll(handlers.subList(0, nextHandlerStartIndex));
-		return reorderedHandlers.iterator();
+
+		final MessageHandler[] reorderedHandlers = new MessageHandler[size];
+
+		System.arraycopy(handlers, nextHandlerStartIndex, reorderedHandlers, 0, size-nextHandlerStartIndex);
+		System.arraycopy(handlers, 0, reorderedHandlers, size-nextHandlerStartIndex, 0+nextHandlerStartIndex);
+
+		return new Iterator<MessageHandler>() {
+			int currentIndex = 0;
+
+			public boolean hasNext() {
+				return currentIndex < reorderedHandlers.length;
+			}
+
+			public MessageHandler next() {
+				return reorderedHandlers[currentIndex++];
+			}
+
+			public void remove() {
+				throw new UnsupportedOperationException("Remove is not supported by this Iterator");
+			}
+		};
 	}
 
 	/**
@@ -62,8 +85,12 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 	 * <code>size</code>.
 	 */
 	private int getNextHandlerStartIndex(int size) {
-		int indexTail = currentHandlerIndex.getAndIncrement() % size;
-		return indexTail < 0 ? indexTail + size : indexTail;
+		if (size > 0){
+			int indexTail = currentHandlerIndex.getAndIncrement() % size;
+			return indexTail < 0 ? indexTail + size : indexTail;
+		}
+		else {
+			return size;
+		}
 	}
-
 }
