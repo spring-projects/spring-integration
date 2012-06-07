@@ -22,9 +22,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -34,10 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
@@ -671,7 +664,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		PollableChannel output = ctx.getBean("replyChannel", PollableChannel.class);
 		Message<?> receive = output.receive();
-		assertEquals(HttpStatus.OK, receive.getPayload());
+		assertEquals(HttpStatus.OK, ((ResponseEntity<?>)receive.getPayload()).getStatusCode());
 
 	}
 
