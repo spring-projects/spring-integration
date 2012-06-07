@@ -54,7 +54,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
-		implements ConnectionFactory, Runnable, SmartLifecycle, OrderlyShutdownCapable {
+		implements ConnectionFactory, SmartLifecycle, OrderlyShutdownCapable {
 
 	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
@@ -421,16 +421,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 */
 	public abstract void close();
 
-	/**
-	 * Starts the listening process.
-	 */
 	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.active) {
-				this.active = true;
-				this.getTaskExecutor().execute(this);
-			}
-		}
 		if (logger.isInfoEnabled()) {
 			logger.info("started " + this);
 		}

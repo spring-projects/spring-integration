@@ -47,7 +47,7 @@ public abstract class IpHeaders {
 	 * @deprecated
 	 */
 	@Deprecated
-	public static final String CONNECTION_SEQ = IP + "connectionSeq";
+	public static final String CONNECTION_SEQ = IP + "connection_seq";
 
 	public static final String ACTUAL_CONNECTION_ID = IP + "actualConnectionId";
 

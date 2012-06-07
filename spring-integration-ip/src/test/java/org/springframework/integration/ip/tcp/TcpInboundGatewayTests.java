@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -164,8 +165,12 @@ public class TcpInboundGatewayTests {
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		gateway.start();
-		handler.handleMessage(channel.receive());
-		handler.handleMessage(channel.receive());
+		Message<?> message = channel.receive(10000);
+		assertNotNull(message);
+		handler.handleMessage(message);
+		message = channel.receive(10000);
+		assertNotNull(message);
+		handler.handleMessage(message);
 		latch2.countDown();
 		assertTrue(latch3.await(10, TimeUnit.SECONDS));
 		assertTrue(done.get());
@@ -264,13 +269,13 @@ public class TcpInboundGatewayTests {
 				fail("Failed to listen");
 			}
 		}
-		final SubscribableChannel channel = new DirectChannel(); 
+		final SubscribableChannel channel = new DirectChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
 		channel.subscribe(handler);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
-		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);		
+		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket2.getOutputStream().write("Test2\r\n".getBytes());
 		byte[] bytes = new byte[errorMessage.length() + 2];
 		readFully(socket1.getInputStream(), bytes);
@@ -299,5 +304,5 @@ public class TcpInboundGatewayTests {
 			buff[i] = (byte) is.read();
 		}
 	}
-	
+
 }

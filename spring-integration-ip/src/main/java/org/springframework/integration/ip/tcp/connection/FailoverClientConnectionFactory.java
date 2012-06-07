@@ -53,16 +53,36 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	protected void onInit() throws Exception {
 		super.onInit();
 		for (AbstractClientConnectionFactory factory : factories) {
-			Assert.isTrue(!(this.isSingleUse() ^ factory.isSingleUse()),
+			Assert.state(!(this.isSingleUse() ^ factory.isSingleUse()),
 				"Inconsistent singleUse - delegate factories must match this one");
 		}
 	}
 
+	/**
+	 * Delegate TCP Client Connection factories that are used to receive
+	 * data need a Listener to send the messages to.
+	 * This applies to client factories used for outbound gateways
+	 * or for a pair of collaborating channel adapters.
+	 * <p/>
+	 * During initialization, if a factory detects it has no listener
+	 * it's listening logic (active thread) is terminated.
+	 * <p/>
+	 * The listener registered with a factory is provided to each
+	 * connection it creates so it can call the onMessage() method.
+	 * <p/>
+	 * This code satisfies the first requirement in that this
+	 * listener signals to the factory that it needs to run
+	 * its listening logic.
+	 * <p/>
+	 * When we wrap actual connections with FailoverTcpConnections,
+	 * the connection is given the wrapper as a listener, so it
+	 * can enhance the headers in onMessage(); the wrapper then invokes
+	 * the real listener supplied here, with the modified message.
+	 */
 	@Override
 	public void registerListener(TcpListener listener) {
 		super.registerListener(listener);
 		for (AbstractClientConnectionFactory factory : this.factories) {
-			// register a dummy listener; will be replaced in connection later
 			factory.registerListener(new TcpListener() {
 				public boolean onMessage(Message<?> message) {
 					throw new UnsupportedOperationException("This should never be called");
@@ -78,12 +98,8 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 	}
 
-	public void run() {
-		// This component is passive.
-	}
-
 	@Override
-	protected TcpConnection getOrMakeConnection() throws Exception {
+	protected TcpConnection obtainConnection() throws Exception {
 		TcpConnection connection = this.getTheConnection();
 		if (connection != null && connection.isOpen()) {
 			return connection;
@@ -104,6 +120,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			factory.start();
 		}
 		this.setActive(true);
+		super.start();
 	}
 
 	@Override
@@ -150,7 +167,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		public FailoverTcpConnection(List<AbstractClientConnectionFactory> factories) throws Exception {
 			this.factories = factories;
 			this.factoryIterator = factories.iterator();
-			Assert.isTrue(this.factoryIterator.hasNext(), "At least one factory required");
 			findAConnection();
 			this.connectionId = UUID.randomUUID().toString();
 		}
