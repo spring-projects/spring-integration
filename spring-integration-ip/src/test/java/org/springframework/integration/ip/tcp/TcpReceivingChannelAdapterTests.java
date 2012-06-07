@@ -19,7 +19,6 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +57,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
 
 /**
  * @author Gary Russell
@@ -74,13 +74,7 @@ public class TcpReceivingChannelAdapterTests {
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		adapter.afterPropertiesSet();
@@ -156,13 +150,7 @@ public class TcpReceivingChannelAdapterTests {
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -194,13 +182,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.start();
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.setSoTimeout(2000);
 		socket.getOutputStream().write("Test\r\n".getBytes());
@@ -232,13 +214,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.start();
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.setSoTimeout(2000);
 		socket.getOutputStream().write("Test\r\n".getBytes());
@@ -267,13 +243,7 @@ public class TcpReceivingChannelAdapterTests {
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -303,13 +273,7 @@ public class TcpReceivingChannelAdapterTests {
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -353,13 +317,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.start();
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.setSoTimeout(2000);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
@@ -394,13 +352,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.start();
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.setSoTimeout(2000);
 		socket1.getOutputStream().write("Test1\r\n".getBytes());
@@ -438,13 +390,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.start();
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		List<Socket> sockets = new LinkedList<Socket>();
 		for (int i = 100; i < 200; i++) {
 			Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
@@ -519,13 +465,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.setInterceptorFactoryChain(fc);
 		scf.setSoTimeout(10000);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -560,13 +500,7 @@ public class TcpReceivingChannelAdapterTests {
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
@@ -612,13 +546,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.start();
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
 		socket1.setSoTimeout(60000);
 		new ObjectOutputStream(socket1.getOutputStream()).writeObject("Hello");
@@ -656,13 +584,7 @@ public class TcpReceivingChannelAdapterTests {
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
 		scf.start();
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to start listening");
-			}
-		}
+		TestingUtilities.waitListening(scf, null);
 		SubscribableChannel channel = new DirectChannel();
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());

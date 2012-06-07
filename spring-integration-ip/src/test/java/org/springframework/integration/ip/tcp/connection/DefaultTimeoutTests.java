@@ -22,6 +22,7 @@ import java.net.Socket;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -53,6 +54,7 @@ public class DefaultTimeoutTests {
 			}
 		});
 		server.start();
+		TestingUtilities.waitListening(server, null);
 		client.start();
 		TcpConnection connection = client.getConnection();
 		Socket socket = TestUtils.getPropertyValue(connection, "socket", Socket.class);

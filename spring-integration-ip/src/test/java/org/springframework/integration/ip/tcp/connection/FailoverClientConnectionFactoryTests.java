@@ -50,6 +50,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -296,8 +297,8 @@ public class FailoverClientConnectionFactoryTests {
 		gateway2.setConnectionFactory(server2);
 		gateway2.setRequestChannel(channel);
 		gateway2.start();
-		waitListening(server1);
-		waitListening(server2);
+		TestingUtilities.waitListening(server1, null);
+		TestingUtilities.waitListening(server2, null);
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(client1);
 		factories.add(client2);
@@ -319,7 +320,7 @@ public class FailoverClientConnectionFactoryTests {
 		Message<?> replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		server1.stop();
-		waitStopListening(server1);
+		TestingUtilities.waitStopListening(server1, null);
 		outGateway.handleMessage(message);
 		socket = getSocket(client2);
 		port2 = socket.getLocalPort();
@@ -339,24 +340,5 @@ public class FailoverClientConnectionFactoryTests {
 
 	}
 
-	private void waitListening(AbstractServerConnectionFactory scf) throws Exception {
-		int n = 0;
-		while (!scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to listen");
-			}
-		}
-	}
-
-	private void waitStopListening(AbstractServerConnectionFactory scf) throws Exception {
-		int n = 0;
-		while (scf.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 200) {
-				fail("Failed to stop listening");
-			}
-		}
-	}
 }
 
