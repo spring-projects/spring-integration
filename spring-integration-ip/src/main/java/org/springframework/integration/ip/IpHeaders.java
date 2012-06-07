@@ -42,13 +42,6 @@ public abstract class IpHeaders {
 
 	public static final String CONNECTION_ID = IP + "connectionId";
 
-	/**
-	 * Use apply-sequence and sequenceNumber instead
-	 * @deprecated
-	 */
-	@Deprecated
-	public static final String CONNECTION_SEQ = IP + "connection_seq";
-
 	public static final String ACTUAL_CONNECTION_ID = IP + "actualConnectionId";
 
 	private IpHeaders() {}

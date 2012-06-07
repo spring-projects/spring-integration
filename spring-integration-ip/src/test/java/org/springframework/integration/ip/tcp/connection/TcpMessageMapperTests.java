@@ -16,7 +16,6 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -36,13 +35,13 @@ import org.springframework.integration.support.MessageBuilder;
 public class TcpMessageMapperTests {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final String TEST_PAYLOAD = "abcdefghijkl";
 
 	@Test
 	public void testToMessage() throws Exception {
-		
+
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		TcpConnection connection = mock(TcpConnection.class);
 		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
@@ -59,10 +58,9 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testToMessageSequence() throws Exception {
-		
+
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
 		TcpConnection connection = new AbstractTcpConnection(socket, false, false) {
@@ -79,12 +77,15 @@ public class TcpMessageMapperTests {
 			public Object getPayload() throws Exception {
 				return TEST_PAYLOAD.getBytes();
 			}
+			@Override
 			public String getHostName() {
 				return "MyHost";
 			}
+			@Override
 			public String getHostAddress() {
 				return "1.1.1.1";
 			}
+			@Override
 			public String getConnectionId() {
 				return "anId";
 			}
@@ -97,8 +98,7 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(1L, message
-				.getHeaders().get(IpHeaders.CONNECTION_SEQ));
+		assertEquals(Integer.valueOf(0), message.getHeaders().getSequenceNumber());
 		message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals("MyHost", message
@@ -107,11 +107,9 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(2L, message
-				.getHeaders().get(IpHeaders.CONNECTION_SEQ));		
+		assertEquals(Integer.valueOf(0), message.getHeaders().getSequenceNumber());
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testToMessageSequenceNew() throws Exception {
 		TcpMessageMapper mapper = new TcpMessageMapper();
@@ -131,12 +129,15 @@ public class TcpMessageMapperTests {
 			public Object getPayload() throws Exception {
 				return TEST_PAYLOAD.getBytes();
 			}
+			@Override
 			public String getHostName() {
 				return "MyHost";
 			}
+			@Override
 			public String getHostAddress() {
 				return "1.1.1.1";
 			}
+			@Override
 			public String getConnectionId() {
 				return "anId";
 			}
@@ -149,8 +150,6 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertNull(message
-				.getHeaders().get(IpHeaders.CONNECTION_SEQ));
 		assertEquals(Integer.valueOf(1), message
 				.getHeaders().getSequenceNumber());
 		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), message
@@ -163,8 +162,6 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertNull(message
-				.getHeaders().get(IpHeaders.CONNECTION_SEQ));
 		assertEquals(Integer.valueOf(2), message
 				.getHeaders().getSequenceNumber());
 		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), message
@@ -180,7 +177,7 @@ public class TcpMessageMapperTests {
 		mapper.setStringToBytes(true);
 		byte[] bArray = (byte[]) mapper.fromMessage(message);
 		assertEquals(s, new String(bArray));
-		
+
 	}
 
 	@Test
@@ -191,8 +188,8 @@ public class TcpMessageMapperTests {
 		mapper.setStringToBytes(false);
 		String out = (String) mapper.fromMessage(message);
 		assertEquals(s, out);
-		
+
 	}
-	
-	
+
+
 }
