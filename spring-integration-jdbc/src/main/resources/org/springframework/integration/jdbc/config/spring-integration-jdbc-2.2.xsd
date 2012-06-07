@@ -401,7 +401,7 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 								<xsd:documentation>
 									The receiving Message Channel of this endpoint.
@@ -865,8 +865,7 @@
 					<xsd:union memberTypes="xsd:boolean xsd:string" />
 				</xsd:simpleType>
 			</xsd:attribute>
-			<xsd:attribute name="request-channel" type="xsd:string"
-				use="required">
+			<xsd:attribute name="request-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						The receiving Message Channel of this endpoint.

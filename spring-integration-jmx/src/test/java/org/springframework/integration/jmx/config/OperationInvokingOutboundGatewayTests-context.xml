@@ -17,17 +17,22 @@
 	<context:mbean-server/>
 
 	<si:channel id="withReplyChannel"/>
-	
+
 	<si:channel id="withReplyChannelOutput">
 		<si:queue/>
 	</si:channel>
-	
+
 	<si:channel id="withNoReplyChannel"/>
-	
+
 	<jmx:operation-invoking-outbound-gateway request-channel="withReplyChannel"
 			reply-channel="withReplyChannelOutput"
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
 			operation-name="testWithReturn"/>
+
+	<si:chain input-channel="jmxOutboundGatewayInsideChain" output-channel="withReplyChannelOutput">
+		<jmx:operation-invoking-outbound-gateway operation-name="testWithReturn"
+						object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"/>
+	</si:chain>
 
 	<jmx:operation-invoking-outbound-gateway request-channel="withNoReplyChannel"
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"

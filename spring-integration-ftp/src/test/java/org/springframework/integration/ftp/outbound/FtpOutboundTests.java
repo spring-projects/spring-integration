@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ftp.outbound;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -24,6 +25,8 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.*;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -37,21 +40,24 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-public class FtpSendingMessageHandlerTests {
-	
+public class FtpOutboundTests {
+
 	private static FTPClient ftpClient;
 	private TestFtpSessionFactory sessionFactory;
-	
+
 	@Before
 	public void prepare(){
 		ftpClient = mock(FTPClient.class);
@@ -71,7 +77,7 @@ public class FtpSendingMessageHandlerTests {
 		assertFalse(file.exists());
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
-		handler.setFileNameGenerator(new FileNameGenerator() {	
+		handler.setFileNameGenerator(new FileNameGenerator() {
 			public String generateFileName(Message<?> message) {
 				return "handlerContent.test";
 			}
@@ -90,7 +96,7 @@ public class FtpSendingMessageHandlerTests {
 		assertFalse(file.exists());
 		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
-		handler.setFileNameGenerator(new FileNameGenerator() {	
+		handler.setFileNameGenerator(new FileNameGenerator() {
 			public String generateFileName(Message<?> message) {
 				return "handlerContent.test";
 			}
@@ -99,7 +105,7 @@ public class FtpSendingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<byte[]>("hello".getBytes()));
 		assertTrue(file.exists());
 	}
-	
+
 	@Test
 	public void testHandleFileMessage() throws Exception {
 		File targetDir = new File("remote-target-dir");
@@ -135,12 +141,34 @@ public class FtpSendingMessageHandlerTests {
 		File destFile = new File(targetDir, srcFile.getName());
 		destFile.deleteOnExit();
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterInsideChainTests-context.xml", getClass());
+		ApplicationContext context = new ClassPathXmlApplicationContext("FtpOutboundInsideChainTests-context.xml", getClass());
 
 		MessageChannel channel = context.getBean("outboundChainChannel", MessageChannel.class);
 
 		channel.send(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
+	}
+
+	@Test //INT-2275
+	public void testFtpOutboundGatewayInsideChain() throws Exception {
+		ApplicationContext context = new ClassPathXmlApplicationContext("FtpOutboundInsideChainTests-context.xml", getClass());
+
+		MessageChannel channel = context.getBean("ftpOutboundGatewayInsideChain", MessageChannel.class);
+
+		channel.send(MessageBuilder.withPayload("remote-test-dir").build());
+
+		PollableChannel output = context.getBean("output", PollableChannel.class);
+
+		Message<?> result = output.receive();
+		Object payload = result.getPayload();
+		assertTrue(payload instanceof List<?>);
+		@SuppressWarnings("unchecked")
+		List<? extends FileInfo> remoteFiles = (List<? extends FileInfo>) payload;
+		assertEquals(3, remoteFiles.size());
+		List<String> files = Arrays.asList(new File("remote-test-dir").list());
+		for (FileInfo remoteFile : remoteFiles) {
+			assertTrue(files.contains(remoteFile.getFilename()));
+		}
 	}
 
 
@@ -170,6 +198,17 @@ public class FtpSendingMessageHandlerTests {
 						return true;
 					}
 				});
+				String[] files = new File("remote-test-dir").list();
+				Collection<Object> ftpFiles = new ArrayList<Object>();
+				for (String fileName : files) {
+					FTPFile file = new FTPFile();
+					file.setName(fileName);
+					file.setType(FTPFile.FILE_TYPE);
+					file.setTimestamp(Calendar.getInstance());
+					ftpFiles.add(file);
+					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName) , Mockito.any(OutputStream.class))).thenReturn(true);
+				}
+				when(ftpClient.listFiles("remote-test-dir/")).thenReturn(ftpFiles.toArray(new FTPFile[]{}));
 				return ftpClient;
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to create mock client", e);

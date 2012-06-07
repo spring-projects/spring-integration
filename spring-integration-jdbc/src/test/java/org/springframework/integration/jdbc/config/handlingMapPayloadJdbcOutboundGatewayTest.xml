@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration/jdbc" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/jdbc
@@ -14,8 +12,19 @@
 		<si:queue />
 	</si:channel>
 
+	<si:channel id="replyChannel">
+		<si:queue />
+	</si:channel>
+
 	<outbound-gateway id="jdbcGateway" query="select * from foos where id=:headers[id]" update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
 		request-channel="target" reply-channel="output" data-source="dataSource" order="23"/>
+
+	<si:chain input-channel="jdbcOutboundGatewayInsideChain" output-channel="replyChannel">
+		<outbound-gateway query="select * from foos where id=:headers[id]"
+						  update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
+						  data-source="dataSource"/>
+
+	</si:chain>
 
 	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />
 

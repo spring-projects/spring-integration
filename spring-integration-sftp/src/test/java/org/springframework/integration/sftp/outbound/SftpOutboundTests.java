@@ -16,15 +16,16 @@
 
 package org.springframework.integration.sftp.outbound;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
+import java.util.*;
 
+import com.jcraft.jsch.SftpATTRS;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -33,14 +34,18 @@ import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -49,8 +54,8 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 /**
  * @author Oleg Zhurakousky
  */
-public class SftpSendingMessageHandlerTests {
-	
+public class SftpOutboundTests {
+
 	private static com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
 
 	@Test
@@ -91,7 +96,7 @@ public class SftpSendingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
 	}
-	
+
 	@Test
 	public void testHandleBytesMessage() throws Exception {
 		File file = new File("remote-target-dir", "foo.txt");
@@ -120,16 +125,38 @@ public class SftpSendingMessageHandlerTests {
 		File destFile = new File(targetDir, srcFile.getName());
 		destFile.deleteOnExit();
 
-		ApplicationContext context = new ClassPathXmlApplicationContext("SftpOutboundChannelAdapterInsideChainTests-context.xml", getClass());
+		ApplicationContext context = new ClassPathXmlApplicationContext("SftpOutboundInsideChainTests-context.xml", getClass());
 
-		MessageChannel channel = context.getBean("outboundChainChannel", MessageChannel.class);
+		MessageChannel channel = context.getBean("outboundChannelAdapterInsideChain", MessageChannel.class);
 
 		channel.send(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
 	}
 
+	@Test //INT-2275
+	public void testFtpOutboundGatewayInsideChain() throws Exception {
+		ApplicationContext context = new ClassPathXmlApplicationContext("SftpOutboundInsideChainTests-context.xml", getClass());
+
+		MessageChannel channel = context.getBean("outboundGatewayInsideChain", MessageChannel.class);
+
+		channel.send(MessageBuilder.withPayload("remote-test-dir").build());
+
+		PollableChannel output = context.getBean("replyChannel", PollableChannel.class);
+
+		Message<?> result = output.receive();
+		Object payload = result.getPayload();
+		assertTrue(payload instanceof List<?>);
+		@SuppressWarnings("unchecked")
+		List<? extends FileInfo> remoteFiles = (List<? extends FileInfo>) payload;
+		assertEquals(3, remoteFiles.size());
+		List<String> files = Arrays.asList(new File("remote-test-dir").list());
+		for (FileInfo remoteFile : remoteFiles) {
+			assertTrue(files.contains(remoteFile.getFilename()));
+		}
+	}
+
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
-		
+
 		@Override
 		public Session<LsEntry> getSession() {
 			try {
@@ -137,15 +164,15 @@ public class SftpSendingMessageHandlerTests {
 
 				doAnswer(new Answer<Object>() {
 					public Object answer(InvocationOnMock invocation)
-							throws Throwable {	
+							throws Throwable {
 						File file = new File((String)invocation.getArguments()[1]);
 						assertTrue(file.getName().endsWith(".writing"));
 						FileCopyUtils.copy((InputStream)invocation.getArguments()[0], new FileOutputStream(file));
 						return null;
 					}
-					
+
 				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
-				
+
 				doAnswer(new Answer<Object>() {
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {
@@ -155,8 +182,20 @@ public class SftpSendingMessageHandlerTests {
 						file.renameTo(renameToFile);
 						return null;
 					}
-					
+
 				}).when(channel).rename(Mockito.anyString(), Mockito.anyString());
+
+				String[] files = new File("remote-test-dir").list();
+				Vector<LsEntry> sftpEntries = new Vector<LsEntry>();
+				for (String fileName : files) {
+					LsEntry lsEntry = mock(LsEntry.class);
+					SftpATTRS attributes = mock(SftpATTRS.class);
+					when(lsEntry.getAttrs()).thenReturn(attributes);
+					when(lsEntry.getFilename()).thenReturn(fileName);
+					sftpEntries.add(lsEntry);
+				}
+				when(channel.ls("remote-test-dir/")).thenReturn(sftpEntries);
+
 				when(jschSession.openChannel("sftp")).thenReturn(channel);
 				return SftpTestSessionFactory.createSftpSession(jschSession);
 			} catch (Exception e) {

@@ -13,44 +13,45 @@
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
-		amqp-template="amqpTemplate" 
+		amqp-template="amqpTemplate"
 		order="5"
 		return-channel="returnChannel"/>
-		
+
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
-	
+
 	<bean id="connectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>
-		
+
 	<int:channel id="toRabbit"/>
+
 	<int:channel id="fromRabbit">
 		<int:queue/>
 	</int:channel>
-	
+
 	<amqp:outbound-gateway id="withHeaderMapperCustomRequestResponse" request-channel="toRabbit"
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
-		amqp-template="amqpTemplate" 
+		amqp-template="amqpTemplate"
 		order="5"
 		mapped-request-headers="foo*"
 		mapped-reply-headers="bar*"/>
-		
+
 	<amqp:outbound-gateway id="withHeaderMapperCustomAndStandardResponse" request-channel="toRabbit"
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
-		amqp-template="amqpTemplate" 
+		amqp-template="amqpTemplate"
 		order="5"
 		mapped-request-headers="foo*"
 		mapped-reply-headers="bar*, STANDARD_REPLY_HEADERS"/>
-		
+
 	<amqp:outbound-gateway id="withHeaderMapperNothingToMap" request-channel="toRabbit"
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
-		amqp-template="amqpTemplate" 
+		amqp-template="amqpTemplate"
 		order="5"
 		mapped-request-headers=""
 		mapped-reply-headers=""/>
@@ -58,5 +59,13 @@
 	<int:channel id="returnChannel">
 		<int:queue/>
 	</int:channel>
+
+	<int:chain id="chainWithRabbitOutboundGateway" input-channel="toRabbit" output-channel="fromRabbit">
+		<amqp:outbound-gateway exchange-name="si.test.exchange"
+							   routing-key="si.test.binding"
+							   amqp-template="amqpTemplate"
+							   mapped-request-headers=""
+							   mapped-reply-headers=""/>
+	</int:chain>
 
 </beans>

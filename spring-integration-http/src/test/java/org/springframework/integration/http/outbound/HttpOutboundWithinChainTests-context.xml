@@ -4,16 +4,24 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<si:chain input-channel="httpOutboundChannelAdapterWithinChain">
 		<outbound-channel-adapter url="http://localhost/test1" rest-template="restTemplate"/>
 	</si:chain>
 
 	<beans:bean id="restTemplate" class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandlerTests$MockRestTemplate2"/>
+
+	<si:chain input-channel="httpOutboundGatewayWithinChain" output-channel="replyChannel">
+		<outbound-gateway url="http://localhost:51235/testApps/httpOutboundGatewayWithinChain"
+						  rest-template="restTemplate"
+						  expected-response-type="java.lang.String"/>
+	</si:chain>
+
+	<si:channel id="replyChannel">
+		<si:queue/>
+	</si:channel>
 
 </beans:beans>

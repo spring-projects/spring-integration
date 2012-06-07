@@ -115,7 +115,7 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-                    Builds an inbound-channel-adapter that synchronizes a local directory with the contents of a remote FTP endpoint. 
+                    Builds an inbound-channel-adapter that synchronizes a local directory with the contents of a remote FTP endpoint.
             ]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -264,8 +264,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-channel" use="required"
-						type="xsd:string">
+					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -403,8 +402,8 @@
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
-			            	Identifies channel attached to this adapter. Depending on the type of the adapter 
-							this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+			            	Identifies channel attached to this adapter. Depending on the type of the adapter
+							this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where
 							messages will be sent to by this adapter (e.g., inbound-channel-adapter).
 			            </xsd:documentation>
 					</xsd:annotation>
@@ -419,7 +418,7 @@
 	        </xsd:extension>
         </xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="base-adapter-type">
 		<xsd:attribute name="id" type="xsd:string" />
 		<xsd:attribute name="session-factory" type="xsd:string"
@@ -478,6 +477,6 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-	
+
 
 </xsd:schema>

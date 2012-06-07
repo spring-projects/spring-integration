@@ -33,27 +33,40 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.jdbc.storedproc.CreateUser;
 import org.springframework.integration.jdbc.storedproc.User;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.sql.DataSource;
+
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	@Autowired
-	private AbstractApplicationContext context;
+	DataSource dataSource;
 
 	@Autowired
 	private Consumer consumer;
 
 	@Autowired
 	CreateUser createUser;
+
+	@Autowired
+	MessageChannel storedProcOutboundGatewayInsideChain;
+
+	@Autowired
+	PollableChannel replyChannel;
 
 	@Test
 	public void test() throws Exception {
@@ -65,10 +78,38 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 		received.add(consumer.poll(2000));
 
 		Message<Collection<User>> message = received.get(0);
-		context.stop();
+
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
-		assertNotNull(message.getPayload() instanceof Collection<?>);
+
+		Collection<User> allUsers = message.getPayload();
+
+		assertTrue(allUsers.size() == 1);
+
+		User userFromDb = allUsers.iterator().next();
+
+		assertEquals("Wrong username", "myUsername", userFromDb.getUsername());
+		assertEquals("Wrong password", "myPassword", userFromDb.getPassword());
+		assertEquals("Wrong email",    "myEmail",    userFromDb.getEmail());
+
+	}
+
+	@Test //INT-1029
+	public void testStoredProcOutboundGatewayInsideChain() throws Exception {
+
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
+		jdbcTemplate.execute("delete from USERS");
+
+		Message<User> requestMessage = MessageBuilder.withPayload(new User("myUsername", "myPassword", "myEmail")).build();
+
+		storedProcOutboundGatewayInsideChain.send(requestMessage);
+
+		@SuppressWarnings("unchecked")
+		Message<Collection<User>> message = (Message<Collection<User>>) replyChannel.receive();
+
+		assertNotNull(message);
+		assertNotNull(message.getPayload());
 
 		Collection<User> allUsers = message.getPayload();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,17 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.rmi.RmiOutboundGateway;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RmiOutboundGatewayParserTests {
 
@@ -67,15 +70,27 @@ public class RmiOutboundGatewayParserTests {
 		assertEquals("test", result.getPayload());
 	}
 
-	@Test
-	public void endpointInvocation() {
+	@Test //INT-1029
+	public void testRmiOutboundGatewayInsideChain() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
-		MessageChannel localChannel = (MessageChannel) context.getBean("localChannel");
-		localChannel.send(new GenericMessage<String>("test"));
+		MessageChannel localChannel = context.getBean("rmiOutboundGatewayInsideChain", MessageChannel.class);
+		localChannel.send(MessageBuilder.withPayload("test").build());
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
+	}
+
+	@Test //INT-1029
+	public void testRmiRequestReplyWithinChain() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"rmiOutboundGatewayParserTests.xml", this.getClass());
+		MessageChannel localChannel = context.getBean("requestReplyRmiWithChainChannel", MessageChannel.class);
+		localChannel.send(MessageBuilder.withPayload("test").build());
+		PollableChannel replyChannel = context.getBean("replyChannel", PollableChannel.class);
+		Message<?> result = replyChannel.receive();
+		assertNotNull(result);
+		assertEquals("TEST", result.getPayload());
 	}
 
 }
