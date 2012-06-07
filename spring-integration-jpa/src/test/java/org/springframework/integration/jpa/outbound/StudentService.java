@@ -35,4 +35,7 @@ public interface StudentService {
 
 	StudentDomain getStudentWithParameters(String firstName);
 
+	StudentDomain getStudent2(Long id);
+
+	StudentDomain persistStudent2(StudentDomain studentToPersist);
 }

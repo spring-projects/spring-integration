@@ -47,7 +47,7 @@
             <xsd:attribute name="id" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (SourcePollingChannelAdapter)
-                        
+
                         Keep in mind that if no "channel" attribute is defined, then the "id" attribute is required.
                         In that case the "id" attribute's value will be used as the channel name and ".adapter" will be
                         appended to the "id" value of the underlying bean definition.
@@ -57,9 +57,9 @@
             <xsd:attribute name="channel" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[Defines the message channel to which the payload shall be forwarded to.
-                        
-                        Keep in mind that any Channel Adapter can be created without a "channel" reference in which case 
-                        it will implicitly create an instance of DirectChannel. The created channel's name will match 
+
+                        Keep in mind that any Channel Adapter can be created without a "channel" reference in which case
+                        it will implicitly create an instance of DirectChannel. The created channel's name will match
                         the "id" attribute of the <inbound-channel-adapter/> element. Therefore, if the "channel" attribute
                         is not provided, then the "id" attribute is required.
                         ]]></xsd:documentation>
@@ -74,7 +74,7 @@
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[Specifies the input directory (The directory to poll from) e.g.:
                     directory="file:/absolute/input" or directory="file:relative/input"]]></xsd:documentation>
-                </xsd:annotation>            
+                </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="comparator" type="xsd:string">
                 <xsd:annotation>
@@ -87,11 +87,11 @@
             <xsd:attribute name="filter" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[
-					    Specify a FileListFilter to be used. By default, an AcceptOnceFileListFilter is used, 
+					    Specify a FileListFilter to be used. By default, an AcceptOnceFileListFilter is used,
 					    which ensures files are picked up only once from the directory.
-					    
+
 					    You can also apply multiple filters by referencing a CompositeFileListFilter.
-					]]></xsd:documentation>                
+					]]></xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="org.springframework.integration.file.filters.FileListFilter"/>
@@ -144,7 +144,7 @@ Only files matching this regular expression will be picked up by this adapter.
 	                <xsd:documentation>
 	                    Lifecycle attribute signaling if this component should be started during Application Context startup.
 	                </xsd:documentation>
-                </xsd:annotation>            
+                </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
                 <xsd:annotation>
@@ -174,7 +174,7 @@ Only files matching this regular expression will be picked up by this adapter.
             <xsd:documentation>
                 Configures an outbound Channel Adapter that writes Message payloads to a File.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
                 <xsd:extension base="outboundFileBaseType">
@@ -199,11 +199,11 @@ Only files matching this regular expression will be picked up by this adapter.
                 Configures an outbound Gateway that writes request Message payloads to a File and then generates a
                 reply Message containing the newly written File as its payload.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
                 <xsd:extension base="outboundFileBaseType">
-                    <xsd:attribute name="request-channel" type="xsd:string" use="required">
+                    <xsd:attribute name="request-channel" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>The channel through which outgoing messages will arrive.</xsd:documentation>
                             <xsd:appinfo>
@@ -216,7 +216,7 @@ Only files matching this regular expression will be picked up by this adapter.
                     <xsd:attribute name="reply-channel" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
-                                <![CDATA[After writing the File, it will be sent to the specified reply channel as the payload of a Message. 
+                                <![CDATA[After writing the File, it will be sent to the specified reply channel as the payload of a Message.
                                          Another way of providing the 'reply-channel' is by setting the MessageHeaders.REPLY_CHANNEL Message Header]]>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -244,15 +244,15 @@ Only files matching this regular expression will be picked up by this adapter.
             <xsd:annotation>
                 <xsd:documentation><![CDATA[Specifies the output directory, e.g.:
                 directory="file:/absolute/output" or directory="file:relative/output"]]></xsd:documentation>
-            </xsd:annotation>               
+            </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="filename-generator" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                    <![CDATA[Allows you to provide a reference to the FileNameGenerator strategy 
+                    <![CDATA[Allows you to provide a reference to the FileNameGenerator strategy
                     to use when generating the destination file's name. If not specified the
                     DefaultFileNameGenerator is used.]]>
-                </xsd:documentation>            
+                </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
@@ -263,7 +263,7 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:attribute name="filename-generator-expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-				Allows you to provide a SpEL expression which will compute the file name of 
+				Allows you to provide a SpEL expression which will compute the file name of
 			    the target file (e.g., assuming payload is java.io.File "payload.name + '.transferred'");
 				</xsd:documentation>
 			</xsd:annotation>
@@ -306,18 +306,18 @@ Only files matching this regular expression will be picked up by this adapter.
                 <xsd:documentation>
                     <![CDATA[Lifecycle attribute signaling if this component should be started during Application Context startup.]]>
                 </xsd:documentation>
-            </xsd:annotation>            
-        </xsd:attribute>        
+            </xsd:annotation>
+        </xsd:attribute>
         <xsd:attribute name="charset" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                    <![CDATA[Set the charset name to use when writing a File from a String-based 
-                    Message payload, e.g. charset="UTF-8". If not set, the default charset of this 
+                    <![CDATA[Set the charset name to use when writing a File from a String-based
+                    Message payload, e.g. charset="UTF-8". If not set, the default charset of this
                     Java virtual machine is used.
                     ]]>
                 </xsd:documentation>
-            </xsd:annotation>            
-        </xsd:attribute>        
+            </xsd:annotation>
+        </xsd:attribute>
     </xsd:complexType>
 
     <xsd:element name="file-to-string-transformer">
@@ -332,11 +332,11 @@ Only files matching this regular expression will be picked up by this adapter.
                     <xsd:attribute name="charset" type="xsd:string">
 			            <xsd:annotation>
 			                <xsd:documentation>
-			                    <![CDATA[Set the charset name to use when converting a File 
-			                    payload to a String, e.g. charset="UTF-8". If not set, the default charset of this 
+			                    <![CDATA[Set the charset name to use when converting a File
+			                    payload to a String, e.g. charset="UTF-8". If not set, the default charset of this
 			                    Java virtual machine is used.]]>
 			                </xsd:documentation>
-			            </xsd:annotation>                       
+			            </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>
             </xsd:complexContent>
@@ -348,7 +348,7 @@ Only files matching this regular expression will be picked up by this adapter.
             <xsd:documentation>
                 Creates a Transformer that converts a File payload to an array of bytes.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
                 <xsd:extension base="transformerType"/>
@@ -366,7 +366,7 @@ Only files matching this regular expression will be picked up by this adapter.
             <xsd:annotation>
                 <xsd:documentation>
                     <![CDATA[The input channel of the transformer.]]>
-                </xsd:documentation>                      
+                </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.MessageChannel"/>
@@ -377,10 +377,10 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:attribute name="output-channel" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                    <![CDATA[The channel to which the transformer will send the transformed message. 
-                    Optional, because incoming messages can specify a reply channel using the 'replyChannel' 
+                    <![CDATA[The channel to which the transformer will send the transformed message.
+                    Optional, because incoming messages can specify a reply channel using the 'replyChannel'
                     message header value themselves.]]>
-                </xsd:documentation>                     
+                </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.MessageChannel"/>
@@ -391,27 +391,27 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:attribute name="delete-files" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                    <![CDATA[The delete-files option signals to the transformer that it should delete the 
+                    <![CDATA[The delete-files option signals to the transformer that it should delete the
                     inbound File after the transformation is complete.]]>
-                </xsd:documentation>            
+                </xsd:documentation>
             </xsd:annotation>
-        </xsd:attribute>        
+        </xsd:attribute>
     </xsd:complexType>
 
     <xsd:element name="locker">
         <xsd:annotation>
 	        <xsd:documentation>
-	            <![CDATA[When multiple processes are reading from the same 
-	            directory it can be desirable to lock files to prevent them 
+	            <![CDATA[When multiple processes are reading from the same
+	            directory it can be desirable to lock files to prevent them
 	            from being picked up concurrently. To do this you can specify a reference to a FileLocker.]]>
-	        </xsd:documentation>             
+	        </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:attribute name="ref" type="xsd:string">
                 <xsd:annotation>
 	                <xsd:documentation>
 	                    <![CDATA[The reference to the FileLocker.]]>
-	                </xsd:documentation>                     
+	                </xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="org.springframework.integration.file.FileLocker"/>
@@ -425,8 +425,8 @@ Only files matching this regular expression will be picked up by this adapter.
 	<xsd:element name="nio-locker">
 		<xsd:annotation>
 			<xsd:documentation>
-           <![CDATA[When multiple processes are reading from the same directory 
-           it can be desirable to lock files to prevent them from being picked up 
+           <![CDATA[When multiple processes are reading from the same directory
+           it can be desirable to lock files to prevent them from being picked up
            concurrently. This is a java.nio based implementation available out of the box.]]>
 			</xsd:documentation>
 		</xsd:annotation>

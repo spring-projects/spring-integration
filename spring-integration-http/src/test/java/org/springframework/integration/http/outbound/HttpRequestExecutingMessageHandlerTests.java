@@ -21,6 +21,10 @@ import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -30,6 +34,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
@@ -43,6 +51,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
@@ -648,10 +657,22 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 	@Test //INT-2275
 	public void testOutboundChannelAdapterWithinChain() {
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterWithinChainTests-context.xml", this.getClass());
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("HttpOutboundWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundChannelAdapterWithinChain", MessageChannel.class);
 		channel.send(MessageBuilder.withPayload("test").build());
 //		It's just enough if it was sent successfully from chain without any failures
+	}
+
+	@Test //INT-1029
+	public void testHttpOutboundGatewayWithinChain() throws IOException {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("HttpOutboundWithinChainTests-context.xml", this.getClass());
+		MessageChannel channel = ctx.getBean("httpOutboundGatewayWithinChain", MessageChannel.class);
+		channel.send(MessageBuilder.withPayload("test").build());
+
+		PollableChannel output = ctx.getBean("replyChannel", PollableChannel.class);
+		Message<?> receive = output.receive();
+		assertEquals(HttpStatus.OK, receive.getPayload());
+
 	}
 
 	@Test

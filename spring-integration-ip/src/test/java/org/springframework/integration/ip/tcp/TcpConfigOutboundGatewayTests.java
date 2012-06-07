@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -45,50 +48,50 @@ public class TcpConfigOutboundGatewayTests {
 
 	@Autowired
 	AbstractApplicationContext ctx;
-	
+
 	@Autowired
 	@Qualifier(value="crLfServer")
 	AbstractServerConnectionFactory crLfServer;
-	
+
 	@Autowired
 	@Qualifier(value="stxEtxServer")
 	AbstractServerConnectionFactory stxEtxServer;
-	
+
 	@Autowired
 	@Qualifier(value="lengthHeaderServer")
 	AbstractServerConnectionFactory lengthHeaderServer;
-	
+
 	@Autowired
 	@Qualifier(value="javaSerialServer")
 	AbstractServerConnectionFactory javaSerialServer;
-	
+
 	@Autowired	@Qualifier(value="crLfClient")
 	AbstractClientConnectionFactory crLfClient;
-	
+
 	@Autowired
 	@Qualifier(value="stxEtxClient")
 	AbstractClientConnectionFactory stxEtxClient;
-	
+
 	@Autowired
 	@Qualifier(value="lengthHeaderClient")
 	AbstractClientConnectionFactory lengthHeaderClient;
-	
+
 	@Autowired
 	@Qualifier(value="javaSerialClient")
 	AbstractClientConnectionFactory javaSerialClient;
-	
+
 	@Autowired
 	@Qualifier(value="gatewayCrLf")
 	TcpInboundGateway gatewayCrLf;
-	
+
 //	@Autowired
 //	@Qualifier("gatewayCrLf")
 //	private TcpInboundGateway inboundGatewayCrLf;
-	
+
 	@Autowired
 	@Qualifier("gatewayStxEtx")
 	private TcpInboundGateway inboundGatewayStxEtx;
-	
+
 	@Autowired
 	@Qualifier("gatewayLength")
 	private TcpInboundGateway inboundGatewayLength;
@@ -109,6 +112,12 @@ public class TcpConfigOutboundGatewayTests {
 	@Qualifier("requestChannelNio")
 	SubscribableChannel requestChannelNio;
 
+	@Autowired
+	AbstractClientConnectionFactory crLfClient2;
+
+	@Autowired
+	MessageChannel tcpOutboundGatewayInsideChain;
+
 	@Test
 	public void testOutboundCrLf() throws Exception {
 		testOutboundUsingConfig();
@@ -127,7 +136,7 @@ public class TcpConfigOutboundGatewayTests {
 				throw new Exception("Gateway failed to listen");
 			}
 		}
-		
+
 	}
 
 	@Test
@@ -166,6 +175,17 @@ public class TcpConfigOutboundGatewayTests {
 		assertEquals("echo:test", new String(bytes));
 	}
 
+	@Test //INT-1029
+	public void testOutboundInsideChain() throws Exception {
+//		TODO Lifecycle#start() isn't invoked within chain...
+		crLfClient2.start();
+
+		tcpOutboundGatewayInsideChain.send(MessageBuilder.withPayload("test").build());
+		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
+		assertEquals("echo:test", new String(bytes).trim());
+	}
+
+
 	private void testOutboundUsingConfig() {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		requestChannel.send(message);
@@ -186,7 +206,7 @@ public class TcpConfigOutboundGatewayTests {
 			staticContext = ctx;
 		}
 	}
-	
+
 	@AfterClass
 	public static void shutDown() {
 		staticContext.close();

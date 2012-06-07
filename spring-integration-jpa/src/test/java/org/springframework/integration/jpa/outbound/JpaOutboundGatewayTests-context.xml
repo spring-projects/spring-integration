@@ -28,7 +28,11 @@
 		<int:method name="getAllStudents"           request-channel="getAllStudentsChannel" />
 		<int:method name="persistStudent"           request-channel="persistStudentChannel" />
 		<int:method name="persistStudentUsingMerge" request-channel="persistStudentUsingMergeChannel" />
+		<int:method name="getStudent2"              request-channel="retrievingGatewayInsideChain" />
+		<int:method name="persistStudent2"          request-channel="updatingGatewayInsideChain" />
 	</int:gateway>
+
+	<int:channel id="studentReplyChannel"/>
 
 	<int:channel id="deleteStudentChannel"/>
 	<int:channel id="getStudentChannel"/>
@@ -36,8 +40,9 @@
 	<int:channel id="getAllStudentsChannel"/>
 	<int:channel id="persistStudentChannel"/>
 	<int:channel id="persistStudentUsingMergeChannel"/>
-	<int:channel id="studentReplyChannel"/>
 	<int:channel id="getStudentEndpointWithExceptionChannel"/>
+	<int:channel id="retrievingGatewayInsideChain"/>
+	<int:channel id="updatingGatewayInsideChain"/>
 
 	<bean id="deleteStudentEndpoint"
 				class="org.springframework.integration.endpoint.EventDrivenConsumer">
@@ -192,4 +197,21 @@
 			</bean>
 		</constructor-arg>
 	</bean>
+
+	<int:chain input-channel="retrievingGatewayInsideChain" output-channel="studentReplyChannel">
+		<jpa:retrieving-outbound-gateway entity-manager="entityManager"
+										 expect-single-result="true"
+										 entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+										 jpa-query="from Student s where s.id = :id">
+			<jpa:parameter name="id" expression="payload"/>
+		</jpa:retrieving-outbound-gateway>
+	</int:chain>
+
+	<int:chain input-channel="updatingGatewayInsideChain" output-channel="studentReplyChannel">
+		<!--TODO JPA outbound-gateway must have 'id' inside the chain because
+			 'org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean#0' isn't registered as bean-->
+		<jpa:updating-outbound-gateway id="gatewayInsideChain" entity-manager="entityManager"
+									   entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"/>
+	</int:chain>
+
 </beans>

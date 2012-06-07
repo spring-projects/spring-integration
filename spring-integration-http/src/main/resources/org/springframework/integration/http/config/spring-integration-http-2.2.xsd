@@ -163,6 +163,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				    <xsd:sequence>
 						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
+					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -491,6 +500,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:sequence>
 						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
+					<xsd:attribute name="request-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="url" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -714,15 +732,6 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:string" />
-		<xsd:attribute name="request-channel" type="xsd:string" use="required">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="reply-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

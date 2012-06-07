@@ -27,10 +27,14 @@
 		directory="${java.io.tmpdir}/anyDir" />
 
 	<outbound-gateway id="mover"
-		request-channel="moveInput" 
+		request-channel="moveInput"
 		reply-channel="output"
-		directory="${java.io.tmpdir}/anyDir" 
+		directory="${java.io.tmpdir}/anyDir"
 		delete-source-files="true"/>
+
+	<si:chain input-channel="fileOutboundGatewayInsideChain" output-channel="output">
+		<outbound-gateway directory="${java.io.tmpdir}/anyDir" delete-source-files="true"/>
+	</si:chain>
 
 	<!--suppress SpringModelInspection -->
     <context:property-placeholder />

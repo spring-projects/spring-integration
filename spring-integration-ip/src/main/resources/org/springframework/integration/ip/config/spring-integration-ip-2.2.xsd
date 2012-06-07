@@ -311,7 +311,7 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +47,11 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Alex Peters
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileOutboundGatewayIntegrationTests {
-
-	FileWritingMessageHandler handler;
 
 	@Qualifier("copyInput")
 	@Autowired
@@ -61,6 +60,10 @@ public class FileOutboundGatewayIntegrationTests {
 	@Qualifier("moveInput")
 	@Autowired
 	MessageChannel moveInputChannel;
+
+	@Qualifier("moveInput")
+	@Autowired
+	MessageChannel fileOutboundGatewayInsideChain;
 
 	@Qualifier("output")
 	@Autowired
@@ -134,6 +137,20 @@ public class FileOutboundGatewayIntegrationTests {
 	@Test
 	public void move() throws Exception {
 		moveInputChannel.send(message);
+		List<Message<?>> result = outputChannel.clear();
+		assertThat(result.size(), is(1));
+		Message<?> resultMessage = result.get(0);
+		File payloadFile = (File) resultMessage.getPayload();
+		assertThat(payloadFile, is(not(sourceFile)));
+		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class),
+				is(sourceFile));
+		assertThat(sourceFile.exists(), is(false));
+		assertThat(payloadFile.exists(), is(true));
+	}
+
+	@Test //INT-1029
+	public void moveInsideTheChain() throws Exception {
+		fileOutboundGatewayInsideChain.send(message);
 		List<Message<?>> result = outputChannel.clear();
 		assertThat(result.size(), is(1));
 		Message<?> resultMessage = result.get(0);

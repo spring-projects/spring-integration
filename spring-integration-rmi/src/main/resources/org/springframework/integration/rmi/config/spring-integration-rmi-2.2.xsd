@@ -28,6 +28,15 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
+					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="expect-reply" type="xsd:string" default="true"/>
 					<xsd:attribute name="registry-host" type="xsd:string"/>
 					<xsd:attribute name="registry-port" type="xsd:string"/>
@@ -57,6 +66,15 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
+					<xsd:attribute name="request-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="host" type="xsd:string" use="required"/>
 					<xsd:attribute name="port" type="xsd:string"/>
 					<xsd:attribute name="remote-channel" type="xsd:string" use="required"/>
@@ -81,15 +99,6 @@
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="name" type="xsd:string"/>
-		<xsd:attribute name="request-channel" type="xsd:string" use="required">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="reply-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

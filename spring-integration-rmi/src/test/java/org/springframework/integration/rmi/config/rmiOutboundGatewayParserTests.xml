@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:rmi="http://www.springframework.org/schema/integration/rmi"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:rmi="http://www.springframework.org/schema/integration/rmi"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
@@ -13,9 +13,29 @@
 	<channel id="localChannel"/>
 
 	<rmi:outbound-gateway id="gateway"
-		order="23" 
-		request-channel="localChannel" 
-		remote-channel="testChannel" 
-		host="localhost"/>
+						  order="23"
+						  request-channel="localChannel"
+						  remote-channel="testChannel"
+						  host="localhost"/>
+
+	<chain input-channel="rmiOutboundGatewayInsideChain">
+		<rmi:outbound-gateway remote-channel="testChannel" host="localhost"/>
+	</chain>
+
+
+	<channel id="remoteChannel"/>
+
+	<rmi:inbound-gateway request-channel="remoteChannel"/>
+
+	<service-activator input-channel="remoteChannel" expression="payload.toUpperCase()"/>
+
+
+	<channel id="replyChannel">
+		<queue/>
+	</channel>
+
+	<chain input-channel="requestReplyRmiWithChainChannel" output-channel="replyChannel">
+		<rmi:outbound-gateway remote-channel="remoteChannel" host="localhost"/>
+	</chain>
 
 </beans:beans>
