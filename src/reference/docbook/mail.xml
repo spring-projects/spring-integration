@@ -125,6 +125,34 @@
 </util:properties>]]></programlisting>
     </para>
     
+    <para>
+    By default <classname>ImapMailReceiver</classname> will search for Messages based in the default <classname>SearchTerm</classname> 
+    which is <emphasis>All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not 
+    been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)</emphasis>. 
+    Since version 2.2, the <classname>SearchTerm</classname> used by the  <classname>ImapMailReceiver</classname> is fully configurable 
+    via the <code>SearchTermStrategy</code> which you can inject via <code>search-term-strategy</code> attribute.
+    <classname>SearchTermStrategy</classname> is a simple strategy interface with a single method that allows you to create an 
+    instance of the <classname>SearchTerm</classname> that will be used by the <classname>ImapMailReceiver</classname>.
+    </para>
+    <programlisting language="java"><![CDATA[public interface SearchTermStrategy {
+
+	SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
+
+}]]></programlisting>
+    <para>
+For example:
+    </para>
+<programlisting language="xml"><![CDATA[<mail:imap-idle-channel-adapter id="customAdapter"
+			store-uri="imap:foo"
+			. . .	
+			search-term-strategy="searchTermStrategy"/>
+			
+<bean id="searchTermStrategy" class="org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests.TestSearchTermStrategy"/>]]></programlisting>
+    <para>
+In the above example instead of relying on the default <classname>SearchTermStrategy</classname> the 
+<classname>TestSearchTermStrategy</classname> will be used instead
+    </para>
+    
     <para><emphasis>IMAP IDLE and lost connection</emphasis></para>
     
     <para>

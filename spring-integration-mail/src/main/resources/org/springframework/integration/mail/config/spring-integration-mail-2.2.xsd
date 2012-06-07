@@ -122,6 +122,23 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="search-term-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.mail.SearchTermStrategy" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to a custom implementation of org.springframework.integration.mail.SearchTermStrategy
+								to use when retrieving email.
+								By default ImapMailReceiver will search for Messages based in the default SearchTerm 
+                                which is "All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not 
+                                been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)". 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
