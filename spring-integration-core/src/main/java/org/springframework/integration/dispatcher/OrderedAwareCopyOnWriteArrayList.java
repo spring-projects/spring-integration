@@ -52,7 +52,7 @@ import org.springframework.util.StringUtils;
  * @since 2.2
  *
  */
-public class OrderedAwareCopyOnWriteArrayList<E> extends AbstractList<E> implements RandomAccess, Cloneable, Serializable {
+class OrderedAwareCopyOnWriteArrayList<E> extends AbstractList<E> implements RandomAccess, Cloneable, Serializable {
 
     private static final long serialVersionUID = -7739485563455787957L;
 
@@ -84,7 +84,8 @@ public class OrderedAwareCopyOnWriteArrayList<E> extends AbstractList<E> impleme
             try {
                 addOrderedElement(o);
                 return true;
-            } finally {
+            }
+            finally {
                 writeLock.unlock();
             }
         }
@@ -100,7 +101,8 @@ public class OrderedAwareCopyOnWriteArrayList<E> extends AbstractList<E> impleme
                 this.add(object);
             }
             return true;
-        } finally {
+        }
+        finally {
             writeLock.unlock();
         }
     }
@@ -161,32 +163,17 @@ public class OrderedAwareCopyOnWriteArrayList<E> extends AbstractList<E> impleme
                 int result = comparator.compare(o, e);
                 if (result == 0 && o.equals(e)) {
                     return false;
-                } else if (result < 0) {
+                }
+                else if (result < 0) {
                     break;
                 }
                 pos++;
-            } else  {
+            }
+            else  {
                 break;
             }
         }
         elements.add(pos, o);
         return true;
-    }
-
-    private void writeObject(java.io.ObjectOutputStream s)
-            throws java.io.IOException {
-
-        s.defaultWriteObject();
-
-        s.writeObject(elements);
-    }
-
-    @SuppressWarnings("unchecked")
-	private void readObject(java.io.ObjectInputStream s)
-            throws java.io.IOException, ClassNotFoundException {
-
-        s.defaultReadObject();
-
-        elements.addAll((CopyOnWriteArrayList<E>) s.readObject());
     }
 }
