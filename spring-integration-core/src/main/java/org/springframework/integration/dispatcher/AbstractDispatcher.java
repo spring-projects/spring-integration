@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * dispatching strategies may invoke handles in different ways (e.g. round-robin
  * vs. failover), this class does maintain the order of the underlying
  * collection. See the {@link OrderedAwareLinkedHashSet} for more detail.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
@@ -45,7 +45,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
+	private final List<MessageHandler> handlers = new OrderedAwareCopyOnWriteArrayList<MessageHandler>();
 
 
 	/**
@@ -59,7 +59,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	/**
 	 * Add the handler to the internal Set.
-	 * 
+	 *
 	 * @return the result of {@link Set#add(Object)}
 	 */
 	public boolean addHandler(MessageHandler handler) {
@@ -69,7 +69,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	/**
 	 * Remove the handler from the internal handler Set.
-	 * 
+	 *
 	 * @return the result of {@link Set#remove(Object)}
 	 */
 	public boolean removeHandler(MessageHandler handler) {
@@ -77,6 +77,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.handlers.remove(handler);
 	}
 
+	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
 	}

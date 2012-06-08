@@ -25,10 +25,11 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -327,7 +328,7 @@ public class ParserUnitTests {
 	@Test
 	public void testUdpOrder() {
 		@SuppressWarnings("unchecked")
-		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+		List<MessageHandler> handlers = (List<MessageHandler>) TestUtils
 				.getPropertyValue(
 						TestUtils.getPropertyValue(this.udpChannel, "dispatcher"),
 						"handlers");
@@ -518,7 +519,7 @@ public class ParserUnitTests {
 		this.outGateway.start();
 		this.testOutTcpNio.start();
 		@SuppressWarnings("unchecked")
-		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+		List<MessageHandler> handlers = (List<MessageHandler>) TestUtils
 				.getPropertyValue(
 						TestUtils.getPropertyValue(this.tcpChannel, "dispatcher"),
 						"handlers");
