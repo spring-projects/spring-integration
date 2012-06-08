@@ -58,6 +58,8 @@ public class DelayerParserTests {
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
 		assertEquals(new Long(1234), accessor.getPropertyValue("defaultDelay"));
 		assertEquals("foo", accessor.getPropertyValue("delayHeaderName"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("autoStartup"));
+		assertEquals(Integer.MAX_VALUE, accessor.getPropertyValue("phase"));
 		assertEquals(new Long(987), new DirectFieldAccessor(
 				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
 		assertNull(accessor.getPropertyValue("taskScheduler"));
@@ -74,6 +76,8 @@ public class DelayerParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
 		assertEquals(new Long(0), accessor.getPropertyValue("defaultDelay"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("autoStartup"));
+		assertEquals(123, accessor.getPropertyValue("phase"));
 		assertEquals(context.getBean("testScheduler"), accessor.getPropertyValue("taskScheduler"));
 		assertNotNull(accessor.getPropertyValue("taskScheduler"));
 		assertEquals(Boolean.TRUE, new DirectFieldAccessor(

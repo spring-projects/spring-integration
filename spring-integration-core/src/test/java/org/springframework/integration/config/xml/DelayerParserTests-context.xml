@@ -20,6 +20,8 @@
 			 input-channel="input"
 			 output-channel="output"
 			 default-delay="0"
+			 auto-startup="false"
+			 phase="123"
 			 scheduler="testScheduler"
 			 wait-for-tasks-to-complete-on-shutdown="true"/>
 

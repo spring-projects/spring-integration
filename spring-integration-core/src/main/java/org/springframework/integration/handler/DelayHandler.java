@@ -210,6 +210,22 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		final Message messageToSchedule = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
 		this.messageStore.addMessageToGroup(this.messageGroupId, messageToSchedule);
+
+		this.lifecycleLock.lock();
+		try {
+			if (!this.running) {
+				if (this.logger.isWarnEnabled()) {
+					this.logger.warn(this + " isn't running. " +
+							"It can't 'schedule' messages for delay. 'SmartLifecycle#start()' initiates " +
+							"rescheduling process for persisted messages in the MessageStore.");
+				}
+				return;
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+
 		this.getTaskScheduler().schedule(new Runnable() {
 			public void run() {
 				releaseMessage(messageToSchedule);
@@ -269,8 +285,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		this.lifecycleLock.lock();
 		try {
 			if (!this.running) {
-				this.doStart();
 				this.running = true;
+				this.doStart();
 				if (logger.isInfoEnabled()) {
 					logger.info("started " + this);
 				}
@@ -335,7 +351,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	@Override
 	public void destroy() throws Exception {
-		this.doStop();
+		this.stop();
 	}
 
 	private static final class DelayedMessageWrapper implements Serializable {

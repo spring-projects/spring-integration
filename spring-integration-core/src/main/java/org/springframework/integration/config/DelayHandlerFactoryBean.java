@@ -82,8 +82,6 @@ public class DelayHandlerFactoryBean extends AbstractSimpleMessageHandlerFactory
 			handler.setTaskScheduler(taskScheduler);
 		}
 
-		handler.afterPropertiesSet();
-
 		this.delayHandler = handler;
 
 		return this.delayHandler;

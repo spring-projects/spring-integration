@@ -22,15 +22,22 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.List;
 
 /**
  * @author Oleg Zhurakousky
@@ -55,6 +62,9 @@ public class DelayerUsageTests {
 
 	@Autowired @Qualifier("outputB1")
 	private PollableChannel outputB1;
+
+	@Autowired
+	private MessageHandlerChain chainWithDelayer;
 
 	@Test
 	public void testDelayWithDefaultScheduler(){
@@ -101,6 +111,12 @@ public class DelayerUsageTests {
 
 	@Test //INT-1132
 	public void testDelayerInsideChain(){
+		//TODO 'SmartLifecycle' isn't invoked by 'MessageHandlerChain'
+		@SuppressWarnings("unchecked")
+		List<MessageHandler> handlers = TestUtils.getPropertyValue(chainWithDelayer, "handlers", List.class);
+		SmartLifecycle delayHandler = (SmartLifecycle) handlers.get(1);
+		delayHandler.start();
+
 		long start = System.currentTimeMillis();
 		delayerInsideChain.send(new GenericMessage<String>("Hello"));
 		Message<?> message = outputA.receive();

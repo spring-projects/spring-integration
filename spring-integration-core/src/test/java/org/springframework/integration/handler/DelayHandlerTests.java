@@ -81,6 +81,7 @@ public class DelayHandlerTests {
 	@Test
 	public void noDelayHeaderAndDefaultDelayIsZero() throws Exception {
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -91,6 +92,7 @@ public class DelayHandlerTests {
 	public void noDelayHeaderAndDefaultDelayIsPositive() throws Exception {
 		delayHandler.setDefaultDelay(10);
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 		this.waitForLatch(1000);
@@ -103,6 +105,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(5000);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", 100).build();
 		input.send(message);
@@ -116,6 +119,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(5000);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", -7000).build();
 		input.send(message);
@@ -129,6 +133,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(5);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", "not a number").build();
 		input.send(message);
@@ -142,6 +147,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(5000);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", new Date(new Date().getTime() + 150)).build();
 		input.send(message);
@@ -155,6 +161,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(5000);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
 		input.send(message);
@@ -167,6 +174,7 @@ public class DelayHandlerTests {
 	public void delayHeaderIsNullDateAndDefaultDelayIsZero() throws Exception {
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Date nullDate = null;
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", nullDate).build();
@@ -180,6 +188,7 @@ public class DelayHandlerTests {
 	public void delayHeaderIsFutureDateAndTimesOut() throws Exception {
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Date future = new Date(new Date().getTime() + 60 * 1000);
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", future).build();
@@ -194,6 +203,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(5000);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", "20").build();
 		input.send(message);
@@ -206,6 +216,7 @@ public class DelayHandlerTests {
 	public void verifyShutdownWithoutWaitingByDefault() throws Exception {
 		delayHandler.setDefaultDelay(5000);
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		delayHandler.handleMessage(new GenericMessage<String>("foo"));
 		delayHandler.destroy();
 
@@ -230,6 +241,7 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(5000);
 		taskScheduler.setWaitForTasksToCompleteOnShutdown(true);
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		delayHandler.handleMessage(new GenericMessage<String>("foo"));
 		delayHandler.destroy();
 
@@ -252,6 +264,7 @@ public class DelayHandlerTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void handlerThrowsExceptionWithNoDelay() throws Exception {
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		output.unsubscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) {
@@ -270,6 +283,7 @@ public class DelayHandlerTests {
 		taskScheduler.setErrorHandler(errorHandler);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
@@ -303,6 +317,7 @@ public class DelayHandlerTests {
 		taskScheduler.setErrorHandler(errorHandler);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
@@ -334,6 +349,7 @@ public class DelayHandlerTests {
 		taskScheduler.setErrorHandler(errorHandler);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.afterPropertiesSet();
+		delayHandler.start();
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
 		output.subscribe(new MessageHandler() {
@@ -360,13 +376,14 @@ public class DelayHandlerTests {
 		this.delayHandler.setDefaultDelay(200);
 		this.delayHandler.setMessageStore(messageGroupStore);
 		this.delayHandler.afterPropertiesSet();
+		this.delayHandler.start();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 
+		Thread.sleep(110);
+
 		// emulate restart
 		this.delayHandler.destroy();
-
-		Thread.sleep(100);
 
 		assertEquals(1, messageGroupStore.getMessageGroupCount());
 		assertEquals(DELAYER_MESSAGE_GROUP_ID, messageGroupStore.iterator().next().getGroupId());
