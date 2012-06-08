@@ -22,26 +22,32 @@
 			 default-delay="1000"
 			 delay-header-name="foo"
 			 order="99"
-			 send-timeout="1000"
-			 wait-for-tasks-to-complete-on-shutdown="true"/>
+			 send-timeout="1000"/>
 
 	<channel id="inputB"/>
 	<channel id="outputB"/>
 	<channel id="outputB1">
 		<queue />
 	</channel>
- 
+
 	<delayer id="delayerWithCustomScheduler"
 			 input-channel="inputB"
 			 output-channel="outputB"
 			 default-delay="1000"
 			 send-timeout="20000"
-			 scheduler="multiThreadScheduler"/> 
+			 scheduler="multiThreadScheduler"
+			 wait-for-tasks-to-complete-on-shutdown="true"/>
+
+	<chain input-channel="delayerInsideChain" output-channel="outputA">
+		<transformer expression="payload.toUpperCase()"/>
+		<delayer id="delayerInsideChain" default-delay="1000"/>
+		<transformer expression="payload.toLowerCase()"/>
+	</chain>
 
 	<task:scheduler id="multiThreadScheduler" pool-size="5"/>
-	
+
 	<service-activator input-channel="outputB" output-channel="outputB1" method="processMessage" ref="sampleHandler"/>
-	
+
 	<beans:bean id="sampleHandler" class="org.springframework.integration.config.xml.DelayerUsageTests$SampleService"/>
- 
+
 </beans:beans>

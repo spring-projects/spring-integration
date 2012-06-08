@@ -16,6 +16,21 @@
 		<queue />
 	</channel>
 
+	<delayer id="delayerWithCustomScheduler"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0"
+			 auto-startup="false"
+			 phase="123"
+			 scheduler="testScheduler"
+			 wait-for-tasks-to-complete-on-shutdown="true"/>
+
+	<delayer id="delayerWithCustomMessageStore"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0"
+			 message-store="testMessageStore"/>
+
 	<delayer id="delayerWithDefaultScheduler"
 			 input-channel="input"
 			 output-channel="output"
@@ -23,19 +38,7 @@
 			 delay-header-name="foo"
 			 order="99"
 			 send-timeout="987"
-			 wait-for-tasks-to-complete-on-shutdown="true"/>
-
-	<delayer id="delayerWithCustomScheduler"
-			 input-channel="input"
-			 output-channel="output"
-			 default-delay="0"
-			 scheduler="testScheduler"/>
-
-	<delayer id="delayerWithCustomMessageStore"
-			 input-channel="input"
-			 output-channel="output"
-			 default-delay="0"
-			 message-store="testMessageStore"/>
+			 wait-for-tasks-to-complete-on-shutdown="false"/>
 
 	<task:scheduler id="testScheduler" pool-size="7"/>
 

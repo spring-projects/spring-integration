@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 1.0.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,10 +58,11 @@ public class DelayerParserTests {
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
 		assertEquals(new Long(1234), accessor.getPropertyValue("defaultDelay"));
 		assertEquals("foo", accessor.getPropertyValue("delayHeaderName"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("autoStartup"));
+		assertEquals(Integer.MAX_VALUE, accessor.getPropertyValue("phase"));
 		assertEquals(new Long(987), new DirectFieldAccessor(
 				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
-		assertEquals(Boolean.TRUE, new DirectFieldAccessor(
-				accessor.getPropertyValue("taskScheduler")).getPropertyValue("waitForTasksToCompleteOnShutdown"));
+		assertNull(accessor.getPropertyValue("taskScheduler"));
 	}
 
 	@Test
@@ -72,7 +76,12 @@ public class DelayerParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
 		assertEquals(new Long(0), accessor.getPropertyValue("defaultDelay"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("autoStartup"));
+		assertEquals(123, accessor.getPropertyValue("phase"));
 		assertEquals(context.getBean("testScheduler"), accessor.getPropertyValue("taskScheduler"));
+		assertNotNull(accessor.getPropertyValue("taskScheduler"));
+		assertEquals(Boolean.TRUE, new DirectFieldAccessor(
+				accessor.getPropertyValue("taskScheduler")).getPropertyValue("waitForTasksToCompleteOnShutdown"));
 	}
 
 	@Test
