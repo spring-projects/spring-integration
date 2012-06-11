@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,19 @@
 
 package org.springframework.integration.handler;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.Ordered;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolutionException;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
@@ -52,12 +40,12 @@ import org.springframework.util.Assert;
  * therefore, the calling thread does not block. The advantage of this approach
  * is that many delays can be managed concurrently, even very long delays,
  * without producing a buildup of blocked Threads.
- * <p>
+ * <p/>
  * One thing to keep in mind, however, is that any active transactional context
  * will not propagate from the original sender to the eventual recipient. This
  * is a side-effect of passing the Message to the output channel after the
  * delay with a different Thread in control.
- * <p>
+ * <p/>
  * When this handler's 'delayHeaderName' property is configured, that value, if
  * present on a Message, will take precedence over the handler's 'defaultDelay'
  * value. The actual header value may be a long, a String that can be parsed
@@ -67,46 +55,40 @@ import org.springframework.util.Assert;
  * seconds from the current time). If the value is a Date, it will be
  * delayed at least until that Date occurs (i.e. the delay in that case is
  * equivalent to <code>headerDate.getTime() - new Date().getTime()</code>).
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 1.0.3
  */
-public class DelayHandler extends IntegrationObjectSupport implements MessageHandler, MessageProducer, Ordered, DisposableBean {
+public class DelayHandler extends AbstractReplyProducingMessageHandler implements ApplicationListener<ContextRefreshedEvent> {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private volatile String messageGroupId;
 
 	private volatile long defaultDelay;
 
 	private volatile String delayHeaderName;
 
-	private boolean waitForTasksToCompleteOnShutdown = false;
-
-	private volatile MessageChannel outputChannel;
-
-	private volatile ChannelResolver channelResolver;
-
-	private volatile MessageStore messageStore;
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
-	private volatile int order = Ordered.LOWEST_PRECEDENCE;
-
+	private volatile MessageGroupStore messageStore;
 
 	/**
-	 * Create a DelayHandler with the given default delay. The sending of Messages after
-	 * the delay will be handled by a scheduled thread pool with a size of 1.
+	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
+	 * to store delayed Messages in the {@link MessageGroupStore}. The sending of Messages after
+	 * the delay will be handled by registered in the ApplicationContext default {@link ThreadPoolTaskScheduler}.
+	 *
+	 * @see IntegrationObjectSupport#getTaskScheduler()
 	 */
-	public DelayHandler(long defaultDelay) {
-		this(defaultDelay, null);
+	public DelayHandler(String messageGroupId) {
+		Assert.notNull(messageGroupId, "'messageGroupId' must not be null");
+		this.messageGroupId = messageGroupId;
 	}
 
 	/**
 	 * Create a DelayHandler with the given default delay. The sending of Messages
 	 * after the delay will be handled by the provided {@link TaskScheduler}.
 	 */
-	public DelayHandler(long defaultDelay, TaskScheduler taskScheduler) {
-		this.defaultDelay = defaultDelay;
-		this.setTaskScheduler(taskScheduler != null ? taskScheduler : new ThreadPoolTaskScheduler());
+	public DelayHandler(String messageGroupId, TaskScheduler taskScheduler) {
+		this(messageGroupId);
+		this.setTaskScheduler(taskScheduler);
 	}
 
 
@@ -114,7 +96,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	 * Set the default delay in milliseconds. If no 'delayHeaderName' property
 	 * has been provided, the default delay will be applied to all Messages. If
 	 * a delay should <emphasis>only</emphasis> be applied to Messages with a
-	 * header, then set this value to 0. 
+	 * header, then set this value to 0.
 	 */
 	public void setDefaultDelay(long defaultDelay) {
 		this.defaultDelay = defaultDelay;
@@ -130,47 +112,12 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	}
 
 	/**
-	 * Specify the {@link MessageStore} that should be used to store Messages
+	 * Specify the {@link MessageGroupStore} that should be used to store Messages
 	 * while awaiting the delay.
 	 */
-	public void setMessageStore(MessageStore messageStore) {
+	public void setMessageStore(MessageGroupStore messageStore) {
+		Assert.state(messageStore != null, "MessageStore must not be null");
 		this.messageStore = messageStore;
-	}
-
-	/**
-	 * Set the output channel for this handler. If none is provided, each
-	 * inbound Message must include a reply channel header.
-	 */
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
-
-	/**
-	 * Set the timeout for sending reply Messages.
-	 */
-	public void setSendTimeout(long sendTimeout) {
-		this.messagingTemplate.setSendTimeout(sendTimeout);
-	}
-
-	/**
-	 * Set whether to wait for scheduled tasks to complete on shutdown.
-	 * <p>Default is "false". Switch this to "true" if you prefer
-	 * fully completed tasks at the expense of a longer shutdown phase.
-	 * <p>
-	 * This property will only have an effect for TaskScheduler implementations
-	 * that extend from {@link ExecutorConfigurationSupport}.
-	 * @see ExecutorConfigurationSupport#setWaitForTasksToCompleteOnShutdown(boolean)
-	 */
-	public void setWaitForTasksToCompleteOnShutdown(boolean waitForJobsToCompleteOnShutdown) {
-		this.waitForTasksToCompleteOnShutdown = waitForJobsToCompleteOnShutdown;
-	}
-
-	public void setOrder(int order) {
-		this.order = order;
-	}
-
-	public int getOrder() {
-		return this.order;
 	}
 
 	@Override
@@ -178,34 +125,40 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 		return "delayer";
 	}
 
-	protected void onInit() throws Exception{
-		if (this.getTaskScheduler() instanceof ExecutorConfigurationSupport) {
-			((ExecutorConfigurationSupport) this.getTaskScheduler()).setWaitForTasksToCompleteOnShutdown(this.waitForTasksToCompleteOnShutdown);
-		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("The 'waitForJobsToCompleteOnShutdown' property is not supported for TaskScheduler of type [" +
-					this.getTaskScheduler().getClass() + "]");
-		}
+	@Override
+	protected void onInit() {
+		super.onInit();
 		if (this.messageStore == null) {
 			this.messageStore = new SimpleMessageStore();
 		}
-		if (this.getTaskScheduler() instanceof InitializingBean) {
-			((InitializingBean) this.getTaskScheduler()).afterPropertiesSet();
-		}
-		if (this.getBeanFactory() != null){
-			this.channelResolver = new BeanFactoryChannelResolver(this.getBeanFactory());
-		}
 	}
 
-	public final void handleMessage(final Message<?> message) {
-		long delay = this.determineDelayForMessage(message);
-		if (delay > 0) {
-			this.releaseMessageAfterDelay(message, delay);
+	/**
+	 * Checks if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay} and {@link DelayedMessageWrapper}).
+	 * Than determine 'delay' for 'requestMessage' ({@link #determineDelayForMessage}) and if <code>delay > 0</code>
+	 * schedules 'releaseMessage' task after 'delay' - {@link #releaseMessageAfterDelay}.
+	 *
+	 * @param requestMessage - the Message which may be delayed.
+	 * @return - <code>null</code> if 'requestMessage' is delayed, otherwise - 'payload' from 'requestMessage'.
+	 *
+	 * @see #releaseMessage
+	 */
+
+	@Override
+	protected Object handleRequestMessage(Message<?> requestMessage) {
+		boolean delayed = requestMessage.getPayload() instanceof DelayedMessageWrapper;
+
+		if (!delayed) {
+			long delay = this.determineDelayForMessage(requestMessage);
+			if (delay > 0) {
+				this.releaseMessageAfterDelay(requestMessage, delay);
+				return null;
+			}
 		}
-		else {
-			// no delay, send directly
-			this.sendMessageToReplyChannel(message);
-		}
+
+		// no delay
+		Object payload = requestMessage.getPayload();
+		return delayed ? ((DelayedMessageWrapper) payload).getOriginal().getPayload() : payload;
 	}
 
 	private long determineDelayForMessage(Message<?> message) {
@@ -231,98 +184,83 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	}
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
-		Assert.state(this.messageStore != null, "MessageStore must not be null");
-		final Message<?> storedMessage = this.messageStore.addMessage(message);
+		DelayedMessageWrapper messageWrapper = null;
+		if (message.getPayload() instanceof DelayedMessageWrapper) {
+			messageWrapper = (DelayedMessageWrapper) message.getPayload();
+		}
+		else {
+			messageWrapper = new DelayedMessageWrapper(message);
+		}
+		final Message messageToSchedule = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
+		this.messageStore.addMessageToGroup(this.messageGroupId, messageToSchedule);
+
 		this.getTaskScheduler().schedule(new Runnable() {
 			public void run() {
-				try {
-					releaseMessage(storedMessage.getHeaders().getId());
-				}
-				catch (Exception e) {
-					Exception exception = new MessageHandlingException(message, "Failed to deliver Message after delay.", e);
-					MessageChannel errorChannel = resolveErrorChannelIfPossible(message);
-					if (errorChannel != null) {
-						ErrorMessage errorMessage = new ErrorMessage(exception);
-						try {
-							messagingTemplate.send(errorChannel, errorMessage);
-						}
-						catch (Exception e2) {
-							if (logger.isWarnEnabled()) {
-								logger.warn("Failed to send MessagingException to error channel.", exception);
-							}
-						}
-					}
-					else if (logger.isWarnEnabled()) {
-						logger.warn("No error channel available. MessagingException will be ignored.", exception);
-					}
-				}
+				releaseMessage(messageToSchedule);
 			}
-		}, new Date(System.currentTimeMillis() + delay));
+		}, new Date(messageWrapper.getRequestDate() + delay));
 	}
 
-	private void releaseMessage(UUID id) {
-		Assert.state(this.messageStore != null, "MessageStore must not be null");
-		Message<?> message = this.messageStore.removeMessage(id);
-		Assert.notNull(message, "Message with id: " + id + " no longer exists in MessageStore.");
-		this.sendMessageToReplyChannel(message);
+	private void releaseMessage(Message<?> message) {
+		this.messageStore.removeMessageFromGroup(messageGroupId, message);
+		this.handleMessageInternal(message);
 	}
 
-	private void sendMessageToReplyChannel(Message<?> message) {
-		MessageChannel replyChannel = this.resolveReplyChannel(message);
-		this.messagingTemplate.send(replyChannel, message);
-	}
-
-	private MessageChannel resolveReplyChannel(Message<?> message) {
-		MessageChannel replyChannel = this.outputChannel;
-		if (replyChannel == null) {
-			replyChannel = this.resolveChannelFromHeader(message, MessageHeaders.REPLY_CHANNEL);
-		}
-		if (replyChannel == null) {
-			throw new ChannelResolutionException(
-					"unable to resolve reply channel for message: " + message);
-		}
-		return replyChannel;
-	}
-
-	private MessageChannel resolveErrorChannelIfPossible(Message<?> message) {
-		MessageChannel errorChannel = null;
-		try {
-			errorChannel = this.resolveChannelFromHeader(message, MessageHeaders.ERROR_CHANNEL);
-		}
-		catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Failed to resolve error channel from header.", e);
+	/**
+	 * Used for reading persisted Messages in the 'messageStore' to reschedule them upon application restart.
+	 * The logic is based on iteration over 'messageGroupSize' and uses {@link MessageGroupStore#pollMessageFromGroup(Object)}
+	 * to retrieve Messages one by one and invokes <code>this.releaseMessageAfterDelay(message, delay)</code>
+	 * independently of value of message's 'delay'.
+	 * This behavior is dictated by the avoidance of overhead on the initializing phase.
+	 *
+	 * @see #onApplicationEvent
+	 */
+	private void reschedulePersistedMessagesOnStartup() {
+		int messageGroupSize = this.messageStore.messageGroupSize(this.messageGroupId);
+		while (messageGroupSize > 0) {
+			Message<?> message = this.messageStore.pollMessageFromGroup(messageGroupId);
+			if (message != null) {
+				long delay = this.determineDelayForMessage(message);
+				this.releaseMessageAfterDelay(message, delay);
 			}
+			messageGroupSize--;
 		}
-		if (errorChannel == null && this.channelResolver != null) {
-			errorChannel = this.channelResolver.resolveChannelName(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-		}
-		return errorChannel;
 	}
 
-	private MessageChannel resolveChannelFromHeader(Message<?> message, String headerName) {
-		MessageChannel channel = null;
-		Object channelHeader = message.getHeaders().get(headerName);
-		if (channelHeader != null) {
-			if (channelHeader instanceof MessageChannel) {
-				channel = (MessageChannel) channelHeader;
-			}
-			else if (channelHeader instanceof String) {
-				Assert.state(this.channelResolver != null,
-						"ChannelResolver is required for resolving '" + headerName + "' by name.");
-				channel = this.channelResolver.resolveChannelName((String) channelHeader);
-			}
-			else {
-				throw new ChannelResolutionException("expected a MessageChannel or String for '" +
-						headerName + "', but type is [" + channelHeader.getClass() + "]");
-			}
+	/**
+	 * Checks if event's Application context is root to wait fully application initialization
+	 * to invoke {@link #reschedulePersistedMessagesOnStartup} as late as possible.
+	 *
+ 	 * @param event - {@link ContextRefreshedEvent} which occurs after Application context is completely initialized.
+	 *
+	 * @see #reschedulePersistedMessagesOnStartup
+	 */
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (event.getApplicationContext().getParent() == null) {
+			this.reschedulePersistedMessagesOnStartup();
 		}
-		return channel;
 	}
 
-	public void destroy() throws Exception {
-		if (this.getTaskScheduler() instanceof DisposableBean) {
-			((DisposableBean) this.getTaskScheduler()).destroy();
+	private static final class DelayedMessageWrapper implements Serializable {
+
+
+
+		private final long requestDate = System.currentTimeMillis();
+
+		private final Message<?> original;
+
+		public DelayedMessageWrapper(Message<?> original) {
+			this.original = original;
+		}
+
+		public long getRequestDate() {
+			return this.requestDate;
+		}
+
+		public Message<?> getOriginal() {
+			return this.original;
 		}
 	}
+
 }
