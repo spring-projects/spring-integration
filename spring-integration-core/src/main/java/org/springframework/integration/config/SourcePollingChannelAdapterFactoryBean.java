@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,10 @@ import org.springframework.util.Assert;
 
 /**
  * FactoryBean for creating a SourcePollingChannelAdapter instance.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<SourcePollingChannelAdapter>,
 		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
@@ -47,7 +48,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	private volatile PollerMetadata pollerMetadata;
 
 	private volatile boolean autoStartup = true;
-	
+
 	private volatile Long sendTimeout;
 
 	private volatile String beanName;
@@ -65,7 +66,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
 	}
-	
+
 	public void setSendTimeout(long sendTimeout) {
 		this.sendTimeout = sendTimeout;
 	}
@@ -138,11 +139,12 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
 			if (this.sendTimeout != null){
 				spca.setSendTimeout(this.sendTimeout);
-			}		
+			}
 			spca.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
 			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
 			spca.setTrigger(this.pollerMetadata.getTrigger());
 			spca.setErrorHandler(this.pollerMetadata.getErrorHandler());
+			spca.setSynchronized(this.pollerMetadata.isSynchronized());
 			spca.setBeanClassLoader(this.beanClassLoader);
 			spca.setAutoStartup(this.autoStartup);
 			spca.setBeanName(this.beanName);

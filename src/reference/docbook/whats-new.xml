@@ -56,7 +56,15 @@
               <listitem>Stored Procedure Name Expression</listitem>
               <listitem>JdbcCallOperations Cache Statistics</listitem>
             </itemizedlist>
-		</section>
+        </section>
+        <section id="2.2-tx">
+            <title>Transaction Synchronization</title>
+            <para>
+              When running from a transactional poller,
+              mail inbound adapters can be configured to update the mailbox only
+              if the transaction commits.
+            </para>
+        </section>
     </section>
 
     <section id="2.2-new-components">

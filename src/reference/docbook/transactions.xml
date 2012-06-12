@@ -150,7 +150,7 @@
 </tx:advice>
 ]]></programlisting>
 
-As yo can see from the example above, we have provided a very basic XML-based configuration of Spring Transaction advice  - "txAdvice" and
+As you can see from the example above, we have provided a very basic XML-based configuration of Spring Transaction advice  - "txAdvice" and
 included it within the <emphasis>&lt;advice-chain&gt;</emphasis> defined by the Poller.
 If you only need to address transactional concerns of the Poller, then you can still use the <emphasis>&lt;transactional&gt;</emphasis> element
 as a convinience.
@@ -171,6 +171,19 @@ as a convinience.
       be thrown back to the initiator of the Message flow who is also the initiator of the transactional context and the transaction would result in a ROLLBACK.
       The middle ground is to use transactional channels at any point where a thread boundary is being broken. For example, you can use a Queue-backed Channel
       that delegates to a transactional MessageStore strategy, or you could use a JMS-backed channel.
+      </para>
+    </section>
+
+    <section id="poller-synch">
+      <title>Pollers and Transaction Synchronization</title>
+      <para>
+        Certain inbound adapters are capable of synchronizing their updates with a transaction. For example, the mail
+        inbound adapters, if running in a transaction and configured to mark or delete messages, will only take those
+        actions on a mail message if the transaction commits; otherwise the mail message is left in the inbox.
+      </para>
+      <para>
+        For all message sources that implement PseudoTransactionalMessageSource, this is the default behavior (commit and
+        rollback detection). It can be disabled by setting the synchronized attribute on the poller to false.
       </para>
     </section>
 </chapter>

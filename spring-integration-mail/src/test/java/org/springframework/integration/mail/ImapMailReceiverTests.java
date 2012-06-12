@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.integration.mail;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -24,8 +25,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.mail.Flags;
@@ -42,7 +44,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -51,6 +52,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -71,11 +73,9 @@ public class ImapMailReceiverTests {
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
+		Folder folder = context.getFolder();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		folderField.set(receiver, folder);
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -105,6 +105,7 @@ public class ImapMailReceiverTests {
 			}
 		}).when(receiver).fetchMessages(messages);
 		receiver.receive();
+		receiver.closeContextAfterSuccess(context);
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
@@ -117,11 +118,9 @@ public class ImapMailReceiverTests {
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
 
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
+		Folder folder = context.getFolder();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		folderField.set(receiver, folder);
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -149,6 +148,7 @@ public class ImapMailReceiverTests {
 			}
 		}).when(receiver).fetchMessages(messages);
 		receiver.receive();
+		receiver.closeContextAfterSuccess(context);
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
 		verify(receiver, times(1)).deleteMessages((Message[]) Mockito.any());
@@ -160,11 +160,9 @@ public class ImapMailReceiverTests {
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
 
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
+		Folder folder = context.getFolder();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		folderField.set(receiver, folder);
 
 
 		Message msg1 = mock(MimeMessage.class);
@@ -189,6 +187,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
+		receiver.closeContextAfterFailure(context);
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(0)).setFlag(Flag.SEEN, true);
 	}
@@ -200,11 +199,9 @@ public class ImapMailReceiverTests {
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
 
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
+		Folder folder = context.getFolder();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		folderField.set(receiver, folder);
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -233,6 +230,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
+		receiver.closeContextAfterSuccess(context);
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(0)).setFlag(Flag.SEEN, true);
 		verify(msg1, times(1)).setFlag(Flag.DELETED, true);
@@ -244,11 +242,9 @@ public class ImapMailReceiverTests {
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
 
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
+		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
+		Folder folder = context.getFolder();
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		folderField.set(receiver, folder);
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -276,6 +272,7 @@ public class ImapMailReceiverTests {
 			}
 		}).when(receiver).fetchMessages(messages);
 		receiver.receive();
+		receiver.closeContextAfterSuccess(context);
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
@@ -357,11 +354,10 @@ public class ImapMailReceiverTests {
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
 
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(IMAPFolder.class);
+		@SuppressWarnings("unchecked")
+		final ThreadLocal<MailReceiverContext> contextHolder = TestUtils.getPropertyValue(receiver, "contextHolder", ThreadLocal.class);
+		final Folder folder = mock(IMAPFolder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		folderField.set(receiver, folder);
 
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -371,6 +367,7 @@ public class ImapMailReceiverTests {
 
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
+				contextHolder.set(new MailReceiverContext(folder));
 				return null;
 			}
 		}).when(receiver).openFolder();
@@ -404,7 +401,12 @@ public class ImapMailReceiverTests {
 	@Test // see INT-1801
 	public void testImapLifecycleForRaceCondition() throws Exception{
 
-		for (int i = 0; i < 1000; i++) {
+		int count = 1000;
+		final CountDownLatch receiveLatch = new CountDownLatch(count);
+		final CountDownLatch destroyLatch = new CountDownLatch(count);
+		final AtomicInteger receiveCount = new AtomicInteger();
+		final AtomicInteger destroyCount = new AtomicInteger();
+		for (int i = 0; i < count; i++) {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 			Store store = mock(Store.class);
 			Folder folder = mock(Folder.class);
@@ -429,7 +431,8 @@ public class ImapMailReceiverTests {
 							failed.getAndIncrement();
 						}
 					}
-
+					receiveCount.incrementAndGet();
+					receiveLatch.countDown();
 				}
 			}).start();
 
@@ -441,9 +444,13 @@ public class ImapMailReceiverTests {
 						// ignore
 						ignore.printStackTrace();
 					}
+					destroyCount.incrementAndGet();
+					destroyLatch.countDown();
 				}
 			}).start();
 		}
+		assertTrue("Only " + receiveCount.get() + " receive() calls", receiveLatch.await(10, TimeUnit.SECONDS));
+		assertTrue("Only " + receiveCount.get() + " destroy() calls", destroyLatch.await(10, TimeUnit.SECONDS));
 		assertEquals(0, failed.get());
 	}
 
@@ -455,4 +462,5 @@ public class ImapMailReceiverTests {
 		receiver.setSearchTermStrategy(stStrategy);
 		assertEquals(stStrategy, TestUtils.getPropertyValue(receiver, "searchTermStrategy"));
 	}
+
 }

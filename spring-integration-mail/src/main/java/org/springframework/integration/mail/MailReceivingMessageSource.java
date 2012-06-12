@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -33,11 +34,12 @@ import org.springframework.util.Assert;
  * {@link MessageSource} implementation that delegates to a
  * {@link MailReceiver} to poll a mailbox. Each poll of the mailbox may
  * return more than one message which will then be stored in a queue.
- * 
- * @author Jonas Partner 
+ *
+ * @author Jonas Partner
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public class MailReceivingMessageSource implements MessageSource<javax.mail.Message> {
+public class MailReceivingMessageSource implements PseudoTransactionalMessageSource<javax.mail.Message> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -75,4 +77,17 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 		return null;
 	}
 
+	public Object getResource() {
+		return this.mailReceiver.getTransactionContext();
+	}
+
+	public void afterCommit(Object context) {
+		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
+		this.mailReceiver.closeContextAfterSuccess((MailReceiverContext) context);
+	}
+
+	public void afterRollback(Object context) {
+		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
+		this.mailReceiver.closeContextAfterFailure((MailReceiverContext) context);
+	}
 }

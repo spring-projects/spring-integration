@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,50 @@
 
 package org.springframework.integration.mail;
 
+import javax.mail.Folder;
+import javax.mail.Message;
+
+import org.springframework.util.Assert;
+
+
 /**
  * Strategy interface for receiving mail {@link javax.mail.Message Messages}.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public interface MailReceiver {
 
 	javax.mail.Message[] receive() throws javax.mail.MessagingException;
 
+	MailReceiverContext getTransactionContext();
+
+	void closeContextAfterSuccess(MailReceiverContext context);
+
+	void closeContextAfterFailure(MailReceiverContext context);
+
+	public static class MailReceiverContext {
+
+		private final Folder folder;
+
+		private volatile Message[] messages = new Message[0];
+
+		MailReceiverContext(Folder folder) {
+			this.folder = folder;
+		}
+
+		Message[] getMessages() {
+			return messages;
+		}
+
+		void setMessages(Message[] messages) {
+			Assert.noNullElements(messages, "messages cannot be null");
+			this.messages = messages;
+		}
+
+		Folder getFolder() {
+			return folder;
+		}
+
+	}
 }
