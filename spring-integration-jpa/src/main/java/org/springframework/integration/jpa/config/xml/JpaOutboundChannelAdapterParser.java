@@ -70,7 +70,7 @@ public class JpaOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		final Element transactionalElement = DomUtils.getChildElementByTagName(element, "transactional");
 
 		if(transactionalElement != null) {
-			BeanDefinition txAdviceDefinition = JpaParserUtils.configureTransactionAttributes(transactionalElement);
+			BeanDefinition txAdviceDefinition = IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
 			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
 			adviceChain.add(txAdviceDefinition);
 			jpaOutboundChannelAdapterBuilder.addPropertyValue("adviceChain", adviceChain);

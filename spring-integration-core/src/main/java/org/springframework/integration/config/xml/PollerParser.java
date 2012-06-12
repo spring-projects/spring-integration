@@ -39,15 +39,12 @@ import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
-import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;poller&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
@@ -163,25 +160,6 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	}
 
 	/**
-	 * Parse a "transactional" element and configure a TransactionInterceptor with "transactionManager"
-	 * and other "transactionDefinition" properties. This advisor will be applied on the Polling Task proxy
-	 * (see {@link org.springframework.integration.endpoint.AbstractPollingEndpoint}).
-	 */
-	private BeanDefinition configureTransactionAttributes(Element txElement) {
-		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);
-		txDefinitionBuilder.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
-		txDefinitionBuilder.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
-		txDefinitionBuilder.addPropertyValue("timeout", txElement.getAttribute("timeout"));
-		txDefinitionBuilder.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
-		BeanDefinitionBuilder attributeSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
-		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinitionBuilder.getBeanDefinition());
-		BeanDefinitionBuilder txInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
-		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
-		return txInterceptorBuilder.getBeanDefinition();
-	}
-
-	/**
 	 * Parses the 'advice-chain' element's sub-elements.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -189,7 +167,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		ManagedList adviceChain = new ManagedList();
 		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
 		if (txElement != null) {
-			adviceChain.add(this.configureTransactionAttributes(txElement));
+			adviceChain.add(IntegrationNamespaceUtils.configureTransactionAttributes(txElement));
 		}
 		if (adviceChainElement != null) {
 			NodeList childNodes = adviceChainElement.getChildNodes();
