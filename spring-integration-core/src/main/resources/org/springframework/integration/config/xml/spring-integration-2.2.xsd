@@ -1541,6 +1541,20 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="synchronized" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether the resource, used by the MessageSource that this poller
+					polls, is synchronized with the transaction. The resource may be disposed of
+					in different manners, depending on whether the transaction commits,
+					or rolls back. Only applied if a transaction subelement (or
+					an advice-chain that contains a transaction advice)	is provided.
+					Also, only applies if the MessageSource implements
+					PseudoTransactionalMessageSource.
+					Default true.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="selector-chain">

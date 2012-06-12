@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,22 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.transaction.support.ResourceHolder;
+import org.springframework.transaction.support.ResourceHolderSynchronization;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
 /**
  * A Channel Adapter implementation for connecting a
  * {@link MessageSource} to a {@link MessageChannel}.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements TrackableComponent {
 
@@ -41,6 +47,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	private volatile boolean shouldTrack;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
+	private volatile boolean synchronizedTx = true;
 
 	/**
 	 * Specify the source to be polled for Messages.
@@ -71,6 +79,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		this.shouldTrack = shouldTrack;
 	}
 
+	public void setSynchronized(boolean synchronizedTx) {
+		this.synchronizedTx = synchronizedTx;
+	}
+
 	@Override
 	public String getComponentType() {
 		return (this.source instanceof NamedComponent) ?
@@ -83,10 +95,34 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
 		super.onInit();
 	}
-	
+
 	@Override
 	protected boolean doPoll() {
-		Message<?> message = this.source.receive();
+		boolean isPseudoTxMessageSource = this.source instanceof PseudoTransactionalMessageSource;
+		boolean isInTx = false;
+		PseudoTransactionalMessageSource<?> messageSource = null;
+		Object resource = null;
+		if (isPseudoTxMessageSource) {
+			messageSource = (PseudoTransactionalMessageSource<?>) this.source;
+			resource = messageSource.getResource();
+			Assert.state(resource != null, "Pseudo Transactional Message Source returned null resource");
+			if (this.synchronizedTx && TransactionSynchronizationManager.isActualTransactionActive()) {
+				TransactionSynchronizationManager.bindResource(messageSource, resource);
+				TransactionSynchronizationManager.registerSynchronization(
+					new PseudoTransactionalResourceSynchronization(
+						new PseudoTransactionalResourceHolder(resource), this.source));
+				isInTx = true;
+			}
+		}
+		Message<?> message;
+		try {
+			message = this.source.receive();
+		}
+		finally {
+			if (isPseudoTxMessageSource && !isInTx) {
+				messageSource.afterCommit(resource);
+			}
+		}
 		if (this.logger.isDebugEnabled()){
 			this.logger.debug("Poll resulted in Message: " + message);
 		}
@@ -101,5 +137,68 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			this.logger.debug("Received no Message during the poll, returning 'false'");
 		}
 		return false;
+	}
+
+	private class PseudoTransactionalResourceHolder implements ResourceHolder {
+
+		private final Object resource;
+
+		public PseudoTransactionalResourceHolder(Object resource) {
+			this.resource = resource;
+		}
+
+		protected Object getResource() {
+			return resource;
+		}
+
+		public void reset() {
+		}
+
+		public void unbound() {
+		}
+
+		public boolean isVoid() {
+			return false;
+		}
+
+	}
+
+	private class PseudoTransactionalResourceSynchronization
+		extends ResourceHolderSynchronization<PseudoTransactionalResourceHolder, Object> {
+
+		private final PseudoTransactionalResourceHolder resourceHolder;
+
+		public PseudoTransactionalResourceSynchronization(PseudoTransactionalResourceHolder resourceHolder,
+				Object resourceKey) {
+			super(resourceHolder, resourceKey);
+			this.resourceHolder = resourceHolder;
+		}
+
+		@Override
+		protected boolean shouldReleaseBeforeCompletion() {
+			return false;
+		}
+
+		@Override
+		protected void processResourceAfterCommit(PseudoTransactionalResourceHolder resourceHolder) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("'Committing' pseudo-transactional resource");
+			}
+			((PseudoTransactionalMessageSource<?>) source).afterCommit(resourceHolder.getResource());
+		}
+
+		@Override
+		public void afterCompletion(int status) {
+			if (status != TransactionSynchronization.STATUS_COMMITTED) {
+				if (logger.isTraceEnabled()) {
+					logger.trace("'Rolling back' pseudo-transactional resource");
+				}
+				((PseudoTransactionalMessageSource<?>) source).afterRollback(this.resourceHolder.getResource());
+			}
+			super.afterCompletion(status);
+		}
+
+
+
 	}
 }

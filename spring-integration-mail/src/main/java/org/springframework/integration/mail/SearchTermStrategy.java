@@ -35,7 +35,7 @@ public interface SearchTermStrategy {
 	 *
 	 * @param supportedFlags
 	 * @param folder
-	 * @return
+	 * @return The search term
 	 */
 	SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder);
 

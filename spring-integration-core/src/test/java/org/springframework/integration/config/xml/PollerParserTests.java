@@ -18,16 +18,14 @@ package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-
 import org.aopalliance.aop.Advice;
-
+import org.junit.Test;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -95,6 +93,7 @@ public class PollerParserTests {
 		assertEquals(TransactionInterceptor.class, txAdvice.getClass());
 		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
 		assertEquals(NameMatchTransactionAttributeSource.class, transactionAttributeSource.getClass());
+		@SuppressWarnings("rawtypes")
 		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
 		assertEquals(1, nameMap.size());
 		assertEquals("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}", nameMap.toString());
@@ -122,13 +121,13 @@ public class PollerParserTests {
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertTrue(metadata.getTrigger() instanceof TestTrigger);
 	}
-    
+
     @Test(expected=BeanDefinitionParsingException.class)
 	public void pollerWithCronTriggerAndTimeUnit() {
 		new ClassPathXmlApplicationContext(
 				"cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class);
 	}
-    
+
     @Test(expected=BeanDefinitionParsingException.class)
 	public void topLevelPollerWithRef() {
 		new ClassPathXmlApplicationContext(
@@ -139,6 +138,26 @@ public class PollerParserTests {
 	public void pollerWithCronAndFixedDelay() {
 		new ClassPathXmlApplicationContext(
 				"pollerWithCronAndFixedDelay.xml", PollerParserTests.class);
+	}
+
+	@Test
+	public void pollerWithSync() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"pollerWithSynchronization.xml", PollerParserTests.class);
+		Object poller = context.getBean("noSync");
+		assertNotNull(poller);
+		PollerMetadata metadata = (PollerMetadata) poller;
+		assertEquals(true, metadata.isSynchronized());
+
+		poller = context.getBean("syncTrue");
+		assertNotNull(poller);
+		metadata = (PollerMetadata) poller;
+		assertEquals(true, metadata.isSynchronized());
+
+		poller = context.getBean("syncFalse");
+		assertNotNull(poller);
+		metadata = (PollerMetadata) poller;
+		assertEquals(false, metadata.isSynchronized());
 	}
 
 }

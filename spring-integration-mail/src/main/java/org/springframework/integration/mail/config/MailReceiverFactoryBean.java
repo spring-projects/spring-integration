@@ -24,7 +24,6 @@ import javax.mail.URLName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.expression.Expression;
@@ -56,16 +55,18 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	private volatile Authenticator authenticator;
 
+	private volatile boolean synchronizedTx;
+
 	/**
 	 * Indicates whether retrieved messages should be deleted from the server.
 	 * This value will be <code>null</code> <i>unless</i> explicitly configured.
 	 */
 	private volatile Boolean shouldDeleteMessages = null;
-	
+
 	private volatile Boolean shouldMarkMessagesAsRead = null;
 
 	private volatile int maxFetchSize = 1;
-	
+
 	private volatile Expression selectorExpression;
 
 
@@ -104,9 +105,13 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	public void setMaxFetchSize(int maxFetchSize) {
 		this.maxFetchSize = maxFetchSize;
 	}
-	
+
 	public void setSelectorExpression(Expression selectorExpression) {
 		this.selectorExpression = selectorExpression;
+	}
+
+	public void setSynchronized(boolean synchronizedTx) {
+		this.synchronizedTx = synchronizedTx;
 	}
 
 	public MailReceiver getObject() throws Exception {
@@ -162,6 +167,12 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			// always set the value if configured explicitly
 			// otherwise, the default is true for POP3 but false for IMAP
 			receiver.setShouldDeleteMessages(this.shouldDeleteMessages);
+		}
+		if (this.synchronizedTx && this.maxFetchSize != 1) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Max Fetch Size is set to 1 because the poller is synchronized; was " + this.maxFetchSize);
+			}
+			this.maxFetchSize = 1;
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
 		receiver.setSelectorExpression(selectorExpression);
