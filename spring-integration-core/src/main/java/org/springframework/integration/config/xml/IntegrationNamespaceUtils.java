@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2010 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -25,6 +25,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
+import org.springframework.integration.endpoint.AbstractPollingEndpoint;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
+import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -32,13 +36,15 @@ import org.w3c.dom.Element;
 
 /**
  * Shared utility methods for integration namespace parsers.
- * 
+ *
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Alex Peters
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  */
 public abstract class IntegrationNamespaceUtils {
 
@@ -53,7 +59,7 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
-	 * 
+	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be used to populate the property
@@ -70,13 +76,13 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
 	 * is provided if that attribute is defined in the given element.
-	 * 
+	 *
 	 * <p>
 	 * The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
 	 * "foo-bar" attribute would match the "fooBar" property).
-	 * 
+	 *
 	 * @see Conventions#attributeNameToPropertyName(String)
-	 * 
+	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be set on the property
@@ -90,7 +96,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * Configures the provided bean definition builder with a property reference to a bean. The bean reference is
 	 * identified by the value from the attribute whose name is provided if that attribute is defined in the given
 	 * element.
-	 * 
+	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be used as a bean reference to populate the
@@ -109,18 +115,18 @@ public abstract class IntegrationNamespaceUtils {
 	 * Configures the provided bean definition builder with a property reference to a bean. The bean reference is
 	 * identified by the value from the attribute whose name is provided if that attribute is defined in the given
 	 * element.
-	 * 
+	 *
 	 * <p>
 	 * The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
 	 * "foo-bar" attribute would match the "fooBar" property).
-	 * 
+	 *
 	 * @see Conventions#attributeNameToPropertyName(String)
-	 * 
+	 *
 	 * @param builder the bean definition builder to be configured
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be used as a bean reference to populate the
 	 * property
-	 * 
+	 *
 	 * @see Conventions#attributeNameToPropertyName(String)
 	 */
 	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
@@ -146,7 +152,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * Parse a "poller" element to provide a reference for the target BeanDefinitionBuilder. If the poller element does
 	 * not contain a "ref" attribute, this will create and register a PollerMetadata instance and then add it as a
 	 * property reference of the target builder.
-	 * 
+	 *
 	 * @param pollerElement the "poller" element to parse
 	 * @param targetBuilder the builder that expects the "trigger" property
 	 * @param parserContext the parserContext for the target builder
@@ -185,7 +191,7 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Get a text value from a named attribute if it exists, otherwise check for a nested element of the same name. If
 	 * both are specified it is an error, but if neither is specified, just returns null.
-	 * 
+	 *
 	 * @param element a DOM node
 	 * @param name the name of the property (attribute or child element)
 	 * @param parserContext the current context
@@ -236,27 +242,48 @@ public abstract class IntegrationNamespaceUtils {
 		boolean hasHeaderMapper = element.hasAttribute("header-mapper");
 		boolean hasMappedRequestHeaders = element.hasAttribute("mapped-request-headers");
 		boolean hasMappedReplyHeaders = element.hasAttribute(replyHeaderValue);
-		
+
 		if (hasHeaderMapper && (hasMappedRequestHeaders || hasMappedReplyHeaders)){
 			parserContext.getReaderContext().error("The 'header-mapper' attribute is mutually exclusive with" +
 					" 'mapped-request-headers' or 'mapped-reply-headers'. " +
 					"You can only use one or the others", element);
 		}
-		
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(rootBuilder, element, "header-mapper");
-		
+
 		if (hasMappedRequestHeaders || hasMappedReplyHeaders){
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass);
-			
+
 			if (hasMappedRequestHeaders) {
 				headerMapperBuilder.addPropertyValue("requestHeaderNames", element.getAttribute("mapped-request-headers"));
 			}
 			if (hasMappedReplyHeaders) {
 				headerMapperBuilder.addPropertyValue("replyHeaderNames", element.getAttribute(replyHeaderValue));
 			}
-			
+
 			rootBuilder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
+	}
+
+	/**
+	 * Parse a "transactional" element and configure a {@link TransactionInterceptor}
+	 * with "transactionManager" and other "transactionDefinition" properties.
+	 * For example, this advisor will be applied on the Polling Task proxy
+	 *
+	 * @see AbstractPollingEndpoint
+	 */
+	public static BeanDefinition configureTransactionAttributes(Element txElement) {
+		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);
+		txDefinitionBuilder.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
+		txDefinitionBuilder.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
+		txDefinitionBuilder.addPropertyValue("timeout", txElement.getAttribute("timeout"));
+		txDefinitionBuilder.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
+		BeanDefinitionBuilder attributeSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
+		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinitionBuilder.getBeanDefinition());
+		BeanDefinitionBuilder txInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
+		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
+		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
+		return txInterceptorBuilder.getBeanDefinition();
 	}
 
 	public static String[] generateAlias(Element element) {
