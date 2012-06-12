@@ -206,6 +206,13 @@
       to be converted to file content you could extend the FileWritingMessageHandler, but a much
       better option is to rely on a <classname>Transformer</classname>.
     </para>
+    
+    <para>
+    Since Spring Integration version 2.2. you can append Message content to the existing file instead of creating a new 
+    File each time. To do so set <emphasis>append</emphasis> attribute to <code></code>;
+    Note that this attribute is mutually exclusive with <emphasis>temporary-file-suffix</emphasis> attribute since when 
+    appending content to the existing file the adapter no longer uses temporary file.
+    </para>
   </section>
 
   <section id="file-transforming">
