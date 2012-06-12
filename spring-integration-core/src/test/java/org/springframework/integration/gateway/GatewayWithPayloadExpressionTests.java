@@ -17,14 +17,21 @@
 package org.springframework.integration.gateway;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.support.converter.MessageConversionException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,6 +48,9 @@ public class GatewayWithPayloadExpressionTests {
 
 	@Autowired
 	private SampleAnnotatedGateway annotatedGateway;
+
+	@Autowired
+	private GatewayWithMapThatIsNotHeaders gatewayWithMapThatIsNotHeaders;
 
 	@Autowired
 	private PollableChannel input;
@@ -74,6 +84,103 @@ public class GatewayWithPayloadExpressionTests {
 		assertEquals("send3", result.getPayload());
 	}
 
+	@Test
+	public void gatewayWithMapThatIsNotHeaders() throws Exception {
+		Map<Integer, Object> map = new HashMap<Integer, Object>();
+		map.put(1,  "Hello");
+		Map<String, Object> headersA = new HashMap<String, Object>();
+		headersA.put("foo",  "FOO");
+		headersA.put("bar",  "BAR");
+		Map<String, Object> headersB = new HashMap<String, Object>();
+		headersB.put("baz",  "BAZ");
+
+		gatewayWithMapThatIsNotHeaders.sendHeaderMapNoAnnotationNoExpression(headersA);
+		Message<?> result = input.receive(0);
+		System.out.println(result);
+		assertEquals(headersA, result.getPayload());
+		assertNull(result.getHeaders().get("foo"));
+		assertNull(result.getHeaders().get("bar"));
+
+		gatewayWithMapThatIsNotHeaders.sendNonHeaderMapNoAnnotationNoExpression(map);
+		result = input.receive(0);
+		assertEquals(map, result.getPayload());
+
+		try {
+			gatewayWithMapThatIsNotHeaders.sendMapPojoNoAnnotationNoExpression(map, "Hello");
+			fail();
+		}
+		catch (MessageConversionException e) {
+			// expected/ignore
+		}
+
+		gatewayWithMapThatIsNotHeaders.sendMapPojoAnnotatedHeader(map, "Hello");
+		result = input.receive(0);
+		assertEquals(map, result.getPayload());
+		assertEquals("Hello", result.getHeaders().get("foo"));
+
+		gatewayWithMapThatIsNotHeaders.sendMapPojoExpressionHeader(map, "Hello");
+		result = input.receive(0);
+		assertEquals(map, result.getPayload());
+		assertEquals("Hello", result.getHeaders().get("foo"));
+
+		gatewayWithMapThatIsNotHeaders.sendMapMapNoAnnotationNoExpressionOneMatchingHeaders(map, headersA);
+		result = input.receive(0);
+		assertEquals(map, result.getPayload());
+		assertEquals("FOO", result.getHeaders().get("foo"));
+		assertEquals("BAR", result.getHeaders().get("bar"));
+
+		gatewayWithMapThatIsNotHeaders.sendMapMapNoAnnotationNoExpressionTwoMatchingHeaders(headersA, headersA);
+		result = input.receive(0);
+		assertEquals(headersA, result.getPayload());
+		assertEquals("FOO", result.getHeaders().get("foo"));
+		assertEquals("BAR", result.getHeaders().get("bar"));
+
+		gatewayWithMapThatIsNotHeaders.sendMapMapMapNoAnnotationNoExpressionThreeMatchingHeaders(headersA, headersA, headersB);
+		result = input.receive(0);
+		assertEquals(headersA, result.getPayload());
+		assertEquals("FOO", result.getHeaders().get("foo"));
+		assertEquals("BAR", result.getHeaders().get("bar"));
+		assertEquals("BAZ", result.getHeaders().get("baz"));
+
+		try {
+			gatewayWithMapThatIsNotHeaders.sendMapMapMapTwoMatchingPayload(map, map, headersA);
+			fail();
+		}
+		catch (MessageConversionException e) {
+			// expected/ignore
+		}
+
+		gatewayWithMapThatIsNotHeaders.sendMapMapMapWithExpression(map, map, headersA);
+		result = input.receive(0);
+		assertEquals(map, ((Object[])result.getPayload())[0]);
+		assertEquals(map, ((Object[])result.getPayload())[1]);
+		assertEquals(headersA, result.getHeaders().get("foo"));
+	}
+
+	public static interface GatewayWithMapThatIsNotHeaders {
+
+		public void sendHeaderMapNoAnnotationNoExpression(Map<String, Object> map);
+
+		public void sendNonHeaderMapNoAnnotationNoExpression(Map<Integer, Object> map);
+
+		public void sendMapPojoNoAnnotationNoExpression(Map<Integer, Object> map, String foo);
+
+		public void sendMapPojoAnnotatedHeader(Map<Integer, Object> map, @Header("foo") String foo);
+
+		public void sendMapPojoExpressionHeader(Map<Integer, Object> map, @Header("foo") String foo);
+
+		public void sendMapMapNoAnnotationNoExpressionOneMatchingHeaders(Map<Integer, Object> map, Map<String, Object> headers);
+
+		public void sendMapMapNoAnnotationNoExpressionTwoMatchingHeaders(Map<String, Object> map, Map<String, Object> headers);
+
+		// will merge between two or override
+		public void sendMapMapMapNoAnnotationNoExpressionThreeMatchingHeaders(Map<String, Object> map1, Map<String, Object> map2, Map<String, Object> headers);
+
+		public void sendMapMapMapTwoMatchingPayload(Map<Integer, Object> map1, Map<Integer, Object> map2, Map<String, Object> headers);
+
+		public void sendMapMapMapWithExpression(Map<Integer, Object> map1, Map<Integer, Object> map2, Map<String, Object> headers);
+	}
+
 
 	public static interface SampleGateway {
 
@@ -91,7 +198,6 @@ public class GatewayWithPayloadExpressionTests {
 		void send(String value1, String value2);
 
 	}
-
 
 	public static class TestBean {
 

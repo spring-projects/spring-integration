@@ -17,6 +17,18 @@
 				 service-interface="org.springframework.integration.gateway.GatewayWithPayloadExpressionTests.SampleAnnotatedGateway"
 				 default-request-channel="input"/>
 
+	<int:gateway id="gatewayWithMapPayloadExpression" 
+	          service-interface="org.springframework.integration.gateway.GatewayWithPayloadExpressionTests.GatewayWithMapThatIsNotHeaders"
+	          default-request-channel="input">
+	        <int:method name="sendMapPojoExpressionHeader">
+	        	<int:header name="foo" expression="#args[1]"/>
+	        </int:method>
+		<int:method name="sendMapMapMapWithExpression"
+			payload-expression="new java.lang.Object[]{#args[0], #args[1]}">
+			<int:header name="foo" expression="#args[2]"/>
+	    </int:method>
+	</int:gateway>
+	
 	<int:channel id="input">
 		<int:queue/>
 	</int:channel>
