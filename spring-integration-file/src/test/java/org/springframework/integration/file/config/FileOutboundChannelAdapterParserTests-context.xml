@@ -41,7 +41,12 @@
 								   order="555"
 								   auto-startup="false"
 								   directory="${java.io.tmpdir}"/>
-
+								   
+	<file:outbound-channel-adapter id="usageChannel"
+	                               filename-generator-expression="'fileToAppend.txt'"
+	                               append-if-exists="true"
+								   directory="test"/>
+								   
 	<bean id="customFileNameGenerator" class="org.springframework.integration.file.config.CustomFileNameGenerator"/>
 
 	<context:property-placeholder/>

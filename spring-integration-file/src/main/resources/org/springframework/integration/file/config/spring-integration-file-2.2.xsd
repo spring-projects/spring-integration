@@ -275,6 +275,13 @@ Only files matching this regular expression will be picked up by this adapter.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="append-if-exists" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Will uppend to the existing file if such file exists.
+					</xsd:documentation>
+				</xsd:annotation>
+		</xsd:attribute>
         <xsd:attribute name="delete-source-files" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[

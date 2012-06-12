@@ -33,24 +33,30 @@ import org.springframework.integration.file.FileWritingMessageHandler;
  * @since 1.0.3
  */
 public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
-	
+
 	private volatile File directory;
 
 	private volatile String charset;
-	
+
 	private volatile FileNameGenerator fileNameGenerator;
-	
+
 	private volatile Boolean deleteSourceFiles;
-	
+
 	private volatile Boolean autoCreateDirectory;
-	
+
 	private volatile Boolean requiresReply;
-	
+
 	private volatile Long sendTimeout;
-	
+
 	private volatile String temporaryFileSuffix;
 
+	private volatile boolean appendIfExists;
+
 	private volatile boolean expectReply = true;
+
+	public void setAppendIfExists(boolean appendIfExists) {
+		this.appendIfExists = appendIfExists;
+	}
 
 	public void setDirectory(File directory) {
 		this.directory = directory;
@@ -113,6 +119,7 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 			handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
 		}
 		handler.setExpectReply(this.expectReply);
+		handler.setAppendIfExists(this.appendIfExists);
 		return handler;
 	}
 }

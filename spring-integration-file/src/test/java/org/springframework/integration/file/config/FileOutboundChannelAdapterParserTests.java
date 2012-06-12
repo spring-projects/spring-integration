@@ -30,18 +30,22 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -61,6 +65,9 @@ public class FileOutboundChannelAdapterParserTests {
 
     @Autowired
     EventDrivenConsumer adapterWithCharset;
+
+    @Autowired
+    MessageChannel usageChannel;
 
     @Test
     public void simpleAdapter() {
@@ -126,4 +133,21 @@ public class FileOutboundChannelAdapterParserTests {
         assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
     }
 
+    @Test
+    public void adapterUsageWithAppend() throws Exception{
+
+    	String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
+
+    	File testFile = new File("test/fileToAppend.txt");
+    	if (testFile.exists()){
+    		testFile.delete();
+    	}
+    	usageChannel.send(new GenericMessage<String>("Initial File Content:"));
+        usageChannel.send(new GenericMessage<String>("String content:"));
+        usageChannel.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
+        usageChannel.send(new GenericMessage<File>(new File("test/input.txt")));
+
+        String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+        assertEquals(expectedFileContent, actualFileContent);
+    }
 }

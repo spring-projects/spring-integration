@@ -16,8 +16,15 @@
 
 package org.springframework.integration.file;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageHandler;
@@ -25,12 +32,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 
 /**
  * A {@link MessageHandler} implementation that writes the Message payload to a
@@ -49,7 +50,7 @@ import java.nio.charset.Charset;
  * Likewise, any Object can be converted to a String based on its
  * <code>toString()</code> method by the
  * {@link org.springframework.integration.transformer.ObjectToStringTransformer}.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Alex Peters
@@ -59,6 +60,10 @@ import java.nio.charset.Charset;
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	private volatile String temporaryFileSuffix =".writing";
+
+	private volatile boolean temporaryFileSuffixSet = false;
+
+	private volatile boolean appendIfExists = false;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -92,7 +97,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null"); // empty string is OK
 		this.temporaryFileSuffix = temporaryFileSuffix;
+		this.temporaryFileSuffixSet = true;
+	}
+
+	public void setAppendIfExists(boolean appendIfExists) {
+		this.appendIfExists = appendIfExists;
 	}
 
 	/**
@@ -148,6 +159,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				"Destination path [" + this.destinationDirectory + "] does not point to a directory.");
 		Assert.isTrue(this.destinationDirectory.canWrite(),
 				"Destination directory [" + this.destinationDirectory + "] is not writable.");
+
+		Assert.state(!(this.temporaryFileSuffixSet && this.appendIfExists),
+				"'temporaryFileSuffix' can not be set when appending to the existing file");;
 	}
 
 	@Override
@@ -196,7 +210,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Retrieves the File instance from the {@link FileHeaders#ORIGINAL_FILE}
 	 * header if available. If the value is not a File instance or a String
-	 * representation of a file path, this will return <code>null</code>. 
+	 * representation of a file path, this will return <code>null</code>.
 	 */
 	private File retrieveOriginalFileFromHeader(Message<?> message) {
 		Object value = message.getHeaders().get(FileHeaders.ORIGINAL_FILE);
@@ -219,49 +233,69 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						sourceFile.getAbsolutePath()));
 			}
 		}
-		FileCopyUtils.copy(sourceFile, tempFile);
-		this.renameTo(tempFile, resultFile);
-		if (this.deleteSourceFiles) {
-			sourceFile.delete();
+		if (this.appendIfExists){
+			return this.handleByteArrayMessage(FileCopyUtils.copyToByteArray(sourceFile), null, tempFile, resultFile);
 		}
-		return resultFile;
+		else {
+			FileCopyUtils.copy(sourceFile, tempFile);
+			this.cleanUpAfterCopy(tempFile, resultFile, sourceFile);
+			return resultFile;
+		}
 	}
 
 	private File handleByteArrayMessage(byte[] bytes, File originalFile, File tempFile, File resultFile) throws IOException {
-		FileCopyUtils.copy(bytes, tempFile);
-		this.renameTo(tempFile, resultFile);
-		if (this.deleteSourceFiles && originalFile != null) {
-			originalFile.delete();
-		}
+		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+		FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.appendIfExists);
+		FileCopyUtils.copy(bytes, fos);
+		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
 	}
 
 	private File handleStringMessage(String content, File originalFile, File tempFile, File resultFile) throws IOException {
-		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(tempFile), this.charset);
+		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, this.appendIfExists), this.charset);
 		FileCopyUtils.copy(content, writer);
-		this.renameTo(tempFile, resultFile);
+		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
+		return resultFile;
+	}
+
+	private File determineFileToWrite(File resultFile, File tempFile){
+		File fileToWriteTo = null;
+		if (this.appendIfExists){
+			fileToWriteTo  = resultFile;
+		}
+		else {
+			fileToWriteTo  = tempFile;
+		}
+		return fileToWriteTo;
+	}
+
+	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException{
+		if (!this.appendIfExists){
+			this.renameTo(fileToWriteTo, resultFile);
+		}
+
 		if (this.deleteSourceFiles && originalFile != null) {
 			originalFile.delete();
 		}
-		return resultFile;
 	}
-	
+
 	private void renameTo(File tempFile, File resultFile) throws IOException{
 		Assert.notNull(resultFile, "'resultFile' must not be null");
 		Assert.notNull(tempFile, "'tempFile' must not be null");
-		
+
 		if (resultFile.exists()) {
-			if (resultFile.setWritable(true, false) && resultFile.delete()){			
+			if (resultFile.setWritable(true, false) && resultFile.delete()){
 				if (!tempFile.renameTo(resultFile)) {
 					throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + "'");
 				}
 			}
 			else {
-				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + 
+				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() +
 						"' since '" + resultFile.getName() + "' is not writable or can not be deleted");
 			}
 		}
-		else { 
+		else {
 			if (!tempFile.renameTo(resultFile)) {
 				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + "'");
 			}
