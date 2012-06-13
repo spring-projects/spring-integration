@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -32,13 +28,11 @@ import org.springframework.util.Assert;
  * {@link CorrelationStrategy} implementation that evaluates an expression.
  *
  * @author Dave Syer
- * @author Oleg Zhurakousky
  */
-public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware, InitializingBean{
+public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrategy {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private volatile BeanFactory beanFactory;
 
 	private final ExpressionEvaluatingMessageProcessor<Object> processor;
 
@@ -54,21 +48,8 @@ public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrat
 	}
 
 
-	@Override
 	public Object getCorrelationKey(Message<?> message) {
 		return processor.processMessage(message);
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (this.beanFactory != null){
-			this.processor.setBeanFactory(this.beanFactory);
-		}
 	}
 
 }
