@@ -165,8 +165,19 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return this.shouldDeleteMessages;
 	}
 
-	public Folder getFolder() {
-		if (this.contextHolder.get() == null) {
+	protected Folder getFolder() {
+		return this.getTransactionContext().getFolder();
+	}
+
+	public MailReceiverContext getTransactionContext() {
+		return doObtainTransactionContext();
+	}
+
+	private MailReceiverContext doObtainTransactionContext() {
+		MailReceiverContext mailReceiverContext = this.contextHolder.get();
+		if (mailReceiverContext == null ||
+				mailReceiverContext.getFolder() == null ||
+				!mailReceiverContext.getFolder().isOpen()) {
 			try {
 				this.openFolder();
 			}
@@ -174,14 +185,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				throw new org.springframework.integration.MessagingException("Failed to open folder", e);
 			}
 		}
-		return this.contextHolder.get().getFolder();
-	}
-
-	public MailReceiverContext getTransactionContext() {
-		if (this.contextHolder.get() == null) {
-			this.getFolder();
-		}
-		return this.contextHolder.get();
+		return mailReceiverContext;
 	}
 
 	/**

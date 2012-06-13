@@ -42,6 +42,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 
 	private volatile MessageSource<?> source;
 
+	private volatile boolean isPseudoTxMessageSource;
+
 	private volatile MessageChannel outputChannel;
 
 	private volatile boolean shouldTrack;
@@ -55,6 +57,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	 */
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
+		this.isPseudoTxMessageSource = this.source instanceof PseudoTransactionalMessageSource;
 	}
 
 	/**
@@ -98,11 +101,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 
 	@Override
 	protected boolean doPoll() {
-		boolean isPseudoTxMessageSource = this.source instanceof PseudoTransactionalMessageSource;
 		boolean isInTx = false;
 		PseudoTransactionalMessageSource<?> messageSource = null;
 		Object resource = null;
-		if (isPseudoTxMessageSource) {
+		if (this.isPseudoTxMessageSource) {
 			messageSource = (PseudoTransactionalMessageSource<?>) this.source;
 			resource = messageSource.getResource();
 			Assert.state(resource != null, "Pseudo Transactional Message Source returned null resource");
@@ -119,7 +121,17 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			message = this.source.receive();
 		}
 		finally {
-			if (isPseudoTxMessageSource && !isInTx) {
+			if (this.isPseudoTxMessageSource && !isInTx) {
+				/*
+				 * If the message source implements PseudoTransactionalMessageSource and
+				 * we're running from a transactional poller, the message source's afterCommit
+				 * method will be called by the transaction interceptor, using the transaction
+				 * synchronization callback, after the transaction is committed.
+				 *
+				 * If we are not running in a transaction, we invoke it manually, so the message
+				 * source can take the appropriate action, immediately after the receive;
+				 * this was the behavior before pseudo transaction support was added.
+				 */
 				messageSource.afterCommit(resource);
 			}
 		}

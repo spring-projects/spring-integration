@@ -214,7 +214,6 @@ public class Pop3MailReceiverTests {
 		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
 		Folder folder = context.getFolder();
 		when(folder.isOpen()).thenReturn(true);
-		when(receiver.getFolder()).thenReturn(folder);
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -257,8 +256,6 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		when(receiver.getFolder()).thenReturn(folder);
-		when(receiver.getTransactionContext()).thenReturn(new MailReceiverContext(folder));
 		adapter.setSource(new MailReceivingMessageSource(receiver));
 
 		TransactionSynchronizationManager.initSynchronization();

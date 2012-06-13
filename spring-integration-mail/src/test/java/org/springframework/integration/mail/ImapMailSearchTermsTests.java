@@ -47,6 +47,7 @@ public class ImapMailSearchTermsTests {
 
 		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
 		Folder folder = context.getFolder();
+		when(folder.isOpen()).thenReturn(true);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
@@ -67,6 +68,7 @@ public class ImapMailSearchTermsTests {
 		receiver.afterPropertiesSet();
 		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
 		Folder folder = context.getFolder();
+		when(folder.isOpen()).thenReturn(true);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
@@ -94,6 +96,7 @@ public class ImapMailSearchTermsTests {
 
 		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
 		Folder folder = context.getFolder();
+		when(folder.isOpen()).thenReturn(true);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
