@@ -121,7 +121,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	public void setAppend(boolean append) {
 		this.append = append;
 		if (this.append){
-			this.lockRegistry = new DefaultLockRegistry();
+			this.lockRegistry = this.lockRegistry instanceof PassThruLockRegistry
+					? new DefaultLockRegistry()
+			        : this.lockRegistry;
 		}
 	}
 
@@ -180,7 +182,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				"Destination directory [" + this.destinationDirectory + "] is not writable.");
 
 		Assert.state(!(this.temporaryFileSuffixSet && this.append),
-				"'temporaryFileSuffix' can not be set when appending to the existing file");;
+				"'temporaryFileSuffix' can not be set when appending to an existing file");;
 	}
 
 	@Override
