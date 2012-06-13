@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/mqtt http://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd">
+
+	<int:channel id="out"/>
+
+	<int-mqtt:message-driven-channel-adapter id="oneTopicAdapter"
+		auto-startup="false"
+		phase="25"
+		client-id="foo"
+		url="tcp://localhost:1883"
+		topics="bar"
+		converter="myConverter"
+		client-factory="clientFactory"
+		send-timeout="123"
+		channel="out" />
+
+	<int-mqtt:message-driven-channel-adapter id="twoTopicsAdapter"
+		auto-startup="false"
+		phase="25"
+		client-id="foo"
+		url="tcp://localhost:1883"
+		topics="bar, baz"
+		converter="myConverter"
+		client-factory="clientFactory"
+		send-timeout="123"
+		channel="out" />
+
+	<int:channel id="out" />
+
+	<bean id="myConverter" class="org.springframework.integration.mqtt.support.DefaultPahoMessageConverter" />
+
+	<bean id="clientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory" />
+</beans>
