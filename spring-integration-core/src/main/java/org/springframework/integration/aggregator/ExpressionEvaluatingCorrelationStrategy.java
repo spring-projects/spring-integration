@@ -53,18 +53,14 @@ public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrat
 		this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
 	}
 
-
-	@Override
 	public Object getCorrelationKey(Message<?> message) {
 		return processor.processMessage(message);
 	}
 
-	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
-	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.beanFactory != null){
 			this.processor.setBeanFactory(this.beanFactory);
