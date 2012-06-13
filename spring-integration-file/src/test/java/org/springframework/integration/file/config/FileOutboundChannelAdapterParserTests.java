@@ -69,6 +69,9 @@ public class FileOutboundChannelAdapterParserTests {
     @Autowired
     MessageChannel usageChannel;
 
+    @Autowired
+    MessageChannel usageChannelConcurrent;
+
     @Test
     public void simpleAdapter() {
         DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(simpleAdapter);
@@ -149,5 +152,45 @@ public class FileOutboundChannelAdapterParserTests {
 
         String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
         assertEquals(expectedFileContent, actualFileContent);
+    }
+
+    @Test
+    public void adapterUsageWithAppendConcurrent() throws Exception{
+
+    	File testFile = new File("test/fileToAppendConcurrent.txt");
+    	if (testFile.exists()){
+    		testFile.delete();
+    	}
+
+    	StringBuffer aBuffer = new StringBuffer();
+    	StringBuffer bBuffer = new StringBuffer();
+    	for (int i = 0; i < 100000; i++) {
+			aBuffer.append("a");
+			bBuffer.append("b");
+		}
+    	String aString = aBuffer.toString();
+    	String bString = bBuffer.toString();
+
+    	for (int i = 0; i < 1; i	++) {
+    		usageChannelConcurrent.send(new GenericMessage<String>(aString));
+    		usageChannelConcurrent.send(new GenericMessage<String>(bString));
+		}
+
+    	Thread.sleep(2000);
+        String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+        int beginningIndex = 0;
+        for (int i = 0; i < 2; i++) {
+        	assertAllCharactersAreSame(actualFileContent.substring(beginningIndex, beginningIndex+99999));
+        	beginningIndex += 100000;
+		}
+
+    }
+
+    private void assertAllCharactersAreSame(String substring){
+    	char[] characters = substring.toCharArray();
+    	char c = characters[0];
+    	for (char character : characters) {
+			assertEquals(c, character);
+		}
     }
 }

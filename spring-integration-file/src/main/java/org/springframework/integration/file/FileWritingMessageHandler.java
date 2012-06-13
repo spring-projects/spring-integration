@@ -21,15 +21,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.util.DefaultLockRegistry;
+import org.springframework.integration.util.LockRegistry;
+import org.springframework.integration.util.PassThruLockRegistry;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -63,7 +68,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile boolean temporaryFileSuffixSet = false;
 
-	private volatile boolean appendIfExists = false;
+	private volatile boolean append = false;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -78,6 +83,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile Charset charset = Charset.defaultCharset();
 
 	private volatile boolean expectReply = true;
+
+	private volatile LockRegistry lockRegistry = new PassThruLockRegistry();
 
 	public FileWritingMessageHandler(File destinationDirectory) {
 		Assert.notNull(destinationDirectory, "Destination directory must not be null.");
@@ -102,8 +109,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.temporaryFileSuffixSet = true;
 	}
 
-	public void setAppendIfExists(boolean appendIfExists) {
-		this.appendIfExists = appendIfExists;
+	/**
+	 * Will set 'append' flag which will let his handler to append data to the
+	 * existing file rather then creating a new file for each Message.
+	 * If 'true' it will also create a real instance of the LockRegistry to ensure
+	 * that there is no collisions when multiple threads are writing to the same file.
+	 * Otherwise the LockRegistry is set to {@link PassThruLockRegistry} which has no effect.
+	 *
+	 * @param append
+	 */
+	public void setAppend(boolean append) {
+		this.append = append;
+		if (this.append){
+			this.lockRegistry = new DefaultLockRegistry();
+		}
 	}
 
 	/**
@@ -160,7 +179,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Assert.isTrue(this.destinationDirectory.canWrite(),
 				"Destination directory [" + this.destinationDirectory + "] is not writable.");
 
-		Assert.state(!(this.temporaryFileSuffixSet && this.appendIfExists),
+		Assert.state(!(this.temporaryFileSuffixSet && this.append),
 				"'temporaryFileSuffix' can not be set when appending to the existing file");;
 	}
 
@@ -223,45 +242,78 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return null;
 	}
 
-	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
-		if (this.deleteSourceFiles) {
-			if (sourceFile.renameTo(resultFile)) {
-				return resultFile;
-			}
-			if (logger.isInfoEnabled()) {
-				logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
-						sourceFile.getAbsolutePath()));
-			}
-		}
-		if (this.appendIfExists){
+	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
+		if (this.append){
 			return this.handleByteArrayMessage(FileCopyUtils.copyToByteArray(sourceFile), null, tempFile, resultFile);
 		}
 		else {
+			if (this.deleteSourceFiles) {
+				if (sourceFile.renameTo(resultFile)) {
+					return resultFile;
+				}
+				if (logger.isInfoEnabled()) {
+					logger.info(String.format("Failed to move file '%s'. Using copy and delete fallback.",
+							sourceFile.getAbsolutePath()));
+				}
+			}
 			FileCopyUtils.copy(sourceFile, tempFile);
 			this.cleanUpAfterCopy(tempFile, resultFile, sourceFile);
 			return resultFile;
 		}
 	}
 
-	private File handleByteArrayMessage(byte[] bytes, File originalFile, File tempFile, File resultFile) throws IOException {
+	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-		FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.appendIfExists);
-		FileCopyUtils.copy(bytes, fos);
+		final FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.append);
+
+		this.copy(fileToWriteTo, new Runnable() {
+			public void run()  {
+				try {
+					FileCopyUtils.copy(bytes, fos);
+				} catch (Exception e) {
+					throw new MessagingException("Failed to copy bytes into '" + resultFile.getName() + "'", e);
+				}
+
+			}
+		});
 		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
 	}
 
-	private File handleStringMessage(String content, File originalFile, File tempFile, File resultFile) throws IOException {
+	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, this.appendIfExists), this.charset);
-		FileCopyUtils.copy(content, writer);
+		final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, this.append), this.charset);
+		this.copy(fileToWriteTo, new Runnable() {
+			public void run()  {
+				try {
+					FileCopyUtils.copy(content, writer);
+				} catch (Exception e) {
+					throw new MessagingException("Faile to copy String into '" + resultFile.getName() + "'", e);
+				}
+
+			}
+		});
 		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
+	}
+
+	private void copy(File fileToWriteTo, Runnable callback){
+		Lock lock =  lockRegistry.obtain(fileToWriteTo.getAbsolutePath());
+		try {
+			lock.lockInterruptibly();
+			try {
+				callback.run();
+			} finally {
+				lock.unlock();
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	private File determineFileToWrite(File resultFile, File tempFile){
 		File fileToWriteTo = null;
-		if (this.appendIfExists){
+		if (this.append){
 			fileToWriteTo  = resultFile;
 		}
 		else {
@@ -271,7 +323,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException{
-		if (!this.appendIfExists){
+		if (!this.append){
 			this.renameTo(fileToWriteTo, resultFile);
 		}
 
@@ -301,5 +353,4 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 	}
-
 }

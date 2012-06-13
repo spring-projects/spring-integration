@@ -4,14 +4,12 @@
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:file="http://www.springframework.org/schema/integration/file"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/file
-			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<si:channel id="testChannel"/>
 
@@ -44,11 +42,21 @@
 								   
 	<file:outbound-channel-adapter id="usageChannel"
 	                               filename-generator-expression="'fileToAppend.txt'"
-	                               append-if-exists="true"
+	                               append="true"
+								   directory="test"/>
+								   
+	<si:channel id="usageChannelConcurrent">
+		<si:dispatcher task-executor="executor"/>
+	</si:channel>							   
+	<file:outbound-channel-adapter channel="usageChannelConcurrent"
+	                               filename-generator-expression="'fileToAppendConcurrent.txt'"
+	                               append="true"
 								   directory="test"/>
 								   
 	<bean id="customFileNameGenerator" class="org.springframework.integration.file.config.CustomFileNameGenerator"/>
 
 	<context:property-placeholder/>
+	
+	<task:executor id="executor" pool-size="100"/>
 
 </beans>

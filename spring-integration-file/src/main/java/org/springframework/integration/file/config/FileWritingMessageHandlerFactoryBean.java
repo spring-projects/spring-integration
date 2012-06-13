@@ -50,12 +50,12 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 
 	private volatile String temporaryFileSuffix;
 
-	private volatile boolean appendIfExists;
+	private volatile boolean append;
 
 	private volatile boolean expectReply = true;
 
-	public void setAppendIfExists(boolean appendIfExists) {
-		this.appendIfExists = appendIfExists;
+	public void setAppend(boolean append) {
+		this.append = append;
 	}
 
 	public void setDirectory(File directory) {
@@ -119,7 +119,7 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 			handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
 		}
 		handler.setExpectReply(this.expectReply);
-		handler.setAppendIfExists(this.appendIfExists);
+		handler.setAppend(this.append);
 		return handler;
 	}
 }
