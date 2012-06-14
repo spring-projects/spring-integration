@@ -19,6 +19,8 @@ logs
 nohup.out
 out
 si.java.hsp
+spring-integration-file/test/fileToAppend.txt
+spring-integration-file/test/fileToAppendConcurrent.txt
 spring-integration-jms/activemq-data/
 spring-integration-samples/loanshark/application.log*
 target

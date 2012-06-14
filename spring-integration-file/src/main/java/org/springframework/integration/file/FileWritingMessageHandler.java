@@ -26,6 +26,12 @@ import java.nio.charset.Charset;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageHandler;
@@ -61,6 +67,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Alex Peters
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gunnar Hillert
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
@@ -74,7 +81,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
-	private final File destinationDirectory;
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+
+	private final Expression destinationDirectoryExpression;
 
 	private volatile boolean autoCreateDirectory = true;
 
@@ -86,11 +95,28 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile LockRegistry lockRegistry = new PassThruLockRegistry();
 
+	/**
+	 * Constructor which sets the {@link #destinationDirectoryExpression} using
+	 * a {@link LiteralExpression}.
+	 *
+	 * @param destinationDirectory Must not be null
+	 * @see #FileWritingMessageHandler(Expression)
+	 */
 	public FileWritingMessageHandler(File destinationDirectory) {
 		Assert.notNull(destinationDirectory, "Destination directory must not be null.");
-		this.destinationDirectory = destinationDirectory;
+		this.destinationDirectoryExpression = new LiteralExpression(destinationDirectory.getPath());
 	}
 
+	/**
+	 * Constructor which sets the {@link #destinationDirectoryExpression}.
+	 *
+	 * @param destinationDirectoryExpression Must not be null
+	 * @see #FileWritingMessageHandler(File)
+	 */
+	public FileWritingMessageHandler(Expression destinationDirectoryExpression) {
+		Assert.notNull(destinationDirectoryExpression, "Destination directory expression must not be null.");
+		this.destinationDirectoryExpression = destinationDirectoryExpression;
+	}
 
 	/**
 	 * Specify whether to create the destination directory automatically if it
@@ -103,6 +129,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.autoCreateDirectory = autoCreateDirectory;
 	}
 
+	/**
+	 * By default, every file that is in the process of being transferred will
+	 * appear in the file system with an additional suffix, which by default is
+	 * ".writing". This can be changed by setting this property.
+	 *
+	 * @param temporaryFileSuffix
+	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null"); // empty string is OK
 		this.temporaryFileSuffix = temporaryFileSuffix;
@@ -171,16 +204,35 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	public final void onInit() {
-		if (!this.destinationDirectory.exists() && this.autoCreateDirectory) {
-			this.destinationDirectory.mkdirs();
+
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
+
+		final BeanFactory beanFactory = this.getBeanFactory();
+
+		if (beanFactory != null) {
+			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
+
+		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
+			final File directory = new File(this.destinationDirectoryExpression.getValue(
+					this.evaluationContext, null, String.class));
+			validateDestinationDirectory(directory, this.autoCreateDirectory);
+		}
+
+	}
+
+	private void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
+
+		if (!destinationDirectory.exists() && autoCreateDirectory) {
+			destinationDirectory.mkdirs();
+		}
+
 		Assert.isTrue(destinationDirectory.exists(),
 				"Destination directory [" + destinationDirectory + "] does not exist.");
-		Assert.isTrue(this.destinationDirectory.isDirectory(),
-				"Destination path [" + this.destinationDirectory + "] does not point to a directory.");
-		Assert.isTrue(this.destinationDirectory.canWrite(),
-				"Destination directory [" + this.destinationDirectory + "] is not writable.");
-
+		Assert.isTrue(destinationDirectory.isDirectory(),
+				"Destination path [" + destinationDirectory + "] does not point to a directory.");
+		Assert.isTrue(destinationDirectory.canWrite(),
+				"Destination directory [" + destinationDirectory + "] is not writable.");
 		Assert.state(!(this.temporaryFileSuffixSet && this.append),
 				"'temporaryFileSuffix' can not be set when appending to an existing file");;
 	}
@@ -192,8 +244,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Assert.notNull(payload, "message payload must not be null");
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
 		File originalFileFromHeader = this.retrieveOriginalFileFromHeader(requestMessage);
-		File tempFile = new File(this.destinationDirectory, generatedFileName + temporaryFileSuffix);
-		File resultFile = new File(this.destinationDirectory, generatedFileName);
+
+		final File destinationDirectoryToUse = evaluateDestinationDirectoryExpression(requestMessage);
+
+		File tempFile = new File(destinationDirectoryToUse, generatedFileName + temporaryFileSuffix);
+		File resultFile = new File(destinationDirectoryToUse, generatedFileName);
+
 		try {
 			if (payload instanceof File) {
 				resultFile = this.handleFileMessage((File) payload, tempFile, resultFile);
@@ -348,4 +404,38 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 	}
+
+	private File evaluateDestinationDirectoryExpression(Message<?> message) {
+
+		final File destinationDirectory;
+
+		final Object destinationDirectoryToUse = this.destinationDirectoryExpression.getValue(
+				this.evaluationContext, message);
+
+		if (destinationDirectoryToUse == null) {
+			throw new IllegalStateException(String.format("The provided " +
+					"destinationDirectoryExpression (%s) must not resolve to null.",
+					this.destinationDirectoryExpression.getExpressionString()));
+		}
+		else if (destinationDirectoryToUse instanceof String) {
+
+			final String destinationDirectoryPath = (String) destinationDirectoryToUse;
+
+			Assert.hasText(destinationDirectoryPath, String.format(
+					"Unable to resolve destination directory name for the provided Expression '%s'.",
+					this.destinationDirectoryExpression.getExpressionString()));
+			destinationDirectory = new File(destinationDirectoryPath);
+		}
+		else if (destinationDirectoryToUse instanceof File) {
+			destinationDirectory = (File) destinationDirectoryToUse;
+		} else {
+			throw new IllegalStateException(String.format("The provided " +
+					"destinationDirectoryExpression (%s) must be of type " +
+					"java.io.File or be a String.", this.destinationDirectoryExpression.getExpressionString()));
+		}
+
+		validateDestinationDirectory(destinationDirectory, this.autoCreateDirectory);
+		return destinationDirectory;
+	}
+
 }

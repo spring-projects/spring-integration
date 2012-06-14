@@ -240,12 +240,26 @@ Only files matching this regular expression will be picked up by this adapter.
                 <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (EventDrivenConsumer)]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="directory" type="xsd:string" use="required">
-            <xsd:annotation>
-                <xsd:documentation><![CDATA[Specifies the output directory, e.g.:
-                directory="file:/absolute/output" or directory="file:relative/output"]]></xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
+		<xsd:attribute name="directory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[Specifies the output directory, e.g.:
+					directory="file:/absolute/output" or directory="file:relative/output"
+					Either this attribute or 'directory-expression' must be provided.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="directory-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[Specifies the output directory using a SpEL expression.
+					This allows you to dynamically specify the output directory
+					on a per message basis. For example a message header or payload
+					property can be used for specifying the destination directory
+					at runtime.]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
         <xsd:attribute name="filename-generator" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
