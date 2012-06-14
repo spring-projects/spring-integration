@@ -272,9 +272,9 @@ Only files matching this regular expression will be picked up by this adapter.
 				<xsd:annotation>
 					<xsd:documentation>
 					Extension used when uploading files. We change it after we know it's uploaded.
-					This attribute is mutualy exclusive with 'temporary-file-suffix' since append is done to the 
+					This attribute is mutualy exclusive with 'append' since the append is done to the 
 					actual file and not its temporary counterpart. The default value of this attribute (i.e., .writing)
-					is ignored.
+					is ignored when 'append' is set to true.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>

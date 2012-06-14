@@ -18,6 +18,8 @@ package org.springframework.integration.util;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
+import org.springframework.integration.MessagingException;
+
 /**
  * A simple strategy callback class that allows you to provide
  * a code that needs to be executed under {@link Lock} provided by
@@ -50,6 +52,7 @@ public abstract class WhileLockedProcessor {
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			throw new MessagingException("Thread was interrupted while performing task", e);
 		}
 	}
 
