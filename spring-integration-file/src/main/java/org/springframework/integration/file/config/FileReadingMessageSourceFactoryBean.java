@@ -21,8 +21,9 @@ import java.util.Comparator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.expression.Expression;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -55,6 +56,12 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 	private volatile Boolean autoCreateDirectory;
 
 	private volatile Integer queueSize;
+
+	private volatile Expression dispositionExpression;
+
+	private volatile MessageChannel dispositionResultChannel;
+
+	private volatile Long dispositionSendTimeout;
 
 	private final Object initializationMonitor = new Object();
 
@@ -92,6 +99,18 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 
 	public void setLocker(AbstractFileLockerFilter locker) {
 		this.locker = locker;
+	}
+
+	public void setDispositionExpression(Expression dispositionExpression) {
+		this.dispositionExpression = dispositionExpression;
+	}
+
+	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
+		this.dispositionResultChannel = dispositionResultChannel;
+	}
+
+	public void setDispositionSendTimeout(Long dispositionSendTimeout) {
+		this.dispositionSendTimeout = dispositionSendTimeout;
 	}
 
 	public FileReadingMessageSource getObject() throws Exception {
@@ -149,6 +168,15 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 			}
 			if (this.autoCreateDirectory != null) {
 				this.source.setAutoCreateDirectory(this.autoCreateDirectory);
+			}
+			if (this.dispositionExpression != null) {
+				this.source.setDispositionExpression(this.dispositionExpression);
+			}
+			if (this.dispositionResultChannel != null) {
+				this.source.setDispositionResultChannel(this.dispositionResultChannel);
+			}
+			if (this.dispositionSendTimeout != null) {
+				this.source.setDispositionSendTimeout(this.dispositionSendTimeout);
 			}
 			this.source.afterPropertiesSet();
 		}
