@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 
 import org.junit.Test;
@@ -31,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
+import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
@@ -39,6 +41,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Mark Fisher
@@ -46,95 +49,113 @@ import org.springframework.util.FileCopyUtils;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileOutboundChannelAdapterParserTests {
 
-    @Autowired
-    EventDrivenConsumer simpleAdapter;
+	@Autowired
+	EventDrivenConsumer simpleAdapter;
 
-    @Autowired
-    EventDrivenConsumer adapterWithCustomNameGenerator;
+	@Autowired
+	EventDrivenConsumer adapterWithCustomNameGenerator;
 
-    @Autowired
-    EventDrivenConsumer adapterWithDeleteFlag;
+	@Autowired
+	EventDrivenConsumer adapterWithDeleteFlag;
 
-    @Autowired
-    EventDrivenConsumer adapterWithOrder;
+	@Autowired
+	EventDrivenConsumer adapterWithOrder;
 
-    @Autowired
-    EventDrivenConsumer adapterWithCharset;
+	@Autowired
+	EventDrivenConsumer adapterWithCharset;
 
-    @Autowired
-    MessageChannel usageChannel;
+	@Autowired
+	EventDrivenConsumer adapterWithDirectoryExpression;
 
-    @Autowired
-    MessageChannel usageChannelConcurrent;
+	@Autowired
+	MessageChannel usageChannel;
 
-    @Test
-    public void simpleAdapter() {
-        DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(simpleAdapter);
-        FileWritingMessageHandler handler = (FileWritingMessageHandler)
-                adapterAccessor.getPropertyValue("handler");
-        DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-        File expected = new File(System.getProperty("java.io.tmpdir"));
-        File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
-        assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
-        assertThat(actual, is(expected));
-        DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
-        assertNotNull(fileNameGenerator);
-        String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
-        assertNotNull(expression);
-        assertEquals("'foo.txt'", expression);
-        assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
-    }
+	@Autowired
+	MessageChannel usageChannelConcurrent;
 
-    @Test
-    public void adapterWithCustomFileNameGenerator() {
-        DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithCustomNameGenerator);
-        FileWritingMessageHandler handler = (FileWritingMessageHandler)
-                adapterAccessor.getPropertyValue("handler");
-        DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-        File expected = new File(System.getProperty("java.io.tmpdir"));
-        File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
-        assertEquals(expected, actual);
-        assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
-        assertEquals(".writing", handlerAccessor.getPropertyValue("temporaryFileSuffix"));
-    }
+	@Test
+	public void simpleAdapter() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(simpleAdapter);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
+		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
+		assertThat(actual, is(expected));
+		DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
+		assertNotNull(fileNameGenerator);
+		String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
+		assertNotNull(expression);
+		assertEquals("'foo.txt'", expression);
+		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
+	}
 
-    @Test
-    public void adapterWithDeleteFlag() {
-        DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithDeleteFlag);
-        FileWritingMessageHandler handler = (FileWritingMessageHandler)
-                adapterAccessor.getPropertyValue("handler");
-        DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-        assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
-    }
+	@Test
+	public void adapterWithCustomFileNameGenerator() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithCustomNameGenerator);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
+		assertEquals(expected, actual);
+		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
+		assertEquals(".writing", handlerAccessor.getPropertyValue("temporaryFileSuffix"));
+	}
 
-    @Test
-    public void adapterWithOrder() {
-        DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
-        FileWritingMessageHandler handler = (FileWritingMessageHandler)
-                adapterAccessor.getPropertyValue("handler");
-        DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-        assertEquals(555, handlerAccessor.getPropertyValue("order"));
-    }
+	@Test
+	public void adapterWithDeleteFlag() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithDeleteFlag);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
+	}
 
-    @Test
-    public void adapterWithAutoStartupFalse() {
-        DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
-        assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
-    }
+	@Test
+	public void adapterWithOrder() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(555, handlerAccessor.getPropertyValue("order"));
+	}
 
-    @Test
-    public void adapterWithCharset() {
-        DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithCharset);
-             FileWritingMessageHandler handler = (FileWritingMessageHandler)
-                adapterAccessor.getPropertyValue("handler");
-        DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-        assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-    }
+	@Test
+	public void adapterWithAutoStartupFalse() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+	}
+
+	@Test
+	public void adapterWithCharset() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithCharset);
+			 FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
+	}
+
+	@Test
+	public void adapterWithDirectoryExpression() {
+
+		FileWritingMessageHandler handler = TestUtils.getPropertyValue(adapterWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
+		Method m = ReflectionUtils.findMethod(FileWritingMessageHandler.class, "getTemporaryFileSuffix");
+		ReflectionUtils.makeAccessible(m);
+		assertEquals(".writing", ReflectionUtils.invokeMethod(m, handler));
+		String expectedExpressionString = "'foo/bar'";
+		String actualExpressionString = TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class).getExpressionString();
+		assertEquals(expectedExpressionString, actualExpressionString);
+
+	}
 
     @Test
     public void adapterUsageWithAppend() throws Exception{

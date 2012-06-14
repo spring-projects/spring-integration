@@ -18,6 +18,7 @@ package org.springframework.integration.file.config;
 
 import java.io.File;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
@@ -30,11 +31,15 @@ import org.springframework.integration.file.FileWritingMessageHandler;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  * @since 1.0.3
  */
 public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
 
 	private volatile File directory;
+
+	private volatile Expression directoryExpression;
 
 	private volatile String charset;
 
@@ -64,6 +69,10 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 
 	public void setCharset(String charset) {
 		this.charset = charset;
+	}
+
+	public void setDirectoryExpression(Expression directoryExpression) {
+		this.directoryExpression = directoryExpression;
 	}
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
@@ -96,7 +105,21 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 
 	@Override
 	protected FileWritingMessageHandler createHandler() {
-		FileWritingMessageHandler handler = new FileWritingMessageHandler(this.directory);
+
+		final FileWritingMessageHandler handler;
+
+		if (this.directory != null && this.directoryExpression != null) {
+			throw new IllegalStateException("Cannot set both directory and directoryExpression");
+		}
+		else if (this.directory != null) {
+			handler = new FileWritingMessageHandler(this.directory);
+		}
+		else if (this.directoryExpression != null) {
+			handler = new FileWritingMessageHandler(this.directoryExpression);
+		} else {
+			throw new IllegalStateException("Either directory or directoryExpression must not be null");
+		}
+
 		if (this.charset != null) {
 			handler.setCharset(this.charset);
 		}

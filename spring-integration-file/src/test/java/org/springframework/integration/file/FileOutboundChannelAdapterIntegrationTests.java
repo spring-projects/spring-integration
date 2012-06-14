@@ -1,0 +1,146 @@
+/*
+ * Copyright 2002-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.file;
+
+import java.io.File;
+import java.io.FileOutputStream;
+
+import junit.framework.Assert;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
+
+/**
+ * @author Gunnar Hillert
+ */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+public class FileOutboundChannelAdapterIntegrationTests {
+
+	static final String DEFAULT_ENCODING = "UTF-8";
+
+	static final String SAMPLE_CONTENT = "HelloWorld\nŠšŸ§";
+
+	static File workDir;
+
+	FileWritingMessageHandler handler;
+
+	@Autowired
+	MessageChannel inputChannelSaveToBaseDir;
+
+	@Autowired
+	MessageChannel inputChannelSaveToBaseDirDeleteSource;
+
+	@Autowired
+	MessageChannel inputChannelSaveToSubDir;
+
+	@Autowired
+	MessageChannel inputChannelSaveToSubDirAutoCreateOff;
+
+	@Autowired
+	MessageChannel inputChannelSaveToSubDirWrongExpression;
+
+	@Autowired
+	MessageChannel inputChannelSaveToSubDirWithHeader;
+
+	Message<File> message;
+
+	File sourceFile;
+	@Before
+	public void setUp() throws Exception {
+		sourceFile = File.createTempFile("anyFile", ".txt");
+		sourceFile.deleteOnExit();
+		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
+				new FileOutputStream(sourceFile, false));
+		message = MessageBuilder.withPayload(sourceFile).build();
+	}
+
+	@After
+	public void tearDown() {
+		sourceFile.delete();
+	}
+
+	@Test
+	public void saveToBaseDir() throws Exception {
+		this.inputChannelSaveToBaseDir.send(message);
+
+		Assert.assertTrue(new File("target/base-directory/foo.txt").exists());
+
+	}
+
+	@Test
+	public void saveToBaseDirDeleteSourceFile() throws Exception {
+		Assert.assertTrue(sourceFile.exists());
+		this.inputChannelSaveToBaseDirDeleteSource.send(message);
+		Assert.assertTrue(new File("target/base-directory/foo.txt").exists());
+		Assert.assertFalse(sourceFile.exists());
+	}
+
+	@Test
+	public void saveToSubDir() throws Exception {
+		this.inputChannelSaveToSubDir.send(message);
+		Assert.assertTrue(new File("target/base-directory/sub-directory/foo.txt").exists());
+	}
+
+	@Test
+	public void saveToSubDirWithWrongExpression() throws Exception {
+
+		try {
+			this.inputChannelSaveToSubDirWrongExpression.send(message);
+		} catch (MessageHandlingException e) {
+			Assert.assertEquals("Destination path [target/base-directory/sub-directory/foo.txt] does not point to a directory.", e.getCause().getMessage());
+			return;
+		}
+
+		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+	}
+
+	@Test
+	public void saveToSubDir2() throws Exception {
+
+		final Message<File> message2 = MessageBuilder.fromMessage(message)
+													.setHeader("myFileLocation", "target/base-directory/headerdir")
+													.build();
+
+		this.inputChannelSaveToSubDirWithHeader.send(message2);
+		Assert.assertTrue(new File("target/base-directory/headerdir/foo.txt").exists());
+	}
+
+	@Test
+	public void saveToSubDirAutoCreateOff() throws Exception {
+
+		try {
+			this.inputChannelSaveToSubDirAutoCreateOff.send(message);
+		} catch (MessageHandlingException e) {
+			Assert.assertEquals("Destination directory [target/base-directory2/sub-directory2] does not exist.", e.getCause().getMessage());
+			return;
+		}
+
+		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+	}
+
+}

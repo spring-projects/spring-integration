@@ -24,6 +24,10 @@
 								   filename-generator="customFileNameGenerator"
 								   directory="${java.io.tmpdir}"/>
 
+	<file:outbound-channel-adapter id="adapterWithDirectoryExpression"
+								   channel="testChannel"
+								   directory-expression="'foo/bar'"/>
+
 	<file:outbound-channel-adapter id="adapterWithDeleteFlag"
 								   channel="testChannel"
 								   delete-source-files="true"
