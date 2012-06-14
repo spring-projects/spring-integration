@@ -12,6 +12,8 @@
     <!-- under test -->
     <file:inbound-channel-adapter
             directory="#{inputDirectory.path}"
+            disposition-expression="payload.delete()"
+            disposition-result-channel="resultChannel"
             channel="fileMessages" filter="compositeFilter"/>
 
     <bean id="temp" class="org.junit.rules.TemporaryFolder"
@@ -39,4 +41,7 @@
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
+	<si:channel id="resultChannel">
+		<si:queue />
+	</si:channel>
 </beans>

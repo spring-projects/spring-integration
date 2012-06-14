@@ -16,20 +16,32 @@
 
 package org.springframework.integration.file;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.integration.Message;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.Message;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.FileReadingMessageSource.FileResource;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Iwein Fuld
@@ -146,5 +158,19 @@ public class FileReadingMessageSourceTests {
         assertSame(file1, source.receive().getPayload());
         assertNull(source.receive());
         verify(inputDirectoryMock, times(2)).listFiles();
+    }
+
+    @Test
+    public void disposition() {
+        source.setDispositionExpression(new LiteralExpression("foo"));
+        QueueChannel channel = new QueueChannel();
+        source.setDispositionResultChannel(channel);
+        FileResource resource = (FileResource) source.getResource();
+        File file = mock(File.class);
+        resource.setMessage(new GenericMessage<File>(file));
+        source.afterCommit(resource);
+        Message<?> result = channel.receive(10000);
+        assertSame(file, result.getPayload());
+        assertEquals("foo", result.getHeaders().get(FileHeaders.DISPOSITION_RESULT));
     }
 }
