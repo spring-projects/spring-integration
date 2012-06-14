@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
-
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.ErrorHandler;
 
@@ -31,18 +30,20 @@ import org.springframework.util.ErrorHandler;
 public class PollerMetadata {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = Integer.MIN_VALUE;
-	
+
 	private volatile Trigger trigger;
 
 	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
 
 	private volatile long receiveTimeout = 1000;
-	
+
 	private volatile ErrorHandler errorHandler;
 
 	private List<Advice> adviceChain;
 
 	private volatile Executor taskExecutor;
+
+	private volatile boolean synchronizedTx = true;
 
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;
@@ -51,7 +52,7 @@ public class PollerMetadata {
 	public Trigger getTrigger() {
 		return this.trigger;
 	}
-	
+
 	public ErrorHandler getErrorHandler() {
 		return errorHandler;
 	}
@@ -64,9 +65,9 @@ public class PollerMetadata {
 	 * Set the maximum number of messages to receive for each poll.
 	 * A non-positive value indicates that polling should repeat as long
 	 * as non-null messages are being received and successfully sent.
-	 * 
+	 *
 	 * <p>The default is unbounded.
-	 * 
+	 *
 	 * @see #MAX_MESSAGES_UNBOUNDED
 	 */
 	public void setMaxMessagesPerPoll(long maxMessagesPerPoll) {
@@ -99,5 +100,13 @@ public class PollerMetadata {
 
 	public Executor getTaskExecutor() {
 		return this.taskExecutor;
+	}
+
+	public boolean isSynchronized() {
+		return synchronizedTx;
+	}
+
+	public void setSynchronized(boolean synchronizedTx) {
+		this.synchronizedTx = synchronizedTx;
 	}
 }

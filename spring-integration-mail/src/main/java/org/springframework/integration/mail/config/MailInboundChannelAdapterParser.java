@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mail.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -25,32 +23,31 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.mail.MailReceivingMessageSource;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
- * Parser for the &lt;inbound-channel-adapter&gt; element of Spring Integration's 'mail' namespace. 
- * 
+ * Parser for the &lt;inbound-channel-adapter&gt; element of Spring Integration's 'mail' namespace.
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class MailInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.mail";
-
-
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE + ".MailReceivingMessageSource");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailReceivingMessageSource.class);
 		builder.addConstructorArgValue(this.parseMailReceiver(element, parserContext));
 		return builder.getBeanDefinition();
 	}
 
 	private BeanDefinition parseMailReceiver(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE + ".config.MailReceiverFactoryBean");
+				MailReceiverFactoryBean.class);
 		Object source = parserContext.extractSource(element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "store-uri");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "protocol");
@@ -77,6 +74,9 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 				if (StringUtils.hasText(mmpp)) {
 					receiverBuilder.addPropertyValue("maxFetchSize", mmpp);
 				}
+				if (StringUtils.hasText(pollerElement.getAttribute("synchronized"))) {
+					receiverBuilder.addPropertyValue("synchronized", true);
+				}
 			}
 		}
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
@@ -84,16 +84,16 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 		if (StringUtils.hasText(markAsRead)){
 			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
 		}
-		
+
 		String selectorExpression = element.getAttribute("mail-filter-expression");
-		
+
 		RootBeanDefinition expressionDef = null;
 		if (StringUtils.hasText(selectorExpression)){
 			expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
 			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
 		}
-		
+
 		return receiverBuilder.getBeanDefinition();
 	}
 

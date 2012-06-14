@@ -45,6 +45,7 @@ import com.sun.mail.imap.IMAPMessage;
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
@@ -102,9 +103,10 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 */
 	public void waitForNewMessages() throws MessagingException {
 		this.openFolder();
-		Assert.state(this.getFolder() instanceof IMAPFolder,
+		Folder folder = this.getFolder();
+		Assert.state(folder instanceof IMAPFolder,
 				"folder is not an instance of [" + IMAPFolder.class.getName() + "]");
-		IMAPFolder imapFolder = (IMAPFolder) this.getFolder();
+		IMAPFolder imapFolder = (IMAPFolder) folder;
 		if (imapFolder.hasNewMessages()) {
 			return;
 		}

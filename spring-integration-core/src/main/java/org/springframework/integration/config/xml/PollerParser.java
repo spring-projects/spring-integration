@@ -19,10 +19,6 @@ package org.springframework.integration.config.xml;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -34,13 +30,16 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Parser for the &lt;poller&gt; element.
@@ -101,6 +100,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			errorHandler.addPropertyReference("defaultErrorChannel", errorChannel);
 			metadataBuilder.addPropertyValue("errorHandler", errorHandler.getBeanDefinition());
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "synchronized");
 		return metadataBuilder.getBeanDefinition();
 	}
 
