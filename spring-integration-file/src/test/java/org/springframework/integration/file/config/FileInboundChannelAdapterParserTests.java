@@ -27,14 +27,16 @@ import java.util.concurrent.PriorityBlockingQueue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -92,6 +94,14 @@ public class FileInboundChannelAdapterParserTests {
         assertSame("comparator reference not set, ", expected, actual);
     }
 
+    @Test
+    public void disposition() throws Exception {
+        Object dispositionExpression = accessor.getPropertyValue("dispositionExpression");
+        assertEquals(SpelExpression.class, dispositionExpression.getClass());
+        assertEquals("payload.delete()", ((Expression) dispositionExpression).getExpressionString());
+        assertSame(TestUtils.getPropertyValue(source, "dispositionMessagingTemplate.defaultChannel"), context.getBean("resultChannel"));
+        assertEquals(123L, TestUtils.getPropertyValue(source, "dispositionMessagingTemplate.sendTimeout"));
+    }
 
     static class TestComparator implements Comparator<File> {
 

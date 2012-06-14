@@ -16,6 +16,13 @@
 
 package org.springframework.integration.file;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +30,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.File;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author Iwein Fuld
@@ -41,15 +43,23 @@ public class FileToChannelIntegrationTests {
 	@Autowired
 	PollableChannel fileMessages;
 
+	@Autowired
+	PollableChannel resultChannel;
+
 	@Test(timeout = 2000)
 	public void fileMessageToChannel() throws Exception {
-		File.createTempFile("test", null, inputDirectory).setLastModified(System.currentTimeMillis() - 1000);
+		File file = File.createTempFile("test", null, inputDirectory);
+		file.setLastModified(System.currentTimeMillis() - 1000);
 		Message<File> received = receiveFileMessage();
 		while (received == null) {
 			Thread.sleep(50);
 			received = receiveFileMessage();
 		}
 		assertNotNull(received.getPayload());
+		Message<?> result = resultChannel.receive(10000);
+		assertNotNull(result);
+		assertEquals(Boolean.TRUE, result.getHeaders().get(FileHeaders.DISPOSITION_RESULT));
+		assertTrue(!file.exists());
 	}
 
 	@SuppressWarnings("unchecked")

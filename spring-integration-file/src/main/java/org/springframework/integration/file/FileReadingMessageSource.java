@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,23 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.file.FileReadingMessageSource.FileMessageHolder;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -50,7 +59,7 @@ import org.springframework.util.Assert;
  * file-writing process renames each file as soon as it is ready for reading. A
  * pattern-matching filter that accepts only files that are ready (e.g. based on
  * a known suffix), composed with the default {@link AcceptOnceFileListFilter}
- * would allow for this. 
+ * would allow for this.
  * <p/>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in
  * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as
@@ -59,12 +68,13 @@ import org.springframework.util.Assert;
  * <p/>
  * FileReadingMessageSource is fully thread-safe under concurrent
  * <code>receive()</code> invocations and message delivery callbacks.
- * 
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
-public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File> {
+public class FileReadingMessageSource extends IntegrationObjectSupport implements PseudoTransactionalMessageSource<File, FileMessageHolder> {
 
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
 
@@ -86,6 +96,16 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private volatile boolean scanEachPoll = false;
 
+	private volatile Expression dispositionExpression;
+
+	private final MessagingTemplate dispositionMessagingTemplate = new MessagingTemplate();
+
+	private volatile boolean dispostionResultChannelSet;
+
+	private final ThreadLocal<FileMessageHolder> resources = new ThreadLocal<FileMessageHolder>();
+
+	private EvaluationContext evaluationContext = new StandardEvaluationContext();
+
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
@@ -98,7 +118,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * Creates a FileReadingMessageSource with a bounded queue of the given
 	 * capacity. This can be used to reduce the memory footprint of this
 	 * component when reading from a large directory.
-	 * 
+	 *
 	 * @param internalQueueCapacity
 	 *            the size of the queue used to cache files to be received
 	 *            internally. This queue can be made larger to optimize the
@@ -124,7 +144,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * size of the queue is mutually exclusive with ordering. No guarantees
 	 * about file delivery order can be made under concurrent access.
 	 * <p/>
-	 * 
+	 *
 	 * @param receptionOrderComparator
 	 *            the comparator to be used to order the files in the internal
 	 *            queue
@@ -137,7 +157,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	/**
 	 * Specify the input directory.
-	 * 
+	 *
 	 * @param directory to monitor
 	 */
 	public void setDirectory(File directory) {
@@ -148,7 +168,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	/**
 	 * Optionally specify a custom scanner, for example the
 	 * {@link org.springframework.integration.file.RecursiveLeafOnlyDirectoryScanner}
-	 * 
+	 *
 	 * @param scanner scanner implementation
 	 */
 	public void setScanner(DirectoryScanner scanner) {
@@ -161,7 +181,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * <emphasis>true</emphasis>. If set to <emphasis>false</emphasis> and the
 	 * source directory does not exist, an Exception will be thrown upon
 	 * initialization.
-	 * 
+	 *
 	 * @param autoCreateDirectory
 	 *            should the directory to be monitored be created when this
 	 *            component starts up?
@@ -180,7 +200,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * can be used to group them together.
 	 * <p/>
 	 * <b>The supplied filter must be thread safe.</b>.
-	 * 
+	 *
 	 * @param filter a filter
 	 */
 	public void setFilter(FileListFilter<File> filter) {
@@ -193,7 +213,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * duplicate processing.
 	 * <p/>
 	 * <b>The supplied FileLocker must be thread safe</b>
-	 * 
+	 *
 	 * @param locker a locker
 	 */
 	public void setLocker(FileLocker locker) {
@@ -212,7 +232,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * will more likely be out of sync with the file system if this flag is set
 	 * to <code>false</code>, but it will change more often (causing expensive
 	 * reordering) if it is set to <code>true</code>.
-	 * 
+	 *
 	 * @param scanEachPoll
 	 *            whether or not the component should re-scan (as opposed to not
 	 *            rescanning until the entire backlog has been delivered)
@@ -221,10 +241,27 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.scanEachPoll = scanEachPoll;
 	}
 
+	public void setDispositionExpression(Expression dispositionExpression) {
+		Assert.notNull(dispositionExpression, "'dispositionExpression' must not be null");
+		this.dispositionExpression = dispositionExpression;
+	}
+
+	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
+		Assert.notNull(dispositionResultChannel, "'dispositionResultChannel' must not be null");
+		this.dispositionMessagingTemplate.setDefaultChannel(dispositionResultChannel);
+		this.dispostionResultChannelSet = true;
+	}
+
+	public void setDispositionSendTimeout(long dispositionSendTimeout) {
+		this.dispositionMessagingTemplate.setSendTimeout(dispositionSendTimeout);
+	}
+
+	@Override
 	public String getComponentType() {
 		return "file:inbound-channel-adapter";
 	}
 
+	@Override
 	protected void onInit() {
 		Assert.notNull(directory, "'directory' must not be null");
 		if (!this.directory.exists() && this.autoCreateDirectory) {
@@ -236,6 +273,10 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 				"Source path [" + this.directory + "] does not point to a directory.");
 		Assert.isTrue(this.directory.canRead(),
 				"Source directory [" + this.directory + "] is not readable.");
+		if (getBeanFactory() != null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(
+					new BeanFactoryResolver(getBeanFactory()));
+		}
 	}
 
 	public Message<File> receive() throws MessagingException {
@@ -259,6 +300,11 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");
 			}
+			FileMessageHolder resource = this.resources.get();
+			if (resource == null) {
+				this.resources.set(new FileMessageHolder());
+			}
+			this.resources.get().setMessage(message);
 		}
 		return message;
 	}
@@ -276,7 +322,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	/**
 	 * Adds the failed message back to the 'toBeReceived' queue if there is room.
-	 * 
+	 *
 	 * @param failedMessage
 	 *            the {@link org.springframework.integration.Message} that failed
 	 */
@@ -290,7 +336,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	/**
 	 * The message is just logged. It was already removed from the queue during
 	 * the call to <code>receive()</code>
-	 * 
+	 *
 	 * @param sentMessage
 	 *            the message that was successfully delivered
 	 */
@@ -300,4 +346,59 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 	}
 
+	public FileMessageHolder getResource() {
+		FileMessageHolder resource = new FileMessageHolder();
+		this.resources.set(resource);
+		return resource;
+	}
+
+	public void afterCommit(FileMessageHolder resource) {
+		Assert.isInstanceOf(FileMessageHolder.class, resource);
+		FileMessageHolder fileResource = resource;
+		if (this.dispositionExpression != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Executing expression " + this.dispositionExpression.getExpressionString() + " on " +
+						fileResource.getMessage());
+			}
+			Object result = this.dispositionExpression.getValue(this.evaluationContext, fileResource.getMessage());
+			if (result != null) {
+				if (this.dispostionResultChannelSet) {
+					try {
+						Message<File> message = MessageBuilder.fromMessage(fileResource.getMessage())
+								.setHeader(FileHeaders.DISPOSITION_RESULT, result).build();
+						this.dispositionMessagingTemplate.send(message);
+					}
+					catch (Exception e) {
+						logger.error("Error sending File Disposition Result", e);
+					}
+				}
+			}
+		}
+		this.resources.set(null);
+	}
+
+	public void afterRollback(FileMessageHolder resource) {
+		// no op
+	}
+
+	public void afterReceiveNoTx(FileMessageHolder resource) {
+		// no op
+	}
+
+	public void afterSendNoTx(FileMessageHolder resource) {
+		this.afterCommit(resource);
+	}
+
+	class FileMessageHolder {
+
+		private Message<File> message;
+
+		Message<File> getMessage() {
+			return message;
+		}
+
+		void setMessage(Message<File> message) {
+			this.message = message;
+		}
+	}
 }

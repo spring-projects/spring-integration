@@ -38,27 +38,40 @@ import org.springframework.transaction.support.TransactionSynchronization;
  * @since 2.2
  *
  */
-public interface PseudoTransactionalMessageSource<T> extends MessageSource<T> {
+public interface PseudoTransactionalMessageSource<T, V> extends MessageSource<T> {
 
 	/**
 	 * Obtain the resource on which appropriate action needs
 	 * to be taken.
 	 * @return The resource.
 	 */
-	Object getResource();
+	V getResource();
 
 	/**
 	 * Invoked via {@link TransactionSynchronization} when the
 	 * transaction commits.
 	 * @param resource The resource to be "committed"
 	 */
-	void afterCommit(Object resource);
+	void afterCommit(V resource);
 
 	/**
 	 * Invoked via {@link TransactionSynchronization} when the
 	 * transaction rolls back.
 	 * @param resource
 	 */
-	void afterRollback(Object resource);
+	void afterRollback(V resource);
+
+	/**
+	 * Called when there is no transaction and the receive() call completed.
+	 * @param resource
+	 */
+	void afterReceiveNoTx(V resource);
+
+	/**
+	 * Called when there is no transaction and after the message was
+	 * sent to the channel.
+	 * @param resource
+	 */
+	void afterSendNoTx(V resource);
 
 }
