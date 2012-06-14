@@ -54,7 +54,7 @@
       class="org.springframework.integration.file.FileReadingMessageSource"
         p:inputDirectory="${input.directory}"
         p:filter-ref="compositeFilter"/>
-<bean id="compositeFilter" 
+<bean id="compositeFilter"
       class="org.springframework.integration.file.filters.CompositeFileListFilter">
   <constructor-arg>
     <list>
@@ -100,7 +100,7 @@
            directory="file:${input.directory}"
            filename-regex="test[0-9]+\.txt" />              ]]></programlisting>
     </para>
-        <para>           
+        <para>
       The first channel adapter is relying on the default filter that just prevents
       duplication, the second is using a custom filter, the third is using the
       <emphasis>filename-pattern</emphasis> attribute to add an <classname>AntPathMatcher</classname>
@@ -122,7 +122,7 @@
      <int-file:nio-locker/>
  </int-file:inbound-channel-adapter>]]></programlisting>
     </para>
-        <para> 
+        <para>
             A custom locker you can configure like this:
              <programlisting  language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
          directory="file:${input.directory}" prevent-duplicates="true">
@@ -143,77 +143,148 @@
             that Spring Integration uses internally to wire FileListFilters FileLocker to the FileReadingMessageSource.
             A custom DirectoryScanner can be injected into the &lt;int-file:inbound-channel-adapter/&gt; on the <code>scanner</code>
             attribute.
-            <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}" 
+            <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}"
        prevent-duplicates="true" scanner="customDirectoryScanner"/>]]></programlisting>
-        </para> 
-        <para>   
+        </para>
+        <para>
             This gives you full freedom to choose the ordering, listing and locking strategies.
         </para>
   </section>
-
-  <section id="file-writing">
-    <title>Writing files</title>
-    <para>
-      To write messages to the file system you can use a
-      <classname>FileWritingMessageHandler</classname>. This class can deal with
-      File, String, or byte array payloads. In its simplest form the
-      <classname>FileWritingMessageHandler </classname> only requires a
-      destination directory for writing the files. The name of the file to be
-      written is determined by the handler's <classname>FileNameGenerator</classname>.
-      The default implementation looks for a Message header whose key matches
-      the constant defined as <code>FileHeaders.FILENAME</code>.
-    </para>
-    <para>
-      Additionally, you can configure the encoding and the charset that
-      will be used in case of a String payload.
-    </para>
-    <para>
-      To make things easier you can configure the FileWritingMessageHandler as
-      part of an outbound channel adapter using the namespace.
-      <programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>]]></programlisting>
-    </para>
-    <para>
-    The namespace based configuration also supports a <code>delete-source-files</code> attribute.
-    If set to <code>true</code>, it will trigger deletion of the original source files after writing
-    to a destination. The default value for that flag is <code>false</code>.
-    <programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut"
-             directory="${output.directory}"
-             delete-source-files="true"/>]]></programlisting>
-    <note>
-      The <code>delete-source-files</code> attribute will only have an effect if the inbound
-      Message has a File payload or if the <classname>FileHeaders.ORIGINAL_FILE</classname> header
-      value contains either the source File instance or a String representing the original file path.
-    </note>
-    </para>
-    <para>
-      In cases where you want to continue processing messages based on the written File you can use
-      the <code>outbound-gateway</code> instead. It plays a very similar role as the
-      <code>outbound-channel-adapter</code>. However after writing the File, it will also send it
-      to the reply channel as the payload of a Message.
-    <programlisting language="xml"><![CDATA[ <int-file:outbound-gateway id="mover" request-channel="moveInput"
-            reply-channel="output"
-            directory="${output.directory}"
-            delete-source-files="true"/>]]></programlisting>
-    </para>
-    <note>
-      The 'outbound-gateway' works well in cases where you want to first move a file and then send it
-      through a processing pipeline. In such cases, you may connect the file namespace's
-      'inbound-channel-adapter' element to the 'outbound-gateway' and then connect that gateway's
-      reply-channel to the beginning of the pipeline.
-    </note>
-    <para>
-      If you have more elaborate requirements or need to support additional payload types as input
-      to be converted to file content you could extend the FileWritingMessageHandler, but a much
-      better option is to rely on a <classname>Transformer</classname>.
-    </para>
-    
-    <para>
-    Since Spring Integration version 2.2. you can append Message content to the existing file instead of creating a new 
-    File each time. To do so set <emphasis>append</emphasis> attribute to <code></code>;
-    Note that this attribute is mutually exclusive with <emphasis>temporary-file-suffix</emphasis> attribute since when 
-    appending content to the existing file the adapter no longer uses temporary file.
-    </para>
-  </section>
+	<section id="file-writing">
+		<title>Writing files</title>
+		<para>
+			To write messages to the file system you can use a
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html">FileWritingMessageHandler</ulink></classname>.
+			This class can deal with <emphasis>File</emphasis>,
+			<emphasis>String</emphasis>, or <emphasis>byte array</emphasis>
+			payloads. In its simplest form the <classname>FileWritingMessageHandler</classname>
+			only requires a destination directory for writing the files. The name
+			of the file to be written is determined by the handler's
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html">FileNameGenerator</ulink></classname>.
+			The <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html">default implementation</ulink>
+			looks for a Message header whose key matches the constant defined as
+			<code>FileHeaders.FILENAME</code>.
+		</para>
+		<para>
+			Additionally, you can configure the encoding and the charset that
+			will be used in case of a String payload.
+		</para>
+		<para>
+			To make things easier, you can configure the <classname>FileWritingMessageHandler</classname>
+			as part of an <emphasis>Outbound Channel Adapter</emphasis> or
+			<emphasis>Outbound Gateway</emphasis> using the provided XML namespace
+			support.
+		</para>
+		<section id="file-writing-output-directory">
+			<title>Specifying the Output Directory</title>
+			<para>
+				Both, the <emphasis>File Oubound Channel Adapter</emphasis> and
+				the <emphasis>File Outbound Gateway</emphasis> provide two
+				configuration attributes for specifying the output directory:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para><emphasis>directory</emphasis></para>
+				</listitem>
+				<listitem>
+					<para><emphasis>directory-expression</emphasis></para>
+				</listitem>
+			</itemizedlist>
+			<note>
+				The <emphasis>directory-expression</emphasis> attribute is available since
+				Spring Integration 2.2.
+			</note>
+			<para><emphasis role="bold">Using the directory attribute</emphasis></para>
+			<para>
+				When using the <emphasis>directory</emphasis> attribute, the output
+				directory will be set to a fixed value, that is set at
+				intialization time of the <classname>FileWritingMessageHandler</classname>.
+				If you don't specify this attribute, then you must use the
+				<emphasis>directory-expression</emphasis> attribute.
+			</para>
+			<para><emphasis role="bold">Using the directory-expression attribute</emphasis></para>
+			<para>
+				If you want to have full SpEL support you would choose the
+				<emphasis>directory-expression</emphasis> attribute. This attribute
+				accepts a SpEL expression that is evaluated for each message being
+				processed. Thus, you have full access to a Message's payload and
+				its headers to dynamically specify the output file directory.
+			</para>
+			<para>
+				The SpEL expression must resolve to either a <classname>String</classname>
+				or to <classname>java.io.File</classname>. Furthermore the resulting
+				<classname>String</classname> or <classname>File</classname> must
+				point to a directory. If you don't specify the
+				<emphasis>directory-expression</emphasis> attribute, then you
+				must set the <emphasis>directory</emphasis> attribute.
+			</para>
+			<para><emphasis role="bold">Using the auto-create-directory attribute</emphasis></para>
+			<para>
+				If the destination directory does not exists, yet, by default the
+				respective destination directory and any non-existing parent directories
+				are being created automatically. You can set the
+				<emphasis>auto-create-directory</emphasis> attribute to
+				<emphasis>false</emphasis> in order to prevent that. This attribute
+				applies to both, the <emphasis>directory</emphasis> and the
+				<emphasis>directory-expression</emphasis> attribute.
+			</para>
+		</section>
+		<section id="file-writing-append">
+			<title>Append to Files</title>
+			<para>
+				Since Spring Integration 2.2 you can append Message
+				content to the existing file instead of creating a new File each
+				time. To do so, set the <emphasis>append</emphasis> attribute
+				to <code>true</code>. Note that this attribute is mutually exclusive
+				with <emphasis>temporary-file-suffix</emphasis> attribute since
+				when appending content to the existing file, the adapter no longer
+				uses a temporary file. This attribute defaults to 'false' if not
+				set explicitly.
+			</para>
+		</section>
+		<section id="file-outbound-channel-adapter">
+			<title>File Outbound Channel Adapter</title>
+			<programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>]]></programlisting>
+			<para>
+				The namespace based configuration also supports a <code>delete-source-files</code> attribute.
+				If set to <code>true</code>, it will trigger the deletion of the original source files after writing
+				to a destination. The default value for that flag is <code>false</code>.
+			</para>
+			<programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut"
+    directory="${output.directory}"
+    delete-source-files="true"/>]]></programlisting>
+			<note>
+				The <code>delete-source-files</code> attribute will only have an effect if the inbound
+				Message has a File payload or if the <classname>FileHeaders.ORIGINAL_FILE</classname> header
+				value contains either the source File instance or a String representing the original file path.
+			</note>
+		</section>
+		<section id="file-writing-output-gateway">
+			<title>Outbound Gateway</title>
+			<para>
+				In cases where you want to continue processing messages based on the written File you can use
+				the <code>outbound-gateway</code> instead. It plays a very similar role as the
+				<code>outbound-channel-adapter</code>. However after writing the File, it will also send it
+				to the reply channel as the payload of a Message.
+			</para>
+			<programlisting language="xml"><![CDATA[ <int-file:outbound-gateway id="mover" request-channel="moveInput"
+    reply-channel="output"
+    directory="${output.directory}"
+    delete-source-files="true"/>]]></programlisting>
+			<note>
+				The 'outbound-gateway' works well in cases where you want to first move a file and then send it
+				through a processing pipeline. In such cases, you may connect the file namespace's
+				'inbound-channel-adapter' element to the 'outbound-gateway' and then connect that gateway's
+				reply-channel to the beginning of the pipeline.
+			</note>
+			<para>
+				If you have more elaborate requirements or need to support additional payload types as input
+				to be converted to file content you could extend the FileWritingMessageHandler, but a much
+				better option is to rely on a <classname>Transformer</classname>.
+			</para>
+		</section>
+	</section>
+>>>>>>> INT-2618 - Document directory-expression attribute
 
   <section id="file-transforming">
     <title>File Transformers</title>
@@ -244,7 +315,7 @@
  <int-file:file-to-string-transformer input-channel="input" output-channel="output"
              delete-files="true" charset="UTF-8"/>]]></programlisting>
     </para>
-    <para>             
+    <para>
       The <emphasis>delete-files</emphasis> option signals to the transformer that it should delete
       the inbound File after the transformation is complete. This is in no way a replacement for using the
       <classname>AcceptOnceFileListFilter</classname> when the FileReadingMessageSource is being used in a
