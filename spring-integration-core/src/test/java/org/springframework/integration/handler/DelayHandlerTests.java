@@ -26,7 +26,6 @@ import org.hamcrest.Matchers;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,8 +39,10 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -371,7 +372,7 @@ public class DelayHandlerTests {
 		this.delayHandler.setMessageStore(messageGroupStore);
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
-		input.send(message);
+		this.input.send(message);
 
 		Thread.sleep(100);
 
@@ -388,41 +389,82 @@ public class DelayHandlerTests {
 		assertEquals("DelayedMessageWrapper", payload.getClass().getSimpleName());
 		assertEquals(message.getPayload(), TestUtils.getPropertyValue(payload, "original.payload"));
 
-		taskScheduler.afterPropertiesSet();
-		delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
-		delayHandler.setOutputChannel(output);
-		delayHandler.setDefaultDelay(200);
-		delayHandler.setMessageStore(messageGroupStore);
+		this.taskScheduler.afterPropertiesSet();
+		this.delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, this.taskScheduler);
+		this.delayHandler.setOutputChannel(output);
+		this.delayHandler.setDefaultDelay(200);
+		this.delayHandler.setMessageStore(messageGroupStore);
 		this.startDelayerHandler();
-		delayHandler.onApplicationEvent(new ContextRefreshedEvent(TestUtils.createTestApplicationContext()));
 
 		long timeBeforeReceive = System.currentTimeMillis();
 		this.latch.await();
 		long timeAfterReceive = System.currentTimeMillis();
 		assertThat(timeAfterReceive - timeBeforeReceive, Matchers.lessThanOrEqualTo(100L));
 
-		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
-		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+		assertSame(message.getPayload(), this.resultHandler.lastMessage.getPayload());
+		assertNotSame(Thread.currentThread(), this.resultHandler.lastThread);
 		assertEquals(1, messageGroupStore.getMessageGroupCount());
 		assertEquals(0, messageGroupStore.messageGroupSize(DELAYER_MESSAGE_GROUP_ID));
 	}
 
 	@Test //INT-1132
-	// Can happen in the parent-child context e.g. Spring-MVC applications
-	public void testDoubleOnApplicationEvent() throws Exception {
-		final AtomicInteger reschedulePersistedMessagesCount = new AtomicInteger();
-		delayHandler = Mockito.spy(delayHandler);
+	public void testRescheduleNoDeadlock() throws Exception {
+
+		final CountDownLatch latch = new CountDownLatch(3);
+
+		MessageHandler handler = Mockito.mock(MessageHandler.class);
+
 		Mockito.doAnswer(new Answer() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				reschedulePersistedMessagesCount.incrementAndGet();
+				latch.countDown();
 				return null;
 			}
-		}).when(delayHandler).reschedulePersistedMessages();
+		}).when(handler).handleMessage(Mockito.any(Message.class));
+
+		DirectChannel output = new DirectChannel();
+		output.subscribe(handler);
+
+		MessageGroupStore messageGroupStore = new SimpleMessageStore();
+		this.delayHandler.setDefaultDelay(200);
+		this.delayHandler.setMessageStore(messageGroupStore);
+		this.startDelayerHandler();
+
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		this.input.send(message);
+		this.input.send(message);
+		this.input.send(message);
+
+		Thread.sleep(100);
+
+		// emulate restart
+		this.taskScheduler.destroy();
+
+		this.taskScheduler.afterPropertiesSet();
+		this.delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
+		this.delayHandler.setOutputChannel(output);
+		this.delayHandler.setDefaultDelay(200);
+		this.delayHandler.setMessageStore(messageGroupStore);
+		this.startDelayerHandler();
+
+		latch.await();
+
+		Mockito.verify(handler, Mockito.times(3)).handleMessage(Mockito.any(Message.class));
+	}
+
+	@Test //INT-1132
+	// Can happen in the parent-child context e.g. Spring-MVC applications
+	public void testDoubleOnApplicationEvent() throws Exception {
+		this.delayHandler = Mockito.spy(this.delayHandler);
+		Mockito.doAnswer(new Answer() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return null;
+			}
+		}).when(this.delayHandler).reschedulePersistedMessages();
 
 		ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(TestUtils.createTestApplicationContext());
-		delayHandler.onApplicationEvent(contextRefreshedEvent);
-		delayHandler.onApplicationEvent(contextRefreshedEvent);
-		assertEquals(1, reschedulePersistedMessagesCount.get());
+		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
+		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
+		Mockito.verify(this.delayHandler, Mockito.times(1)).reschedulePersistedMessages();
 	}
 
 	private void waitForLatch(long timeout) {

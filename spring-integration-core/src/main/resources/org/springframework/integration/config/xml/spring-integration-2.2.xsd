@@ -3171,7 +3171,7 @@ is provided, the return value is expected to match a channel name exactly.
 						Specifies whether messages that expired should be aggregated and sent to the 'output-channel' or 'replyChannel'.
 						Messages are expired when their containing MessageGroup expires. One of the ways of expiring MessageGroups is by
 						configuring a MessageGroupStoreReaper. However MessageGroups can alternatively be expired by simply calling
-						MessageGroupStore.expireMessageGroup(messageGroupId). That could be accomplished via a ControlBus operation
+						MessageGroupStore.expireMessageGroup(groupId). That could be accomplished via a ControlBus operation
 						or by simply invoking that method if you have a reference to the MessageGroupStore instance.
 						</xsd:documentation>
 					</xsd:annotation>
