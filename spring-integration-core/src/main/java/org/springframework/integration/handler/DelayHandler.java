@@ -18,10 +18,12 @@ package org.springframework.integration.handler;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.store.MessageGroup;
@@ -62,13 +64,15 @@ import org.springframework.util.Assert;
  */
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements ApplicationListener<ContextRefreshedEvent> {
 
-	private volatile String messageGroupId;
+	private final String messageGroupId;
 
 	private volatile long defaultDelay;
 
 	private volatile String delayHeaderName;
 
 	private volatile MessageGroupStore messageStore;
+
+	private final CountDownLatch initializingLatch = new CountDownLatch(1);
 
 	/**
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
@@ -90,7 +94,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		this(messageGroupId);
 		this.setTaskScheduler(taskScheduler);
 	}
-
 
 	/**
 	 * Set the default delay in milliseconds. If no 'delayHeaderName' property
@@ -134,13 +137,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Checks if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay} and {@link DelayedMessageWrapper}).
-	 * Than determine 'delay' for 'requestMessage' ({@link #determineDelayForMessage}) and if <code>delay > 0</code>
-	 * schedules 'releaseMessage' task after 'delay' - {@link #releaseMessageAfterDelay}.
+	 * Checks if 'requestMessage' wasn't delayed before
+	 * ({@link #releaseMessageAfterDelay} and {@link DelayedMessageWrapper}).
+	 * Than determine 'delay' for 'requestMessage' ({@link #determineDelayForMessage})
+	 * and if <code>delay > 0</code> schedules 'releaseMessage' task after 'delay'.
 	 *
 	 * @param requestMessage - the Message which may be delayed.
-	 * @return - <code>null</code> if 'requestMessage' is delayed, otherwise - 'payload' from 'requestMessage'.
-	 *
+	 * @return - <code>null</code> if 'requestMessage' is delayed,
+	 * 			 otherwise - 'payload' from 'requestMessage'.
 	 * @see #releaseMessage
 	 */
 
@@ -184,6 +188,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
+		try {
+			this.initializingLatch.await();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException("Thread was interrupted during initialization.");
+		}
+
 		DelayedMessageWrapper messageWrapper = null;
 		if (message.getPayload() instanceof DelayedMessageWrapper) {
 			messageWrapper = (DelayedMessageWrapper) message.getPayload();
@@ -202,49 +214,59 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessage(Message<?> message) {
-		this.messageStore.removeMessageFromGroup(messageGroupId, message);
+		this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
 		this.handleMessageInternal(message);
 	}
 
 	/**
-	 * Used for reading persisted Messages in the 'messageStore' to reschedule them upon application restart.
-	 * The logic is based on iteration over 'messageGroupSize' and uses {@link MessageGroupStore#pollMessageFromGroup(Object)}
-	 * to retrieve Messages one by one and invokes <code>this.releaseMessageAfterDelay(message, delay)</code>
-	 * independently of value of message's 'delay'.
-	 * This behavior is dictated by the avoidance of overhead on the initializing phase.
-	 *
-	 * @see #onApplicationEvent
+	 * Used for reading persisted Messages in the 'messageStore'
+	 * to reschedule them e.g. upon application restart.
+	 * The logic is based on iteration over 'messageGroupSize'
+	 * and uses {@link MessageGroupStore#pollMessageFromGroup}
+	 * to retrieve Messages one by one and schedules task about 'delay' logic.
+	 * This behavior is dictated by the avoidance of invocation thread overload.
 	 */
-	private void reschedulePersistedMessagesOnStartup() {
+	public void reschedulePersistedMessages() {
 		int messageGroupSize = this.messageStore.messageGroupSize(this.messageGroupId);
 		while (messageGroupSize > 0) {
-			Message<?> message = this.messageStore.pollMessageFromGroup(messageGroupId);
+			final Message<?> message = this.messageStore.pollMessageFromGroup(this.messageGroupId);
 			if (message != null) {
-				long delay = this.determineDelayForMessage(message);
-				this.releaseMessageAfterDelay(message, delay);
+				this.getTaskScheduler().schedule(new Runnable() {
+					public void run() {
+						long delay = determineDelayForMessage(message);
+						if (delay > 0) {
+							releaseMessageAfterDelay(message, delay);
+						}
+						else {
+							handleMessageInternal(message);
+						}
+					}
+				}, new Date());
+
 			}
 			messageGroupSize--;
 		}
 	}
 
 	/**
-	 * Checks if event's Application context is root to wait fully application initialization
-	 * to invoke {@link #reschedulePersistedMessagesOnStartup} as late as possible.
+	 * Handles {@link ContextRefreshedEvent} to invoke {@link #reschedulePersistedMessages}
+	 * as late as possible after application context startup.
+	 * Also it checks {@link #initializingLatch} to ignore
+	 * other {@link ContextRefreshedEvent}s which may be published
+	 * in the 'parent-child' contexts, e.g. in the Spring-MVC applications.
 	 *
- 	 * @param event - {@link ContextRefreshedEvent} which occurs after Application context is completely initialized.
-	 *
-	 * @see #reschedulePersistedMessagesOnStartup
+	 * @param event - {@link ContextRefreshedEvent} which occurs
+	 *                 after Application context is completely initialized.
+	 * @see #reschedulePersistedMessages
 	 */
-	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (event.getApplicationContext().getParent() == null) {
-			this.reschedulePersistedMessagesOnStartup();
+		if (this.initializingLatch.getCount() == 1) {
+			this.reschedulePersistedMessages();
+			this.initializingLatch.countDown();
 		}
 	}
 
 	private static final class DelayedMessageWrapper implements Serializable {
-
-
 
 		private final long requestDate = System.currentTimeMillis();
 
