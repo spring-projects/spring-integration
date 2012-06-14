@@ -22,20 +22,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.DefaultLockRegistry;
 import org.springframework.integration.util.LockRegistry;
 import org.springframework.integration.util.PassThruLockRegistry;
+import org.springframework.integration.util.WhileLockedProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -248,9 +247,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
 		if (this.append){
 			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-			FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.append);
-			FileInputStream fis = new FileInputStream(sourceFile);
-			FileCopyUtils.copy(fis, fos);
+			final FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.append);
+			final FileInputStream fis = new FileInputStream(sourceFile);
+			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
+				@Override
+				protected void whileLocked() throws IOException {
+					FileCopyUtils.copy(fis, fos);
+				}
+			};
+			whileLockedProcessor.doWhileLocked();
 			this.cleanUpAfterCopy(fileToWriteTo, resultFile, sourceFile);
 			return resultFile;
 		}
@@ -273,17 +278,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 		final FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.append);
-
-		this.copy(fileToWriteTo, new Runnable() {
-			public void run()  {
-				try {
-					FileCopyUtils.copy(bytes, fos);
-				} catch (Exception e) {
-					throw new MessagingException("Failed to copy bytes into '" + resultFile.getName() + "'", e);
-				}
-
+		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
+			@Override
+			protected void whileLocked() throws IOException {
+				FileCopyUtils.copy(bytes, fos);
 			}
-		});
+
+		};
+		whileLockedProcessor.doWhileLocked();
 		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
 	}
@@ -291,32 +293,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 		final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, this.append), this.charset);
-		this.copy(fileToWriteTo, new Runnable() {
-			public void run()  {
-				try {
-					FileCopyUtils.copy(content, writer);
-				} catch (Exception e) {
-					throw new MessagingException("Faile to copy String into '" + resultFile.getName() + "'", e);
-				}
-
+		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
+			@Override
+			protected void whileLocked() throws IOException {
+				FileCopyUtils.copy(content, writer);
 			}
-		});
+
+		};
+		whileLockedProcessor.doWhileLocked();
+
 		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 		return resultFile;
-	}
-
-	private void copy(File fileToWriteTo, Runnable callback){
-		Lock lock =  lockRegistry.obtain(fileToWriteTo.getAbsolutePath());
-		try {
-			lock.lockInterruptibly();
-			try {
-				callback.run();
-			} finally {
-				lock.unlock();
-			}
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
 	}
 
 	private File determineFileToWrite(File resultFile, File tempFile){
