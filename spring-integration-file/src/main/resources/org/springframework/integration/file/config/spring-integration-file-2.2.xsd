@@ -272,6 +272,19 @@ Only files matching this regular expression will be picked up by this adapter.
 				<xsd:annotation>
 					<xsd:documentation>
 					Extension used when uploading files. We change it after we know it's uploaded.
+					This attribute is mutualy exclusive with 'append' since the append is done to the 
+					actual file and not its temporary counterpart. The default value of this attribute (i.e., .writing)
+					is ignored when 'append' is set to true.
+					</xsd:documentation>
+				</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="append" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Will append to the existing file if such file exists otherwise the new file will be created as usual 
+					but once created the subsequent data will be appended to it.
+					This attribute is mutualy exclusive with the 'temporary-file-suffix' since append is done to the 
+					actual file and not its temporary counterpart.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>

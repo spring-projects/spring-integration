@@ -30,18 +30,22 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Iwein Fuld
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -61,6 +65,12 @@ public class FileOutboundChannelAdapterParserTests {
 
     @Autowired
     EventDrivenConsumer adapterWithCharset;
+
+    @Autowired
+    MessageChannel usageChannel;
+
+    @Autowired
+    MessageChannel usageChannelConcurrent;
 
     @Test
     public void simpleAdapter() {
@@ -126,4 +136,61 @@ public class FileOutboundChannelAdapterParserTests {
         assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
     }
 
+    @Test
+    public void adapterUsageWithAppend() throws Exception{
+
+    	String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
+
+    	File testFile = new File("test/fileToAppend.txt");
+    	if (testFile.exists()){
+    		testFile.delete();
+    	}
+    	usageChannel.send(new GenericMessage<String>("Initial File Content:"));
+        usageChannel.send(new GenericMessage<String>("String content:"));
+        usageChannel.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
+        usageChannel.send(new GenericMessage<File>(new File("test/input.txt")));
+
+        String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+        assertEquals(expectedFileContent, actualFileContent);
+    }
+
+    @Test
+    public void adapterUsageWithAppendConcurrent() throws Exception{
+
+    	File testFile = new File("test/fileToAppendConcurrent.txt");
+    	if (testFile.exists()){
+    		testFile.delete();
+    	}
+
+    	StringBuffer aBuffer = new StringBuffer();
+    	StringBuffer bBuffer = new StringBuffer();
+    	for (int i = 0; i < 100000; i++) {
+			aBuffer.append("a");
+			bBuffer.append("b");
+		}
+    	String aString = aBuffer.toString();
+    	String bString = bBuffer.toString();
+
+    	for (int i = 0; i < 1; i	++) {
+    		usageChannelConcurrent.send(new GenericMessage<String>(aString));
+    		usageChannelConcurrent.send(new GenericMessage<String>(bString));
+		}
+
+    	Thread.sleep(2000);
+        String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+        int beginningIndex = 0;
+        for (int i = 0; i < 2; i++) {
+        	assertAllCharactersAreSame(actualFileContent.substring(beginningIndex, beginningIndex+99999));
+        	beginningIndex += 100000;
+		}
+
+    }
+
+    private void assertAllCharactersAreSame(String substring){
+    	char[] characters = substring.toCharArray();
+    	char c = characters[0];
+    	for (char character : characters) {
+			assertEquals(c, character);
+		}
+    }
 }
