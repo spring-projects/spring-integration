@@ -59,6 +59,9 @@ public class FileOutboundChannelAdapterIntegrationTests {
 	MessageChannel inputChannelSaveToSubDir;
 
 	@Autowired
+	MessageChannel inputChannelSaveToSubDirWithFile;
+
+	@Autowired
 	MessageChannel inputChannelSaveToSubDirAutoCreateOff;
 
 	@Autowired
@@ -66,6 +69,9 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 	@Autowired
 	MessageChannel inputChannelSaveToSubDirWithHeader;
+
+	@Autowired
+	MessageChannel inputChannelSaveToSubDirEmptyStringExpression;
 
 	Message<File> message;
 
@@ -120,6 +126,19 @@ public class FileOutboundChannelAdapterIntegrationTests {
 	}
 
 	@Test
+	public void saveToSubDirWithEmptyStringExpression() throws Exception {
+
+		try {
+			this.inputChannelSaveToSubDirEmptyStringExpression.send(message);
+		} catch (MessageHandlingException e) {
+			Assert.assertEquals("Unable to resolve destination directory name for the provided Expression ''   ''.", e.getCause().getMessage());
+			return;
+		}
+
+		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+	}
+
+	@Test
 	public void saveToSubDir2() throws Exception {
 
 		final Message<File> message2 = MessageBuilder.fromMessage(message)
@@ -143,4 +162,57 @@ public class FileOutboundChannelAdapterIntegrationTests {
 		Assert.fail("Was expecting a MessageHandlingException to be thrown");
 	}
 
+	@Test
+	public void saveToSubWithFileExpression() throws Exception {
+
+		final File directory = new File("target/base-directory/sub-directory");
+		final Message<File> messageWithFileHeader = MessageBuilder.fromMessage(message)
+				.setHeader("subDirectory", directory)
+				.build();
+		this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
+		Assert.assertTrue(new File("target/base-directory/sub-directory/foo.txt").exists());
+	}
+
+	@Test
+	public void saveToSubWithFileExpressionNull() throws Exception {
+
+		final File directory = null;
+		final Message<File> messageWithFileHeader = MessageBuilder.fromMessage(message)
+				.setHeader("subDirectory", directory)
+				.build();
+
+		try {
+			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
+		} catch (MessageHandlingException e) {
+			Assert.assertEquals("The provided destinationDirectoryExpression " +
+					"(headers['subDirectory']) must not resolve to null.",
+					e.getCause().getMessage());
+
+			return;
+		}
+
+		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+	}
+
+	@Test
+	public void saveToSubWithFileExpressionUnsupportedObjectType() throws Exception {
+
+		final Integer unsupportedObject = Integer.valueOf(1234);
+		final Message<File> messageWithFileHeader = MessageBuilder.fromMessage(message)
+				.setHeader("subDirectory", unsupportedObject)
+				.build();
+
+		try {
+			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
+		} catch (MessageHandlingException e) {
+			Assert.assertEquals("The provided destinationDirectoryExpression" +
+					" (headers['subDirectory']) must be of type " +
+					"java.io.File or be a String.",
+					e.getCause().getMessage());
+
+			return;
+		}
+
+		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+	}
 }

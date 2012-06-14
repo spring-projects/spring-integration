@@ -19,6 +19,8 @@
 	<int:channel id="inputChannelSaveToSubDirAutoCreateOff" />
 	<int:channel id="inputChannelSaveToSubDirWrongExpression" />
 	<int:channel id="inputChannelSaveToSubDirWithHeader" />
+	<int:channel id="inputChannelSaveToSubDirWithFile" />
+	<int:channel id="inputChannelSaveToSubDirEmptyStringExpression" />
 
 	<int-file:outbound-channel-adapter id="save-to-base-directory"
 		channel="inputChannelSaveToBaseDir" auto-create-directory="true"
@@ -33,6 +35,10 @@
 		channel="inputChannelSaveToSubDirWrongExpression" auto-create-directory="true"
 		directory-expression="'target/base-directory/sub-directory/foo.txt'" />
 
+	<int-file:outbound-channel-adapter id="save-to-sub-directory-empty-string-expression"
+		channel="inputChannelSaveToSubDirEmptyStringExpression" auto-create-directory="true"
+		directory-expression="'   '" />
+
 	<int-file:outbound-channel-adapter id="save-to-sub-directory"
 		channel="inputChannelSaveToSubDir" auto-create-directory="true"
 		directory-expression="'target/base-directory/sub-directory'"
@@ -46,6 +52,11 @@
 	<int-file:outbound-channel-adapter id="save-to-sub-directory-auto-create-off"
 		channel="inputChannelSaveToSubDirAutoCreateOff" auto-create-directory="false"
 		directory-expression="'target/base-directory2/sub-directory2'"
+		filename-generator-expression="'foo.txt'" />
+
+	<int-file:outbound-channel-adapter id="save-to-sub-directory-with-file-expression"
+		channel="inputChannelSaveToSubDirWithFile" auto-create-directory="true"
+		directory-expression="headers['subDirectory']"
 		filename-generator-expression="'foo.txt'" />
 
 </beans:beans>
