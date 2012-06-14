@@ -18,8 +18,6 @@ package org.springframework.integration.file.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
@@ -66,7 +64,6 @@ public class FileOutboundGatewayParserTests {
 	public void testOutboundGatewayWithDirectoryExpression() throws Exception {
 		FileWritingMessageHandler handler = TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
 		assertEquals("'build/foo'", TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class).getExpressionString());
-		assertNull(TestUtils.getPropertyValue(handler, "destinationDirectory"));
 	}
 
 }

@@ -87,7 +87,9 @@ public class FileOutboundChannelAdapterParserTests {
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
+
+		Expression destinationDirectoryExpression = (Expression)handlerAccessor.getPropertyValue("destinationDirectoryExpression");
+		File actual = new File(destinationDirectoryExpression.getExpressionString());
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
 		assertThat(actual, is(expected));
 		DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
@@ -105,7 +107,10 @@ public class FileOutboundChannelAdapterParserTests {
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
+
+		Expression destinationDirectoryExpression = (Expression)handlerAccessor.getPropertyValue("destinationDirectoryExpression");
+		File actual = new File(destinationDirectoryExpression.getExpressionString());
+
 		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
 		assertEquals(".writing", handlerAccessor.getPropertyValue("temporaryFileSuffix"));
