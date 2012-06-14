@@ -17,6 +17,7 @@
 package org.springframework.integration.file;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -246,7 +247,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
 		if (this.append){
-			return this.handleByteArrayMessage(FileCopyUtils.copyToByteArray(sourceFile), null, tempFile, resultFile);
+			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
+			FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.append);
+			FileInputStream fis = new FileInputStream(sourceFile);
+			FileCopyUtils.copy(fis, fos);
+			this.cleanUpAfterCopy(fileToWriteTo, resultFile, sourceFile);
+			return resultFile;
 		}
 		else {
 			if (this.deleteSourceFiles) {
