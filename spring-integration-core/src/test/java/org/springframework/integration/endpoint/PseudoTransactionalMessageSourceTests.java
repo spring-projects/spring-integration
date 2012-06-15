@@ -62,10 +62,10 @@ public class PseudoTransactionalMessageSourceTests {
 				rolledBack.set(resource);
 			}
 
-			public void afterReceiveNoTX(Object resource) {
+			public void afterReceiveNoTx(Object resource) {
 			}
 
-			public void afterSendNoTX(Object resource) {
+			public void afterSendNoTx(Object resource) {
 			}
 		});
 
@@ -105,10 +105,10 @@ public class PseudoTransactionalMessageSourceTests {
 				rolledBack.set(resource);
 			}
 
-			public void afterReceiveNoTX(Object resource) {
+			public void afterReceiveNoTx(Object resource) {
 			}
 
-			public void afterSendNoTX(Object resource) {
+			public void afterSendNoTx(Object resource) {
 			}
 		});
 

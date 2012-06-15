@@ -23,24 +23,55 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 
 /**
+ * Utility class with static methods for helping with establishing environments for
+ * SpEL expressions.
+ *
  * @author Gary Russell
  * @since 2.2
  *
  */
 public class ExpressionUtils {
 
+	/**
+	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
+	 * property accessor property.
+	 * @return the evaluation context.
+	 */
 	public static StandardEvaluationContext createStandardEvaluationContext() {
 		return createStandardEvaluationContext(null, null);
 	}
 
+	/**
+	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
+	 * property accessor property and the supplied {@link BeanFactory} in its
+	 * beanFactory property.
+	 * @param beanFactory the bean factory.
+	 * @return the evaluation context.
+	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
 		return createStandardEvaluationContext(beanFactory, null);
 	}
 
+	/**
+	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
+	 * property accessor property and the supplied {@link ConversionService} in its
+	 * conversionService property.
+	 * @param conversionService the conversion service.
+	 * @return the evaluation context.
+	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService) {
 		return createStandardEvaluationContext(null, conversionService);
 	}
 
+	/**
+	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
+	 * property accessor property, the supplied {@link BeanFactory} in its
+	 * beanFactory property, and the supplied {@link ConversionService} in its
+	 * conversionService property.
+	 * @param beanFactory the bean factory.
+	 * @param conversionService the conversion service.
+	 * @return the evaluation context.
+	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory,
 			ConversionService conversionService) {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();

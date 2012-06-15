@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class FileReadingMessageSource extends IntegrationObjectSupport implements PseudoTransactionalMessageSource<File> {
 
@@ -238,10 +239,12 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	}
 
 	public void setDispositionExpression(Expression dispositionExpression) {
+		Assert.notNull(dispositionExpression, "Disposition Expression must not be null");
 		this.dispositionExpression = dispositionExpression;
 	}
 
 	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
+		Assert.notNull(dispositionResultChannel, "Disposition Result Channel must not be null");
 		this.dispositionMessagingTemplate.setDefaultChannel(dispositionResultChannel);
 		this.dispostionResultChannelSet = true;
 	}
@@ -383,11 +386,11 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		// no op
 	}
 
-	public void afterReceiveNoTX(Object resource) {
+	public void afterReceiveNoTx(Object resource) {
 		// no op
 	}
 
-	public void afterSendNoTX(Object resource) {
+	public void afterSendNoTx(Object resource) {
 		this.afterCommit(resource);
 	}
 
