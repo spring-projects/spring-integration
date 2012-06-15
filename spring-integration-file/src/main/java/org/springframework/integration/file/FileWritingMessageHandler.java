@@ -205,18 +205,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	@Override
 	public final void onInit() {
 
-		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
-			final File directory = new File(this.destinationDirectoryExpression.getExpressionString());
-			validateDestinationDirectory(directory, this.autoCreateDirectory);
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
+
+		final BeanFactory beanFactory = this.getBeanFactory();
+
+		if (beanFactory != null) {
+			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
-		else {
-			this.evaluationContext.addPropertyAccessor(new MapAccessor());
 
-			final BeanFactory beanFactory = this.getBeanFactory();
-
-			if (beanFactory != null) {
-				this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-			}
+		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
+			final File directory = new File(this.destinationDirectoryExpression.getValue(
+					this.evaluationContext, null, String.class));
+			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 
 	}
