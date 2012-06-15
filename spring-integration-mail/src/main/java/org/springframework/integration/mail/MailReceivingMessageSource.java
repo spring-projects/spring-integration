@@ -94,14 +94,14 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 	/**
 	 * For backwards-compatibility; the mail adapter updates the status before the send.
 	 */
-	public void afterReceiveNoTX(Object resource) {
+	public void afterReceiveNoTx(Object resource) {
 		this.afterCommit(resource);
 	}
 
 	/**
 	 * For backwards-compatibility; the mail adapter updates the status before the send.
 	 */
-	public void afterSendNoTX(Object resource) {
+	public void afterSendNoTx(Object resource) {
 		// No op
 	}
 }

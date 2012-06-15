@@ -122,7 +122,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		}
 		finally {
 			if (this.isPseudoTxMessageSource && !isInTx) {
-				messageSource.afterReceiveNoTX(resource);
+				messageSource.afterReceiveNoTx(resource);
 			}
 		}
 		if (this.logger.isDebugEnabled()){
@@ -134,7 +134,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			}
 			this.messagingTemplate.send(this.outputChannel, message);
 			if (this.isPseudoTxMessageSource && !isInTx) {
-				messageSource.afterSendNoTX(resource);
+				messageSource.afterSendNoTx(resource);
 			}
 			return true;
 		}
