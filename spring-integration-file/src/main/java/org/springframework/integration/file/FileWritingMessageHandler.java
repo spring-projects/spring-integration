@@ -206,7 +206,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	public final void onInit() {
 
 		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
-			final File directory = new File(this.destinationDirectoryExpression.getValue(String.class));
+			final File directory = new File(this.destinationDirectoryExpression.getExpressionString());
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 		else {
@@ -406,10 +406,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File evaluateDestinationDirectoryExpression(Message<?> message) {
-
-		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
-			return new File(this.destinationDirectoryExpression.getExpressionString());
-		}
 
 		final File destinationDirectory;
 
