@@ -228,6 +228,24 @@
 				applies to both, the <emphasis>directory</emphasis> and the
 				<emphasis>directory-expression</emphasis> attribute.
 			</para>
+			<note>
+				<para>
+					When using the <emphasis>directory</emphasis> attribute and
+					<emphasis>auto-create-directory</emphasis> is <code>false</code>,
+					the following change was made starting with Spring Integration 2.2:
+				</para>
+				<para>
+					Instead of checking for the existence of the destination directory
+					at initialization time of the adapter, this check is now
+					performed for each message being processed.
+				</para>
+				<para>
+					Furthermore, if <emphasis>auto-create-directory</emphasis> is
+					<code>true</code> and the directory was deleted between the
+					processing of messages, the directory will be re-created for each
+					message being processed.
+				</para>
+			</note>
 		</section>
 		<section id="file-writing-append">
 			<title>Append to Files</title>
