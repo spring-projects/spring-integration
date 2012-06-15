@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,54 @@
 
 package org.springframework.integration.file.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.expression.Expression;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileOutboundGatewayParserTests {
 
-    @Autowired
-    private ApplicationContext context;
+	@Autowired
+	private EventDrivenConsumer ordered;
 
+	@Autowired
+	private EventDrivenConsumer gatewayWithDirectoryExpression;
 
-    @Test
-    public void checkOrderedGateway() throws Exception {
-        Object gateway = context.getBean("ordered");
-        DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
-        FileWritingMessageHandler handler = (FileWritingMessageHandler)
-                gatewayAccessor.getPropertyValue("handler");
-        assertEquals(Boolean.FALSE, gatewayAccessor.getPropertyValue("autoStartup"));
-        DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-        assertEquals(777, handlerAccessor.getPropertyValue("order"));
-        DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
-        assertNotNull(fileNameGenerator);
-        String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
-        assertNotNull(expression);
-        assertEquals("'foo.txt'", expression);
-    }
+	@Test
+	public void checkOrderedGateway() throws Exception {
+
+		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(ordered);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				gatewayAccessor.getPropertyValue("handler");
+		assertEquals(Boolean.FALSE, gatewayAccessor.getPropertyValue("autoStartup"));
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(777, handlerAccessor.getPropertyValue("order"));
+		DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
+		assertNotNull(fileNameGenerator);
+		String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
+		assertNotNull(expression);
+		assertEquals("'foo.txt'", expression);
+	}
+
+	@Test
+	public void testOutboundGatewayWithDirectoryExpression() throws Exception {
+		FileWritingMessageHandler handler = TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
+		assertEquals("'build/foo'", TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class).getExpressionString());
+	}
 
 }

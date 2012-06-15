@@ -17,9 +17,9 @@
 package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.util.StringUtils;
@@ -31,19 +31,34 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  * @since 1.0.3
  */
 abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 
 	static BeanDefinitionBuilder configure(Element element, boolean expectReply, ParserContext parserContext) {
 
-		String directory = element.getAttribute("directory");
-		if (!StringUtils.hasText(directory)) {
-			parserContext.getReaderContext().error("directory is required", element);
-		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageHandlerFactoryBean.class);
-		builder.addPropertyValue("directory", directory);
+
+		String directory = element.getAttribute("directory");
+		String directoryExpression = element.getAttribute("directory-expression");
+
+		if (!StringUtils.hasText(directory) && !StringUtils.hasText(directoryExpression)) {
+			parserContext.getReaderContext().error("directory or directory-expression is required", element);
+		}
+		else if (StringUtils.hasText(directory) && StringUtils.hasText(directoryExpression)) {
+			parserContext.getReaderContext().error("Either directory or directory-expression must be provided but not both", element);
+		}
+
+		if (StringUtils.hasText(directoryExpression)) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(directoryExpression);
+			builder.addPropertyValue("directoryExpression", expressionBuilder.getBeanDefinition());
+		}
+
 		builder.addPropertyValue("expectReply", expectReply);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delete-source-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "temporary-file-suffix");

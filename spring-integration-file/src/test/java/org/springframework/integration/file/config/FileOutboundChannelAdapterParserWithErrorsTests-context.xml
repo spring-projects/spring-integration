@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.springframework.org/schema/integration/file"
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context
@@ -13,20 +13,15 @@
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-	<outbound-gateway id="ordered"
-		request-channel="someChannel"
-		directory="${java.io.tmpdir}"
-		auto-startup="false"
-		order="777"
-		filename-generator-expression="'foo.txt'"/>
+	<si:channel id="testChannel"/>
 
-	<outbound-gateway id="gatewayWithDirectoryExpression"
-		request-channel="someChannel"
-		directory-expression="'build/foo'"
-		auto-startup="false"
-		order="777"
-		filename-generator-expression="'foo.txt'"/>
+	<file:outbound-channel-adapter id="simpleAdapter"
+								   channel="testChannel"
+								   directory="${java.io.tmpdir}"
+								   directory-expression="'foo'"
+								   temporary-file-suffix=".foo"
+								   filename-generator-expression="'foo.txt'"/>
 
-	<context:property-placeholder />
+	<context:property-placeholder/>
 
-</beans:beans>
+</beans>
