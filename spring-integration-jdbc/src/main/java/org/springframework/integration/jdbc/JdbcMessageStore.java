@@ -20,6 +20,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -163,6 +164,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile LobHandler lobHandler = new DefaultLobHandler();
 
 	private volatile MessageMapper mapper = new MessageMapper();
+
+	private volatile Map<String, String> queryCache = new HashMap<String, String>();
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -523,13 +526,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	/**
-	 * Replace patterns in the input to produce a valid SQL query. This implementation replaces the table prefix.
+	 * Replace patterns in the input to produce a valid SQL query. This implementation lazily initializes a
+	 * simple map-based cache, only replacing the table prefix on the first access to a named query. Further
+	 * accesses will be resolved from the cache.
 	 *
 	 * @param base the SQL query to be transformed
 	 * @return a transformed query with replacements
 	 */
 	protected String getQuery(String base) {
-		return StringUtils.replace(base, "%PREFIX%", tablePrefix);
+		String query = queryCache.get(base);
+
+		if (query == null) {
+			query = StringUtils.replace(base, "%PREFIX%", tablePrefix);
+			queryCache.put(base, query);
+		}
+
+		return query;
 	}
 
 	/**
