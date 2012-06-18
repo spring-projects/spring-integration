@@ -17,8 +17,10 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -72,7 +74,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private volatile MessageGroupStore messageStore;
 
-	private final CountDownLatch initializingLatch = new CountDownLatch(1);
+	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	/**
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
@@ -188,13 +190,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
-		try {
-			this.initializingLatch.await();
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new MessagingException("Thread was interrupted during initialization.");
-		}
+		Message<?> delayedMessage = message;
 
 		DelayedMessageWrapper messageWrapper = null;
 		if (message.getPayload() instanceof DelayedMessageWrapper) {
@@ -202,9 +198,11 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 		else {
 			messageWrapper = new DelayedMessageWrapper(message);
+			delayedMessage = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
+			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
-		final Message messageToSchedule = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
-		this.messageStore.addMessageToGroup(this.messageGroupId, messageToSchedule);
+
+		final Message messageToSchedule = delayedMessage;
 
 		this.getTaskScheduler().schedule(new Runnable() {
 			public void run() {
@@ -214,44 +212,45 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessage(Message<?> message) {
-		this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
-		this.handleMessageInternal(message);
+		if (this.messageStore.getMessageGroup(this.messageGroupId).getMessages().contains(message)) {
+			this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
+			this.handleMessageInternal(message);
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("No message to release: " + message + ". Likely another instance has already released it.");
+			}
+		}
 	}
 
 	/**
 	 * Used for reading persisted Messages in the 'messageStore'
 	 * to reschedule them e.g. upon application restart.
-	 * The logic is based on iteration over 'messageGroupSize'
-	 * and uses {@link MessageGroupStore#pollMessageFromGroup}
-	 * to retrieve Messages one by one and schedules task about 'delay' logic.
+	 * The logic is based on iteration over 'messageGroup.getMessages()'
+	 * and schedules task about 'delay' logic.
 	 * This behavior is dictated by the avoidance of invocation thread overload.
 	 */
 	public void reschedulePersistedMessages() {
-		int messageGroupSize = this.messageStore.messageGroupSize(this.messageGroupId);
-		while (messageGroupSize > 0) {
-			final Message<?> message = this.messageStore.pollMessageFromGroup(this.messageGroupId);
-			if (message != null) {
-				this.getTaskScheduler().schedule(new Runnable() {
-					public void run() {
-						long delay = determineDelayForMessage(message);
-						if (delay > 0) {
-							releaseMessageAfterDelay(message, delay);
-						}
-						else {
-							handleMessageInternal(message);
-						}
+		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
+		for (final Message<?> message : messageGroup.getMessages()) {
+			this.getTaskScheduler().schedule(new Runnable() {
+				public void run() {
+					long delay = determineDelayForMessage(message);
+					if (delay > 0) {
+						releaseMessageAfterDelay(message, delay);
 					}
-				}, new Date());
-
-			}
-			messageGroupSize--;
+					else {
+						releaseMessage(message);
+					}
+				}
+			}, new Date());
 		}
 	}
 
 	/**
 	 * Handles {@link ContextRefreshedEvent} to invoke {@link #reschedulePersistedMessages}
 	 * as late as possible after application context startup.
-	 * Also it checks {@link #initializingLatch} to ignore
+	 * Also it checks {@link #initialized} to ignore
 	 * other {@link ContextRefreshedEvent}s which may be published
 	 * in the 'parent-child' contexts, e.g. in the Spring-MVC applications.
 	 *
@@ -260,9 +259,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * @see #reschedulePersistedMessages
 	 */
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (this.initializingLatch.getCount() == 1) {
+		if (!this.initialized.getAndSet(true)) {
 			this.reschedulePersistedMessages();
-			this.initializingLatch.countDown();
 		}
 	}
 
@@ -282,6 +280,21 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 		public Message<?> getOriginal() {
 			return this.original;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			DelayedMessageWrapper that = (DelayedMessageWrapper) o;
+
+			return original.equals(that.original);
+		}
+
+		@Override
+		public int hashCode() {
+			return original.hashCode();
 		}
 	}
 

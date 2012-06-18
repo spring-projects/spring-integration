@@ -408,50 +408,6 @@ public class DelayHandlerTests {
 	}
 
 	@Test //INT-1132
-	public void testRescheduleNoDeadlock() throws Exception {
-
-		final CountDownLatch latch = new CountDownLatch(3);
-
-		MessageHandler handler = Mockito.mock(MessageHandler.class);
-
-		Mockito.doAnswer(new Answer() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				latch.countDown();
-				return null;
-			}
-		}).when(handler).handleMessage(Mockito.any(Message.class));
-
-		DirectChannel output = new DirectChannel();
-		output.subscribe(handler);
-
-		MessageGroupStore messageGroupStore = new SimpleMessageStore();
-		this.delayHandler.setDefaultDelay(200);
-		this.delayHandler.setMessageStore(messageGroupStore);
-		this.startDelayerHandler();
-
-		Message<?> message = MessageBuilder.withPayload("test").build();
-		this.input.send(message);
-		this.input.send(message);
-		this.input.send(message);
-
-		Thread.sleep(100);
-
-		// emulate restart
-		this.taskScheduler.destroy();
-
-		this.taskScheduler.afterPropertiesSet();
-		this.delayHandler = new DelayHandler(DELAYER_MESSAGE_GROUP_ID, taskScheduler);
-		this.delayHandler.setOutputChannel(output);
-		this.delayHandler.setDefaultDelay(200);
-		this.delayHandler.setMessageStore(messageGroupStore);
-		this.startDelayerHandler();
-
-		latch.await();
-
-		Mockito.verify(handler, Mockito.times(3)).handleMessage(Mockito.any(Message.class));
-	}
-
-	@Test //INT-1132
 	// Can happen in the parent-child context e.g. Spring-MVC applications
 	public void testDoubleOnApplicationEvent() throws Exception {
 		this.delayHandler = Mockito.spy(this.delayHandler);
