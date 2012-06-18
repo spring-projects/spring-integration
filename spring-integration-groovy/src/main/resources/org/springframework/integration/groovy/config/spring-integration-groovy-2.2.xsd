@@ -7,7 +7,7 @@
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:include
-		schemaLocation="http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-2.2.xsd" 
+		schemaLocation="http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-2.2.xsd"
 		/>
 
 	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
@@ -53,7 +53,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0"
 					maxOccurs="1" />
 			</xsd:all>
-			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
+			<xsd:attributeGroup ref="integration:inputOutputChannelGroupWithId" />
 			<xsd:attribute name="customizer" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>

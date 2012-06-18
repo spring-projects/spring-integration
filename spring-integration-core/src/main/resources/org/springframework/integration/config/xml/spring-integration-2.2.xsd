@@ -716,7 +716,7 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="resource-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -770,11 +770,11 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			
+
 			<xsd:attribute name="pattern-resolver" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to a org.springframework.core.io.support.ResourcePatternResolver. 
+						Reference to a org.springframework.core.io.support.ResourcePatternResolver.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -986,7 +986,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -1085,7 +1085,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="enricher-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1138,7 +1138,7 @@
         <xsd:attribute name="request-timeout" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
-                    Set the timeout value for sending request messages in milliseconds. 
+                    Set the timeout value for sending request messages in milliseconds.
                     If not explicitly configured, the default is one second.
                     ]]>
                 </xsd:documentation>
@@ -1147,7 +1147,7 @@
         <xsd:attribute name="reply-timeout" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
-                    Set the timeout value for receiving reply messages in milliseconds. 
+                    Set the timeout value for receiving reply messages in milliseconds.
                     If not explicitly configured, the default is one second.
                     ]]>
                 </xsd:documentation>
@@ -1156,25 +1156,25 @@
         <xsd:attribute name="requires-reply" use="optional" default="true">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
-                If you specify a 'request-channel' you can optionally set the 
-                'requires-reply' attribute as well. If you set this attribute to 
-                'true', a reply must return a non-null value. 
-                
+                If you specify a 'request-channel' you can optionally set the
+                'requires-reply' attribute as well. If you set this attribute to
+                'true', a reply must return a non-null value.
+
                 For example, you dispatch a message to the request-channel
                 (backed by a 'QueueChannel'). If the reply does not return within
-                the specified 'replyTimeout', then the reply message will end up 
+                the specified 'replyTimeout', then the reply message will end up
                 being Null.
-                
+
                 By setting 'requires-reply' to 'true', a 'ReplyRequiredException'
-                will be raised for null reply messages. If 'requires-reply' is set 
-                to false, those messages are silently dropped. 
-                
+                will be raised for null reply messages. If 'requires-reply' is set
+                to false, those messages are silently dropped.
+
                 This attribute defaults to 'true', if not specified.]]>
                 </xsd:documentation>
             </xsd:annotation>
             <xsd:simpleType>
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>            
+            </xsd:simpleType>
         </xsd:attribute>
 		<xsd:attribute name="should-clone-payload">
 			<xsd:annotation>
@@ -1268,17 +1268,28 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="delayer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:sequence minOccurs="0" maxOccurs="1">
+						<xsd:element name="poller" type="basePollerType" />
+					</xsd:sequence>
+					<xsd:attributeGroup ref="inputOutputChannelGroup"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="delayer-type">
-		<xsd:sequence>
-			<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
-		</xsd:sequence>
-		<xsd:attribute name="default-delay" type="xsd:string" use="required">
+		<xsd:attribute name="id" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					'id' value is used:
+					- as 'AbstractEndpoint' bean 'id' if this tag is defined as root element.
+					- as DelayHandler bean alias together with suffix '.handler'
+					- as 'messageGroupId' property of DelayHandler together with suffix '.messageGroupId'
+					  in the operations of MessageGroupStore for scheduling delayed messages.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="default-delay" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 					Specify the default delay in milliseconds. This value can be set to 0
@@ -1310,9 +1321,7 @@
 					this endpoint should
 					delegate when scheduling the sending of delayed Messages. If not
 					provided, the default
-					will use a thread pool of
-					size
-					1.
+					will use registered in the ApplicationContext {ThreadPoolTaskScheduler}.
 					</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1335,14 +1344,6 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="wait-for-tasks-to-complete-on-shutdown" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Specify whether tasks should be able to complete on shutdown. By
-					default this is 'false'.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="bridge">
@@ -1358,7 +1359,7 @@
 				<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
 				<xsd:element ref="poller" />
 			</xsd:choice>
-			<xsd:attributeGroup ref="inputOutputChannelGroup" />
+			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -1372,7 +1373,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="chain-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1635,7 +1636,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="header-enricher-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1895,7 +1896,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="header-filter-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1934,7 +1935,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1951,7 +1952,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="specialized-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1965,7 +1966,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="specialized-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1979,7 +1980,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="map-to-object-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2021,7 +2022,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="object-to-json-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2065,7 +2066,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="json-to-object-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2107,7 +2108,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="payload-serializing-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2142,7 +2143,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="payload-deserializing-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2185,7 +2186,7 @@
                 <xsd:sequence minOccurs="0" maxOccurs="1">
                     <xsd:element ref="poller" />
                 </xsd:sequence>
-                <xsd:attributeGroup ref="inputOutputChannelGroup" />
+                <xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -2213,7 +2214,7 @@
                 <xsd:sequence minOccurs="0" maxOccurs="1">
                     <xsd:element ref="poller" />
                 </xsd:sequence>
-                <xsd:attributeGroup ref="inputOutputChannelGroup" />
+                <xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 	        </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -2279,7 +2280,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="filter-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2987,7 +2988,7 @@ is provided, the return value is expected to match a channel name exactly.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="splitter-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3037,7 +3038,7 @@ is provided, the return value is expected to match a channel name exactly.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="aggregator-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3188,7 +3189,7 @@ is provided, the return value is expected to match a channel name exactly.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="resequencer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3604,7 +3605,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 					<xsd:all minOccurs="0" maxOccurs="1">
 						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
-					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3625,7 +3626,6 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="inputOutputChannelGroup">
-		<xsd:attribute name="id" type="xsd:string" />
 		<xsd:attribute name="output-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -3681,4 +3681,18 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             </xsd:simpleType>
         </xsd:attribute>
 	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="inputOutputChannelGroupWithId">
+		<xsd:attribute name="id" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					'id' value:
+					- Identifies the underlying Spring bean definition (AbstractEndpoint)
+					- as MessageHandler bean alias together with suffix '.handler'
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="inputOutputChannelGroup"/>
+	</xsd:attributeGroup>
+
 </xsd:schema>
