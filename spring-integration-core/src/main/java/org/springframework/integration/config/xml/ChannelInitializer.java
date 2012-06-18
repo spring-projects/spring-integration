@@ -69,7 +69,7 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		}
 		else {
 			AutoCreateCandidatesCollector channelCandidatesCollector  =
-					(AutoCreateCandidatesCollector) beanFactory.getBean(AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME, AutoCreateCandidatesCollector.class);
+					beanFactory.getBean(AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME, AutoCreateCandidatesCollector.class);
 			Assert.notNull(channelCandidatesCollector, "Failed to locate '" +
 					ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 			// at this point channelNames are all resolved with placeholders and SpEL
