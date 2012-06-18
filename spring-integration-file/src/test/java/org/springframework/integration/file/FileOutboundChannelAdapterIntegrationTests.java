@@ -18,6 +18,7 @@ package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.regex.Matcher;
 
 import junit.framework.Assert;
 
@@ -36,6 +37,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,7 +45,7 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\nŠšŸ§";
+	static final String SAMPLE_CONTENT = "HelloWorld";
 
 	static File workDir;
 
@@ -118,7 +120,7 @@ public class FileOutboundChannelAdapterIntegrationTests {
 		try {
 			this.inputChannelSaveToSubDirWrongExpression.send(message);
 		} catch (MessageHandlingException e) {
-			Assert.assertEquals("Destination path [target/base-directory/sub-directory/foo.txt] does not point to a directory.", e.getCause().getMessage());
+			Assert.assertEquals(applySystemFileSeparator("Destination path [target/base-directory/sub-directory/foo.txt] does not point to a directory."), e.getCause().getMessage());
 			return;
 		}
 
@@ -155,7 +157,7 @@ public class FileOutboundChannelAdapterIntegrationTests {
 		try {
 			this.inputChannelSaveToSubDirAutoCreateOff.send(message);
 		} catch (MessageHandlingException e) {
-			Assert.assertEquals("Destination directory [target/base-directory2/sub-directory2] does not exist.", e.getCause().getMessage());
+			Assert.assertEquals(applySystemFileSeparator("Destination directory [target/base-directory2/sub-directory2] does not exist."), e.getCause().getMessage());
 			return;
 		}
 
@@ -215,4 +217,10 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 		Assert.fail("Was expecting a MessageHandlingException to be thrown");
 	}
+
+	// INT-2621
+	private static String applySystemFileSeparator(String s) {
+		return s.replaceAll("/", Matcher.quoteReplacement(File.separator));
+	}
+
 }
