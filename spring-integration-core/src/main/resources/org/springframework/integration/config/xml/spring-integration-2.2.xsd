@@ -50,12 +50,16 @@
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor,
-	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
-				]]></xsd:documentation>
+						Provides the reference to a bean that implements
+						org.springframework.core.task.TaskExecutor which is used
+						when dispatching Messages to this channel's subscribers.
+						Also, when using a TaskExecutor, keep in mind that any
+						transaction active for the sender will NOT propagate to
+						the handler invocation since the TaskExecutor dispatches
+						to the handler on a separate Thread. Usually configured
+						using the 'task' namespace support provided by Spring
+						(e.g., <task:executor/>).
+					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
@@ -281,11 +285,15 @@
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor,
-	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
+					Provides the reference to a bean that implements
+					org.springframework.core.task.TaskExecutor which is used
+					when dispatching Messages to this channel's subscribers.
+					Also, when using a TaskExecutor, keep in mind that any
+					transaction active for the sender will NOT propagate to
+					the handler invocation since the TaskExecutor dispatches
+					to the handler on a separate Thread. Usually configured
+					using the 'task' namespace support provided by Spring
+					(e.g., <task:executor/>).
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -324,15 +332,17 @@
 					</xsd:sequence>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
-							<xsd:documentation>
-								<![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor,
-	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
-								]]>
-							</xsd:documentation>
+							<xsd:documentation><![CDATA[
+								Provides the reference to a bean that implements
+								org.springframework.core.task.TaskExecutor which is used
+								when dispatching Messages to this channel's subscribers.
+								Also, when using a TaskExecutor, keep in mind that any
+								transaction active for the sender will NOT propagate to
+								the handler invocation since the TaskExecutor dispatches
+								to the handler on a separate Thread. Usually configured
+								using the 'task' namespace support provided by Spring
+								(e.g., <task:executor/>).
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
@@ -343,11 +353,16 @@
 					<xsd:attribute name="error-handler" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-						       <![CDATA[
-	Provides reference to bean that implements org.springframework.util.ErrorHandler and provides a strategy for handling errors.
-	This is especially useful for handling errors that occur during asynchronous execution
-	of tasks that have been submitted to a TaskScheduler where it may not be possible to throw the error to the original caller
-								]]>
+							<![CDATA[
+								Provides reference to a bean that implements
+								org.springframework.util.ErrorHandler and
+								provides a strategy for handling errors.
+								This is especially useful for handling errors
+								that occur during asynchronous execution of tasks
+								that have been submitted to a TaskScheduler, where
+								it may not be possible to throw the error to the
+								original caller.
+							]]>
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -390,9 +405,11 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					<![CDATA[
-	Allows you to identify this channel as Datatype channel and specify the type of the Message
-	payload this channel accepts (e.g., datatype="java.lang.String"). Datatype channel
-	is a channel that accepts messages cotaining payload of certain type.
+						Allows you to identify this channel as a Datatype channel
+						and specify the type of the Message payload this channel
+						accepts (e.g., datatype="java.lang.String"). A Datatype
+						channel is a channel that accepts messages containing
+						payloads of a certain type.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
@@ -3581,7 +3598,7 @@ unless bean with this name is already registered.
 		<xsd:annotation>
 			<xsd:documentation>
 				<![CDATA[
-Will register Message History writer which will track message hostory. There can
+Will register a Message History writer which will track the message history. There can
 only be one Message History writer per ApplicationContext hierarchy.
 					]]>
 			</xsd:documentation>
