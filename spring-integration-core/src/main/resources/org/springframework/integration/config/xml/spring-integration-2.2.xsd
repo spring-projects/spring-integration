@@ -3581,7 +3581,7 @@ unless bean with this name is already registered.
 		<xsd:annotation>
 			<xsd:documentation>
 				<![CDATA[
-Will register Message History writer which will track message hostory. There can
+Will register a Message History writer which will track the message history. There can
 only be one Message History writer per ApplicationContext hierarchy.
 					]]>
 			</xsd:documentation>
