@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public abstract class AbstractJmsChannel extends AbstractMessageChannel {
@@ -42,7 +43,13 @@ public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		this.jmsTemplate.convertAndSend(message);
+		try {
+			DynamicJmsTemplateProperties.setPriority(message.getHeaders().getPriority());
+			this.jmsTemplate.convertAndSend(message);
+		}
+		finally {
+			DynamicJmsTemplateProperties.clearPriority();
+		}
 		return true;
 	}
 

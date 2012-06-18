@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
+import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Queue;
@@ -71,10 +72,10 @@ public class JmsChannelParserTests {
 
 	@Autowired
 	private MessageChannel topicNameChannel;
-	
+
 	@Autowired
 	private MessageChannel withPlaceholders;
-	
+
 	@Autowired
 	private MessageChannel topicNameWithResolverChannel;
 
@@ -126,6 +127,10 @@ public class JmsChannelParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertEquals(queue, jmsTemplate.getDefaultDestination());
 		assertEquals(queue, container.getDestination());
+		assertEquals(true, TestUtils.getPropertyValue(jmsTemplate, "explicitQosEnabled"));
+		assertEquals(DeliveryMode.PERSISTENT, TestUtils.getPropertyValue(jmsTemplate, "deliveryMode"));
+		assertEquals(123L, TestUtils.getPropertyValue(jmsTemplate, "timeToLive"));
+		assertEquals(12, TestUtils.getPropertyValue(jmsTemplate, "priority"));
 	}
 
 	@Test
@@ -235,7 +240,7 @@ public class JmsChannelParserTests {
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		assertEquals("foo", jmsTemplate.getDefaultDestinationName());
 	}
-	
+
 	@Test
 	public void withPlaceholders() {
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(withPlaceholders, "container", DefaultMessageListenerContainer.class);
