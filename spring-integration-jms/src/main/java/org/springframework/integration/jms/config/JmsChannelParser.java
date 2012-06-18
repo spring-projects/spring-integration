@@ -18,18 +18,17 @@ package org.springframework.integration.jms.config;
 
 import javax.jms.Session;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the 'channel' and 'publish-subscribe-channel' elements of the
  * Spring Integration JMS namespace.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakusky
  * @author Gary Russell
@@ -47,7 +46,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.jms.config.JmsChannelFactoryBean");
+				JmsChannelFactoryBean.class);
 		String messageDriven = element.getAttribute("message-driven");
 		if (StringUtils.hasText(messageDriven)) {
 			builder.addConstructorArgValue(messageDriven);
@@ -90,6 +89,10 @@ public class JmsChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
 		String cache = element.getAttribute("cache");
 		if (StringUtils.hasText(cache)) {
 			if (containerType.startsWith("simple")) {
