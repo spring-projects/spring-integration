@@ -30,12 +30,14 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,7 +45,7 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 	static final String DEFAULT_ENCODING = "UTF-8";
 
-	static final String SAMPLE_CONTENT = "HelloWorld\nŠšŸ§";
+	static final String SAMPLE_CONTENT = "HelloWorld";
 
 	static File workDir;
 
@@ -118,7 +120,9 @@ public class FileOutboundChannelAdapterIntegrationTests {
 		try {
 			this.inputChannelSaveToSubDirWrongExpression.send(message);
 		} catch (MessageHandlingException e) {
-			Assert.assertEquals("Destination path [target/base-directory/sub-directory/foo.txt] does not point to a directory.", e.getCause().getMessage());
+			Assert.assertEquals(
+					TestUtils.applySystemFileSeparator("Destination path [target/base-directory/sub-directory/foo.txt] does not point to a directory."),
+					e.getCause().getMessage());
 			return;
 		}
 
@@ -155,7 +159,9 @@ public class FileOutboundChannelAdapterIntegrationTests {
 		try {
 			this.inputChannelSaveToSubDirAutoCreateOff.send(message);
 		} catch (MessageHandlingException e) {
-			Assert.assertEquals("Destination directory [target/base-directory2/sub-directory2] does not exist.", e.getCause().getMessage());
+			Assert.assertEquals(
+					TestUtils.applySystemFileSeparator("Destination directory [target/base-directory2/sub-directory2] does not exist."),
+					e.getCause().getMessage());
 			return;
 		}
 
@@ -215,4 +221,5 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 		Assert.fail("Was expecting a MessageHandlingException to be thrown");
 	}
+
 }

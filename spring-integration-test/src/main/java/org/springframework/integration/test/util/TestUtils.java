@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.test.util;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
@@ -52,6 +53,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public abstract class TestUtils {
 
@@ -169,4 +171,13 @@ public abstract class TestUtils {
     	}
 		return component;
     }
+
+    /**
+     * Update file path by replacing any '/' with the system's file separator.
+     * @param s The file path containing '/'.
+     * @return The updated file path (if necessary).
+     */
+	public static String applySystemFileSeparator(String s) {
+		return s.replaceAll("/", java.util.regex.Matcher.quoteReplacement(File.separator));
+	}
 }
