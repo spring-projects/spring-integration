@@ -17,19 +17,17 @@
 package org.springframework.integration.handler;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
@@ -136,6 +134,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		if (this.messageStore == null) {
 			this.messageStore = new SimpleMessageStore();
 		}
+		else {
+			Assert.isInstanceOf(MessageStore.class, this.messageStore);
+		}
 	}
 
 	/**
@@ -202,7 +203,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
 
-		final Message messageToSchedule = delayedMessage;
+		final Message<?> messageToSchedule = delayedMessage;
 
 		this.getTaskScheduler().schedule(new Runnable() {
 			public void run() {
@@ -212,13 +213,15 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessage(Message<?> message) {
-		if (this.messageStore.getMessageGroup(this.messageGroupId).getMessages().contains(message)) {
+		if (this.messageStore instanceof SimpleMessageStore
+				|| ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null) {
 			this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
 			this.handleMessageInternal(message);
 		}
 		else {
 			if (logger.isDebugEnabled()) {
-				logger.debug("No message to release: " + message + ". Likely another instance has already released it.");
+				logger.debug("No message in the Message Store to release: " + message +
+						". Likely another instance has already released it.");
 			}
 		}
 	}
@@ -266,6 +269,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private static final class DelayedMessageWrapper implements Serializable {
 
+		private static final long serialVersionUID = -4739802369074947045L;
+
 		private final long requestDate = System.currentTimeMillis();
 
 		private final Message<?> original;
@@ -289,12 +294,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 			DelayedMessageWrapper that = (DelayedMessageWrapper) o;
 
-			return original.equals(that.original);
+			return this.original.equals(that.original);
 		}
 
 		@Override
 		public int hashCode() {
-			return original.hashCode();
+			return this.original.hashCode();
 		}
 	}
 
