@@ -421,6 +421,19 @@
 				seconds).
 			</para>
 		</section>
+		<section id="jmx-mbean-shutdown">
+			<title>Orderly Shutdown Managed Operation</title>
+
+			<para>
+				The MBean exporter provides a JMX operation to shut down the application
+				in an orderly manner, intended for use before terminating the JVM.
+			</para>
+			<programlisting language="java"><![CDATA[public void stopActiveComponents(boolean force, long howLong)
+]]></programlisting>
+			<para>
+				Its use and operation are described in <xref linkend="jmx-shutdown"/>.
+			</para>
+		</section>
 	</section>
 </section>
 

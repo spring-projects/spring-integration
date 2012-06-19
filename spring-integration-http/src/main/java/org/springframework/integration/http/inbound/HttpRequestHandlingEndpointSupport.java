@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,6 +50,7 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
@@ -95,7 +97,8 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Gary Russell
  * @since 2.0
  */
-abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport {
+abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
+	implements OrderlyShutdownCapable {
 
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
@@ -131,6 +134,10 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	private volatile Expression payloadExpression;
 
 	private volatile Map<String, Expression> headerExpressions;
+
+	private volatile boolean shuttingDown;
+
+	private final AtomicInteger activeCount = new AtomicInteger();
 
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -264,6 +271,10 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		this.multipartResolver = multipartResolver;
 	}
 
+	protected boolean isShuttingDown() {
+		return this.shuttingDown;
+	}
+
 	@Override
 	public String getComponentType() {
 		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter";
@@ -298,13 +309,30 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		this.validateSupportedMethods();
 	}
 
+
+	@Override
+	protected void doStart() {
+		this.shuttingDown = false;
+		super.doStart();
+	}
+
 	/**
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 * @return a the response Message
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
+		if (this.isShuttingDown()) {
+			return createServiceUnavailableResponse();
+		}
+		else {
+			return actualDoHandleRequest(servletRequest, servletResponse);
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
+		this.activeCount.incrementAndGet();
 		try {
 			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
 			if (!this.supportedMethods.contains(request.getMethod())) {
@@ -386,7 +414,20 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		}
 		finally {
 			this.postProcessRequest(servletRequest);
+			this.activeCount.decrementAndGet();
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	private Message<?> createServiceUnavailableResponse() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Endpoint is shutting down; returning status " + HttpStatus.SERVICE_UNAVAILABLE);
+		}
+		return MessageBuilder.withPayload("Endpoint is shutting down")
+				.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, HttpStatus.SERVICE_UNAVAILABLE)
+				.build();
 	}
 
 	/**
@@ -520,5 +561,14 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				}
 			}
 		}
+	}
+
+	public int beforeShutdown() {
+		this.shuttingDown = true;
+		return this.activeCount.get();
+	}
+
+	public int afterShutdown() {
+		return this.activeCount.get();
 	}
 }

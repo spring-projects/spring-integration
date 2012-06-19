@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
  * Spring Integration Messages, and sends the results to a Message Channel.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @since 2.1
@@ -88,6 +88,26 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	@Override
 	protected void doStop() {
 		this.messageListenerContainer.stop();
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Shuts down the listener container.
+	 */
+	public int beforeShutdown() {
+		this.stop();
+		return 0;
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>No-op
+	 */
+	public int afterShutdown() {
+		return 0;
 	}
 
 }

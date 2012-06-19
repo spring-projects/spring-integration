@@ -8,5 +8,6 @@
   <xi:include href="./message-history.xml"/>
   <xi:include href="./message-store.xml"/>
   <xi:include href="./control-bus.xml"/>
- 
+  <xi:include href="./shutdown.xml"/>
+
 </chapter>

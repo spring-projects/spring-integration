@@ -37,7 +37,6 @@ import javax.management.modelmbean.ModelMBean;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
@@ -463,7 +462,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 */
 	public void run() {
 		try {
-			this.stopOrderlyShutdownCapableComponents();
+			this.orderlyShutdownCapableComponentsBefore();
 			this.stopActiveChannels();
 			this.stopSchedulers();
 			if (System.currentTimeMillis() > this.shutdownDeadline) {
@@ -487,12 +486,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					Thread.currentThread().interrupt();
 					logger.error("Interrupted while waiting for quiesce");
 				}
+				this.orderlyShutdownCapableComponentsAfter();
 			}
 			else {
 				this.shutdownForced = true;
 				this.stopSchedulers();
 				this.stopExecutors();
 				this.stopNonSpringExecutors();
+				this.orderlyShutdownCapableComponentsAfter();
 			}
 		}
 		finally {
@@ -610,21 +611,32 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		logger.debug("Stopped other executors");
 	}
 
-	@ManagedOperation
-	public void stopOrderlyShutdownCapableComponents() {
-		logger.debug("Stopping OrderlyShutdownCapable components");
-		Map<String, OrderlyShutdownCapable> candidates = this.applicationContext
+	protected final void orderlyShutdownCapableComponentsBefore() {
+		logger.debug("Initiating stop OrderlyShutdownCapable components");
+		Map<String, OrderlyShutdownCapable> components = this.applicationContext
 				.getBeansOfType(OrderlyShutdownCapable.class);
-		for (Entry<String, OrderlyShutdownCapable> candidateEntry : candidates.entrySet()) {
-			OrderlyShutdownCapable candidate = candidateEntry.getValue();
-			if (candidate instanceof Lifecycle) {
-				if (logger.isInfoEnabled()) {
-					logger.info("Stopping component " + candidate);
-				}
-				((Lifecycle) candidate).stop();
+		for (Entry<String, OrderlyShutdownCapable> componentEntry : components.entrySet()) {
+			OrderlyShutdownCapable component = componentEntry.getValue();
+			int n = component.beforeShutdown();
+			if (logger.isInfoEnabled()) {
+				logger.info("Initiated stop for component " + component + "; it reported " + n + " active messages");
 			}
 		}
-		logger.debug("Stopped OrderlyShutdownCapable components");
+		logger.debug("Initiated stop OrderlyShutdownCapable components");
+	}
+
+	protected final void orderlyShutdownCapableComponentsAfter() {
+		logger.debug("Finalizing stop OrderlyShutdownCapable components");
+		Map<String, OrderlyShutdownCapable> components = this.applicationContext
+				.getBeansOfType(OrderlyShutdownCapable.class);
+		for (Entry<String, OrderlyShutdownCapable> componentEntry : components.entrySet()) {
+			OrderlyShutdownCapable component = componentEntry.getValue();
+			int n = component.afterShutdown();
+			if (logger.isInfoEnabled()) {
+				logger.info("Finalized stop for component " + component + "; it reported " + n + " active messages");
+			}
+		}
+		logger.debug("Initiated stop OrderlyShutdownCapable components");
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Channel Count")

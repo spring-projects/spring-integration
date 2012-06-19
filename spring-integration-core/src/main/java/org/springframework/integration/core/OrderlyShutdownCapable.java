@@ -16,15 +16,33 @@
 package org.springframework.integration.core;
 
 /**
- * Marker interface for components that wish to be considered for
- * an orderly shutdown using management interfaces. Components that
- * implement this interface will be stopped before schedulers,
- * executors etc, in order for them to free up any execution
- * threads they may be holding.
+ * Interface for components that wish to be considered for
+ * an orderly shutdown using management interfaces. beforeShuddown()
+ * will be called before schedulers, executors etc, are stopped.
+ * afterShutdown() is called after the shutdown delay.
+ *
  * @author Gary Russell
  * @since 2.2
  *
  */
 public interface OrderlyShutdownCapable {
+
+	/**
+	 * Called before shutdown begins. Implementations should
+	 * stop accepting new messages. Can optionally return the
+	 * number of active messages in process.
+	 * @return The number of active messages if available.
+	 */
+	int beforeShutdown();
+
+	/**
+	 * Called after normal shutdown of schedulers, executors etc,
+	 * and after the shutdown delay has elapsed, but before any
+	 * forced shutdown of any remaining active scheduler/executor
+	 * threads.Can optionally return the number of active messages
+	 * still in process.
+	 * @return The number of active messages if available.
+	 */
+	int afterShutdown();
 
 }
