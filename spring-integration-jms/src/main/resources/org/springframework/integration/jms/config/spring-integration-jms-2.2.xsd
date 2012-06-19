@@ -342,6 +342,40 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="delivery-persistent" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify a boolean value indicating whether the delivery mode should be
+	DeliveryMode.PERSISTENT (true) or DeliveryMode.NON_PERSISTENT (false).
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="time-to-live" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify the message time to live.
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="priority" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify the default priority of the message. Overridden by the message priority
+	header, if present; range 0-9.
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="explicit-qos-enabled" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Setting this attribute to true enables the use of quality of service attributes - message
+	priority, delivery mode, time to live.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="message-driven-channel-adapter">
@@ -870,9 +904,31 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="time-to-live" type="xsd:string"/>
-			<xsd:attribute name="priority" type="xsd:string"/>
-			<xsd:attribute name="explicit-qos-enabled" type="xsd:string"/>
+			<xsd:attribute name="time-to-live" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify the message time to live.
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="priority" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify the default priority of the message. Overridden by the message priority
+	header, if present; range 0-9
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="explicit-qos-enabled" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Setting this attribute to true enables the use of quality of service attributes - message
+	priority, delivery mode, time to live.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="order" type="xsd:string">
 				<xsd:annotation>
@@ -976,9 +1032,31 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="time-to-live" type="xsd:string"/>
-					<xsd:attribute name="priority" type="xsd:string"/>
-					<xsd:attribute name="explicit-qos-enabled" type="xsd:string"/>
+					<xsd:attribute name="time-to-live" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify the message time to live.
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="priority" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify the default priority of the message. Overridden by the message priority
+	header, if present; range 0-9.
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="explicit-qos-enabled" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Setting this attribute to true enables the use of quality of service attributes - message
+	priority, delivery mode, time to live.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="order" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[

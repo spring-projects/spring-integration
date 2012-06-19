@@ -10,7 +10,11 @@
 
 	<context:property-placeholder location="classpath:org/springframework/integration/jms/config/channel.properties"/>
 
-	<jms:channel id="queueReferenceChannel" queue="testQueue"/>
+	<jms:channel id="queueReferenceChannel" queue="testQueue"
+		explicit-qos-enabled="true"
+		delivery-persistent="true"
+		time-to-live="123"
+		priority="12"/>
 
 	<jms:channel id="queueNameChannel" queue-name="test.queue"/>
 
