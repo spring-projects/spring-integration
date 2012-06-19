@@ -61,4 +61,17 @@ public interface PseudoTransactionalMessageSource<T> extends MessageSource<T> {
 	 */
 	void afterRollback(Object resource);
 
+	/**
+	 * Called when there is no transaction and the receive() call completed.
+	 * @param resource
+	 */
+	void afterReceiveNoTx(Object resource);
+
+	/**
+	 * Called when there is no transaction and after the message was
+	 * sent to the channel.
+	 * @param resource
+	 */
+	void afterSendNoTx(Object resource);
+
 }

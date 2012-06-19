@@ -83,5 +83,11 @@ public class PseudoTransactionalMessageSourceTests {
 			latch2.countDown();
 		}
 
+		public void afterReceiveNoTx(Object resource) {
+		}
+
+		public void afterSendNoTx(Object resource) {
+		}
+
 	}
 }

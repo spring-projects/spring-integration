@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package org.springframework.integration.file;
 /**
  * Pre-defined header names to be used when storing or retrieving
  * File-related values to/from integration Message Headers.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class FileHeaders {
 
@@ -33,5 +34,7 @@ public abstract class FileHeaders {
 	public static final String REMOTE_DIRECTORY = PREFIX + "remoteDirectory";
 
 	public static final String REMOTE_FILE = PREFIX + "remoteFile";
+
+	public static final String DISPOSITION_RESULT = PREFIX + "dispositionResult";
 
 }

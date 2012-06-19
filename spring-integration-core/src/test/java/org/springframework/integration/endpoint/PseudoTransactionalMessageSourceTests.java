@@ -61,6 +61,12 @@ public class PseudoTransactionalMessageSourceTests {
 			public void afterRollback(Object resource) {
 				rolledBack.set(resource);
 			}
+
+			public void afterReceiveNoTx(Object resource) {
+			}
+
+			public void afterSendNoTx(Object resource) {
+			}
 		});
 
 		TransactionSynchronizationManager.initSynchronization();
@@ -97,6 +103,12 @@ public class PseudoTransactionalMessageSourceTests {
 
 			public void afterRollback(Object resource) {
 				rolledBack.set(resource);
+			}
+
+			public void afterReceiveNoTx(Object resource) {
+			}
+
+			public void afterSendNoTx(Object resource) {
 			}
 		});
 
