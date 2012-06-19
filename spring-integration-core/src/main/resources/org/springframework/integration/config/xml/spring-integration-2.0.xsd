@@ -50,12 +50,15 @@
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor.
-	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
-				]]></xsd:documentation>
+						Provides a reference to a bean that implements
+						org.springframework.core.task.TaskExecutor which is used when
+						dispatching Messages to this channel's subscribers. Also,
+						when using a TaskExecutor, keep in mind that any transaction
+						active for the sender will NOT propagate to the handler
+						invocation, since the TaskExecutor dispatches to the
+						handler on a separate Thread. Usually configured using the
+						'task' namespace support provided by Spring (e.g., <task:executor/>)
+					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
@@ -198,8 +201,10 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					<![CDATA[
-	Allows you to specify the reference to the bean which implements java.util.Comparator&lt;Message&lt;?&gt;&gt;
-	interface and provides logic based on which Messages will be prioritized.
+						Allows you to specify the reference to the bean which
+						implements the java.util.Comparator<Message<?>>
+						interface and provides the logic based on which Messages
+						will be prioritized.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
@@ -281,11 +286,14 @@
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor.
-	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
+					Provides a reference to a bean that implements
+					org.springframework.core.task.TaskExecutor which is used when
+					dispatching Messages to this channel's subscribers. Also,
+					when using a TaskExecutor, keep in mind that any transaction
+					active for the sender will NOT propagate to the handler
+					invocation, since the TaskExecutor dispatches to the
+					handler on a separate Thread. Usually configured using the
+					'task' namespace support provided by Spring (e.g., <task:executor/>)
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -326,11 +334,14 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								<![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor.
-	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
+									Provides a reference to a bean that implements
+									org.springframework.core.task.TaskExecutor which is used when
+									dispatching Messages to this channel's subscribers. Also,
+									when using a TaskExecutor, keep in mind that any transaction
+									active for the sender will NOT propagate to the handler
+									invocation, since the TaskExecutor dispatches to the
+									handler on a separate Thread. Usually configured using the
+									'task' namespace support provided by Spring (e.g., <task:executor/>)
 								]]>
 							</xsd:documentation>
 							<xsd:appinfo>
@@ -343,11 +354,16 @@
 					<xsd:attribute name="error-handler" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-						       <![CDATA[
-	Provides reference to bean that implements org.springframework.util.ErrorHandler and provides a strategy for handling errors.
-	This is especially useful for handling errors that occur during asynchronous execution
-	of tasks that have been submitted to a TaskScheduler where it may not be possible to throw the error to the original caller
-								]]>
+							<![CDATA[
+								Provides reference to a bean that implements
+								org.springframework.util.ErrorHandler and
+								provides a strategy for handling errors.
+								This is especially useful for handling errors
+								that occur during asynchronous execution of tasks
+								that have been submitted to a TaskScheduler, where
+								it may not be possible to throw the error to the
+								original caller.
+							]]>
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -390,9 +406,11 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					<![CDATA[
-	Allows you to identify this channel as Datatype channel and specify the type of the Message
-	payload this channel accepts (e.g., datatype="java.lang.String"). Datatype channel
-	is a channel that accepts messages cotaining payload of certain type.
+						Allows you to identify this channel as a Datatype channel
+						and specify the type of the Message payload this channel
+						accepts (e.g., datatype="java.lang.String"). A Datatype
+						channel is a channel that accepts messages containing
+						payloads of a certain type.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
@@ -484,10 +502,12 @@
 						<xsd:attribute name="reply-channel" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>
-										<![CDATA[
-								Identifies channel this gateway will subscribe to to recieve reply Message.
-								The reply Message which will then be converted to the return type of the method signature.
-										]]>
+									<![CDATA[
+									Identifies the channel this gateway will
+									subscribe to, to recieve a reply Message. The
+									reply Message will then be converted to the
+									return type of the method signature.
+									]]>
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
@@ -549,10 +569,11 @@
 			<xsd:attribute name="default-reply-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-										<![CDATA[
-								Identifies default channel this gateway will subscribe to to recieve reply Messages, which will then be
-								converted to the return type of the method signature.
-										]]>
+						<![CDATA[
+							Identifies the default channel this gateway will subscribe to,
+							to receive reply Messages, which will then be
+							converted to the return type of the method signature.
+						]]>
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -600,7 +621,8 @@
 	<xsd:complexType name="headerSubElementType">
 		<xsd:annotation>
 			<xsd:documentation>	<![CDATA[
-				Provides mechanism to enrich content of the message with custom message headers. When this method is going to be invoked
+				Provides a mechanism to enrich content of the message with
+				custom message headers. When this method is going to be invoked,
 				the generated message will be enriched with these headers.
 			]]></xsd:documentation>
 		</xsd:annotation>
@@ -825,9 +847,10 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-					Identifies channel attached to this adapter. Depending on the type of the adapter
-					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where
-					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+					Identifies the channel attached to this adapter. Depending on
+					the type of the adapter this channel could be the
+					receiving channel (e.g. outbound-channel-adapter) or the channel
+					where messages will be sent to by this adapter (e.g. inbound-channel-adapter).
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -1647,11 +1670,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="pattern-match" type="xsd:boolean" default="true">
 			<xsd:annotation>
 				<xsd:documentation>
-					Boolean flag that specifies whether values provided in 'header-names' should be treated as
-					match patterns or literal values. For example header-names='foo*' would mean remove all
-					headers that begin with 'foo' including the header named 'foo*'. However if you want to
-					treat '*' as literal value setting this flag to FALSE will not perform pattern match and
-					the only header that will be removed is the one that is an exact match.
+					Boolean flag that specifies whether values provided in 'header-names'
+					should be treated as match patterns or literal values. For
+					example header-names='foo*' would mean:
+					remove all headers that begin with 'foo' including the header
+					named 'foo*'. However if you want to treat '*' as literal
+					value, setting this flag to FALSE will not perform a pattern
+					match and the only header that will be removed is the one
+					that is an exact match.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -1916,8 +1942,10 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					<xsd:attribute name="remove-message" type="xsd:boolean" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
-								If set to 'true' the Message will be removed from the MessageStore by
-								this transformer. Useful when Message can be 'claimed' only once. DEFAULT is 'false'.
+								If set to 'true' the Message will be removed from
+								the MessageStore by this transformer. Useful
+								when the Message can be 'claimed' only once.
+								DEFAULT is 'false'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -1957,8 +1985,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Message Filters that is used to decide whether a Message should be passed
-				along or dropped based on some criteria
+				Defines a Message Filter that is used to decide, whether a Message
+				should be passed along or dropped, based on some criteria.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2466,9 +2494,11 @@ Name of the header whose value will be used to route messages
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy-expression" type="xsd:string">
 					<xsd:annotation>
-						<xsd:documentation>A SpEL expression which implements correlation decision
-						algorithm to apply to the Message (e.g., payload.getPerson().getId() - correlate
-						 based on the 'id' of the 'person' attribute of the message payload object)</xsd:documentation>
+						<xsd:documentation>A SpEL expression which implements a
+						correlation decision algorithm to apply to the Message
+						(e.g. payload.getPerson().getId() - correlate
+						 based on the 'id' of the 'person' attribute of the
+						 message payload object)</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="discard-channel" type="xsd:string">
