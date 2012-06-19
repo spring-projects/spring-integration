@@ -1067,9 +1067,6 @@ public class TcpSendingMessageHandlerTests {
 	public void testOutboundChannelAdapterWithinChain() throws Exception {
 		ApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"TcpOutboundChannelAdapterWithinChainTests-context.xml", this.getClass());
-		AbstractConnectionFactory ccf = ctx.getBean("ccf", AbstractConnectionFactory.class);
-//		TODO Lifecycle#start() isn't invoked within chain...
-		ccf.start();
 		AbstractServerConnectionFactory scf = ctx.getBean(AbstractServerConnectionFactory.class);
 		TestingUtilities.waitListening(scf, null);
 		MessageChannel channelAdapterWithinChain = ctx.getBean("tcpOutboundChannelAdapterWithinChain", MessageChannel.class);

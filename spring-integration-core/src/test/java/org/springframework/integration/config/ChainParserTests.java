@@ -34,6 +34,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
@@ -287,6 +288,16 @@ public class ChainParserTests {
 			assertThat(e.getMessage(), both(containsString("output channel was provided")).and(containsString("does not implement the MessageProducer")));
 			throw e;
 		}
+	}
+
+	@Test //INT-2605
+	public void checkSmartLifecycleConfig() {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("ChainParserSmartLifecycleAttributesTest.xml", this.getClass());
+		MessageHandlerChain handlerChain = ctx.getBean(MessageHandlerChain.class);
+		assertEquals(false, handlerChain.isAutoStartup());
+		assertEquals(256, handlerChain.getPhase());
+		assertEquals(3000L, TestUtils.getPropertyValue(handlerChain, "sendTimeout"));
+		assertEquals(false, TestUtils.getPropertyValue(handlerChain, "running"));
 	}
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
