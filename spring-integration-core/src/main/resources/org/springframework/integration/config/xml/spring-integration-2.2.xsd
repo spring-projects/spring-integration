@@ -1372,10 +1372,10 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:sequence>
+			<xsd:choice maxOccurs="unbounded">
 				<xsd:element name="poller" type="basePollerType" minOccurs="0"/>
 				<xsd:group ref="chain-elements-group" maxOccurs="unbounded"/>
-			</xsd:sequence>
+			</xsd:choice>
 			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 			<xsd:attribute name="phase" type="xsd:string">
 				<xsd:annotation>

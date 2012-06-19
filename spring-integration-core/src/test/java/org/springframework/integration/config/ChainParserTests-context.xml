@@ -39,14 +39,14 @@
 	</chain>
 
 	<chain input-channel="pollableInput1" output-channel="output">
-		<poller fixed-delay="10000" />
 		<filter ref="typeSelector" />
+		<poller fixed-delay="10000" />
 		<service-activator ref="testHandler" />
 	</chain>
 
 	<chain input-channel="pollableInput2" output-channel="output">
-		<poller ref="topLevelPoller"/>
 		<service-activator ref="testHandler" />
+		<poller ref="topLevelPoller"/>
 	</chain>
 
 	<poller id="topLevelPoller" fixed-delay="5000" />
@@ -86,7 +86,7 @@
      <claim-check-in/>
      <claim-check-out/>
   </chain>
-  
+
   <channel id="claimCheckOutput">
     <queue/>
   </channel>
@@ -132,7 +132,7 @@
 		<beans:constructor-arg value="1" />
 		<beans:property name="replyMessageText" value="foo" />
 	</beans:bean>
-	
+
 	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 </beans:beans>
