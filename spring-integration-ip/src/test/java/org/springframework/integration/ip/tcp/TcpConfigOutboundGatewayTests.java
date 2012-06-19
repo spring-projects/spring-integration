@@ -29,7 +29,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -113,9 +112,6 @@ public class TcpConfigOutboundGatewayTests {
 	SubscribableChannel requestChannelNio;
 
 	@Autowired
-	AbstractClientConnectionFactory crLfClient2;
-
-	@Autowired
 	MessageChannel tcpOutboundGatewayInsideChain;
 
 	@Test
@@ -177,9 +173,6 @@ public class TcpConfigOutboundGatewayTests {
 
 	@Test //INT-1029
 	public void testOutboundInsideChain() throws Exception {
-//		TODO Lifecycle#start() isn't invoked within chain...
-		crLfClient2.start();
-
 		tcpOutboundGatewayInsideChain.send(MessageBuilder.withPayload("test").build());
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
 		assertEquals("echo:test", new String(bytes).trim());

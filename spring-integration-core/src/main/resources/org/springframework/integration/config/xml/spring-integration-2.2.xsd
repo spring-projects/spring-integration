@@ -1389,54 +1389,70 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="chain-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:choice maxOccurs="unbounded">
+				<xsd:element name="poller" type="basePollerType" minOccurs="0"/>
+				<xsd:group ref="chain-elements-group" maxOccurs="unbounded"/>
+			</xsd:choice>
+			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+			<xsd:attribute name="phase" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The Lifecycle attribute determining the start/stop order
+							of the underlying MessageHandlerChain.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="chain-type">
-		<xsd:sequence>
-			<xsd:choice minOccurs="0" maxOccurs="unbounded">
-				<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded"/>
+	<xsd:group name="chain-elements-group">
+			<xsd:sequence>
+				<xsd:choice minOccurs="0" maxOccurs="unbounded">
+					<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded"/>
 
-				<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware"/>
-				<xsd:element name="splitter" type="splitter-type"/>
-				<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware"/>
-				<xsd:element name="header-enricher" type="header-enricher-type"/>
-				<xsd:element name="header-filter" type="header-filter-type"/>
-				<xsd:element name="enricher" type="enricher-type"/>
-				<xsd:element name="filter" type="filter-type"/>
-				<xsd:element name="aggregator" type="aggregator-type"/>
-				<xsd:element name="resequencer" type="resequencer-type"/>
-				<xsd:element name="router" type="routerTypeChain"/>
-				<xsd:element name="payload-type-router" type="payloadTypeRouterTypeChain"/>
-				<xsd:element name="recipient-list-router" type="recipientListRouterTypeChain"/>
-				<xsd:element name="exception-type-router" type="exceptionTypeRouterTypeChain"/>
-				<xsd:element name="header-value-router" type="headerValueRouterTypeChain"/>
-				<xsd:element name="delayer" type="delayer-type"/>
-				<xsd:element name="gateway" type="innerGatewayType"/>
-				<xsd:element name="poller" type="basePollerType"/>
-				<xsd:element name="payload-serializing-transformer" type="payload-serializing-transformer-type"/>
-				<xsd:element name="payload-deserializing-transformer" type="payload-deserializing-transformer-type"/>
-				<xsd:element name="object-to-string-transformer" type="specialized-transformer-type"/>
-				<xsd:element name="object-to-map-transformer" type="specialized-transformer-type"/>
-				<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type"/>
-				<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type"/>
-				<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type"/>
-				<xsd:element name="claim-check-in" type="claimCheckInTypeChain"/>
-				<xsd:element name="claim-check-out" type="claimCheckOutTypeChain"/>
-				<xsd:element name="control-bus" type="control-bus-type"/>
-				<xsd:element name="chain" type="chain-type"/>
-			</xsd:choice>
-			<xsd:choice minOccurs="0">
-				<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterTypeChain"/>
-				<xsd:element name="logging-channel-adapter" type="loggingChannelAdapterTypeChain"/>
-			</xsd:choice>
-		</xsd:sequence>
-	</xsd:complexType>
+					<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware"/>
+					<xsd:element name="splitter" type="splitter-type"/>
+					<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware"/>
+					<xsd:element name="header-enricher" type="header-enricher-type"/>
+					<xsd:element name="header-filter" type="header-filter-type"/>
+					<xsd:element name="enricher" type="enricher-type"/>
+					<xsd:element name="filter" type="filter-type"/>
+					<xsd:element name="aggregator" type="aggregator-type"/>
+					<xsd:element name="resequencer" type="resequencer-type"/>
+					<xsd:element name="router" type="routerTypeChain"/>
+					<xsd:element name="payload-type-router" type="payloadTypeRouterTypeChain"/>
+					<xsd:element name="recipient-list-router" type="recipientListRouterTypeChain"/>
+					<xsd:element name="exception-type-router" type="exceptionTypeRouterTypeChain"/>
+					<xsd:element name="header-value-router" type="headerValueRouterTypeChain"/>
+					<xsd:element name="delayer" type="delayer-type"/>
+					<xsd:element name="gateway" type="innerGatewayType"/>
+					<xsd:element name="payload-serializing-transformer" type="payload-serializing-transformer-type"/>
+					<xsd:element name="payload-deserializing-transformer"
+								 type="payload-deserializing-transformer-type"/>
+					<xsd:element name="object-to-string-transformer" type="specialized-transformer-type"/>
+					<xsd:element name="object-to-map-transformer" type="specialized-transformer-type"/>
+					<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type"/>
+					<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type"/>
+					<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type"/>
+					<xsd:element name="claim-check-in" type="claimCheckInTypeChain"/>
+					<xsd:element name="claim-check-out" type="claimCheckOutTypeChain"/>
+					<xsd:element name="control-bus" type="control-bus-type"/>
+					<xsd:element name="chain">
+						<xsd:complexType>
+							<xsd:sequence>
+								<xsd:group ref="chain-elements-group"/>
+							</xsd:sequence>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:choice>
+				<xsd:choice minOccurs="0">
+					<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterTypeChain"/>
+					<xsd:element name="logging-channel-adapter" type="loggingChannelAdapterTypeChain"/>
+				</xsd:choice>
+			</xsd:sequence>
+	</xsd:group>
 
 	<xsd:element name="poller">
 		<xsd:annotation>
