@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.integration.channel.QueueChannel;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class GatewayProxyMessageMappingTests {
@@ -173,13 +174,17 @@ public class GatewayProxyMessageMappingTests {
 		assertNull(channel.receive(0));
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void twoMapsWithoutAnnotations() {
 		Map<String, Object> map1 = new HashMap<String, Object>();
 		Map<String, Object> map2 = new HashMap<String, Object>();
 		map1.put("k1", "v1");
 		map2.put("k2", "v2");
 		gateway.twoMapsWithoutAnnotations(map1, map2);
+		Message<?> barResult = channel.receive(0);
+		assertEquals(map1, barResult.getPayload());
+		assertEquals("v2", barResult.getHeaders().get("k2"));
+		System.out.println(barResult);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -220,7 +225,7 @@ public class GatewayProxyMessageMappingTests {
 
 		void payloadAnnotationWithExpressionUsingBeanResolver(@Payload("@testBean.sum(#this)") String s);
 
-		// invalid
+		// valid first paylod second headers
 		void twoMapsWithoutAnnotations(Map<String, Object> m1, Map<String, Object> m2);
 
 		// invalid
