@@ -141,7 +141,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		lock.lock();
 		try {
 			if (this.loadBalancingStrategy != null) {
-				return this.loadBalancingStrategy.getHandlerIterator(message, new ArrayList<MessageHandler>(this.getHandlers()));
+				return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
 			}
 		} finally {
 			lock.unlock();
