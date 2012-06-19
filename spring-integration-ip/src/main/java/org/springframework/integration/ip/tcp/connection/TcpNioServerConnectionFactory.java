@@ -150,17 +150,26 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
 		logger.debug("New accept");
 		SocketChannel channel = server.accept();
-		channel.configureBlocking(false);
-		Socket socket = channel.socket();
-		setSocketAttributes(socket);
-		TcpNioConnection connection = createTcpNioConnection(channel);
-		if (connection == null) {
-			return;
+		if (this.isShuttingDown()) {
+			if (logger.isInfoEnabled()) {
+				logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
+						+ " rejected; shutting down.");
+			}
+			channel.close();
 		}
-		connection.setTaskExecutor(this.getTaskExecutor());
-		connection.setLastRead(now);
-		channelMap.put(channel, connection);
-		channel.register(selector, SelectionKey.OP_READ, connection);
+		else {
+			channel.configureBlocking(false);
+			Socket socket = channel.socket();
+			setSocketAttributes(socket);
+			TcpNioConnection connection = createTcpNioConnection(channel);
+			if (connection == null) {
+				return;
+			}
+			connection.setTaskExecutor(this.getTaskExecutor());
+			connection.setLastRead(now);
+			this.channelMap.put(channel, connection);
+			channel.register(selector, SelectionKey.OP_READ, connection);
+		}
 	}
 
 	private TcpNioConnection createTcpNioConnection(SocketChannel socketChannel) {

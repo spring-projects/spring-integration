@@ -1,11 +1,11 @@
 /*
  * Copyright 2009-2012 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -44,9 +44,9 @@ import org.springframework.util.Assert;
 public class MBeanExporterIntegrationTests {
 
 	private IntegrationMBeanExporter messageChannelsMonitor;
-	
+
 	private GenericXmlApplicationContext context;
-	
+
 	@After
 	public void close() {
 		if (context!=null) {
@@ -55,28 +55,28 @@ public class MBeanExporterIntegrationTests {
 	}
 
 	@Test
-	public void testCircularReferenceNoChannel() throws Exception {		
+	public void testCircularReferenceNoChannel() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "oref-nonchannel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 	}
 
 	@Test
-	public void testCircularReferenceNoChannelInFactoryBean() throws Exception {		
+	public void testCircularReferenceNoChannelInFactoryBean() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-nonchannel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 	}
 
 	@Test
-	public void testCircularReferenceWithChannel() throws Exception {		
+	public void testCircularReferenceWithChannel() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "oref-channel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 	}
 
 	@Test
-	public void testCircularReferenceWithChannelInFactoryBean() throws Exception {		
+	public void testCircularReferenceWithChannelInFactoryBean() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-channel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
@@ -87,14 +87,14 @@ public class MBeanExporterIntegrationTests {
 	}
 
 	@Test
-	public void testCircularReferenceWithChannelInFactoryBeanAutodetected() throws Exception {		
+	public void testCircularReferenceWithChannelInFactoryBeanAutodetected() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-channel-autodetect.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 	}
 
 	@Test
-	public void testLifecycleInEndpointWithMessageSource() throws Exception {		
+	public void testLifecycleInEndpointWithMessageSource() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "lifecycle-source.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
@@ -119,7 +119,8 @@ public class MBeanExporterIntegrationTests {
 		ActiveChannel activeChannel = context.getBean("activeChannel", ActiveChannel.class);
 		assertTrue(activeChannel.isStopCalled());
 		OtherActiveComponent otherActiveComponent = context.getBean(OtherActiveComponent.class);
-		assertTrue(otherActiveComponent.isStopCalled());
+		assertTrue(otherActiveComponent.isBeforeCalled());
+		assertTrue(otherActiveComponent.isAfterCalled());
 	}
 
 	@Test
@@ -138,7 +139,7 @@ public class MBeanExporterIntegrationTests {
 	}
 
 	@Test
-	public void testLifecycleInEndpointWithoutMessageSource() throws Exception {		
+	public void testLifecycleInEndpointWithoutMessageSource() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "lifecycle-no-source.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
@@ -160,7 +161,7 @@ public class MBeanExporterIntegrationTests {
 	}
 
 	@Test
-	public void testComponentNames() throws Exception {		
+	public void testComponentNames() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "excluded-components.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
@@ -173,7 +174,7 @@ public class MBeanExporterIntegrationTests {
 	}
 
 	@Test
-	public void testDuplicateComponentNames() throws Exception {		
+	public void testDuplicateComponentNames() throws Exception {
 		context = new GenericXmlApplicationContext(getClass(), "duplicate-components.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
@@ -181,12 +182,12 @@ public class MBeanExporterIntegrationTests {
 		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
 		assertEquals(2, names.size());
 	}
-	
+
 	public static class BogusEndpoint extends AbstractEndpoint {
-		
+
 		@SuppressWarnings("unused")
 		private IntegrationObjectSupport parent;
-		
+
 		public void setParent(IntegrationObjectSupport parent) {
 			this.parent = parent;
 			setComponentName(parent.getComponentName());
@@ -199,7 +200,7 @@ public class MBeanExporterIntegrationTests {
 		@Override
 		protected void doStop() {
 		}
-		
+
 	}
 
 	public static class DateFactoryBean implements FactoryBean<Date> {
@@ -265,16 +266,16 @@ public class MBeanExporterIntegrationTests {
 		}
 
 	}
-	
+
 	@ManagedResource
 	public static class Metric {
-		
+
 	}
 
 	public static class MetricHolder implements InitializingBean {
 
 		private MessageChannel channel;
-		
+
 		public void setChannel(MessageChannel channel) {
 			this.channel = channel;
 		}
@@ -289,7 +290,7 @@ public class MBeanExporterIntegrationTests {
 		String execute() throws Exception;
 		int getCounter();
 	}
-	
+
 	public static class SimpleService implements Service {
 		private int counter;
 
@@ -336,23 +337,28 @@ public class MBeanExporterIntegrationTests {
 		}
 	}
 
-	public static class OtherActiveComponent implements OrderlyShutdownCapable, Lifecycle {
+	public static class OtherActiveComponent implements OrderlyShutdownCapable {
 
-		private boolean stopCalled;
+		private boolean beforeCalled;
 
-		public void start() {
+		private boolean afterCalled;
+
+		public boolean isBeforeCalled() {
+			return this.beforeCalled;
 		}
 
-		public void stop() {
-			this.stopCalled = true;
+		protected boolean isAfterCalled() {
+			return afterCalled;
 		}
 
-		public boolean isRunning() {
-			return false;
+		public int beforeShutdown() {
+			this.beforeCalled = true;
+			return 0;
 		}
 
-		public boolean isStopCalled() {
-			return this.stopCalled;
+		public int afterShutdown() {
+			this.afterCalled = true;
+			return 0;
 		}
 	}
 }

@@ -16,8 +16,10 @@
 package org.springframework.integration.ip.tcp;
 
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.core.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
@@ -31,17 +33,17 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
- * Tcp inbound channel adapter using a TcpConnection to 
+ * Tcp inbound channel adapter using a TcpConnection to
  * receive data - if the connection factory is a server
  * factory, this Listener owns the connections. If it is
  * a client factory, the sender owns the connection.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
  */
-public class TcpReceivingChannelAdapter 
-	extends MessageProducerSupport implements TcpListener, ClientModeCapable {
+public class TcpReceivingChannelAdapter
+	extends MessageProducerSupport implements TcpListener, ClientModeCapable, OrderlyShutdownCapable {
 
 	private AbstractConnectionFactory clientConnectionFactory;
 
@@ -59,8 +61,25 @@ public class TcpReceivingChannelAdapter
 
 	private volatile boolean active;
 
+	private volatile boolean shuttingDown;
+
+	private final AtomicInteger activeCount = new AtomicInteger();
+
 	public boolean onMessage(Message<?> message) {
-		sendMessage(message);
+		if (this.shuttingDown) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Inbound message ignored; shutting down; " + message.toString());
+			}
+		}
+		else {
+			this.activeCount.incrementAndGet();
+			try {
+				sendMessage(message);
+			}
+			finally {
+				this.activeCount.decrementAndGet();
+			}
+		}
 		return false;
 	}
 
@@ -80,6 +99,7 @@ public class TcpReceivingChannelAdapter
 		super.doStart();
 		if (!this.active) {
 			this.active = true;
+			this.shuttingDown = false;
 			if (this.serverConnectionFactory != null) {
 				this.serverConnectionFactory.start();
 			}
@@ -117,7 +137,7 @@ public class TcpReceivingChannelAdapter
 	 * Sets the client or server connection factory; for this (an inbound adapter), if
 	 * the factory is a client connection factory, the sockets are owned by a sending
 	 * channel adapter and this adapter is used to receive replies.
-	 * 
+	 *
 	 * @param connectionFactory the connectionFactory to set
 	 */
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
@@ -126,7 +146,7 @@ public class TcpReceivingChannelAdapter
 		} else {
 			this.serverConnectionFactory = connectionFactory;
 		}
-		connectionFactory.registerListener(this);		
+		connectionFactory.registerListener(this);
 	}
 
 	public boolean isListening() {
@@ -139,6 +159,7 @@ public class TcpReceivingChannelAdapter
 		return false;
 	}
 
+	@Override
 	public String getComponentType(){
 		return "ip:tcp-inbound-channel-adapter";
 	}
@@ -221,4 +242,13 @@ public class TcpReceivingChannelAdapter
 		}
 	}
 
+	public int beforeShutdown() {
+		this.shuttingDown = true;
+		return this.activeCount.get();
+	}
+
+	public int afterShutdown() {
+		this.stop();
+		return this.activeCount.get();
+	}
 }

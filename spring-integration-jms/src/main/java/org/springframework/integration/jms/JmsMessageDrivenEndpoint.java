@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 /**
  * A message-driven endpoint that receive JMS messages, converts them into
  * Spring Integration Messages, and then sends the result to a channel.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -65,13 +65,15 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
 		listener.setComponentName(this.getComponentName());
 	}
 
+	@Override
 	protected void doStart() {
 		this.listener.start();
 		if (!this.listenerContainer.isRunning()) {
-			this.listenerContainer.start();	
+			this.listenerContainer.start();
 		}
 	}
 
+	@Override
 	protected void doStop() {
 		this.listenerContainer.stop();
 		this.listener.stop();
@@ -82,6 +84,17 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements
 			this.stop();
 		}
 		this.listenerContainer.destroy();
+	}
+
+
+	public int beforeShutdown() {
+		this.stop();
+		return 0;
+	}
+
+
+	public int afterShutdown() {
+		return 0;
 	}
 
 }

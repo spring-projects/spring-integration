@@ -88,15 +88,24 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 					}
 					continue;
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
+				if (this.isShuttingDown()) {
+					if (logger.isInfoEnabled()) {
+						logger.info("New connection from " + socket.getInetAddress().getHostAddress()
+								+ " rejected; shutting down.");
+					}
+					socket.close();
 				}
-				setSocketAttributes(socket);
-				TcpConnection connection = new TcpNetConnection(socket, true, this.isLookupHost());
-				connection = wrapConnection(connection);
-				this.initializeConnection(connection, socket);
-				this.getTaskExecutor().execute(connection);
-				this.harvestClosedConnections();
+				else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
+					}
+					setSocketAttributes(socket);
+					TcpConnection connection = new TcpNetConnection(socket, true, this.isLookupHost());
+					connection = wrapConnection(connection);
+					this.initializeConnection(connection, socket);
+					this.getTaskExecutor().execute(connection);
+					this.harvestClosedConnections();
+				}
 			}
 		} catch (Exception e) {
 			// don't log an error if we had a good socket once and now it's closed

@@ -18,8 +18,10 @@ package org.springframework.integration.ip.tcp;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.core.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -37,7 +39,7 @@ import org.springframework.util.Assert;
 /**
  * Inbound Gateway using a server connection factory - threading is controlled by the
  * factory. For java.net connections, each socket can process only one message at a time.
- * For java.nio connections, messages may be multiplexed but the client will need to 
+ * For java.nio connections, messages may be multiplexed but the client will need to
  * provide correlation logic. If the client is a {@link TcpOutboundGateway} multiplexing
  * is not used, but multiple concurrent connections can be used if the connection factory uses
  * single-use connections. For true asynchronous bi-directional communication, a pair of
@@ -47,7 +49,7 @@ import org.springframework.util.Assert;
  *
  */
 public class TcpInboundGateway extends MessagingGatewaySupport implements
-		TcpListener, TcpSender, ClientModeCapable {
+		TcpListener, TcpSender, ClientModeCapable, OrderlyShutdownCapable {
 
 	private volatile AbstractServerConnectionFactory serverConnectionFactory;
 
@@ -67,7 +69,29 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile boolean active;
 
+	private volatile boolean shuttingDown;
+
+	private final AtomicInteger activeCount = new AtomicInteger();
+
 	public boolean onMessage(Message<?> message) {
+		if (this.shuttingDown) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Inbound message ignored; shutting down; " + message.toString());
+			}
+		}
+		else {
+			this.activeCount.incrementAndGet();
+			try {
+				return doOnMessage(message);
+			}
+			finally {
+				this.activeCount.decrementAndGet();
+			}
+		}
+		return false;
+	}
+
+	private boolean doOnMessage(Message<?> message) {
 		Message<?> reply = this.sendAndReceiveMessage(message);
 		if (reply == null) {
 			if (logger.isDebugEnabled()) {
@@ -92,7 +116,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		return false;
 	}
 
-	/** 
+	/**
 	 * @return true if the associated connection factory is listening.
 	 */
 	public boolean isListening() {
@@ -126,6 +150,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
+	@Override
 	public String getComponentType(){
 		return "ip:tcp-inbound-gateway";
 	}
@@ -146,6 +171,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		super.doStart();
 		if (!this.active) {
 			this.active = true;
+			this.shuttingDown = false;
 			if (this.serverConnectionFactory != null) {
 				this.serverConnectionFactory.start();
 			}
@@ -243,4 +269,13 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 		}
 	}
 
+	public int beforeShutdown() {
+		this.shuttingDown = true;
+		return this.activeCount.get();
+	}
+
+	public int afterShutdown() {
+		this.stop();
+		return this.activeCount.get();
+	}
 }
