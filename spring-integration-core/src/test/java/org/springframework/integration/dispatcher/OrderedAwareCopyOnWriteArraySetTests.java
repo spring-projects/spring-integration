@@ -16,20 +16,21 @@
 
 package org.springframework.integration.dispatcher;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.core.Ordered;
 
-import static org.junit.Assert.assertEquals;
+import org.springframework.core.Ordered;
 
 /**
  * @author Oleg Zhurakousky
  * @since 1.0.3
  */
 @SuppressWarnings("unchecked")
-public class OrderedAwareLinkedHashSetTests {
+public class OrderedAwareCopyOnWriteArraySetTests {
 
 	/**
 	 * Tests that semantics of the LinkedHashSet were not broken
@@ -37,7 +38,7 @@ public class OrderedAwareLinkedHashSetTests {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddUnordered(){
-		OrderedAwareLinkedHashSet setToTest = new OrderedAwareLinkedHashSet();
+		OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
 		setToTest.add("foo");
 		setToTest.add("bar");
 		setToTest.add("baz");
@@ -49,16 +50,16 @@ public class OrderedAwareLinkedHashSetTests {
 	}
 	/**
 	 * Tests that semantics of TreeSet(Comparator) were not broken.
-	 * However, there is a special Comparator (instantiated by default) for this implementation of Set, 
+	 * However, there is a special Comparator (instantiated by default) for this implementation of Set,
 	 * which allows elements with the same "order" as long as these elements themselves are not equal.
-	 * In this case element with the same order will be placed to the right (appended next to) of 
-	 * the already existing element, thus preserving the order of insertion (LinkedHashset semantics) 
-	 * within the elements that have the same "order" value. 
+	 * In this case element with the same order will be placed to the right (appended next to) of
+	 * the already existing element, thus preserving the order of insertion (LinkedHashset semantics)
+	 * within the elements that have the same "order" value.
 	 */
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddOrdered(){
-		OrderedAwareLinkedHashSet setToTest = new OrderedAwareLinkedHashSet();
+		OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
 		Object o1 = new Foo(3);
 		Object o2 = new Foo(1);
 		Object o3 = new Foo(2);
@@ -78,7 +79,7 @@ public class OrderedAwareLinkedHashSetTests {
 		setToTest.add(o7);
 		setToTest.add(o8);
 		setToTest.add(o9);
-		setToTest.add(o10);		
+		setToTest.add(o10);
 		assertEquals(10, setToTest.size());
 		Object[] elements = setToTest.toArray();
 		assertEquals(o7, elements[0]);
@@ -92,7 +93,7 @@ public class OrderedAwareLinkedHashSetTests {
 		assertEquals(o5, elements[8]);
 		assertEquals(o6, elements[9]);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddAllOrderedUnordered(){
@@ -116,9 +117,9 @@ public class OrderedAwareLinkedHashSetTests {
 		tempList.add(o7);
 		tempList.add(o8);
 		tempList.add(o9);
-		tempList.add(o10);		
+		tempList.add(o10);
 		assertEquals(10, tempList.size());
-		OrderedAwareLinkedHashSet orderAwareSet = new OrderedAwareLinkedHashSet();
+		OrderedAwareCopyOnWriteArraySet orderAwareSet = new OrderedAwareCopyOnWriteArraySet();
 		orderAwareSet.addAll(tempList);
 		Object[] elements = orderAwareSet.toArray();
 		assertEquals(o7, elements[0]);
@@ -132,7 +133,7 @@ public class OrderedAwareLinkedHashSetTests {
 		assertEquals(o3, elements[8]);
 		assertEquals(o10, elements[9]);
 	}
-	
+
 	@Test
 	public void testConcurrent(){
 		for(int i = 0; i < 1000; i++){
@@ -141,7 +142,7 @@ public class OrderedAwareLinkedHashSetTests {
 	}
 	@SuppressWarnings("rawtypes")
 	private void doConcurrent(){
-		final OrderedAwareLinkedHashSet setToTest = new OrderedAwareLinkedHashSet();
+		final OrderedAwareCopyOnWriteArraySet setToTest = new OrderedAwareCopyOnWriteArraySet();
 		final Object o1 = new Foo(3);
 		final Object o2 = new Foo(1);
 		final Object o3 = new Foo(2);
@@ -163,20 +164,20 @@ public class OrderedAwareLinkedHashSetTests {
 		});
 		Thread t2 = new Thread(new Runnable() {
 			public void run() {
-				setToTest.add(o2);				
-				setToTest.add(o4);				
-				setToTest.add(o6);				
-				setToTest.add(o8);			
-				setToTest.add(o10);	
+				setToTest.add(o2);
+				setToTest.add(o4);
+				setToTest.add(o6);
+				setToTest.add(o8);
+				setToTest.add(o10);
 			}
 		});
 		Thread t3 = new Thread(new Runnable() {
 			public void run() {
-				setToTest.add(1);				
-				setToTest.add(new Foo(2));				
-				setToTest.add(3);				
-				setToTest.add(new Foo(9));			
-				setToTest.add(8);	
+				setToTest.add(1);
+				setToTest.add(new Foo(2));
+				setToTest.add(3);
+				setToTest.add(new Foo(9));
+				setToTest.add(8);
 			}
 		});
 		t1.start();
@@ -190,8 +191,8 @@ public class OrderedAwareLinkedHashSetTests {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-		
-			
+
+
 		assertEquals(15, setToTest.size());
 	}
 	/**
@@ -216,7 +217,7 @@ public class OrderedAwareLinkedHashSetTests {
 		Object o8 = new Foo(Ordered.HIGHEST_PRECEDENCE);
 		Object o9 = new Foo(4);
 		Object o10 = "Baz";
-		
+
 		tempList.add(o1);
 		tempList.add(o2);
 		tempList.add(o3);
@@ -226,8 +227,8 @@ public class OrderedAwareLinkedHashSetTests {
 		tempList.add(o7);
 		tempList.add(o8);
 		tempList.add(o9);
-		tempList.add(o10);		
-		final OrderedAwareLinkedHashSet orderAwareSet = new OrderedAwareLinkedHashSet();
+		tempList.add(o10);
+		final OrderedAwareCopyOnWriteArraySet orderAwareSet = new OrderedAwareCopyOnWriteArraySet();
 		Thread t1 = new Thread(new Runnable() {
 			public void run() {
 				orderAwareSet.addAll(tempList);
@@ -256,9 +257,9 @@ public class OrderedAwareLinkedHashSetTests {
 		Thread t3 = new Thread(new Runnable() {
 			public void run() {
 				orderAwareSet.add("hello");
-				orderAwareSet.add("hello again");	
+				orderAwareSet.add("hello again");
 			}
-		});		
+		});
 
 		t1.start();
 		t2.start();
@@ -275,13 +276,14 @@ public class OrderedAwareLinkedHashSetTests {
 		assertEquals(18, elements.length);
 	}
 	private static class Foo implements Ordered {
-		private int order;
+		private final int order;
 		public Foo(int order){
 			this.order = order;
 		}
 		public int getOrder() {
 			return order;
-		}	
+		}
+		@Override
 		public String toString(){
 			return "Foo-" + order;
 		}

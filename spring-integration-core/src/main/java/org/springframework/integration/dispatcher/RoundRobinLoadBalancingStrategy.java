@@ -49,7 +49,7 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 			return handlers.iterator();
 		}
 
-		return this.buildHandlerIterator(size, handlers.toArray(new MessageHandler[]{}));
+		return this.buildHandlerIterator(size, handlers.toArray(new MessageHandler[size]));
 	}
 
 	private Iterator<MessageHandler> buildHandlerIterator(int size, final MessageHandler[] handlers){

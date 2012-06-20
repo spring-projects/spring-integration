@@ -43,8 +43,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final OrderedAwareLinkedHashSet<MessageHandler> handlers =
-			new OrderedAwareLinkedHashSet<MessageHandler>();
+	private final OrderedAwareCopyOnWriteArraySet<MessageHandler> handlers =
+			new OrderedAwareCopyOnWriteArraySet<MessageHandler>();
 
 
 	/**

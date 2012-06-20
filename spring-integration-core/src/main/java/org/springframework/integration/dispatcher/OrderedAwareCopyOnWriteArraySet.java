@@ -54,7 +54,7 @@ import org.springframework.util.StringUtils;
  * @since 1.0.3
  */
 @SuppressWarnings({"unchecked"})
-class OrderedAwareLinkedHashSet<E> implements Set<E> {
+class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 
 	private final OrderComparator comparator = new OrderComparator();
 
@@ -68,7 +68,7 @@ class OrderedAwareLinkedHashSet<E> implements Set<E> {
 
     private final transient Set<E> unmodifiableElements;
 
-    public OrderedAwareLinkedHashSet() {
+    public OrderedAwareCopyOnWriteArraySet() {
         elements = new CopyOnWriteArraySet<E>();
         unmodifiableElements = Collections.unmodifiableSet(elements);
     }
