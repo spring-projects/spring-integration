@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.gateway.GatewayMethodInboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class GatewayMethodInboundMessageMapperToMessageTests {
 
@@ -192,7 +192,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.toMessage(new Object[] { "abc", "def" });
 	}
-	
+
 	@Test
 	public void toMessageWithPayloadAndHeaders() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
@@ -207,16 +207,64 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertEquals(42, message.getHeaders().get("bar"));
 	}
 
+	@Test
+	public void toMessageWithPayloadMap() throws Exception {
+		Method method = TestService.class.getMethod("sendPayloadMap", Map.class);
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		map.put(1, "hello");
+
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		Message<?> message = mapper.toMessage(new Object[] { map });
+		assertEquals(map, message.getPayload());
+		assertNull(message.getHeaders().get(1));
+	}
+
+	@Test
+	public void toMessageWithPayloadMapAndHeaders() throws Exception {
+		Method method = TestService.class.getMethod("sendPayloadMapAndHeadersMap", Map.class, Map.class);
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		map.put(1, "hello");
+
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "FOO");
+
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		Message<?> message = mapper.toMessage(new Object[] { map, headers });
+		assertEquals(map, message.getPayload());
+		assertEquals("FOO", message.getHeaders().get("foo"));
+	}
+
+	@Test
+	public void toMessageWithPayloadMapAndHeaders2() throws Exception {
+		Method method = TestService.class.getMethod("sendPayloadMapAndHeadersMap2", Map.class, Map.class);
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		map.put(1, "hello");
+
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "FOO");
+
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		Message<?> message = mapper.toMessage(new Object[] { headers, map });
+		assertEquals(map, message.getPayload());
+		assertEquals("FOO", message.getHeaders().get("foo"));
+	}
+
 
 	private static interface TestService {
 
 		void sendPayload(String payload);
 
 		void sendPayloadAndHeader(String payload, @Header("foo") String foo);
-		
+
 		void sendPayloadAndOptionalHeader(String payload, @Header(value="foo", required=false) String foo);
 
 		void sendPayloadAndHeadersMap(String payload, @Headers Map<String, Object> headers);
+
+		void sendPayloadMap(Map<Object, Object> map);
+
+		void sendPayloadMapAndHeadersMap(Map<Object, Object> map, Map<String, Object> headers);
+
+		void sendPayloadMapAndHeadersMap2(Map<String, Object> headers, Map<Object, Object> map);
 
 		void sendMessage(Message<?> message);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 package org.springframework.integration.gateway;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +34,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -74,6 +79,41 @@ public class GatewayWithPayloadExpressionTests {
 		assertEquals("send3", result.getPayload());
 	}
 
+	@Test
+	public void payloadExpressionMap() throws Exception {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("foo", "FOO");
+		gateway.send4(map);
+		Message<?> result = input.receive(0);
+		assertEquals(map, ((Object[])result.getPayload())[0]);
+		assertNull(result.getHeaders().get("foo"));
+	}
+
+	@Test
+	public void payloadExpressionMaps() throws Exception {
+		Map<String, Object> mapA = new HashMap<String, Object>();
+		mapA.put("foo", "FOO");
+		Map<String, Object> mapB = new HashMap<String, Object>();
+		mapB.put("bar", "BAR");
+		gateway.send5(mapA, mapB);
+		Message<?> result = input.receive(0);
+		assertEquals(mapA, ((Object[])result.getPayload())[0]);
+		assertEquals(mapB, ((Object[])result.getPayload())[1]);
+	}
+
+	@Test
+	public void payloadExpressionMapsOneIsNotHeaders() throws Exception {
+		Map<String, Object> mapA = new HashMap<String, Object>();
+		mapA.put("foo", "FOO");
+		Map<Object, Object> mapB = new HashMap<Object, Object>();
+		mapB.put(1, "1");
+		gateway.send6(mapA, mapB);
+		Message<?> result = input.receive(0);
+		System.out.println(result);
+		assertEquals(mapA, ((Object[])result.getPayload())[0]);
+		assertEquals(mapB, ((Object[])result.getPayload())[1]);
+	}
+
 
 	public static interface SampleGateway {
 
@@ -82,6 +122,12 @@ public class GatewayWithPayloadExpressionTests {
 		void send2(String value);
 
 		void send3();
+
+		void send4(Map<String, ?> map);
+
+		void send5(Map<String, ?> mapA, Map<String, ?> mapB);
+
+		void send6(Map<String, ?> mapA, Map<Object, ?> mapB);
 	}
 
 

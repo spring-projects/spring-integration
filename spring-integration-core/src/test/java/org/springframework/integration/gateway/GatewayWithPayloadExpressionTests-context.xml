@@ -11,6 +11,9 @@
 		<int:method name="send1" request-channel="input" payload-expression="#args[0] + 'bar'"/>
 		<int:method name="send2" request-channel="input" payload-expression="@testBean.sum(#args[0])"/>
 		<int:method name="send3" request-channel="input" payload-expression="#method"/>
+		<int:method name="send4" request-channel="input" payload-expression="new java.lang.Object[]{#args[0]}"/>
+		<int:method name="send5" request-channel="input" payload-expression="new java.lang.Object[]{#args[0], #args[1]}"/>
+		<int:method name="send6" request-channel="input" payload-expression="new java.lang.Object[]{#args[0], #args[1]}"/>
 	</int:gateway>
 
 	<int:gateway id="annotatedGateway"
