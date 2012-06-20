@@ -53,8 +53,8 @@ import org.springframework.util.StringUtils;
  * @author Diego Belfer
  * @since 1.0.3
  */
-@SuppressWarnings({"unchecked", "serial"})
-class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
+@SuppressWarnings({"unchecked"})
+class OrderedAwareLinkedHashSet<E> implements Set<E> {
 
 	private final OrderComparator comparator = new OrderComparator();
 
@@ -83,7 +83,6 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	 * Set will be re-sorted, otherwise the element is simply added
 	 * to the end. Added element must not be null.
 	 */
-	@Override
 	public boolean add(E o) {
 		Assert.notNull(o,"Can not add NULL object");
 		writeLock.lock();
@@ -105,7 +104,6 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	/**
 	 * Adds all elements in this Collection.
 	 */
-	@Override
 	public boolean addAll(Collection<? extends E> c) {
 		Assert.notNull(c,"Can not merge with NULL set");
 		writeLock.lock();
@@ -123,7 +121,6 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
 	public boolean remove(Object o) {
 		writeLock.lock();
 		try {
@@ -139,7 +136,6 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
 	public boolean removeAll(Collection<?> c){
 		if (CollectionUtils.isEmpty(c)){
 			return false;
@@ -153,7 +149,6 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 		}
 	}
 
-	@Override
 	public <T> T[] toArray(T[] a) {
 		readLock.lock();
 		try {
@@ -213,13 +208,35 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 		return added;
 	}
 
-	@Override
     public Iterator<E> iterator() {
         return this.elements.iterator();
     }
 
-	@Override
 	public int size(){
-		return elements.size();
+		return this.elements.size();
+	}
+
+	public boolean isEmpty() {
+		return this.elements.isEmpty();
+	}
+
+	public boolean contains(Object o) {
+		return this.elements.contains(o);
+	}
+
+	public Object[] toArray() {
+		return this.elements.toArray();
+	}
+
+	public boolean containsAll(Collection<?> c) {
+		return this.elements.containsAll(c);
+	}
+
+	public boolean retainAll(Collection<?> c) {
+		return this.elements.retainAll(c);
+	}
+
+	public void clear() {
+		this.elements.clear();
 	}
 }
