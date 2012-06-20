@@ -352,9 +352,9 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		return resource;
 	}
 
-	public void afterCommit(Object resource) {
+	public void afterCommit(FileMessageHolder resource) {
 		Assert.isInstanceOf(FileMessageHolder.class, resource);
-		FileMessageHolder fileResource = (FileMessageHolder) resource;
+		FileMessageHolder fileResource = resource;
 		if (this.dispositionExpression != null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Executing expression " + this.dispositionExpression.getExpressionString() + " on " +
@@ -377,15 +377,15 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.resources.set(null);
 	}
 
-	public void afterRollback(Object resource) {
+	public void afterRollback(FileMessageHolder resource) {
 		// no op
 	}
 
-	public void afterReceiveNoTx(Object resource) {
+	public void afterReceiveNoTx(FileMessageHolder resource) {
 		// no op
 	}
 
-	public void afterSendNoTx(Object resource) {
+	public void afterSendNoTx(FileMessageHolder resource) {
 		this.afterCommit(resource);
 	}
 

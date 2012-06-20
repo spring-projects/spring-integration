@@ -52,26 +52,26 @@ public interface PseudoTransactionalMessageSource<T, V> extends MessageSource<T>
 	 * transaction commits.
 	 * @param resource The resource to be "committed"
 	 */
-	void afterCommit(Object resource);
+	void afterCommit(V resource);
 
 	/**
 	 * Invoked via {@link TransactionSynchronization} when the
 	 * transaction rolls back.
 	 * @param resource
 	 */
-	void afterRollback(Object resource);
+	void afterRollback(V resource);
 
 	/**
 	 * Called when there is no transaction and the receive() call completed.
 	 * @param resource
 	 */
-	void afterReceiveNoTx(Object resource);
+	void afterReceiveNoTx(V resource);
 
 	/**
 	 * Called when there is no transaction and after the message was
 	 * sent to the channel.
 	 * @param resource
 	 */
-	void afterSendNoTx(Object resource);
+	void afterSendNoTx(V resource);
 
 }
