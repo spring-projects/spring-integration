@@ -45,9 +45,10 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 	 */
 	public final Iterator<MessageHandler> getHandlerIterator(final Message<?> message, final Collection<MessageHandler> handlers) {
 		int size = handlers.size();
-		if (size == 0) {
+		if (size < 2) {
 			return handlers.iterator();
 		}
+
 		return this.buildHandlerIterator(size, handlers.toArray(new MessageHandler[]{}));
 	}
 
