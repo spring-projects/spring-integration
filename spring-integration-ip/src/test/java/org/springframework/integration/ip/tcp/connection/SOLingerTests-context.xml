@@ -7,18 +7,18 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
-	
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
+
 	<int-ip:tcp-connection-factory id="inCFNet"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(9000)}"
 		so-timeout="1000"
 		single-use="true"
 		/>
-	
+
 	<int-ip:tcp-inbound-gateway request-channel="echo"
 		connection-factory="inCFNet" />
-	
+
 	<int-ip:tcp-connection-factory id="inCFNio"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(9100)}"
@@ -26,10 +26,10 @@
 		single-use="true"
 		using-nio="true"
 		/>
-	
+
 	<int-ip:tcp-inbound-gateway request-channel="echo"
 		connection-factory="inCFNio" />
-	
+
 	<int-ip:tcp-connection-factory id="inCFNetRst"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(9200)}"
@@ -37,10 +37,10 @@
 		single-use="true"
 		so-linger="0"
 		/>
-	
+
 	<int-ip:tcp-inbound-gateway request-channel="echo"
 		connection-factory="inCFNetRst" />
-	
+
 	<int-ip:tcp-connection-factory id="inCFNioRst"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(9300)}"
@@ -49,10 +49,10 @@
 		using-nio="true"
 		so-linger="0"
 		/>
-	
+
 	<int-ip:tcp-inbound-gateway request-channel="echo"
 		connection-factory="inCFNioRst" />
-	
+
 	<int-ip:tcp-connection-factory id="inCFNetLinger"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(9400)}"
@@ -60,10 +60,10 @@
 		single-use="true"
 		so-linger="1000"
 		/>
-	
+
 	<int-ip:tcp-inbound-gateway request-channel="echo"
 		connection-factory="inCFNetLinger" />
-	
+
 	<int-ip:tcp-connection-factory id="inCFNioLinger"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(9500)}"
@@ -72,12 +72,12 @@
 		using-nio="true"
 		so-linger="1000"
 		/>
-	
+
 	<int-ip:tcp-inbound-gateway request-channel="echo"
 		connection-factory="inCFNioLinger" />
-	
+
 	<int:service-activator input-channel="echo" ref="testService"/>
-	
+
 	<bean id="testService" class="org.springframework.integration.ip.tcp.TestService"/>
 
 </beans>

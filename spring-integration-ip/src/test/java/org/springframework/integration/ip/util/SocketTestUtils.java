@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,11 @@ package org.springframework.integration.ip.util;
 
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-
-import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,8 +31,9 @@ import org.springframework.integration.ip.AbstractInternetProtocolReceivingChann
 
 /**
  * TCP/IP Test utilities.
- * 
+ *
  * @author Gary Russell
+ * @author Gunnar Hillert
  *
  */
 public class SocketTestUtils {
@@ -44,7 +41,7 @@ public class SocketTestUtils {
 	public static final String TEST_STRING = "TestMessage";
 
 	private static final Log logger = LogFactory.getLog(SocketTestUtils.class);
-	
+
 	/**
 	 * Sends a message in two chunks with a preceding length. Two such messages are sent.
 	 * @param latch If not null, await until counted down before sending second chunk.
@@ -137,7 +134,7 @@ public class SocketTestUtils {
 		}
 		Thread.sleep(500);
 	}
-	
+
 	/**
 	 * Sends a STX/ETX message in two chunks. Two such messages are sent.
 	 * @param latch If not null, await until counted down before sending second chunk.
@@ -170,7 +167,7 @@ public class SocketTestUtils {
 		thread.setDaemon(true);
 		thread.start();
 	}
-	
+
 	/**
 	 * Sends a large STX/ETX message with no ETX
 	 */
@@ -191,7 +188,7 @@ public class SocketTestUtils {
 		thread.setDaemon(true);
 		thread.start();
 	}
-	
+
 	/**
 	 * Sends a message +CRLF in two chunks. Two such messages are sent.
 	 * @param latch If not null, await until counted down before sending second chunk.
@@ -317,37 +314,6 @@ public class SocketTestUtils {
 		thread.setDaemon(true);
 		thread.start();
 	}
-	
-	public static int findAvailableServerSocket(int seed) {
-		for (int i = seed; i < seed+200; i++) {
-			try {
-				ServerSocket sock = ServerSocketFactory.getDefault().createServerSocket(i);
-				sock.close();
-				return i;
-			} catch (Exception e) { }
-		}
-		throw new RuntimeException("Cannot find a free server socket");
-	}
-	
-	public static int findAvailableServerSocket() {
-		return findAvailableServerSocket(5678);
-	}
-
-	public static int findAvailableUdpSocket(int seed) {
-		for (int i = seed; i < seed+200; i++) {
-			try {
-				DatagramSocket sock = new DatagramSocket(i);
-				sock.close();
-				Thread.sleep(100);
-				return i;
-			} catch (Exception e) { }
-		}
-		throw new RuntimeException("Cannot find a free server socket");
-	}
-	
-	public static int findAvailableUdpSocket() {
-		return findAvailableUdpSocket(9876);
-	}
 
 	public static void setLocalNicIfPossible(
 			AbstractInternetProtocolReceivingChannelAdapter adapter)
@@ -359,22 +325,22 @@ public class SocketTestUtils {
 			adapter.setLocalAddress(loopBack);
 		}
 	}
-	
+
 	public static String chooseANic(boolean multicast) throws Exception {
-//		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();	
+//		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 //		while (interfaces.hasMoreElements()) {
 //			NetworkInterface intface = interfaces.nextElement();
 //			if (intface.isLoopback() || (multicast && !intface.supportsMulticast()))
 //				continue;
 //			Enumeration<InetAddress> inet = intface.getInetAddresses();
-//			if (!inet.hasMoreElements()) 
+//			if (!inet.hasMoreElements())
 //				continue;
 //			String address = inet.nextElement().getHostAddress();
 //			return address;
 //		}
 		return null;
 	}
-	
+
 	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter) throws Exception {
 		int n = 0;
 		while (!adapter.isListening()) {
@@ -383,9 +349,7 @@ public class SocketTestUtils {
 				throw new Exception("Gateway failed to listen");
 			}
 		}
-		
-	}
-	
 
+	}
 
 }

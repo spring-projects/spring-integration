@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,16 +48,16 @@ import org.springframework.integration.ip.tcp.connection.AbstractServerConnectio
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
-import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.integration.test.util.SocketUtils;
 
 public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetSingle() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -87,7 +87,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetNotSingle() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
 		scf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -111,7 +111,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetClientMode() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ccf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -166,7 +166,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNioSingle() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -196,7 +196,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNioNotSingle() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
 		scf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -223,7 +223,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testErrorFlow() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();

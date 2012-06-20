@@ -24,6 +24,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -34,8 +35,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Mark Fisher
@@ -45,10 +46,10 @@ import org.springframework.integration.support.MessageBuilder;
 public class DatagramPacketSendingHandlerTests {
 
 	private boolean noMulticast;
-	
+
 	@Test
 	public void verifySend() throws Exception {
-		final int testPort = SocketTestUtils.findAvailableUdpSocket();
+		final int testPort = SocketUtils.findAvailableUdpSocket();
 		byte[] buffer = new byte[8];
 		final DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -66,7 +67,7 @@ public class DatagramPacketSendingHandlerTests {
 			}
 		});
 		Thread.sleep(1000);
-		UnicastSendingMessageHandler handler = 
+		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost", testPort);
 		String payload = "foo";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
@@ -82,14 +83,18 @@ public class DatagramPacketSendingHandlerTests {
 
 	@Test
 	public void verifySendWithAck() throws Exception {
-		final int testPort = SocketTestUtils.findAvailableUdpSocket();
-		final int ackPort = SocketTestUtils.findAvailableUdpSocket(testPort + 1);
+
+		final List<Integer> openPorts = SocketUtils.findAvailableUdpSockets(SocketUtils.getRandomSeedPort(), 2);
+
+		final int testPort = openPorts.get(0);
+		final int ackPort = openPorts.get(1);
+
 		byte[] buffer = new byte[1000];
 		final DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
-		final CountDownLatch latch1 = new CountDownLatch(1);		
+		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		UnicastSendingMessageHandler handler = 
-				new UnicastSendingMessageHandler("localhost", testPort, true, 
+		UnicastSendingMessageHandler handler =
+				new UnicastSendingMessageHandler("localhost", testPort, true,
 						true, "localhost", ackPort, 5000);
 		handler.afterPropertiesSet();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -105,7 +110,7 @@ public class DatagramPacketSendingHandlerTests {
 					Message<byte[]> message = mapper.toMessage(receivedPacket);
 					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 					byte[] ack = id.toString().getBytes();
-					DatagramPacket ackPack = new DatagramPacket(ack, ack.length, 
+					DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
 							                        new InetSocketAddress("localHost", ackPort));
 					DatagramSocket out = new DatagramSocket();
 					out.send(ackPack);
@@ -133,7 +138,7 @@ public class DatagramPacketSendingHandlerTests {
 	@Test
 	@Ignore
 	public void verifySendMulticast() throws Exception {
-		final int testPort = SocketTestUtils.findAvailableUdpSocket();
+		final int testPort = SocketUtils.findAvailableUdpSocket();
 		final String multicastAddress = "225.6.7.8";
 		final String payload = "foo";
 		final CountDownLatch latch1 = new CountDownLatch(2);
@@ -184,8 +189,12 @@ public class DatagramPacketSendingHandlerTests {
 	@Test
 	@Ignore
 	public void verifySendMulticastWithAcks() throws Exception {
-		final int testPort = SocketTestUtils.findAvailableUdpSocket();
-		final int ackPort = SocketTestUtils.findAvailableUdpSocket(testPort + 1);
+
+		final List<Integer> openPorts = SocketUtils.findAvailableUdpSockets(SocketUtils.getRandomSeedPort(), 2);
+
+		final int testPort = openPorts.get(0);
+		final int ackPort = openPorts.get(1);
+
 		final String multicastAddress = "225.6.7.8";
 		final String payload = "foobar";
 		final CountDownLatch latch1 = new CountDownLatch(2);
@@ -215,7 +224,7 @@ public class DatagramPacketSendingHandlerTests {
 					Message<byte[]> message = mapper.toMessage(receivedPacket);
 					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 					byte[] ack = id.toString().getBytes();
-					DatagramPacket ackPack = new DatagramPacket(ack, ack.length, 
+					DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
 							                        new InetSocketAddress("localHost", ackPort));
 					DatagramSocket out = new DatagramSocket();
 					out.send(ackPack);
@@ -236,13 +245,13 @@ public class DatagramPacketSendingHandlerTests {
 		if (noMulticast) {
 			return;
 		}
-		MulticastSendingMessageHandler handler = 
-			new MulticastSendingMessageHandler(multicastAddress, testPort, true, 
+		MulticastSendingMessageHandler handler =
+			new MulticastSendingMessageHandler(multicastAddress, testPort, true,
                     							true, "localhost", ackPort, 500000);
 		handler.setMinAcksForSuccess(2);
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 		assertTrue(latch2.await(10000, TimeUnit.MILLISECONDS));
 		handler.shutDown();
 	}
-	
+
 }

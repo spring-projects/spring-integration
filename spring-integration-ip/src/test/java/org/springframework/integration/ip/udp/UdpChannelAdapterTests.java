@@ -18,6 +18,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 
@@ -27,7 +28,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastReceiver() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketTestUtils.findAvailableUdpSocket();
+		int port = SocketUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -36,21 +37,21 @@ public class UdpChannelAdapterTests {
 //		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
-		
+
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", port));
-		new DatagramSocket(SocketTestUtils.findAvailableUdpSocket()).send(packet);
+		new DatagramSocket(SocketUtils.findAvailableUdpSocket()).send(packet);
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnicastSender() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketTestUtils.findAvailableUdpSocket();
+		int port = SocketUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -64,8 +65,8 @@ public class UdpChannelAdapterTests {
 		UnicastSendingMessageHandler handler = new UnicastSendingMessageHandler(
 				"localhost", port, false, true,
 				"localhost",
-//				whichNic, 
-				SocketTestUtils.findAvailableUdpSocket(), 5000);
+//				whichNic,
+				SocketUtils.findAvailableUdpSocket(), 5000);
 //		handler.setLocalAddress(whichNic);
 		handler.afterPropertiesSet();
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
@@ -78,7 +79,7 @@ public class UdpChannelAdapterTests {
 	@Test @Ignore
 	public void testMulticastReceiver() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketTestUtils.findAvailableUdpSocket();
+		int port = SocketUtils.findAvailableUdpSocket();
 		MulticastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.8", port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -92,7 +93,7 @@ public class UdpChannelAdapterTests {
 		adapter.setLocalAddress(nic);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
-		
+
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
@@ -108,7 +109,7 @@ public class UdpChannelAdapterTests {
 	@Test @Ignore
 	public void testMulticastSender() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketTestUtils.findAvailableUdpSocket();
+		int port = SocketUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.9", port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -122,12 +123,12 @@ public class UdpChannelAdapterTests {
 		adapter.setLocalAddress(nic);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
-		
+
 		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler("225.6.7.9", port);
 		handler.setLocalAddress(nic);
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
-		
+
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
 		assertNotNull(receivedMessage);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
@@ -136,7 +137,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastReceiverException() throws Exception {
 		SubscribableChannel channel = new DirectChannel();
-		int port = SocketTestUtils.findAvailableUdpSocket();
+		int port = SocketUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -150,17 +151,17 @@ public class UdpChannelAdapterTests {
 		adapter.setErrorChannel(errorChannel);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
-		
+
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", port));
-		new DatagramSocket(SocketTestUtils.findAvailableUdpSocket()).send(packet);
+		new DatagramSocket(SocketUtils.findAvailableUdpSocket()).send(packet);
 		Message<?> receivedMessage = errorChannel.receive(2000);
 		assertNotNull(receivedMessage);
 		assertEquals("Failed", ((Exception) receivedMessage.getPayload()).getCause().getMessage());
 	}
-	
+
 	private class FailingService {
 		@SuppressWarnings("unused")
 		public String serviceMethod(byte[] bytes) {

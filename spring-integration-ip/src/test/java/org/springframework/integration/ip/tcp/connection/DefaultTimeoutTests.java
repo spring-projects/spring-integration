@@ -21,8 +21,8 @@ import java.net.Socket;
 
 import org.junit.Test;
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -34,7 +34,7 @@ public class DefaultTimeoutTests {
 
 	@Test
 	public void test() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		TcpNetServerConnectionFactory server = new TcpNetServerConnectionFactory(port);
 		server.registerListener(new TcpListener() {
 			public boolean onMessage(Message<?> message) {
