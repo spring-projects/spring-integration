@@ -50,12 +50,16 @@
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor,
-	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
-				]]></xsd:documentation>
+						Provides the reference to a bean that implements
+						org.springframework.core.task.TaskExecutor which is used
+						when dispatching Messages to this channel's subscribers.
+						Also, when using a TaskExecutor, keep in mind that any
+						transaction active for the sender will NOT propagate to
+						the handler invocation since the TaskExecutor dispatches
+						to the handler on a separate Thread. Usually configured
+						using the 'task' namespace support provided by Spring
+						(e.g., <task:executor/>).
+					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
@@ -281,11 +285,15 @@
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor,
-	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
+					Provides the reference to a bean that implements
+					org.springframework.core.task.TaskExecutor which is used
+					when dispatching Messages to this channel's subscribers.
+					Also, when using a TaskExecutor, keep in mind that any
+					transaction active for the sender will NOT propagate to
+					the handler invocation since the TaskExecutor dispatches
+					to the handler on a separate Thread. Usually configured
+					using the 'task' namespace support provided by Spring
+					(e.g., <task:executor/>).
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -324,15 +332,17 @@
 					</xsd:sequence>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
-							<xsd:documentation>
-								<![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
-	to this channel's subscribers. Also, when using a TaskExecutor,
-	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
- 	TaskExecutor dispatches to the handler on a separate Thread.
-	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
-								]]>
-							</xsd:documentation>
+							<xsd:documentation><![CDATA[
+								Provides the reference to a bean that implements
+								org.springframework.core.task.TaskExecutor which is used
+								when dispatching Messages to this channel's subscribers.
+								Also, when using a TaskExecutor, keep in mind that any
+								transaction active for the sender will NOT propagate to
+								the handler invocation since the TaskExecutor dispatches
+								to the handler on a separate Thread. Usually configured
+								using the 'task' namespace support provided by Spring
+								(e.g., <task:executor/>).
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
@@ -343,11 +353,16 @@
 					<xsd:attribute name="error-handler" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-						       <![CDATA[
-	Provides reference to bean that implements org.springframework.util.ErrorHandler and provides a strategy for handling errors.
-	This is especially useful for handling errors that occur during asynchronous execution
-	of tasks that have been submitted to a TaskScheduler where it may not be possible to throw the error to the original caller
-								]]>
+							<![CDATA[
+								Provides reference to a bean that implements
+								org.springframework.util.ErrorHandler and
+								provides a strategy for handling errors.
+								This is especially useful for handling errors
+								that occur during asynchronous execution of tasks
+								that have been submitted to a TaskScheduler, where
+								it may not be possible to throw the error to the
+								original caller.
+							]]>
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -390,9 +405,11 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					<![CDATA[
-	Allows you to identify this channel as Datatype channel and specify the type of the Message
-	payload this channel accepts (e.g., datatype="java.lang.String"). Datatype channel
-	is a channel that accepts messages cotaining payload of certain type.
+						Allows you to identify this channel as a Datatype channel
+						and specify the type of the Message payload this channel
+						accepts (e.g., datatype="java.lang.String"). A Datatype
+						channel is a channel that accepts messages containing
+						payloads of a certain type.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
@@ -716,7 +733,7 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="resource-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -770,11 +787,11 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			
+
 			<xsd:attribute name="pattern-resolver" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to a org.springframework.core.io.support.ResourcePatternResolver. 
+						Reference to a org.springframework.core.io.support.ResourcePatternResolver.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -1118,7 +1135,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="request-timeout" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
-                    Set the timeout value for sending request messages in milliseconds. 
+                    Set the timeout value for sending request messages in milliseconds.
                     If not explicitly configured, the default is one second.
                     ]]>
                 </xsd:documentation>
@@ -1127,7 +1144,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="reply-timeout" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
-                    Set the timeout value for receiving reply messages in milliseconds. 
+                    Set the timeout value for receiving reply messages in milliseconds.
                     If not explicitly configured, the default is one second.
                     ]]>
                 </xsd:documentation>
@@ -1136,25 +1153,25 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="requires-reply" use="optional" default="true">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
-                If you specify a 'request-channel' you can optionally set the 
-                'requires-reply' attribute as well. If you set this attribute to 
-                'true', a reply must return a non-null value. 
-                
+                If you specify a 'request-channel' you can optionally set the
+                'requires-reply' attribute as well. If you set this attribute to
+                'true', a reply must return a non-null value.
+
                 For example, you dispatch a message to the request-channel
                 (backed by a 'QueueChannel'). If the reply does not return within
-                the specified 'replyTimeout', then the reply message will end up 
+                the specified 'replyTimeout', then the reply message will end up
                 being Null.
-                
+
                 By setting 'requires-reply' to 'true', a 'ReplyRequiredException'
-                will be raised for null reply messages. If 'requires-reply' is set 
-                to false, those messages are silently dropped. 
-                
+                will be raised for null reply messages. If 'requires-reply' is set
+                to false, those messages are silently dropped.
+
                 This attribute defaults to 'true', if not specified.]]>
                 </xsd:documentation>
             </xsd:annotation>
             <xsd:simpleType>
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>            
+            </xsd:simpleType>
         </xsd:attribute>
 		<xsd:attribute name="should-clone-payload">
 			<xsd:annotation>
@@ -3530,7 +3547,7 @@ unless bean with this name is already registered.
 		<xsd:annotation>
 			<xsd:documentation>
 				<![CDATA[
-Will register Message History writer which will track message hostory. There can
+Will register a Message History writer which will track the message history. There can
 only be one Message History writer per ApplicationContext hierarchy.
 					]]>
 			</xsd:documentation>
