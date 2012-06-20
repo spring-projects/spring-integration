@@ -61,7 +61,6 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	protected MessageHandler createHandler() {
 		Binding binding = new ManagedBeansBinding(this.getBeanFactory());
 		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(binding, new ScriptVariableGenerator() {
-			@Override
 			public Map<String, Object> generateScriptVariables(Message<?> message) {
 				Map<String, Object> variables = new HashMap<String, Object>();
 				variables.put("headers", message.getHeaders());
