@@ -40,7 +40,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.file.FileReadingMessageSource.FileResource;
+import org.springframework.integration.file.FileReadingMessageSource.FileMessageHolder;
 import org.springframework.integration.message.GenericMessage;
 
 /**
@@ -165,7 +165,7 @@ public class FileReadingMessageSourceTests {
         source.setDispositionExpression(new LiteralExpression("foo"));
         QueueChannel channel = new QueueChannel();
         source.setDispositionResultChannel(channel);
-        FileResource resource = (FileResource) source.getResource();
+        FileMessageHolder resource = source.getResource();
         File file = mock(File.class);
         resource.setMessage(new GenericMessage<File>(file));
         source.afterCommit(resource);

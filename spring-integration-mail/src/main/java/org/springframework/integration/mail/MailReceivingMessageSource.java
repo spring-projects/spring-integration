@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class MailReceivingMessageSource implements PseudoTransactionalMessageSource<javax.mail.Message> {
+public class MailReceivingMessageSource implements PseudoTransactionalMessageSource<javax.mail.Message, MailReceiverContext> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -77,7 +77,7 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 		return null;
 	}
 
-	public Object getResource() {
+	public MailReceiverContext getResource() {
 		return this.mailReceiver.getTransactionContext();
 	}
 

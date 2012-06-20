@@ -15,10 +15,9 @@
  */
 package org.springframework.integration.util;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.BeanResolver;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 
@@ -43,13 +42,13 @@ public class ExpressionUtils {
 
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
-	 * property accessor property and the supplied {@link BeanFactory} in its
-	 * beanFactory property.
-	 * @param beanFactory the bean factory.
+	 * property accessor property and the supplied {@link BeanResolver} in its
+	 * beanResolver property.
+	 * @param beanResolver the bean factory.
 	 * @return the evaluation context.
 	 */
-	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
-		return createStandardEvaluationContext(beanFactory, null);
+	public static StandardEvaluationContext createStandardEvaluationContext(BeanResolver beanResolver) {
+		return createStandardEvaluationContext(beanResolver, null);
 	}
 
 	/**
@@ -65,19 +64,19 @@ public class ExpressionUtils {
 
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
-	 * property accessor property, the supplied {@link BeanFactory} in its
-	 * beanFactory property, and the supplied {@link ConversionService} in its
+	 * property accessor property, the supplied {@link BeanResolver} in its
+	 * beanResolver property, and the supplied {@link ConversionService} in its
 	 * conversionService property.
-	 * @param beanFactory the bean factory.
+	 * @param beanResolver the bean factory.
 	 * @param conversionService the conversion service.
 	 * @return the evaluation context.
 	 */
-	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory,
+	public static StandardEvaluationContext createStandardEvaluationContext(BeanResolver beanResolver,
 			ConversionService conversionService) {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
-		if (beanFactory != null) {
-			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		if (beanResolver != null) {
+			evaluationContext.setBeanResolver(beanResolver);
 		}
 		if (conversionService != null) {
 			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));

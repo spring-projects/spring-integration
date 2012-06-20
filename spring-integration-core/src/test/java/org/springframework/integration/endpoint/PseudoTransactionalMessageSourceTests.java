@@ -44,7 +44,7 @@ public class PseudoTransactionalMessageSourceTests {
 		final Object object = new Object();
 		final AtomicReference<Object> committed = new AtomicReference<Object>();
 		final AtomicReference<Object> rolledBack = new AtomicReference<Object>();
-		adapter.setSource(new PseudoTransactionalMessageSource<String>() {
+		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
 
 			public Message<String> receive() {
 				return new GenericMessage<String>("foo");
@@ -87,7 +87,7 @@ public class PseudoTransactionalMessageSourceTests {
 		final Object object = new Object();
 		final AtomicReference<Object> committed = new AtomicReference<Object>();
 		final AtomicReference<Object> rolledBack = new AtomicReference<Object>();
-		adapter.setSource(new PseudoTransactionalMessageSource<String>() {
+		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
 
 			public Message<String> receive() {
 				return new GenericMessage<String>("foo");

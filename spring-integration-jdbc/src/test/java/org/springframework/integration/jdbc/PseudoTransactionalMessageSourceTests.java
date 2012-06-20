@@ -60,7 +60,7 @@ public class PseudoTransactionalMessageSourceTests {
 		assertTrue(rolledBack);
 	}
 
-	public static class MessageSource implements PseudoTransactionalMessageSource<String> {
+	public static class MessageSource implements PseudoTransactionalMessageSource<String, Object> {
 
 		public Message<String> receive() {
 			if (doRollback) {

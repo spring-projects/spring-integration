@@ -102,10 +102,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	@Override
 	protected boolean doPoll() {
 		boolean isInTx = false;
-		PseudoTransactionalMessageSource<?> messageSource = null;
+		PseudoTransactionalMessageSource<?,?> messageSource = null;
 		Object resource = null;
 		if (this.isPseudoTxMessageSource) {
-			messageSource = (PseudoTransactionalMessageSource<?>) this.source;
+			messageSource = (PseudoTransactionalMessageSource<?,?>) this.source;
 			resource = messageSource.getResource();
 			Assert.state(resource != null, "Pseudo Transactional Message Source returned null resource");
 			if (this.synchronizedTx && TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -189,7 +189,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			if (logger.isTraceEnabled()) {
 				logger.trace("'Committing' pseudo-transactional resource");
 			}
-			((PseudoTransactionalMessageSource<?>) source).afterCommit(resourceHolder.getResource());
+			((PseudoTransactionalMessageSource<?,?>) source).afterCommit(resourceHolder.getResource());
 		}
 
 		@Override
@@ -198,7 +198,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 				if (logger.isTraceEnabled()) {
 					logger.trace("'Rolling back' pseudo-transactional resource");
 				}
-				((PseudoTransactionalMessageSource<?>) source).afterRollback(this.resourceHolder.getResource());
+				((PseudoTransactionalMessageSource<?,?>) source).afterRollback(this.resourceHolder.getResource());
 			}
 			super.afterCompletion(status);
 		}

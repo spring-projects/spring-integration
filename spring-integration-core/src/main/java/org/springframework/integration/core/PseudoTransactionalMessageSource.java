@@ -38,14 +38,14 @@ import org.springframework.transaction.support.TransactionSynchronization;
  * @since 2.2
  *
  */
-public interface PseudoTransactionalMessageSource<T> extends MessageSource<T> {
+public interface PseudoTransactionalMessageSource<T, V> extends MessageSource<T> {
 
 	/**
 	 * Obtain the resource on which appropriate action needs
 	 * to be taken.
 	 * @return The resource.
 	 */
-	Object getResource();
+	V getResource();
 
 	/**
 	 * Invoked via {@link TransactionSynchronization} when the

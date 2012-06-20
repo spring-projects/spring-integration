@@ -26,8 +26,10 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
@@ -36,6 +38,7 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.file.FileReadingMessageSource.FileMessageHolder;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.support.MessageBuilder;
@@ -71,7 +74,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public class FileReadingMessageSource extends IntegrationObjectSupport implements PseudoTransactionalMessageSource<File> {
+public class FileReadingMessageSource extends IntegrationObjectSupport implements PseudoTransactionalMessageSource<File, FileMessageHolder> {
 
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
 
@@ -99,9 +102,9 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private volatile boolean dispostionResultChannelSet;
 
-	private final ThreadLocal<FileResource> resources = new ThreadLocal<FileResource>();
+	private final ThreadLocal<FileMessageHolder> resources = new ThreadLocal<FileMessageHolder>();
 
-	private EvaluationContext evaluationContext;
+	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
 
 	/**
@@ -239,12 +242,12 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	}
 
 	public void setDispositionExpression(Expression dispositionExpression) {
-		Assert.notNull(dispositionExpression, "Disposition Expression must not be null");
+		Assert.notNull(dispositionExpression, "'dispositionExpression' must not be null");
 		this.dispositionExpression = dispositionExpression;
 	}
 
 	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
-		Assert.notNull(dispositionResultChannel, "Disposition Result Channel must not be null");
+		Assert.notNull(dispositionResultChannel, "'dispositionResultChannel' must not be null");
 		this.dispositionMessagingTemplate.setDefaultChannel(dispositionResultChannel);
 		this.dispostionResultChannelSet = true;
 	}
@@ -270,6 +273,10 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 				"Source path [" + this.directory + "] does not point to a directory.");
 		Assert.isTrue(this.directory.canRead(),
 				"Source directory [" + this.directory + "] is not readable.");
+		if (getBeanFactory() != null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(
+					new BeanFactoryResolver(getBeanFactory()));
+		}
 	}
 
 	public Message<File> receive() throws MessagingException {
@@ -293,9 +300,9 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");
 			}
-			FileResource resource = this.resources.get();
+			FileMessageHolder resource = this.resources.get();
 			if (resource == null) {
-				this.resources.set(new FileResource());
+				this.resources.set(new FileMessageHolder());
 			}
 			this.resources.get().setMessage(message);
 		}
@@ -339,20 +346,16 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 	}
 
-	public Object getResource() {
-		FileResource resource = new FileResource();
+	public FileMessageHolder getResource() {
+		FileMessageHolder resource = new FileMessageHolder();
 		this.resources.set(resource);
 		return resource;
 	}
 
 	public void afterCommit(Object resource) {
-		Assert.isTrue(resource instanceof FileResource, "Expected FileResource");
-		Assert.notNull(resource, "Expected FileResource");
-		FileResource fileResource = (FileResource) resource;
+		Assert.isInstanceOf(FileMessageHolder.class, resource);
+		FileMessageHolder fileResource = (FileMessageHolder) resource;
 		if (this.dispositionExpression != null) {
-			if (this.evaluationContext == null) {
-				createEvaluationContext();
-			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Executing expression " + this.dispositionExpression.getExpressionString() + " on " +
 						fileResource.getMessage());
@@ -367,14 +370,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 					}
 					catch (Exception e) {
 						logger.error("Error sending File Disposition Result", e);
-					}
-				}
-				else {
-					/*
-					 * We will usually send to nullChannel but just log if not set, e.g. in tests.
-					 */
-					if (logger.isDebugEnabled()) {
-						logger.debug("Disposition result: " + result + "; no disposition channel defined");
 					}
 				}
 			}
@@ -394,7 +389,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.afterCommit(resource);
 	}
 
-	class FileResource {
+	class FileMessageHolder {
 
 		private Message<File> message;
 
@@ -405,9 +400,5 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		void setMessage(Message<File> message) {
 			this.message = message;
 		}
-	}
-
-	private void createEvaluationContext() {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 }
