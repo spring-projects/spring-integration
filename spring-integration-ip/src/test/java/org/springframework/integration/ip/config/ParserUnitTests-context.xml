@@ -13,7 +13,7 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 
 	<int:channel id="udpChannel" />
 

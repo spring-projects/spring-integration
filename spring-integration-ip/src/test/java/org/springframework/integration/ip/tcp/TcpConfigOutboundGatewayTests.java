@@ -29,7 +29,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;

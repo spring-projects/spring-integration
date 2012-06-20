@@ -11,7 +11,7 @@
 
 	<int:message-history/>
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
@@ -37,11 +37,11 @@
 		connection-factory="server"
 		reply-timeout="1"
 		/>
-			
+
 	<int:channel id="queue">
 		<int:queue/>
 	</int:channel>
-	
+
 	<task:executor id="exec" pool-size="10"/>
-	
+
 </beans>
