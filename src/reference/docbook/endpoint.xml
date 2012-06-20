@@ -76,42 +76,45 @@ EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);
     <para>
       Spring Integration also provides a <classname>PollingConsumer</classname>, and it can be instantiated in
       the same way except that the channel must implement <interfacename>PollableChannel</interfacename>:
-      <programlisting language="java">PollableChannel channel = context.getBean("pollableChannel", PollableChannel.class);
+	</para>
+	<programlisting language="java">PollableChannel channel = context.getBean("pollableChannel", PollableChannel.class);
 
 PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);</programlisting>
-    </para>
 
     <note>
         For more information regarding Polling Consumers, please also read
         <xref linkend="polling-consumer"/> as well as <xref linkend="channel-adapter"/>.
     </note>
 
-    <para>
-      There are many other configuration options for the Polling Consumer. For example, the trigger is a required property:
-      <programlisting language="java">
-PollingConsumer consumer = new PollingConsumer(channel, handler);
+	<para>
+		There are many other configuration options for the Polling Consumer. For example, the trigger is a required property:
+	</para>
+	<programlisting language="java">PollingConsumer consumer = new PollingConsumer(channel, handler);
 
 consumer.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));</programlisting>
+	<para>
       Spring Integration currently provides two implementations of the <interfacename>Trigger</interfacename>
       interface: <classname>IntervalTrigger</classname> and <classname>CronTrigger</classname>. The
       <classname>IntervalTrigger</classname> is typically defined with a simple interval (in milliseconds), but
       also supports an <emphasis>initialDelay</emphasis> property and a boolean <emphasis>fixedRate</emphasis> property (the default is false, i.e.
       fixed delay):
+	</para>
       <programlisting language="java">IntervalTrigger trigger = new IntervalTrigger(1000);
 trigger.setInitialDelay(5000);
 trigger.setFixedRate(true);</programlisting>
-      The <classname>CronTrigger</classname> simply requires a valid cron expression (see the Javadoc for details):
+	<para>
+		The <classname>CronTrigger</classname> simply requires a valid cron
+		expression (see the Javadoc for details):
+	</para>
       <programlisting language="java">CronTrigger trigger = new CronTrigger("*/10 * * * * MON-FRI");</programlisting>
-    </para>
-    <para>
-      In addition to the trigger, several other polling-related configuration properties may be specified:
-      <programlisting language="java">
-PollingConsumer consumer = new PollingConsumer(channel, handler);
+	<para>
+		In addition to the trigger, several other polling-related configuration
+		properties may be specified:
+	</para>
+	<programlisting language="java">PollingConsumer consumer = new PollingConsumer(channel, handler);
 
 consumer.setMaxMessagesPerPoll(10);
-
 consumer.setReceiveTimeout(5000);</programlisting>
-    </para>
     <para>
       The <emphasis>maxMessagesPerPoll</emphasis> property specifies the maximum number of messages to receive within a given poll
       operation. This means that the poller will continue calling receive() <emphasis>without waiting</emphasis>
@@ -131,22 +134,33 @@ consumer.setReceiveTimeout(5000);</programlisting>
       option requires a thread to wait, but as a result it is able to respond much more quickly to arriving messages.
       This technique, known as <emphasis>long polling</emphasis>, can be used to emulate event-driven behavior on a polled source.
     </para>
-    <para>
-      A Polling Consumer may also delegate to a Spring <interfacename>TaskExecutor</interfacename>, and it can
-      be configured to participate in Spring-managed transactions. The following example shows the configuration of both:
-      <programlisting language="java">
-PollingConsumer consumer = new PollingConsumer(channel, handler);
+	<para>
+		A Polling Consumer may also delegate to a Spring <interfacename>TaskExecutor</interfacename>,
+		as illustrated in the following example:
+	</para>
+	<programlisting language="java">PollingConsumer consumer = new PollingConsumer(channel, handler);
 
 TaskExecutor taskExecutor = context.getBean("exampleExecutor", TaskExecutor.class);
-consumer.setTaskExecutor(taskExecutor);
-
-PlatformTransactionManager txManager = context.getBean("exampleTxManager", PlatformTransationManager.class);
-consumer.setTransactionManager(txManager);</programlisting>
-      The examples above show dependency lookups, but keep in mind that these consumers will most often be configured
-      as Spring <emphasis>bean definitions</emphasis>. In fact, Spring Integration also provides a
-      <interfacename>FactoryBean</interfacename> that creates the appropriate consumer type based on the type of
-      channel, and there is full XML namespace support to even further hide those details. The namespace-based
-      configuration will be featured as each component type is introduced.
+consumer.setTaskExecutor(taskExecutor);</programlisting>
+	<para>
+		Furthermore, a <classname>PollingConsumer</classname> has a property called
+		<emphasis>adviceChain</emphasis>. This property allows you to specify a
+		<interfacename>List</interfacename> of AOP Advices for handling additional
+		cross cutting concerns including transactions. These advices are applied
+		around the <methodname>doPoll()</methodname> method. For more in-depth
+		information, please see the sections <emphasis>AOP Advice chains</emphasis>
+		and <emphasis>Transaction Support</emphasis> under <xref linkend="endpoint-namespace"/>.
+	</para>
+	<para>
+		The examples above show dependency lookups, but keep in mind that these
+		consumers will most often be configured as Spring <emphasis>bean definitions</emphasis>.
+		In fact, Spring Integration also provides a <interfacename>FactoryBean</interfacename>
+		called <classname>ConsumerEndpointFactoryBean</classname> that creates
+		the appropriate consumer type based on the type of channel, and there is
+		full XML namespace support to even further hide those details. The
+		namespace-based configuration will be featured as each component type is
+		introduced.
+	</para>
       <note>
 		Many of the <interfacename>MessageHandler</interfacename> implementations are also capable of generating reply
         Messages. As mentioned above, sending Messages is trivial when compared to the Message reception. Nevertheless,
@@ -158,7 +172,6 @@ consumer.setTransactionManager(txManager);</programlisting>
         class, the <classname>AbstractReplyProducingMessageHandler</classname>, and it provides a
         <methodname>setOutputChannel(..)</methodname> method.
       </note>
-    </para>
   </section>
 
   <section id="endpoint-namespace">
