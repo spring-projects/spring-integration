@@ -24,11 +24,12 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 
 /**
- * 
+ *
  * For both .net. and .nio. adapters, creates a single server and 10 clients
  * and sends 3 messages from each client to the associated server.
  * Ensures that all messages are correctly assembled and received ok.
@@ -37,7 +38,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * will cause messages to be lost.
  * Even with this restriction, we are still testing the receiving adapter's
  * ability to handle multiple requests from multiple clients.
- * 
+ *
  * @author Gary Russell
  *
  */
@@ -46,9 +47,9 @@ public class MultiClientTests {
 	@SuppressWarnings("unchecked")
 	@Test @Ignore
 	public void testNoAck() throws Exception {
-		final String payload = largePayload(1000); 
-		final UnicastReceivingChannelAdapter adapter = 
-			new UnicastReceivingChannelAdapter(SocketTestUtils.findAvailableUdpSocket());
+		final String payload = largePayload(1000);
+		final UnicastReceivingChannelAdapter adapter =
+			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket());
 		int drivers = 10;
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
@@ -87,9 +88,9 @@ public class MultiClientTests {
 	@Test @Ignore
 	public void testAck() throws Exception {
 		Thread.sleep(1000);
-		final String payload = largePayload(1000); 
-		final UnicastReceivingChannelAdapter adapter = 
-			new UnicastReceivingChannelAdapter(SocketTestUtils.findAvailableUdpSocket(), false);
+		final String payload = largePayload(1000);
+		final UnicastReceivingChannelAdapter adapter =
+			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(), false);
 		int drivers = 5;
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
@@ -107,7 +108,7 @@ public class MultiClientTests {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
 							false, true, "localhost",
-							SocketTestUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
+							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
 							10000);
 					while (true) {
 						Message<?> message = queueIn.receive();
@@ -132,11 +133,11 @@ public class MultiClientTests {
 	@Test @Ignore
 	public void testAckWithLength() throws Exception {
 		Thread.sleep(1000);
-		final String payload = largePayload(1000); 
-		final UnicastReceivingChannelAdapter adapter = 
-			new UnicastReceivingChannelAdapter(SocketTestUtils.findAvailableUdpSocket(), true);
+		final String payload = largePayload(1000);
+		final UnicastReceivingChannelAdapter adapter =
+			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(), true);
 		int drivers = 10;
-		adapter.setPoolSize(drivers); 
+		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -152,7 +153,7 @@ public class MultiClientTests {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
 							true, true, "localhost",
-							SocketTestUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
+							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
 							10000);
 					while (true) {
 						Message<?> message = queueIn.receive();

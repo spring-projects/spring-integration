@@ -49,9 +49,9 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
-import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -226,8 +226,11 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testRealNet() throws Exception {
-		int port1 = SocketTestUtils.findAvailableServerSocket();
-		int port2 = SocketTestUtils.findAvailableServerSocket(port1 + 1);
+
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+
+		int port1 = openPorts.get(0);
+		int port2 = openPorts.get(1);
 		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", port1);
 		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", port2);
 		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
@@ -237,8 +240,12 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testRealNio() throws Exception {
-		int port1 = SocketTestUtils.findAvailableServerSocket();
-		int port2 = SocketTestUtils.findAvailableServerSocket(port1 + 1);
+
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+
+		int port1 = openPorts.get(0);
+		int port2 = openPorts.get(1);
+
 		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", port1);
 		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", port2);
 		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(port1);
@@ -248,8 +255,12 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testRealNetSingleUse() throws Exception {
-		int port1 = SocketTestUtils.findAvailableServerSocket();
-		int port2 = SocketTestUtils.findAvailableServerSocket(port1 + 1);
+
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+
+		int port1 = openPorts.get(0);
+		int port2 = openPorts.get(1);
+
 		AbstractClientConnectionFactory client1 = new TcpNetClientConnectionFactory("localhost", port1);
 		AbstractClientConnectionFactory client2 = new TcpNetClientConnectionFactory("localhost", port2);
 		AbstractServerConnectionFactory server1 = new TcpNetServerConnectionFactory(port1);
@@ -261,8 +272,12 @@ public class FailoverClientConnectionFactoryTests {
 
 	@Test
 	public void testRealNioSingleUse() throws Exception {
-		int port1 = SocketTestUtils.findAvailableServerSocket();
-		int port2 = SocketTestUtils.findAvailableServerSocket(port1 + 1);
+
+		final List<Integer> openPorts = SocketUtils.findAvailableServerSockets(SocketUtils.getRandomSeedPort(), 2);
+
+		int port1 = openPorts.get(0);
+		int port2 = openPorts.get(1);
+
 		AbstractClientConnectionFactory client1 = new TcpNioClientConnectionFactory("localhost", port1);
 		AbstractClientConnectionFactory client2 = new TcpNioClientConnectionFactory("localhost", port2);
 		AbstractServerConnectionFactory server1 = new TcpNioServerConnectionFactory(port1);

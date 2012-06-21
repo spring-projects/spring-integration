@@ -56,8 +56,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
-import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
@@ -75,7 +75,7 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testWriteTimeout() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", port);
 		factory.setSoTimeout(1000);
 		factory.start();
@@ -106,7 +106,7 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testReadTimeout() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", port);
 		factory.setSoTimeout(1000);
 		factory.start();
@@ -145,7 +145,7 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testMemoryLeak() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", port);
 		factory.setNioHarvestInterval(100);
 		factory.start();

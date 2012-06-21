@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,8 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
-
 import org.springframework.core.serializer.DefaultSerializer;
-import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -41,7 +40,7 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteLengthHeader() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -74,7 +73,7 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteStxEtx() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -107,7 +106,7 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteCrLf() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -137,10 +136,10 @@ public class SerializationTests {
 		assertEquals('\n', buff[testString.length() + 1]);
 		server.close();
 	}
-	
+
 	@Test
 	public void testWriteRaw() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -170,10 +169,10 @@ public class SerializationTests {
 		assertEquals(-1, buff[testString.length()]);
 		server.close();
 	}
-	
+
 	@Test
 	public void testWriteSerialized() throws Exception {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -201,7 +200,7 @@ public class SerializationTests {
 		assertEquals(testString, ois.readObject());
 		server.close();
 	}
-	
+
 	/**
 	 * @param is
 	 * @param buff

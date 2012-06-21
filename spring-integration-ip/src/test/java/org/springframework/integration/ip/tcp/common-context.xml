@@ -10,7 +10,7 @@
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 
 	<bean id="crLfSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer" />
 	<bean id="stxEtxSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer" />

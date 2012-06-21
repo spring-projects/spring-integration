@@ -7,12 +7,12 @@
 		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
-	
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
+
 	<bean id="serializer" class="org.springframework.core.serializer.DefaultSerializer" />
 
 	<bean id="deserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
-	
+
 	<bean id="helloWorldInterceptors" class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain">
 		<property name="interceptors">
 			<array>
@@ -24,7 +24,7 @@
 			</array>
 		</property>
 	</bean>
-	
+
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(10100)}"
@@ -46,9 +46,9 @@
 		deserializer="deserializer"
 		interceptor-factory-chain="helloWorldInterceptors"
 	/>
-	
+
 	<int:channel id="input" />
-	
+
 	<int:channel id="replies">
 		<int:queue/>
 	</int:channel>
@@ -56,15 +56,15 @@
 	<int-ip:tcp-outbound-channel-adapter id="outboundClient"
 		channel="input"
 		connection-factory="client"/>
-		
+
 	<int-ip:tcp-inbound-channel-adapter id="inboundClient"
 		channel="replies"
-		connection-factory="client"/>		
-	
+		connection-factory="client"/>
+
 	<int-ip:tcp-inbound-channel-adapter id="inboundServer"
 		channel="loop"
 		connection-factory="server"/>
-		
+
 	<int-ip:tcp-outbound-channel-adapter id="outboundServer"
 		channel="loop"
 		connection-factory="server"/>

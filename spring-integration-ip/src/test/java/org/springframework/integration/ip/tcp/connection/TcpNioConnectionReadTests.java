@@ -39,6 +39,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -73,7 +74,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadLength() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -104,7 +105,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFragmented() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -138,7 +139,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadStxEtx() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -170,7 +171,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadCrLf() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -201,7 +202,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testReadLengthOverflow() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -239,7 +240,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testReadStxEtxOverflow() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
@@ -278,7 +279,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testReadCrLfOverflow() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
@@ -319,7 +320,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testCloseCleanupNoData() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
@@ -358,7 +359,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testCloseCleanupPartialData() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
@@ -429,7 +430,7 @@ public class TcpNioConnectionReadTests {
 	private void testClosureMidMessageGuts(AbstractByteArraySerializer serializer, String shortMessage)
 			throws Exception, IOException, UnknownHostException,
 			InterruptedException {
-		final int port = SocketTestUtils.findAvailableServerSocket();
+		final int port = SocketUtils.findAvailableServerSocket();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();

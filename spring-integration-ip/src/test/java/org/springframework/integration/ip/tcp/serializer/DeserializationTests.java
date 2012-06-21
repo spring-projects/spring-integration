@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import java.net.Socket;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -38,7 +38,7 @@ public class DeserializationTests {
 
 	@Test
 	public void testReadLength() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendLength(port, null);
@@ -46,17 +46,17 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 								 new String(out));
 		out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 				 new String(out));
 		server.close();
 	}
-	
+
 	@Test
 	public void testReadStxEtx() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendStxEtx(port, null);
@@ -64,17 +64,17 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 								 new String(out));
 		out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 				 new String(out));
 		server.close();
 	}
 
 	@Test
 	public void testReadCrLf() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendCrLf(port, null);
@@ -82,17 +82,17 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 								 new String(out));
 		out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 				 new String(out));
 		server.close();
 	}
 
 	@Test
 	public void testReadRaw() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendRaw(port);
@@ -100,14 +100,14 @@ public class DeserializationTests {
 		socket.setSoTimeout(5000);
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 		byte[] out = serializer.deserialize(socket.getInputStream());
-		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING,
 								 new String(out));
 		server.close();
 	}
 
 	@Test
 	public void testReadSerialized() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendSerialized(port);
@@ -123,7 +123,7 @@ public class DeserializationTests {
 
 	@Test
 	public void testReadLengthOverflow() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendLengthOverflow(port);
@@ -144,7 +144,7 @@ public class DeserializationTests {
 
 	@Test
 	public void testReadStxEtxTimeout() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendStxEtxOverflow(port);
@@ -165,7 +165,7 @@ public class DeserializationTests {
 
 	@Test
 	public void testReadStxEtxOverflow() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendStxEtxOverflow(port);
@@ -187,7 +187,7 @@ public class DeserializationTests {
 
 	@Test
 	public void testReadCrLfTimeout() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendCrLfOverflow(port);
@@ -208,7 +208,7 @@ public class DeserializationTests {
 
 	@Test
 	public void testReadCrLfOverflow() throws Exception {
-		int port = SocketTestUtils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
 		SocketTestUtils.testSendCrLfOverflow(port);

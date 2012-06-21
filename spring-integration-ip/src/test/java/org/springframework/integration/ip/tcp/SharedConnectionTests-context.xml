@@ -9,7 +9,7 @@
 
 	<int:message-history/>
 	
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 	
 	<bean id="serializer" class="org.springframework.core.serializer.DefaultSerializer" />
 

@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 
 	<ip:tcp-connection-factory id="cfS1"
 		type="server"
