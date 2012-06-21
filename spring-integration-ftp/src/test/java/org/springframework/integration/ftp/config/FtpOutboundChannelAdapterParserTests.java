@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class FtpOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpOutboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac = 
+		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = ac.getBean("ftpOutbound");
 		assertTrue(consumer instanceof EventDrivenConsumer);
@@ -70,7 +70,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals("localhost", TestUtils.getPropertyValue(sessionFactory, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(sessionFactory, "port"));
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
-		//verify subscription order		
+		//verify subscription order
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
 				.getPropertyValue(
@@ -80,7 +80,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertSame(TestUtils.getPropertyValue(ac.getBean("ftpOutbound2"), "handler"), iterator.next());
 		assertSame(handler, iterator.next());
 	}
-	
+
 	@Test(expected=BeanCreationException.class)
 	public void testFailWithEmptyRfsAndAcdTrue() throws Exception{
 		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass());

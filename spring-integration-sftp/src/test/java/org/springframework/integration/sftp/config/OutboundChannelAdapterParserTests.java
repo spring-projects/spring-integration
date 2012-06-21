@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.sftp.config;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -53,7 +52,7 @@ public class OutboundChannelAdapterParserTests {
 
 	@Test
 	public void testOutboundChannelAdapterWithId(){
-		ApplicationContext context = 
+		ApplicationContext context =
 				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapter");
 		assertTrue(consumer instanceof EventDrivenConsumer);
@@ -90,7 +89,7 @@ public class OutboundChannelAdapterParserTests {
 
 	@Test
 	public void testOutboundChannelAdapterWithWithRemoteDirectoryAndFileExpression(){
-		ApplicationContext context = 
+		ApplicationContext context =
 			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithExpression");
 		assertTrue(consumer instanceof EventDrivenConsumer);
@@ -106,9 +105,9 @@ public class OutboundChannelAdapterParserTests {
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		assertNull(TestUtils.getPropertyValue(handler, "temporaryDirectoryExpressionProcessor"));
-		
+
 	}
-	
+
 	@Test
 	public void testOutboundChannelAdapterWithNoTemporaryFileName(){
 		ApplicationContext context =
@@ -121,12 +120,12 @@ public class OutboundChannelAdapterParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithRemoteDirAndExpression(){
 		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
-		
+
 	}
-	
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithFileExpressionAndFileGenerator(){
 		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail-fileFileGen.xml", this.getClass());
-		
+
 	}
 }
