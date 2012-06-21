@@ -19,12 +19,12 @@
 	</xsd:annotation>
 
 	<xsd:element name="marshalling-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an XML marshalling transformer.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType >
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XML marshalling transformer.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
 					<xsd:attribute name="marshaller" type="xsd:string" use="required">
@@ -76,12 +76,12 @@
 	</xsd:element>
 
 	<xsd:element name="unmarshalling-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an XML unmarshalling transformer.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XML unmarshalling transformer.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
 					<xsd:attribute name="unmarshaller" type="xsd:string" use="required">
@@ -99,12 +99,12 @@
 	</xsd:element>
 
 	<xsd:element name="xslt-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an XSLT transformer.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XSLT transformer.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
 					<xsd:sequence>
@@ -162,12 +162,12 @@
 	</xsd:element>
 
 	<xsd:element name="xpath-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an XPath transformer.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XPath transformer.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
 					<xsd:attribute name="xpath-expression" type="xsd:string">
@@ -347,126 +347,167 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-    <!-- XPath Router definition -->
+	<!-- XPath Router definition -->
 
-    <xsd:complexType name="commonXPathRouterType" abstract="true">
-        <xsd:complexContent>
-            <xsd:extension base="integration:abstractRouterType">
-	            <xsd:attribute name="evaluate-as-string" default="false">
-	                <xsd:annotation>
-	                    <xsd:documentation><![CDATA[
-	                    By default XPath expressions are evaluated as NODESET type and then converted
-	                    to a List of channel names, thus handling single channel scenarios as well as multiple.
-	                    However certain XPath expressions may evaluate to String type results from the very
-	                    beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in
-	                    an exception if the default evaluation type (NODESET) is used.
+	<xsd:complexType name="commonXPathRouterType" abstract="true">
+		<xsd:complexContent>
+			<xsd:extension base="integration:abstractRouterType">
+			<xsd:attribute name="evaluate-as-string" default="false">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						By default XPath expressions are evaluated as NODESET type and then converted
+						to a List of channel names, thus handling single channel scenarios as well as multiple.
+						However certain XPath expressions may evaluate to String type results from the very
+						beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in
+						an exception if the default evaluation type (NODESET) is used.
 
-	                    This flag will allow you to manage the
-	                    evaluation type. It is 'false' by default, however if
-	                    set to 'true', then the String evaluation type will be used.
-	                    ]]></xsd:documentation>
-	                </xsd:annotation>
-		            <xsd:simpleType>
-		                <xsd:union memberTypes="xsd:boolean xsd:string" />
-		            </xsd:simpleType>
-	            </xsd:attribute>
-	            <xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
-	                <xsd:annotation>
-	                    <xsd:documentation>
-                            Reference to the XPathExpression instance to be
-                            evaluated against the input Message's payload. Either
-                            this or 'xpath-expression' must be provided, but not
-                            both.
-                        </xsd:documentation>
-	                    <xsd:appinfo>
-	                        <tool:annotation kind="ref">
-	                            <tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
-	                        </tool:annotation>
-	                    </xsd:appinfo>
-	                </xsd:annotation>
-	            </xsd:attribute>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+						This flag will allow you to manage the
+						evaluation type. It is 'false' by default, however if
+						set to 'true', then the String evaluation type will be used.
+					]]></xsd:documentation>
+				</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
+				</xsd:attribute>
+				<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							Reference to the XPathExpression instance to be
+							evaluated against the input Message's payload. Either
+							this or 'xpath-expression' must be provided, but not
+							both.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
-    <xsd:complexType name="XPathRouterType">
-        <xsd:complexContent>
-            <xsd:extension base="commonXPathRouterType">
-                <xsd:sequence>
-                    <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element ref="xpath-expression"   minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation><![CDATA[
-                                If the values returned by the XPath Expression
-                                do not represent the channel names themselves, additional
-                                mappings can be specified using the "mapping" sub-element.
+	<xsd:complexType name="XPathRouterType">
+		<xsd:complexContent>
+			<xsd:extension base="commonXPathRouterType">
+				<xsd:sequence>
+					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					<xsd:element ref="xpath-expression"   minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Internally XPath expressions will be evaluated as
+								NODESET type and converted to a List<String>
+								representing channel names. Typically such a list
+								will contain a single channel name. However,
+								based on the results of an XPath Expression, the
+								XPath router can also take on the characteristics
+								of a Recipient List Router if the XPath Expression
+								returns more then one value. In that case, the
+								List<String> will contain more then one channel
+								name and consequently Messages will be sent to
+								all channels in the list.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								If the values returned by the XPath Expression
+								do not represent the channel names themselves, additional
+								mappings can be specified using the "mapping" sub-element.
 
-                                For example if the '/request/responders' expression
-                                results in two values: 'responderA' and 'responderB',
-                                but you don't want to couple the responder names
-                                to channel names you may provide additional mappings
-                                such as:
+								For example if the '/request/responders' expression
+								results in two values: 'responderA' and 'responderB',
+								but you don't want to couple the responder names
+								to channel names you may provide additional mappings
+								such as:
 
-                                <int-xml:mapping value="responderA" channel="channelA"/>
-                                <int-xml:mapping value="responderB" channel="channelB"/>
-                                ]]>
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-                <xsd:attributeGroup ref="integration:topLevelRouterAttributeGroup"/>
-                <xsd:attribute name="converter" type="xsd:string">
-                	<xsd:annotation>
-                		<xsd:documentation>
-                			Specify the Converter to use when converting payloads prior to XPath evaluation.
-                			The DefaultXmlPayloadConverter is used if this reference is not provided, and it
-                			should be sufficient in most cases since it can convert from Node, Document, Source,
-                			File, and String typed payloads. If you need to extend beyond the capabilities of
-                			that default implementation, then an upstream Transformer is probably a better option
-                			than providing a reference to a custom implementation of this strategy here.
-                		</xsd:documentation>
-                		<xsd:appinfo>
+								<int-xml:mapping value="responderA" channel="channelA"/>
+								<int-xml:mapping value="responderB" channel="channelB"/>
+								]]>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					</xsd:sequence>
+					<xsd:attributeGroup ref="integration:topLevelRouterAttributeGroup"/>
+					<xsd:attribute name="converter" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specify the Converter to use when converting payloads prior to XPath evaluation.
+							The DefaultXmlPayloadConverter is used if this reference is not provided, and it
+							should be sufficient in most cases since it can convert from Node, Document, Source,
+							File, and String typed payloads. If you need to extend beyond the capabilities of
+							that default implementation, then an upstream Transformer is probably a better option
+							than providing a reference to a custom implementation of this strategy here.
+						</xsd:documentation>
+						<xsd:appinfo>
 							<tool:annotation kind="ref">
 								<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter"/>
 							</tool:annotation>
 						</xsd:appinfo>
-                	</xsd:annotation>
-                </xsd:attribute>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
-    <xsd:complexType name="XPathRouterTypeChain">
-        <xsd:complexContent>
-            <xsd:extension base="commonXPathRouterType">
-                <xsd:sequence>
-                    <xsd:element ref="xpath-expression"                                    minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
-			            <xsd:annotation>
-                            <xsd:documentation><![CDATA[
-                                If the values returned by the XPath Expression
-                                do not represent the channel names themselves, additional
-                                mappings can be specified using the "mapping" sub-element.
+	<xsd:complexType name="XPathRouterTypeChain">
+		<xsd:complexContent>
+			<xsd:extension base="commonXPathRouterType">
+				<xsd:sequence>
+					<xsd:element ref="xpath-expression"                                    minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Internally XPath expressions will be evaluated as
+								NODESET type and converted to a List<String>
+								representing channel names. Typically such a list
+								will contain a single channel name. However,
+								based on the results of an XPath Expression, the
+								XPath router can also take on the characteristics
+								of a Recipient List Router if the XPath Expression
+								returns more then one value. In that case, the
+								List<String> will contain more then one channel
+								name and consequently Messages will be sent to
+								all channels in the list.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								If the values returned by the XPath Expression
+								do not represent the channel names themselves, additional
+								mappings can be specified using the "mapping" sub-element.
 
-                                For example if the '/request/responders' expression
-                                results in two values: 'responderA' and 'responderB',
-                                but you don't want to couple the responder names
-                                to channel names you may provide additional mappings
-                                such as:
+								For example if the '/request/responders' expression
+								results in two values: 'responderA' and 'responderB',
+								but you don't want to couple the responder names
+								to channel names you may provide additional mappings
+								such as:
 
-                                <int-xml:mapping value="responderA" channel="channelA"/>
-                                <int-xml:mapping value="responderB" channel="channelB"/>
-                                ]]>
-                            </xsd:documentation>
-			            </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
+								<int-xml:mapping value="responderA" channel="channelA"/>
+								<int-xml:mapping value="responderB" channel="channelB"/>
+								]]>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
-	<xsd:element name="xpath-router" type="XPathRouterType"/>
+	<xsd:element name="xpath-router" type="XPathRouterType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Defines an XPath Router which allows for the routing of messages
+				using XPath expressions. This Message Endpoint has no output
+				channel. Instead, one or more output channels are determined
+				dynamically using the provided XPath Expression.
+			]]></xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
 
 	<xsd:element name="xpath-filter">
 		<xsd:annotation>
@@ -537,13 +578,13 @@
 	</xsd:simpleType>
 
 	<xsd:element name="xpath-selector">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an XPath selector.
+				NOTE: this element is deprecated as of 2.1. Please use &lt;xpath-filter&gt; instead.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XPath selector.
-	NOTE: this element is deprecated as of 2.1. Please use &lt;xpath-filter&gt; instead.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
@@ -570,25 +611,25 @@
 	</xsd:element>
 
 	<xsd:element name="xpath-expression">
-        <xsd:annotation>
-            <xsd:documentation><![CDATA[
-                Defines an XPath expression.
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Defines an XPath expression.
 
-                Internally XPath expressions will be evaluated as
-                NODESET type and converted to a List<String>
-                representing channel names. Typically such a list
-                will contain a single channel name. However, based
-                on the result of an XPath Expression the XPath router
-                can also take on the characteristics of the
-                Recipient List Router if the XPath Expression
-                returns more than one value, thus resulting in
-                the List<String> containing more than one channel
-                name.
+				Internally XPath expressions will be evaluated as
+				NODESET type and converted to a List<String>
+				representing channel names. Typically such a list
+				will contain a single channel name. However, based
+				on the result of an XPath Expression the XPath router
+				can also take on the characteristics of the
+				Recipient List Router if the XPath Expression
+				returns more than one value, thus resulting in
+				the List<String> containing more than one channel
+				name.
 
-                In that case the Message will be sent to all channels
-                in the list.
-            ]]></xsd:documentation>
-        </xsd:annotation>
+				In that case the Message will be sent to all channels
+				in the list.
+			]]></xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
