@@ -37,13 +37,13 @@ import org.springframework.util.StringUtils;
 /**
  * Special Set that maintains the following semantics:
  * All elements that are un-ordered (do not implement {@link Ordered} interface or annotated
- * {@link Order} annotation) will be stored in the order in which they were added, maintaining the
- * semantics of the {@link LinkedHashSet}. However, for all {@link Ordered} elements a
+ * {@link Order} annotation) will be stored in the order in which they were added.
+ * However, for all {@link Ordered} elements a
  * {@link Comparator} (instantiated by default) for this implementation of {@link Set}, will be
  * used. Those elements will have precedence over un-ordered elements. If elements have the same
  * order but themselves do not equal to one another the more recent addition will be placed to the
  * right of (appended next to) the existing element with the same order, thus preserving the order
- * of the insertion  and maintaining {@link LinkedHashSet} semantics for the un-ordered elements.
+ * of the insertion while maintaining the order of insertion for the un-ordered elements.
  * <p>
  * The class is package-protected and only intended for use by the AbstractDispatcher. It
  * <emphasis>must</emphasis> enforce safe concurrent access for all usage by the dispatcher.
@@ -64,9 +64,9 @@ class OrderedAwareCopyOnWriteArraySet<E> implements Set<E> {
 
 	private final WriteLock writeLock = rwl.writeLock();
 
-	private final transient CopyOnWriteArraySet<E> elements;
+	private final CopyOnWriteArraySet<E> elements;
 
-    private final transient Set<E> unmodifiableElements;
+    private final Set<E> unmodifiableElements;
 
     public OrderedAwareCopyOnWriteArraySet() {
         elements = new CopyOnWriteArraySet<E>();

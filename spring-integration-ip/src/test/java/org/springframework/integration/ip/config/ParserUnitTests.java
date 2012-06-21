@@ -25,7 +25,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,6 +66,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ContextConfiguration
@@ -328,7 +329,7 @@ public class ParserUnitTests {
 	@Test
 	public void testUdpOrder() {
 		@SuppressWarnings("unchecked")
-		List<MessageHandler> handlers = (List<MessageHandler>) TestUtils
+		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
 				.getPropertyValue(
 						TestUtils.getPropertyValue(this.udpChannel, "dispatcher"),
 						"handlers");
@@ -519,7 +520,7 @@ public class ParserUnitTests {
 		this.outGateway.start();
 		this.testOutTcpNio.start();
 		@SuppressWarnings("unchecked")
-		List<MessageHandler> handlers = (List<MessageHandler>) TestUtils
+		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
 				.getPropertyValue(
 						TestUtils.getPropertyValue(this.tcpChannel, "dispatcher"),
 						"handlers");
