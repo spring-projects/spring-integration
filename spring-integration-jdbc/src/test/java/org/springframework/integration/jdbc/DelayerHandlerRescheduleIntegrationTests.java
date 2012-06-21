@@ -109,11 +109,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		PollableChannel output = context.getBean("output", PollableChannel.class);
 
-		long timeBeforeReceive = System.currentTimeMillis();
 		Message<?> message = output.receive(10000);
 		assertNotNull(message);
-		long timeAfterReceive = System.currentTimeMillis();
-		assertThat(timeAfterReceive - timeBeforeReceive, Matchers.lessThanOrEqualTo(100L));
 
 		Object payload1 = message.getPayload();
 
@@ -129,40 +126,9 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	private static class TestJdbcMessageStore extends JdbcMessageStore {
 
-		private volatile LobHandler lobHandler = new DefaultLobHandler();
-
-		private volatile MessageMapper mapper = new MessageMapper();
-
-		private volatile DeserializingConverter deserializer = new DeserializingConverter();
-
 		private TestJdbcMessageStore() {
 			super();
 			this.setDataSource(dataSource);
-		}
-
-
-//		LIFO polling
-		@Override
-		protected Message<?> doPollForMessage(String groupIdKey) {
-			List<Message<?>> messages = this.getJdbcOperations()
-					.query("SELECT INT_MESSAGE.MESSAGE_ID, INT_MESSAGE.MESSAGE_BYTES from INT_MESSAGE " +
-							"where INT_MESSAGE.MESSAGE_ID = " +
-							"(SELECT max(MESSAGE_ID) from INT_MESSAGE where CREATED_DATE = " +
-							"(SELECT max(CREATED_DATE) from INT_MESSAGE, INT_GROUP_TO_MESSAGE " +
-							"where INT_MESSAGE.MESSAGE_ID = INT_GROUP_TO_MESSAGE.MESSAGE_ID " +
-							"and INT_GROUP_TO_MESSAGE.GROUP_KEY = ?))", new Object[]{groupIdKey}, mapper);
-			if (messages.size() > 0) {
-				System.out.println(messages.get(0));
-				return messages.get(0);
-			}
-			return null;
-		}
-
-		private class MessageMapper implements RowMapper<Message<?>> {
-
-			public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-				return (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
-			}
 		}
 
 	}
