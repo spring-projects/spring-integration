@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.springframework.integration.xml.config;
 
+import org.springframework.integration.xml.selector.XmlValidatingMessageSelector;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.FilterFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
@@ -28,12 +30,9 @@ import org.springframework.util.StringUtils;
 /**
  * @author Jonas Partner
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointParser {
-
-	private static String SELECTOR_CLASSNAME = "org.springframework.integration.xml.selector.XmlValidatingMessageSelector";
-
-	private static String FILTER_CLASSNAME = "org.springframework.integration.config.FilterFactoryBean";
 
 	/** Constant that defines a W3C XML Schema. */
 	public static final String SCHEMA_W3C_XML = "http://www.w3.org/2001/XMLSchema";
@@ -41,23 +40,12 @@ public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointPa
 	/** Constant that defines a RELAX NG Schema. */
 	public static final String SCHEMA_RELAX_NG = "http://relaxng.org/ns/structure/1.0";
 
-
-	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(FILTER_CLASSNAME);
+		BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(FilterFactoryBean.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(filterBuilder, element, "discard-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(filterBuilder, element, "throw-exception-on-rejection");
-		BeanDefinitionBuilder selectorBuilder = BeanDefinitionBuilder.genericBeanDefinition(SELECTOR_CLASSNAME);
+		BeanDefinitionBuilder selectorBuilder = BeanDefinitionBuilder.genericBeanDefinition(XmlValidatingMessageSelector.class);
 		String validator = element.getAttribute("xml-validator");
 		String schemaLocation = element.getAttribute("schema-location");
 		boolean validatorDefined = StringUtils.hasText(validator);
@@ -70,14 +58,13 @@ public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointPa
 			selectorBuilder.addConstructorArgValue(schemaLocation);
 			// it is a restriction with the default value of 'xml-schema' which
 			// corresponds to 'http://www.w3.org/2001/XMLSchema'
-			String schemaType = "xml-schema".equals(element.getAttribute("schema-type"))
-					? SCHEMA_W3C_XML : SCHEMA_RELAX_NG;
+			String schemaType = "xml-schema".equals(element.getAttribute("schema-type")) ? SCHEMA_W3C_XML : SCHEMA_RELAX_NG;
 			selectorBuilder.addConstructorArgValue(schemaType);
 		}
 		else {
 			selectorBuilder.addConstructorArgReference(validator);
 		}
-		selectorBuilder.addPropertyValue("throwExceptionOnRejection", element.getAttribute("throw-exception-on-rejection"));
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(selectorBuilder, element, "throw-exception-on-rejection");
 		filterBuilder.addPropertyValue("targetObject", selectorBuilder.getBeanDefinition());
 		return filterBuilder;
 	}

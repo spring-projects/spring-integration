@@ -32,15 +32,18 @@ import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
  * Base class parser for elements that create Message Endpoints.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinitionParser {
 
@@ -51,13 +54,16 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	protected static final String EXPRESSION_ATTRIBUTE = "expression";
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+		String id = element.getAttribute(ID_ATTRIBUTE);
+		if (!StringUtils.hasText(id)) {
+			id = element.getAttribute("name");
+		}
+		if (!StringUtils.hasText(id)) {
+			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), parserContext.isNested());
+		}
+		return id;
 	}
 
 	/**
