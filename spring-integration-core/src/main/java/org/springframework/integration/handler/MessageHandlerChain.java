@@ -20,6 +20,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A composite {@link MessageHandler} implementation that invokes a chain of
@@ -53,7 +55,7 @@ import java.util.List;
  * This component can be used from the namespace to improve the readability of
  * the configuration by removing channels that can be created implicitly.
  * <p/>
- * 
+ *
  * <pre>
  * &lt;chain&gt;
  *     &lt;filter ref=&quot;someFilter&quot;/&gt;
@@ -62,13 +64,13 @@ import java.util.List;
  *     &lt;aggregator ... /&gt;
  * &lt;/chain&gt;
  * </pre>
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class MessageHandlerChain extends AbstractMessageHandler implements MessageProducer {
+public class MessageHandlerChain extends AbstractMessageHandler implements MessageProducer, SmartLifecycle {
 
 	private volatile List<MessageHandler> handlers;
 
@@ -87,6 +89,13 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 
 	private final Object initializationMonitor = new Object();
 
+	private volatile boolean autoStartup = true;
+
+	private volatile int phase = Integer.MAX_VALUE;
+
+	private volatile boolean running;
+
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 	public void setHandlers(List<MessageHandler> handlers) {
 		this.handlers = handlers;
@@ -191,6 +200,95 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 					}
 				}
 				i++; // increment, regardless of whether we assigned a component name
+			}
+		}
+	}
+
+	/**
+	 * SmartLifecycle implementation (delegates to the {@link #handlers})
+	 */
+
+	public final boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	public final int getPhase() {
+		return this.phase;
+	}
+
+	public final boolean isRunning() {
+		this.lifecycleLock.lock();
+		try {
+			return this.running;
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public final void start() {
+		this.lifecycleLock.lock();
+		try {
+			if (!this.running) {
+				this.doStart();
+				this.running = true;
+				if (logger.isInfoEnabled()) {
+					logger.info("started " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public final void stop() {
+		this.lifecycleLock.lock();
+		try {
+			if (this.running) {
+				this.doStop();
+				this.running = false;
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public final void stop(Runnable callback) {
+		this.lifecycleLock.lock();
+		try {
+			this.stop();
+			callback.run();
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	private void doStop() {
+		for (MessageHandler handler : this.handlers) {
+			if (handler instanceof SmartLifecycle) {
+				((SmartLifecycle) handler).stop();
+			}
+		}
+	}
+
+	private void doStart() {
+		for (MessageHandler handler : this.handlers) {
+			if (handler instanceof SmartLifecycle) {
+				((SmartLifecycle) handler).start();
 			}
 		}
 	}
