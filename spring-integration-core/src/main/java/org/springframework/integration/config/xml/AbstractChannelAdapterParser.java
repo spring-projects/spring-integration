@@ -52,7 +52,7 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 			id = id + ".adapter";
 		}
 		else if (!StringUtils.hasText(id)) {
-			id = parserContext.getReaderContext().generateBeanName(definition);
+			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), parserContext.isNested());
 		}
 		return id;
 	}

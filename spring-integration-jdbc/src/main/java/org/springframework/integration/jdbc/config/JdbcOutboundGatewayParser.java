@@ -30,14 +30,6 @@ import org.w3c.dom.Element;
  */
 public class JdbcOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		String dataSourceRef = element.getAttribute("data-source");

@@ -32,14 +32,6 @@ import org.w3c.dom.Element;
  */
 public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 
