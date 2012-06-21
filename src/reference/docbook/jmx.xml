@@ -52,9 +52,9 @@
     notification-filter="notificationFilter"
     handback="myHandback"/>]]></programlisting>
 		<para>
-			Since the <emphasis>Notification-listening Channel Adapter</emphasis>
-			is registered with the <interfacename>MBeanServer</interfacename> directly,
-			it is event-driven and does not require any poller configuration.
+			The <emphasis>Notification-listening Channel Adapter</emphasis> is
+			event-driven and registered with the <interfacename>MBeanServer</interfacename>
+			directly. It does not require any poller configuration.
 		</para>
 	</section>
 
@@ -171,9 +171,15 @@
    object-name="o.s.i.jmx.config:type=TestBean,name=testBeanGateway"
    operation-name="testWithReturn"/>]]></programlisting>
 		<para>
-			Another way of providing the <emphasis>reply-channel</emphasis> is by
-			setting the <interfacename>MessageHeaders.REPLY_CHANNEL</interfacename>
-			Message Header.
+			If the <emphasis>reply-channel</emphasis> attribute is not provided,
+			the reply message will be sent to the channel that is identified
+			by the <interfacename>MessageHeaders.REPLY_CHANNEL</interfacename>
+			header. That header is typically auto-created by the entry point
+			into a message flow, such as any <emphasis>Gateway</emphasis> component.
+			However, if the message flow was started by manually creating a
+			Spring Integration Message and sending it directly to a
+			<emphasis>Channel</emphasis>, then you must specify the message header
+			explicitly or use the provided <emphasis>reply-channel</emphasis> attribute.
 		</para>
 	</section>
 
@@ -314,13 +320,15 @@
 
 			<para>
 				Message channels report metrics according to their concrete type.
-				If you are looking at a <classname>DirectChannel</classname> you
+				If you are looking at a <classname>DirectChannel</classname>, you
 				will see statistics for the send operation. If it is a
-				<classname>QueueChannel</classname> you will also see statistics for the
-				receive operation. In both cases there are some metrics that are simple
-				counters (message count and error count), and some that are estimates of
-				averages of interesting quantities. The algorithms used to calculate
-				these estimates are described briefly in the table below:
+				<classname>QueueChannel</classname>, you will also see statistics for the
+				receive operation, as well as the count of messages that are currently
+				buffered by this <classname>QueueChannel</classname>. In both
+				cases there are some metrics that are simple counters (message
+				count and error count), and some that are estimates of averages
+				of interesting quantities. The algorithms used to calculate these
+				estimates are described briefly in the table below:
 			</para>
 
 			<table>
