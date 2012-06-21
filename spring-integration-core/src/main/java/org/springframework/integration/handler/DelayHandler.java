@@ -30,6 +30,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -62,7 +63,9 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 1.0.3
  */
-public class DelayHandler extends AbstractReplyProducingMessageHandler implements ApplicationListener<ContextRefreshedEvent> {
+
+@ManagedResource
+public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement, ApplicationListener<ContextRefreshedEvent> {
 
 	private final String messageGroupId;
 
@@ -224,6 +227,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 						". Likely another instance has already released it.");
 			}
 		}
+	}
+
+	public int getDelayedMessageCount() {
+		return this.messageStore.messageGroupSize(this.messageGroupId);
 	}
 
 	/**
