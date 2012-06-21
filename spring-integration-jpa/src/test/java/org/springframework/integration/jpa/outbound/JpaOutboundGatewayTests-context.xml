@@ -208,9 +208,7 @@
 	</int:chain>
 
 	<int:chain input-channel="updatingGatewayInsideChain" output-channel="studentReplyChannel">
-		<!--TODO JPA outbound-gateway must have 'id' inside the chain because
-			 'org.springframework.integration.jpa.outbound.JpaOutboundGatewayFactoryBean#0' isn't registered as bean-->
-		<jpa:updating-outbound-gateway id="gatewayInsideChain" entity-manager="entityManager"
+		<jpa:updating-outbound-gateway entity-manager="entityManager"
 									   entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"/>
 	</int:chain>
 
