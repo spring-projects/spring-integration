@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.gateway;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,7 +64,7 @@ import org.springframework.util.StringUtils;
  * <tt>public void dealWith(Object payload, String payload);</tt><br/>
  * <tt>public void dealWith(Message message, Object payload);</tt><br/>
  * <tt>public void dealWith(Properties headers, Map payload);</tt><br/>
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
@@ -91,7 +93,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
-	
+
 	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
@@ -131,7 +133,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			messageOrPayload = this.payloadExpression.getValue(methodInvocationEvaluationContext);
 		}
 		for (int i = 0; i < this.parameterList.size(); i++) {
-			Object argumentValue = arguments[i];		
+			Object argumentValue = arguments[i];
 			MethodParameter methodParameter = this.parameterList.get(i);
 			Annotation annotation = this.findMappingAnnotation(methodParameter.getParameterAnnotations());
 			if (annotation != null) {
@@ -161,7 +163,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						if (!(argumentValue instanceof Map)) {
 							throw new IllegalArgumentException("@Headers annotation is only valid for Map-typed parameters");
 						}
-						for (Object key : ((Map<?, ?>) argumentValue).keySet()) {	
+						for (Object key : ((Map<?, ?>) argumentValue).keySet()) {
 							Assert.isInstanceOf(String.class, key, "Invalid header name [" + key +
 									"], name type must be String.");
 							Object value = ((Map<?, ?>) argumentValue).get(key);
@@ -170,15 +172,43 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 					}
 				}
 			}
-			else if (messageOrPayload == null) {
+			else if (messageOrPayload == null && !Map.class.isAssignableFrom(methodParameter.getParameterType())) {
 				messageOrPayload = argumentValue;
 			}
 			else if (Map.class.isAssignableFrom(methodParameter.getParameterType())) {
-				if (messageOrPayload instanceof Map && !foundPayloadAnnotation) {
-					throw new MessagingException("Ambiguous method parameters; found more than one " +
-							"Map-typed parameter and neither one contains a @Payload annotation");
+				if (arguments.length == 1){
+					if (this.payloadExpression == null){
+						messageOrPayload = argumentValue;
+					}
+					// else single parameter is already mapped to a Payload so nothing needs to be done
 				}
-				this.copyHeaders((Map<?, ?>) argumentValue, headers);
+				else {
+					Type type =  methodParameter.getGenericParameterType();
+					if (type instanceof ParameterizedType){
+						Class<?> keyType = (Class<?>) ((ParameterizedType)type).getActualTypeArguments()[0];
+						if (!String.class.isAssignableFrom(keyType)){
+							if (messageOrPayload instanceof Map && !foundPayloadAnnotation && this.payloadExpression == null) {
+								throw new MessagingException("Ambiguous method parameters; found more than one " +
+										"Map-typed parameter and neither one contains a @Payload annotation");
+							}
+							else if (this.payloadExpression == null){
+								messageOrPayload = argumentValue;
+							}
+						}
+						else {
+							this.copyHeaders((Map<?, ?>) argumentValue, headers);
+						}
+					}
+					else {
+						if (messageOrPayload instanceof Map && !foundPayloadAnnotation && this.payloadExpression == null) {
+							throw new MessagingException("Ambiguous method parameters; found more than one " +
+									"Map-typed parameter and neither one contains a @Payload annotation");
+						}
+						else if (this.payloadExpression == null){
+							messageOrPayload = argumentValue;
+						}
+					}
+				}
 			}
 			else if (this.payloadExpression == null) {
 				this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
@@ -240,7 +270,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	private void copyHeaders(Map<?, ?> argumentValue, Map<String, Object> headers) {
-		for (Object key : argumentValue.keySet()) {	
+		for (Object key : argumentValue.keySet()) {
 			if (!(key instanceof String)) {
 				throw new IllegalArgumentException("Invalid header name [" + key +
 					"], name type must be String.");
@@ -266,7 +296,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private static List<MethodParameter> getMethodParameterList(Method method) {
 		List<MethodParameter> parameterList = new LinkedList<MethodParameter>();
-		ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer(); 
+		ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 		int parameterCount = method.getParameterTypes().length;
 		for (int i = 0; i < parameterCount; i++) {
 			MethodParameter methodParameter = new MethodParameter(method, i);
