@@ -393,10 +393,7 @@ public class DelayHandlerTests {
 		this.delayHandler.setMessageStore(messageGroupStore);
 		this.startDelayerHandler();
 
-		long timeBeforeReceive = System.currentTimeMillis();
 		assertTrue(this.latch.await(10, TimeUnit.SECONDS));
-		long timeAfterReceive = System.currentTimeMillis();
-		assertThat(timeAfterReceive - timeBeforeReceive, Matchers.lessThanOrEqualTo(100L));
 
 		assertSame(message.getPayload(), this.resultHandler.lastMessage.getPayload());
 		assertNotSame(Thread.currentThread(), this.resultHandler.lastThread);
