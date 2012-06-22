@@ -20,6 +20,7 @@ import groovy.lang.Binding;
 import groovy.lang.MissingPropertyException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -95,32 +96,27 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 					? (ConfigurableListableBeanFactory) beanFactory : null;
 		}
 
-		/**
-		 * Method is invoked from {@link groovy.lang.Script#getProperty(String)} to resolve Groovy script variable
-		 * into real object. For backward compatibility with original 'Script's binding' in the 'catch' block it
-		 * checks <code>"out".equals(name)</code> to rethrow {@link MissingPropertyException}. Otherwise this method
-		 * tries to resolve <code>name</code> parameter into 'managed bean' via provided {@link ConfigurableListableBeanFactory}
-		 *
-		 * @param name - the of Groovy script variable. In this case in the end it will be delegated to
-		 *             <code>this.beanFactory.getBean(name)</code>
-		 * @return - the variable value from 'binding variables' or managed bean from <code>beanFactory</code>,
-		 *         if <code>name</code> parameter doesn't present in the 'binding variables'
-		 * @see {@link groovy.lang.Script#println()}
-		 */
 		@Override
 		public Object getVariable(String name) {
 			try {
 				return super.getVariable(name);
 			}
 			catch (MissingPropertyException e) {
-				if ("out".equals(name)) {
-					throw e;
-				}
+//      Original {@link Binding} doesn't have 'variable' for the given 'name'.
+//      Try to resolve it as 'managed bean' from the given <code>beanFactory</code>.
 			}
 			if (this.beanFactory == null) {
 				throw new MissingPropertyException(name, this.getClass());
 			}
-			Object bean = this.beanFactory.getBean(name);
+
+			Object bean = null;
+			try {
+				bean = this.beanFactory.getBean(name);
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				throw new MissingPropertyException(name, this.getClass(), e);
+			}
+
 			if (bean instanceof Lifecycle ||
 					bean instanceof CustomizableThreadCreator ||
 					(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
