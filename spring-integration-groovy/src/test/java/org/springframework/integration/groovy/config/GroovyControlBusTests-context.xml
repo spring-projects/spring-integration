@@ -35,6 +35,12 @@
 
 	<beans:bean id="nonManagedService" class="org.springframework.integration.groovy.config.GroovyControlBusTests$NonManagedService" />
 
+	<beans:bean id="abstractService" class="org.springframework.integration.groovy.config.GroovyControlBusTests$Service"
+			abstract="true"/>
+
+	<beans:bean id="prototypeService" class="org.springframework.integration.groovy.config.GroovyControlBusTests$Service"
+			scope="prototype"/>
+
 	<beans:bean id="groovyCustomizer"
 			class="org.springframework.integration.groovy.config.GroovyControlBusTests$MyGroovyCustomizer"/>
 
