@@ -19,43 +19,94 @@
   <section id="delayer-namespace">
     <title>Configuring Delayer</title>
     <para>
-      The &lt;delayer&gt; element is used to delay the Message flow between two Message Channels.
-      As with the other endpoints, you can provide the "input-channel" and "output-channel" attributes,
-      but the delayer also requires at least the 'default-delay' attribute with the number of milliseconds
-      that each Message should be delayed.
-      <programlisting language="xml"><![CDATA[ <int:delayer input-channel="input" default-delay="3000" output-channel="output"/>]]></programlisting>
+      The <code>&lt;delayer&gt;</code> element is used to delay the Message flow between two Message Channels.
+      As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes,
+      but the delayer also has 'default-delay' and 'delay-header-name' attributes that are used to
+      determine the number of milliseconds
+      that each Message should be delayed. The following delays all messages by 3 seconds:
+      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" default-delay="3000" output-channel="output"/>]]></programlisting>
       If you need per-Message determination of the delay, then you can also provide the name of a header
-      within the 'delay-header-name' attribute:
-      <programlisting language="xml"><![CDATA[ <int:delayer input-channel="input" output-channel="output"
+      using the 'delay-header-name' attribute:
+      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
           default-delay="3000" delay-header-name="delay"/>]]></programlisting>
       In the example above the 3 second delay would only apply in the case that the header value is
       not present for a given inbound Message. If you only want to apply a delay to Messages that have
-      an explicit header value, then you can set the 'default-delay' to 0. For any Message that has a
-      delay of 0 (or less), the Message will be sent directly. In fact, if there is not a positive delay
+      an explicit header value, then you can set the 'default-delay' to 0 or don't use it at all (by default it is 0).
+      For any Message that has a delay of 0 (or less), the Message will be sent directly. In fact, if there is not a positive delay
       value for a Message, it will be sent to the output channel on the calling Thread.
       <tip>
-        The delay handler actually supports header values that represent an interval in milliseconds (any
+        The delay handler supports header values that represent an interval in milliseconds (any
         Object whose <methodname>toString()</methodname> method produces a value that can be parsed into a
         Long) as well as <classname>java.util.Date</classname> instances representing an absolute time.
-        In the former case, the milliseconds will be counted from the current time (e.g. a value of 5000
-        would delay the Message for at least 5 seconds from the time it is received by the Delayer). In
-        the latter case, with an actual Date instance, the Message will not be released until that Date
+        In the first case, the milliseconds will be counted from the current time (e.g. a value of 5000
+        would delay the Message for at least 5 seconds from the time it is received by the Delayer).
+        With a Date instance, the Message will not be released until that Date
         occurs. In either case, a value that equates to a non-positive delay, or a Date in the past, will
-        not result in any delay. Instead, it will be sent directly to the output channel in the original
-        sender's Thread.
+        not result in any delay. Instead, it will be sent directly to the output channel on the original
+        sender's Thread. If the header is not a Date, and can not be parsed as a Long, the default
+        delay (if any) will be applied.
       </tip>
     </para>
     <para>
       The delayer delegates to an instance of Spring's <interfacename>TaskScheduler</interfacename> abstraction.
-      The default scheduler used by the delayer is a <classname>ThreadPoolTaskScheduler</classname> instance with a pool size of 1.
+      The default scheduler used by the delayer is the <classname>ThreadPoolTaskScheduler</classname> instance
+      provided by Spring Integration on startup: <xref linkend="namespace-taskscheduler"/>.
       If you want to delegate to a different scheduler, you can provide a reference through the delayer element's
       'scheduler' attribute:
-      <programlisting language="xml"><![CDATA[ <int:delayer input-channel="input" output-channel="output"
-          default-delay="0" delay-header-name="delay"
+      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
+          delay-header-name="delay"
           scheduler="exampleTaskScheduler"/>
 
- <task:scheduler id="exampleTaskScheduler" pool-size="3"/>]]></programlisting>
+  <task:scheduler id="exampleTaskScheduler" pool-size="3"/>]]></programlisting>
+      <tip>
+         If you configure an external <classname>ThreadPoolTaskScheduler</classname>
+         you can set on this scheduler property <code>waitForTasksToCompleteOnShutdown = true</code>.
+         It allows successful completion of 'delay' tasks, which already in the execution state (releasing the Message),
+         when the application is shutdown. Before Spring Integration 2.2 this property was available on
+         the <code>&lt;delayer&gt;</code> element, because <classname>DelayHandler</classname> could create its own
+         scheduler on the background. Since 2.2 delayer requires an external scheduler
+         instance and <code>waitForTasksToCompleteOnShutdown</code> was deleted; you should use the scheduler's own configuration.
+      </tip>
+      <tip>
+         Also keep in mind <classname>ThreadPoolTaskScheduler</classname> has a property <code>errorHandler</code> which
+         can be injected with some implementation of <classname>org.springframework.util.ErrorHandler</classname>.
+         This handler allows to process an <classname>Exception</classname> from the thread of the scheduled task sending
+         the delayed message.
+         By default it uses an <classname>org.springframework.scheduling.support.TaskUtils$LoggingErrorHandler</classname>
+         and you will see a stack trace in the logs. You might want to consider using an
+         <classname>org.springframework.integration.channel.MessagePublishingErrorHandler</classname>,
+         which sends an <classname>ErrorMessage</classname> into an <code>error-channel</code>, either from the failed Message's header or
+         into the default <code>error-channel</code>.
+      </tip>
     </para>
+  </section>
+  <section id="delayer-message-store">
+    <title>Delayer and Message Store</title>
+    <para>
+      The <classname>DelayHandler</classname> persists delayed Messages into the Message Group in the provided
+      <interfacename>MessageStore</interfacename>. (The 'groupId' is based on required 'id' attribute of <code>&lt;delayer&gt;</code> element.)
+      A delayed message is removed from the <interfacename>MessageStore</interfacename> by the scheduled task just before
+      the <classname>DelayHandler</classname> sends the Message to the <code>output-channel</code>. If the provided
+      <classname>MessageStore</classname> is persistent (e.g. <classname>JdbcMessageStore</classname>) it provides
+      the ability to not lose Messages on the application shutdown. After application startup, the
+      <classname>DelayHandler</classname> reads Messages from its Message Group in the <interfacename>MessageStore</interfacename>
+      and reschedules them with a delay based on the original arrival time of the Message (if the delay is numeric). For messages
+      where the delay header was a <className>Date</className>, that is used when rescheduling.
+      If a delayed Message remained in the <interfacename>MessageStore</interfacename> more
+      than its 'delay', it will be sent immediately after startup.
+    </para>
+    <para>
+      The <classname>DelayHandler</classname> can be exported as a JMX <code>MBean</code>
+      with managed operations <code>getDelayedMessageCount</code> and <code>reschedulePersistedMessages</code>,
+      which allows the  rescheduling of delayed persisted Messages at runtime, for example, if the
+      <interfacename>TaskScheduler</interfacename> has previously been stopped. These operations can be invoked via a <code>Control Bus</code> command:
+      <programlisting language="java"><![CDATA[
+      Message<String> delayerReschedulingMessage = MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
+      controlBusChannel.send(delayerReschedulingMessage);]]></programlisting>
+    </para>
+    <note>
+      For more information regarding the Message Store, JMX and the Control Bus, please read <xref linkend="system-management-chapter"/>.
+    </note>
   </section>
 
 </section>
