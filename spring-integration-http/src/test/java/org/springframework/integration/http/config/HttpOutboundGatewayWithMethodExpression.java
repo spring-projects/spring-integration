@@ -25,13 +25,13 @@ import java.net.InetSocketAddress;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.SocketUtils;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -49,8 +49,11 @@ public class HttpOutboundGatewayWithMethodExpression {
 
 	@Before
 	public void createServer() throws Exception {
+		int httpPort = SocketUtils.findAvailableServerSocket();
+		System.setProperty("httpPort", String.valueOf(httpPort));
+
 		httpHandler = new MyHandler();
-		server = HttpServer.create(new InetSocketAddress(51234), 0);
+		server = HttpServer.create(new InetSocketAddress(httpPort), 0);
 		server.createContext("/testApps/httpMethod", httpHandler);
 		server.start();
 	}
