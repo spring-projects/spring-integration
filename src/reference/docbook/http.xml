@@ -14,15 +14,49 @@
   <section id="http-inbound">
     <title>Http Inbound Gateway</title>
     <para>
-    To receive messages over HTTP you need to use an HTTP inbound Channel Adapter or Gateway.  In common with the HttpInvoker
-  support the HTTP inbound adapters need to be deployed within a servlet container.  The easiest way to do this is to provide a servlet
-  definition in <emphasis>web.xml</emphasis>, see
-  <xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple HTTP inbound endpoint.
+		To receive messages over HTTP, you need to use an <emphasis>HTTP Inbound
+		Channel Adapter</emphasis> or <emphasis>Gateway</emphasis>. To support
+		the <emphasis>HTTP Inbound Adapters</emphasis>, they need to be deployed
+		within a servlet container such as <ulink url="http://tomcat.apache.org/">Apache Tomcat</ulink>
+		or <ulink url="http://www.eclipse.org/jetty/">Jetty</ulink>. The easiest
+		way to do this is to use Spring's
+		<classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html">HttpRequestHandlerServlet</ulink></classname>,
+		by providing the following servlet definition in the <emphasis>web.xml</emphasis> file:
+	</para>
+	<programlisting language="xml"><![CDATA[<servlet>
+    <servlet-name>inboundGateway</servlet-name>
+    <servlet-class>o.s.web.context.support.HttpRequestHandlerServlet</servlet-class>
+</servlet>]]></programlisting>
+	<para>
+		Notice that the servlet name matches the bean name. For more information
+		on using the <classname>HttpRequestHandlerServlet</classname>, see chapter
+		"<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/remoting.html">Remoting and web services using Spring</ulink>",
+		which is part of the Spring Framework Reference documentation.
+	</para>
+	<para>
+		If you are running within a Spring MVC application, then the aforementioned
+		explicit servlet definition is not necessary. In that case, the bean name
+		for your gateway can be matched against the URL path just like a Spring
+		MVC Controller bean. For more information, please see the chapter
+		"<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html">Web MVC framework</ulink>",
+		which is part of the Spring Framework Reference documentation.
+	</para>
+	<tip>
+		For a sample application and the corresponding configuration, please see the
+		<ulink url="https://github.com/SpringSource/spring-integration-samples">Spring Integration Samples</ulink>
+		repository. It contains the
+		<ulink url="https://github.com/SpringSource/spring-integration-samples/tree/master/basic/http">Http Sample</ulink>
+		application demonstrating Spring Integration's HTTP support.
+	</tip>
+	<para>
+		Below is an example bean definition for a simple HTTP inbound endpoint.
+	</para>
     <programlisting language="xml"><![CDATA[<bean id="httpInbound"
   class="org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway">
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
 </bean>]]></programlisting>
+	<para>
   The <classname>HttpRequestHandlingMessagingGateway</classname> accepts a list of <interfacename>HttpMessageConverter</interfacename> instances or else
   relies on a default list. The converters allow
   customization of the mapping from <interfacename>HttpServletRequest</interfacename> to <interfacename>Message</interfacename>. The default converters
@@ -246,7 +280,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
-    default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would 
+    default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would
     contain the ResponseEntity as long as it's http status is a success (non-successful status codes will throw Exceptions). If you are expecting a different
     type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
     </para>
@@ -268,7 +302,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
   <para>
     Beginning with Spring Integration 2.2 you can also determine the HTTP Method dynamically using SpEL and  the <emphasis>http-method-expression</emphasis> attribute.
     Note that this attribute is obviously murually exclusive with <emphasis>http-method</emphasis>
-    You can also use <code>expected-response-type-expression</code> attribute instead of <code>expected-response-type</code> and 
+    You can also use <code>expected-response-type-expression</code> attribute instead of <code>expected-response-type</code> and
     provide any valid SpEL expression that determines the type of the response.
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
     request-channel="requests"
