@@ -8,71 +8,218 @@
   <section id="sftp-intro">
     <title>Introduction</title>
     <para>
-      The Secure File Transfer Protocol (SFTP) is a network protocol which allows you to transfer 
+      The Secure File Transfer Protocol (SFTP) is a network protocol which allows you to transfer
       files between two computers on the Internet over any reliable stream.
     </para>
-    
+
     <para>
     The SFTP protocol requires a secure channel, such as SSH, as well as visibility to a client's identity throughout the SFTP session.
     </para>
-    
+
     <para>
     Spring Integration supports sending and receiving files over SFTP by providing three <emphasis>client</emphasis>
     side endpoints:
     <emphasis>Inbound Channel Adapter</emphasis>, <emphasis>Outbound Channel Adapter</emphasis>, and <emphasis>Outbound Gateway</emphasis>
     It also provides convenient
     namespace configuration to define these <emphasis>client</emphasis> components.
-    
+
     <programlisting language="xml"><![CDATA[xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp 
+xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
 ]]></programlisting>
     </para>
   </section>
-  
-   <section id="sftp-session-factory">
-  	<title>SFTP Session Factory</title>
-  	<para>
-  	Before configuring SFTP adapters you must configure an <emphasis>SFTP Session Factory</emphasis>. You can configure 
-  	the <emphasis>SFTP Session Factory</emphasis> via a regular bean definition:
-	Below is a basic configuration:
-	
-	<programlisting language="xml"><![CDATA[<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<beans:property name="host" value="loclahost"/>
-		<beans:property name="privateKey" value="classpath:META-INF/keys/sftpTest"/>
-		<beans:property name="privateKeyPassphrase" value="springIntegration"/>
-		<beans:property name="port" value="22"/>
-		<beans:property name="user" value="kermit"/>
-</beans:bean>]]></programlisting>
-	
-	<para>
-	Every time an adapter requests a session object from its <interfacename>SessionFactory</interfacename> the session is 
-	returned from a session pool maintained by a caching wrapper around the factory. A Session in the session pool might go stale 
-	(if it has been disconnected by the server due to inactivity) so the <interfacename>SessionFactory</interfacename> 
-	will perform validation to make sure that it never returns a stale session to the adapter. If a stale session was encountered,
-	it will be removed from the pool, and a new one will be created.
-	<note>
-	If you experience connectivity problems and would like to trace Session creation as well as see which Sessions are 
-	polled you may enable it by setting the logger to TRACE level (e.g., log4j.category.org.springframework.integration.file=TRACE)
-	</note>
-	</para>
 
-	Now all you need to do is inject this <emphasis>SFTP Session Factory</emphasis> into your adapters.
+	<section id="sftp-session-factory">
+		<title>SFTP Session Factory</title>
+		<para>
+			Before configuring SFTP adapters, you must configure an <emphasis>SFTP Session
+			Factory</emphasis>. You can configure the <emphasis>SFTP Session
+			Factory</emphasis> via a regular bean definition:
+		</para>
+		<programlisting language="xml"><![CDATA[<beans:bean id="sftpSessionFactory"
+    class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+    <beans:property name="host" value="localhost"/>
+    <beans:property name="privateKey" value="classpath:META-INF/keys/sftpTest"/>
+    <beans:property name="privateKeyPassphrase" value="springIntegration"/>
+    <beans:property name="port" value="22"/>
+    <beans:property name="user" value="kermit"/>
+</beans:bean>]]></programlisting>
+
+	<para>
+		Every time an adapter requests a session object from its
+		<interfacename>SessionFactory</interfacename>, a new SFTP session is being
+		created. Under the covers, the SFTP Session Factory relies on the
+		<ulink url="http://www.jcraft.com/jsch/">JSch</ulink> library to provide
+		the SFTP capabilities.
+	</para>
+	<para>
+		However, Spring Integration also supports the caching of SFTP
+		sessions, please see <xref linkend="sftp-session-caching"/> for more information.
+	</para>
+	<note>
+		If you experience connectivity problems and would like to trace Session
+		creation as well as see which Sessions are polled you may enable it by
+		setting the logger to TRACE level (e.g., log4j.category.org.springframework.integration.file=TRACE).
+		Please also see <xref linkend="sftp-jsch-logging"/>.
+	</note>
+	<para>
+		Now all you need to do is inject this <emphasis>SFTP Session Factory</emphasis> into your adapters.
+	</para>
+	<note>
+		A more practical way to provide values for the <emphasis>SFTP Session Factory</emphasis> would be via Spring's
+		<emphasis><ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer">property
+		placeholder support</ulink></emphasis>.
+	</note>
+		<section id="sftp-session-factory-properties">
+			<title>Configuration Properties</title>
+			<para>
+				Below you will find all properties that are exposed by the
+				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html">DefaultSftpSessionFactory</ulink></classname>.
+			</para>
+			<para><emphasis role="bold">clientVersion</emphasis></para>
+			<para>
+				Allows you to set the client version property. It's default
+				depends on the underlying JSch version but it will look like:
+				<emphasis>SSH-2.0-JSCH-0.1.45</emphasis>
+			</para>
+			<para><emphasis role="bold">enableDaemonThread</emphasis></para>
+			<para>
+				If <code>true</code>, all threads will be daemon threads. If set
+				to <code>false</code>, normal non-daemon threads will be used
+				instead. This property will be set on the underlying
+				<ulink url="http://www.jcraft.com/jsch/">JSch</ulink>
+				<classname>Session</classname>. There, this property will default
+				to <code>false</code>, if not explicitly set.
+			</para>
+
+			<para><emphasis role="bold">host</emphasis></para>
+			<para>
+				The url of the host you want connect to. <emphasis>Mandatory</emphasis>.
+			</para>
+			<para><emphasis role="bold">hostKeyAlias</emphasis></para>
+			<para>
+				Sets the host key alias, used when comparing the host key to the
+				known hosts list.
+			</para>
+			<para><emphasis role="bold">knownHosts</emphasis></para>
+			<para>
+				Specifies the filename that will be used to create a host key
+				repository. The resulting file has the same format as OpenSSH's
+				<emphasis>known_hosts</emphasis> file.
+			</para>
+			<para><emphasis role="bold">password</emphasis></para>
+			<para>
+				The password to authenticate against the remote host. If a
+				<emphasis>password</emphasis> is not provided, then the
+				<emphasis>privateKey</emphasis> property is mandatory.
+			</para>
+			<para><emphasis role="bold">port</emphasis></para>
+			<para>
+				The port over which the SFTP connection shall be established. If
+				not specified, this value defaults to <code>22</code>. If specified,
+				this properties must be a positive number.
+			</para>
+			<para><emphasis role="bold">privateKey</emphasis></para>
+			<para>
+				Allows you to set a
+				<interfacename><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html">Resource</ulink></interfacename>,
+				which represents the location of the private key used for
+				authenticating against the remote host. If the
+				<emphasis>privateKey</emphasis> is not provided, then the
+				<emphasis>password</emphasis> property is mandatory.
+			</para>
+			<para><emphasis role="bold">privateKeyPassphrase</emphasis></para>
+			<para>
+				The password for the private key. Optional.
+			</para>
+
+			<para><emphasis role="bold">proxy</emphasis></para>
+			<para>
+				Allows for specifying a JSch-based
+				<interfacename><ulink url="http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html">Proxy</ulink></interfacename>.
+				If set, then the proxy object is used to create the connection to
+				the remote host.
+			</para>
+			<para><emphasis role="bold">serverAliveCountMax</emphasis></para>
+			<para>
+				Specifies the number of server-alive messages, which will be sent
+				without any reply from the server before disconnecting. If not
+				set, this property defaults to <code>1</code>.
+			</para>
+			<para><emphasis role="bold">serverAliveInterval</emphasis></para>
+			<para>
+				Sets the timeout interval (milliseconds) before a server alive
+				message is sent, in case no message is received from the server.
+			</para>
+			<para><emphasis role="bold">sessionConfig</emphasis></para>
+			<para>
+				Using <classname>Properties</classname>, you can set additional
+				configuration setting on the underlying JSch Session.
+			</para>
+			<para><emphasis role="bold">socketFactory</emphasis></para>
+			<para>
+				Allows you to pass in a
+				<interfacename><ulink url="http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html">SocketFactory</ulink></interfacename>.
+				The socket factory is used to create a socket to the target host.
+				When a proxy is used, the socket factory is passed to the proxy.
+				By default plain TCP sockets are used.
+			</para>
+			<para><emphasis role="bold">timeout</emphasis></para>
+			<para>
+				The timeout property is used as the socket timeout parameter, as
+				well as the default connection timeout. Defaults to <code>0</code>, which means,
+				that no timeout will occur.
+			</para>
+			<para><emphasis role="bold">user</emphasis></para>
+			<para>
+				The remote user to use. <emphasis>Mandatory</emphasis>.
+			</para>
+		</section>
+	</section>
+
+  <section id="sftp-session-caching">
+  	<title>SFTP Session Caching</title>
+	<para>
+		As of version 2.1 we've exposed more flexibility with regard to session management for remote file adapters (e.g., FTP, SFTP etc).
+	    In previous versions the sessions were cached automatically by default. We did expose a <code>cache-sessions</code> attribute for
+	    disabling the auto caching, but that solution did not provide a way to configure other session caching attributes. For example, one
+	    of the requested features was to support a limit on the number of sessions created since a remote server may impose a limit on the
+	    number of client connections. To support that requirement and other configuration options, we decided to promote explicit definition
+	    of the <classname>CachingSessionFactory</classname> instance. That provides the <code>sessionCacheSize</code> and <code>sessionWaitTimeout</code>
+	    properties. As its name suggests, the  <code>sessionCacheSize</code> property controls how many active sessions this adapter will
+	    maintain in its cache (the DEFAULT is unbounded). If the <code>sessionCacheSize</code> threshold has been reached, any attempt to
+	    acquire another session will block until either one of the cached sessions becomes available or until the wait time for a Session
+	    expires (the DEFAULT wait time is Integer.MAX_VALUE). The <code>sessionWaitTimeout</code> property enables configuration of that value.
+    </para>
+    <para>
+    If you want your Sessions to be cached, simply configure your default Session Factory as described above and then
+    wrap it in an instance of <classname>CachingSessionFactory</classname> where you may provide those additional properties.
+	</para>
+    <programlisting language="xml"><![CDATA[<bean id="sftpSessionFactory"
+    class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+    <property name="host" value="localhost"/>
+</bean>
+
+<bean id="cachingSessionFactory"
+    class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+    <constructor-arg ref="sftpSessionFactory"/>
+    <property name="sessionCacheSize" value="10"/>
+    <property name="sessionWaitTimeout" value="1000"/>
+</bean>]]></programlisting>
+	<para>
+	In the above example you see a <classname>CachingSessionFactory</classname> created with the
+	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
+
   	</para>
-  	<para>
-  	<note>
-  	A more practical way to provide values for the <emphasis>SFTP Session Factory</emphasis> would be via Spring's property 
-  	placeholder support (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
-  	</note>
-  </para>
   </section>
-  
+
    <section id="sftp-inbound">
   	<title>SFTP Inbound Channel Adapter</title>
   	<para>
-  	The <emphasis>SFTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the server and listen for 
+  	The <emphasis>SFTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the server and listen for
   	the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
-  	
+
   	<programlisting language="xml"><![CDATA[<int-sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
   			session-factory="sftpSessionFactory"
 			channel="requestChannel"
@@ -86,15 +233,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 </int-sftp:inbound-channel-adapter>]]></programlisting>
 
 	As you can see from the configuration above you can configure the <emphasis>SFTP Inbound Channel Adapter</emphasis> via the
-	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>local-directory</code> 
+	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>local-directory</code>
 	- where files are going to be transferred TO and <code>remote-directory</code> - the remote source directory where files are
 	going to be transferred FROM -
-	as well as other attributes including a <code>session-factory</code> reference to the bean we configured earlier. 
+	as well as other attributes including a <code>session-factory</code> reference to the bean we configured earlier.
 	</para>
 	<para>
-	By default the transferred file will carry the same name as the original file. If you want to override this behavior you 
-	can set the <code>local-filename-generator-expression</code> attribute which allows you to provide a SpEL Expression to generate 
-	the name of the local file. Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context 
+	By default the transferred file will carry the same name as the original file. If you want to override this behavior you
+	can set the <code>local-filename-generator-expression</code> attribute which allows you to provide a SpEL Expression to generate
+	the name of the local file. Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context
 	is a <classname>Message</classname>, this inbound adapter does not yet have the Message at the time of evaluation since
 	that's what it ultimately generates with the transferred file as its payload. So, the root object of the SpEL Evaluation Context
 	is the original name of the remote file (String).
@@ -108,13 +255,13 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	list of files.
   	</para>
   	<para>
-  	Please refer to the schema for more detail on these attributes. 
+  	Please refer to the schema for more detail on these attributes.
   	</para>
-	
+
   	<para>
-  	It is also important to understand that <emphasis>SFTP Inbound Channel Adapter</emphasis> is a Polling Consumer and therefore 
+  	It is also important to understand that <emphasis>SFTP Inbound Channel Adapter</emphasis> is a Polling Consumer and therefore
   	you must configure a poller (either a global default or a local sub-element).
-	Once the file has been transferred to a local directory, a Message with <classname>java.io.File</classname> as its 
+	Once the file has been transferred to a local directory, a Message with <classname>java.io.File</classname> as its
 	payload type will be generated and sent to the channel identified by the <code>channel</code> attribute.
   	</para>
   	<para>
@@ -128,54 +275,54 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
     and <code>filter</code> attributes.
 
 	If you need a custom filter implementation simply include a reference in your adapter via the <code>filter</code> attribute.
-	
+
 	<programlisting language="xml"><![CDATA[<int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
-			channel="receiveChannel" 
+			channel="receiveChannel"
 			session-factory="sftpSessionFactory"
 			filter="customFilter"
 			local-directory="file:/local-test-dir"
 			remote-directory="/remote-test-dir">
 		<int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>
 </int-sftp:inbound-channel-adapter>
-	
+
 <bean id="customFilter" class="org.foo.CustomFilter"/>
 
 ]]></programlisting>
   	</para>
   </section>
-  
+
   <section id="sftp-outbound">
   	<title>SFTP Outbound Channel Adapter</title>
-  	
+
   	<para>
-  	The <emphasis>SFTP Outbound Channel Adapter</emphasis>is a special <classname>MessageHandler</classname> that will connect to the 
-  	remote directory and will initiate a file transfer for every file it will receive as the payload of an incoming <classname>Message</classname>. 
-  	It also supports several representations of the File so you are not limited to the File object. 
-  	Similar to the FTP outbound adapter, the <emphasis>SFTP Outbound Channel Adapter</emphasis> supports the following payloads: 
-  	1) <classname>java.io.File</classname> - the actual file object; 2) <classname>byte[]</classname> - byte array that represents 
+  	The <emphasis>SFTP Outbound Channel Adapter</emphasis>is a special <classname>MessageHandler</classname> that will connect to the
+  	remote directory and will initiate a file transfer for every file it will receive as the payload of an incoming <classname>Message</classname>.
+  	It also supports several representations of the File so you are not limited to the File object.
+  	Similar to the FTP outbound adapter, the <emphasis>SFTP Outbound Channel Adapter</emphasis> supports the following payloads:
+  	1) <classname>java.io.File</classname> - the actual file object; 2) <classname>byte[]</classname> - byte array that represents
   	the file contents; 3) <classname>java.lang.String</classname> - text that represents the file contents.
-  	
+
   	<programlisting language="xml"><![CDATA[<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-directory="foo/bar"
 				remote-filename-generator-expression="payload.getName() + '-foo'"/>]]></programlisting>
-			
-	As you can see from the configuration above you can configure the <emphasis>SFTP Outbound Channel Adapter</emphasis> via 
-	the <code>outbound-channel-adapter</code> element. 
-	Please refer to the schema for more detail on these attributes. 
+
+	As you can see from the configuration above you can configure the <emphasis>SFTP Outbound Channel Adapter</emphasis> via
+	the <code>outbound-channel-adapter</code> element.
+	Please refer to the schema for more detail on these attributes.
   	</para>
   	<para>
   		<emphasis>SpEL and the SFTP Outbound Adapter</emphasis>
   	</para>
   	<para>
-  		As with many other components in Spring Integration, you can benefit from the Spring Expression Language (SpEL) support when configuring 
-  		an <emphasis>SFTP Outbound Channel Adapter</emphasis>, by specifying two attributes <code>remote-directory-expression</code> and 
-  		<code>remote-filename-generator-expression</code> (see above). The expression evaluation context will have the Message as its root object, thus allowing 
-  		you to provide expressions which can dynamically compute the <emphasis>file name</emphasis> or the existing <emphasis>directory path</emphasis> 
+  		As with many other components in Spring Integration, you can benefit from the Spring Expression Language (SpEL) support when configuring
+  		an <emphasis>SFTP Outbound Channel Adapter</emphasis>, by specifying two attributes <code>remote-directory-expression</code> and
+  		<code>remote-filename-generator-expression</code> (see above). The expression evaluation context will have the Message as its root object, thus allowing
+  		you to provide expressions which can dynamically compute the <emphasis>file name</emphasis> or the existing <emphasis>directory path</emphasis>
   		based on the data in the Message (either from 'payload' or 'headers'). In the example above we are defining
-        the <code>remote-filename-generator-expression</code> attribute with an expression 
+        the <code>remote-filename-generator-expression</code> attribute with an expression
   		value that computes the <emphasis>file name</emphasis> based on its original name while also appending a suffix: '-foo'.
   	</para>
 
@@ -314,47 +461,14 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	<title>SFTP/JSCH Logging</title>
   	<para>
   	Since we use JSch libraries (http://www.jcraft.com/jsch/) to provide SFTP support, at times you may require
-  	 more information from the JSch API itself, especially if something is not working properly 
-  	 (e.g., Authentication exceptions). Unfortunately JSch does not use commons-logging but instead 
-  	 relies on custom implementations of their <classname>com.jcraft.jsch.Logger</classname> interface. 
-  	 As of Spring Integration 2.0.1, we have implemented this interface. So, now all you need to do to enable 
-  	 JSch logging is to configure your logger the way you usually do. For example, here is valid configuration of a 
+  	 more information from the JSch API itself, especially if something is not working properly
+  	 (e.g., Authentication exceptions). Unfortunately JSch does not use commons-logging but instead
+  	 relies on custom implementations of their <classname>com.jcraft.jsch.Logger</classname> interface.
+  	 As of Spring Integration 2.0.1, we have implemented this interface. So, now all you need to do to enable
+  	 JSch logging is to configure your logger the way you usually do. For example, here is valid configuration of a
   	 logger using Log4J.
-  	 
-  	 <programlisting language="java"><![CDATA[log4j.category.com.jcraft.jsch=DEBUG]]></programlisting>
-  	
-  	</para>
-  </section>
-  <section id="sftp-session-caching">
-  	<title>SFTP Session Caching</title>
-	<para>
-		As of version 2.1 we've exposed more flexibility with regard to session management for remote file adapters (e.g., FTP, SFTP etc).
-	    In previous versions the sessions were cached automatically by default. We did expose a <code>cache-sessions</code> attribute for
-	    disabling the auto caching, but that solution did not provide a way to configure other session caching attributes. For example, one
-	    of the requested features was to support a limit on the number of sessions created since a remote server may impose a limit on the
-	    number of client connections. To support that requirement and other configuration options, we decided to promote explicit definition
-	    of the <classname>CachingSessionFactory</classname> instance. That provides the <code>sessionCacheSize</code> and <code>sessionWaitTimeout</code>
-	    properties. As its name suggests, the  <code>sessionCacheSize</code> property controls how many active sessions this adapter will
-	    maintain in its cache (the DEFAULT is unbounded). If the <code>sessionCacheSize</code> threshold has been reached, any attempt to
-	    acquire another session will block until either one of the cached sessions becomes available or until the wait time for a Session 
-	    expires (the DEFAULT wait time is Integer.MAX_VALUE). The <code>sessionWaitTimeout</code> property enables configuration of that value.
-    </para>
-    <para>
-    If you want your Sessions to be cached, simply configure your default Session Factory as described above and then
-    wrap it in an instance of <classname>CachingSessionFactory</classname> where you may provide those additional properties.
 
-    <programlisting language="xml"><![CDATA[<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<property name="host" value="localhost"/>
-	</bean>
-	
-	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
-		<constructor-arg ref="sftpSessionFactory"/>
-		<property name="sessionCacheSize" value="10"/>
-		<property name="sessionWaitTimeout" value="1000"/>
-	</bean>]]></programlisting>
-	
-	In the above example you see a <classname>CachingSessionFactory</classname> created with the
-	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
+  	 <programlisting language="java"><![CDATA[log4j.category.com.jcraft.jsch=DEBUG]]></programlisting>
 
   	</para>
   </section>
