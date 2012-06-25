@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,13 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.expression.TypeConverter;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.history.MessageHistory;
 
 /**
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
@@ -98,6 +101,18 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		if ((targetType.getType() == Void.class || targetType.getType() == Void.TYPE) && value == null) {
 			return null;
 		}
+		/*
+		 *  INT-2630 Spring 3.1 now converts ALL arguments; we know we don't need to convert MessageHeaders
+		 *  or MessageHistory; the MapToMap converter requires a no-arg constructor.
+		 */
+		if (sourceType != null && sourceType.getType() == MessageHeaders.class
+				&& targetType.getType() == MessageHeaders.class) {
+			return value;
+		}
+		if (sourceType != null && sourceType.getType() == MessageHistory.class
+				&& targetType.getType() == MessageHistory.class) {
+			return value;
+		}
 		if (conversionService.canConvert(sourceType, targetType)) {
 			return conversionService.convert(value, sourceType, targetType);
 		}
@@ -109,7 +124,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			if (editor != null) { // INT-1441
 				editor.setValue(value);
 				String text = editor.getAsText();
-				if (String.class.isAssignableFrom(targetType.getClass())) {					
+				if (String.class.isAssignableFrom(targetType.getClass())) {
 					return text;
 				}
 				return convertValue(text, TypeDescriptor.valueOf(String.class), targetType);

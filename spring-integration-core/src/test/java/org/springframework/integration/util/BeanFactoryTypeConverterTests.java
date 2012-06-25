@@ -1,9 +1,10 @@
 /**
- * 
+ *
  */
 package org.springframework.integration.util;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +14,11 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.context.NamedComponent;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -25,7 +31,7 @@ public class BeanFactoryTypeConverterTests {
 	public void testEmptyCollectionConversion(){
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		List<String> sourceObject = new ArrayList<String>();
-		ArrayList<BeanFactoryTypeConverterTests> convertedCollection = 
+		ArrayList<BeanFactoryTypeConverterTests> convertedCollection =
 			(ArrayList<BeanFactoryTypeConverterTests>) typeConverter.convertValue(sourceObject, TypeDescriptor.forObject(sourceObject), TypeDescriptor.forObject(new ArrayList<BeanFactoryTypeConverterTests>()));
 		assertEquals(sourceObject, convertedCollection);
 	}
@@ -47,4 +53,29 @@ public class BeanFactoryTypeConverterTests {
 		assertEquals(Arrays.asList(1234), converted);
 	}
 
+	@Test
+	public void testMessageHeadersNotConverted() {
+		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
+		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
+		MessageHeaders headers = new GenericMessage<String>("foo").getHeaders();
+		assertSame(headers, typeConverter.convertValue(headers, TypeDescriptor.valueOf(MessageHeaders.class), TypeDescriptor.valueOf(MessageHeaders.class)));
+	}
+
+	@Test
+	public void testMessageHistoryNotConverted() {
+		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
+		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
+		Message<String> message = new GenericMessage<String>("foo");
+		message = MessageHistory.write(message, new NamedComponent(){
+			public String getComponentName() {
+				return "bar";
+			}
+
+			public String getComponentType() {
+				return "baz";
+			}
+		});
+		MessageHistory history = MessageHistory.read(message);
+		assertSame(history, typeConverter.convertValue(history, TypeDescriptor.valueOf(MessageHeaders.class), TypeDescriptor.valueOf(MessageHeaders.class)));
+	}
 }
