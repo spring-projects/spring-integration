@@ -28,11 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -59,6 +56,7 @@ import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -502,17 +500,13 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	}
 
 	protected StandardEvaluationContext createEvaluationContext(){
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		evaluationContext.addPropertyAccessor(new MapAccessor());
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (beanFactory != null) {
-			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		if (this.getBeanFactory() != null) {
+			return ExpressionUtils.createStandardEvaluationContext(new BeanFactoryResolver(this.getBeanFactory()),
+					this.getConversionService());
 		}
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService != null) {
-			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		else {
+			return ExpressionUtils.createStandardEvaluationContext(this.getConversionService());
 		}
-		return evaluationContext;
 	}
 
 	private void validateSupportedMethods() {

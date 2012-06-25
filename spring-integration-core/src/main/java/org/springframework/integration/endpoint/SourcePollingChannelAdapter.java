@@ -99,13 +99,14 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		super.onInit();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected boolean doPoll() {
 		boolean isInTx = false;
-		PseudoTransactionalMessageSource<?> messageSource = null;
+		PseudoTransactionalMessageSource<?,Object> messageSource = null;
 		Object resource = null;
 		if (this.isPseudoTxMessageSource) {
-			messageSource = (PseudoTransactionalMessageSource<?>) this.source;
+			messageSource = (PseudoTransactionalMessageSource<?,Object>) this.source;
 			resource = messageSource.getResource();
 			Assert.state(resource != null, "Pseudo Transactional Message Source returned null resource");
 			if (this.synchronizedTx && TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -122,17 +123,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		}
 		finally {
 			if (this.isPseudoTxMessageSource && !isInTx) {
-				/*
-				 * If the message source implements PseudoTransactionalMessageSource and
-				 * we're running from a transactional poller, the message source's afterCommit
-				 * method will be called by the transaction interceptor, using the transaction
-				 * synchronization callback, after the transaction is committed.
-				 *
-				 * If we are not running in a transaction, we invoke it manually, so the message
-				 * source can take the appropriate action, immediately after the receive;
-				 * this was the behavior before pseudo transaction support was added.
-				 */
-				messageSource.afterCommit(resource);
+				messageSource.afterReceiveNoTx(resource);
 			}
 		}
 		if (this.logger.isDebugEnabled()){
@@ -143,6 +134,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 				message = MessageHistory.write(message, this);
 			}
 			this.messagingTemplate.send(this.outputChannel, message);
+			if (this.isPseudoTxMessageSource && !isInTx) {
+				messageSource.afterSendNoTx(resource);
+			}
 			return true;
 		}
 		if (this.logger.isDebugEnabled()){
@@ -191,21 +185,23 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			return false;
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		protected void processResourceAfterCommit(PseudoTransactionalResourceHolder resourceHolder) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("'Committing' pseudo-transactional resource");
 			}
-			((PseudoTransactionalMessageSource<?>) source).afterCommit(resourceHolder.getResource());
+			((PseudoTransactionalMessageSource<?,Object>) source).afterCommit(resourceHolder.getResource());
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public void afterCompletion(int status) {
 			if (status != TransactionSynchronization.STATUS_COMMITTED) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("'Rolling back' pseudo-transactional resource");
 				}
-				((PseudoTransactionalMessageSource<?>) source).afterRollback(this.resourceHolder.getResource());
+				((PseudoTransactionalMessageSource<?,Object>) source).afterRollback(this.resourceHolder.getResource());
 			}
 			super.afterCompletion(status);
 		}

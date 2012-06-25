@@ -60,7 +60,7 @@ public class PseudoTransactionalMessageSourceTests {
 		assertTrue(rolledBack);
 	}
 
-	public static class MessageSource implements PseudoTransactionalMessageSource<String> {
+	public static class MessageSource implements PseudoTransactionalMessageSource<String, Object> {
 
 		public Message<String> receive() {
 			if (doRollback) {
@@ -81,6 +81,12 @@ public class PseudoTransactionalMessageSourceTests {
 		public void afterRollback(Object resource) {
 			rolledBack = true;
 			latch2.countDown();
+		}
+
+		public void afterReceiveNoTx(Object resource) {
+		}
+
+		public void afterSendNoTx(Object resource) {
 		}
 
 	}
