@@ -10,9 +10,9 @@
 
 	<para>
 		As described in <xref linkend="jmx-mbean-exporter"/>, the MBean exporter provides a JMX operation
-		'stopActiveComponents', which is used to stop the application in an orderly manner. The operation
+		<emphasis>stopActiveComponents</emphasis>, which is used to stop the application in an orderly manner. The operation
 		has two parameters, a boolean and a long. The boolean indicates whether attempts will be made
-		to stop (interrupt) active threads; in most cases this will be set to 'false' for orderly
+		to stop (interrupt) active threads; in most cases this will be set to <emphasis>false</emphasis> for orderly
 		shutdown. The long parameter indicates how long (in milliseconds) the operation will wait to allow
 		in-flight messages to complete. The operation works as follows:
 	</para>
@@ -22,7 +22,7 @@
 		Examples of components that implement this interface, and what they do with this call include: JMS and
 		AMQP message-driven adapters stop their listener containers; TCP server connection factories stop
 		accepting new connections (while keeping existing connections open); TCP inbound endpoints drop (log)
-		any new messages received; http inbound endpoints return '503 - Service Unavailable' to any new
+		any new messages received; http inbound endpoints return <emphasis>503 - Service Unavailable</emphasis> for any new
 		requests.
 	</para>
 	<para>
