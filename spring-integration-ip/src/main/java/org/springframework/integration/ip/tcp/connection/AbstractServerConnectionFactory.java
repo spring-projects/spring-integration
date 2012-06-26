@@ -20,6 +20,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+import org.springframework.integration.core.OrderlyShutdownCapable;
 import org.springframework.util.Assert;
 
 /**
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public abstract class AbstractServerConnectionFactory
-		extends AbstractConnectionFactory implements Runnable {
+		extends AbstractConnectionFactory implements Runnable, OrderlyShutdownCapable {
 
 	private static final int DEFAULT_BACKLOG = 5;
 
@@ -40,6 +41,8 @@ public abstract class AbstractServerConnectionFactory
 	private volatile String localAddress;
 
 	private volatile int backlog = DEFAULT_BACKLOG;
+
+	private volatile boolean shuttingDown;
 
 
 	/**
@@ -55,6 +58,7 @@ public abstract class AbstractServerConnectionFactory
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isActive()) {
 				this.setActive(true);
+				this.shuttingDown = false;
 				this.getTaskExecutor().execute(this);
 			}
 		}
@@ -83,6 +87,10 @@ public abstract class AbstractServerConnectionFactory
 	 */
 	public boolean isListening() {
 		return listening;
+	}
+
+	protected boolean isShuttingDown() {
+		return shuttingDown;
 	}
 
 	/**
@@ -167,4 +175,15 @@ public abstract class AbstractServerConnectionFactory
 	public void setPoolSize(int poolSize) {
 		this.setBacklog(poolSize);
 	}
+
+	public int beforeShutdown() {
+		this.shuttingDown = true;
+		return 0;
+	}
+
+	public int afterShutdown() {
+		this.stop();
+		return 0;
+	}
+
 }

@@ -23,9 +23,16 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Test;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.http.HttpStatus;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -244,6 +251,70 @@ public class HttpRequestHandlingControllerTests {
 		ObjectError error = errors.getAllErrors().get(0);
 		assertEquals(3, error.getArguments().length);
 		assertTrue("Wrong message: "+error, ((String)error.getArguments()[1]).startsWith("failed to send Message"));
+	}
+
+	@Test
+	public void shutDown() throws Exception {
+		DirectChannel requestChannel = new DirectChannel();
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				try {
+					latch2.countDown();
+					// hold up an active thread so we can verify the count and that it completes ok
+					latch1.await(10, TimeUnit.SECONDS);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				return requestMessage.getPayload().toString().toUpperCase();
+			}
+		};
+		requestChannel.subscribe(handler);
+		final HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setRequestChannel(requestChannel);
+		controller.setViewName("foo");
+		final MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContent("hello".getBytes());
+		request.setContentType("text/plain");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		final AtomicInteger active = new AtomicInteger();
+		final AtomicBoolean expected503 = new AtomicBoolean();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					// wait for the active thread
+					latch2.await(10, TimeUnit.SECONDS);
+				}
+				catch (InterruptedException e1) {
+					Thread.currentThread().interrupt();
+				}
+				// start the shutdown
+				active.set(controller.beforeShutdown());
+				try {
+					MockHttpServletResponse response = new MockHttpServletResponse();
+					controller.handleRequest(request, response);
+					expected503.set(response.getStatus() == HttpStatus.SERVICE_UNAVAILABLE.value());
+					latch1.countDown();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		ModelAndView modelAndView = controller.handleRequest(request, response);
+		// verify we get a 503 after shutdown starts
+		assertEquals(1, active.get());
+		assertTrue(expected503.get());
+		// verify the active request still processed ok
+		assertEquals("foo", modelAndView.getViewName());
+		assertEquals(1, modelAndView.getModel().size());
+		Object reply = modelAndView.getModel().get("reply");
+		assertNotNull(reply);
+		assertEquals("HELLO", reply);
 	}
 
 

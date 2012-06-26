@@ -40,7 +40,6 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.OrderlyShutdownCapable;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSocketSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
@@ -54,7 +53,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
-		implements ConnectionFactory, SmartLifecycle, OrderlyShutdownCapable {
+		implements ConnectionFactory, SmartLifecycle {
 
 	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
