@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
@@ -87,6 +88,9 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
+		if (logger.isDebugEnabled()) {
+			logger.debug("New connection " + this.getConnectionId());
+		}
 	}
 
 	public void afterSend(Message<?> message) throws Exception {

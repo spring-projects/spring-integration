@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
@@ -335,7 +336,7 @@ public class FailoverClientConnectionFactoryTests {
 		Message<?> replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		server1.stop();
-		TestingUtilities.waitStopListening(server1, null);
+		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(client1, 0);
 		outGateway.handleMessage(message);
 		socket = getSocket(client2);
 		port2 = socket.getLocalPort();
@@ -343,6 +344,7 @@ public class FailoverClientConnectionFactoryTests {
 		replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		gateway2.stop();
+		outGateway.stop();
 	}
 
 	private Socket getSocket(AbstractClientConnectionFactory client) throws Exception {

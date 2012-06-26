@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,12 @@
  */
 package org.springframework.integration.ip.util;
 
+import java.util.Collection;
+
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnection;
 
 /**
  * Convenience class providing methods for testing IP components.
@@ -88,4 +93,32 @@ public class TestingUtilities {
 		}
 	}
 
+	/**
+	 * Wait for up to 10 seconds for the connection factory to have the specified number
+	 * of connections.
+	 * @param factory The factory.
+	 * @param n The required number of connections.
+	 * @throws Exception IllegalStateException if the count does not match.
+	 */
+	public static void waitUntilFactoryHasThisNumberOfConnections(AbstractConnectionFactory factory, int n)
+			throws Exception {
+		int timer = 0;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);
+		@SuppressWarnings("unchecked")
+		Collection<TcpConnection> connections = (Collection<TcpConnection>) accessor.getPropertyValue("connections");
+		while (timer < 10000) {
+			int open = 0;
+			for (TcpConnection connection : connections) {
+				if (connection.isOpen()) {
+					open++;
+				}
+			}
+			if (open == n) {
+				return;
+			}
+			Thread.sleep(100);
+			timer += 100;
+		}
+		throw new IllegalStateException("Connections=" + connections.size() + "wanted=" + n);
+	}
 }

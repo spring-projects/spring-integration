@@ -156,17 +156,23 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			channel.close();
 		}
 		else {
-			channel.configureBlocking(false);
-			Socket socket = channel.socket();
-			setSocketAttributes(socket);
-			TcpNioConnection connection = createTcpNioConnection(channel);
-			if (connection == null) {
-				return;
+			try {
+				channel.configureBlocking(false);
+				Socket socket = channel.socket();
+				setSocketAttributes(socket);
+				TcpNioConnection connection = createTcpNioConnection(channel);
+				if (connection == null) {
+					return;
+				}
+				connection.setTaskExecutor(this.getTaskExecutor());
+				connection.setLastRead(now);
+				this.channelMap.put(channel, connection);
+				channel.register(selector, SelectionKey.OP_READ, connection);
 			}
-			connection.setTaskExecutor(this.getTaskExecutor());
-			connection.setLastRead(now);
-			this.channelMap.put(channel, connection);
-			channel.register(selector, SelectionKey.OP_READ, connection);
+			catch (Exception e) {
+				logger.error("Exception accepting new connection", e);
+				channel.close();
+			}
 		}
 	}
 
