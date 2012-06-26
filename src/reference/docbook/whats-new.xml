@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="whats-new"
-    xmlns:xi="http://www.w3.org/2001/XInclude"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>What's new in Spring Integration 2.2?</title>
-    <para>
-        This chapter provides an overview of the new features and improvements
-        that have been introduced with Spring Integration 2.2 If you are interested
-        in even more detail, please take a look at the Issue Tracker tickets that
-        were resolved as part of the 2.2 development process:
-    </para>
+	xmlns:xi="http://www.w3.org/2001/XInclude"
+	xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>What's new in Spring Integration 2.2?</title>
+	<para>
+		This chapter provides an overview of the new features and improvements
+		that have been introduced with Spring Integration 2.2 If you are interested
+		in even more detail, please take a look at the Issue Tracker tickets that
+		were resolved as part of the 2.2 development process:
+	</para>
 
-    <section id="2.2-general">
-        <title>General</title>
-        <section id="2.2-spring-31">
-            <title>Spring 3.1</title>
-            <para>
-              Spring Integration now uses Spring 3.1.
-            </para>
-        </section>
-        <section id="2.2-amqp-11">
-            <title>Spring-AMQP 1.1</title>
-            <para>
-              Spring Integration now uses Spring AMQP 1.1. This enables several features
-              to be used within a Spring Integration application, including...
-            </para>
-            <itemizedlist>
-              <listitem>A fixed reply queue for the outbound gateway</listitem>
-              <listitem>HA (mirrored) queues</listitem>
-              <listitem>Publisher Confirms</listitem>
-              <listitem>Returned Messages</listitem>
-              <listitem>Support for Dead Letter Exchanges/Dead Letter Queues</listitem>
-            </itemizedlist>
-        </section>
+	<section id="2.2-general">
+		<title>General</title>
+		<section id="2.2-spring-31">
+			<title>Spring 3.1</title>
+			<para>
+			  Spring Integration now uses Spring 3.1.
+			</para>
+		</section>
+		<section id="2.2-amqp-11">
+			<title>Spring-AMQP 1.1</title>
+			<para>
+			  Spring Integration now uses Spring AMQP 1.1. This enables several features
+			  to be used within a Spring Integration application, including...
+			</para>
+			<itemizedlist>
+				<listitem>A fixed reply queue for the outbound gateway</listitem>
+				<listitem>HA (mirrored) queues</listitem>
+				<listitem>Publisher Confirms</listitem>
+				<listitem>Returned Messages</listitem>
+				<listitem>Support for Dead Letter Exchanges/Dead Letter Queues</listitem>
+			</itemizedlist>
+		</section>
 		<section id="2.2-jdbc-11">
 			<title>JDBC Adapter - Stored Procedures Components</title>
 			<para><emphasis>SpEL Support</emphasis></para>
@@ -51,24 +51,34 @@
 				The Stored Procedure components now provide basic JMX support,
 				exposing some of their properties as MBeans:
 			</para>
-            <itemizedlist>
-              <listitem>Stored Procedure Name</listitem>
-              <listitem>Stored Procedure Name Expression</listitem>
-              <listitem>JdbcCallOperations Cache Statistics</listitem>
-            </itemizedlist>
-        </section>
-        <section id="2.2-tx">
-            <title>Transaction Synchronization</title>
-            <para>
-              When running from a transactional poller,
-              mail inbound adapters can be configured to update the mailbox only
-              if the transaction commits.
-            </para>
-        </section>
-    </section>
+			<itemizedlist>
+				<listitem>Stored Procedure Name</listitem>
+				<listitem>Stored Procedure Name Expression</listitem>
+				<listitem>JdbcCallOperations Cache Statistics</listitem>
+			</itemizedlist>
+		</section>
+		<section id="2.2-tx">
+			<title>Transaction Synchronization</title>
+			<para>
+				When running from a transactional poller,
+				mail inbound adapters can be configured to update the mailbox only
+				if the transaction commits.
+			</para>
+		</section>
+		<section id="2.2-shutdown">
+			<title>Orderly Shutdown</title>
+			<para>
+				A method <classname>stopActiveComponents()</classname> has been
+				added to the IntegrationMBeanExporter. This allows a Spring Integration
+				application to be shut down in an orderly manner, disallowing new inbound
+				messages to certain adapters and waiting for some time to allow in-flight
+				messages to complete.
+			</para>
+		</section>
+	</section>
 
-    <section id="2.2-new-components">
-        <title>New Components</title>
+	<section id="2.2-new-components">
+		<title>New Components</title>
 		<section id="2.2-jpa">
 			<title>JPA Endpoints</title>
 			<para>
@@ -94,9 +104,9 @@
 				For more information please see <xref linkend="jpa"/>
 			</para>
 		</section>
-    </section>
-    <section id="2.2-framework-refactorings">
-        <title>Framework Refactoring</title>
+	</section>
+	<section id="2.2-framework-refactorings">
+		<title>Framework Refactoring</title>
 
-    </section>
+	</section>
 </chapter>

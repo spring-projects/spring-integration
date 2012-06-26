@@ -19,7 +19,7 @@ package org.springframework.integration.core;
  * Interface for components that wish to be considered for
  * an orderly shutdown using management interfaces. beforeShuddown()
  * will be called before schedulers, executors etc, are stopped.
- * afterShutdown is called after the shutdown delay.
+ * afterShutdown() is called after the shutdown delay.
  *
  * @author Gary Russell
  * @since 2.2

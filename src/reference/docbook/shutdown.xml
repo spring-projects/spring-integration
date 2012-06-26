@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section version="5.0" xml:id="jmx-shutdown"
+         xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:ns5="http://www.w3.org/1999/xhtml"
+         xmlns:ns4="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
+  <title>Orderly Shutdown</title>
+
+	<para>
+		As described in <xref linkend="jmx-mbean-exporter"/>, the MBean exporter provides a JMX operation
+		'stopActiveComponents', which is used to stop the application in an orderly manner. The operation
+		has two parameters, a boolean and a long. The boolean indicates whether attempts will be made
+		to stop (interrupt) active threads; in most cases this will be set to 'false' for orderly
+		shutdown. The long parameter indicates how long (in milliseconds) the operation will wait to allow
+		in-flight messages to complete. The operation works as follows:
+	</para>
+	<para>
+		The first step calls <classname>beforeShutdown()</classname> on all beans that implement
+		<classname>OrderlyShutdownCapable</classname>. This allows such components to prepare for shutdown.
+		Examples of components that implement this interface, and what they do with this call include: JMS and
+		AMQP message-driven adapters stop their listener containers; TCP server connection factories stop
+		accepting new connections (while keeping existing connections open); TCP inbound endpoints drop (log)
+		any new messages received; http inbound endpoints return '503 - Service Unavailable' to any new
+		requests.
+	</para>
+	<para>
+		The second step stops any active channels, such as JMS- or AMQP-backed channels.
+	</para>
+	<para>
+		The third step stops all <classname>TaskScheduler</classname>s, preventing any new
+		scheduled operations (polling etc).
+	</para>
+	<para>
+		The fourth step stops all <classname>TaskExecutor</classname>s, preventing any new
+		tasks from running.
+	</para>
+	<note>
+		If the shutdown is running from a Spring-managed <classname>TaskExecutor</classname>, shutting down that
+		executor would cause all the timeout time to be consumed by this step, because the thread won't terminate).
+		For this reason, either use a dedicated executor (via the shutdownExecutor property on the MBean exporter),
+		or do not use a Spring-managed executor to invoke this operation.
+	</note>
+	<para>
+		The fifth step stops all <classname>MessageSource</classname>s.
+	</para>
+	<para>
+		The sixth step waits for any remaining time left, as defined by the value of the long parameter passed
+		in to the operation. This is intended to allow any in-flight messages to complete their journeys. It is
+		therefore important to select an appropriate timeout when invoking this operation.
+	</para>
+	<para>
+		The seventh step calls <classname>afterShutdown()</classname> on all OrderlyShutdownCapable components.
+		This allows such components to perform final shutdown tasks (closing all open sockets, for example).
+	</para>
+	<note>
+		If no time is left when we get to step 6, it probably means some thread is hung; in which case, the
+		operation attempts a forced shutdown on all schedulers and executors before exiting.
+	</note>
+</section>

@@ -153,7 +153,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		if (this.isShuttingDown()) {
 			if (logger.isInfoEnabled()) {
 				logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
-						+ " rejected; shutting down.");
+						+ " rejected; the server is in the process of shutting down.");
 			}
 			channel.close();
 		}
