@@ -315,9 +315,14 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines an outbound Channel Gateway for updating a
-				database in response to a message on the request
-				channel and getting a response
-				on the reply channel.  The response can be created from a query
+				database in response to a message on the request channel, and/or
+				for retrieving data from the database using the input message as
+				a source of parameters for the specified SQL select query.
+
+				The database response will be used to create the response Message
+				on the reply channel.
+
+				The response can be created from a query
 				supplied here, or (if keys-generated="true") can be the
 				primary keys generated from an auto-increment, or else just a
 				count of the number of rows affected by the update.  The response
@@ -334,9 +339,19 @@
 							<xsd:annotation>
 								<xsd:appinfo>
 									<xsd:documentation>
-										An update query to execute when a message is
+										An update query to be executed when a message is
 										received. If this is in a transaction then the
 										update will roll back when the transaction does.
+
+										The update can also be specified using the
+										"update" attribute.
+
+										Since Spring Integration 2.2 specifying an
+										update query is optional, if at least the
+										select query is specified.
+
+										If you specify both, update- and select
+										query, then the update is executed first.
 									</xsd:documentation>
 								</xsd:appinfo>
 							</xsd:annotation>
@@ -353,6 +368,13 @@
 									update will roll back when the transaction does.
 
 									The update can also be specified as a nested element.
+
+									Since Spring Integration 2.2 specifying an
+									update query is optional, if at least the
+									select query is specified.
+
+									If you specify both, update- and select
+									query, then the update is executed first.
 								</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>

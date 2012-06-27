@@ -36,22 +36,18 @@ public class JdbcOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		String jdbcOperationsRef = element.getAttribute("jdbc-operations");
 		boolean refToDataSourceSet = StringUtils.hasText(dataSourceRef);
 		boolean refToJdbcOperationsSet = StringUtils.hasText(jdbcOperationsRef);
+
 		if ((refToDataSourceSet && refToJdbcOperationsSet) || (!refToDataSourceSet && !refToJdbcOperationsSet)) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the attributes data-source or "
 							+ "simple-jdbc-operations should be set for the JDBC outbound-gateway", element);
 		}
+
 		String selectQuery = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "query",
 				parserContext);
-		if (!StringUtils.hasText(selectQuery)) {
-			selectQuery = null;
-		}
 		String updateQuery = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "update",
 				parserContext);
-		if (!StringUtils.hasText(updateQuery)) {
-			parserContext.getReaderContext().error("The update attribute is required", element);
-			return null;
-		}
+
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(JdbcOutboundGateway.class);
 		if (refToDataSourceSet) {
@@ -61,8 +57,8 @@ public class JdbcOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			builder.addConstructorArgReference(jdbcOperationsRef);
 		}
 
-		builder.getRawBeanDefinition().getConstructorArgumentValues().addIndexedArgumentValue(1, updateQuery);
-		builder.getRawBeanDefinition().getConstructorArgumentValues().addIndexedArgumentValue(2, selectQuery);
+		builder.addConstructorArgValue(updateQuery);
+		builder.addConstructorArgValue(selectQuery);
 
 		IntegrationNamespaceUtils
 				.setReferenceIfAttributeDefined(builder, element, "reply-sql-parameter-source-factory");

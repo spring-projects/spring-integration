@@ -195,9 +195,10 @@
     SQL query and then respond with the result sending it to a reply channel.
     The message payload and headers are available by default as input
     parameters to the query, for instance:
+    </para>
     <programlisting language="xml"><![CDATA[<int-jdbc:outbound-gateway
     update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
-    request-channel="input" reply-channel="output" data-source="dataSource" />]]></programlisting></para>
+    request-channel="input" reply-channel="output" data-source="dataSource" />]]></programlisting>
 
     <para>The result of the above would be to insert a record into the "foos"
     table and return a message to the output channel indicating the number of
@@ -222,6 +223,21 @@
     update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
     query="select * from foos where id=:headers[$id]"
     request-channel="input" reply-channel="output" data-source="dataSource"/>]]></programlisting>
+
+	<para>
+		Since <emphasis>Spring Integration 2.2</emphasis> the update SQL query is
+		no longer mandatory. You can now solely provide a select query, using
+		either the <emphasis>query attribute</emphasis> or
+		the <emphasis>query sub-element</emphasis>. This is extremely useful if you
+		need to actively retrieve data using e.g. a generic Gateway or a
+		Payload Enricher. The reply message is then generated from the result, like
+		the inbound adapter, and passed to the reply channel.
+	</para>
+    <programlisting language="xml"><![CDATA[<int-jdbc:outbound-gateway
+    query="select * from foos where id=:headers[id]"
+    request-channel="input"
+    reply-channel="output"
+    data-source="dataSource"/>]]></programlisting>
 
     <para>As with the channel adapters, there is also the option to provide
     <classname>SqlParameterSourceFactory</classname> instances for request and
