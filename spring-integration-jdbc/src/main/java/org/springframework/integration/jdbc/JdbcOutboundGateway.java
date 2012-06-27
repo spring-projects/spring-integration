@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.jdbc;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -28,6 +29,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Dave Syer
@@ -60,14 +62,28 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	public JdbcOutboundGateway(JdbcOperations jdbcOperations, String updateQuery, String selectQuery) {
-		if (selectQuery != null) {
+
+		Assert.notNull(jdbcOperations, "'jdbcOperations' must not be null.");
+
+		if (!StringUtils.hasText(updateQuery) && !StringUtils.hasText(selectQuery)) {
+			throw new IllegalArgumentException("The 'updateQuery' and the 'selectQuery' must not both be null or empty.");
+		}
+
+		if (StringUtils.hasText(selectQuery)) {
 			poller = new JdbcPollingChannelAdapter(jdbcOperations, selectQuery);
 			poller.setMaxRowsPerPoll(1);
 		}
 		else {
 			poller = null;
 		}
-		handler = new JdbcMessageHandler(jdbcOperations, updateQuery);
+
+		if (StringUtils.hasText(updateQuery)) {
+			handler = new JdbcMessageHandler(jdbcOperations, updateQuery);
+		}
+		else {
+			handler = null;
+		}
+
 	}
 
 	/**
@@ -96,13 +112,24 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 			poller.setMaxRowsPerPoll(this.maxRowsPerPoll);
 		}
 
-		handler.afterPropertiesSet();
+		if (this.handler!= null) {
+			handler.afterPropertiesSet();
+		}
 
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		List<?> list = handler.executeUpdateQuery(requestMessage, keysGenerated);
+
+		List<?> list;
+
+		if (this.handler != null) {
+			list = handler.executeUpdateQuery(requestMessage, keysGenerated);
+		}
+		else {
+			list = Collections.emptyList();
+		}
+
 		if (poller != null) {
 			SqlParameterSource sqlQueryParameterSource = sqlParameterSourceFactory
 					.createParameterSource(requestMessage);
