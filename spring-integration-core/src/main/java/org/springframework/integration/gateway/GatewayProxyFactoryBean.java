@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,14 +58,15 @@ import org.springframework.util.StringUtils;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
- * with messaging components without application code being aware of them allowing 
- * for POJO-style interaction. 
+ * with messaging components without application code being aware of them allowing
+ * for POJO-style interaction.
  * This component is also aware of the {@link ConversionService} set on the enclosing {@link BeanFactory}
- * under the name {@link IntegrationContextUtils#INTEGRATION_CONVERSION_SERVICE_BEAN_NAME} to 
+ * under the name {@link IntegrationContextUtils#INTEGRATION_CONVERSION_SERVICE_BEAN_NAME} to
  * perform type conversions when necessary (thanks to Jon Schneider's contribution and suggestion in INT-1230).
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
 
@@ -77,9 +78,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private volatile MessageChannel errorChannel;
 
-	private volatile long defaultRequestTimeout = -1;
+	private volatile Long defaultRequestTimeout;
 
-	private volatile long defaultReplyTimeout = -1;
+	private volatile Long defaultReplyTimeout;
 
 	private volatile ChannelResolver channelResolver;
 
@@ -130,7 +131,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	/**
 	 * Set the default request channel.
-	 * 
+	 *
 	 * @param defaultRequestChannel the channel to which request messages will
 	 * be sent if no request channel has been configured with an annotation
 	 */
@@ -142,7 +143,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	 * Set the default reply channel. If no default reply channel is provided,
 	 * and no reply channel is configured with annotations, an anonymous,
 	 * temporary channel will be used for handling replies.
-	 * 
+	 *
 	 * @param defaultReplyChannel the channel from which reply messages will be
 	 * received if no reply channel has been configured with an annotation
 	 */
@@ -162,7 +163,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	/**
 	 * Set the default timeout value for sending request messages. If not
 	 * explicitly configured with an annotation, this value will be used.
-	 * 
+	 *
 	 * @param defaultRequestTimeout the timeout value in milliseconds
 	 */
 	public void setDefaultRequestTimeout(long defaultRequestTimeout) {
@@ -172,7 +173,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	/**
 	 * Set the default timeout value for receiving reply messages. If not
 	 * explicitly configured with an annotation, this value will be used.
-	 * 
+	 *
 	 * @param defaultReplyTimeout the timeout value in milliseconds
 	 */
 	public void setDefaultReplyTimeout(long defaultReplyTimeout) {
@@ -202,7 +203,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	public void setMethodMetadataMap(Map<String, GatewayMethodMetadata> methodMetadataMap) {
 		this.methodMetadataMap = methodMetadataMap;
 	}
-	
+
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
 	}
@@ -336,8 +337,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
 		MessageChannel requestChannel = this.defaultRequestChannel;
 		MessageChannel replyChannel = this.defaultReplyChannel;
-		long requestTimeout = this.defaultRequestTimeout;
-		long replyTimeout = this.defaultReplyTimeout;
+		Long requestTimeout = this.defaultRequestTimeout;
+		Long replyTimeout = this.defaultReplyTimeout;
 		String payloadExpression = null;
 		Map<String, Expression> headerExpressions = null;
 		if (gatewayAnnotation != null) {
@@ -349,11 +350,22 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			if (StringUtils.hasText(replyChannelName)) {
 				replyChannel = this.resolveChannelName(replyChannelName);
 			}
-			requestTimeout = gatewayAnnotation.requestTimeout();
-			replyTimeout = gatewayAnnotation.replyTimeout();
+			/*
+			 * INT-2636 Unspecified annotation attributes should not
+			 * override the default values supplied by explicit configuration.
+			 * There is a small risk that someone has used Long.MIN_VALUE explicitly
+			 * to indicate an indefinite timeout on a gateway method and that will
+			 * no longer work as expected; they will need to use, say, -1 instead.
+			 */
+			if (requestTimeout == null || gatewayAnnotation.requestTimeout() != Long.MIN_VALUE) {
+				requestTimeout = gatewayAnnotation.requestTimeout();
+			}
+			if (replyTimeout == null || gatewayAnnotation.replyTimeout() != Long.MIN_VALUE) {
+				replyTimeout = gatewayAnnotation.replyTimeout();
+			}
 		}
-		else if (methodMetadataMap != null && methodMetadataMap.size() > 0) {	
-			GatewayMethodMetadata methodMetadata = methodMetadataMap.get(method.getName());	
+		else if (methodMetadataMap != null && methodMetadataMap.size() > 0) {
+			GatewayMethodMetadata methodMetadata = methodMetadataMap.get(method.getName());
 			if (methodMetadata != null) {
 				payloadExpression = methodMetadata.getPayloadExpression();
 				headerExpressions = methodMetadata.getHeaderExpressions();
@@ -388,8 +400,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		gateway.setBeanName(this.getComponentName());
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyChannel(replyChannel);
-		gateway.setRequestTimeout(requestTimeout);
-		gateway.setReplyTimeout(replyTimeout);
+		if (requestTimeout == null) {
+			gateway.setRequestTimeout(-1);
+		}
+		else {
+			gateway.setRequestTimeout(requestTimeout);
+		}
+		if (replyTimeout == null) {
+			gateway.setReplyTimeout(-1);
+		}
+		else {
+			gateway.setReplyTimeout(replyTimeout);
+		}
 		if (this.getBeanFactory() != null) {
 			gateway.setBeanFactory(this.getBeanFactory());
 		}
@@ -399,7 +421,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		gateway.afterPropertiesSet();
 		return gateway;
 	}
-	
+
 	private MessageChannel resolveChannelName(String channelName) {
 		Assert.state(this.channelResolver != null, "ChannelResolver is required");
 		MessageChannel channel = this.channelResolver.resolveChannelName(channelName);
@@ -471,7 +493,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		private AsyncInvocationTask(MethodInvocation invocation) {
 			this.invocation = invocation;
 		}
-	
+
 		public Object call() throws Exception {
 			try {
 				return doInvoke(this.invocation);
