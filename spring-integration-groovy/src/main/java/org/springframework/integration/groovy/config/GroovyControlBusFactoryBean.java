@@ -20,7 +20,7 @@ import groovy.lang.Binding;
 import groovy.lang.MissingPropertyException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -86,7 +86,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	 * in the original Groovy script {@link Binding}.
 	 * In additionally beans should be 'managed' with specific properties which
 	 * are allowed in the Control Bus operations.
-	*/
+	 */
 	private static class ManagedBeansBinding extends Binding {
 
 		private final ConfigurableListableBeanFactory beanFactory;
@@ -108,14 +108,19 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 			if (this.beanFactory == null) {
 				throw new MissingPropertyException(name, this.getClass());
 			}
-			BeanDefinition def = this.beanFactory.getBeanDefinition(name);
-			if (!def.isAbstract() && !def.isPrototype()) {
-				Object bean = this.beanFactory.getBean(name);
-				if (bean instanceof Lifecycle ||
-						bean instanceof CustomizableThreadCreator ||
-						(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
-					return bean;
-				}
+
+			Object bean = null;
+			try {
+				bean = this.beanFactory.getBean(name);
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				throw new MissingPropertyException(name, this.getClass(), e);
+			}
+
+			if (bean instanceof Lifecycle ||
+					bean instanceof CustomizableThreadCreator ||
+					(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
+				return bean;
 			}
 			throw new BeanCreationNotAllowedException(name, "Only beans with @ManagedResource or beans which implement " +
 					"org.springframework.context.Lifecycle or org.springframework.util.CustomizableThreadCreator " +

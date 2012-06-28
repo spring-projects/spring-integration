@@ -21,12 +21,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import groovy.lang.GroovyObject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
+import org.springframework.beans.factory.BeanIsAbstractException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -41,8 +45,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Dave Syer
@@ -113,6 +115,27 @@ public class GroovyControlBusTests {
 			assertTrue("Expected BeanCreationNotAllowedException, got " + cause.getClass() + ":" + cause.getMessage(), cause instanceof BeanCreationNotAllowedException);
 			assertTrue(cause.getMessage().contains("nonManagedService"));
 		}
+	}
+
+	@Test //INT-2631
+	public void testFailOperationOnAbstractBean() {
+		try {
+			Message<?> message = MessageBuilder.withPayload("abstractService.convert('testString')").build();
+			this.input.send(message);
+			fail("Expected BeanIsAbstractException");
+		}
+		catch (MessageHandlingException e) {
+			Throwable cause = e.getCause();
+			assertTrue("Expected BeanIsAbstractException, got " + cause.getClass() + ":" + cause.getMessage(), cause instanceof BeanIsAbstractException);
+			assertTrue(cause.getMessage().contains("abstractService"));
+		}
+	}
+
+	@Test //INT-2631
+	public void testOperationOnPrototypeBean() {
+		Message<?> message = MessageBuilder.withPayload("def result = prototypeService.convert('testString')").build();
+		this.input.send(message);
+		assertEquals("cat", output.receive(0).getPayload());
 	}
 
 	@ManagedResource
