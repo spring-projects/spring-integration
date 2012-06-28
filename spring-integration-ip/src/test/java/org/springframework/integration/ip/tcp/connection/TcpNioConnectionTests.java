@@ -264,6 +264,7 @@ public class TcpNioConnectionTests {
 						return 1025;
 					}
 				}).when(channel).read(Mockito.any(ByteBuffer.class));
+				when(socket.getReceiveBufferSize()).thenReturn(1024);
 				final TcpNioConnection connection = new TcpNioConnection(channel, false, false);
 				connection.setTaskExecutor(exec);
 				connection.setPipeTimeout(200);
