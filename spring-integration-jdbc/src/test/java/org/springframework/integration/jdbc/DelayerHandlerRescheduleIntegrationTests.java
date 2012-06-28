@@ -16,21 +16,14 @@ package org.springframework.integration.jdbc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
-
-import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -39,15 +32,13 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.jdbc.support.lob.DefaultLobHandler;
-import org.springframework.jdbc.support.lob.LobHandler;
 
 /**
- * @author Arte Bilan
+ * @author Artem Bilan
+ * @author Gary Russell
  */
 //INT-1132
 public class DelayerHandlerRescheduleIntegrationTests {
@@ -59,8 +50,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	@BeforeClass
 	public static void init() {
 		dataSource = new EmbeddedDatabaseBuilder()
-				.setType(EmbeddedDatabaseType.DERBY)
-				.addScript("classpath:/org/springframework/integration/jdbc/schema-derby.sql")
+				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:/org/springframework/integration/jdbc/schema-h2.sql")
 				.build();
 	}
 
