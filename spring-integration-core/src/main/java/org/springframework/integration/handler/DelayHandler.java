@@ -144,7 +144,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	/**
 	 * Checks if 'requestMessage' wasn't delayed before
-	 * ({@link #releaseMessageAfterDelay} and {@link DelayedMessageWrapper}).
+	 * ({@link #releaseMessageAfterDelay} and {@link DelayHandler.DelayedMessageWrapper}).
 	 * Than determine 'delay' for 'requestMessage' ({@link #determineDelayForMessage})
 	 * and if <code>delay > 0</code> schedules 'releaseMessage' task after 'delay'.
 	 *
