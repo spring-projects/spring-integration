@@ -418,7 +418,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	/**
 	 * Shutdown active components. If the thread calling this method is
 	 * managed by a Spring-managed executor, you should provide a specific
-	 * dedicated executor via the {@link #setShutdownExecutor(Executor))}
+	 * dedicated executor via the {@link #setShutdownExecutor}
 	 * method. When this is provided, the shutdown will be performed on one
 	 * of its threads, instead of the calling thread; thus avoiding
 	 * the situation where we will wait for the current thread to terminate.

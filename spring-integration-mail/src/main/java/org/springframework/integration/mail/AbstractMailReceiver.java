@@ -344,7 +344,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	/**
 	 * Delete and expunge messages after success.
-	 * @param folder
+	 * @param context
 	 */
 	public void closeContextAfterSuccess(MailReceiverContext context) {
 		Assert.notNull(context, "Mail Reader Context cannot be null");

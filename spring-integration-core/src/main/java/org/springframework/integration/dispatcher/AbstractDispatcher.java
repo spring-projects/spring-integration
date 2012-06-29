@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * manages the registration of {@link MessageHandler}s. Although the implemented
  * dispatching strategies may invoke handles in different ways (e.g. round-robin
  * vs. failover), this class does maintain the order of the underlying
- * collection. See the {@link OrderedAwareLinkedHashSet} for more detail.
+ * collection. See the {@link OrderedAwareCopyOnWriteArraySet} for more detail.
  *
  * @author Mark Fisher
  * @author Iwein Fuld
