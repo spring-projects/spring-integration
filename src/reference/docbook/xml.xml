@@ -228,40 +228,47 @@
 
     </section>
   </section>
-  <section id="xml-transformation">
-    <title>Transforming XML Payloads</title>
-    <section id="xml-transformation-beans">
-      <title>Configuring Transformers as Beans</title>
-	  <para>
-	      This section will explain the workings of the following transformers
-	      and how to configure them as <emphasis>beans</emphasis>:
-	  </para>
-
-      <itemizedlist>
-        <listitem>
-            <para><classname>UnmarshallingTransformer</classname></para>
-        </listitem>
-        <listitem>
-            <para><classname>MarshallingTransformer</classname></para>
-        </listitem>
-        <listitem>
-            <para><classname>XsltPayloadTransformer</classname></para>
-        </listitem>
-      </itemizedlist>
-
-      <para>
-      All of the provided XML transformers extend
-      <classname>AbstractTransformer</classname> or <classname>AbstractPayloadTransformer</classname>
-      and therefore implement <interfacename>Transformer</interfacename>.  When configuring XML
-      transformers as beans in Spring Integration you would normally configure the transformer
-      in conjunction with either a <classname>MessageTransformingChannelInterceptor</classname> or a
-      <classname>MessageTransformingHandler</classname>.  This allows the transformer to be used as either an interceptor,
-      which transforms the message as it is sent or received to the channel, or as an endpoint.  Finally the
-      namespace support will be discussed which allows for the simple configuration of the transformers as
-      elements in XML.
-    </para>
-    <para>
-      <classname>UnmarshallingTransformer</classname> allows an XML <interfacename>Source</interfacename>
+	<section id="xml-transformation">
+		<title>Transforming XML Payloads</title>
+		<section id="xml-transformation-beans">
+			<title>Configuring Transformers as Beans</title>
+			<para>
+				This section will explain the workings of the following transformers
+				and how to configure them as <emphasis>beans</emphasis>:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<classname><link linkend="xml-unmarshalling-transformer">UnmarshallingTransformer</link></classname>
+				</listitem>
+				<listitem>
+					<classname><link linkend="xml-marshalling-transformer">MarshallingTransformer</link></classname>
+				</listitem>
+				<listitem>
+					<classname><link linkend="xml-xslt-payload-transformers">XsltPayloadTransformer</link></classname>
+				</listitem>
+			</itemizedlist>
+			<para>
+				All of the provided XML transformers extend
+				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/AbstractTransformer.html">AbstractTransformer</ulink></classname>
+				or <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/AbstractPayloadTransformer.html">AbstractPayloadTransformer</ulink></classname>
+				and therefore implement
+				<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/Transformer.html">Transformer</ulink></interfacename>.
+				When configuring XML transformers as beans in Spring Integration,
+				you would normally configure the <emphasis>Transformer</emphasis>
+				in conjunction with either a
+				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/MessageTransformingChannelInterceptor.html">MessageTransformingChannelInterceptor</ulink></classname>
+				or a <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/transformer/MessageTransformingHandler.html">MessageTransformingHandler</ulink></classname>.
+				This allows the transformer to be used as either an interceptor,
+				which transforms the message as it is sent or received to the
+				<emphasis>Channel</emphasis>, or as an <emphasis>Endpoint</emphasis>.
+				Finally, the namespace support will be discussed, which allows for
+				the simple configuration of the transformers as elements in XML.
+			</para>
+			<section id="xml-unmarshalling-transformer">
+				<title>UnmarshallingTransformer</title>
+				<para>
+					<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/UnmarshallingTransformer.html">UnmarshallingTransformer</ulink></classname>
+					allows an XML <interfacename>Source</interfacename>
       to be unmarshalled using implementations of Spring OXM <interfacename>Unmarshaller</interfacename>.
       Spring OXM provides several implementations supporting marshalling and unmarshalling using JAXB,
       Castor and JiBX amongst others.  Since the unmarshaller requires an instance of
@@ -272,8 +279,7 @@
       <interfacename>SourceFactory</interfacename>.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer"
-      class="org.springframework.integration.xml.transformer.UnmarshallingTransformer">
+      <programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer" class="o.s.i.xml.transformer.UnmarshallingTransformer">
     <constructor-arg>
         <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
         <property name="contextPath" value="org.example" />
@@ -281,28 +287,31 @@
     </constructor-arg>
 </bean>]]></programlisting>
     </para>
-    <para>
-      The <classname>MarshallingTransformer</classname> allows an object graph to be converted
-      into XML using a Spring OXM <interfacename>Marshaller</interfacename>.  By default the
-      <classname>MarshallingTransformer</classname> will return a <classname>DomResult</classname>.
-      However the type of result can be controlled by configuring an alternative <interfacename>ResultFactory</interfacename>
-      such as <classname>StringResultFactory</classname>.  In many cases it will be more convenient to transform
-      the payload into an alternative XML format.  To achieve this configure a
-      <interfacename>ResultTransformer</interfacename>.  Two implementations are provided, one which converts to
-      <classname>String</classname> and another which converts to <interfacename>Document</interfacename>.
-    </para>
-
-      <programlisting language="xml"><![CDATA[<bean id="marshallingTransformer"
-      class="org.springframework.integration.xml.transformer.MarshallingTransformer">
-  <constructor-arg>
-    <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
-      <property name="contextPath" value="org.example"/>
-    </bean>
-  </constructor-arg>
-  <constructor-arg>
-    <bean
-      class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer"/>
-  </constructor-arg>
+    </section>
+    <section id="xml-marshalling-transformer">
+		<title>MarshallingTransformer</title>
+		<para>
+			The <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/MarshallingTransformer.html">MarshallingTransformer</ulink></classname>
+			allows an object graph to be converted into XML using a Spring OXM
+			<interfacename>Marshaller</interfacename>. By default the
+			<classname>MarshallingTransformer</classname> will return a
+			<classname>DomResult</classname>. However, the type of result can be
+			controlled by configuring an alternative <interfacename>ResultFactory</interfacename>
+			such as <classname>StringResultFactory</classname>. In many cases it
+			will be more convenient to transform the payload into an alternative
+			XML format. To achieve this, configure a <interfacename>ResultTransformer</interfacename>.
+			Two implementations are provided, one which converts to <classname>String</classname>
+			and another which converts to <interfacename>Document</interfacename>.
+		</para>
+		<programlisting language="xml"><![CDATA[<bean id="marshallingTransformer" class="o.s.i.xml.transformer.MarshallingTransformer">
+    <constructor-arg>
+        <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+            <property name="contextPath" value="org.example"/>
+        </bean>
+    </constructor-arg>
+    <constructor-arg>
+        <bean class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
+    </constructor-arg>
 </bean>]]></programlisting>
 
     <para>
@@ -314,27 +323,79 @@
       payload is the appropriate source Object for marshalling when delegating to any of the various
       out-of-the-box <interfacename>Marshaller</interfacename> implementations.
     </para>
-    <para>
-      <classname>XsltPayloadTransformer</classname> transforms XML payloads using xsl.
-      The transformer requires an instance of either <interfacename>Resource</interfacename> or
-      <interfacename>Templates</interfacename>.  Passing in a <interfacename>Templates</interfacename> instance
-      allows for greater configuration of the <interfacename>TransformerFactory</interfacename> used to create
-      the template instance.  As in the case of <classname>XmlPayloadMarshallingTransformer</classname>
-      by default <classname>XsltPayloadTransformer</classname> will create a message with a
-      <interfacename>Result</interfacename> payload.  This can be customised by providing a
-      <interfacename>ResultFactory</interfacename> and/or a <interfacename>ResultTransformer</interfacename>.
-    </para>
-
-    <programlisting language="xml"><![CDATA[<bean id="xsltPayloadTransformer"
-      class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
+	</section>
+	<section id="xml-xslt-payload-transformers">
+		<title>XsltPayloadTransformer</title>
+		<para>
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html">XsltPayloadTransformer</ulink></classname>
+			transforms XML payloads using <ulink url="http://en.wikipedia.org/wiki/XSL_Transformations">Extensible Stylesheet Language Transformations</ulink> (XSLT).
+			The transformer's constructor requires an instance of either
+			<interfacename><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html">Resource</ulink></interfacename>
+			or <interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html">Templates</ulink></interfacename>
+			to be passed in. Passing in a <interfacename>Templates</interfacename>
+			instance allows for greater configuration of the <interfacename>TransformerFactory</interfacename>
+			used to create the template instance. As in the case of
+			<classname>XmlPayloadMarshallingTransformer</classname>, by default,
+			<classname>XsltPayloadTransformer</classname> will create a message
+			with a
+			<interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html">Result</ulink></interfacename>
+			payload. This can be customised by providing a
+			<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/ResultFactory.html">ResultFactory</ulink></interfacename>
+			and/or a <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html">ResultTransformer</ulink></interfacename>.
+		</para>
+		<programlisting language="xml"><![CDATA[<bean id="xsltPayloadTransformer" class="o.s.i.xml.transformer.XsltPayloadTransformer">
   <constructor-arg value="classpath:org/example/xsl/transform.xsl"/>
   <constructor-arg>
-    <bean
-     class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer"/>
+    <bean class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
   </constructor-arg>
 </bean>]]></programlisting>
+	</section>
+	<section id="xml-using-result-transformers">
+		<title>ResultTransformers</title>
+		<para>
+			Both, the <classname>MarshallingTransformer</classname> and the
+			<classname>XsltPayloadTransformer</classname> allow you to specify a
+			<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html">ResultTransformer</ulink></interfacename>.
+			Thus, if the Marshalling or XSLT transformation returns a <interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html">Result</ulink></interfacename>,
+			than you have the option to also use a <interfacename>ResultTransformer</interfacename>
+			to transform the <interfacename>Result</interfacename> into another
+			format. For that, Spring Integration ships with 2 concrete
+			<interfacename>ResultTransformer</interfacename> implementations:
+		</para>
+		<itemizedlist>
+			<listitem><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultToDocumentTransformer.html">ResultToDocumentTransformer</ulink></listitem>
+			<listitem><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultToStringTransformer.html">ResultToStringTransformer</ulink></listitem>
+		</itemizedlist>
 
-  </section>
+		<para><emphasis>Using ResultTransformers with the MarshallingTransformer</emphasis></para>
+		<para>
+			As default, the <emphasis>MarshallingTransformer</emphasis> will always
+			return a <interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html">Result</ulink></interfacename>.
+			By specifying a <interfacename>ResultTransformer</interfacename>, using
+			either the provided or your own implementation, you can customize the
+			type of payload returned.
+		</para>
+		<para><emphasis>Using ResultTransformers with the XsltPayloadTransformer</emphasis></para>
+		<para>
+			The behavior is slighly more verbose for the <emphasis>XsltPayloadTransformer</emphasis>.
+			By default, if the payload is an instance of <classname>String</classname>
+			or <interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html">Document</ulink></interfacename>
+			the <emphasis>resultTransformer</emphasis> property is ignored
+			and not applied (even if specified).
+		</para>
+		<para>
+			However, if the input is a
+			<interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Source.html">Source</ulink></interfacename>
+			or any other type, then the <emphasis>resultTransformer</emphasis> property is
+			applied. Additionally, you can set the property <emphasis>alwaysUseResultFactory</emphasis>
+			to <code>true</code>, which will also cause the specified <emphasis>resultTransformer</emphasis> to
+			being used.
+		</para>
+		<para>
+			For more information and examples, please see <xref linkend="xml-using-result-transformers-namespace"/>
+		</para>
+	</section>
+</section>
 	  <section id="xml-transformer-namespace">
 	    <title>Namespace Support for XML Transformers</title>
 	    <para>
@@ -345,33 +406,32 @@
 	      to reduce the amount of XML configuration by allowing the creation of an endpoint and transformer
 	      using one element.
 	    </para>
-	    <para>
-	    The namespace support for <classname>UnmarshallingTransformer</classname> is shown below.
-	    Since the namespace is now creating an endpoint instance rather than a transformer,
-	    a poller can also be nested within the element to control the polling of the input channel.
-	    </para>
-	    <programlisting language="xml"><![CDATA[<int-xml:unmarshalling-transformer id="defaultUnmarshaller"
-    input-channel="input"
-    output-channel="output"
+		<para><emphasis>UnmarshallingTransformer</emphasis></para>
+		<para>
+			The namespace support for the <classname>UnmarshallingTransformer</classname>
+			is shown below. Since the namespace is now creating an endpoint instance
+			rather than a transformer, a poller can also be nested within the
+			element to control the polling of the input channel.
+		</para>
+		<programlisting language="xml"><![CDATA[<int-xml:unmarshalling-transformer id="defaultUnmarshaller"
+    input-channel="input" output-channel="output"
     unmarshaller="unmarshaller"/>
 
 <int-xml:unmarshalling-transformer id="unmarshallerWithPoller"
-    input-channel="input"
-    output-channel="output"
+    input-channel="input" output-channel="output"
     unmarshaller="unmarshaller">
     <int:poller fixed-rate="2000"/>
 <int-xml:unmarshalling-transformer/>]]></programlisting>
 
-	    <para>
-	    The namespace support for the marshalling transformer requires an <code>input-channel</code>, <code>output-channel</code> and a
-	    reference to a <code>marshaller</code>.  The optional <code>result-type</code> attribute can be used to control the type of result created,
-	    valid values are StringResult or DomResult (the default).  Where the provided result types are not sufficient a
-	    reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative
-	    to setting the <code>result-type</code> attribute using the <code>result-factory</code> attribute.  An optional <code>result-transformer</code> can also be
-	    specified in order to convert the created <interfacename>Result</interfacename> after marshalling.
-	    </para>
-
-	    <programlisting language="xml"><![CDATA[<int-xml:marshalling-transformer
+		<para><emphasis>MarshallingTransformer</emphasis></para>
+		<para>
+			The namespace support for the marshalling transformer requires an
+			<code>input-channel</code>, <code>output-channel</code> and a reference
+			to a <code>marshaller</code>. The optional <code>result-type</code>
+			attribute can be used to control the type of result created. Valid values
+			are <code>StringResult</code> or <code>DomResult</code> (the default).
+		</para>
+		<programlisting language="xml"><![CDATA[<int-xml:marshalling-transformer
      input-channel="marshallingTransformerStringResultFactory"
      output-channel="output"
      marshaller="marshaller"
@@ -383,51 +443,148 @@
     marshaller="marshaller"
     result-transformer="resultTransformer" />
 
-<bean id="resultTransformer"
-      class="org.springframework.integration.xml.transformer.ResultToStringTransformer"/>]]></programlisting>
-
-	  <para>
-	    Namespace support for the <classname>XsltPayloadTransformer</classname> allows either a resource to be passed in in order to create the
-	    <interfacename>Templates</interfacename> instance or alternatively a precreated <interfacename>Templates</interfacename>
-	    instance can be passed in as a reference.  In common with the marshalling transformer the type of the result output can
-	    be controlled by specifying either the result-factory or <code>result-type</code> attribute.  A <code>result-transfomer</code> attribute can also
-	    be used to reference an implementation of <interfacename>ResultTransfomer</interfacename> where conversion of the result
-	    is required before sending.
-	  </para>
-	  <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="xsltTransformerWithResource"
-    input-channel="withResourceIn"
-    output-channel="output"
+<bean id="resultTransformer" class="o.s.i.xml.transformer.ResultToStringTransformer"/>]]></programlisting>
+		<para>
+			Where the provided result types are not sufficient, a reference to a custom
+			implementation of <interfacename>ResultFactory</interfacename> can be
+			provided as an alternative to setting the <code>result-type</code>
+			attribute, using the <code>result-factory</code> attribute. The attributes
+			<emphasis>result-type</emphasis> and <emphasis>result-factory</emphasis>
+			are mutually exclusive.
+		</para>
+		<note>
+			Internally, the result types <code>StringResult</code> and <code>DomResult</code>
+			are represented by the <interfacename>ResultFactory</interfacename>s
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/StringResultFactory.html">StringResultFactory</ulink></classname>
+			and <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/DomResultFactory.html">DomResultFactory</ulink></classname>
+			respectively.
+		</note>
+		<para><emphasis>XsltPayloadTransformer</emphasis></para>
+		<para>
+			Namespace support for the <classname>XsltPayloadTransformer</classname>
+			allows you to either pass in a <interfacename>Resource</interfacename>,
+			in in order to create the
+			<interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html">Templates</ulink></interfacename>
+			instance,
+			or alternatively, you can pass in a precreated <interfacename>Templates</interfacename>
+			instance as a reference. In common with the marshalling transformer,
+			the type of the result output can be controlled by specifying either
+			the <code>result-factory</code> or <code>result-type</code> attribute.
+			A <code>result-transfomer</code> attribute can also be used to reference
+			an implementation of <interfacename>ResultTransfomer</interfacename>
+			where conversion of the result is required before sending.
+		</para>
+		<important>
+			If you specify the <code>result-factory</code> or the <code>result-type</code>
+			attribute, then the <code>alwaysUseResultFactory</code> property on
+			the underlying
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html">XsltPayloadTransformer</ulink></classname>
+			will be set to <code>true</code> by the
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/config/XsltPayloadTransformerParser.html">XsltPayloadTransformerParser</ulink></classname>.
+		</important>
+		<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="xsltTransformerWithResource"
+    input-channel="withResourceIn" output-channel="output"
     xsl-resource="org/springframework/integration/xml/config/test.xsl"/>
+
 <int-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
-    input-channel="withTemplatesAndResultTransformerIn"
-    output-channel="output"
+    input-channel="withTemplatesAndResultTransformerIn" output-channel="output"
     xsl-templates="templates"
     result-transformer="resultTransformer"/>]]></programlisting>
 
-	    <para>
-	    Very often to assist with transformation you may need to have access to Message data (e.g., Message Headers). For example; you may need to get access to certain Message Headers
-	      and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)). 
-	        Spring Integration provides two convenient ways to accomplish this. Just look at the following XML snippet.
-	<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="paramHeadersCombo"
-      input-channel="paramHeadersComboChannel"
-    output-channel="output"
+		<para>
+			Often you may need to have access to Message data, such as the
+			Message Headers, in order to assist with transformation. For example,
+			you may need to get access to certain Message Headers and pass them
+			on as parameters to a transformer (e.g., transformer.setParameter(..)).
+			Spring Integration provides two convenient ways to accomplish this, as
+			illustrated in following example:
+		</para>
+
+		<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="paramHeadersCombo"
+    input-channel="paramHeadersComboChannel" output-channel="output"
     xsl-resource="classpath:transformer.xslt"
     xslt-param-headers="testP*, *foo, bar, baz">
 
     <int-xml:xslt-param name="helloParameter" value="hello"/>
     <int-xml:xslt-param name="firstName" expression="headers.fname"/>
 </int-xml:xslt-transformer>]]></programlisting>
-	        If message header names match 1:1 to parameter names, you can simply use <code>xslt-param-headers</code> attribute. There you can also use wildcards for
-	        simple pattern matching which supports the following simple pattern styles: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
-	    </para>
-	    <para>
-	        You can also configure individual xslt parameters via &lt;xslt-param/&gt; sub element. There you can use <code>expression</code> or <code>value</code> attribute.
-	        The <code>expression</code> attribute should be any valid SpEL expression with Message being the root object of the expression evaluation context.
-	        The <code>value</code> attribute just like any <code>value</code> in Spring beans allows you to specify simple scalar vallue. YOu can also use property placeholders (e.g., ${some.value})
-	        So as you can see, with the <code>expression</code> and <code>value</code> attribute xslt parameters could now be mapped to any accessible part of the Message as well as any literal value.
-	    </para>
-	  </section>
-  </section>
+
+		<para>
+			If message header names match 1:1 to parameter names, you can simply use
+			<code>xslt-param-headers</code> attribute. There you can also use wildcards
+			for simple pattern matching, which supports the following simple pattern
+			styles: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
+		</para>
+		<para>
+			You can also configure individual Xslt parameters via the <emphasis>&lt;xslt-param/&gt;</emphasis>
+			sub element. There you can use either the <code>expression</code> or
+			<code>value</code> attribute.
+			The <code>expression</code> attribute should be any valid SpEL expression
+			with Message being the root object of the expression evaluation context.
+			The <code>value</code> attribute, just like any <code>value</code>
+			in Spring beans, allows you to specify simple scalar values. You can
+			also use property placeholders (e.g., ${some.value}). So as you can
+			see, with the <code>expression</code> and <code>value</code> attribute,
+			Xslt parameters could now be mapped to any accessible part of the Message
+			as well as any literal value.
+		</para>
+	</section>
+	<section id="xml-using-result-transformers-namespace">
+		<title>Namespace Configuration and ResultTransformers</title>
+		<para>
+			The usage of <interfacename>ResultTransformers</interfacename> was
+			previously introduced in <xref linkend="xml-using-result-transformers"/>.
+			The following example illustrates several special use-cases using XML
+			namespace configuration. First, we define the
+			<interfacename>ResultTransformer</interfacename>:
+		</para>
+		<programlisting language="xml"><![CDATA[<beans:bean id="resultToDoc" class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>]]></programlisting>
+		<para>
+			This <interfacename>ResultTransformer</interfacename> will accept either
+			a <classname>StringResult</classname> or a <classname>DOMResult</classname>
+			as input and converts the input into a <classname>Document</classname>.
+		</para>
+		<para>
+			Now, let's declare the transformer:
+		</para>
+		<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
+    xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"/>]]></programlisting>
+		<para>
+			Assuming that the incoming message's payload is of type <classname>String</classname>,
+			the payload after the Xslt transformation will be a <classname>String</classname>
+			as well. In that case the specified <emphasis>ResultTransformer</emphasis>
+			will be ignored. However, if the input is of type
+			<interfacename>Source</interfacename>, then the
+			<emphasis>ResultTransformer</emphasis> will be used and the resulting
+			payload will be of type <interfacename>Document</interfacename>.
+		</para>
+		<para>
+			The next transformer declaration adds a <emphasis>result-type</emphasis>
+			attribute using <code>StringResult</code> as its value. First, the
+			<emphasis>result-type</emphasis> is internally represented by the
+			<classname>StringResultFactory</classname>. Thus, you could have also
+			added a reference to a <classname>StringResultFactory</classname>, using
+			the <emphasis>result-factory</emphasis> attribute, which would haven
+			been the same.
+		</para>
+		<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
+		xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"
+		result-type="StringResult"/>]]></programlisting>
+		<para>
+			Because we are using a <classname>ResultFactory</classname>, the
+			<emphasis>alwaysUseResultFactory</emphasis> property of the
+			<classname>XsltPayloadTransformer</classname> class will be implicitly
+			set to <code>true</code>. Consequently, the referenced
+			<classname>ResultToDocumentTransformer</classname> will be used.
+		</para>
+		<para>
+			Despite the fact that we are transforming a payload of type
+			<classname>String</classname>, the resulting payload will be of type
+			<classname><ulink url="http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html">Document</ulink></classname>
+			instead.
+		</para>
+	</section>
+</section>
   <section id="xml-xpath-transformer">
     <title>Transforming XML Messages Using XPath</title>
     <para>

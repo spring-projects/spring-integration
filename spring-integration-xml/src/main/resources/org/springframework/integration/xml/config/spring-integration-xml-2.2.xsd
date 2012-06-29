@@ -108,12 +108,35 @@
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
 					<xsd:sequence>
-						<xsd:element name="xslt-param" type="paramType" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="xslt-param" type="paramType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+
+							]]></xsd:documentation>
+						</xsd:annotation>
+						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="xslt-param-headers" type="xsd:string" use="optional"/>
-					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional"/>
+					<xsd:attribute name="xslt-param-headers" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Either this attribute or the 'xsl-templates'
+								attribute MUST be specified.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="xsl-templates" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Either this attribute or the 'xsl-resource'
+								attribute MUST be specified.
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="javax.xml.transform.Templates"/>
@@ -123,6 +146,9 @@
 					</xsd:attribute>
 					<xsd:attribute name="source-factory" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.xml.source.SourceFactory"/>
@@ -132,6 +158,10 @@
 					</xsd:attribute>
 					<xsd:attribute name="result-factory" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								If this attribute is provided, you must not specify
+								the 'result-type' attribute.
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.xml.result.ResultFactory"/>
@@ -140,6 +170,12 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="result-type" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								If this attribute is provided, you must not specify
+								the 'result-factory' attribute.
+							]]></xsd:documentation>
+						</xsd:annotation>
 						<xsd:simpleType>
 							<xsd:restriction base="xsd:string">
 								<xsd:enumeration value="DOMResult"/>
@@ -149,6 +185,9 @@
 					</xsd:attribute>
 					<xsd:attribute name="result-transformer" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.xml.transformer.ResultTransformer"/>
