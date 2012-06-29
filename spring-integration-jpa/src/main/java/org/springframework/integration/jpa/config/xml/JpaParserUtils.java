@@ -129,7 +129,7 @@ public final class JpaParserUtils {
 	 * Initializes the wrapped {@link JpaExecutor} with common properties.
 	 * Delegates to {@link JpaParserUtils#getJpaExecutorBuilder(Element, ParserContext)}
 	 *
-	 * @param element Must not be null
+	 * @param gatewayElement Must not be null
 	 * @param parserContext Must not be null
 	 *
 	 * @return The BeanDefinitionBuilder for the JpaExecutor
