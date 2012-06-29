@@ -108,12 +108,59 @@
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
 					<xsd:sequence>
-						<xsd:element name="xslt-param" type="paramType" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="xslt-param" type="paramType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows to configure individual Xslt parameters.
+								There the 'expression' and 'value' attribute are
+								available. The expression attribute should be
+								any valid SpEL expression with the message being
+								the root object of the expression evaluation
+								context.
+
+								The value attribute, just like any value in Spring
+								beans, allows you to specify simple static values.
+
+								You can also use property placeholders (e.g.,
+								${some.value}).
+							]]></xsd:documentation>
+						</xsd:annotation>
+						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="xslt-param-headers" type="xsd:string" use="optional"/>
-					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional"/>
+					<xsd:attribute name="xslt-param-headers" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								If message header names match 1:1 to parameter
+								names, you can use this attribute to make
+								the parameters available.
+
+								The use of wildcards for simple pattern
+								matching is also possible. It supports the
+								following simple pattern styles: 'xxx*', '*xxx',
+								'*xxx*' and 'xxx*yyy'.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows you to specify a org.springframework.core.io.Resource,
+								which will be used to create the javax.xml.transform.Templates
+								instance.
+
+								Either this attribute or the 'xsl-templates'
+								attribute MUST be specified.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="xsl-templates" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Reference to a Templates instance.
+
+								Either this attribute or the 'xsl-resource'
+								attribute MUST be specified.
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="javax.xml.transform.Templates"/>
@@ -123,6 +170,12 @@
 					</xsd:attribute>
 					<xsd:attribute name="source-factory" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Reference to a 'SourceFactory' instance. Allows
+								for the custom conversion to a javax.xml.transform.Source
+								If not set, this property will internally default
+								to 'DomSourceFactory'.
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.xml.source.SourceFactory"/>
@@ -132,6 +185,11 @@
 					</xsd:attribute>
 					<xsd:attribute name="result-factory" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Reference to a custom implementation of 'ResultFactory'.
+								If this attribute is provided, you must not specify
+								the 'result-type' attribute.
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.xml.result.ResultFactory"/>
@@ -140,6 +198,18 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="result-type" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								This attribute can be used to control the type
+								of result created.
+
+								If this attribute is provided, you must not specify
+								the 'result-factory' attribute.
+
+								If neither this property nor the 'result-factory'
+								attribute are provided, 'DomResult' will be used.
+							]]></xsd:documentation>
+						</xsd:annotation>
 						<xsd:simpleType>
 							<xsd:restriction base="xsd:string">
 								<xsd:enumeration value="DOMResult"/>
@@ -149,6 +219,17 @@
 					</xsd:attribute>
 					<xsd:attribute name="result-transformer" type="xsd:string" use="optional">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								If the XSLT transformation returns a 'Result' object,
+								than you have the option to specify a reference
+								to a 'ResultTransformer' instance. This allows
+								you to transform the 'Result' into another format.
+
+								By default 2 implementations are available:
+
+								- 'ResultToDocumentTransformer' and
+								- 'ResultToStringTransformer'
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.xml.transformer.ResultTransformer"/>
