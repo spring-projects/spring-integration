@@ -119,6 +119,28 @@ public class JdbcOutboundGatewayParserTests {
 		assertEquals("bar", payload.get("name"));
 	}
 
+	@Test
+	public void testWithSelectQueryOnly() throws Exception{
+		ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundGatewayWithSelectTest-context.xml", this.getClass());
+		Message<?> message = MessageBuilder.withPayload(Integer.valueOf(100)).build();
+		MessageChannel requestChannel = ac.getBean("request", MessageChannel.class);
+		PollableChannel replyChannel = ac.getBean("reply", PollableChannel.class);
+
+		requestChannel.send(message);
+		Thread.sleep(1000);
+
+		@SuppressWarnings("unchecked")
+		Message<Map<String, Object>> reply = (Message<Map<String, Object>>) replyChannel.receive(500);
+
+		String id = (String) reply.getPayload().get("id");
+		Integer status = (Integer) reply.getPayload().get("status");
+		String name = (String) reply.getPayload().get("name");
+
+		assertEquals("100", id);
+		assertEquals(Integer.valueOf(3), status);
+		assertEquals("Cartman", name);
+	}
+
     @Test
     public void testReplyTimeoutIsSet() throws Exception {
         setUp("JdbcOutboundGatewayWithPollerTest-context.xml", getClass());

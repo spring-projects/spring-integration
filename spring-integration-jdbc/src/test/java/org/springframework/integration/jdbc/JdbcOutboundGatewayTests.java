@@ -16,9 +16,12 @@ import static org.junit.Assert.fail;
 
 import javax.sql.DataSource;
 
+import junit.framework.Assert;
+
 import static junit.framework.Assert.assertEquals;
 
 import org.junit.Test;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 
 /**
@@ -35,12 +38,12 @@ public class JdbcOutboundGatewayTests {
 
 		DataSource dataSource = new EmbeddedDatabaseBuilder().build();
 
-		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "select * from DOES_NOT_EXIST");
+		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "update something");
 
 		try {
 			jdbcOutboundGateway.setMaxRowsPerPoll(10);
 			jdbcOutboundGateway.onInit();
-			
+
 		} catch (IllegalArgumentException e) {
 			assertEquals("If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.", e.getMessage());
 			return;
@@ -48,6 +51,41 @@ public class JdbcOutboundGatewayTests {
 
 		fail("Expected an IllegalArgumentException to be thrown.");
 
+	}
+
+	@Test
+	public void testConstructorWithNulljdbcOperations() {
+
+		JdbcOperations jdbcOperations = null;
+
+		try {
+			new JdbcOutboundGateway(jdbcOperations, "select * from DOES_NOT_EXIST");
+		}
+		catch (IllegalArgumentException e) {
+			Assert.assertEquals("'jdbcOperations' must not be null.", e.getMessage());
+			return;
+		}
+
+		fail("Expected an IllegalArgumentException to be thrown.");
+	}
+
+	@Test
+	public void testConstructorWithEmptyAndNullQueries() {
+
+		final DataSource dataSource = new EmbeddedDatabaseBuilder().build();
+
+		final String selectQuery = "   ";
+		final String updateQuery = null;
+
+		try {
+			new JdbcOutboundGateway(dataSource, updateQuery, selectQuery);
+		}
+		catch (IllegalArgumentException e) {
+			Assert.assertEquals("The 'updateQuery' and the 'selectQuery' must not both be null or empty.", e.getMessage());
+			return;
+		}
+
+		fail("Expected an IllegalArgumentException to be thrown.");
 	}
 
 	/**

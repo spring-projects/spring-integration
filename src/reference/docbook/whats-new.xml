@@ -57,6 +57,14 @@
 				<listitem>JdbcCallOperations Cache Statistics</listitem>
 			</itemizedlist>
 		</section>
+		<section id="2.2-jdbc-gateway-update-optional">
+			<title>JDBC Adapter - Outbound Gateway</title>
+			<para>
+				When using the JDBC Outbound Gateway, the update query is no longer
+				mandatory. You can now provide solely a select query using the request
+				message as a source of parameters.
+			</para>
+		</section>
 		<section id="2.2-tx">
 			<title>Transaction Synchronization</title>
 			<para>
