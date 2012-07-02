@@ -23,6 +23,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.BeanFactoryResolver;
@@ -62,7 +65,7 @@ import org.springframework.util.StringUtils;
  * <tt>public void dealWith(Object payload, String payload);</tt><br/>
  * <tt>public void dealWith(Message message, Object payload);</tt><br/>
  * <tt>public void dealWith(Properties headers, Map payload);</tt><br/>
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
@@ -70,8 +73,9 @@ import org.springframework.util.StringUtils;
  */
 class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	private final Log logger = LogFactory.getLog(this.getClass());
 
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final Method method;
 
@@ -91,7 +95,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
-	
+
 	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
@@ -131,7 +135,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			messageOrPayload = this.payloadExpression.getValue(methodInvocationEvaluationContext);
 		}
 		for (int i = 0; i < this.parameterList.size(); i++) {
-			Object argumentValue = arguments[i];		
+			Object argumentValue = arguments[i];
 			MethodParameter methodParameter = this.parameterList.get(i);
 			Annotation annotation = this.findMappingAnnotation(methodParameter.getParameterAnnotations());
 			if (annotation != null) {
@@ -161,7 +165,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						if (!(argumentValue instanceof Map)) {
 							throw new IllegalArgumentException("@Headers annotation is only valid for Map-typed parameters");
 						}
-						for (Object key : ((Map<?, ?>) argumentValue).keySet()) {	
+						for (Object key : ((Map<?, ?>) argumentValue).keySet()) {
 							Assert.isInstanceOf(String.class, key, "Invalid header name [" + key +
 									"], name type must be String.");
 							Object value = ((Map<?, ?>) argumentValue).get(key);
@@ -175,8 +179,10 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			}
 			else if (Map.class.isAssignableFrom(methodParameter.getParameterType())) {
 				if (messageOrPayload instanceof Map && !foundPayloadAnnotation) {
-					throw new MessagingException("Ambiguous method parameters; found more than one " +
-							"Map-typed parameter and neither one contains a @Payload annotation");
+					if (payloadExpression == null){
+						throw new MessagingException("Ambiguous method parameters; found more than one " +
+								"Map-typed parameter and neither one contains a @Payload annotation");
+					}
 				}
 				this.copyHeaders((Map<?, ?>) argumentValue, headers);
 			}
@@ -240,13 +246,17 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	private void copyHeaders(Map<?, ?> argumentValue, Map<String, Object> headers) {
-		for (Object key : argumentValue.keySet()) {	
+		for (Object key : argumentValue.keySet()) {
 			if (!(key instanceof String)) {
-				throw new IllegalArgumentException("Invalid header name [" + key +
-					"], name type must be String.");
+				if (this.logger.isWarnEnabled()){
+					this.logger.warn("Invalid header name [" + key +
+							"], name type must be String. Skipping mapping of this header to MessageHeaders.");
+				}
 			}
-			Object value = argumentValue.get(key);
-			headers.put((String) key, value);
+			else {
+				Object value = argumentValue.get(key);
+				headers.put((String) key, value);
+			}
 		}
 	}
 
@@ -266,7 +276,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private static List<MethodParameter> getMethodParameterList(Method method) {
 		List<MethodParameter> parameterList = new LinkedList<MethodParameter>();
-		ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer(); 
+		ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 		int parameterCount = method.getParameterTypes().length;
 		for (int i = 0; i < parameterCount; i++) {
 			MethodParameter methodParameter = new MethodParameter(method, i);
