@@ -31,7 +31,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.gateway.GatewayMethodInboundMessageMapper;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -192,7 +192,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.toMessage(new Object[] { "abc", "def" });
 	}
-	
+
 	@Test
 	public void toMessageWithPayloadAndHeaders() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
@@ -207,13 +207,65 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertEquals(42, message.getHeaders().get("bar"));
 	}
 
+	@Test
+	public void toMessageWithNonHeaderMapPayloadExpressionA() throws Exception {
+		Method method = TestService.class.getMethod("sendNonHeadersMap", Map.class);
+		Map<Integer, Object> map = new HashMap<Integer, Object>();
+		map.put(1, "One");
+		map.put(2, "Two");
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setPayloadExpression("'hello'");
+		Message<?> message = mapper.toMessage(new Object[] { map });
+		assertEquals("hello", message.getPayload());
+	}
+
+	@Test
+	public void toMessageWithNonHeaderMapPayloadExpressionB() throws Exception {
+		Method method = TestService.class.getMethod("sendNonHeadersMap", Map.class);
+		Map<Integer, Object> map = new HashMap<Integer, Object>();
+		map.put(1, "One");
+		map.put(2, "Two");
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setPayloadExpression("#args[0]");
+		Message<?> message = mapper.toMessage(new Object[] { map });
+		assertEquals(map, message.getPayload());
+	}
+
+	@Test
+	public void toMessageWithNonHeaderMapPayloadAnnotation() throws Exception {
+		Method method = TestService.class.getMethod("sendNonHeadersMapWithPayloadAnnotation", Map.class);
+		Map<Integer, Object> map = new HashMap<Integer, Object>();
+		map.put(1, "One");
+		map.put(2, "Two");
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		Message<?> message = mapper.toMessage(new Object[] { map });
+		assertEquals(map, message.getPayload());
+	}
+
+	@Test
+	public void toMessageWithTwoMapsOneNonHeaderPayloadExpression() throws Exception {
+		Method method = TestService.class.getMethod("sendNonHeadersMapFirstArgument", Map.class, Map.class);
+		Map<Integer, Object> mapA = new HashMap<Integer, Object>();
+		mapA.put(1, "One");
+		mapA.put(2, "Two");
+		Map<String, Object> mapB = new HashMap<String, Object>();
+		mapB.put("1", "ONE");
+		mapB.put("2", "TWO");
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setPayloadExpression("#args[0]");
+		Message<?> message = mapper.toMessage(new Object[] { mapA, mapB });
+		assertEquals(mapA, message.getPayload());
+		assertEquals(mapB.get("1"), message.getHeaders().get("1"));
+		assertEquals(mapB.get("2"), message.getHeaders().get("2"));
+	}
+
 
 	private static interface TestService {
 
 		void sendPayload(String payload);
 
 		void sendPayloadAndHeader(String payload, @Header("foo") String foo);
-		
+
 		void sendPayloadAndOptionalHeader(String payload, @Header(value="foo", required=false) String foo);
 
 		void sendPayloadAndHeadersMap(String payload, @Headers Map<String, Object> headers);
@@ -229,6 +281,13 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		void noArgs();
 
 		void onlyHeaders(@Header("foo") String foo, @Header("bar") String bar);
+
+		void sendNonHeadersMap(Map<Integer, Object> map);
+
+		@Payload("#args[0]")
+		void sendNonHeadersMapWithPayloadAnnotation(Map<Integer, Object> map);
+
+		void sendNonHeadersMapFirstArgument(Map<Integer, Object> mapA, Map<String, Object> mapB);
 
 	}
 
