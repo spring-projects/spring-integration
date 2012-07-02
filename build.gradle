@@ -172,7 +172,7 @@ project('spring-integration-core') {
 	dependencies {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
-		compile("org.springframework:spring-tx:$springVersion", optional)
+		compile "org.springframework:spring-tx:$springVersion"
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		testCompile "org.aspectj:aspectjrt:$aspectjVersion"
 		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
