@@ -77,7 +77,6 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		if (logger.isDebugEnabled()) {
 			logger.debug("UDP Receiver running on port:" + this.getPort());
 		}
-		checkTaskExecutor("UDP-Incoming-Msg-Handler");
 
 		this.setListening(true);
 
@@ -231,6 +230,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		this.mapper.setLookupHost(lookupHost);
 	}
 
+	@Override
 	public String getComponentType(){
 		return "ip:udp-inbound-channel-adapter";
 	}

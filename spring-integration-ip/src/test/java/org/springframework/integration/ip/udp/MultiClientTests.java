@@ -25,7 +25,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 
 /**
@@ -54,9 +53,6 @@ public class MultiClientTests {
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
@@ -95,9 +91,6 @@ public class MultiClientTests {
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
@@ -140,9 +133,6 @@ public class MultiClientTests {
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
 		SocketTestUtils.waitListening(adapter);
