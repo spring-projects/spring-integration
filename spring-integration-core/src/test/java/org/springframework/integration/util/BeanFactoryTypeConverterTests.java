@@ -78,4 +78,13 @@ public class BeanFactoryTypeConverterTests {
 		MessageHistory history = MessageHistory.read(message);
 		assertSame(history, typeConverter.convertValue(history, TypeDescriptor.valueOf(MessageHeaders.class), TypeDescriptor.valueOf(MessageHeaders.class)));
 	}
+
+	@Test
+	public void testByteArrayNotConverted() {
+		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
+		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
+		byte[] bytes = new byte[1];
+		assertSame(bytes, typeConverter.convertValue(bytes, TypeDescriptor.valueOf(byte[].class), TypeDescriptor.valueOf(byte[].class)));
+	}
+
 }
