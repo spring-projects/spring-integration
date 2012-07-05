@@ -267,27 +267,38 @@
 			<section id="xml-unmarshalling-transformer">
 				<title>UnmarshallingTransformer</title>
 				<para>
-					<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/UnmarshallingTransformer.html">UnmarshallingTransformer</ulink></classname>
-					allows an XML <interfacename>Source</interfacename>
-      to be unmarshalled using implementations of Spring OXM <interfacename>Unmarshaller</interfacename>.
-      Spring OXM provides several implementations supporting marshalling and unmarshalling using JAXB,
-      Castor and JiBX amongst others.  Since the unmarshaller requires an instance of
-      <interfacename>Source</interfacename> where the message payload is not currently an instance of
-      <interfacename>Source</interfacename>, conversion will be attempted.  Currently <classname>String</classname>
-      and <interfacename>org.w3c.dom.Document</interfacename> payloads are supported.  Custom conversion to a
-      <interfacename>Source</interfacename> is also supported by injecting an implementation of
-      <interfacename>SourceFactory</interfacename>.
-    </para>
-    <para>
-      <programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer" class="o.s.i.xml.transformer.UnmarshallingTransformer">
+					An <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/UnmarshallingTransformer.html">UnmarshallingTransformer</ulink></classname>
+					allows an XML <interfacename>Source</interfacename> to be
+					unmarshalled using implementations of the
+					<ulink url="http://static.springsource.org/spring-ws/site/reference/html/oxm.html">Spring OXM</ulink>
+					<interfacename>Unmarshaller</interfacename>. Spring's Object/XML Mapping
+					support provides several implementations supporting marshalling
+					and unmarshalling using
+					<ulink url="http://en.wikipedia.org/wiki/Java_Architecture_for_XML_Binding">JAXB</ulink>,
+					<ulink url="http://www.castor.org/">Castor</ulink> and
+					<ulink url="http://jibx.sourceforge.net/">JiBX</ulink> amongst others.
+					The unmarshaller requires an instance of <interfacename>Source</interfacename>.
+					If the message payload is not an instance of <interfacename>Source</interfacename>,
+					conversion will be attempted. Currently <classname>String</classname>,
+					<classname>File</classname> and <interfacename>org.w3c.dom.Document</interfacename>
+					payloads are supported. Custom conversion to a <interfacename>Source</interfacename>
+					is also supported by injecting an implementation of a
+					<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html">SourceFactory</ulink></interfacename>.
+				</para>
+				<note>
+					If a <interfacename>SourceFactory</interfacename> is not set
+					explicitly, the property on the <classname>UnmarshallingTransformer</classname>
+					will by default be set to a
+					<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html">DomSourceFactory</ulink></classname>.
+				</note>
+				<programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer" class="o.s.i.xml.transformer.UnmarshallingTransformer">
     <constructor-arg>
         <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
         <property name="contextPath" value="org.example" />
         </bean>
     </constructor-arg>
 </bean>]]></programlisting>
-    </para>
-    </section>
+			</section>
     <section id="xml-marshalling-transformer">
 		<title>MarshallingTransformer</title>
 		<para>
@@ -334,12 +345,33 @@
 			or <interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html">Templates</ulink></interfacename>
 			to be passed in. Passing in a <interfacename>Templates</interfacename>
 			instance allows for greater configuration of the <interfacename>TransformerFactory</interfacename>
-			used to create the template instance. As in the case of
-			<classname>XmlPayloadMarshallingTransformer</classname>, by default,
-			<classname>XsltPayloadTransformer</classname> will create a message
+			used to create the template instance.
+		</para>
+		<para>
+			As with the <classname><link linkend="xml-unmarshalling-transformer">UnmarshallingTransformer</link></classname>,
+			the <classname>XsltPayloadTransformer</classname> will do the actual
+			XSLT transformation using instances of <interfacename>Source</interfacename>.
+			Therefore, if the message payload is not an instance of <interfacename>Source</interfacename>,
+			conversion will be attempted. <classname>String</classname> and
+			<interfacename>Document</interfacename> payloads are supported directly.
+		</para>
+		<para>
+			Custom conversion to a <interfacename>Source</interfacename> is also
+			supported by injecting an implementation of a
+			<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html">SourceFactory</ulink></interfacename>.
+		</para>
+		<note>
+			If a <interfacename>SourceFactory</interfacename> is not set
+			explicitly, the property on the <classname>XsltPayloadTransformer</classname>
+			will by default be set to a
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html">DomSourceFactory</ulink></classname>.
+		</note>
+		<para>
+			By default, the <classname>XsltPayloadTransformer</classname> will create a message
 			with a
 			<interfacename><ulink url="http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Result.html">Result</ulink></interfacename>
-			payload. This can be customised by providing a
+			payload, similar to the <classname>XmlPayloadMarshallingTransformer</classname>.
+			This can be customised by providing a
 			<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/result/ResultFactory.html">ResultFactory</ulink></interfacename>
 			and/or a <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/ResultTransformer.html">ResultTransformer</ulink></interfacename>.
 		</para>
@@ -550,14 +582,47 @@
 		<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer input-channel="in" output-channel="fahrenheitChannel"
     xsl-resource="classpath:noop.xslt" result-transformer="resultToDoc"/>]]></programlisting>
 		<para>
-			Assuming that the incoming message's payload is of type <classname>String</classname>,
-			the payload after the Xslt transformation will be a <classname>String</classname>
-			as well. In that case the specified <emphasis>ResultTransformer</emphasis>
-			will be ignored. However, if the input is of type
-			<interfacename>Source</interfacename>, then the
-			<emphasis>ResultTransformer</emphasis> will be used and the resulting
-			payload will be of type <interfacename>Document</interfacename>.
+			If the incoming message's payload is of type <interfacename>Source</interfacename>,
+			then as first step the <interfacename>Result</interfacename> is determined
+			using the <interfacename>ResultFactory</interfacename>. As we did not
+			specify a <interfacename>ResultFactory</interfacename>, the default
+			<classname>DomResultFactory</classname> is used, meaning that the
+			transformation will yield a <classname>DomResult</classname>.
 		</para>
+		<para>
+			However, as we specified a <emphasis>ResultTransformer</emphasis>, it
+			will be used and the resulting Message payload will be of type
+			<interfacename>Document</interfacename>.
+		</para>
+		<important>
+			If the incoming message's payload is of type <classname>String</classname>,
+			the payload after the Xslt transformation will be a String. Similarly,
+			if the incoming message's payload is of type <interfacename>Document</interfacename>,
+			the payload after the Xslt transformation will be a
+			<interfacename>Document</interfacename>. The specified
+			<emphasis>ResultTransformer</emphasis> will be ignored with
+			<classname>String</classname> or <interfacename>Document</interfacename>
+			payloads.
+		</important>
+		<para>
+			If the message payload is neither a <interfacename>Source</interfacename>,
+			<classname>String</classname> or <interfacename>Document</interfacename>,
+			as a fallback option, it is attempted to create a
+			<interfacename>Source</interfacename> using the default
+			<interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html">SourceFactory</ulink></interfacename>.
+			As we did not specify a <interfacename>SourceFactory</interfacename>
+			explicitly using the <emphasis>source-factory</emphasis> attribute,
+			the default <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html">DomSourceFactory</ulink></classname>
+			is used. If successful, the XSLT transformation is executed as if
+			the payload was of type <interfacename>Source</interfacename>, which
+			we described in the previous paragraphs.
+		</para>
+		<note>
+			The <classname>DomSourceFactory</classname> supports the creation of
+			a <classname>DOMSource</classname> from a either
+			<interfacename>Document</interfacename>, <classname>File</classname>
+			or <classname>String</classname> payloads.
+		</note>
 		<para>
 			The next transformer declaration adds a <emphasis>result-type</emphasis>
 			attribute using <code>StringResult</code> as its value. First, the
@@ -578,10 +643,9 @@
 			<classname>ResultToDocumentTransformer</classname> will be used.
 		</para>
 		<para>
-			Despite the fact that we are transforming a payload of type
+			Therefore, if you transform a payload of type
 			<classname>String</classname>, the resulting payload will be of type
-			<classname><ulink url="http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html">Document</ulink></classname>
-			instead.
+			<classname><ulink url="http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html">Document</ulink></classname>.
 		</para>
 	</section>
 </section>
