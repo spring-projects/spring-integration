@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base class for Outbound Gateways that perform remote file operations.
- * 
+ *
  * @author Gary Russell
  * @since 2.1
  */
@@ -196,7 +196,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Session<F> session = this.sessionFactory.getSession(); 
+		Session<F> session = this.sessionFactory.getSession();
 		try {
 			if (COMMAND_LS.equals(this.command)) {
 				String dir = this.processor.processMessage(requestMessage);
@@ -376,7 +376,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected List<File> mGet(Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
-		String path = fixPath(remoteDirectory, remoteFilename);
+		String path = generateFullPath(remoteDirectory, remoteFilename);
 		String[] fileNames = session.listNames(path);
 		if (fileNames == null) {
 			fileNames = new String[0];
@@ -387,12 +387,20 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		List<File> files = new ArrayList<File>();
 		for (String fileName : fileNames) {
-			files.add(this.get(session, fixPath(remoteDirectory, fileName), fileName, false));
+			File file;
+			if (fileName.startsWith(remoteDirectory)) { // the server returned the full path
+				file = this.get(session, fileName,
+						fileName.substring(fileName.lastIndexOf(this.remoteFileSeparator)), false);
+			}
+			else {
+				file = this.get(session, generateFullPath(remoteDirectory, fileName), fileName, false);
+			}
+			files.add(file);
 		}
 		return files;
 	}
 
-	private String fixPath(String remoteDirectory, String remoteFilename) {
+	private String generateFullPath(String remoteDirectory, String remoteFilename) {
 		String path;
 		if (this.remoteFileSeparator.equals(remoteDirectory)) {
 			path = remoteFilename;
@@ -414,7 +422,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		int index = remoteFilePath.lastIndexOf(this.remoteFileSeparator);
 		if (index < 0) {
 			remoteFileName = remoteFilePath;
-		} 
+		}
 		else {
 			remoteFileName = remoteFilePath.substring(index + 1);
 		}
