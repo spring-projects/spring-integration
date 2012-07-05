@@ -38,7 +38,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
-import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -55,7 +54,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	private String tmpDir = System.getProperty("java.io.tmpdir");
 
-	
+
 	@Test(expected=IllegalArgumentException.class)
 	public void testBad() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
@@ -130,6 +129,19 @@ public class RemoteFileOutboundGatewayTests {
 
 	@Test
 	public void testMGetWild() throws Exception {
+		testMGetWildGuts("f1", "f2");
+	}
+
+	/**
+	 * Test a wildcard mget where the full path is returned for each file
+	 * @throws Exception
+	 */
+	@Test
+	public void testMGetWildFullPath() throws Exception {
+		testMGetWildGuts("testremote/f1", "testremote/f2");
+	}
+
+	private void testMGetWildGuts(final String path1, final String path2) {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "mget", "payload");
@@ -138,6 +150,7 @@ public class RemoteFileOutboundGatewayTests {
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
 		when(sessionFactory.getSession()).thenReturn(new Session() {
+			int n;
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
@@ -146,6 +159,12 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public void read(String source, OutputStream outputStream)
 					throws IOException {
+				if (n++ == 0) {
+					assertEquals("testremote/f1", source);
+				}
+				else {
+					assertEquals("testremote/f2", source);
+				}
 				outputStream.write("testData".getBytes());
 			}
 			public void write(InputStream inputStream, String destination)
@@ -166,7 +185,7 @@ public class RemoteFileOutboundGatewayTests {
 				return false;
 			}
 			public String[] listNames(String path) throws IOException {
-				return new String[] {"f1", "f2"};
+				return new String[] {path1, path2};
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -533,7 +552,7 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} 
+			}
 			public boolean exists(String path) throws IOException {
 				return true;
 			}
@@ -591,7 +610,7 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} 
+			}
 			public boolean exists(String path) throws IOException {
 				return true;
 			}
