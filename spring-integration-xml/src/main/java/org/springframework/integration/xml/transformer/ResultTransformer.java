@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,12 @@ package org.springframework.integration.xml.transformer;
 import javax.xml.transform.Result;
 
 /**
+ * Implementations of this class allow for the transformation of {@link Result}
+ * objects to other formats.
+ *
  * @author Jonas Partner
+ * @author Gunnar Hillert
+ *
  */
 public interface ResultTransformer {
 
