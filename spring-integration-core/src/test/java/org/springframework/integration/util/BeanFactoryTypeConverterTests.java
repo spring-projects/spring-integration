@@ -5,6 +5,9 @@ package org.springframework.integration.util;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +16,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -87,4 +91,24 @@ public class BeanFactoryTypeConverterTests {
 		assertSame(bytes, typeConverter.convertValue(bytes, TypeDescriptor.valueOf(byte[].class), TypeDescriptor.valueOf(byte[].class)));
 	}
 
+	@Test
+	public void testStringToObjectNotConverted() {
+		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
+		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
+		String string = "foo";
+		assertSame(string, typeConverter.convertValue(string, TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(Object.class)));
+	}
+
+	@Test
+	public void testObjectToStringIsConverted() {
+		ConversionService conversionService = mock(ConversionService.class);
+		when(conversionService.canConvert(any(TypeDescriptor.class), any(TypeDescriptor.class)))
+			.thenReturn(true);
+		when(conversionService.convert(any(), any(TypeDescriptor.class), any(TypeDescriptor.class)))
+			.thenReturn("foo");
+		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
+		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
+		Object object = new Object();
+		assertEquals("foo", typeConverter.convertValue(object, TypeDescriptor.valueOf(Object.class), TypeDescriptor.valueOf(String.class)));
+	}
 }
