@@ -180,6 +180,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				!mailReceiverContext.getFolder().isOpen()) {
 			try {
 				this.openFolder();
+				return this.contextHolder.get();
 			}
 			catch (MessagingException e) {
 				throw new org.springframework.integration.MessagingException("Failed to open folder", e);
