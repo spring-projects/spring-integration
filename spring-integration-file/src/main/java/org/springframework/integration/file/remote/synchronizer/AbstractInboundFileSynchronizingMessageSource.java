@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.file.FileMessageHolder;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
@@ -50,11 +53,13 @@ import org.springframework.util.Assert;
  * {@link AbstractInboundFileSynchronizer}. The synchronizer must
  * handle the work of actually connecting to the remote file system and
  * delivering new {@link File}s.
- * 
+ *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
-public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport implements MessageSource<File> {
+public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport
+	implements PseudoTransactionalMessageSource<File, FileMessageHolder> {
 
 	/**
 	 * Should the endpoint attempt to create the local directory? True by default.
@@ -81,7 +86,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this(synchronizer, null);
 	}
-	
+
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer, Comparator<File> comparator) {
 		Assert.notNull(synchronizer, "synchronizer must not be null");
 		this.synchronizer = synchronizer;
@@ -90,7 +95,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 		}
 		else {
 			this.fileSource = new FileReadingMessageSource(comparator);
-		}	
+		}
 	}
 
 
@@ -100,6 +105,18 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 
 	public void setLocalDirectory(File localDirectory) {
 		this.localDirectory = localDirectory;
+	}
+
+	public void setDispositionExpression(Expression dispositionExpression) {
+		this.fileSource.setDispositionExpression(dispositionExpression);
+	}
+
+	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
+		this.fileSource.setDispositionResultChannel(dispositionResultChannel);
+	}
+
+	public void setDispositionSendTimeout(long dispositionSendTimeout) {
+		this.fileSource.setDispositionSendTimeout(dispositionSendTimeout);
 	}
 
 	@Override
@@ -153,6 +170,26 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 		return new CompositeFileListFilter<File>(Arrays.asList(
 				new AcceptOnceFileListFilter<File>(),
 				new RegexPatternFileListFilter(completePattern)));
+	}
+
+	public FileMessageHolder getResource() {
+		return this.fileSource.getResource();
+	}
+
+	public void afterCommit(FileMessageHolder resource) {
+		this.fileSource.afterCommit(resource);
+	}
+
+	public void afterRollback(FileMessageHolder resource) {
+		this.fileSource.afterRollback(resource);
+	}
+
+	public void afterReceiveNoTx(FileMessageHolder resource) {
+		this.fileSource.afterReceiveNoTx(resource);
+	}
+
+	public void afterSendNoTx(FileMessageHolder resource) {
+		this.fileSource.afterSendNoTx(resource);
 	}
 
 }

@@ -18,7 +18,6 @@ package org.springframework.integration.ftp.config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -30,12 +29,13 @@ import java.util.Comparator;
 import java.util.Map;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
@@ -54,7 +54,7 @@ public class FtpInboundChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac = 
+		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
 		assertFalse(TestUtils.getPropertyValue(adapter, "autoStartup", Boolean.class));
@@ -64,10 +64,10 @@ public class FtpInboundChannelAdapterParserTests {
 		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
 		assertNotNull(TestUtils.getPropertyValue(adapter, "poller"));
 		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(adapter, "outputChannel"));
-		FtpInboundFileSynchronizingMessageSource inbound = 
+		FtpInboundFileSynchronizingMessageSource inbound =
 			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		
-		FtpInboundFileSynchronizer fisync = 
+
+		FtpInboundFileSynchronizer fisync =
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
 		assertNotNull(TestUtils.getPropertyValue(fisync, "localFilenameGeneratorExpression"));
 		assertEquals(".foo", TestUtils.getPropertyValue(fisync, "temporaryFileSuffix", String.class));
@@ -78,6 +78,12 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(filter);
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
+		FileReadingMessageSource source = TestUtils.getPropertyValue(inbound, "fileSource", FileReadingMessageSource.class);
+		assertEquals("foo", TestUtils.getPropertyValue(source, "dispositionExpression", Expression.class).getValue());
+		assertSame(ac.getBean("dispoChannel"), TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(source, "dispositionMessagingTemplate"), "defaultChannel"));
+		assertEquals(123L, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(source, "dispositionMessagingTemplate"), "sendTimeout"));
 	}
 
 	@Test
@@ -87,7 +93,7 @@ public class FtpInboundChannelAdapterParserTests {
 		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapter", SourcePollingChannelAdapter.class);
 		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
-		FtpInboundFileSynchronizer fisync = 
+		FtpInboundFileSynchronizer fisync =
 			TestUtils.getPropertyValue(adapter, "source.synchronizer", FtpInboundFileSynchronizer.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
@@ -96,7 +102,7 @@ public class FtpInboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpInboundChannelAdapterCompleteNoId() throws Exception{
-		ApplicationContext ac = 
+		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
 		SourcePollingChannelAdapter adapter = null;

@@ -29,14 +29,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
@@ -46,17 +47,17 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Gary Russell
  */
 public class InboundChannelAdapterParserTests {
-	
+
 	@Before
 	public void prepare(){
 		new File("foo").delete();
 	}
-	
+
 	@Test
 	public void testAutoStartup() throws Exception{
 		ApplicationContext context =
 			new ClassPathXmlApplicationContext("SftpInboundAutostartup-context.xml", this.getClass());
-		
+
 		SourcePollingChannelAdapter adapter = context.getBean("sftpAutoStartup", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isRunning());
 	}
@@ -67,10 +68,10 @@ public class InboundChannelAdapterParserTests {
 		ApplicationContext context =
 			new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		assertTrue(new File("src/main/resources").exists());
-	
+
 		Object adapter = context.getBean("sftpAdapterAutoCreate");
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
-		SftpInboundFileSynchronizingMessageSource source = 
+		SftpInboundFileSynchronizingMessageSource source =
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
 		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
@@ -83,6 +84,12 @@ public class InboundChannelAdapterParserTests {
 		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		assertNotNull(requestChannel.receive(2000));
+		FileReadingMessageSource fileSource = TestUtils.getPropertyValue(source, "fileSource", FileReadingMessageSource.class);
+		assertEquals("foo", TestUtils.getPropertyValue(fileSource, "dispositionExpression", Expression.class).getValue());
+		assertSame(context.getBean("dispoChannel"), TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(fileSource, "dispositionMessagingTemplate"), "defaultChannel"));
+		assertEquals(123L, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(fileSource, "dispositionMessagingTemplate"), "sendTimeout"));
 	}
 
 	@Test
@@ -108,19 +115,19 @@ public class InboundChannelAdapterParserTests {
 		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		assertTrue(new File("target").exists());
 	}
-	
+
 	@Test
 	public void testLocalDirAutoCreated() throws Exception{
 		assertFalse(new File("foo").exists());
 		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		assertTrue(new File("foo").exists());
 	}
-	
+
 	@Test(expected=BeanCreationException.class)
 	public void testLocalDirAutoCreateFailed() throws Exception{
 		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail-autocreate.xml", this.getClass());
 	}
-	
+
 	@After
 	public void cleanUp() throws Exception{
 		new File("foo").delete();

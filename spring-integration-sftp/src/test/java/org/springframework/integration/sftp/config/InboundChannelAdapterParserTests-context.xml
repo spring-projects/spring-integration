@@ -48,9 +48,14 @@
 			local-filename-generator-expression="#this.toUpperCase() + '.a'"
 			temporary-file-suffix=".bar"
 			comparator="comparator"
-			delete-remote-files="${delete.remote.files}">
+			delete-remote-files="${delete.remote.files}"
+			disposition-expression="'foo'"
+			disposition-result-channel="dispoChannel"
+			disposition-send-timeout="123">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
+
+	<channel id="dispoChannel" />
 	
 	<beans:bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
 		<beans:constructor-arg value="java.util.Comparator"/>

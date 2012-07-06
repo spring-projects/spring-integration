@@ -21,9 +21,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.locking.NioFileLocker;
@@ -49,14 +47,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-size");
-		String dispositionExpression = element.getAttribute("disposition-expression");
-		if (StringUtils.hasText(dispositionExpression)) {
-			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(dispositionExpression);
-			builder.addPropertyValue("dispositionExpression", expressionDef);
-		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "disposition-result-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "disposition-send-timeout");
+		FileNamespaceUtils.setDispositionAttributes(element, builder);
 		String filterBeanName = this.registerFilter(element, parserContext);
 		String lockerBeanName = registerLocker(element, parserContext);
 		if (lockerBeanName != null) {
