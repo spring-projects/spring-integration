@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 			builder.addConstructorArgReference(xslTemplates);
 		}
 		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
-        boolean resultFactorySpecified = StringUtils.hasText(resultFactory) || StringUtils.hasText(resultType);
-        if(resultFactorySpecified){
-            builder.addPropertyValue("alwaysUseResultFactory", true);
-        }
+		boolean resultFactorySpecified = StringUtils.hasText(resultFactory) || StringUtils.hasText(resultType);
+		if(resultFactorySpecified){
+			builder.addPropertyValue("alwaysUseResultFactory", true);
+		}
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
@@ -93,7 +93,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 			builder.addPropertyValue("xslParameterMappings", xslParameterMappings);
 		}
 
-       IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source-factory");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source-factory");
 
 	}
 
