@@ -74,7 +74,11 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost) throws Exception {
 		super(socketChannel.socket(), server, lookupHost);
 		this.socketChannel = socketChannel;
-		this.pipedInputStream = new PipedInputStream();
+		int receiveBufferSize = socketChannel.socket().getReceiveBufferSize();
+		if (receiveBufferSize <= 0) {
+			receiveBufferSize = this.maxMessageSize;
+		}
+		this.pipedInputStream = new PipedInputStream(receiveBufferSize);
 		this.pipedOutputStream = new PipedOutputStream(this.pipedInputStream);
 		this.channelOutputStream = new ChannelOutputStream();
 	}
