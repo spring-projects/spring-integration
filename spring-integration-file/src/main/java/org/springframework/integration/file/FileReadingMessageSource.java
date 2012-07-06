@@ -38,7 +38,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
-import org.springframework.integration.file.FileReadingMessageSource.FileMessageHolder;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.support.MessageBuilder;
@@ -389,16 +388,4 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.afterCommit(resource);
 	}
 
-	class FileMessageHolder {
-
-		private Message<File> message;
-
-		Message<File> getMessage() {
-			return message;
-		}
-
-		void setMessage(Message<File> message) {
-			this.message = message;
-		}
-	}
 }

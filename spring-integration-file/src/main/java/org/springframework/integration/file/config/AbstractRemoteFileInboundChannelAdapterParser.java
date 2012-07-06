@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -26,10 +24,11 @@ import org.springframework.integration.config.xml.AbstractPollingInboundChannelA
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.remote.session.SessionFactoryFactoryBean;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Abstract base class for parsing remote file inbound channel adapters.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0
@@ -44,9 +43,9 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(SessionFactoryFactoryBean.class);
 		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
-		
+
 		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
-		
+
 		// configure the InboundFileSynchronizer properties
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
@@ -71,6 +70,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 			localFileGeneratorExpressionBuilder.addConstructorArgValue(localFileGeneratorExpression);
 			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
 		}
+		FileNamespaceUtils.setDispositionAttributes(element, messageSourceBuilder);
 		return messageSourceBuilder.getBeanDefinition();
 	}
 
