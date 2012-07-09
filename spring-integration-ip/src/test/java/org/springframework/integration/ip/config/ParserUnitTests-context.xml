@@ -61,6 +61,15 @@
 		ssl-context-support="sslContextSupport"
 		/>
 
+	<ip:tcp-connection-factory id="cfS1Nio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(5210)}"
+		lookup-host="false"
+		apply-sequence="true"
+		using-nio="true"
+		ssl-context-support="sslContextSupport"
+		/>
+
 	<bean id="sslContextSupport" class="org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
 		<constructor-arg value="test.ks"/>
 		<constructor-arg value="test.truststore.ks"/>

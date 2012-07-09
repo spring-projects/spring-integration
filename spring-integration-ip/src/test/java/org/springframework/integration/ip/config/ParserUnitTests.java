@@ -29,7 +29,6 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,6 +51,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
@@ -167,6 +167,9 @@ public class ParserUnitTests {
 	AbstractConnectionFactory cfS1;
 
 	@Autowired
+	AbstractConnectionFactory cfS1Nio;
+
+	@Autowired
 	AbstractConnectionFactory cfS2;
 
 	@Autowired
@@ -278,7 +281,19 @@ public class ParserUnitTests {
 		assertEquals(124, tcpIn.getPhase());
 		assertTrue((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfS1, "mapper"), "applySequence"));
-		assertTrue(TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport") instanceof DefaultTcpNetSSLSocketFactorySupport);
+		Object socketSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport");
+		assertTrue(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport);
+		assertNotNull(TestUtils.getPropertyValue(socketSupport, "sslContext"));
+	}
+
+	@Test
+	public void testInTcpNioSSLDefaultConfig() {
+		assertFalse(cfS1Nio.isLookupHost());
+		assertTrue((Boolean) TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(cfS1Nio, "mapper"), "applySequence"));
+		Object connectionSupport = TestUtils.getPropertyValue(cfS1Nio, "tcpNioConnectionSupport");
+		assertTrue(connectionSupport instanceof DefaultTcpNioSSLConnectionSupport);
+		assertNotNull(TestUtils.getPropertyValue(connectionSupport, "sslContext"));
 	}
 
 	@Test
