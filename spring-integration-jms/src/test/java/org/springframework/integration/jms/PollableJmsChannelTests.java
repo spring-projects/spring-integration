@@ -203,9 +203,9 @@ public class PollableJmsChannelTests {
 	}
 
 	public static class SampleInterceptor implements ChannelInterceptor {
-		private final boolean preRecieveFlag;
-		public SampleInterceptor(boolean preRecieveFlag){
-			this.preRecieveFlag = preRecieveFlag;
+		private final boolean preReceiveFlag;
+		public SampleInterceptor(boolean preReceiveFlag){
+			this.preReceiveFlag = preReceiveFlag;
 		}
 
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -217,7 +217,7 @@ public class PollableJmsChannelTests {
 		}
 
 		public boolean preReceive(MessageChannel channel) {
-			return this.preRecieveFlag;
+			return this.preReceiveFlag;
 		}
 
 		public Message<?> postReceive(Message<?> message, MessageChannel channel) {

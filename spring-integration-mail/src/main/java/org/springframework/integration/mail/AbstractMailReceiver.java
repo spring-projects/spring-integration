@@ -263,7 +263,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			this.fetchMessages(messages);
 		}
 		List<Message> copiedMessages = new LinkedList<Message>();
-		logger.debug("Recieved " + messages.length + " messages");
+		logger.debug("Received " + messages.length + " messages");
 
 		for (int i = 0; i < messages.length; i++) {
 			if (this.selectorExpression != null) {
