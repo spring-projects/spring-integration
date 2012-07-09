@@ -183,7 +183,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 			return new DefaultTcpNetSocketFactorySupport();
 		}
 		else {
-			return new DefaultTcpNetSSLSocketFactorySupport(this.sslContextSupport);
+			DefaultTcpNetSSLSocketFactorySupport socketFactorySupport = new DefaultTcpNetSSLSocketFactorySupport(this.sslContextSupport);
+			try {
+				socketFactorySupport.afterPropertiesSet();
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("Failed to set up TcpSocketFactorySupport", e);
+			}
+			return socketFactorySupport;
 		}
 	}
 
@@ -195,7 +202,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 			return new DefaultTcpNioConnectionSupport();
 		}
 		else {
-			return new DefaultTcpNioSSLConnectionSupport(this.sslContextSupport);
+			DefaultTcpNioSSLConnectionSupport connectionSupport = new DefaultTcpNioSSLConnectionSupport(this.sslContextSupport);
+			try {
+				connectionSupport.afterPropertiesSet();
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("Failed to set up TcpConnectionSupport", e);
+			}
+			return connectionSupport;
 		}
 
 	}
