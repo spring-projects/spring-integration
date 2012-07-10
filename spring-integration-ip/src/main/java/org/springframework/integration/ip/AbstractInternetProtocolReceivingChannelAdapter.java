@@ -16,18 +16,15 @@
 
 package org.springframework.integration.ip;
 
-import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.util.Assert;
 
 /**
  * Base class for inbound TCP/UDP Channel Adapters.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @since 2.0
@@ -59,7 +56,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	}
 
 	/**
-	 * 
+	 *
 	 * @return The port on which this receiver is listening.
 	 */
 	public int getPort() {
@@ -99,17 +96,22 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		return receiveBufferSize;
 	}
 
+	/**
+	 * Protected by lifecycleLock
+	 */
 	@Override
 	protected void doStart() {
-		TaskScheduler taskScheduler = this.getTaskScheduler();
-		Assert.state(taskScheduler != null, "taskScheduler is required");
-		this.active = true;
-		taskScheduler.schedule(this, new Date());
+		if (!this.active) {
+			this.active = true;
+			String beanName = this.getComponentName();
+			checkTaskExecutor((beanName == null ? "" : beanName + "-") + this.getComponentType());
+			this.taskExecutor.execute(this);
+		}
 	}
 
 	/**
 	 * Creates a default task executor if none was supplied.
-	 * 
+	 *
 	 * @param threadName
 	 */
 	protected void checkTaskExecutor(final String threadName) {
