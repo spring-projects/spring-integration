@@ -19,9 +19,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
@@ -33,6 +36,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -273,18 +278,74 @@ public abstract class IntegrationNamespaceUtils {
 	 * @see AbstractPollingEndpoint
 	 */
 	public static BeanDefinition configureTransactionAttributes(Element txElement) {
-		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);
-		txDefinitionBuilder.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
-		txDefinitionBuilder.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
-		txDefinitionBuilder.addPropertyValue("timeout", txElement.getAttribute("timeout"));
-		txDefinitionBuilder.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
+		BeanDefinition txDefinition = configureTransactionDefinition(txElement);
 		BeanDefinitionBuilder attributeSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
-		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinitionBuilder.getBeanDefinition());
+		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinition);
 		BeanDefinitionBuilder txInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
 		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
 		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
 		return txInterceptorBuilder.getBeanDefinition();
 	}
+
+	/**
+	 * Parse attributes of "transactional" element and configure a {@link DefaultTransactionAttribute}
+	 * with provided "transactionDefinition" properties.
+	 */
+	public static BeanDefinition configureTransactionDefinition(Element txElement) {
+		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);
+		txDefinitionBuilder.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
+		txDefinitionBuilder.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
+		txDefinitionBuilder.addPropertyValue("timeout", txElement.getAttribute("timeout"));
+		txDefinitionBuilder.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
+		return txDefinitionBuilder.getBeanDefinition();
+	}
+
+	/**
+	 * Parses the 'advice-chain' element's sub-elements.
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static ManagedList configureAdviceChain(Element element, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
+		ManagedList adviceChain = new ManagedList();
+
+		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
+
+		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
+		if (txElement != null) {
+			adviceChain.add(IntegrationNamespaceUtils.configureTransactionAttributes(txElement));
+		}
+		if (adviceChainElement != null) {
+			NodeList childNodes = adviceChainElement.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); i++) {
+				Node child = childNodes.item(i);
+				if (child.getNodeType() == Node.ELEMENT_NODE) {
+					Element childElement = (Element) child;
+					String localName = child.getLocalName();
+					if ("bean".equals(localName)) {
+						BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
+								childElement, targetBuilder.getBeanDefinition());
+						parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
+						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
+					}
+					else if ("ref".equals(localName)) {
+						String ref = childElement.getAttribute("bean");
+						adviceChain.add(new RuntimeBeanReference(ref));
+					}
+					else {
+						BeanDefinition customBeanDefinition = parserContext.getDelegate().parseCustomElement(
+								childElement, targetBuilder.getBeanDefinition());
+						if (customBeanDefinition == null) {
+							parserContext.getReaderContext().error(
+									"failed to parse custom element '" + localName + "'", childElement);
+						}
+						adviceChain.add(customBeanDefinition);
+					}
+				}
+			}
+		}
+		return adviceChain;
+	}
+
 
 	public static String[] generateAlias(Element element) {
 		String[] handlerAlias = null;

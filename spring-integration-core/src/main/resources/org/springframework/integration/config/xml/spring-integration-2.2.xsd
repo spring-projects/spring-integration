@@ -1295,6 +1295,16 @@
 	</xsd:element>
 
 	<xsd:complexType name="delayer-type">
+		<xsd:choice>
+			<xsd:annotation>
+				<xsd:documentation>
+					'transactional' and 'advice-chain' elements specify the configuration List of AOP Advice
+					to proxying DelayHandler's 'release Message task'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+		</xsd:choice>
 		<xsd:attribute name="id" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -1479,28 +1489,7 @@
 		<xsd:sequence>
 			<xsd:choice>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
-					<xsd:complexType>
-						<xsd:sequence>
-							<xsd:choice minOccurs="0" maxOccurs="unbounded">
-								<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
-									<xsd:complexType>
-										<xsd:attribute name="bean" type="xsd:string" use="required">
-											<xsd:annotation>
-												<xsd:appinfo>
-													<tool:annotation kind="ref">
-														<tool:expected-type type="java.lang.Object" />
-													</tool:annotation>
-												</xsd:appinfo>
-											</xsd:annotation>
-										</xsd:attribute>
-									</xsd:complexType>
-								</xsd:element>
-								<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
-							</xsd:choice>
-						</xsd:sequence>
-					</xsd:complexType>
-				</xsd:element>
+				<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 		</xsd:sequence>
 		<xsd:attribute name="fixed-delay" type="xsd:string">
@@ -3728,5 +3717,24 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:attribute>
 		<xsd:attributeGroup ref="inputOutputChannelGroup"/>
 	</xsd:attributeGroup>
+
+	<xsd:complexType name="adviceChainType">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="bean" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.lang.Object" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:choice>
+	</xsd:complexType>
 
 </xsd:schema>
