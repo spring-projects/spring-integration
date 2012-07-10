@@ -97,7 +97,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Gary Russell
  * @since 2.0
  */
-abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
+public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
 	implements OrderlyShutdownCapable {
 
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
