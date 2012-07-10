@@ -19,7 +19,11 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.aop.scope.ScopedProxyUtils;
+import org.springframework.beans.PropertyValue;
+import org.springframework.beans.PropertyValues;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -84,5 +88,38 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 	 * the 'datatype' attribute is defined on the channel element.
 	 */
 	protected abstract BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext);
+
+	protected void setMaxSubscribersProperty(ParserContext parserContext, BeanDefinitionBuilder builder, Element element, String channelInitializerPropertyName) {
+		String maxSubscribers = element.getAttribute("max-subscribers");
+		if (!StringUtils.hasText(maxSubscribers)) {
+			maxSubscribers = getDefaultMaxSubscribers(parserContext, channelInitializerPropertyName);
+		}
+		if (StringUtils.hasText(maxSubscribers)) {
+			builder.addPropertyValue("maxSubscribers", maxSubscribers);
+		}
+	}
+
+	protected String getDefaultMaxSubscribers(ParserContext parserContext, String channelInitializerPropertyName) {
+		String maxSubscribers = null;
+		BeanDefinition channelInitializer = parserContext.getRegistry().getBeanDefinition(
+				AbstractIntegrationNamespaceHandler.CHANNEL_INITIALIZER_BEAN_NAME);
+		if (channelInitializer != null) {
+			PropertyValues propertyValues = channelInitializer.getPropertyValues();
+			if (propertyValues != null) {
+				PropertyValue propertyValue = propertyValues
+						.getPropertyValue(channelInitializerPropertyName);
+				if (propertyValue != null) {
+					Object propertyValueValue = propertyValue.getValue();
+					if (propertyValueValue instanceof TypedStringValue) {
+						maxSubscribers = ((TypedStringValue) propertyValueValue).getValue();
+					}
+					else if (propertyValueValue instanceof String) {
+						maxSubscribers = (String) propertyValueValue;
+					}
+				}
+			}
+		}
+		return maxSubscribers;
+	}
 
 }

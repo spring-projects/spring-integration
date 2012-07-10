@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,10 @@ import org.springframework.util.ErrorHandler;
  * {@link Executor} typically does not block the sender's Thread since it
  * uses another Thread for the dispatch.</emphasis> (SyncTaskExecutor is an
  * exception but would provide no value for this channel. If synchronous
- * dispatching is required, a DirectChannel should be used instead). 
- * 
+ * dispatching is required, a DirectChannel should be used instead).
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 1.0.3
  */
 public class ExecutorChannel extends AbstractSubscribableChannel {
@@ -49,6 +50,8 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	private volatile Executor executor;
 
 	private volatile boolean failover = true;
+
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
 
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
@@ -89,6 +92,16 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 		this.dispatcher.setFailover(failover);
 	}
 
+	/**
+	 * Specify the maximum number of subscribers supported by the
+	 * channel's dispatcher.
+	 * @param maxSubscribers
+	 */
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
+		this.dispatcher.setMaxSubscribers(maxSubscribers);
+	}
+
 	@Override
 	protected UnicastingDispatcher getDispatcher() {
 		return this.dispatcher;
@@ -103,6 +116,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 		}
 		this.dispatcher = new UnicastingDispatcher(this.executor);
 		this.dispatcher.setFailover(this.failover);
+		this.dispatcher.setMaxSubscribers(maxSubscribers);
 		if (this.loadBalancingStrategy != null) {
 			this.dispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
 		}

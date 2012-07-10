@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.integration.config.xml;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -31,13 +29,15 @@ import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;channel&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class PointToPointChannelParser extends AbstractChannelParser {
 
@@ -116,11 +116,16 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			if ("failover".equals(dispatcherAttribute)) {
 				// round-robin dispatcher is used by default, the "failover" value simply disables it
 				builder.addConstructorArgValue(null);
-			} 
+			}
 		}
 		else if (dispatcherElement == null) {
 			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
 			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+			String maxSubscribers = this.getDefaultMaxSubscribers(parserContext,
+					IntegrationNamespaceUtils.DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME);
+			if (maxSubscribers != null) {
+				builder.addPropertyValue("maxSubscribers", maxSubscribers);
+			}
 		}
 		else {
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
@@ -137,8 +142,10 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			String loadBalancer = dispatcherElement.getAttribute("load-balancer");
 			if ("none".equals(loadBalancer)) {
 				builder.addConstructorArgValue(null);
-			} 
+			}
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
+			this.setMaxSubscribersProperty(parserContext, builder, dispatcherElement,
+					IntegrationNamespaceUtils.DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
 		return builder;
 	}

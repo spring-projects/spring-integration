@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int:channel id="defaultChannel" />
+
+	<int:channel id="defaultChannel2">
+		<int:dispatcher />
+	</int:channel>
+
+	<int:channel id="explicitChannel">
+		<int:dispatcher max-subscribers="123" />
+	</int:channel>
+
+	<int:channel id="executorChannel">
+		<int:dispatcher task-executor="taskExecutor" />
+	</int:channel>
+
+	<int:channel id="explicitExecutorChannel">
+		<int:dispatcher task-executor="taskExecutor" max-subscribers="234" />
+	</int:channel>
+
+	<task:executor id="taskExecutor"/>
+
+	<int:publish-subscribe-channel id="pubSubDefaultChannel" />
+
+	<int:publish-subscribe-channel id="pubSubExplicitChannel" max-subscribers="2 "/>
+
+</beans>

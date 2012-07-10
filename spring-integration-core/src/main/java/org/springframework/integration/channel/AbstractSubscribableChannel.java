@@ -32,15 +32,15 @@ import org.springframework.util.StringUtils;
 /**
  * Base implementation of {@link MessageChannel} that invokes the subscribed
  * {@link MessageHandler handler(s)} by delegating to a {@link MessageDispatcher}.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel implements SubscribableChannel {
-	
+
 	private final AtomicInteger handlerCounter = new AtomicInteger();
-	
+
 	public boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = this.getRequiredDispatcher();
 		boolean added = dispatcher.addHandler(handler);

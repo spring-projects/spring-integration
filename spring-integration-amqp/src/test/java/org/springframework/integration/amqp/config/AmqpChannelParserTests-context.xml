@@ -17,4 +17,6 @@
 
 	<bean id="rabbitConnectionFactory" class="org.springframework.integration.amqp.StubRabbitConnectionFactory"/>
 
+	<amqp:channel id="channelWithSubscriberLimit" max-subscribers="1" />
+
 </beans>

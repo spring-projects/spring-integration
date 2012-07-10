@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
-
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -56,8 +55,9 @@ import org.springframework.util.StringUtils;
  * a FanoutExchange named "si.fanout.[beanName]" and we send to that without any
  * routing key, and on the receiving side, we create an anonymous Queue that is
  * bound to that exchange.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChannel> implements SmartLifecycle, DisposableBean, BeanNameAware {
@@ -120,6 +120,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	private volatile TransactionAttribute transactionAttribute;
 
 	private volatile Integer txSize;
+
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
 
 
 	public AmqpChannelFactoryBean() {
@@ -283,6 +285,10 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.txSize = txSize;
 	}
 
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return (this.channel != null) ? this.channel.getClass() : AbstractAmqpChannel.class;
@@ -301,6 +307,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 				if (this.exchange != null) {
 					pubsub.setExchange(this.exchange);
 				}
+				pubsub.setMaxSubscribers(this.maxSubscribers);
 				this.channel = pubsub;
 			}
 			else {
@@ -309,6 +316,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 				if (StringUtils.hasText(this.queueName)) {
 					p2p.setQueueName(this.queueName);
 				}
+				p2p.setMaxSubscribers(this.maxSubscribers);
 				this.channel = p2p;
 			}
 		}
@@ -423,6 +431,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		}
 	}
 
+	@Override
 	protected void destroyInstance(AbstractAmqpChannel instance) throws Exception {
 		if (instance instanceof DisposableBean) {
 			((DisposableBean) this.channel).destroy();
