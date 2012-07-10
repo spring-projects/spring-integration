@@ -81,9 +81,12 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			parserContext.getReaderContext().error(
 					"the 'ref' attribute must not be present on the top-level 'poller' element", element);
 		}
+
 		configureTrigger(element, metadataBuilder, parserContext);
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "receive-timeout");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
 
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
@@ -103,7 +106,6 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		pseudoTxElement = pseudoTxElement == null ? txSyncElement : pseudoTxElement;
 		configureTransactionSync(pseudoTxElement, metadataBuilder, parserContext);
 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
 		String errorChannel = element.getAttribute("error-channel");
 		if (StringUtils.hasText(errorChannel)) {
 			BeanDefinitionBuilder errorHandler = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);

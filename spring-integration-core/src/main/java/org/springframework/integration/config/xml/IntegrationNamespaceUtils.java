@@ -292,17 +292,26 @@ public abstract class IntegrationNamespaceUtils {
 	 * @see AbstractPollingEndpoint
 	 */
 	public static BeanDefinition configureTransactionAttributes(Element txElement) {
+		BeanDefinition txDefinition = configureTransactionDefinition(txElement);
+		BeanDefinitionBuilder attributeSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
+		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinition);
+		BeanDefinitionBuilder txInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
+		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
+		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
+		return txInterceptorBuilder.getBeanDefinition();
+	}
+
+	/**
+	 * Parse attributes of "transactional" element and configure a {@link DefaultTransactionAttribute}
+	 * with provided "transactionDefinition" properties.
+	 */
+	public static BeanDefinition configureTransactionDefinition(Element txElement) {
 		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);
 		txDefinitionBuilder.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
 		txDefinitionBuilder.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
 		txDefinitionBuilder.addPropertyValue("timeout", txElement.getAttribute("timeout"));
 		txDefinitionBuilder.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
-		BeanDefinitionBuilder attributeSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
-		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinitionBuilder.getBeanDefinition());
-		BeanDefinitionBuilder txInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
-		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
-		return txInterceptorBuilder.getBeanDefinition();
+		return txDefinitionBuilder.getBeanDefinition();
 	}
 
 	public static String[] generateAlias(Element element) {
@@ -314,12 +323,17 @@ public abstract class IntegrationNamespaceUtils {
 		return handlerAlias;
 	}
 
-	@SuppressWarnings({ "rawtypes" })
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
 			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
+		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, parentBuilder, parserContext, "adviceChain");
+	}
+
+	@SuppressWarnings({ "rawtypes" })
+	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
+			BeanDefinitionBuilder parentBuilder, ParserContext parserContext, String propertyName) {
 		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBuilder, parserContext);
 		if (adviceChain != null) {
-			parentBuilder.addPropertyValue("adviceChain", adviceChain);
+			parentBuilder.addPropertyValue(propertyName, adviceChain);
 		}
 	}
 
