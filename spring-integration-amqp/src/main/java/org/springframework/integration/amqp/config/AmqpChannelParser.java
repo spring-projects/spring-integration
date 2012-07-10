@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package org.springframework.integration.amqp.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the 'channel' and 'publish-subscribe-channel' elements of the
  * Spring Integration AMQP namespace.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class AmqpChannelParser extends AbstractChannelParser {
@@ -47,10 +47,13 @@ public class AmqpChannelParser extends AbstractChannelParser {
 		builder.addPropertyReference("connectionFactory", connectionFactory);
 		if ("channel".equals(element.getLocalName())) {
 			builder.addPropertyValue("pubSub", false);
+			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
 		else if ("publish-subscribe-channel".equals(element.getLocalName())) {
 			builder.addPropertyValue("pubSub", true);
+			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_MULTICAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge-mode");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "advice-chain");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "amqp-admin");

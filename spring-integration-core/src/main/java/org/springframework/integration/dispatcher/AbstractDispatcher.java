@@ -20,7 +20,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -43,9 +42,18 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
+
 	private final OrderedAwareCopyOnWriteArraySet<MessageHandler> handlers =
 			new OrderedAwareCopyOnWriteArraySet<MessageHandler>();
 
+	/**
+	 * Set the maximum subscribers allowed by this dispatcher.
+	 * @param maxSubscribers
+	 */
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
+	}
 
 	/**
 	 * Returns an unmodifiable {@link Set} of this dispatcher's handlers. This
@@ -62,6 +70,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 */
 	public boolean addHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
+		Assert.isTrue(this.handlers.size() < this.maxSubscribers, "Maximum subscribers exceeded");
 		return this.handlers.add(handler);
 	}
 

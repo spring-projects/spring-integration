@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- Explicit channel initializer, but no specification of the default max subscribers properties -->
+
+	<bean id="channelInitializer" class="org.springframework.integration.config.xml.ChannelInitializer">
+		<property name="autoCreate" value="true" />
+	</bean>
+
+	<import resource="DispatcherMaxSubscribersDefaultConfigurationTests-context.xml" />
+
+</beans>

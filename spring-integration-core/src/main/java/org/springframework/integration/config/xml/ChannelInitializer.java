@@ -19,7 +19,6 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -41,11 +40,13 @@ import org.springframework.util.Assert;
  * {@link AbstractIntegrationNamespaceHandler}.
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1.1
  */
 final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
 	public static String AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME = "$autoCreateChannelCandidates";
+
 	public static String CHANNEL_NAMES_ATTR = "channelNames";
 
 	private Log logger = LogFactory.getLog(this.getClass());
@@ -54,12 +55,42 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
 	private volatile boolean autoCreate = true;
 
+	private volatile int defaultMaxUnicastSubscribers = Integer.MAX_VALUE;
+
+	private volatile int defaultMaxMulticastSubscribers = Integer.MAX_VALUE;
+
 	public void setAutoCreate(boolean autoCreate) {
 		this.autoCreate = autoCreate;
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+	}
+
+	public int getDefaultMaxUnicastSubscribers() {
+		return defaultMaxUnicastSubscribers;
+	}
+
+	/**
+	 * Set the default max-subscribers for all unicasting channels that don't have the
+	 * attribute set on their dispatcher. Default {@link Integer#MAX_VALUE}.
+	 * @param defaultMaxUnicastSubscribers
+	 */
+	public void setDefaultMaxUnicastSubscribers(int defaultMaxUnicastSubscribers) {
+		this.defaultMaxUnicastSubscribers = defaultMaxUnicastSubscribers;
+	}
+
+	/**
+	 * Set the default max-subscribers for all multicasting (pub-sub) channels that don't have the
+	 * attribute set. Default {@link Integer#MAX_VALUE}.
+	 * @param defaultMaxMulticastSubscribers
+	 */
+	public int getDefaultMaxMulticastSubscribers() {
+		return defaultMaxMulticastSubscribers;
+	}
+
+	public void setDefaultMaxMulticastSubscribers(int defaultMaxMulticastSubscribers) {
+		this.defaultMaxMulticastSubscribers = defaultMaxMulticastSubscribers;
 	}
 
 	public void afterPropertiesSet() throws Exception {

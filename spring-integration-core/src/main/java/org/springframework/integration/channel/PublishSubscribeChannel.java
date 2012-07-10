@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,11 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.ErrorHandler;
 
 /**
- * A channel that sends Messages to each of its subscribers. 
- * 
+ * A channel that sends Messages to each of its subscribers.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
@@ -41,6 +42,9 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	private volatile boolean applySequence;
 
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
+
+	@Override
 	public String getComponentType(){
 		return "publish-subscribe-channel";
 	}
@@ -56,7 +60,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	/**
 	 * Create a PublishSubscribeChannel that will invoke the handlers in the
-	 * message sender's thread. 
+	 * message sender's thread.
 	 */
 	public PublishSubscribeChannel() {
 		this(null);
@@ -104,6 +108,15 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 	}
 
 	/**
+	 * Specify the maximum number of subscribers supported by the
+	 * channel's dispatcher.
+	 * @param maxSubscribers
+	 */
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
+		this.getDispatcher().setMaxSubscribers(maxSubscribers);
+	}
+	/**
 	 * Callback method for initialization.
 	 */
 	@Override
@@ -119,6 +132,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 			this.dispatcher = new BroadcastingDispatcher(this.executor);
 			this.dispatcher.setIgnoreFailures(this.ignoreFailures);
 			this.dispatcher.setApplySequence(this.applySequence);
+			this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,12 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 /**
  * A channel that invokes a single subscriber for each sent Message.
  * The invocation will occur in the sender's thread.
- * 
+ *
  * @author Dave Syer
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class DirectChannel extends AbstractSubscribableChannel {
 
@@ -55,6 +56,15 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	 */
 	public void setFailover(boolean failover) {
 		this.dispatcher.setFailover(failover);
+	}
+
+	/**
+	 * Specify the maximum number of subscribers supported by the
+	 * channel's dispatcher.
+	 * @param maxSubscribers
+	 */
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.dispatcher.setMaxSubscribers(maxSubscribers);
 	}
 
 	@Override

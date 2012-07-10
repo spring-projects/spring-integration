@@ -131,6 +131,8 @@ public class JmsChannelParserTests {
 		assertEquals(DeliveryMode.PERSISTENT, TestUtils.getPropertyValue(jmsTemplate, "deliveryMode"));
 		assertEquals(123L, TestUtils.getPropertyValue(jmsTemplate, "timeToLive"));
 		assertEquals(12, TestUtils.getPropertyValue(jmsTemplate, "priority"));
+		assertEquals(Integer.MAX_VALUE, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
 	}
 
 	@Test
@@ -142,6 +144,8 @@ public class JmsChannelParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertEquals("test.queue", jmsTemplate.getDefaultDestinationName());
 		assertEquals("test.queue", container.getDestinationName());
+		assertEquals(1, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
 	}
 
 	@Test

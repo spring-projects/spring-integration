@@ -336,6 +336,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="containerAndTemplateAttributes"/>
+		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
 	</xsd:complexType>
 
 	<xsd:complexType name="outboundType">

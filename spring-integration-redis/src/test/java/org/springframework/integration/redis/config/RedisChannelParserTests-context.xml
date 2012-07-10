@@ -18,4 +18,7 @@
 
 	<bean id="redisSerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 
+	<int-redis:publish-subscribe-channel id="redisChannelWithSubLimit" topic-name="si.test.topic"
+			serializer="redisSerializer" max-subscribers="1" />
+
 </beans>

@@ -74,7 +74,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private volatile String clientId;
 
 	private volatile String concurrency;
-	
+
 	private volatile Integer concurrentConsumers;
 
 	private volatile ConnectionFactory connectionFactory;
@@ -110,7 +110,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private volatile Long receiveTimeout;
 
 	private volatile Long recoveryInterval;
-	
+
 	private volatile String beanName;
 
 	/**
@@ -132,6 +132,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private volatile String transactionName;
 
 	private volatile Integer transactionTimeout;
+
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
 
 
 	public JmsChannelFactoryBean() {
@@ -202,7 +204,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	public void setConcurrency(String concurrency) {
 		this.concurrency = concurrency;
 	}
-	
+
 	public void setConcurrentConsumers(int concurrentConsumers) {
 		this.concurrentConsumers = concurrentConsumers;
 	}
@@ -314,6 +316,10 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.transactionTimeout = transactionTimeout;
 	}
 
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
+	}
+
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
@@ -328,7 +334,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.initializeJmsTemplate();
 		if (this.messageDriven) {
 			this.container = this.createContainer();
-			this.channel = new SubscribableJmsChannel(this.container, this.jmsTemplate);
+			SubscribableJmsChannel subscribableJmsChannel = new SubscribableJmsChannel(this.container, this.jmsTemplate);
+			subscribableJmsChannel.setMaxSubscribers(this.maxSubscribers);
+			this.channel = subscribableJmsChannel;
 		}
 		else {
 			Assert.isTrue(!Boolean.TRUE.equals(this.pubSubDomain),
@@ -388,27 +396,27 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		container.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		container.setSessionTransacted(this.sessionTransacted);
 		container.setSubscriptionDurable(this.subscriptionDurable);
-		
-		
-		
+
+
+
 		if (container instanceof DefaultMessageListenerContainer) {
 			DefaultMessageListenerContainer dmlc = (DefaultMessageListenerContainer) container;
 			if (this.cacheLevelName != null) {
 				dmlc.setCacheLevelName(this.cacheLevelName);
 			}
-		
+
 			if (StringUtils.hasText(this.concurrency)){
 				dmlc.setConcurrency(this.concurrency);
 			}
-			
+
 			if (this.concurrentConsumers != null){
 				dmlc.setConcurrentConsumers(this.concurrentConsumers);
 			}
-			
+
 			if (this.maxConcurrentConsumers != null){
 				dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
 			}
-				
+
 			if (this.idleTaskExecutionLimit != null) {
 				dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
 			}
@@ -437,11 +445,11 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			if (StringUtils.hasText(this.concurrency)){
 				smlc.setConcurrency(this.concurrency);
 			}
-			
+
 			if (this.concurrentConsumers != null){
 				smlc.setConcurrentConsumers(this.concurrentConsumers);
 			}
-			
+
 			smlc.setPubSubNoLocal(this.pubSubNoLocal);
 			smlc.setTaskExecutor(this.taskExecutor);
 		}
@@ -485,6 +493,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		}
 	}
 
+	@Override
 	protected void destroyInstance(AbstractJmsChannel instance) throws Exception {
 		if (instance instanceof SubscribableJmsChannel) {
 			((SubscribableJmsChannel) this.channel).destroy();

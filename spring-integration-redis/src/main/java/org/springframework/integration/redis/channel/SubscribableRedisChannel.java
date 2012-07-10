@@ -36,8 +36,8 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
@@ -58,16 +58,16 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private final RedisConnectionFactory connectionFactory;
 	private final RedisTemplate redisTemplate;
 	private final String topicName;
-	
-	private final MessageDispatcher dispatcher = new BroadcastingDispatcher(true);
-	
+
+	private final AbstractDispatcher dispatcher = new BroadcastingDispatcher(true);
+
 	private volatile boolean initialized;
-	
+
 	// defaults
 	private volatile Executor taskExecutor = new SimpleAsyncTaskExecutor();
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
-	
+
 	public SubscribableRedisChannel(RedisConnectionFactory connectionFactory, String topicName) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		Assert.hasText(topicName, "'topicName' must not be empty");
@@ -80,15 +80,24 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		Assert.notNull(taskExecutor, "'taskExecutor' must not be null");
 		this.taskExecutor = taskExecutor;
 	}
-	
+
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
 	}
-	
+
 	public void setSerializer(RedisSerializer<?> serializer) {
 		Assert.notNull(serializer, "'serializer' must not be null");
 		this.serializer = serializer;
+	}
+
+	/**
+	 * Specify the maximum number of subscribers supported by the
+	 * channel's dispatcher.
+	 * @param maxSubscribers
+	 */
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.dispatcher.setMaxSubscribers(maxSubscribers);
 	}
 
 	public boolean subscribe(MessageHandler handler) {
@@ -98,7 +107,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	public boolean unsubscribe(MessageHandler handler) {
 		return this.dispatcher.removeHandler(handler);
 	}
-	
+
 	@Override
 	protected boolean doSend(Message<?> message, long arg1) {
 		this.redisTemplate.convertAndSend(this.topicName, this.messageConverter.fromMessage(message));
@@ -169,7 +178,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 			this.container.destroy();
 		}
 	}
-	
+
 	private class MessageListenerDelegate {
 
 		@SuppressWarnings("unused")

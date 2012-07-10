@@ -55,6 +55,20 @@ public abstract class IntegrationNamespaceUtils {
 	static final String EXPRESSION_ATTRIBUTE = "expression";
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 
+	/**
+	 * Property name on ChannelInitializer used to configure the default max subscribers for
+	 * unicast channels.
+	 */
+	public static String DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxUnicastSubscribers";
+
+	/**
+	 * Property name on ChannelInitializer used to configure the default max subscribers for
+	 * multicast channels.
+	 */
+	public static String DEFAULT_MAX_MULTICAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxMulticastSubscribers";
+
+
+
 
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
