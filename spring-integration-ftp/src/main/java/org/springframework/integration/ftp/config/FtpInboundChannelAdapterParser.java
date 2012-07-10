@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,38 @@
 package org.springframework.integration.ftp.config;
 
 import org.springframework.integration.file.config.AbstractRemoteFileInboundChannelAdapterParser;
+import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
+import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 
 /**
  * Parser for the FTP 'inbound-channel-adapter' element.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class FtpInboundChannelAdapterParser extends AbstractRemoteFileInboundChannelAdapterParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.ftp";
-
-
 	@Override
 	protected String getMessageSourceClassname() {
-		return BASE_PACKAGE + ".inbound.FtpInboundFileSynchronizingMessageSource";
+		return FtpInboundFileSynchronizingMessageSource.class.getName();
 	}
 
 	@Override
 	protected String getInboundFileSynchronizerClassname() {
-		return BASE_PACKAGE + ".inbound.FtpInboundFileSynchronizer";
+		return FtpInboundFileSynchronizer.class.getName();
 	}
 
 	@Override
 	protected String getSimplePatternFileListFilterClassname() {
-		return BASE_PACKAGE + ".filters.FtpSimplePatternFileListFilter";
+		return FtpSimplePatternFileListFilter.class.getName();
 	}
 
 	@Override
 	protected String getRegexPatternFileListFilterClassname() {
-		return BASE_PACKAGE + ".filters.FtpRegexPatternFileListFilter";
+		return FtpRegexPatternFileListFilter.class.getName();
 	}
 
 }

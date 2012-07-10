@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,38 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.integration.file.config.AbstractRemoteFileInboundChannelAdapterParser;
+import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
+import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
+import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
+import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 
 /**
  * Parser for 'sftp:inbound-channel-adapter'
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class SftpInboundChannelAdapterParser extends AbstractRemoteFileInboundChannelAdapterParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.sftp";
-
-
 	@Override
 	protected String getMessageSourceClassname() {
-		return BASE_PACKAGE + ".inbound.SftpInboundFileSynchronizingMessageSource";
+		return SftpInboundFileSynchronizingMessageSource.class.getName();
 	}
 
 	@Override
 	protected String getInboundFileSynchronizerClassname() {
-		return BASE_PACKAGE + ".inbound.SftpInboundFileSynchronizer";
+		return SftpInboundFileSynchronizer.class.getName();
 	}
 
 	@Override
 	protected String getSimplePatternFileListFilterClassname() {
-		return BASE_PACKAGE + ".filters.SftpSimplePatternFileListFilter";
+		return SftpSimplePatternFileListFilter.class.getName();
 	}
 
 	@Override
 	protected String getRegexPatternFileListFilterClassname() {
-		return BASE_PACKAGE + ".filters.SftpRegexPatternFileListFilter";
+		return SftpRegexPatternFileListFilter.class.getName();
 	}
 
 }

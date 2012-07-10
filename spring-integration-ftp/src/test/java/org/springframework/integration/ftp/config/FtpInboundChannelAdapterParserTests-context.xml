@@ -24,9 +24,14 @@
 				local-filename-generator-expression="#this.toUpperCase() + '.a'"
 				comparator="comparator"
 				temporary-file-suffix=".foo"
-				remote-directory="foo/bar">
+				remote-directory="foo/bar"
+				disposition-expression="'foo'"
+				disposition-result-channel="dispoChannel"
+				disposition-send-timeout="123">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
+
+	<int:channel id="dispoChannel" />
 	
 	<bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="java.util.Comparator"/>

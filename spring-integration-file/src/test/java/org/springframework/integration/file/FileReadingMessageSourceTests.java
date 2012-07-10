@@ -40,7 +40,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.file.FileReadingMessageSource.FileMessageHolder;
 import org.springframework.integration.message.GenericMessage;
 
 /**
