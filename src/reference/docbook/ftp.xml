@@ -151,7 +151,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 				remote-directory="some/remote/path"
 				remote-file-separator="/"
 				local-filename-generator-expression="#this.toUpperCase() + '.a'"
-				local-directory=".">
+				local-directory="."
+				disposition-expression="payload.delete()"
+				disposition-result-channel="dispositions"
+				disposition-send-timeout="1000">
 			<int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>]]></programlisting>
 
@@ -177,11 +180,23 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	list of files.
   	</para>
   	<note>
-	As of Spring Integration 2.0.2, we have added a 'remote-file-separator' attribute. That allows you to configure a
-	file separator character to use if the default '/' is not applicable for your particular environment.
+	The 'remote-file-separator' attribute allows you to configure a
+	file separator character to use, if the default '/' is not applicable for your particular environment.
 	</note>
+	<para>
+	The <emphasis>disposition-*</emphasis> attributes are used to take action after the file has been processed. If the poller is
+	transactional (and synchronized), the action is taken after the transaction commits; otherwise the action
+	is taken after the message is sent to the channel. If all channels in the flow are Direct, this means the
+	action is taken after the flow completes. The <emphasis>dispostion-expression</emphasis> is a SpEL expression
+	with the root object being the original message; the bean factory is also available, allowing expressions such
+	as <classname>@someBean.doSomething(payload)</classname>. The result of the evaluation (if any) is sent to
+	the <emphasis>disposition-result-channel</emphasis> if supplied (the default is <emphasis>nullChannel</emphasis>).
+	The message is the original message with the result contained in the <classname>dispositionResult</classname> header
+	The <emphasis>disposition-send-timeout</emphasis> is used if the result channel can block (such as a QueueChannel
+	that is currently full).
+	</para>
   	<para>
-  	Please refer to the schema for more details on these attributes. 
+	Please refer to the schema for more details on all attributes.
   	</para>
   	<para>
   	It is also important to understand that the <emphasis>FTP Inbound Channel Adapter</emphasis> is a <emphasis>Polling Consumer</emphasis> and 
@@ -266,7 +281,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 				auto-create-directory="true"
 				remote-directory-expression="headers.['remote_dir']"
 				temporary-remote-directory-expression="headers.['temp_remote_dir']"
-				filename-generator="fileNameGenerator"/>]]></programlisting>	
+				filename-generator="fileNameGenerator"
+				disposition-expression="payload.renameTo('/foo/bar/' + payload.name)"
+				disposition-result-channel="dispositions"
+				disposition-send-timeout="1000" />]]></programlisting>
 
 	As you can see from the configuration above you can configure an <emphasis>FTP Outbound Channel Adapter</emphasis> via the
 	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>filename-generator</code> 
@@ -276,6 +294,27 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	to configure things like <code>remote-directory-expression</code>, <code>temporary-remote-directory-expression</code> and <code>remote-filename-generator-expression</code> 
 	(a SpEL alternative to <code>filename-generator</code> shown above). As with any component that allows the usage of SpEL, access to Payload and Message Headers is available via 
 	'payload' and 'headers' variables.
+	</para>
+	<para>
+	The <emphasis>disposition-*</emphasis> attributes are used to take action after the file has been transferred.
+	The <emphasis>dispostion-expression</emphasis> is a SpEL expression
+	with the root object being the original message; the bean factory is also available, allowing expressions such
+	as <classname>@someBean.doSomething(payload)</classname>. The result of the evaluation (if any) is sent to
+	the <emphasis>disposition-result-channel</emphasis> if supplied (the default is <emphasis>nullChannel</emphasis>).
+	The message is the original message with the result contained in the <classname>dispositionResult</classname> header
+	The <emphasis>disposition-send-timeout</emphasis> is used if the result channel can block (such as a QueueChannel
+	that is currently full).
+	</para>
+	<note>
+	If the expression evaluation fails, the flow is not terminated; the <classname>dispostionResult</classname> header
+	in the disposition result will contain the exception.
+	</note>
+	<para>
+	The example above assumes the payload is a <classname>java.io.File</classname> and renames it. The result
+	of the renameTo() method is sent in the dispositionResultHeader to the <emphasis>dispositions</emphasis>
+	channel.
+	</para>
+	<para>
 	Please refer to the schema for more details on
     the available attributes.
 	 <note>

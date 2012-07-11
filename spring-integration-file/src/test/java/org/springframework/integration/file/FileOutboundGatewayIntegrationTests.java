@@ -19,6 +19,8 @@ package org.springframework.integration.file;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
@@ -31,14 +33,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -65,9 +66,16 @@ public class FileOutboundGatewayIntegrationTests {
 	@Autowired
 	MessageChannel fileOutboundGatewayInsideChain;
 
+	@Qualifier("copyRenameInput")
+	@Autowired
+	MessageChannel copyRenameInputChannel;
+
 	@Qualifier("output")
 	@Autowired
 	QueueChannel outputChannel;
+
+	@Autowired
+	QueueChannel dispoChannel;
 
 	@Autowired
 	BeanFactory beanFactory;
@@ -160,6 +168,26 @@ public class FileOutboundGatewayIntegrationTests {
 				is(sourceFile));
 		assertThat(sourceFile.exists(), is(false));
 		assertThat(payloadFile.exists(), is(true));
+	}
+
+	@Test
+	public void copyAndRename() throws Exception {
+		copyRenameInputChannel.send(message);
+		List<Message<?>> result = outputChannel.clear();
+		assertThat(result.size(), is(1));
+		Message<?> resultMessage = result.get(0);
+		File payloadFile = (File) resultMessage.getPayload();
+		assertThat(payloadFile, is(not(sourceFile)));
+		assertThat(resultMessage.getHeaders().get(FileHeaders.ORIGINAL_FILE, File.class),
+				is(sourceFile));
+		assertThat(sourceFile.exists(), is(false));
+		File renamed = new File(sourceFile.getAbsoluteFile() + ".foo");
+		assertThat(renamed.exists(), is(true));
+		renamed.delete();
+		assertThat(payloadFile.exists(), is(true));
+		Message<?> dispoResult = dispoChannel.receive(1000);
+		assertNotNull(dispoResult);
+		assertEquals(Boolean.TRUE, dispoResult.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 	}
 
 }

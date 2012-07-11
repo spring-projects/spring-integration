@@ -17,7 +17,12 @@
 								   channel="testChannel"
 								   directory="${java.io.tmpdir}"
 								   temporary-file-suffix=".foo"
-								   filename-generator-expression="'foo.txt'"/>
+								   filename-generator-expression="'foo.txt'"
+								   disposition-expression="'foo'"
+								   disposition-result-channel="dispoChannel"
+								   disposition-send-timeout="123"/>
+
+	<si:channel id="dispoChannel" />
 
 	<file:outbound-channel-adapter id="adapterWithCustomNameGenerator"
 								   channel="testChannel"

@@ -25,14 +25,18 @@ import java.util.List;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -45,6 +49,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author David Turanski
+ * @author Gary Russell
  * @since 2.0
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
@@ -71,6 +76,14 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	private volatile boolean hasExplicitlySetSuffix;
 
+	private volatile ExpressionEvaluatingMessageProcessor<Object> dispositionMessageProcessor;
+
+	private volatile String dispositionExpressionString;
+
+	private final MessagingTemplate dispositionMessagingTemplate = new MessagingTemplate();
+
+	private volatile boolean dispostionResultChannelSet;
+
 
 	public FileTransferringMessageHandler(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
@@ -81,7 +94,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.autoCreateDirectory = autoCreateDirectory;
 	}
-	
+
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
 		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
@@ -91,12 +104,12 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
-	
+
 	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
 		Assert.notNull(temporaryRemoteDirectoryExpression, "temporaryRemoteDirectoryExpression must not be null");
 		this.temporaryDirectoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(temporaryRemoteDirectoryExpression, String.class);
 	}
-	
+
 	protected String getTemporaryFileSuffix() {
 		return this.temporaryFileSuffix;
 	}
@@ -123,13 +136,46 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	public void setCharset(String charset) {
 		this.charset = charset;
 	}
-	
+
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
 		this.hasExplicitlySetSuffix = true;
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
 
+	/**
+	 * An expression that will be evaluated against the original message after
+	 * it is sent to the channel.
+	 * @param dispositionExpression The expression.
+	 */
+	public void setDispositionExpression(Expression dispositionExpression) {
+		Assert.notNull(dispositionExpression, "dispositionExpression must not be null");
+		this.dispositionMessageProcessor = new ExpressionEvaluatingMessageProcessor<Object>(dispositionExpression);
+		this.dispositionMessageProcessor.setBeanFactory(this.getBeanFactory());
+		this.dispositionExpressionString = dispositionExpression.getExpressionString();
+	}
+
+	/**
+	 * If a disposition expression has been provided, the result of the evaluation
+	 * will be in included in a header in a copy of the original message, sent
+	 * to this channel. The header is {@link MessageHeaders#DISPOSITION_RESULT}.
+	 * @param dispositionResultChannel The channel.
+	 */
+	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
+		Assert.notNull(dispositionResultChannel, "'dispositionResultChannel' must not be null");
+		this.dispositionMessagingTemplate.setDefaultChannel(dispositionResultChannel);
+		this.dispostionResultChannelSet = true;
+	}
+
+	/**
+	 * The send timeout for any messages sent to the disposition result channel.
+	 * @param dispositionSendTimeout The timeout in milliseconds.
+	 */
+	public void setDispositionSendTimeout(long dispositionSendTimeout) {
+		this.dispositionMessagingTemplate.setSendTimeout(dispositionSendTimeout);
+	}
+
+	@Override
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
 		if (this.autoCreateDirectory){
@@ -153,6 +199,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 				}
 				String fileName = this.fileNameGenerator.generateFileName(message);
 				this.sendFileToRemoteDirectory(file, temporaryRemoteDirectory, remoteDirectory, fileName, session);
+				postProcessMessage(message);
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
@@ -185,6 +232,38 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		}
 	}
 
+	/**
+	 * Execute the dispositionExpression and send its result (if any)
+	 * to the disposition result channel.
+	 * @param message
+	 */
+	private void postProcessMessage(Message<?> message) {
+		if (this.dispositionMessageProcessor != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Executing expression " + this.dispositionExpressionString + " on " +
+						message);
+			}
+			Object result = null;
+			try {
+				result = this.dispositionMessageProcessor.processMessage(message);
+			}
+			catch (Exception e) {
+				logger.error("Error processing disposition", e);
+				result = e;
+			}
+			try {
+				if (result != null && this.dispostionResultChannelSet) {
+					Message<?> dispositionMessage = MessageBuilder.fromMessage(message)
+							.setHeader(MessageHeaders.DISPOSITION_RESULT, result).build();
+					this.dispositionMessagingTemplate.send(dispositionMessage);
+				}
+			}
+			catch (Exception e) {
+				logger.error("Error sending disposition result", e);
+			}
+		}
+	}
+
 	private File redeemForStorableFile(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
@@ -192,7 +271,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			if (payload instanceof File) {
 				sendableFile = (File) payload;
 			}
-			else if (payload instanceof byte[] || payload instanceof String) { 
+			else if (payload instanceof byte[] || payload instanceof String) {
 				String tempFileName = this.fileNameGenerator.generateFileName(message) + ".tmp";
 				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
 				byte[] bytes = null;
@@ -215,7 +294,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		}
 	}
 
-	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<F> session) 
+	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<F> session)
 			throws FileNotFoundException, IOException {
 
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
@@ -226,17 +305,17 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		// write remote file first with temporary file extension if enabled
 
 		String tempFilePath = tempRemoteFilePath + (useTemporaryFileName ? this.temporaryFileSuffix : "");
-		
+
 		if (this.autoCreateDirectory) {
 			try {
 				this.makeDirectories(remoteDirectory, session);
-			} 
+			}
 			catch (IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
 				session.mkdir(remoteDirectory);
 			}
 		}
-		
+
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
@@ -244,7 +323,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			if (useTemporaryFileName){
 			   session.rename(tempFilePath, remoteFilePath);
 			}
-		} 
+		}
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
 		}
@@ -252,22 +331,22 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			fileInputStream.close();
 		}
 	}
-	
+
 	private String normalizeDirectoryPath(String directoryPath){
 		if (!StringUtils.hasText(directoryPath)) {
 			directoryPath = "";
 		}
 		else if (!directoryPath.endsWith(this.remoteFileSeparator)) {
-			directoryPath += this.remoteFileSeparator; 
+			directoryPath += this.remoteFileSeparator;
 		}
 		return directoryPath;
 	}
-	
+
 	private void makeDirectories(String path, Session<F> session) throws IOException {
-		if (!session.exists(path)){		
+		if (!session.exists(path)){
 
 			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
-			
+
 			if (nextSeparatorIndex > -1){
 				List<String> pathsToCreate = new LinkedList<String>();
 				while (nextSeparatorIndex > -1){
@@ -276,12 +355,12 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 						// no more paths to create
 						break;
 					}
-					else {				
+					else {
 						pathsToCreate.add(0, pathSegment);
 						nextSeparatorIndex = pathSegment.lastIndexOf(remoteFileSeparator);
 					}
 				}
-				
+
 				for (String pathToCreate : pathsToCreate) {
 					if (logger.isDebugEnabled()){
 						logger.debug("Creating '" + pathToCreate + "'");

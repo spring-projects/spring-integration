@@ -15,6 +15,8 @@
 
 	<si:channel id="copyInput" />
 
+	<si:channel id="copyRenameInput" />
+
 	<si:channel id="moveInput" />
 
 	<si:channel id="output">
@@ -31,6 +33,17 @@
 		reply-channel="output"
 		directory="${java.io.tmpdir}/anyDir"
 		delete-source-files="true"/>
+
+	<outbound-gateway id="copyandrename"
+		request-channel="copyRenameInput"
+		reply-channel="output"
+		directory="${java.io.tmpdir}/anyDir"
+		disposition-expression="payload.renameTo(payload.absolutePath + '.foo')"
+		disposition-result-channel="dispoChannel" />
+
+	<si:channel id="dispoChannel">
+		<si:queue />
+	</si:channel>
 
 	<si:chain input-channel="fileOutboundGatewayInsideChain" output-channel="output">
 		<outbound-gateway directory="${java.io.tmpdir}/anyDir" delete-source-files="true"/>

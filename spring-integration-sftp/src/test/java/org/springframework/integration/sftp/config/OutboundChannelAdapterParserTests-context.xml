@@ -28,7 +28,12 @@
 				temporary-file-suffix=".bar"
 				remote-directory="foo/bar"
 				temporary-remote-directory="foo/baz"
-				order="23"/>
+				order="23"
+				disposition-expression="'foo'"
+				disposition-result-channel="dispoChannel"
+				disposition-send-timeout="123" />
+
+	<int:channel id="dispoChannel" />
 
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"
 				session-factory="sftpSessionFactory"

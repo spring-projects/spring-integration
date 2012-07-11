@@ -16,6 +16,11 @@
 
 package org.springframework.integration.file;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.FileOutputStream;
 
@@ -29,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -74,6 +81,15 @@ public class FileOutboundChannelAdapterIntegrationTests {
 
 	@Autowired
 	MessageChannel inputChannelSaveToSubDirEmptyStringExpression;
+
+	@Autowired
+	MessageChannel inputChannelSaveToBaseDirAndRename;
+
+	@Autowired
+	MessageChannel inputChannelSaveToBaseDirAndDeleteWithDelete;
+
+	@Autowired
+	PollableChannel dispoChannel;
 
 	Message<File> message;
 
@@ -220,6 +236,44 @@ public class FileOutboundChannelAdapterIntegrationTests {
 		}
 
 		Assert.fail("Was expecting a MessageHandlingException to be thrown");
+	}
+
+	@Test
+	public void saveToBaseDirAndRenameSource() throws Exception {
+		File foo = new File(sourceFile.getAbsolutePath() + ".foo");
+		if (foo.exists()) {
+			assertTrue(foo.delete());
+		}
+		this.inputChannelSaveToBaseDirAndRename.send(message);
+
+		assertTrue(new File("target/base-directory/foo.txt").exists());
+		assertTrue("File not renamed", foo.exists());
+		assertFalse(sourceFile.exists());
+		foo.delete();
+		Message<?> dispoResult = dispoChannel.receive(1000);
+		assertNotNull(dispoResult);
+		assertEquals(Boolean.TRUE, dispoResult.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
+	}
+
+	/**
+	 * Shows benign if delete-source-files and disposition
+	 * (disposition result = FALSE, indicating failure).
+	 * @throws Exception
+	 */
+	@Test
+	public void saveToBaseDirAndDeleteWithDelete() throws Exception {
+		File foo = new File(sourceFile.getAbsolutePath() + ".foo");
+		if (foo.exists()) {
+			assertTrue(foo.delete());
+		}
+		this.inputChannelSaveToBaseDirAndDeleteWithDelete.send(message);
+
+		assertTrue(new File("target/base-directory/foo.txt").exists());
+		assertFalse("File not renamed", foo.exists());
+		assertFalse(sourceFile.exists());
+		Message<?> dispoResult = dispoChannel.receive(1000);
+		assertNotNull(dispoResult);
+		assertEquals(Boolean.FALSE, dispoResult.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 	}
 
 }

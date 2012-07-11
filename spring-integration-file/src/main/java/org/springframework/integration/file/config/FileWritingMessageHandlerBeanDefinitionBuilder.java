@@ -16,13 +16,13 @@
 
 package org.springframework.integration.file.config;
 
-import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * A common helper class for the 'outbound-channel-adapter' and 'outbound-gateway'
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  * @since 1.0.3
  */
@@ -83,6 +84,7 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 				builder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
 			}
 		}
+		FileNamespaceUtils.setDispositionAttributes(element, builder);
 		return builder;
 	}
 

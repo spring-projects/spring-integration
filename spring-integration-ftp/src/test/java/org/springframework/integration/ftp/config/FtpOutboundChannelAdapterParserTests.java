@@ -26,10 +26,10 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -79,6 +79,12 @@ public class FtpOutboundChannelAdapterParserTests {
 		Iterator<MessageHandler> iterator = handlers.iterator();
 		assertSame(TestUtils.getPropertyValue(ac.getBean("ftpOutbound2"), "handler"), iterator.next());
 		assertSame(handler, iterator.next());
+		Object processor = TestUtils.getPropertyValue(handler, "dispositionMessageProcessor");
+		assertEquals("foo", TestUtils.getPropertyValue(processor, "expression", Expression.class).getValue());
+		assertSame(ac.getBean("dispoChannel"), TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(handler, "dispositionMessagingTemplate"), "defaultChannel"));
+		assertEquals(123L, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(handler, "dispositionMessagingTemplate"), "sendTimeout"));
 	}
 
 	@Test(expected=BeanCreationException.class)

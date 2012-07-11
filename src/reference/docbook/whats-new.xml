@@ -72,6 +72,30 @@
 				mail inbound adapters can be configured to update the mailbox only
 				if the transaction commits.
 			</para>
+			<para>
+				Similarly File, FTP and SFTP inbound adapters can be configured
+				to execute an expression (e.g. payload.delete(), payload.renameTo(...))
+				after the transaction commits.
+			</para>
+		</section>
+		<section id="2.2-dispo">
+			<title>File Disposition</title>
+			<para>
+				Similar to transaction synchronization,
+				File, FTP and SFTP inbound adapters can be configured
+				to execute an expression (e.g. payload.delete(), payload.renameTo(...))
+				after the message is sent to the channel.
+			</para>
+			<para>
+				Also,
+				File, FTP and SFTP outbound adapters can be configured
+				to execute an expression (e.g. payload.delete(), payload.renameTo(...))
+				after the message is processed.
+			</para>
+			<para>
+				Therefore, it is no longer necessary to add components to your flow
+				to take these actions.
+			</para>
 		</section>
 		<section id="2.2-shutdown">
 			<title>Orderly Shutdown</title>

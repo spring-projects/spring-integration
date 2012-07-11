@@ -18,11 +18,14 @@ package org.springframework.integration.file.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
@@ -44,6 +47,9 @@ public class FileOutboundGatewayParserTests {
 	@Autowired
 	private EventDrivenConsumer gatewayWithDirectoryExpression;
 
+	@Autowired
+	private MessageChannel dispoChannel;
+
 	@Test
 	public void checkOrderedGateway() throws Exception {
 
@@ -58,6 +64,12 @@ public class FileOutboundGatewayParserTests {
 		String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
 		assertNotNull(expression);
 		assertEquals("'foo.txt'", expression);
+		Object processor = TestUtils.getPropertyValue(handler, "dispositionMessageProcessor");
+		assertEquals("foo", TestUtils.getPropertyValue(processor, "expression", Expression.class).getValue());
+		assertSame(dispoChannel, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(handler, "dispositionMessagingTemplate"), "defaultChannel"));
+		assertEquals(123L, ((Long) TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(handler, "dispositionMessagingTemplate"), "sendTimeout")).longValue());
 	}
 
 	@Test

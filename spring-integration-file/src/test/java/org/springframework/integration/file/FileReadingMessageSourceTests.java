@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @RunWith(MockitoJUnitRunner.class)
 public class FileReadingMessageSourceTests {
@@ -170,6 +172,6 @@ public class FileReadingMessageSourceTests {
         source.afterCommit(resource);
         Message<?> result = channel.receive(10000);
         assertSame(file, result.getPayload());
-        assertEquals("foo", result.getHeaders().get(FileHeaders.DISPOSITION_RESULT));
+        assertEquals("foo", result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
     }
 }
