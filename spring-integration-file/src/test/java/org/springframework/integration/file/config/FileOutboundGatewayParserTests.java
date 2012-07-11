@@ -58,6 +58,10 @@ public class FileOutboundGatewayParserTests {
 		String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
 		assertNotNull(expression);
 		assertEquals("'foo.txt'", expression);
+
+		Long sendTimeout = TestUtils.getPropertyValue(handler, "messagingTemplate.sendTimeout", Long.class);
+		assertEquals(Long.valueOf(777), sendTimeout);
+
 	}
 
 	@Test

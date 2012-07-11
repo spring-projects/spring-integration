@@ -18,6 +18,20 @@
 			  Spring Integration now uses Spring 3.1.
 			</para>
 		</section>
+		<section id="2.2-outbound-gateways">
+			<title>Outbound Gateways</title>
+			<para>
+				The XML Namespace support adds the <emphasis>reply-timeout</emphasis>
+				attribute to the following <emphasis>Outbound Gateways</emphasis>:
+			</para>
+			<itemizedlist>
+				<listitem>Amqp Outbound Gateway</listitem>
+				<listitem>File Outbound Gateway</listitem>
+				<listitem>Ftp Outbound Gateway</listitem>
+				<listitem>Sftp Outbound Gateway</listitem>
+				<listitem>Ws Outbound Gateway</listitem>
+			</itemizedlist>
+		</section>
 		<section id="2.2-amqp-11">
 			<title>Spring-AMQP 1.1</title>
 			<para>

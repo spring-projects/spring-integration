@@ -25,10 +25,12 @@ import org.springframework.integration.config.xml.AbstractConsumerEndpointParser
 
 /**
  * Parser for the 'outbound-gateway' element of the file namespace.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  * @since 1.0.3
  */
 public class FileOutboundGatewayParser extends AbstractConsumerEndpointParser {
@@ -41,6 +43,7 @@ public class FileOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = FileWritingMessageHandlerBeanDefinitionBuilder.configure(element, true, parserContext);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "reply-channel", "outputChannel");
  		return handlerBuilder;
 	}

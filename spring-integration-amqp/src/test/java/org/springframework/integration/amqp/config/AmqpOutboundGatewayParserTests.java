@@ -46,6 +46,8 @@ import static org.junit.Assert.assertTrue;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  * @since 2.1
  *
  */
@@ -62,6 +64,10 @@ public class AmqpOutboundGatewayParserTests {
 		assertEquals("amqp:outbound-gateway", gateway.getComponentType());
 		MessageChannel returnChannel = context.getBean("returnChannel", MessageChannel.class);
 		assertSame(returnChannel, TestUtils.getPropertyValue(gateway, "returnChannel"));
+
+		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
+
+		assertEquals(Long.valueOf(777), sendTimeout);
 	}
 
 	@SuppressWarnings("rawtypes")

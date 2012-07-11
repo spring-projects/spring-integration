@@ -15,6 +15,7 @@
 
 	<outbound-gateway id="ordered"
 		request-channel="someChannel"
+		reply-timeout="777"
 		directory="${java.io.tmpdir}"
 		auto-startup="false"
 		order="777"
