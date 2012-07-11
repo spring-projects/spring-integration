@@ -11,6 +11,7 @@
 
 	<amqp:outbound-gateway id="rabbitGateway" request-channel="toRabbit"
 		reply-channel="fromRabbit"
+		reply-timeout="777"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
 		amqp-template="amqpTemplate"

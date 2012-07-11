@@ -63,6 +63,29 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Allows you to specify how long this gateway will wait for
+						the reply message to be sent successfully to the reply channel
+						before throwing an exception. This attribute only applies when the
+						channel might block, for example when using a bounded queue channel that
+						is currently full.
+
+						Also, keep in mind that when sending to a DirectChannel, the
+						invocation will occur in the sender's thread. Therefore,
+						the failing of the send operation may be caused by other
+						components further downstream.
+
+						The "reply-timeout" attribute maps to the "sendTimeout" property of the
+						underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+						The attribute will default, if not specified, to '-1', meaning that
+						by default, the Gateway will wait indefinitely. The value is
+						specified in milliseconds.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="uri" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -85,7 +108,7 @@
 							<tool:expected-type type="org.springframework.ws.client.support.destination.DestinationProvider"/>
 						</tool:annotation>
 					</xsd:appinfo>
-				</xsd:annotation>    
+				</xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="marshaller" type="xsd:string">
 				<xsd:annotation>
@@ -137,7 +160,7 @@
 					<xsd:documentation>
 	Reference to a Spring Web Services WebServiceMessageCallback. This enables changing
 	the Web Service request message after the payload has been written to it but prior
-	to invocation of the actual Web Service. 
+	to invocation of the actual Web Service.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -209,7 +232,7 @@
 					<xsd:documentation>
 						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
 						that this gateway will use to map between Spring Integration
-						MessageHeaders and the SoapHeader. 
+						MessageHeaders and the SoapHeader.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -229,7 +252,7 @@
 			</xsd:attribute>
 			<xsd:attribute name="mapped-reply-headers" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[							
+					<xsd:documentation><![CDATA[
 Comma-separated list of names of MessageHeaders to be mapped into the SOAP Headers of the SOAP reply.
 This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
@@ -307,7 +330,7 @@ this list can also be simple patterns to be matched against the header names (e.
 					</xsd:appinfo>
 					<xsd:documentation>
 						If a (synchronous) downstream exception is thrown and an error-channel is specified,
-						the MessagingException will be sent to this channel. 
+						the MessagingException will be sent to this channel.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -335,7 +358,7 @@ this list can also be simple patterns to be matched against the header names (e.
 					<xsd:documentation>
 						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
 						that this gateway will use to map between Spring Integration
-						MessageHeaders and the SoapHeader. 
+						MessageHeaders and the SoapHeader.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -355,7 +378,7 @@ this list can also be simple patterns to be matched against the header names (e.
 			</xsd:attribute>
 			<xsd:attribute name="mapped-reply-headers" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[							
+					<xsd:documentation><![CDATA[
 Comma-separated list of names of MessageHeaders to be mapped into the SOAP Headers of the SOAP reply.
 This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
@@ -382,12 +405,12 @@ this list can also be simple patterns to be matched against the header names (e.
 							<xsd:documentation>
 	Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
 	sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
-	provided, then the specified header values will NOT overwrite any existing ones with the same header names. 
+	provided, then the specified header values will NOT overwrite any existing ones with the same header names.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
 							<xsd:union memberTypes="xsd:boolean xsd:string"/>
-						</xsd:simpleType> 
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

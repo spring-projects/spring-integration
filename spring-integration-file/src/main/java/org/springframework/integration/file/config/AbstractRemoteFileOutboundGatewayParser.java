@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractConsumerEndpointParser {
-	
+
 	@Override
 	protected String getInputChannelAttributeName() {
 		return "request-channel";
@@ -44,13 +44,14 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(SessionFactoryFactoryBean.class);
 		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
-		
+
 		builder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
 
 		builder.addConstructorArgValue(element.getAttribute("command"));
 		builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "temporary-file-suffix");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		this.configureFilter(builder, element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "remote-file-separator");

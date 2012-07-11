@@ -34,8 +34,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
- * Parser for the &lt;outbound-gateway/&gt; element in the 'ws' namespace. 
- * 
+ * Parser for the &lt;outbound-gateway/&gt; element in the 'ws' namespace.
+ *
  * @author Mark Fisher
  * @author Jonas Partner
  */
@@ -83,11 +83,12 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 			}
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-empty-responses");
 		this.postProcessGateway(builder, element, parserContext);
-		
+
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, null);
-		
+
 		return builder;
 	}
 

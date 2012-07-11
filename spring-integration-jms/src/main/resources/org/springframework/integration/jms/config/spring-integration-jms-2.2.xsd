@@ -133,7 +133,7 @@
 	ID for this channel. Required.
 				</xsd:documentation>
 			</xsd:annotation>
-		</xsd:attribute>		
+		</xsd:attribute>
 		<xsd:attribute name="connection-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -392,7 +392,7 @@
 							<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use 'destination-name' and 'pub-sub-domain' which will rely upon the
-	DestinationResolver strategy (DynamicDestinationResolver by default). 
+	DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -405,9 +405,9 @@
 					<xsd:attribute name="pub-sub-domain" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	The boolean property used to configure the JmsTemplate with knowledge of what JMS domain is being used. By default the value of this property is 'false'', 
-	indicating that the point-to-point domain, Queues, will be used. This property used by JmsTemplate determines the behavior of dynamic destination resolution 
-	via implementations of the DestinationResolver interface.			
+	The boolean property used to configure the JmsTemplate with knowledge of what JMS domain is being used. By default the value of this property is 'false'',
+	indicating that the point-to-point domain, Queues, will be used. This property used by JmsTemplate determines the behavior of dynamic destination resolution
+	via implementations of the DestinationResolver interface.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -417,17 +417,17 @@
 	Boolean property indicating whether to make the subscription durable. The durable subscription name to be used can be specified
 	through the "durableSubscriptionName" property. Default is "false". Set this to "true" to register a durable subscription,
 	typically in combination with a "durableSubscriptionName" value (unless your message listener class name is good enough as
-	subscription name). Only makes sense when listening to a topic (pub-sub domain).	
+	subscription name). Only makes sense when listening to a topic (pub-sub domain).
 							</xsd:documentation>
 						</xsd:annotation>
-					</xsd:attribute>					
+					</xsd:attribute>
 					<xsd:attribute name="durable-subscription-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
 	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
 	specified message listener. Note: Only 1 concurrent consumer (which is the default of this message listener container) is allowed
-	for each durable subscription.	
+	for each durable subscription.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -439,7 +439,7 @@
 	hasn't already assigned one.
 							</xsd:documentation>
 						</xsd:annotation>
-					</xsd:attribute>					
+					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -485,11 +485,11 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					
+
 					<xsd:attribute name="receive-timeout" type="xsd:string"/>
-					
+
 					<xsd:attributeGroup ref="dmlcAttributeGroup"/>
-					
+
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -512,7 +512,7 @@
 							<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use 'destination-name' and 'pub-sub-domain' which will rely upon the
-	DestinationResolver strategy (DynamicDestinationResolver by default). 
+	DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -578,7 +578,7 @@
 							<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use 'request-destination-name' and 'request-pub-sub-domain' which will rely
-	upon the DestinationResolver strategy (DynamicDestinationResolver by default). 
+	upon the DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -594,7 +594,7 @@
 							<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use either 'default-reply-queue-name' or 'default-reply-topic-name'  which
-	will rely upon the DestinationResolver strategy (DynamicDestinationResolver by default). 
+	will rely upon the DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -613,7 +613,7 @@
 								JMSMessageID from the request will be copied into the JMSCorrelationID of the reply
 								unless there is already a value in the JMSCorrelationID property of the newly created
 								reply Message in which case nothing will be copied. If the JMSCorrelationID of the
-								request Message should be copied into the JMSCorrelationID of the reply Message 
+								request Message should be copied into the JMSCorrelationID of the reply Message
 								instead, then this value should be set to "JMSCorrelationID".
 								Any other value will be treated as a JMS String Property to be copied as-is
 								from the request Message into the reply Message with the same property name.
@@ -627,7 +627,7 @@
 									<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
 								</tool:annotation>
 								<xsd:documentation>
-								Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message. 
+								Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message.
 								</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -664,7 +664,7 @@
 							<xsd:documentation>
 								If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
 								the MessagingException will be sent to this channel; any response from
-								which will be returned as a reply by the gateway. If an "error-channel" is not 
+								which will be returned as a reply by the gateway. If an "error-channel" is not
 								supplied, any such exception
 								will be propagated to the listener container and any JMS transaction will be
 								rolled back. Any synchronous downstream exceptions in the error flow will
@@ -687,17 +687,17 @@
 	Boolean property indicating whether to make the subscription durable. The durable subscription name to be used can be specified
 	through the "durableSubscriptionName" property. Default is "false". Set this to "true" to register a durable subscription,
 	typically in combination with a "durableSubscriptionName" value (unless your message listener class name is good enough as
-	subscription name). Only makes sense when listening to a topic (pub-sub domain).	
+	subscription name). Only makes sense when listening to a topic (pub-sub domain).
 							</xsd:documentation>
 						</xsd:annotation>
-					</xsd:attribute>					
+					</xsd:attribute>
 					<xsd:attribute name="durable-subscription-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
 	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
 	specified message listener. Note: Only 1 concurrent consumer (which is the default of this message listener container) is allowed
-	for each durable subscription.	
+	for each durable subscription.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -711,9 +711,9 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="receive-timeout" type="xsd:string"/>
-					
+
 					<xsd:attributeGroup ref="dmlcAttributeGroup"/>
-					
+
 					<xsd:attribute name="reply-time-to-live" type="xsd:string"/>
 					<xsd:attribute name="reply-priority" type="xsd:string"/>
 					<xsd:attribute name="reply-delivery-persistent" type="xsd:string"/>
@@ -755,15 +755,31 @@
 			<xsd:attribute name="receive-timeout" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	Timeout for the JMS MessageConsumer to receive the JMS reply Message. Default is 5 seconds. 
+	Timeout for the JMS MessageConsumer to receive the JMS reply Message. Default is 5 seconds.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="reply-timeout" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>
-	Timeout for sending the mapped integration Message to this gateway's reply-channel. Default is indefinite.
-					</xsd:documentation>
+					<xsd:documentation><![CDATA[
+						Allows you to specify how long this gateway will wait for
+						the reply message to be sent successfully to the reply channel
+						before throwing an exception. This attribute only applies when the
+						channel might block, for example when using a bounded queue channel that
+						is currently full.
+
+						Also, keep in mind that when sending to a DirectChannel, the
+						invocation will occur in the sender's thread. Therefore,
+						the failing of the send operation may be caused by other
+						components further downstream.
+
+						The "reply-timeout" attribute maps to the "sendTimeout" property of the
+						underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+						The attribute will default, if not specified, to '-1', meaning that
+						by default, the Gateway will wait indefinitely. The value is
+						specified in milliseconds.
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="request-destination" type="xsd:string">
@@ -800,13 +816,13 @@
 	This attribute is mutually exclusive with 'request-destination' and 'request-destination-name'.
 					</xsd:documentation>
 				</xsd:annotation>
-			</xsd:attribute>			
+			</xsd:attribute>
 			<xsd:attribute name="request-pub-sub-domain" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 	When resolving a request destination name (rather than having a 'request-destination' reference),
 	a true value here specifies that the DestinationResolver should resolve Topics rather than Queues.
-	Default is false.  
+	Default is false.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -815,7 +831,7 @@
 							<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use 'reply-destination-name' and 'reply-pub-sub-domain' which will rely
-	upon the DestinationResolver strategy (DynamicDestinationResolver by default). 
+	upon the DestinationResolver strategy (DynamicDestinationResolver by default).
 							</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -879,7 +895,7 @@
 							<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
 						</tool:annotation>
 						<xsd:documentation>
-						Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message. 
+						Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message.
 						</xsd:documentation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -1156,12 +1172,12 @@
 							<xsd:documentation>
 	Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
 	sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
-	provided, then the specified header values will NOT overwrite any existing ones with the same header names. 
+	provided, then the specified header values will NOT overwrite any existing ones with the same header names.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
 							<xsd:union memberTypes="xsd:boolean xsd:string"/>
-						</xsd:simpleType> 
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -1253,7 +1269,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-	
+
 	<xsd:attributeGroup name="dmlcAttributeGroup">
 		<xsd:attribute name="concurrent-consumers" type="xsd:string">
 			<xsd:annotation>
@@ -1303,11 +1319,11 @@
 				Specify the maximum number of messages to process in one task.
 					More concretely, this limits the number of message reception attempts
 					per task, which includes receive iterations that did not actually
-					pick up a message until they hit their timeout 
+					pick up a message until they hit their timeout
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		
+
 		<xsd:attribute name="recovery-interval" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -1334,11 +1350,11 @@
 					received any message within its execution. If this limit is reached,
 					the task will shut down and leave receiving to other executing tasks.
 					The default is 1, closing idle resources early once a task didn't
-					receive a message. 
+					receive a message.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		
+
 	</xsd:attributeGroup>
 
 </xsd:schema>

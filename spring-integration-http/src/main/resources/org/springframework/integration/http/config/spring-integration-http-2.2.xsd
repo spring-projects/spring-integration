@@ -411,7 +411,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			<xsd:attribute name="expected-response-type" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						The expected type to which the response body should be converted. 
+						The expected type to which the response body should be converted.
 						Default is 'org.springframework.http.ResponseEntity'.
 						This attribute cannot be provided if expected-response-type-expression has a value
 					</xsd:documentation>
@@ -607,7 +607,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:attribute name="expected-response-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								The expected type to which the response body should be converted. 
+								The expected type to which the response body should be converted.
 								Default is 'org.springframework.http.ResponseEntity'.
 								This attribute cannot be provided if expected-response-type-expression has a value
 							</xsd:documentation>
@@ -671,17 +671,25 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="reply-timeout" type="xsd:string">
-					<xsd:annotation>
+						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-	The "reply-timeout" attribute maps to the "sendTimeout" property of the
-	unerlying "MessagingTemplate" instance (org.springframework.integration.core.MessagingTemplate).
-	The attribute will default, if not specified, to "-1"; it is used when
-	sending the reply message (HTTP Response) to the reply channel.
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
 
-	This means, that depending on the implementation, the Message Channel's "send"
-	method may block indefinitely, by default. Note, though, that the "reply-timeout" attribute is
-	only used, when the actual MessageChannel implementation has a blocking send,
-	such as when a bounded QueueChannel is "full".
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

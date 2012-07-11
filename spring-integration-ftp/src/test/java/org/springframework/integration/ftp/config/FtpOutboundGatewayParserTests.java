@@ -63,6 +63,9 @@ public class FtpOutboundGatewayParserTests {
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
 		assertTrue(options.contains("-1"));
 		assertTrue(options.contains("-f"));
+
+		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
+		assertEquals(Long.valueOf(777), sendTimeout);
 	}
 
 	@Test

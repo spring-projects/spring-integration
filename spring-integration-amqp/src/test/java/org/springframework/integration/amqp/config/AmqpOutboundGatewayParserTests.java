@@ -31,6 +31,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
@@ -62,6 +63,10 @@ public class AmqpOutboundGatewayParserTests {
 		assertEquals("amqp:outbound-gateway", gateway.getComponentType());
 		MessageChannel returnChannel = context.getBean("returnChannel", MessageChannel.class);
 		assertSame(returnChannel, TestUtils.getPropertyValue(gateway, "returnChannel"));
+
+		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
+
+		assertEquals(Long.valueOf(777), sendTimeout);
 	}
 
 	@SuppressWarnings("rawtypes")
