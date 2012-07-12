@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/mongodb"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/mongodb"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd"/>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				The outbound channel adapter definition for the Mongo DB outbound channel adapter
+			]]>
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" >
+				<xsd:annotation>
+					<xsd:documentation>
+					<![CDATA[
+						The poller sub element relevant in case of pollable channels are used
+						as input channel to the adapter
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+
+				</xsd:element>
+			</xsd:sequence>
+
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Channel from which messages will be output.
+							When a message is sent to this channel it will
+							cause the query
+							to be executed.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attributeGroup ref="mongoDbCommonAttributes"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:attributeGroup name="mongoDbCommonAttributes">
+
+		<xsd:attribute name="id" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the underlying Spring bean definition, which is an
+					instance of either 'EventDrivenConsumer' or 'PollingConsumer',
+					depending on whether the component's input channel is a
+					'SubscribableChannel' or 'PollableChannel'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+
+		<xsd:attribute name="auto-startup" default="true" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate that the component should start automatically
+					on startup (default true).
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+
+		<xsd:attribute name="collection" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The collection name to be used for the persisting the messages.
+					The default value will be the one chosen by the underlying spring
+					data provider and will be "messageWrapper"
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+
+		<xsd:attribute name="mongo-db-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+						The reference to the MongoDBFactory instance that would be used to
+						connect to the database instance
+					</xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.data.mongodb.MongoDbFactory"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<xsd:documentation>
+					The namespace element for the mongo DB inbound channel adapter
+				</xsd:documentation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<xsd:documentation>
+								The poller sub element that will trigger the receive on the
+								underlying message source
+							</xsd:documentation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+
+			<xsd:attributeGroup ref="mongoDbCommonAttributes"/>
+
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="select" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The mandatory mongo select query that would be used to 
+							select the records from the Mongo DB.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="update" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The optional mongo update query that needs to be executed after the select
+							is executed.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="sort-on" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The key in the document on which the sort is to be applied.
+							The sort order needs to be specified using the sort-order
+							attribute. The default sort order is ASCENDING if only the sort-on 
+							attribute is specified. 
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="sort-order" default="ASCENDING">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The sort order for the sort when the sort-on attribute is specified. The value defaults to
+							ASCENDING when not specified 
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="sortOrder xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+
+			<xsd:attribute name="limit" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The maximum number of documents that will be retrieved in a query.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="entity-class" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The fully qualified name of the entity class that the inbound adapter
+							expects when the document is read. The value defaults to
+							org.springframework.integration.mongodb.MessageWrapper if not specified.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="delete-after-select" default="false">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The optional attribute that is used to indicate that the record should
+							be deleted after being selected. Valid values are true or false.
+							Defaults to false. If true this attribute is mutually exclusive to the
+							Update that is executed after the select.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:simpleType name="sortOrder">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="ASCENDING"/>
+			<xsd:enumeration value="DESCENDING"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+</xsd:schema>

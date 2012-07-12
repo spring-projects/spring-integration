@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
@@ -28,18 +30,17 @@ import org.springframework.integration.transformer.ClaimCheckOutTransformer;
 
 import com.mongodb.Mongo;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author Mark Fisher
+ *
  */
 public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvailableTests{
 
-	@Test 
+	@Test
 	@MongoDbAvailable
 	public void stringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);		
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Message<?> originalMessage = MessageBuilder.withPayload("test1").build();
@@ -54,7 +55,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 		//System.out.println("checkedout: " + checkedOutMessage);
 	}
 
-	@Test 
+	@Test
 	@MongoDbAvailable
 	public void objectPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
@@ -79,7 +80,7 @@ public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvaila
 	private static class Beverage {
 
 		private String name;
-		private int shots; 
+		private int shots;
 		private boolean iced;
 
 		public String getName() {
