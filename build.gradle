@@ -49,7 +49,7 @@ subprojects { subproject ->
 		springVersion = '3.1.2.RELEASE'
 		springAmqpVersion = '1.1.1.RELEASE'
 		springDataMongoVersion = '1.1.0.M1'
-		springDataRedisVersion = '1.0.0.RELEASE'
+		springDataRedisVersion = '1.0.1.RELEASE'
 		springGemfireVersion = '1.1.1.RELEASE'
 		springSecurityVersion = '3.1.0.RELEASE'
 		springSocialTwitterVersion = '1.0.1.RELEASE'
