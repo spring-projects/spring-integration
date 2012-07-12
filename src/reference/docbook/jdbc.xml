@@ -49,10 +49,12 @@
     row in the query result. Optionally, this can be changed by adding a reference to
     a <classname>RowMapper</classname> instance (see the
     <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jdbc.html">Spring
-    JDBC</ulink> documentation for more detailed information about row mapping).<note>
-        <para>If you want to convert rows in the SELECT query result to
-        individual messages you can use a downstream splitter.</para>
-      </note></para>
+    JDBC</ulink> documentation for more detailed information about row mapping).
+	</para>
+	<note>
+		If you want to convert rows in the SELECT query result to
+		individual messages you can use a downstream splitter.
+	</note>
 
     <para>The inbound adapter also requires a reference to either
     a <classname>JdbcTemplate</classname> instance or
@@ -105,6 +107,43 @@
       the transaction rolls back and the input data is reverted to its
       original state.</para>
     </section>
+	<section id="jdbc-max-rows-per-poll-versus-max-messages-per-poll">
+		<title>Max-rows-per-poll versus Max-messages-per-poll</title>
+		<para>
+			The <emphasis>JDBC Inbound Channel Adapter</emphasis> defines an attribute
+			<emphasis>max-rows-per-poll</emphasis>. At the same time, when you
+			specify the corresponding <emphasis>Poller</emphasis>, you can also
+			define a property called <emphasis>max-messages-per-poll</emphasis>. While
+			these two attributes look similar at first sight, their meaning is
+			quite different.
+		</para>
+		<para>
+			In most normal circumstances, you may never want to set the Poller's
+			<emphasis>max-messages-per-poll</emphasis> property when using it with
+			the <emphasis>JDBC Inbound Channel Adapter</emphasis>. Its default value
+			is <emphasis>1</emphasis>, which means that the <emphasis>JDBC
+			Inbound Channel Adapter's</emphasis>
+			<emphasis><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()">receive()</ulink></emphasis>
+			method is executed exactly once for each poll of the database.
+		</para>
+		<para>
+			For example, if you set the <emphasis>max-messages-per-poll</emphasis>
+			attribute to a value of <emphasis>10</emphasis>, then each time the
+			<emphasis>JDBC Inbound Channel Adapter</emphasis> polls the database,
+			the respective <emphasis>receive()</emphasis> method is executed 10 times.
+			For more information regarding the <emphasis>max-messages-per-poll</emphasis>
+			attribute, please see <xref linkend="channel-adapter-namespace-inbound"/>.
+		</para>
+		<para>
+			Much more useful is the <emphasis>max-rows-per-poll</emphasis> attribute.
+			If greater than <emphasis>0</emphasis>, this attribute specifies
+			the maximum number of rows that ought to be pulled out of the query
+			results per execution of the <emphasis>receive()</emphasis> method.
+			If the attribute is set to <emphasis>0</emphasis>, then all rows will
+			be packed into the outgoing message. If not explicitly set, the
+			attribute will default to <emphasis>0</emphasis>.
+		</para>
+	</section>
   </section>
 
   <section id="jdbc-outbound-channel-adapter">
@@ -799,6 +838,15 @@
                          </para>
                     </callout>
               </calloutlist></para>
+			<note>
+				When you declare a Poller, you may notice the Poller's
+				<emphasis>max-messages-per-poll</emphasis> attribute. If you wonder,
+				how it relates to the <emphasis>max-rows-per-poll</emphasis> attribute
+				of the <emphasis>Stored Procedure Inbound Channel Adapter</emphasis>,
+				please see <xref linkend="jdbc-max-rows-per-poll-versus-max-messages-per-poll"/>
+				for a thourough discussion. The respective meaning of the attributes
+				is the same as for the <emphasis>JDBC Inbound Channel Adapter</emphasis>.
+			</note>
 	    </section>
         <section id="stored-procedure-outbound-channel-adapter">
             <title>Stored Procedure Outbound Channel Adapter</title>
