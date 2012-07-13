@@ -57,7 +57,7 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
 	private volatile int defaultMaxUnicastSubscribers = Integer.MAX_VALUE;
 
-	private volatile int defaultMaxMulticastSubscribers = Integer.MAX_VALUE;
+	private volatile int defaultMaxBroadcastSubscribers = Integer.MAX_VALUE;
 
 	public void setAutoCreate(boolean autoCreate) {
 		this.autoCreate = autoCreate;
@@ -80,17 +80,17 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		this.defaultMaxUnicastSubscribers = defaultMaxUnicastSubscribers;
 	}
 
-	/**
-	 * Set the default max-subscribers for all multicasting (pub-sub) channels that don't have the
-	 * attribute set. Default {@link Integer#MAX_VALUE}.
-	 * @param defaultMaxMulticastSubscribers
-	 */
-	public int getDefaultMaxMulticastSubscribers() {
-		return defaultMaxMulticastSubscribers;
+	public int getDefaultMaxBroadcastSubscribers() {
+		return defaultMaxBroadcastSubscribers;
 	}
 
-	public void setDefaultMaxMulticastSubscribers(int defaultMaxMulticastSubscribers) {
-		this.defaultMaxMulticastSubscribers = defaultMaxMulticastSubscribers;
+	/**
+	 * Set the default max-subscribers for all broadcasting (pub-sub) channels that don't have the
+	 * attribute set. Default {@link Integer#MAX_VALUE}.
+	 * @param defaultMaxBroadcastSubscribers
+	 */
+	public void setDefaultMaxBroadcastSubscribers(int defaultMaxBroadcastSubscribers) {
+		this.defaultMaxBroadcastSubscribers = defaultMaxBroadcastSubscribers;
 	}
 
 	public void afterPropertiesSet() throws Exception {

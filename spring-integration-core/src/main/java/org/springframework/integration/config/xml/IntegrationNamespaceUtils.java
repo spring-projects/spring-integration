@@ -63,9 +63,9 @@ public abstract class IntegrationNamespaceUtils {
 
 	/**
 	 * Property name on ChannelInitializer used to configure the default max subscribers for
-	 * multicast channels.
+	 * broadcast channels.
 	 */
-	public static String DEFAULT_MAX_MULTICAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxMulticastSubscribers";
+	public static String DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxBroadcastSubscribers";
 
 
 

@@ -52,7 +52,7 @@ public class RedisChannelParser extends AbstractChannelParser {
 		// The following 2 attributes should be added once configurable on the RedisMessageListenerContainer
 		// IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		// IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_MULTICAST_SUBSCRIBERS_PROPERTY_NAME);
+		this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME);
 		return builder;
 	}
 

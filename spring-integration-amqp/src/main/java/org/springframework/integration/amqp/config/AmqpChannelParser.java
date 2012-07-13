@@ -51,7 +51,7 @@ public class AmqpChannelParser extends AbstractChannelParser {
 		}
 		else if ("publish-subscribe-channel".equals(element.getLocalName())) {
 			builder.addPropertyValue("pubSub", true);
-			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_MULTICAST_SUBSCRIBERS_PROPERTY_NAME);
+			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge-mode");

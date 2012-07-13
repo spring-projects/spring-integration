@@ -42,7 +42,7 @@ public class PublishSubscribeChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-failures");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		this.setMaxSubscribersProperty(parserContext, builder, element,
-				IntegrationNamespaceUtils.DEFAULT_MAX_MULTICAST_SUBSCRIBERS_PROPERTY_NAME);
+				IntegrationNamespaceUtils.DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME);
 		return builder;
 	}
 

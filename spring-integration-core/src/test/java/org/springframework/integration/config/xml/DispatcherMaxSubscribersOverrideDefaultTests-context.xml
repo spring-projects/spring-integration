@@ -8,7 +8,7 @@
 	<bean id="channelInitializer" class="org.springframework.integration.config.xml.ChannelInitializer">
 		<property name="autoCreate" value="true" />
 		<property name="defaultMaxUnicastSubscribers" value="456" />
-		<property name="defaultMaxMulticastSubscribers" value="789" />
+		<property name="defaultMaxBroadcastSubscribers" value="789" />
 	</bean>
 
 	<import resource="DispatcherMaxSubscribersDefaultConfigurationTests-context.xml" />
