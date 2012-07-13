@@ -18,7 +18,12 @@
 		directory="${java.io.tmpdir}"
 		auto-startup="false"
 		order="777"
-		filename-generator-expression="'foo.txt'"/>
+		filename-generator-expression="'foo.txt'"
+		disposition-expression="'foo'"
+		disposition-result-channel="dispoChannel"
+		disposition-send-timeout="123"/>
+
+	<si:channel id="dispoChannel" />
 
 	<outbound-gateway id="gatewayWithDirectoryExpression"
 		request-channel="someChannel"

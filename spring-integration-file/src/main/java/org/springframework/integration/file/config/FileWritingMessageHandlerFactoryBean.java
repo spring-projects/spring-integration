@@ -19,6 +19,7 @@ package org.springframework.integration.file.config;
 import java.io.File;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
@@ -58,6 +59,13 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 	private volatile boolean append;
 
 	private volatile boolean expectReply = true;
+
+	private volatile Expression dispositionExpression;
+
+	private volatile MessageChannel dispositionResultChannel;
+
+	private Long dispositionSendTimeout;
+
 
 	public void setAppend(boolean append) {
 		this.append = append;
@@ -103,6 +111,18 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 		this.expectReply = expectReply;
 	}
 
+	public void setDispositionExpression(Expression dispositionExpression) {
+		this.dispositionExpression = dispositionExpression;
+	}
+
+	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
+		this.dispositionResultChannel = dispositionResultChannel;
+	}
+
+	public void setDispositionSendTimeout(Long dispositionSendTimeout) {
+		this.dispositionSendTimeout = dispositionSendTimeout;
+	}
+
 	@Override
 	protected FileWritingMessageHandler createHandler() {
 
@@ -143,6 +163,15 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 		}
 		handler.setExpectReply(this.expectReply);
 		handler.setAppend(this.append);
+		if (this.dispositionExpression != null) {
+			handler.setDispositionExpression(this.dispositionExpression);
+		}
+		if (this.dispositionResultChannel != null) {
+			handler.setDispositionResultChannel(this.dispositionResultChannel);
+		}
+		if (this.dispositionSendTimeout != null) {
+			handler.setDispositionSendTimeout(this.dispositionSendTimeout);
+		}
 		return handler;
 	}
 }

@@ -21,6 +21,8 @@
 	<int:channel id="inputChannelSaveToSubDirWithHeader" />
 	<int:channel id="inputChannelSaveToSubDirWithFile" />
 	<int:channel id="inputChannelSaveToSubDirEmptyStringExpression" />
+	<int:channel id="inputChannelSaveToBaseDirAndRename" />
+	<int:channel id="inputChannelSaveToBaseDirAndDeleteWithDelete" />
 
 	<int-file:outbound-channel-adapter id="save-to-base-directory"
 		channel="inputChannelSaveToBaseDir" auto-create-directory="true"
@@ -59,4 +61,20 @@
 		directory-expression="headers['subDirectory']"
 		filename-generator-expression="'foo.txt'" />
 
+	<int-file:outbound-channel-adapter id="save-to-base-directory-and-rename"
+		channel="inputChannelSaveToBaseDirAndRename" auto-create-directory="true"
+		filename-generator-expression="'foo.txt'" directory="target/base-directory"
+		disposition-expression="payload.renameTo(payload.absolutePath + '.foo')"
+		disposition-result-channel="dispoChannel"/>
+
+	<int-file:outbound-channel-adapter id="save-to-base-directory-and-delete-with-delete"
+		channel="inputChannelSaveToBaseDirAndDeleteWithDelete" auto-create-directory="true"
+		filename-generator-expression="'foo.txt'" directory="target/base-directory"
+		disposition-expression="payload.renameTo(payload.absolutePath + '.foo')"
+		disposition-result-channel="dispoChannel"
+		delete-source-files="true"/>
+
+	<int:channel id="dispoChannel">
+		<int:queue />
+	</int:channel>
 </beans:beans>

@@ -34,7 +34,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * The headers for a {@link Message}.<br>
- * IMPORTANT: MessageHeaders are immutable. Any mutating operation (e.g., put(..), putAll(..) etc.) 
+ * IMPORTANT: MessageHeaders are immutable. Any mutating operation (e.g., put(..), putAll(..) etc.)
  * will result in {@link UnsupportedOperationException}
  * To create MessageHeaders instance use fluent MessageBuilder API
  * <pre>
@@ -47,17 +47,18 @@ import org.apache.commons.logging.LogFactory;
  * headers.put("key2", "value2");
  * new GenericMessage("foo", headers);
  * </pre>
- * 
+ *
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final long serialVersionUID = 6901029029524535147L;
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
-	
+
 	private static volatile IdGenerator idGenerator = null;
 
 	/**
@@ -88,6 +89,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String CONTENT_TYPE = "content-type";
 
+	public static final String DISPOSITION_RESULT = "dispositionResult";
 
 	private final Map<String, Object> headers;
 
@@ -100,7 +102,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		else {
 			this.headers.put(ID, MessageHeaders.idGenerator.generateId());
 		}
-		
+
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
 
@@ -155,10 +157,12 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		return (T) value;
 	}
 
+	@Override
 	public int hashCode() {
 		return this.headers.hashCode();
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
@@ -170,6 +174,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		return false;
 	}
 
+	@Override
 	public String toString() {
 		return this.headers.toString();
 	}

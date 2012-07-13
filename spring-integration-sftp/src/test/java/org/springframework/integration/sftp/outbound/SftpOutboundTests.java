@@ -18,24 +18,30 @@ package org.springframework.integration.sftp.outbound;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
-import com.jcraft.jsch.SftpATTRS;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.FileInfo;
@@ -50,9 +56,11 @@ import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpATTRS;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class SftpOutboundTests {
 
@@ -78,6 +86,42 @@ public class SftpOutboundTests {
 
 		handler.handleMessage(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
+	}
+
+	@Test
+	public void testHandleFileMessageWithRenameDisposition() throws Exception {
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
+		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
+		fGenerator.setExpression("payload + '.test'");
+		handler.setFileNameGenerator(fGenerator);
+
+		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp", new File("."));
+		srcFile.deleteOnExit();
+
+		File destFile = new File(targetDir, srcFile.getName() + ".test");
+		destFile.deleteOnExit();
+
+		File renamedSrcFile = new File(srcFile.getAbsolutePath() + ".renamed");
+		if (renamedSrcFile.exists()) {
+			renamedSrcFile.delete();
+		}
+		renamedSrcFile.deleteOnExit();
+
+		handler.setDispositionExpression(new SpelExpressionParser()
+				.parseExpression("payload.renameTo(payload.absolutePath + '.renamed')"));
+		QueueChannel resultChannel = new QueueChannel();
+		handler.setDispositionResultChannel(resultChannel);
+		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertTrue("destination file was not created", destFile.exists());
+		assertTrue("source file was not renamed", renamedSrcFile.exists());
+		Message<?> result = resultChannel.receive(1000);
+		assertNotNull(result);
+		assertEquals(Boolean.TRUE, result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 	}
 
 	@Test

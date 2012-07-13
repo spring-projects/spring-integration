@@ -19,6 +19,7 @@ package org.springframework.integration.ftp.outbound;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +27,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -38,8 +43,12 @@ import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.FileInfo;
@@ -52,6 +61,7 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class FtpOutboundTests {
 
@@ -128,6 +138,75 @@ public class FtpOutboundTests {
 
 		handler.handleMessage(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
+	}
+
+	@Test
+	public void testHandleFileMessageWithRenameDisposition() throws Exception {
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
+		handler.setFileNameGenerator(new FileNameGenerator() {
+			public String generateFileName(Message<?> message) {
+				return ((File)message.getPayload()).getName() + ".test";
+			}
+		});
+		handler.afterPropertiesSet();
+
+		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
+		srcFile.deleteOnExit();
+
+		File destFile = new File(targetDir, srcFile.getName() + ".test");
+		destFile.deleteOnExit();
+
+		File renamedSrcFile = new File(srcFile.getAbsolutePath() + ".renamed");
+		if (renamedSrcFile.exists()) {
+			renamedSrcFile.delete();
+		}
+		renamedSrcFile.deleteOnExit();
+
+		handler.setDispositionExpression(new SpelExpressionParser()
+				.parseExpression("payload.renameTo(payload.absolutePath + '.renamed')"));
+		QueueChannel resultChannel = new QueueChannel();
+		handler.setDispositionResultChannel(resultChannel);
+		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertTrue("destination file was not created", destFile.exists());
+		assertTrue("source file was not renamed", renamedSrcFile.exists());
+		Message<?> result = resultChannel.receive(1000);
+		assertNotNull(result);
+		assertEquals(Boolean.TRUE, result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
+	}
+
+	@Test
+	public void testHandleFileMessageWithBadDisposition() throws Exception {
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
+		handler.setFileNameGenerator(new FileNameGenerator() {
+			public String generateFileName(Message<?> message) {
+				return ((File)message.getPayload()).getName() + ".test";
+			}
+		});
+		handler.afterPropertiesSet();
+
+		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
+		srcFile.deleteOnExit();
+
+		File destFile = new File(targetDir, srcFile.getName() + ".test");
+		destFile.deleteOnExit();
+
+		handler.setDispositionExpression(new SpelExpressionParser()
+				.parseExpression("1/0")); 						// <<<<<<< Divide by zero
+		QueueChannel resultChannel = new QueueChannel();
+		handler.setDispositionResultChannel(resultChannel);
+		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertTrue("destination file was not created", destFile.exists());
+		Message<?> result = resultChannel.receive(1000);
+		assertNotNull(result);
+		assertTrue(result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT) instanceof MessageHandlingException);
 	}
 
 	@Test //INT-2275

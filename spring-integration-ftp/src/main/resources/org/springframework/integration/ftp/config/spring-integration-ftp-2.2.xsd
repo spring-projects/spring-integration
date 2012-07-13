@@ -107,6 +107,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="integration:dispositionAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -218,42 +219,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="disposition-expression" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								SpEL expression to be executed after the message has been sent. If running in a transactional
-								poller, it will be executed after the transaction commits. If running in a non-transactional
-								poller it will execute after the message is sent. Note that the actual point of execution
-								depends on any asynchronous handoffs on the downstream flow. It will be executed when the
-								current thread returns from the channel send. The root object of the expression is the
-								original message (with a File payload). Examples: "payload.delete()",
-								"payload.renameTo('/foo/bar/' + payload.name)", "@someBean.doSomething(payload)".
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="disposition-result-channel" type="xsd:string" default="nullChannel">
-						<xsd:annotation>
-							<xsd:documentation>
-								If a 'disposition-expression' is provided, and that expression returns a result, the result
-								is sent to this channel, with the original message payload and a 'file_dispositionResult'
-								header containing the result of the expression execution.
-								<xsd:appinfo>
-									<tool:annotation kind="ref">
-										<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-									</tool:annotation>
-								</xsd:appinfo>
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="disposition-send-timeout" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								If a 'disposition-expression' is provided, and that expression returns a result, the result
-								is sent to this disposition-result-channel. This timeout specifies how long to wait if
-								that channel might block (such as a bounded queue channel that is full). Default infinity.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
+					<xsd:attributeGroup ref="integration:dispositionAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

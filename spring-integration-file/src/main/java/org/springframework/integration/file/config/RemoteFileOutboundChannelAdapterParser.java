@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -32,15 +30,17 @@ import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.SessionFactoryFactoryBean;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  * @since 2.0
  */
 public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-	
+
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(FileTransferringMessageHandler.class);
@@ -48,7 +48,7 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(SessionFactoryFactoryBean.class);
 		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
-		
+
 		handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
 		// configure MessageHandler properties
 
@@ -80,16 +80,17 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
 		handlerBuilder.addPropertyValue("remoteFileSeparator", element.getAttribute("remote-file-separator"));
+		FileNamespaceUtils.setDispositionAttributes(element, handlerBuilder);
 		return handlerBuilder.getBeanDefinition();
 	}
-	
+
 	private void configureRemoteDirectories(Element element, BeanDefinitionBuilder handlerBuilder){
 		this.doConfigureRemoteDirectory(element, handlerBuilder, "remote-directory", "remote-directory-expression", "remoteDirectoryExpression", true);
 		this.doConfigureRemoteDirectory(element, handlerBuilder, "temporary-remote-directory", "temporary-remote-directory-expression", "temporaryRemoteDirectoryExpression", false);
 	}
-	
-	private void doConfigureRemoteDirectory(Element element, BeanDefinitionBuilder handlerBuilder, 
-			                                String directoryAttribute, String directoryExpressionAttribute, 
+
+	private void doConfigureRemoteDirectory(Element element, BeanDefinitionBuilder handlerBuilder,
+			                                String directoryAttribute, String directoryExpressionAttribute,
 			                                String directoryExpressionPropertyName, boolean atLeastOneRequired){
 		String remoteDirectory = element.getAttribute(directoryAttribute);
 		String remoteDirectoryExpression = element.getAttribute(directoryExpressionAttribute);
@@ -101,14 +102,14 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 						"is required on a remote file outbound adapter");
 			}
 		}
-		
+
 		BeanDefinition remoteDirectoryExpressionDefinition = null;
 		if (hasRemoteDirectory) {
 			remoteDirectoryExpressionDefinition = new RootBeanDefinition(LiteralExpression.class);
 			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectory);
 		}
 		else if (hasRemoteDirectoryExpression) {
-			remoteDirectoryExpressionDefinition = new RootBeanDefinition(ExpressionFactoryBean.class);	
+			remoteDirectoryExpressionDefinition = new RootBeanDefinition(ExpressionFactoryBean.class);
 			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectoryExpression);
 		}
 		if (remoteDirectoryExpressionDefinition != null){

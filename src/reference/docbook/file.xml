@@ -301,6 +301,22 @@
 				better option is to rely on a <classname>Transformer</classname>.
 			</para>
 		</section>
+		<section id="file-post-processing">
+			<title>Post Processing</title>
+			<para>After the file has been written, and before the response (if any) is sent,
+			it is possible to perform some action on the original message. Typically, one might want
+			to rename, or delete the source file. <emphasis>delete-source-files</emphasis> is mentioned above,
+			but, since 2.2, there is a more flexible mechanism, provided by three attributes:
+			<emphasis>disposition-expression</emphasis>, <emphasis>disposition-result-channel</emphasis>, and
+			<emphasis>disposition-send-timeout</emphasis>. If, supplied, the expression is evaluated with
+			the original message as the root object. Typical expressions for <classname>java.io.File</classname> payloads might be
+			<classname>payload.delete()</classname>, <classname>payload.renameTo(payload.absolutePath + '.renamed')</classname>
+			etc. The result of evaluating the expression is sent to the disposition result channel, in a copy of the message, in the
+			<classname>dispositionResult</classname> header. By default the disposition result channel is nullChannel.
+			The <empahsis>disposition-send-timeout</empahsis> applies if the result channel might block, for example
+			if it is a bounded queue channel that is currently full.
+		</para>
+		</section>
 	</section>
 >>>>>>> INT-2618 - Document directory-expression attribute
 

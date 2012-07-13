@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -85,6 +84,12 @@ public class OutboundChannelAdapterParserTests {
 		Iterator<MessageHandler> iterator = handlers.iterator();
 		assertSame(TestUtils.getPropertyValue(context.getBean("sftpOutboundAdapterWithExpression"), "handler"), iterator.next());
 		assertSame(handler, iterator.next());
+		Object processor = TestUtils.getPropertyValue(handler, "dispositionMessageProcessor");
+		assertEquals("foo", TestUtils.getPropertyValue(processor, "expression", Expression.class).getValue());
+		assertSame(context.getBean("dispoChannel"), TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(handler, "dispositionMessagingTemplate"), "defaultChannel"));
+		assertEquals(123L, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(handler, "dispositionMessagingTemplate"), "sendTimeout"));
 	}
 
 	@Test

@@ -25,7 +25,6 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -33,9 +32,13 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.DefaultLockRegistry;
 import org.springframework.integration.util.LockRegistry;
@@ -68,6 +71,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
@@ -94,6 +98,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile boolean expectReply = true;
 
 	private volatile LockRegistry lockRegistry = new PassThruLockRegistry();
+
+	private volatile ExpressionEvaluatingMessageProcessor<Object> dispositionMessageProcessor;
+
+	private volatile String dispositionExpressionString;
+
+	private final MessagingTemplate dispositionMessagingTemplate = new MessagingTemplate();
+
+	private volatile boolean dispostionResultChannelSet;
+
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -202,6 +215,23 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.charset = Charset.forName(charset);
 	}
 
+	public void setDispositionExpression(Expression dispositionExpression) {
+		Assert.notNull(dispositionExpression, "dispositionExpression must not be null");
+		this.dispositionMessageProcessor = new ExpressionEvaluatingMessageProcessor<Object>(dispositionExpression);
+		this.dispositionMessageProcessor.setBeanFactory(this.getBeanFactory());
+		this.dispositionExpressionString = dispositionExpression.getExpressionString();
+	}
+
+	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
+		Assert.notNull(dispositionResultChannel, "'dispositionResultChannel' must not be null");
+		this.dispositionMessagingTemplate.setDefaultChannel(dispositionResultChannel);
+		this.dispostionResultChannelSet = true;
+	}
+
+	public void setDispositionSendTimeout(long dispositionSendTimeout) {
+		this.dispositionMessagingTemplate.setSendTimeout(dispositionSendTimeout);
+	}
+
 	@Override
 	public final void onInit() {
 
@@ -266,6 +296,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				throw new IllegalArgumentException(
 						"unsupported Message payload type [" + payload.getClass().getName() + "]");
 			}
+			postProcessMessage(requestMessage);
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
@@ -282,6 +313,38 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		return resultFile;
+	}
+
+	/**
+	 * Execute the dispositionExpression and send its result (if any)
+	 * to the disposition result channel.
+	 * @param message
+	 */
+	private void postProcessMessage(Message<?> message) {
+		if (this.dispositionMessageProcessor != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Executing expression " + this.dispositionExpressionString + " on " +
+						message);
+			}
+			Object result = null;
+			try {
+				result = this.dispositionMessageProcessor.processMessage(message);
+			}
+			catch (Exception e) {
+				logger.error("Error processing disposition", e);
+				result = e;
+			}
+			try {
+				if (result != null && this.dispostionResultChannelSet) {
+					Message<?> dispositionMessage = MessageBuilder.fromMessage(message)
+							.setHeader(MessageHeaders.DISPOSITION_RESULT, result).build();
+					this.dispositionMessagingTemplate.send(dispositionMessage);
+				}
+			}
+			catch (Exception e) {
+				logger.error("Error sending disposition result", e);
+			}
+		}
 	}
 
 	/**

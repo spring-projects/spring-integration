@@ -32,6 +32,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -103,7 +104,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private final ThreadLocal<FileMessageHolder> resources = new ThreadLocal<FileMessageHolder>();
 
-	private EvaluationContext evaluationContext = new StandardEvaluationContext();
+	private volatile EvaluationContext evaluationContext = new StandardEvaluationContext();
 
 
 	/**
@@ -240,17 +241,32 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		this.scanEachPoll = scanEachPoll;
 	}
 
+	/**
+	 * An expression that will be evaluated against the original message after
+	 * it is sent to the channel.
+	 * @param dispositionExpression The expression.
+	 */
 	public void setDispositionExpression(Expression dispositionExpression) {
 		Assert.notNull(dispositionExpression, "'dispositionExpression' must not be null");
 		this.dispositionExpression = dispositionExpression;
 	}
 
+	/**
+	 * If a disposition expression has been provided, the result of the evaluation
+	 * will be in included in a header in a copy of the original message, sent
+	 * to this channel. The header is {@link MessageHeaders#DISPOSITION_RESULT}.
+	 * @param dispositionResultChannel The channel.
+	 */
 	public void setDispositionResultChannel(MessageChannel dispositionResultChannel) {
 		Assert.notNull(dispositionResultChannel, "'dispositionResultChannel' must not be null");
 		this.dispositionMessagingTemplate.setDefaultChannel(dispositionResultChannel);
 		this.dispostionResultChannelSet = true;
 	}
 
+	/**
+	 * The send timeout for any messages sent to the disposition result channel.
+	 * @param dispositionSendTimeout The timeout in milliseconds.
+	 */
 	public void setDispositionSendTimeout(long dispositionSendTimeout) {
 		this.dispositionMessagingTemplate.setSendTimeout(dispositionSendTimeout);
 	}
@@ -359,12 +375,19 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 				logger.debug("Executing expression " + this.dispositionExpression.getExpressionString() + " on " +
 						fileResource.getMessage());
 			}
-			Object result = this.dispositionExpression.getValue(this.evaluationContext, fileResource.getMessage());
+			Object result = null;
+			try {
+				result = this.dispositionExpression.getValue(this.evaluationContext, fileResource.getMessage());
+			}
+			catch (Exception e) {
+				logger.error("Error processing disposition", e);
+				result = e;
+			}
 			if (result != null) {
 				if (this.dispostionResultChannelSet) {
 					try {
 						Message<File> message = MessageBuilder.fromMessage(fileResource.getMessage())
-								.setHeader(FileHeaders.DISPOSITION_RESULT, result).build();
+								.setHeader(MessageHeaders.DISPOSITION_RESULT, result).build();
 						this.dispositionMessagingTemplate.send(message);
 					}
 					catch (Exception e) {
