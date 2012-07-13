@@ -20,14 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -36,10 +31,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Parser for the &lt;poller&gt; element.
@@ -85,15 +77,15 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			parserContext.getReaderContext().error(
 					"the 'ref' attribute must not be present on the top-level 'poller' element", element);
 		}
+
 		configureTrigger(element, metadataBuilder, parserContext);
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "receive-timeout");
-
-		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
-		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
-		configureAdviceChain(adviceChainElement, txElement, metadataBuilder, parserContext);
-
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
+
+		metadataBuilder.addPropertyValue("adviceChain", IntegrationNamespaceUtils.configureAdviceChain(element, metadataBuilder, parserContext));
+
 		String errorChannel = element.getAttribute("error-channel");
 		if (StringUtils.hasText(errorChannel)) {
 			BeanDefinitionBuilder errorHandler = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
@@ -157,48 +149,6 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			parserContext.getReaderContext().error(MULTIPLE_TRIGGER_DEFINITIONS, pollerElement);
 		}
 		targetBuilder.addPropertyReference("trigger", triggerBeanNames.get(0));
-	}
-
-	/**
-	 * Parses the 'advice-chain' element's sub-elements.
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void configureAdviceChain(Element adviceChainElement, Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
-		ManagedList adviceChain = new ManagedList();
-		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
-		if (txElement != null) {
-			adviceChain.add(IntegrationNamespaceUtils.configureTransactionAttributes(txElement));
-		}
-		if (adviceChainElement != null) {
-			NodeList childNodes = adviceChainElement.getChildNodes();
-			for (int i = 0; i < childNodes.getLength(); i++) {
-				Node child = childNodes.item(i);
-				if (child.getNodeType() == Node.ELEMENT_NODE) {
-					Element childElement = (Element) child;
-					String localName = child.getLocalName();
-					if ("bean".equals(localName)) {
-						BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
-								childElement, targetBuilder.getBeanDefinition());
-						parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
-						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
-					}
-					else if ("ref".equals(localName)) {
-						String ref = childElement.getAttribute("bean");
-						adviceChain.add(new RuntimeBeanReference(ref));
-					}
-					else {
-						BeanDefinition customBeanDefinition = parserContext.getDelegate().parseCustomElement(
-								childElement, targetBuilder.getBeanDefinition());
-						if (customBeanDefinition == null) {
-							parserContext.getReaderContext().error(
-									"failed to parse custom element '" + localName + "'", childElement);
-						}
-						adviceChain.add(customBeanDefinition);
-					}
-				}
-			}
-		}
-		targetBuilder.addPropertyValue("adviceChain", adviceChain);
 	}
 
 }

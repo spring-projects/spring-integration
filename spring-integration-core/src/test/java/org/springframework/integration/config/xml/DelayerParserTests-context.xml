@@ -2,11 +2,13 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tx="http://www.springframework.org/schema/tx"
 	xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<channel id="input"/>
 
@@ -34,10 +36,37 @@
 			 default-delay="0"
 			 message-store="testMessageStore"/>
 
+	<delayer id="delayerWithTransactional"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0">
+		<transactional/>
+	</delayer>
+
+	<delayer id="delayerWithAdviceChain"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0">
+		<advice-chain>
+			<ref bean="testAdviceBean"/>
+			<tx:advice>
+				<tx:attributes>
+					<tx:method name="*" read-only="true" propagation="REQUIRES_NEW"/>
+				</tx:attributes>
+			</tx:advice>
+		</advice-chain>
+	</delayer>
+
 	<beans:bean id="testScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"
 				p:poolSize="7"
 				p:waitForTasksToCompleteOnShutdown="true"/>
 
 	<beans:bean id="testMessageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+	<beans:bean id="testAdviceBean" class="org.springframework.integration.config.xml.TestAdviceBean">
+		<beans:constructor-arg value="-1"/>
+	</beans:bean>
+
+	<beans:bean id="transactionManager" class="org.springframework.integration.util.TestTransactionManager"/>
 
 </beans:beans>

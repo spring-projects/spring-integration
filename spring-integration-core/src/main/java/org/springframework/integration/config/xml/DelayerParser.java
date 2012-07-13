@@ -16,7 +16,10 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.integration.handler.DelayHandler;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -68,6 +71,9 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-store");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
+
+		builder.addPropertyValue("adviceChain", IntegrationNamespaceUtils.configureAdviceChain(element, builder, parserContext));
+
 		return builder;
 	}
 

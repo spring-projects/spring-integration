@@ -19,6 +19,9 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,6 +29,8 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -35,17 +40,19 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  */
-//INT-1132
 public class DelayerHandlerRescheduleIntegrationTests {
 
 	public static final String DELAYER_ID = "delayerWithJdbcMS";
 
-	private static EmbeddedDatabase dataSource;
+	public static EmbeddedDatabase dataSource;
 
 	@BeforeClass
 	public static void init() {
@@ -60,7 +67,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		dataSource.shutdown();
 	}
 
-	@Test
+	@Test //INT-1132
 	public void testDelayerHandlerRescheduleWithJdbcMessageStore() throws Exception {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
 		MessageChannel input = context.getBean("input", MessageChannel.class);
@@ -115,11 +122,58 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	}
 
+	@Test //INT-2649
+	public void testRollbackOnDelayerHandlerReleaseTask() throws Exception {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
+		MessageChannel input = context.getBean("transactionalDelayerInput", MessageChannel.class);
+
+		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
+		String delayerMessageGroupId = UUIDConverter.getUUID("transactionalDelayer.messageGroupId").toString();
+		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
+
+		input.send(MessageBuilder.withPayload("test").build());
+
+		Thread.sleep(30);
+
+		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
+
+		//To check that 'rescheduling' works in the transaction boundaries too
+		context.destroy();
+		context.refresh();
+
+		assertTrue(RollbackTxSync.latch.await(2, TimeUnit.SECONDS));
+
+		//On transaction rollback the delayed Message should remain in the persistent MessageStore
+		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
+	}
+
 	private static class TestJdbcMessageStore extends JdbcMessageStore {
 
 		private TestJdbcMessageStore() {
 			super();
 			this.setDataSource(dataSource);
+		}
+
+	}
+
+	private static class ExceptionMessageHandler implements MessageHandler {
+
+		public void handleMessage(Message<?> message) throws MessagingException {
+			TransactionSynchronizationManager.registerSynchronization(new RollbackTxSync());
+			throw new RuntimeException("intentional");
+		}
+
+	}
+
+	private static class RollbackTxSync extends TransactionSynchronizationAdapter {
+
+		public static CountDownLatch latch = new CountDownLatch(2);
+
+		@Override
+		public void afterCompletion(int status) {
+			if (TransactionSynchronization.STATUS_ROLLED_BACK == status) {
+				latch.countDown();
+			}
 		}
 
 	}

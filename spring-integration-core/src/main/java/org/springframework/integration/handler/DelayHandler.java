@@ -18,11 +18,16 @@ package org.springframework.integration.handler;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.aopalliance.aop.Advice;
+import org.springframework.aop.framework.ProxyFactory;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.store.MessageGroup;
@@ -34,6 +39,8 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * A {@link MessageHandler} that is capable of delaying the continuation of a
@@ -75,7 +82,11 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private volatile MessageGroupStore messageStore;
 
+	private volatile List<Advice> adviceChain;
+
 	private final AtomicBoolean initialized = new AtomicBoolean();
+
+	private MessageHandler releaseHandler;
 
 	/**
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
@@ -126,6 +137,15 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		this.messageStore = messageStore;
 	}
 
+	/**
+	 * Specify the <code>List<Advice></code> to advice {@link DelayHandler.ReleaseMessageHandler} proxy.
+	 *
+	 * @see #createReleaseMessageTask
+	 */
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "delayer";
@@ -140,6 +160,21 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		else {
 			Assert.isInstanceOf(MessageStore.class, this.messageStore);
 		}
+
+		this.releaseHandler = this.createReleaseMessageTask();
+	}
+
+	private MessageHandler createReleaseMessageTask() {
+		ReleaseMessageHandler releaseHandler = new ReleaseMessageHandler();
+
+		if (!CollectionUtils.isEmpty(this.adviceChain)) {
+			ProxyFactory proxyFactory = new ProxyFactory(releaseHandler);
+			for (Advice advice : adviceChain) {
+				proxyFactory.addAdvice(advice);
+			}
+			return (MessageHandler) proxyFactory.getProxy(ClassUtils.getDefaultClassLoader());
+		}
+		return releaseHandler;
 	}
 
 	/**
@@ -150,7 +185,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 *
 	 * @param requestMessage - the Message which may be delayed.
 	 * @return - <code>null</code> if 'requestMessage' is delayed,
-	 * 			 otherwise - 'payload' from 'requestMessage'.
+	 *         otherwise - 'payload' from 'requestMessage'.
+	 *
 	 * @see #releaseMessage
 	 */
 
@@ -216,6 +252,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessage(Message<?> message) {
+		this.releaseHandler.handleMessage(message);
+	}
+
+	private void doReleaseMessage(Message<?> message) {
 		if (this.messageStore instanceof SimpleMessageStore
 				|| ((MessageStore) this.messageStore).removeMessage(message.getHeaders().getId()) != null) {
 			this.messageStore.removeMessageFromGroup(this.messageGroupId, message);
@@ -265,7 +305,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * in the 'parent-child' contexts, e.g. in the Spring-MVC applications.
 	 *
 	 * @param event - {@link ContextRefreshedEvent} which occurs
-	 *                 after Application context is completely initialized.
+	 *              after Application context is completely initialized.
+	 *
 	 * @see #reschedulePersistedMessages
 	 */
 	public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -273,6 +314,23 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			this.reschedulePersistedMessages();
 		}
 	}
+
+
+	/**
+	 * Delegate {@link MessageHandler} implementation for 'release Message task'.
+	 * Used as 'pointcut' to wrap 'release Message task' with <code>adviceChain</code>.
+	 *
+	 * @see @createReleaseMessageTask
+	 * @see @releaseMessage
+	 */
+	private class ReleaseMessageHandler implements MessageHandler {
+
+		public void handleMessage(Message<?> message) throws MessagingException {
+			DelayHandler.this.doReleaseMessage(message);
+		}
+
+	}
+
 
 	private static final class DelayedMessageWrapper implements Serializable {
 
@@ -308,6 +366,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		public int hashCode() {
 			return this.original.hashCode();
 		}
+
 	}
 
 }
