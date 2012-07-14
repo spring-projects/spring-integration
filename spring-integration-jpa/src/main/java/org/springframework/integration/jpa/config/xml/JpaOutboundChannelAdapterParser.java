@@ -73,11 +73,16 @@ public class JpaOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			BeanDefinition txAdviceDefinition = IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
 			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
 			adviceChain.add(txAdviceDefinition);
-			jpaOutboundChannelAdapterBuilder.addPropertyValue("adviceChain", adviceChain);
+			jpaOutboundChannelAdapterBuilder.addPropertyValue("txAdviceChain", adviceChain);
 		}
 
 		return jpaOutboundChannelAdapterBuilder.getBeanDefinition();
 
+	}
+
+	@Override
+	protected boolean isUsingReplyProducer() {
+		return true;
 	}
 
 }

@@ -245,9 +245,10 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="queryType">
-					<xsd:sequence>
+					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-					</xsd:sequence>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
 					<xsd:attribute name="sql-parameter-source-factory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -334,7 +335,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="selectType">
-					<xsd:sequence>
+					<xsd:choice minOccurs="0" maxOccurs="3">
 						<xsd:element name="update" minOccurs="0" maxOccurs="1">
 							<xsd:annotation>
 								<xsd:appinfo>
@@ -357,7 +358,8 @@
 							</xsd:annotation>
 						</xsd:element>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-					</xsd:sequence>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
 					<xsd:attribute name="id" type="xsd:string" use="optional"/>
 					<xsd:attribute name="update" type="xsd:string">
 						<xsd:annotation>
@@ -652,6 +654,7 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
 			<xsd:attribute name="use-payload-as-parameter-source">
@@ -787,6 +790,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 				</xsd:sequence>
 			</xsd:sequence>
 			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>

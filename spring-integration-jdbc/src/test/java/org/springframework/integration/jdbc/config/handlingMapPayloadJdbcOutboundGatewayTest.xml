@@ -17,7 +17,11 @@
 	</si:channel>
 
 	<outbound-gateway id="jdbcGateway" query="select * from foos where id=:headers[id]" update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
-		request-channel="target" reply-channel="output" data-source="dataSource" order="23"/>
+		request-channel="target" reply-channel="output" data-source="dataSource" order="23">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.jdbc.config.JdbcOutboundGatewayParserTests$FooAdvice" />
+		</request-handler-advice-chain>
+	</outbound-gateway>
 
 	<si:chain input-channel="jdbcOutboundGatewayInsideChain" output-channel="replyChannel">
 		<outbound-gateway query="select * from foos where id=:headers[id]"

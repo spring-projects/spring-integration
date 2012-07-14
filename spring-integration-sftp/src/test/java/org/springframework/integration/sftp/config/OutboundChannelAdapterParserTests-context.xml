@@ -50,6 +50,17 @@
 				charset="UTF-8"
 				use-temporary-file-name="false"
 				remote-directory="foo/bar"/>
+
+	<int-sftp:outbound-channel-adapter id="advised"
+				session-factory="sftpSessionFactory"
+				channel="inputChannel"
+				charset="UTF-8"
+				use-temporary-file-name="false"
+				remote-directory="foo/bar">
+		<int-sftp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.sftp.config.OutboundChannelAdapterParserTests$FooAdvice" />
+		</int-sftp:request-handler-advice-chain>
+	</int-sftp:outbound-channel-adapter>
 				
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>

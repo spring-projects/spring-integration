@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
@@ -51,6 +53,8 @@ public class NotificationPublishingChannelAdapterParserTests {
 	@Autowired
 	private MessageChannel publishingWithinChainChannel;
 
+	private static volatile int adviceCalled;
+
 	@After
 	public void clearListener() {
 		listener.lastNotification = null;
@@ -59,6 +63,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 
 	@Test
 	public void publishStringMessage() throws Exception {
+		adviceCalled = 0;
 		assertNull(listener.lastNotification);
 		Message<?> message = MessageBuilder.withPayload("XYZ")
 				.setHeader(JmxHeaders.NOTIFICATION_TYPE, "test.type").build();
@@ -68,6 +73,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertEquals("XYZ", notification.getMessage());
 		assertEquals("test.type", notification.getType());
 		assertNull(notification.getUserData());
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -110,4 +116,15 @@ public class NotificationPublishingChannelAdapterParserTests {
 	private static class TestData {
 	}
 
+	public static class FooADvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			System.out.println("foo");
+			new RuntimeException("foo").printStackTrace();
+			return callback.execute();
+		}
+
+	}
 }

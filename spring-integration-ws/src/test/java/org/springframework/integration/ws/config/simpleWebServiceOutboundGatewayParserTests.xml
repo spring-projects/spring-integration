@@ -102,6 +102,14 @@
 		                 request-channel="inputChannel"
 	                     destination-provider="destinationProvider" />
 
+    <ws:outbound-gateway id="gatewayWithAdvice"
+		                 request-channel="inputChannel"
+	                     destination-provider="destinationProvider">
+		<ws:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ws.config.WebServiceOutboundGatewayParserTests$FooAdvice"/>		
+		</ws:request-handler-advice-chain>
+	</ws:outbound-gateway>
+
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
 
 	<bean id="requestCallback" class="org.springframework.integration.ws.config.StubWebServiceMessageCallback"/>

@@ -16,7 +16,11 @@
 
 package org.springframework.integration.event.config;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
 import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
@@ -31,16 +35,15 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -52,6 +55,7 @@ public class EventOutboundChannelAdapterParserTests {
 
 	private volatile boolean receivedEvent;
 
+	private static volatile int adviceCalled;
 
 	@Test
 	public void validateEventParser() {
@@ -82,8 +86,30 @@ public class EventOutboundChannelAdapterParserTests {
 		Assert.assertTrue(receivedEvent);
 	}
 
+	@Test
+	public void withAdvice() {
+		receivedEvent = false;
+		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
+			public void onApplicationEvent(ApplicationEvent event) {
+				Object source = event.getSource();
+				if (source instanceof Message){
+					String payload = (String) ((Message<?>) source).getPayload();
+					if (payload.equals("hello")) {
+						receivedEvent = true;
+					}
+				}
+			}
+		};
+		context.addApplicationListener(listener);
+		DirectChannel channel = context.getBean("inputAdvice", DirectChannel.class);
+		channel.send(new GenericMessage<String>("hello"));
+		Assert.assertTrue(receivedEvent);
+		Assert.assertEquals(1, adviceCalled);
+	}
+
 	@Test //INT-2275
 	public void testInsideChain() {
+		receivedEvent = false;
 		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
 			public void onApplicationEvent(ApplicationEvent event) {
 				Object source = event.getSource();
@@ -103,6 +129,7 @@ public class EventOutboundChannelAdapterParserTests {
 
 	@Test(timeout=2000)
 	public void validateUsageWithPollableChannel() throws Exception {
+		receivedEvent = false;
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("EventOutboundChannelAdapterParserTestsWithPollable-context.xml", EventOutboundChannelAdapterParserTests.class);
 		final CyclicBarrier barier = new CyclicBarrier(2);
 		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
@@ -132,4 +159,13 @@ public class EventOutboundChannelAdapterParserTests {
 		Assert.assertTrue(receivedEvent);
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

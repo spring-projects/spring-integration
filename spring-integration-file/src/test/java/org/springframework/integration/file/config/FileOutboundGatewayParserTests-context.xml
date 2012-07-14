@@ -19,7 +19,11 @@
 
 	<int-file:outbound-gateway id="gatewayWithDirectoryExpression"
 		request-channel="someChannel" directory-expression="'build/foo'"
-		auto-startup="false" order="777" filename-generator-expression="'foo.txt'" />
+		auto-startup="false" order="777" filename-generator-expression="'foo.txt'">
+		<int-file:request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.file.config.FileOutboundGatewayParserTests$FooAdvice" />
+		</int-file:request-handler-advice-chain>
+	</int-file:outbound-gateway>
 
 	<int-file:outbound-gateway id="gatewayWithReplaceMode"
 		request-channel="gatewayWithReplaceModeChannel"

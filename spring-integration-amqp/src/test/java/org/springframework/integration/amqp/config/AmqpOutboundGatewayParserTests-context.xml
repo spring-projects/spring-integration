@@ -55,7 +55,11 @@
 		amqp-template="amqpTemplate"
 		order="5"
 		mapped-request-headers=""
-		mapped-reply-headers=""/>
+		mapped-reply-headers="">
+		<amqp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.amqp.config.AmqpOutboundGatewayParserTests$FooAdvice" />
+		</amqp:request-handler-advice-chain>
+	</amqp:outbound-gateway>
 
 	<int:channel id="returnChannel">
 		<int:queue/>

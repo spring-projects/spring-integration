@@ -27,14 +27,20 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  *
  */
@@ -43,6 +49,8 @@ public class StoredProcMessageHandlerParserTests {
 	private ConfigurableApplicationContext context;
 
 	private EventDrivenConsumer consumer;
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testProcedureNameIsSet() throws Exception {
@@ -149,6 +157,15 @@ public class StoredProcMessageHandlerParserTests {
 
 	}
 
+	@Test
+	public void adviceCalled() throws Exception {
+		setUp("advisedStoredProcOutboundChannelAdapterTest.xml", getClass());
+
+		MessageHandler handler = TestUtils.getPropertyValue(this.consumer, "handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
 	@After
 	public void tearDown(){
 		if(context != null){
@@ -161,4 +178,13 @@ public class StoredProcMessageHandlerParserTests {
 		consumer   = this.context.getBean("storedProcedureOutboundChannelAdapter", EventDrivenConsumer.class);
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

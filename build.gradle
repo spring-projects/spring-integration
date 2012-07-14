@@ -57,6 +57,7 @@ subprojects { subproject ->
 		springSecurityVersion = '3.1.0.RELEASE'
 		springSocialTwitterVersion = '1.0.1.RELEASE'
 		springWsVersion = '2.1.0.RELEASE'
+		springRetryVersion = '1.0.2.RELEASE'
 	}
 
 	eclipse {
@@ -176,6 +177,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		testCompile "org.aspectj:aspectjrt:$aspectjVersion"
 		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
@@ -185,6 +187,7 @@ project('spring-integration-core') {
 		importTemplate += [
 			'org.springframework.*;version="[3.1.1, 4.0.0)"',
 			'org.springframework.transaction;version="[3.1.1, 4.0.0)";resolution:=optional',
+			'org.springframework.retry;version="[1.0.2, 2.0.0)"',
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.aopalliance.*;version="[1.0.0, 2.0.0)"',
 			'org.codehaus.jackson.*;version="[1.0.0, 2.0.0)";resolution:=optional',

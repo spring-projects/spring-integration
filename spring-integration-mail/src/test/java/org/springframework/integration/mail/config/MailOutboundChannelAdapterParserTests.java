@@ -16,26 +16,32 @@
 
 package org.springframework.integration.mail.config;
 
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.Properties;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.mail.MailSendingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mail.MailSender;
 
-import static junit.framework.Assert.assertEquals;
-
-import static org.junit.Assert.assertNotNull;
-
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MailOutboundChannelAdapterParserTests {
+
+	public static volatile int adviceCalled;
 
 	@Test
 	public void adapterWithMailSenderReference() {
@@ -51,6 +57,17 @@ public class MailOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	public void advised() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
+		Object adapter = context.getBean("advised.adapter");
+		MessageHandler handler = (MessageHandler)
+				new DirectFieldAccessor(adapter).getPropertyValue("handler");
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
+	@Test
 	public void adapterWithHostProperty() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
@@ -61,7 +78,7 @@ public class MailOutboundChannelAdapterParserTests {
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
 	}
-	
+
 	@Test
 	public void adapterWithPollableChannel() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
@@ -70,7 +87,7 @@ public class MailOutboundChannelAdapterParserTests {
 		QueueChannel pollableChannel = TestUtils.getPropertyValue(pc, "inputChannel", QueueChannel.class);
 		assertEquals("pollableChannel", pollableChannel.getComponentName());
 	}
-	
+
 	@Test
 	public void adapterWithJavaMailProperties() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
@@ -87,4 +104,13 @@ public class MailOutboundChannelAdapterParserTests {
 		assertEquals("true", javaMailProperties.get("mail.smtps.auth"));
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

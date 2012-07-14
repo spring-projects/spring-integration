@@ -215,6 +215,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	@Override
 	public final void onInit() {
 
+		super.onInit();
+
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 
 		final BeanFactory beanFactory = this.getBeanFactory();

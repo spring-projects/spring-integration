@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/http" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
 	targetNamespace="http://www.springframework.org/schema/integration/http" elementFormDefault="qualified"
 	attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -347,9 +349,10 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					Defines an outbound HTTP-based Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
-			</xsd:sequence>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="url" type="xsd:string" use="optional">
 				<xsd:annotation>
@@ -509,9 +512,10 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:sequence>
+					<xsd:choice minOccurs="0" maxOccurs="2">
 						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
-					</xsd:sequence>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
 					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

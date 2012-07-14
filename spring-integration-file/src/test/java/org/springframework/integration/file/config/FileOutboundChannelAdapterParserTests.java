@@ -29,15 +29,16 @@ import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.Expression;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -87,6 +88,8 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Autowired
 	MessageChannel usageChannelConcurrent;
+
+	private volatile static int adviceCalled;
 
 	@Test
 	public void simpleAdapter() {
@@ -271,6 +274,15 @@ public class FileOutboundChannelAdapterParserTests {
 		char c = characters[0];
 		for (char character : characters) {
 			assertEquals(c, character);
+		}
+    }
+
+    public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return callback.execute();
 		}
 	}
 }

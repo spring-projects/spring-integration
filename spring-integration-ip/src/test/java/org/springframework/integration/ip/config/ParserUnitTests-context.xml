@@ -138,6 +138,15 @@
 		order="12"
 	/>
 
+	<int:channel id="udpAdviceChannel" />
+
+	<ip:udp-outbound-channel-adapter channel="udpAdviceChannel" host="localhost" port="0">
+		<ip:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ip.config.ParserUnitTests$FooAdvice" />
+		</ip:request-handler-advice-chain>
+	</ip:udp-outbound-channel-adapter>
+
+
 	<ip:tcp-connection-factory id="cfC1"
 		type="client"
 		port="#{tcpIpUtils.findAvailableServerSocket(5700)}"
@@ -153,6 +162,21 @@
 		auto-startup="false"
 		phase="125"
 	/>
+
+	<bean id="mockClientCf" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory" />
+	</bean>
+
+	<int:channel id="tcpAdviceChannel" />
+
+	<ip:tcp-outbound-channel-adapter id="tcpOutAdvice"
+		channel="tcpAdviceChannel"
+		connection-factory="mockClientCf"
+		phase="125">
+		<ip:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ip.config.ParserUnitTests$FooAdvice" />
+		</ip:request-handler-advice-chain>
+	</ip:tcp-outbound-channel-adapter>
 
 	<ip:tcp-connection-factory id="cfS2"
 		type="server"
@@ -198,6 +222,17 @@
 		auto-startup="false"
 		phase="127"
 		/>
+
+	<int:channel id="tcpAdviceGateChannel" />
+
+	<ip:tcp-outbound-gateway id="outAdviceGateway"
+		request-channel="tcpAdviceGateChannel"
+		reply-channel="replyChannel"
+		connection-factory="mockClientCf">
+		<ip:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ip.config.ParserUnitTests$FooAdvice" />
+		</ip:request-handler-advice-chain>
+	</ip:tcp-outbound-gateway>
 
 	<ip:tcp-connection-factory
 		id="client1"

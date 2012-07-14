@@ -15,6 +15,12 @@
  */
 package org.springframework.integration.amqp.config;
 
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -31,16 +37,10 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
-
-import static junit.framework.Assert.assertEquals;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
@@ -52,6 +52,8 @@ import static org.junit.Assert.assertTrue;
  *
  */
 public class AmqpOutboundGatewayParserTests {
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testGatewayConfig(){
@@ -209,6 +211,7 @@ public class AmqpOutboundGatewayParserTests {
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test //INT-1029
@@ -261,4 +264,13 @@ public class AmqpOutboundGatewayParserTests {
 
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

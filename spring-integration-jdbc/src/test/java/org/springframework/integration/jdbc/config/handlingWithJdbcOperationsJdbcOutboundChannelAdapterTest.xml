@@ -11,7 +11,11 @@
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
 	<outbound-channel-adapter query="insert into foos (id, status, name) values (:headers[business.key], 0, :payload)"
-		channel="target" jdbc-operations="jdbcTemplate" order="23"/>
+		channel="target" jdbc-operations="jdbcTemplate" order="23">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.jdbc.config.JdbcMessageHandlerParserTests$FooAdvice" />
+		</request-handler-advice-chain>
+	</outbound-channel-adapter>
 
 	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />
 

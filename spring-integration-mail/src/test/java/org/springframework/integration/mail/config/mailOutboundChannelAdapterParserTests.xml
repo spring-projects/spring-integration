@@ -32,4 +32,11 @@
 		</constructor-arg>
 	</bean>
 
+	<int-mail:outbound-channel-adapter id="advised"
+			mail-sender="mailSender">
+		<int-mail:request-handler-advice-chain>
+			<bean class="org.springframework.integration.mail.config.MailOutboundChannelAdapterParserTests$FooAdvice" />
+		</int-mail:request-handler-advice-chain>
+	</int-mail:outbound-channel-adapter>
+
 </beans>

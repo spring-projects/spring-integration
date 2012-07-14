@@ -16,17 +16,24 @@
 
 package org.springframework.integration.ws.config;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
@@ -40,17 +47,15 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-
-import static org.junit.Assert.assertNull;
-
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class WebServiceOutboundGatewayParserTests {
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void simpleGatewayWithReplyChannel() {
@@ -360,6 +365,17 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals("Wrong DestinationProvider", stubProvider,destinationProviderObject);
 	}
 
+	@Test
+	public void advised() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAdvice");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
     @Test(expected = BeanDefinitionParsingException.class)
     public void invalidGatewayWithBothUriAndDestinationProvider() {
     	new ClassPathXmlApplicationContext("invalidGatewayWithBothUriAndDestinationProvider.xml", this.getClass());
@@ -370,4 +386,13 @@ public class WebServiceOutboundGatewayParserTests {
     	new ClassPathXmlApplicationContext("invalidGatewayWithNeitherUriNorDestinationProvider.xml", this.getClass());
     }
 
+    public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return null;
+		}
+
+    }
 }

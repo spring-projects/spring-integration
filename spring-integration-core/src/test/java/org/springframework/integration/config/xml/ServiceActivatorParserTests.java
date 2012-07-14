@@ -20,12 +20,13 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -55,6 +56,9 @@ public class ServiceActivatorParserTests {
 
 	@Autowired
 	private MessageChannel multipleArgsFromPayloadInput;
+
+	@Autowired
+	private MessageChannel advisedInput;
 
 	@SuppressWarnings("unused") // testing auto wiring only
 	@Autowired
@@ -102,6 +106,11 @@ public class ServiceActivatorParserTests {
 		assertEquals("JohnDoe", result);
 	}
 
+	@Test
+	public void advised() {
+		Object result = this.sendAndReceive(advisedInput, "hello");
+		assertEquals("bar", result);
+	}
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
 		MessagingTemplate template = new MessagingTemplate(channel);
@@ -152,4 +161,13 @@ public class ServiceActivatorParserTests {
 		}
 	}
 
+	public static class BarAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			callback.execute();
+			return "bar";
+		}
+
+	}
 }
