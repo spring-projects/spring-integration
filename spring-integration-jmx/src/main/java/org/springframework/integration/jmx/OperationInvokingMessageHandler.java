@@ -103,6 +103,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	@Override
 	public final void onInit() {
 		Assert.notNull(this.server, "MBeanServer is required.");
+		super.onInit();
 	}
 
 	@Override

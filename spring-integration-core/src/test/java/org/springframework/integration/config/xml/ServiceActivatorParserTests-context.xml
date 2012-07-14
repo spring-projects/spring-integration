@@ -21,4 +21,9 @@
 
 	<beans:bean id="testBean" class="org.springframework.integration.config.xml.ServiceActivatorParserTests$TestBean"/>
 
+	<service-activator id="withAdvice" input-channel="advisedInput" expression="'foo'">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.config.xml.ServiceActivatorParserTests$BarAdvice" />
+		</request-handler-advice-chain>
+	</service-activator>
 </beans:beans>

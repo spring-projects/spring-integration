@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,26 @@ import static org.junit.Assert.assertTrue;
 import javax.jms.DeliveryMode;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jms.JmsHeaderMapper;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class JmsOutboundChannelAdapterParserTests {
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void adapterWithConnectionFactoryAndDestination() {
@@ -45,6 +52,16 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
+	}
+
+	@Test
+	public void advisedAdapter() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundWithConnectionFactoryAndDestination.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -164,4 +181,13 @@ public class JmsOutboundChannelAdapterParserTests {
 		assertEquals(false, accessor.getPropertyValue("explicitQosEnabled"));
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

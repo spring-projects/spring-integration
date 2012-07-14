@@ -22,6 +22,10 @@
 		<property name="name" expression="payload.sourceName"/>
 		<property name="age" value="42"/>
 		<property name="gender" expression="@testBean"/>
+		
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.config.xml.EnricherParserTests$FooAdvice" />
+		</request-handler-advice-chain>
 	</enricher>
 
 	<beans:bean id="testBean" class="java.lang.String">

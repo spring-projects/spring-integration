@@ -27,4 +27,13 @@
 
 	<bean id="testDestination" class="org.springframework.integration.jms.StubDestination"/>
 
+	<jms:outbound-channel-adapter id="advised"
+			channel="input"
+			connection-factory="testConnectionFactory"
+			destination="testDestination">
+		<jms:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jms.config.JmsOutboundChannelAdapterParserTests$FooAdvice" />
+		</jms:request-handler-advice-chain>
+	</jms:outbound-channel-adapter>
+
 </beans>

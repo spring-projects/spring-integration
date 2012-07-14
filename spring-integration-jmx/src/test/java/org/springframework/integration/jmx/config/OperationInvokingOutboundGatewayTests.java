@@ -25,8 +25,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,6 +61,8 @@ public class OperationInvokingOutboundGatewayTests {
 	@Autowired
 	private TestBean testBean;
 
+	private static volatile int adviceCalled;
+
 	@After
 	public void resetLists() {
 		testBean.messages.clear();
@@ -72,6 +76,7 @@ public class OperationInvokingOutboundGatewayTests {
 		assertEquals(2, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 		withReplyChannel.send(new GenericMessage<String>("3"));
 		assertEquals(3, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
+		assertEquals(3, adviceCalled);
 	}
 
 	@Test
@@ -94,4 +99,13 @@ public class OperationInvokingOutboundGatewayTests {
 		assertEquals(3, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 	}
 
+	public static class FooADvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

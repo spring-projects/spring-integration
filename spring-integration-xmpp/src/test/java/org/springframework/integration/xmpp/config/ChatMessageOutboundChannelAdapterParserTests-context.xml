@@ -43,6 +43,13 @@
 						xmpp-connection="testConnection">
 	</int-xmpp:outbound-channel-adapter>
 
+	<int-xmpp:outbound-channel-adapter id="advised" channel="errorChannel"
+						xmpp-connection="testConnection">
+		<int-xmpp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.xmpp.config.ChatMessageOutboundChannelAdapterParserTests$FooAdvice" />
+		</int-xmpp:request-handler-advice-chain>
+	</int-xmpp:outbound-channel-adapter>
+
 	<int:chain input-channel="outboundChainChannel">
 		<int-xmpp:outbound-channel-adapter xmpp-connection="testConnection"/>
 	</int:chain>

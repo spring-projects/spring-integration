@@ -26,8 +26,11 @@ import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,6 +52,11 @@ public class SftpOutboundGatewayParserTests {
 
 	@Autowired
 	AbstractEndpoint gateway2;
+
+	@Autowired
+	AbstractEndpoint advised;
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testGateway1() {
@@ -84,5 +92,23 @@ public class SftpOutboundGatewayParserTests {
 		@SuppressWarnings("unchecked")
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
 		assertTrue(options.contains("-P"));
+	}
+
+	@Test
+	public void advised() {
+		SftpOutboundGateway gateway = TestUtils.getPropertyValue(advised,
+				"handler", SftpOutboundGateway.class);
+		gateway.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
 	}
 }

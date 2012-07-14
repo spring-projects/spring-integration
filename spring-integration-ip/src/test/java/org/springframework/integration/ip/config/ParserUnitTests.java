@@ -36,11 +36,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -59,6 +61,7 @@ import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
@@ -114,6 +117,10 @@ public class ParserUnitTests {
 	@Autowired
 	@Qualifier(value="outGateway.handler")
 	TcpOutboundGateway tcpOutboundGateway;
+
+	@Autowired
+	@Qualifier(value="outAdviceGateway.handler")
+	TcpOutboundGateway outAdviceGateway;
 
 	// verify we can still inject by generated name
 	@Autowired
@@ -196,6 +203,15 @@ public class ParserUnitTests {
 	private DirectChannel udpChannel;
 
 	@Autowired
+	private DirectChannel udpAdviceChannel;
+
+	@Autowired
+	private DirectChannel tcpAdviceChannel;
+
+	@Autowired
+	private DirectChannel tcpAdviceGateChannel;
+
+	@Autowired
 	private DirectChannel tcpChannel;
 
 	@Autowired
@@ -231,6 +247,8 @@ public class ParserUnitTests {
 
 	@Autowired
 	TcpSocketSupport socketSupport;
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testInUdp() {
@@ -351,6 +369,27 @@ public class ParserUnitTests {
 		Iterator<MessageHandler> iterator = handlers.iterator();
 		assertSame(this.udpOutMulticast, iterator.next());
 		assertSame(this.udpOut, iterator.next());
+	}
+
+	@Test
+	public void udpAdvice() {
+		adviceCalled = 0;
+		this.udpAdviceChannel.send(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
+	@Test
+	public void tcpAdvice() {
+		adviceCalled = 0;
+		this.tcpAdviceChannel.send(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
+	@Test
+	public void tcpGatewayAdvice() {
+		adviceCalled = 0;
+		this.tcpAdviceGateChannel.send(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -591,5 +630,15 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(secureServer);
 		assertSame(socketFactorySupport, dfa.getPropertyValue("tcpSocketFactorySupport"));
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
+	}
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
 	}
 }
