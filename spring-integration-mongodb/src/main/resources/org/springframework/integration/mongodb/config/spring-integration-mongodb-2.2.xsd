@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/mongodb" 
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:beans="http://www.springframework.org/schema/beans" 
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/mongodb" 
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
+	
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				The outbound channel adapter definition for the Mongo DB outbound channel adapter  
+			]]>
+			</xsd:documentation>
+		</xsd:annotation>
+		
+		<xsd:complexType>
+			<xsd:sequence>			
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" >				
+				<xsd:annotation>
+					<xsd:documentation>
+					<![CDATA[
+						The poller sub element relevant in case of pollable channels are used
+						as input channel to the adapter
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+				
+				</xsd:element>				
+			</xsd:sequence>
+			
+			<xsd:attribute name="id" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identifies the underlying Spring bean definition, which is an
+						instance of either 'EventDrivenConsumer' or 'PollingConsumer',
+						depending on whether the component's input channel is a
+						'SubscribableChannel' or 'PollableChannel'.
+					</xsd:documentation>
+				</xsd:annotation>			
+			</xsd:attribute>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Channel from which messages will be output.
+							When a message is sent to this channel it will
+							cause the query
+							to be executed.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			
+			<!-- Mongo DB Outbound adapter specific attributes -->
+			<xsd:attribute name="write-result-checking" default="NONE">
+				<xsd:annotation>
+					<xsd:documentation>
+						The value which can have three possible values NONE, LOG and EXCEPTION.
+						This value if used to specify the action the adapter needs to take after 
+						writing to the Mongo DB. By default the write happens asynchronously and
+						errors are not reported. Setting this value to LOG or EXCEPTION will result
+						in the WriteResult to be checked and the error if any to be logged or re thrown.						 
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="writeResultChecking xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			
+			<xsd:attribute name="write-concern" default="NORMAL">
+				<xsd:annotation>
+					<xsd:documentation>
+						The write concern determining the level we desire in case of 
+						write operations. The set of permitted values are
+							NONE
+							NORMAL
+							SAFE
+							MAJORITY
+							FSYNC_SAFE
+							JOURNAL_SAFE
+							REPLICA_SAFE
+						The default value is NORMAL			
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="writeConcernTypes xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			
+			<xsd:attribute name="collection" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The collection name to be used for the persisting the messages.
+						The default value will be the one chosen by the underlying spring
+						data provider and will be "messageWrapper"
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			
+			<xsd:attribute name="mongo-db-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							The reference to the MongoDBFactory instance that would be used to
+							connect to the database instance
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.mongodb.MongoDbFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			
+			<!-- 
+			TODO: Do we need to accept more parameters that would be an alternative to
+			the mongo-db-factory reference? 
+			  -->
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:simpleType name="writeResultChecking">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="NONE"/>
+			<xsd:enumeration value="LOG"/>
+			<xsd:enumeration value="EXCEPTION"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="writeConcernTypes">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="NONE"/>
+			<xsd:enumeration value="NORMAL"/>
+			<xsd:enumeration value="SAFE"/>
+			<xsd:enumeration value="MAJORITY"/>
+			<xsd:enumeration value="FSYNC_SAFE"/>
+			<xsd:enumeration value="JOURNAL_SAFE"/>
+			<xsd:enumeration value="REPLICA_SAFE"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>	
+

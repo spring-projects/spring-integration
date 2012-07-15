@@ -90,12 +90,7 @@ public class MongoDbMessageHandlerTests extends MongoDbAvailableTests {
 		handler.setWriteResultChecking(WriteResultChecking.EXCEPTION);
 		handler.afterPropertiesSet();
 		handler.handleMessage(MessageBuilder.withPayload("Hello").build());
-
 		DBCursor cursor = coll.find();
 		Assert.assertEquals(1, cursor.count());
 	}
-
-
-
-
 }

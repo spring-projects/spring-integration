@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mongo="http://www.springframework.org/schema/integration/mongodb"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/integration
+						http://www.springframework.org/schema/integration/spring-integration.xsd
+						http://www.springframework.org/schema/integration/mongodb
+						http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
+
+	<import resource="common-mongodb-config.xml"/>
+	<int:channel id="mongodDbInputChannel"/>
+	
+	<int-mongo:outbound-channel-adapter
+					id="configWithWriteResultCheckingAndWriteConcern"
+					channel="mongodDbInputChannel"
+					mongo-db-factory="dbFactory"
+					collection="SomeCollection"
+					write-result-checking="LOG"
+					write-concern="MAJORITY"/>
+					
+	<int-mongo:outbound-channel-adapter
+					id="configWithNoCollection"
+					channel="mongodDbInputChannel"
+					mongo-db-factory="dbFactory"/>				
+					
+
+</beans>

@@ -42,7 +42,7 @@ import com.mongodb.WriteConcern;
  * @since 2.2
  *
  */
-public class MongoDbMessageHandler implements MessageHandler,BeanClassLoaderAware,InitializingBean {
+public class MongoDbMessageHandler implements MessageHandler, BeanClassLoaderAware, InitializingBean {
 
 	private static Log logger = LogFactory.getLog(MongoDbMessageHandler.class);
 
@@ -65,7 +65,7 @@ public class MongoDbMessageHandler implements MessageHandler,BeanClassLoaderAwar
 	 * for the provided database and collection.
 	 *
 	 */
-	public MongoDbMessageHandler(MongoDbFactory factory,String collection) {
+	public MongoDbMessageHandler(MongoDbFactory factory, String collection) {
 		//TODO: Do we need to support for dynamically accepting the collection with the
 		//messages?
 		this.collection = collection;
@@ -81,17 +81,17 @@ public class MongoDbMessageHandler implements MessageHandler,BeanClassLoaderAwar
 	 * @param factory
 	 */
 	public MongoDbMessageHandler(MongoDbFactory factory) {
-		this(factory,null);
+		this(factory, null);
 	}
 
 	public void setBeanClassLoader(ClassLoader classLoader) {
-		Assert.notNull(classLoader,"null classloader given");
+		Assert.notNull(classLoader, "null classloader given");
 		converter.setBeanClassLoader(classLoader);
 	}
 
 	public void afterPropertiesSet() throws Exception {
 		converter.afterPropertiesSet();
-		template = new MongoTemplate(factory,converter);
+		template = new MongoTemplate(factory, converter);
 		template.setWriteConcern(writeConcern);
 		template.setWriteResultChecking(writeResultChecking);
 		//saving it here as we dont want to invoke hasText always in handleMessage
@@ -102,7 +102,7 @@ public class MongoDbMessageHandler implements MessageHandler,BeanClassLoaderAwar
 	 * @see org.springframework.integration.core.MessageHandler#handleMessage(org.springframework.integration.Message)
 	 */
 	public void handleMessage(Message<?> message) throws MessagingException {
-		Assert.notNull(message,"provided message is null");
+		Assert.notNull(message, "provided message is null");
 		try {
 			if(isCollectionNameProvided) {
 				template.save(new MessageWrapper(message), collection);
@@ -130,7 +130,7 @@ public class MongoDbMessageHandler implements MessageHandler,BeanClassLoaderAwar
 	 * @param writeResultChecking
 	 */
 	public void setWriteResultChecking(WriteResultChecking writeResultChecking) {
-		Assert.notNull(writeResultChecking,"Null WriteResultChecking value provided");
+		Assert.notNull(writeResultChecking, "Null WriteResultChecking value provided");
 		this.writeResultChecking = writeResultChecking;
 	}
 
