@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Gunnar Hillert
+ *
  * @since 2.1
  *
  */
@@ -63,6 +65,9 @@ public class SftpOutboundGatewayParserTests {
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
 		assertTrue(options.contains("-1"));
 		assertTrue(options.contains("-f"));
+
+		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
+		assertEquals(Long.valueOf(777), sendTimeout);
 	}
 
 	@Test

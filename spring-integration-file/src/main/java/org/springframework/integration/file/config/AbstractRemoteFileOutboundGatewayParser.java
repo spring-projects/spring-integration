@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ import org.springframework.util.StringUtils;
 /**
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ *
  * @since 2.1
  */
 public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractConsumerEndpointParser {
-	
+
 	@Override
 	protected String getInputChannelAttributeName() {
 		return "request-channel";
@@ -44,13 +46,14 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(SessionFactoryFactoryBean.class);
 		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
-		
+
 		builder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
 
 		builder.addConstructorArgValue(element.getAttribute("command"));
 		builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "temporary-file-suffix");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		this.configureFilter(builder, element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "remote-file-separator");

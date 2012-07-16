@@ -16,6 +16,7 @@
 		session-factory="sf"
 		request-channel="inbound1"
 		reply-channel="outbound"
+		reply-timeout="777"
 		auto-create-local-directory="false"
 		auto-startup="false"
 		cache-sessions="false"

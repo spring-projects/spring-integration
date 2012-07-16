@@ -10,7 +10,7 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/ws
 			http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd
-			http://www.springframework.org/schema/util 
+			http://www.springframework.org/schema/util
 			http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<si:channel id="inputChannel"/>
@@ -27,6 +27,7 @@
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
 	                     reply-channel="outputChannel"
+	                     reply-timeout="777"
 	                     mapped-request-headers="testRequest"
 	                     mapped-reply-headers="testReply"/>
 
@@ -64,12 +65,12 @@
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
 	                     fault-message-resolver="faultMessageResolver"/>
-	                      
+
 	<ws:outbound-gateway id="gatewayWithCustomMessageSender"
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
 	                     message-sender="messageSender"/>
-	                      
+
 	<ws:outbound-gateway id="gatewayWithCustomMessageSenderList"
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
@@ -79,12 +80,12 @@
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
 	                     interceptor="interceptor"/>
-	                      
+
 	<ws:outbound-gateway id="gatewayWithCustomInterceptorList"
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
 	                     interceptors="interceptors"/>
-	                      
+
 	<ws:outbound-gateway id="gatewayWithPoller"
 		                 request-channel="pollableInputChannel"
 	                     uri="http://example.org">

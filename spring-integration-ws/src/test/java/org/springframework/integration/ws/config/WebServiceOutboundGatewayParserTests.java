@@ -48,6 +48,7 @@ import static org.junit.Assert.assertNull;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class WebServiceOutboundGatewayParserTests {
 
@@ -71,6 +72,9 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(1, replyHeaders.size());
 		assertTrue(requestHeaders.contains("testRequest"));
 		assertTrue(replyHeaders.contains("testReply"));
+
+		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
+		assertEquals(Long.valueOf(777), sendTimeout);
 	}
 
 	@Test
@@ -179,7 +183,7 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(resolver, accessor.getPropertyValue("faultMessageResolver"));
 	}
 
-	
+
 	@Test
 	public void simpleGatewayWithCustomMessageSender() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
@@ -188,7 +192,7 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
 		assertEquals(messageSender, ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders"))[0]);
@@ -217,7 +221,7 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		ClientInterceptor interceptor = context.getBean("interceptor", ClientInterceptor.class);
 		assertEquals(interceptor, ((ClientInterceptor[]) accessor.getPropertyValue("interceptors"))[0]);
@@ -318,7 +322,7 @@ public class WebServiceOutboundGatewayParserTests {
 		Marshaller marshaller = (Marshaller) context.getBean("marshallerAndUnmarshaller");
 		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "marshaller", Marshaller.class));
 		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "unmarshaller", Unmarshaller.class));
-		
+
 		WebServiceMessageFactory messageFactory = (WebServiceMessageFactory) context.getBean("messageFactory");
 		assertEquals(messageFactory, TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory"));
 	}
@@ -330,7 +334,7 @@ public class WebServiceOutboundGatewayParserTests {
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		MarshallingWebServiceOutboundGateway gateway = (MarshallingWebServiceOutboundGateway) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		
+
 		Marshaller marshaller = (Marshaller) context.getBean("marshaller");
 		Unmarshaller unmarshaller = (Unmarshaller) context.getBean("unmarshaller");
 		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "marshaller", Marshaller.class));
@@ -365,5 +369,5 @@ public class WebServiceOutboundGatewayParserTests {
     public void invalidGatewayWithNeitherUriNorDestinationProvider() {
     	new ClassPathXmlApplicationContext("invalidGatewayWithNeitherUriNorDestinationProvider.xml", this.getClass());
     }
-    
+
 }

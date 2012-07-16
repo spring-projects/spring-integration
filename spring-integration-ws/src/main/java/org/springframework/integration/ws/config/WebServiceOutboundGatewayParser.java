@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
- * Parser for the &lt;outbound-gateway/&gt; element in the 'ws' namespace. 
- * 
+ * Parser for the &lt;outbound-gateway/&gt; element in the 'ws' namespace.
+ *
  * @author Mark Fisher
  * @author Jonas Partner
+ * @author Gunnar Hillert
+ *
  */
 public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayParser {
 
@@ -83,11 +85,12 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 			}
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-empty-responses");
 		this.postProcessGateway(builder, element, parserContext);
-		
+
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, null);
-		
+
 		return builder;
 	}
 
