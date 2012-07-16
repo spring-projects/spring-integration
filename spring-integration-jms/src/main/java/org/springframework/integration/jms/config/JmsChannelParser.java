@@ -58,9 +58,11 @@ public class JmsChannelParser extends AbstractChannelParser {
 		builder.addPropertyReference("connectionFactory", connectionFactory);
 		if ("channel".equals(element.getLocalName())) {
 			this.parseDestination(element, parserContext, builder, "queue");
+			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
 		else if ("publish-subscribe-channel".equals(element.getLocalName())) {
 			this.parseDestination(element, parserContext, builder, "topic");
+			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
 		String containerType = element.getAttribute(CONTAINER_TYPE_ATTRIBUTE);
 		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);

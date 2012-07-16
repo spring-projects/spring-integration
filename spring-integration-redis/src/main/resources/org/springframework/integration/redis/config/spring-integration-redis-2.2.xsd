@@ -137,6 +137,7 @@
 <!-- 				]]></xsd:documentation> -->
 <!-- 			</xsd:annotation> -->
 <!-- 		</xsd:attribute> -->
+		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
 	</xsd:complexType>
 
 	<xsd:element name="inbound-channel-adapter">

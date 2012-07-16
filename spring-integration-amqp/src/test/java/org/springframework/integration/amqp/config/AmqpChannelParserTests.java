@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.MessageChannel;
@@ -33,6 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 @ContextConfiguration
@@ -48,6 +48,15 @@ public class AmqpChannelParserTests {
 		List<?> interceptorList = TestUtils.getPropertyValue(channel, "interceptors.interceptors", List.class);
 		assertEquals(1, interceptorList.size());
 		assertEquals(TestInterceptor.class, interceptorList.get(0).getClass());
+		assertEquals(Integer.MAX_VALUE, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
+	}
+
+	@Test
+	public void subscriberLimit() {
+		MessageChannel channel = context.getBean("channelWithSubscriberLimit", MessageChannel.class);
+		assertEquals(1, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(channel, "dispatcher"), "maxSubscribers", Integer.class).intValue());
 	}
 
 

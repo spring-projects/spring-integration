@@ -16,7 +16,7 @@
 		time-to-live="123"
 		priority="12"/>
 
-	<jms:channel id="queueNameChannel" queue-name="test.queue"/>
+	<jms:channel id="queueNameChannel" queue-name="test.queue" max-subscribers="1" />
 
 	<jms:channel id="queueNameWithResolverChannel" queue-name="foo"
 			     destination-resolver="destinationResolver" connection-factory="connFact"/>

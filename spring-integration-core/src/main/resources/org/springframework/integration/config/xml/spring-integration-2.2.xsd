@@ -302,6 +302,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attributeGroup ref="subscribersAttributeGroup" />
 	</xsd:complexType>
 
 	<xsd:element name="publish-subscribe-channel">
@@ -388,6 +389,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="subscribersAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3729,4 +3731,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attributeGroup ref="inputOutputChannelGroup"/>
 	</xsd:attributeGroup>
 
+	<xsd:attributeGroup name="subscribersAttributeGroup">
+		<xsd:attribute name="max-subscribers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Specifies the maximum subscribers allowed on this channel; defaults to
+					Integer.MAX_VALUE, unless a 'channelInitializer' bean has previously been
+					declared, with a different default.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 </xsd:schema>

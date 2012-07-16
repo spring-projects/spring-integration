@@ -18,7 +18,6 @@ package org.springframework.integration.amqp.channel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageListener;
@@ -36,6 +35,7 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -56,6 +56,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	private final boolean isPubSub;
 
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
+
 	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
 		this(channelName, container, amqpTemplate, false);
 	}
@@ -71,6 +73,15 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 		this.isPubSub = isPubSub;
 	}
 
+	/**
+	 * Specify the maximum number of subscribers supported by the
+	 * channel's dispatcher (if it is an {@link AbstractDispatcher}).
+	 * @param maxSubscribers
+	 */
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
+	}
+
 	public boolean subscribe(MessageHandler handler) {
 		return this.dispatcher.addHandler(handler);
 	}
@@ -83,6 +94,9 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 	public void onInit() throws Exception {
 		super.onInit();
 		this.dispatcher = this.createDispatcher();
+		if (this.dispatcher instanceof AbstractDispatcher) {
+			((AbstractDispatcher) this.dispatcher).setMaxSubscribers(this.maxSubscribers);
+		}
 		AmqpAdmin admin = new RabbitAdmin(this.container.getConnectionFactory());
 		Queue queue = this.initializeQueue(admin, this.channelName);
 		this.container.setQueues(queue);

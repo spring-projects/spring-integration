@@ -20,7 +20,6 @@ import javax.jms.MessageListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
@@ -29,6 +28,7 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -48,16 +48,26 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	private final AbstractMessageListenerContainer container;
 
-	private volatile MessageDispatcher dispatcher;
-	
+	private volatile AbstractDispatcher dispatcher;
+
 	private volatile boolean initialized;
-	
+
+	private volatile int maxSubscribers = Integer.MAX_VALUE;
+
 	public SubscribableJmsChannel(AbstractMessageListenerContainer container, JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
 		Assert.notNull(container, "container must not be null");
 		this.container = container;
 	}
 
+	/**
+	 * Specify the maximum number of subscribers supported by the
+	 * channel's dispatcher.
+	 * @param maxSubscribers
+	 */
+	public void setMaxSubscribers(int maxSubscribers) {
+		this.maxSubscribers = maxSubscribers;
+	}
 
 	public boolean subscribe(MessageHandler handler) {
 		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
@@ -96,6 +106,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 			unicastingDispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
 			this.dispatcher = unicastingDispatcher;
 		}
+		this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 	}
 
 
