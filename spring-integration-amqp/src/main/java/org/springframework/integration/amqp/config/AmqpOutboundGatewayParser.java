@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ *
  * @since 2.1
  */
 public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {

@@ -29,6 +29,8 @@ import org.springframework.integration.config.xml.AbstractConsumerEndpointParser
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  * @since 1.0.3
  */
 public class FileOutboundGatewayParser extends AbstractConsumerEndpointParser {

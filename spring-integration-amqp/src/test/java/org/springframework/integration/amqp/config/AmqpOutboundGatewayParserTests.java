@@ -31,7 +31,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
@@ -47,6 +46,8 @@ import static org.junit.Assert.assertTrue;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  * @since 2.1
  *
  */

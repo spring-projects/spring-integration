@@ -48,6 +48,7 @@ import static org.junit.Assert.assertNull;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class WebServiceOutboundGatewayParserTests {
 
