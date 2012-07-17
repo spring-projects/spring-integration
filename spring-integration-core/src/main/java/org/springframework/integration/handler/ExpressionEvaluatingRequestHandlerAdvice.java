@@ -32,6 +32,7 @@ import org.springframework.integration.support.MessageBuilder;
  * appropriate. If the evaluation returns a result, a message is sent to the onSuccessChannel
  * or onFailureChannel as appropriate; the message is the input message with a header
  * {@link MessageHeaders#POSTPROCESS_RESULT} containing the evaluation result.
+ * The failure expression is NOT evaluated if the success expression throws an exception.
  * @author Gary Russell
  * @since 2.2
  *
@@ -54,6 +55,8 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	private volatile boolean returnFailureExpressionResult = false;
 
 	private volatile BeanFactory beanFactory;
+
+	private volatile boolean propagateOnSuccessEvaluationFailures;
 
 	/**
 	 * @param onSuccessExpression
@@ -100,6 +103,16 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		this.returnFailureExpressionResult = returnFailureExpressionResult;
 	}
 
+	/**
+	 * If true and an onSuccess expression evaluation fails with an exception, the exception will be thrown to the
+	 * caller. If false, the exception is caught. Default false. Ignored for onFailure expression evaluation - the
+	 * original exception will be propagated (unless trapException is true).
+	 * @param propagateOnSuccessEvaluationFailures
+	 */
+	public void setPropagateEvaluationFailures(boolean propagateOnSuccessEvaluationFailures) {
+		this.propagateOnSuccessEvaluationFailures = propagateOnSuccessEvaluationFailures;
+	}
+
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
@@ -110,26 +123,12 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		try {
 			Object result = invocation.proceed();
 			if (onSuccessMessageProcessor != null) {
-				// TODO: what to do if evaluation fails?
-				Object evalResult = onSuccessMessageProcessor.processMessage(message);
-				if (evalResult != null && this.successChannel != null) {
-					message = MessageBuilder.fromMessage(message)
-							.setHeader(MessageHeaders.POSTPROCESS_RESULT, evalResult)
-							.build();
-					this.messagingTemplate.send(this.successChannel, message);
-				}
+				evaluateExpression(message, this.onSuccessMessageProcessor, this.successChannel, this.propagateOnSuccessEvaluationFailures);
 			}
 			return result;
 		}
 		catch (Throwable t) {
-			// TODO: what to do if evaluation fails?
-			Object evalResult = onFailureMessageProcessor.processMessage(message);
-			if (evalResult != null && this.failureChannel != null) {
-				message = MessageBuilder.fromMessage(message)
-						.setHeader(MessageHeaders.POSTPROCESS_RESULT, evalResult)
-						.build();
-				this.messagingTemplate.send(this.failureChannel, message);
-			}
+			Object evalResult = evaluateExpression(message, this.onFailureMessageProcessor, this.failureChannel, false);
 			if (this.returnFailureExpressionResult) {
 				return evalResult;
 			}
@@ -138,6 +137,30 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			}
 			return null;
 		}
+	}
+
+	private Object evaluateExpression(Message<?> message,
+			ExpressionEvaluatingMessageProcessor<Object> expressionEvaluatingMessageProcessor,
+			MessageChannel resultChannel, boolean propagateEvaluationFailure) throws Exception {
+		Object evalResult;
+		boolean evaluationFailed = false;
+		try {
+			evalResult = expressionEvaluatingMessageProcessor.processMessage(message);
+		}
+		catch (Exception e) {
+			evalResult = e;
+			evaluationFailed = true;
+		}
+		if (evalResult != null && resultChannel != null) {
+			message = MessageBuilder.fromMessage(message)
+					.setHeader(MessageHeaders.POSTPROCESS_RESULT, evalResult)
+					.build();
+			this.messagingTemplate.send(resultChannel, message);
+		}
+		if (evaluationFailed && propagateEvaluationFailure) {
+			throw (Exception) evalResult;
+		}
+		return evalResult;
 	}
 
 }
