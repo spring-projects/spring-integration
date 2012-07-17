@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package org.springframework.integration.jmx;
 
+import java.io.IOException;
+
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
-import javax.management.MBeanServer;
+import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
@@ -26,7 +28,6 @@ import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
@@ -35,15 +36,16 @@ import org.springframework.util.Assert;
 /**
  * A JMX {@link NotificationListener} implementation that will send Messages
  * containing the JMX {@link Notification} instances as their payloads.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class NotificationListeningMessageProducer extends MessageProducerSupport implements NotificationListener {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile MBeanServer server;
+	private volatile MBeanServerConnection server;
 
 	private volatile ObjectName objectName;
 
@@ -54,9 +56,9 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	/**
 	 * Provide a reference to the MBeanServer where the notification
-	 * publishing MBeans are registered. 
+	 * publishing MBeans are registered.
 	 */
-	public void setServer(MBeanServer server) {
+	public void setServer(MBeanServerConnection server) {
 		this.server = server;
 	}
 
@@ -118,7 +120,10 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			this.server.addNotificationListener(this.objectName, this, this.filter, this.handback);
 		}
 		catch (InstanceNotFoundException e) {
-			throw new IllegalStateException("Failed to find MBean instance.", e); 
+			throw new IllegalStateException("Failed to find MBean instance.", e);
+		}
+		catch (IOException e) {
+			throw new IllegalStateException("IOException on MBeanServerConnection.", e);
 		}
 	}
 
@@ -136,6 +141,9 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			}
 			catch (ListenerNotFoundException e) {
 				throw new IllegalStateException("Failed to find NotificationListener.", e);
+			}
+			catch (IOException e) {
+				throw new IllegalStateException("IOException on MBeanServerConnection.", e);
 			}
 		}
 	}
