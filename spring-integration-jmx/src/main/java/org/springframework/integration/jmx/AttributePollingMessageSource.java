@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import javax.management.MBeanServer;
+import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
@@ -29,8 +29,9 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageSource} implementation that retrieves the current
  * value of a JMX attribute each time {@link #receive()} is invoked.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class AttributePollingMessageSource extends AbstractMessageSource<Object> {
@@ -39,18 +40,18 @@ public class AttributePollingMessageSource extends AbstractMessageSource<Object>
 
 	private volatile String attributeName;
 
-	private volatile MBeanServer server;
+	private volatile MBeanServerConnection server;
 
 
 	/**
 	 * Provide the MBeanServer where the JMX MBean has been registered.
 	 */
-	public void setServer(MBeanServer server) {
+	public void setServer(MBeanServerConnection server) {
 		this.server = server;
 	}
 
 	/**
-	 * Specify the String value of the JMX MBean's {@link ObjectName}.  
+	 * Specify the String value of the JMX MBean's {@link ObjectName}.
 	 */
 	public void setObjectName(String objectName) {
 		try {

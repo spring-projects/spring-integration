@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jmx;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import javax.management.JMException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
-import javax.management.MBeanServer;
+import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
@@ -50,7 +51,7 @@ import org.springframework.util.ObjectUtils;
  * will fallback to the defaults, if any have been configured on this instance via
  * {@link #setObjectName(String)} and {@link #setOperationName(String)},
  * respectively.
- * 
+ *
  * <p>The operation parameter(s), if any, must be available within the payload of the
  * Message being handled. If the target operation expects multiple parameters, they
  * can be provided in either a List or Map typed payload.
@@ -61,7 +62,7 @@ import org.springframework.util.ObjectUtils;
  */
 public class OperationInvokingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
-	private volatile MBeanServer server;
+	private volatile MBeanServerConnection server;
 
 	private volatile ObjectName objectName;
 
@@ -72,7 +73,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	 * Provide a reference to the MBeanServer within which the MBean
 	 * target for operation invocation has been registered.
 	 */
-	public void setServer(MBeanServer server) {
+	public void setServer(MBeanServerConnection server) {
 		this.server = server;
 	}
 
@@ -94,9 +95,9 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	/**
 	 * Specify an operation name to be invoked when no such
 	 * header is available on the Message being handled.
-	 */	
+	 */
 	public void setOperationName(String operationName) {
-		this.operationName = operationName; 
+		this.operationName = operationName;
 	}
 
 	@Override
@@ -111,7 +112,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		Map<String, Object> paramsFromMessage = this.resolveParameters(requestMessage);
 		try {
 			MBeanInfo mbeanInfo = this.server.getMBeanInfo(objectName);
-			MBeanOperationInfo[] opInfoArray = mbeanInfo.getOperations();	
+			MBeanOperationInfo[] opInfoArray = mbeanInfo.getOperations();
 			boolean hasNoArgOption = false;
 			for (MBeanOperationInfo opInfo : opInfoArray) {
 				if (operationName.equals(opInfo.getName())) {
@@ -146,8 +147,11 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		}
 		catch (JMException e) {
 			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
-					operationName + "' on MBean [" + objectName + "]" + " with " + 
+					operationName + "' on MBean [" + objectName + "]" + " with " +
 					paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet(), e);
+		}
+		catch (IOException e) {
+			throw new MessageHandlingException(requestMessage, "IOException on MBeanServerConnection", e);
 		}
 	}
 
