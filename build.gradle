@@ -456,7 +456,7 @@ project('spring-integration-jms') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1", provided)
 		testCompile project(":spring-integration-test")
-		testCompile ("org.apache.activemq:activemq-core:5.3.0") {
+		testCompile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.springframework', module: 'spring-context'
 		}
 		testCompile "org.springframework:spring-oxm:$springVersion"
