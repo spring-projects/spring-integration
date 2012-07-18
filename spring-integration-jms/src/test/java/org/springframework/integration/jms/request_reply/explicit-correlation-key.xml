@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.2.xsd">
+
+	<int:gateway id="explicitCorrelationKeyGateway" default-request-channel="explicitCorrelationIn"/>
+
+	<int-jms:outbound-gateway request-channel="explicitCorrelationIn"
+	    connection-factory="connectionFactory" 
+		request-destination="explicitCorrelationJmsOut"
+		correlation-key="bar"/>
+		
+	<bean id="explicitCorrelationJmsOut" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="explicitCorrelationJmsOut"/>
+	</bean>
+	
+	<int-jms:inbound-gateway request-channel="requestIn" 
+	    request-destination="explicitCorrelationJmsOut"
+	    correlation-key="bar"
+		connection-factory="connectionFactory"/>
+	
+	<int:transformer input-channel="requestIn" expression="payload"/>
+	
+	<!--  -->
+	
+	<int:gateway id="explicitCorrelationKeyGatewayB" default-request-channel="explicitCorrelationInB"/>
+
+	<int-jms:outbound-gateway request-channel="explicitCorrelationInB"
+	    connection-factory="connectionFactory" 
+		request-destination="explicitCorrelationJmsOutB"
+		correlation-key="JMSCorrelationID"/>
+		
+	<bean id="explicitCorrelationJmsOutB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="explicitCorrelationJmsOutB"/>
+	</bean>
+	
+	<int-jms:inbound-gateway request-channel="requestInB" 
+	    request-destination="explicitCorrelationJmsOutB"
+	    correlation-key="JMSCorrelationID"
+		connection-factory="connectionFactory"/>
+	
+	<int:transformer input-channel="requestInB" expression="payload"/>
+	
+	<!--  -->
+	
+	<int:gateway id="explicitCorrelationKeyGatewayC" default-request-channel="explicitCorrelationInC"/>
+
+	<int-jms:outbound-gateway id="outGateway" request-channel="explicitCorrelationInC"
+	    connection-factory="connectionFactory" 
+		request-destination="explicitCorrelationJmsOutC"
+		reply-destination-name="explicitCorrelationJmsInC"
+		correlation-key="foo"
+		receive-timeout="100"/>
+		
+	<bean id="explicitCorrelationJmsOutC" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="explicitCorrelationJmsOutC"/>
+	</bean>
+	
+	<int-jms:inbound-gateway id="inGateway" request-channel="requestInC" 
+	    request-destination="explicitCorrelationJmsOutC"
+	    correlation-key="foo"
+		connection-factory="connectionFactory"/>
+	
+	<int:transformer input-channel="requestInC">
+		<bean class="org.springframework.integration.jms.request_reply.RequestReplyScenariosWithCorrelationKeyProvidedTests.DelayedService"/>
+	</int:transformer>
+	
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="vm://localhost"/>		
+			</bean>
+		</property>
+		<property name="cacheProducers" value="true" />
+		<property name="cacheConsumers" value="true" />
+		<property name="sessionCacheSize" value="10" />
+	</bean>
+	
+</beans>

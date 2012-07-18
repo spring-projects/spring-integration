@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
+import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
@@ -40,6 +42,7 @@ import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -47,6 +50,8 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * An outbound Messaging Gateway for request/reply JMS.
@@ -57,6 +62,12 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
+
+	private final String gatewayId = UUID.randomUUID().toString();
+
+	private volatile boolean cachedConsumers;
+
+	private final Map<Long, Destination> tempQueuePerSessionMap = new HashMap<Long, Destination>(10);
 
 	private volatile Destination requestDestination;
 
@@ -240,15 +251,21 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * Provide the name of a JMS property that should hold a generated UUID that
-	 * the receiver of the JMS Message would expect to represent the CorrelationID.
-	 * When waiting for the reply Message, a MessageSelector will be configured
-	 * to match this property name and the UUID value that was sent in the request.
-	 * If this value is NULL (the default) then the reply consumer's MessageSelector
-	 * will be expecting the JMSCorrelationID to equal the Message ID of the request.
-	 * If you want to store the outbound correlation UUID value in the actual
-	 * JMSCorrelationID property, then set this value to "JMSCorrelationID".
-	 * However, any other value will be treated as a JMS String Property.
+	 * Provide the name of a JMS property that should hold a generated CorrelationID.
+	 * If NO value is provided for this attribute, then the reply consumer's
+	 * MessageSelector will be expecting the JMSCorrelationID to equal the Message ID
+	 * of the request. However this would also mean that the MessageSelector will be different
+	 * for each new message, thus requiring a new reply consumer to be created for each Message sent.
+	 * Although this is a very common JMS exchange pattern it is not optimal for high throughput	 request/reply
+	 * applications. Most MOMs (including Spring Integration's Inbound Gateway) also support propagation
+	 * of the 'CorrelationID' of the consumed request message into the 'CorrelationID' of the newly produced
+	 * reply message. This also allows us to use an optimized value generation algorithm which results in caching
+	 * and reuse of reply consumers resulting in significant performance improvement of the request/reply
+	 * scenarios. So if you have a Spring JMS consumer (e.g.,  Spring Integration's Inbound Gateway) or
+	 * you know that your MOM supports propagation of the 'CorrelationID' it is highly recommended to set this
+	 * value to 'JMSCorrelationID'. If you set this value to something else the receiving end must now how
+	 * to propagate it. For example: if the receiving end is an inbound-gateway its correlation-key attribute
+	 * must have the same value.
 	 */
 	public void setCorrelationKey(String correlationKey) {
 		this.correlationKey = correlationKey;
@@ -317,48 +334,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return "jms:outbound-gateway";
 	}
 
-	private Destination getRequestDestination(Message<?> message, Session session) throws JMSException {
-		if (this.requestDestination != null) {
-			return this.requestDestination;
-		}
-		if (this.requestDestinationName != null) {
-			return this.resolveRequestDestination(this.requestDestinationName, session);
-		}
-		if (this.requestDestinationExpressionProcessor != null) {
-			Object result = this.requestDestinationExpressionProcessor.processMessage(message);
-			if (result instanceof Destination) {
-				return (Destination) result;
-			}
-			if (result instanceof String) {
-				return this.resolveRequestDestination((String) result, session);
-			}
-			throw new MessageDeliveryException(message,
-					"Evaluation of requestDestinationExpression failed to produce a Destination or destination name. Result was: " + result);
-		}
-		throw new MessageDeliveryException(message,
-				"No requestDestination, requestDestinationName, or requestDestinationExpression has been configured.");
-	}
-
-	private Destination resolveRequestDestination(String requestDestinationName, Session session) throws JMSException {
-		Assert.notNull(this.destinationResolver,
-				"DestinationResolver is required when relying upon the 'requestDestinationName' property.");
-		return this.destinationResolver.resolveDestinationName(
-				session, requestDestinationName, this.requestPubSubDomain);
-	}
-
-	private Destination getReplyDestination(Session session) throws JMSException {
-		if (this.replyDestination != null) {
-			return this.replyDestination;
-		}
-		if (this.replyDestinationName != null) {
-			Assert.notNull(this.destinationResolver,
-					"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
-			return this.destinationResolver.resolveDestinationName(
-					session, this.replyDestinationName, this.replyPubSubDomain);
-		}
-		return session.createTemporaryQueue();
-	}
-
 	@Override
 	public final void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -376,6 +351,21 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());
 			}
 			this.initialized = true;
+			if (this.connectionFactory instanceof CachingConnectionFactory){
+				this.cachedConsumers = ((CachingConnectionFactory)this.connectionFactory).isCacheConsumers();
+			}
+
+			if (this.cachedConsumers && !StringUtils.hasText(this.correlationKey)){
+				logger.warn("Caching consumers  without custom correlation-key can lead to " +
+						"significant performance degradation and OutOfMemoryError. Either do not use consumer caching " +
+						"by setting 'cacheConsumers' attribute to FALSE in the CachingConnectionFactory or set 'correlation-key'" +
+						"to a value (e.g., correlation-key=\"JMSCorrelationID\")");
+			}
+			else if (!this.cachedConsumers && StringUtils.hasText(this.correlationKey)){
+				logger.warn("Using custom 'correlationKey' without caching consumers can lead to " +
+						"significant performance degradation. Consider using the CachingConnectionFactory " +
+						"with 'cacheConsumers' attribute set to TRUE");
+			}
 		}
 	}
 
@@ -413,161 +403,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		}
 	}
 
-	private javax.jms.Message sendAndReceive(Message<?> requestMessage) throws JMSException {
-		Connection connection = this.createConnection();
-		Session session = null;
-		Destination replyTo = null;
-		try {
-			session = this.createSession(connection);
-
-			// convert to JMS Message
-			Object objectToSend = requestMessage;
-			if (this.extractRequestPayload) {
-				objectToSend = requestMessage.getPayload();
-			}
-			javax.jms.Message jmsRequest = this.messageConverter.toMessage(objectToSend, session);
-
-			// map headers
-			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
-
-			// TODO: support a JmsReplyTo header in the SI Message?
-			replyTo = this.getReplyDestination(session);
-			jmsRequest.setJMSReplyTo(replyTo);
-			connection.start();
-
-			Integer priority = requestMessage.getHeaders().getPriority();
-			if (priority == null) {
-				priority = this.priority;
-			}
-			javax.jms.Message replyMessage = null;
-			Destination requestDestination = this.getRequestDestination(requestMessage, session);
-			if (this.correlationKey != null) {
-				replyMessage = this.doSendAndReceiveWithGeneratedCorrelationId(requestDestination, jmsRequest, replyTo, session, priority);
-			}
-			else if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
-				replyMessage = this.doSendAndReceiveWithTemporaryReplyToDestination(requestDestination, jmsRequest, replyTo, session, priority);
-			}
-			else {
-				replyMessage = this.doSendAndReceiveWithMessageIdCorrelation(requestDestination, jmsRequest, replyTo, session, priority);
-			}
-			return replyMessage;
-		}
-		finally {
-			JmsUtils.closeSession(session);
-			this.deleteDestinationIfTemporary(replyTo);
-			ConnectionFactoryUtils.releaseConnection(connection, this.connectionFactory, true);
-		}
-	}
-
-	/**
-	 * Creates the MessageConsumer before sending the request Message since we are generating our own correlationId value for the MessageSelector.
-	 */
-	private javax.jms.Message doSendAndReceiveWithGeneratedCorrelationId(Destination requestDestination,
-			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
-		MessageProducer messageProducer = null;
-		MessageConsumer messageConsumer = null;
-		try {
-			messageProducer = session.createProducer(requestDestination);
-			String correlationId = UUID.randomUUID().toString().replaceAll("'", "''");
-			Assert.state(this.correlationKey != null, "correlationKey must not be null");
-			String messageSelector = null;
-			if (this.correlationKey.equals("JMSCorrelationID")) {
-				jmsRequest.setJMSCorrelationID(correlationId);
-				messageSelector = "JMSCorrelationID = '" + correlationId + "'";
-			}
-			else {
-				jmsRequest.setStringProperty(this.correlationKey, correlationId);
-				messageSelector = this.correlationKey + " = '" + correlationId + "'";
-			}
-			messageConsumer = session.createConsumer(replyTo, messageSelector);
-			this.sendRequestMessage(jmsRequest, messageProducer, priority);
-			return this.receiveReplyMessage(messageConsumer);
-		}
-		finally {
-			JmsUtils.closeMessageProducer(messageProducer);
-			JmsUtils.closeMessageConsumer(messageConsumer);
-		}
-	}
-
-	/**
-	 * Creates the MessageConsumer before sending the request Message since we do not need any correlation.
-	 */
-	private javax.jms.Message doSendAndReceiveWithTemporaryReplyToDestination(Destination requestDestination,
-			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
-		MessageProducer messageProducer = null;
-		MessageConsumer messageConsumer = null;
-		try {
-			messageProducer = session.createProducer(requestDestination);
-			messageConsumer = session.createConsumer(replyTo);
-			this.sendRequestMessage(jmsRequest, messageProducer, priority);
-			return this.receiveReplyMessage(messageConsumer);
-		}
-		finally {
-			JmsUtils.closeMessageProducer(messageProducer);
-			JmsUtils.closeMessageConsumer(messageConsumer);
-		}
-	}
-
-	/**
-	 * Creates the MessageConsumer after sending the request Message since we need the MessageID for correlation with a MessageSelector.
-	 */
-	private javax.jms.Message doSendAndReceiveWithMessageIdCorrelation(Destination requestDestination,
-			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
-		if (replyTo instanceof Topic && logger.isWarnEnabled()) {
-			logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
-					"because that ID can only be provided to a MessageSelector after the reuqest Message has been sent thereby " +
-					"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
-					"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
-					"will be created before the request Message is sent.");
-		}
-		MessageProducer messageProducer = null;
-		MessageConsumer messageConsumer = null;
-		try {
-			messageProducer = session.createProducer(requestDestination);
-			this.sendRequestMessage(jmsRequest, messageProducer, priority);
-			String messageId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
-			String messageSelector = "JMSCorrelationID = '" + messageId + "'";
-			messageConsumer = session.createConsumer(replyTo, messageSelector);
-			return this.receiveReplyMessage(messageConsumer);
-		}
-		finally {
-			JmsUtils.closeMessageProducer(messageProducer);
-			JmsUtils.closeMessageConsumer(messageConsumer);
-		}
-	}
-
-	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer, int priority) throws JMSException {
-		if (this.explicitQosEnabled) {
-			messageProducer.send(jmsRequest, this.deliveryMode, priority, this.timeToLive);
-		}
-		else {
-			messageProducer.send(jmsRequest);
-		}
-	}
-
-	private javax.jms.Message receiveReplyMessage(MessageConsumer messageConsumer) throws JMSException {
-		return (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
-	}
-
-	/**
-	 * Deletes either a {@link TemporaryQueue} or {@link TemporaryTopic}.
-	 * Ignores any other {@link Destination} type and also ignores any
-	 * {@link JMSException}s that may be thrown when attempting to delete.
-	 */
-	private void deleteDestinationIfTemporary(Destination destination) {
-		try {
-			if (destination instanceof TemporaryQueue) {
-				((TemporaryQueue) destination).delete();
-			}
-			else if (destination instanceof TemporaryTopic) {
-				((TemporaryTopic) destination).delete();
-			}
-		}
-		catch (JMSException e) {
-			// ignore
-		}
-	}
-
 	/**
 	 * Create a new JMS Connection for this JMS gateway.
 	 */
@@ -582,4 +417,293 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 
+	private Destination determineRequestDestination(Message<?> message, Session session) throws JMSException {
+		if (this.requestDestination != null) {
+			return this.requestDestination;
+		}
+
+		if (this.requestDestinationName != null) {
+			return this.resolveRequestDestination(this.requestDestinationName, session);
+		}
+
+		if (this.requestDestinationExpressionProcessor != null) {
+			Object result = this.requestDestinationExpressionProcessor.processMessage(message);
+			if (result instanceof Destination) {
+				return (Destination) result;
+			}
+			if (result instanceof String) {
+				return this.resolveRequestDestination((String) result, session);
+			}
+			throw new MessageDeliveryException(message,
+					"Evaluation of requestDestinationExpression failed to produce a Destination or destination name. Result was: " + result);
+		}
+		throw new MessageDeliveryException(message,
+				"No requestDestination, requestDestinationName, or requestDestinationExpression has been configured.");
+	}
+
+	private Destination resolveRequestDestination(String requestDestinationName, Session session) throws JMSException {
+		Assert.notNull(this.destinationResolver,
+				"DestinationResolver is required when relying upon the 'requestDestinationName' property.");
+		return this.destinationResolver.resolveDestinationName(
+				session, requestDestinationName, this.requestPubSubDomain);
+	}
+
+	private Destination determineReplyDestination(Session session, long sessionId) throws JMSException {
+		if (this.replyDestination != null){
+			return this.replyDestination;
+		}
+		if (StringUtils.hasText(this.replyDestinationName)) {
+			Assert.notNull(this.destinationResolver,
+					"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
+			return this.destinationResolver.resolveDestinationName(
+					session, this.replyDestinationName, this.replyPubSubDomain);
+		}
+
+		if (this.tempQueuePerSessionMap.containsKey(sessionId)){
+			return this.tempQueuePerSessionMap.get(sessionId);
+		}
+
+		if (this.cachedConsumers && StringUtils.hasText(this.correlationKey)){
+			// will rely on LIKE  MessageSelector. Only need one TemporaryQueue for reply
+			// as if the replyDestinationName was specified
+			this.replyDestination = session.createTemporaryQueue();
+			return this.replyDestination;
+		}
+		return session.createTemporaryQueue();
+	}
+
+	private javax.jms.Message sendAndReceive(Message<?> requestMessage) throws JMSException {
+		Connection connection = this.createConnection();
+		Session session = null;
+		Destination replyTo = null;
+		long sessionId = 0;
+		try {
+			session = this.createSession(connection);
+			sessionId = ObjectUtils.getIdentityHexString(session).hashCode();
+
+			// convert to JMS Message
+			Object objectToSend = requestMessage;
+			if (this.extractRequestPayload) {
+				objectToSend = requestMessage.getPayload();
+			}
+			javax.jms.Message jmsRequest = this.messageConverter.toMessage(objectToSend, session);
+
+			// map headers
+			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
+
+			// TODO: support a JmsReplyTo header in the SI Message?
+			replyTo = this.determineReplyDestination(session, sessionId);
+
+			connection.start();
+
+			Integer priority = requestMessage.getHeaders().getPriority();
+			if (priority == null) {
+				priority = this.priority;
+			}
+
+			Destination requestDestinationToUse = this.determineRequestDestination(requestMessage, session);
+
+			javax.jms.Message replyMessage = this.doSendAndReceive(requestDestinationToUse, jmsRequest, replyTo, session, priority, sessionId);
+
+			return replyMessage;
+		}
+		finally {
+			JmsUtils.closeSession(session);
+			if (this.deleteDestinationIfTemporary(replyTo)){
+				this.tempQueuePerSessionMap.remove(sessionId);
+			}
+			else {
+				this.tempQueuePerSessionMap.put(sessionId, replyTo);
+			}
+			ConnectionFactoryUtils.releaseConnection(connection, this.connectionFactory, true);
+		}
+	}
+
+	/**
+	 * Creates the MessageConsumer after sending the request Message since we need the MessageID for correlation with a MessageSelector.
+	 */
+	private javax.jms.Message doSendAndReceive(Destination requestDestinationToUse,
+			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority, long sessionId) throws JMSException {
+
+		MessageProducer messageProducer = session.createProducer(requestDestinationToUse);
+
+		try {
+			if (StringUtils.hasText(this.correlationKey)){
+
+				String messageCorrelationId = String.valueOf(System.currentTimeMillis() +
+											  String.valueOf(System.nanoTime()));
+
+				String consumerCorrelationId = gatewayId + "_" + sessionId;
+
+				if (this.correlationKey.equals("JMSCorrelationID")) {
+					jmsRequest.setJMSCorrelationID(consumerCorrelationId + "$" + messageCorrelationId);
+				}
+				else {
+					jmsRequest.setStringProperty(correlationKey, consumerCorrelationId + "$" + messageCorrelationId);
+				}
+				String messageSelector = correlationKey + " LIKE '" + consumerCorrelationId + "%'";
+
+				return this.exchange(messageProducer, jmsRequest, session, sessionId, replyTo, priority, messageSelector, messageCorrelationId);
+			}
+			else {
+				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
+					logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
+							"because that ID can only be provided to a MessageSelector after the request Message has been sent thereby " +
+							"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
+							"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
+							"will be created before the request Message is sent.");
+				}
+				return this.exchange(messageProducer, jmsRequest, session, sessionId, replyTo, priority, null, null);
+			}
+		}
+		finally {
+			JmsUtils.closeMessageProducer(messageProducer);
+		}
+	}
+
+	private MessageConsumer createMessageConsumer(Session session, Destination replyTo, String messageSelector, long sessionId) throws JMSException{
+		try {
+			if (StringUtils.hasText(messageSelector)){
+				if (this.cachedConsumers && replyTo instanceof TemporaryQueue){
+					return TemporaryConsumerUtils.createConsumer(session, replyTo, messageSelector);
+				}
+				return session.createConsumer(replyTo, messageSelector);
+			}
+			else {
+				if (this.cachedConsumers && replyTo instanceof TemporaryQueue){
+					return TemporaryConsumerUtils.createConsumer(session, replyTo, null);
+				}
+				return session.createConsumer(replyTo);
+			}
+		}
+		catch (InvalidDestinationException e) {
+			if (this.tempQueuePerSessionMap.containsKey(sessionId)){
+				this.tempQueuePerSessionMap.remove(sessionId);
+			}
+			if (this.replyDestination instanceof TemporaryQueue){
+				this.replyDestination = null;
+			}
+			throw e;
+		}
+	}
+
+	private javax.jms.Message exchange(MessageProducer messageProducer, javax.jms.Message jmsRequest,
+			Session session, long sessionId, Destination replyTo, int priority,
+			String messageSelector, String messageCorrelationId) throws JMSException {
+
+		MessageConsumer messageConsumer = null;
+		jmsRequest.setJMSReplyTo(replyTo);
+		try {
+			if (StringUtils.hasText(messageSelector)){
+				messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
+				this.sendRequestMessage(jmsRequest, messageProducer, priority);
+			}
+			else {
+				this.sendRequestMessage(jmsRequest, messageProducer, priority);
+				messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
+				if (replyTo instanceof TemporaryQueue){
+					messageConsumer = this.createMessageConsumer(session, replyTo, null, sessionId);
+				}
+				else {
+					messageSelector = "JMSCorrelationID = '" + messageCorrelationId + "'";
+					messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
+				}
+			}
+
+			try {
+				javax.jms.Message jmsMessage = this.receiveCorrelatedReplyMessage(messageConsumer, messageCorrelationId, correlationKey);
+				return jmsMessage;
+			}
+			catch (javax.jms.IllegalStateException e) {
+				// clear up the temp queue cache
+				if (this.replyDestination != null && this.replyDestination instanceof TemporaryQueue){
+					this.replyDestination = null;
+				}
+				if (this.replyDestination instanceof TemporaryQueue){
+					this.replyDestination = null;
+				}
+				throw e;
+			}
+		}
+		finally  {
+			JmsUtils.closeMessageConsumer(messageConsumer);
+		}
+	}
+
+	private javax.jms.Message receiveCorrelatedReplyMessage(MessageConsumer messageConsumer,
+			String messageCorrelationIdToMatch, String correlationKey) throws JMSException {
+
+		long timeout = this.receiveTimeout;
+		long startTime = System.currentTimeMillis();
+		javax.jms.Message replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
+		long elapsedTime = System.currentTimeMillis() - startTime;
+		while (replyMessage != null){
+
+			String jmsCorrelationId = null;
+			if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
+				jmsCorrelationId = replyMessage.getStringProperty(correlationKey);
+			}
+			else {
+				jmsCorrelationId = replyMessage.getJMSCorrelationID();
+			}
+
+			if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
+				boolean messageMatched = jmsCorrelationId.contains(messageCorrelationIdToMatch);
+
+				if (messageMatched){
+					return replyMessage;
+				}
+				else {
+					// Essentially we are discarding the uncorrelated message here and moving on to
+					// the next one since we can no longer communicate with its originating producer
+					// since it has already timed out waiting for the reply. We are also honoring the original timeout
+					if (this.logger.isDebugEnabled()){
+						this.logger.debug("Discarded late arriving reply: " + replyMessage);
+					}
+					if (timeout > 0){
+						timeout = timeout - elapsedTime;
+						replyMessage = messageConsumer.receive(timeout);
+					}
+					else {
+						return null;
+					}
+				}
+			}
+			else {
+				return replyMessage;
+			}
+		}
+
+		return null;
+	}
+
+	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer, int priority) throws JMSException {
+		if (this.explicitQosEnabled) {
+			messageProducer.send(jmsRequest, this.deliveryMode, priority, this.timeToLive);
+		}
+		else {
+			messageProducer.send(jmsRequest);
+		}
+	}
+
+	/**
+	 * Deletes either a {@link TemporaryQueue} or {@link TemporaryTopic}.
+	 * Ignores any other {@link Destination} type and also ignores any
+	 * {@link JMSException}s that may be thrown when attempting to delete.
+	 */
+	private boolean deleteDestinationIfTemporary(Destination destination) {
+		try {
+			if (destination instanceof TemporaryQueue) {
+				((TemporaryQueue) destination).delete();
+			}
+			else if (destination instanceof TemporaryTopic) {
+				((TemporaryTopic) destination).delete();
+			}
+			return true;
+		}
+		catch (JMSException e) {
+			// ignore
+		}
+		return false;
+	}
 }
