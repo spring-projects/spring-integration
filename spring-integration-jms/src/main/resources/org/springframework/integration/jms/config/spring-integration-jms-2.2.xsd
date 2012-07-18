@@ -843,20 +843,29 @@
 			</xsd:attribute>
 			<xsd:attribute name="reply-destination-name" type="xsd:string"/>
 			<xsd:attribute name="reply-pub-sub-domain" type="xsd:string"/>
-			<xsd:attribute name="correlation-key" type="xsd:string">
+			<xsd:attribute name="correlation-key">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-						Provide the name of a JMS property that should hold a generated UUID that
-						the receiver of the JMS Message would expect to represent the CorrelationID.
-						When waiting for the reply Message, a MessageSelector will be configured
-						to match this property name and the UUID value that was sent in the request.
+						Provide the name of a JMS property that should hold a generated CorrelationID.
 						If NO value is provided for this attribute, then the reply consumer's
 						MessageSelector will be expecting the JMSCorrelationID to equal the Message ID
-						of the request. If you want to store the outbound correlation UUID value in the
-						actual "JMSCorrelationID" property, then set this value to "JMSCorrelationID".
-						However, any other value will be treated as a JMS String Property.
+						of the request. However this would also mean that the MessageSelector will be different 
+						for each new message, thus requiring a new reply consumer to be created for each Message sent.
+						Although this is a very common JMS exchange pattern it is not optimal for high thru-put request/reply 
+						applications.Most MOMs (including Spring Integration's Inbound Gateway) also support propagation 
+						of the 'CorrelationID' of the consumed request message into the 'CorrelationID' of the newly produced 
+						reply message. This also allows us to use optimized value generation algorithm which results in caching 
+						and reuse of reply consumers resulting in significant performance improvement of the request/reply 
+						scenarios. So if you have Spring JMS consumer (e.g.,  Spring Integration's Inbound Gateway) or
+						you know that your MOM supports propagation of the 'CorrelationID' it is highly recommended to set this 
+						value to 'JMSCorrelationID'. If you set this value to something else the receiving end must now how 
+						to propagate it. For example: if the receiving end is an inbound-gateway its correlation-key attribute 
+						must have the same value.
 					]]></xsd:documentation>
 				</xsd:annotation>
+				<xsd:simpleType>
+				    <xsd:union memberTypes="correlation-key-enum-type correlation-key-ext"/>
+				</xsd:simpleType>
 			</xsd:attribute>
 			<xsd:attribute name="destination-resolver" type="xsd:string">
 				<xsd:annotation>
@@ -957,6 +966,17 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:simpleType name="correlation-key-enum-type">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="JMSCorrelationID"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="correlation-key-ext">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="([a-zA-Z0-9])*"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
