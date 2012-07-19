@@ -314,7 +314,7 @@
         <title>New Samples</title>
         <para>
             For the 2.1 release of Spring Integration we also expanded the Spring
-            Integration Samples project and added many new samples, e.g. sampples
+            Integration Samples project and added many new samples, e.g. samples
             covering AMQP support, the new payload enricher, a sample illustrating
             techniques for testing Spring Integration flow fragments, as well as
             an example for executing Stored Procedures against Oracle. For details
