@@ -91,14 +91,14 @@
       the ability to not lose Messages on the application shutdown. After application startup, the
       <classname>DelayHandler</classname> reads Messages from its Message Group in the <interfacename>MessageStore</interfacename>
       and reschedules them with a delay based on the original arrival time of the Message (if the delay is numeric). For messages
-      where the delay header was a <className>Date</className>, that is used when rescheduling.
+      where the delay header was a <classname>Date</classname>, that is used when rescheduling.
       If a delayed Message remained in the <interfacename>MessageStore</interfacename> more
       than its 'delay', it will be sent immediately after startup.
     </para>
     <para>
       The <classname>DelayHandler</classname> can be exported as a JMX <code>MBean</code>
       with managed operations <code>getDelayedMessageCount</code> and <code>reschedulePersistedMessages</code>,
-      which allows the  rescheduling of delayed persisted Messages at runtime, for example, if the
+      which allows the rescheduling of delayed persisted Messages at runtime, for example, if the
       <interfacename>TaskScheduler</interfacename> has previously been stopped. These operations can be invoked via a <code>Control Bus</code> command:
       <programlisting language="java"><![CDATA[
       Message<String> delayerReschedulingMessage = MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
