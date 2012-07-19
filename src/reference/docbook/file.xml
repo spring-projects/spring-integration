@@ -247,17 +247,51 @@
 				</para>
 			</note>
 		</section>
-		<section id="file-writing-append">
-			<title>Append to Files</title>
+		<section id="file-writing-destination-exists">
+			<title>Dealing with Existing Destination Files</title>
 			<para>
-				Since Spring Integration 2.2 you can append Message
-				content to the existing file instead of creating a new File each
-				time. To do so, set the <emphasis>append</emphasis> attribute
-				to <code>true</code>. Note that this attribute is mutually exclusive
-				with <emphasis>temporary-file-suffix</emphasis> attribute since
-				when appending content to the existing file, the adapter no longer
-				uses a temporary file. This attribute defaults to 'false' if not
-				set explicitly.
+				When writing files and the destination file already exists, the
+				default behavior is to overwrite that target file. This behavior,
+				though, can be changed by setting the <emphasis>mode</emphasis>
+				attribute on the respective File Outbound components. The following
+				options exist:
+			</para>
+			<itemizedlist>
+				<listitem>REPLACE (Default)</listitem>
+				<listitem>APPEND</listitem>
+				<listitem>FAIL</listitem>
+				<listitem>IGNORE</listitem>
+			</itemizedlist>
+			<note>
+				The <emphasis>mode</emphasis> attribute and the options
+				<emphasis>APPEND</emphasis>, <emphasis>FAIL</emphasis> and
+				<emphasis>IGNORE</emphasis>, are available since
+				<emphasis>Spring Integration 2.2</emphasis>.
+			</note>
+			<para><emphasis>REPLACE</emphasis></para>
+			<para>
+				If the target file already exists, it will be overwritten. If the
+				<emphasis>mode</emphasis> attribute is not specified, then this
+				is the default behavior when writing files.
+			</para>
+			<para><emphasis>APPEND</emphasis></para>
+			<para>
+				This mode allows you to append Message content to the existing
+				file instead of creating a new file each time. Note that this
+				attribute is mutually exclusive with <emphasis>temporary-file-suffix</emphasis>
+				attribute since when appending content to the existing file, the
+				adapter no longer uses a temporary file.
+			</para>
+			<para><emphasis>FAIL</emphasis></para>
+			<para>
+				If the target file exists, a
+				<ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/MessageHandlingException.html">MessageHandlingException</ulink>
+				is thrown.
+			</para>
+			<para><emphasis>IGNORE</emphasis></para>
+			<para>
+				If the target file exists, the message payload is silently
+				ignored.
 			</para>
 		</section>
 		<section id="file-outbound-channel-adapter">
@@ -280,15 +314,33 @@
 		<section id="file-writing-output-gateway">
 			<title>Outbound Gateway</title>
 			<para>
-				In cases where you want to continue processing messages based on the written File you can use
-				the <code>outbound-gateway</code> instead. It plays a very similar role as the
-				<code>outbound-channel-adapter</code>. However after writing the File, it will also send it
-				to the reply channel as the payload of a Message.
+				In cases where you want to continue processing messages based on
+				the written file, you can use the <code>outbound-gateway</code>
+				instead. It plays a very similar role as the
+				<code>outbound-channel-adapter</code>. However, after writing the
+				file, it will also send it to the reply channel as the payload of
+				a Message.
 			</para>
-			<programlisting language="xml"><![CDATA[ <int-file:outbound-gateway id="mover" request-channel="moveInput"
+			<programlisting language="xml"><![CDATA[<int-file:outbound-gateway id="mover" request-channel="moveInput"
     reply-channel="output"
     directory="${output.directory}"
-    delete-source-files="true"/>]]></programlisting>
+    mode="REPLACE" delete-source-files="true"/>]]></programlisting>
+			<para>
+				As mentioned earlier, you can also specify the <emphasis>mode</emphasis>
+				attribute, which defines the behavior of how to deal with situations
+				where the destination file already exists. Please see
+				<xref linkend="file-writing-destination-exists"/> for further
+				details. Generally, when using the
+				<emphasis>File Outbound Gateway</emphasis>, the result file is
+				returned as the Message payload on the reply channel.
+			</para>
+			<para>
+				This also applies when specifying the <emphasis>IGNORE</emphasis>
+				mode. In that case the pre-existing destination file is returned.
+				If the payload of the request message was a file, you still have
+				access to that original file through the Message Header
+				<emphasis><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileHeaders.html">FileHeaders.ORIGINAL_FILE</ulink></emphasis>.
+			</para>
 			<note>
 				The 'outbound-gateway' works well in cases where you want to first move a file and then send it
 				through a processing pipeline. In such cases, you may connect the file namespace's
@@ -302,8 +354,6 @@
 			</para>
 		</section>
 	</section>
->>>>>>> INT-2618 - Document directory-expression attribute
-
   <section id="file-transforming">
     <title>File Transformers</title>
     <para>

@@ -79,6 +79,26 @@
 				message as a source of parameters.
 			</para>
 		</section>
+		<section id="2.2-file-adapter">
+			<title>File Adapter - Improved File Overwrite/Append Handling</title>
+			<para>
+				When using the <emphasis>File Oubound Channel Adapter</emphasis>
+				or the <emphasis>File Outbound Gateway</emphasis>, a new
+				<emphasis>mode</emphasis> property was added. Prior to
+				<emphasis>Spring Integration 2.2</emphasis>, target files were
+				replaced when they existed. Now you can specify
+				the following options:
+			</para>
+			<itemizedlist>
+				<listitem>REPLACE (Default)</listitem>
+				<listitem>APPEND</listitem>
+				<listitem>FAIL</listitem>
+				<listitem>IGNORE</listitem>
+			</itemizedlist>
+			<para>
+				For more information please see <xref linkend="file-writing-destination-exists"/>.
+			</para>
+		</section>
 		<section id="2.2-tx">
 			<title>Transaction Synchronization</title>
 			<para>

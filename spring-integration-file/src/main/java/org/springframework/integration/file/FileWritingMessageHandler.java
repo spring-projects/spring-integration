@@ -25,7 +25,6 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -35,6 +34,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.DefaultLockRegistry;
@@ -75,7 +75,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile boolean temporaryFileSuffixSet = false;
 
-	private volatile boolean append = false;
+	private volatile FileExistsMode fileExistsMode  = FileExistsMode.REPLACE;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -142,21 +142,31 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.temporaryFileSuffixSet = true;
 	}
 
+
 	/**
-	 * Will set 'append' flag which will let his handler to append data to the
-	 * existing file rather then creating a new file for each Message.
-	 * If 'true' it will also create a real instance of the LockRegistry to ensure
-	 * that there is no collisions when multiple threads are writing to the same file.
-	 * Otherwise the LockRegistry is set to {@link PassThruLockRegistry} which has no effect.
+	 * Will set the {@link FileExistsMode} that specifies what will happen in
+	 * case the destination exists. For example {@link FileExistsMode#APPEND}
+	 * instructs this handler to append data to the existing file rather then
+	 * creating a new file for each {@link Message}.
 	 *
-	 * @param append
+	 * If set to {@link FileExistsMode#APPEND}, the adapter will also
+	 * create a real instance of the {@link LockRegistry} to ensure that there
+	 * is no collisions when multiple threads are writing to the same file.
+	 *
+	 * Otherwise the LockRegistry is set to {@link PassThruLockRegistry} which
+	 * has no effect.
+	 *
+	 * @param fileExistsMode Must not be null
 	 */
-	public void setAppend(boolean append) {
-		this.append = append;
-		if (this.append){
+	public void setFileExistsMode(FileExistsMode fileExistsMode) {
+
+		Assert.notNull(fileExistsMode, "'fileExistsMode' must not be null.");
+		this.fileExistsMode = fileExistsMode;
+
+		if (FileExistsMode.APPEND.equals(fileExistsMode)){
 			this.lockRegistry = this.lockRegistry instanceof PassThruLockRegistry
 					? new DefaultLockRegistry()
-			        : this.lockRegistry;
+					: this.lockRegistry;
 		}
 	}
 
@@ -233,7 +243,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				"Destination path [" + destinationDirectory + "] does not point to a directory.");
 		Assert.isTrue(destinationDirectory.canWrite(),
 				"Destination directory [" + destinationDirectory + "] is not writable.");
-		Assert.state(!(this.temporaryFileSuffixSet && this.append),
+		Assert.state(!(this.temporaryFileSuffixSet
+						&& FileExistsMode.APPEND.equals(this.fileExistsMode)),
 				"'temporaryFileSuffix' can not be set when appending to an existing file");;
 	}
 
@@ -250,25 +261,43 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		File tempFile = new File(destinationDirectoryToUse, generatedFileName + temporaryFileSuffix);
 		File resultFile = new File(destinationDirectoryToUse, generatedFileName);
 
-		try {
-			if (payload instanceof File) {
-				resultFile = this.handleFileMessage((File) payload, tempFile, resultFile);
-			}
-			else if (payload instanceof byte[]) {
-				resultFile = this.handleByteArrayMessage(
-						(byte[]) payload, originalFileFromHeader, tempFile, resultFile);
-			}
-			else if (payload instanceof String) {
-				resultFile = this.handleStringMessage(
-						(String) payload, originalFileFromHeader, tempFile, resultFile);
-			}
-			else {
-				throw new IllegalArgumentException(
-						"unsupported Message payload type [" + payload.getClass().getName() + "]");
-			}
+		if (FileExistsMode.FAIL.equals(this.fileExistsMode) && resultFile.exists()) {
+			throw new MessageHandlingException(requestMessage,
+					"The destination file already exists at '" + resultFile.getAbsolutePath() + "'.");
 		}
-		catch (Exception e) {
-			throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
+
+		final boolean ignore;
+
+		if (FileExistsMode.IGNORE.equals(this.fileExistsMode) && resultFile.exists()) {
+			ignore = true;
+		}
+		else {
+			ignore = false;
+		}
+
+		if (!ignore) {
+
+			try {
+				if (payload instanceof File) {
+					resultFile = this.handleFileMessage((File) payload, tempFile, resultFile);
+				}
+				else if (payload instanceof byte[]) {
+					resultFile = this.handleByteArrayMessage(
+							(byte[]) payload, originalFileFromHeader, tempFile, resultFile);
+				}
+				else if (payload instanceof String) {
+					resultFile = this.handleStringMessage(
+							(String) payload, originalFileFromHeader, tempFile, resultFile);
+				}
+				else {
+					throw new IllegalArgumentException(
+							"unsupported Message payload type [" + payload.getClass().getName() + "]");
+				}
+			}
+			catch (Exception e) {
+				throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
+			}
+
 		}
 
 		if (!this.expectReply) {
@@ -301,9 +330,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
-		if (this.append){
+		if (FileExistsMode.APPEND.equals(this.fileExistsMode)){
 			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-			final FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.append);
+			final FileOutputStream fos = new FileOutputStream(fileToWriteTo, true);
 			final FileInputStream fis = new FileInputStream(sourceFile);
 			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 				@Override
@@ -333,7 +362,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-		final FileOutputStream fos = new FileOutputStream(fileToWriteTo, this.append);
+
+		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode) ? true : false;
+
+		final FileOutputStream fos = new FileOutputStream(fileToWriteTo, append);
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 			@Override
 			protected void whileLocked() throws IOException {
@@ -348,7 +380,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-		final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, this.append), this.charset);
+
+		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode) ? true : false;
+
+		final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset);
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 			@Override
 			protected void whileLocked() throws IOException {
@@ -363,18 +398,27 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File determineFileToWrite(File resultFile, File tempFile){
-		File fileToWriteTo = null;
-		if (this.append){
-			fileToWriteTo  = resultFile;
-		}
-		else {
-			fileToWriteTo  = tempFile;
+
+		final File fileToWriteTo;
+
+		switch (this.fileExistsMode) {
+			case APPEND:
+				fileToWriteTo = resultFile;
+				break;
+			case FAIL:
+			case IGNORE:
+			case REPLACE:
+				fileToWriteTo = tempFile;
+				break;
+			default:
+				throw new IllegalStateException("Unsupported FileExistsMode "
+					+ this.fileExistsMode);
 		}
 		return fileToWriteTo;
 	}
 
 	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException{
-		if (!this.append){
+		if (!FileExistsMode.APPEND.equals(this.fileExistsMode)) {
 			this.renameTo(fileToWriteTo, resultFile);
 		}
 
