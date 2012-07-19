@@ -351,18 +351,47 @@ Only files matching this regular expression will be picked up by this adapter.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="append" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-					If set to 'true', the data will will be appended to the
-					existing file if such file exists, otherwise the new file
-					will be created as usual but once created the subsequent data
-					will be appended to it. This attribute is mutualy exclusive
-					with the 'temporary-file-suffix' since append is done to the
-					actual file and not its temporary counterpart. This attribute
-					defaults to 'false' if not set explicitly.
-					</xsd:documentation>
-				</xsd:annotation>
+		<xsd:attribute name="mode">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					This attribute defaults to 'REPLACE' if not set explicitly.
+
+					The following options are available:
+
+					APPEND:
+
+					If append is specified, the data will be appended
+					to the existing file if such file exists, otherwise the
+					new file will be created as usual but once created the
+					subsequent data will be appended to it. This attribute
+					is mutualy exclusive with the 'temporary-file-suffix'
+					since append is done to the actual file and not its
+					temporary counterpart.
+
+					If set to APPEND, the component will also create a real
+					instance of the LockRegistry to ensure that there are no
+					collisions when multiple threads are writing to the same
+					file.
+
+					FAIL:
+
+					If the target file exists, a MessageHandlingException
+					is thrown.
+
+					IGNORE:
+
+					If the target file exists, the message payload is silently
+					ignored.
+
+					REPLACE:
+
+					This is the default behavior when writing files. If the
+					target file already exists, it will be overwritten.
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="mode xsd:string"/>
+			</xsd:simpleType>
 		</xsd:attribute>
         <xsd:attribute name="delete-source-files" type="xsd:string">
             <xsd:annotation>
@@ -520,5 +549,52 @@ Only files matching this regular expression will be picked up by this adapter.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
+
+	<xsd:simpleType name="mode">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="REPLACE">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						This is the default behavior when writing files. If the
+						target file already exists, it will be overwritten.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="APPEND">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						If append is specified, the data will be appended
+						to the existing file if such file exists, otherwise the
+						new file will be created as usual but once created the
+						subsequent data will be appended to it. This attribute
+						is mutualy exclusive with the 'temporary-file-suffix'
+						since append is done to the actual file and not its
+						temporary counterpart.
+
+						If set to APPEND, the component will also create a real
+						instance of the LockRegistry to ensure that there are no
+						collisions when multiple threads are writing to the same
+						file.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="FAIL">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						If the target file exists, a MessageHandlingException
+						is thrown.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="IGNORE">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						If the target file exists, the message payload is silently
+						ignored.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

@@ -62,7 +62,7 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delete-source-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "temporary-file-suffix");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "append");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "mode", "fileExistsMode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		String remoteFileNameGenerator = element.getAttribute("filename-generator");
 		String remoteFileNameGeneratorExpression = element.getAttribute("filename-generator-expression");
