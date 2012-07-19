@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.handler;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -118,10 +117,9 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	@Override
-	protected Object doInvoke(MethodInvocation invocation) throws Throwable {
-		Message<?> message = (Message<?>) invocation.getArguments()[0];
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
 		try {
-			Object result = invocation.proceed();
+			Object result = callback.execute();
 			if (onSuccessMessageProcessor != null) {
 				evaluateExpression(message, this.onSuccessMessageProcessor, this.successChannel, this.propagateOnSuccessEvaluationFailures);
 			}

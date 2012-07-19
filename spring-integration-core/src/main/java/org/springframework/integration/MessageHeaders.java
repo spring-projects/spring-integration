@@ -164,12 +164,12 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object object) {
+		if (this == object) {
 			return true;
 		}
-		if (obj != null && obj instanceof MessageHeaders) {
-			MessageHeaders other = (MessageHeaders) obj;
+		if (object != null && object instanceof MessageHeaders) {
+			MessageHeaders other = (MessageHeaders) object;
 			return this.headers.equals(other.headers);
 		}
 		return false;

@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 
 /**
@@ -48,8 +48,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 	}
 
 	@Override
-	protected Object doInvoke(MethodInvocation invocation) throws Throwable {
-		Object target = invocation.getThis();
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
 		AdvisedMetadata metadata = this.metadataMap.get(target);
 		if (metadata == null) {
 			this.metadataMap.putIfAbsent(target, new AdvisedMetadata());
@@ -60,7 +59,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 			throw new MessagingException("Circuit Breaker is Open for " + target);
 		}
 		try {
-			Object result = invocation.proceed();
+			Object result = callback.execute();
 			if (logger.isDebugEnabled() && metadata.getFailures().get() > 0) {
 				logger.debug("Closing Circuit Breaker for " + target);
 			}

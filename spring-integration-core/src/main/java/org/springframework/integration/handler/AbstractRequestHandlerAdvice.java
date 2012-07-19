@@ -34,18 +34,32 @@ public abstract class AbstractRequestHandlerAdvice implements MethodInterceptor 
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	public final Object invoke(MethodInvocation invocation) throws Throwable {
+	public final Object invoke(final MethodInvocation invocation) throws Throwable {
 
 		Method method = invocation.getMethod();
+		Object[] arguments = invocation.getArguments();
 		boolean isMessageMethod = (method.getName().equals("handleRequestMessage") || method.getName().equals("handleMessage"))
-				&& (invocation.getArguments().length == 1 && invocation.getArguments()[0] instanceof Message);
+				&& (arguments.length == 1 && arguments[0] instanceof Message);
+
+		final Message<?> message = (Message<?>) arguments[0];
 
 		if (!isMessageMethod) {
 			return invocation.proceed();
 		}
+		else {
+			return doInvoke(new ExecutionCallback(){
 
-		return doInvoke(invocation);
+				public Object execute() throws Throwable {
+					return invocation.proceed();
+				}
+			}, invocation.getThis(), message);
+		}
 	}
 
-	protected abstract Object doInvoke(MethodInvocation invocation) throws Throwable;
+	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable;
+
+	protected interface ExecutionCallback {
+
+		Object execute() throws Throwable;
+	}
 }

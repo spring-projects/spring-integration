@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.handler;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.retry.RecoveryCallback;
@@ -62,16 +61,14 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	}
 
 	@Override
-	protected Object doInvoke(final MethodInvocation invocation) throws Throwable {
+	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) throws Throwable {
 		RetryState retryState = null;
-		Object[] arguments = invocation.getArguments();
-		final Message<?> message = (Message<?>) arguments[0];
 		retryState = this.retryStateGenerator.determineRetryState(message);
 
 		return retryTemplate.execute(new RetryCallback<Object>(){
 			public Object doWithRetry(RetryContext context) throws Exception {
 				try {
-					return invocation.proceed();
+					return callback.execute();
 				}
 				catch (MessagingException e) {
 					if (e.getFailedMessage() == null) {
