@@ -470,9 +470,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 			// TODO: support a JmsReplyTo header in the SI Message?
 			replyTo = this.obtainReplyDestination(session);
-			if (replyTo != null){
-				jmsRequest.setJMSReplyTo(replyTo);
-			}
+
 			connection.start();
 
 			Integer priority = requestMessage.getHeaders().getPriority();
@@ -486,6 +484,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				replyMessage = this.doSendAndReceiveWithTemporaryReplyToDestination(requestDestination, jmsRequest, session, priority);
 			}
 			else {
+				jmsRequest.setJMSReplyTo(replyTo);
 				replyMessage = this.doSendAndReceiveWithNamedReplyToDestination(requestDestination, jmsRequest, replyTo, session, priority);
 			}
 
@@ -518,7 +517,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			messageProducer = session.createProducer(requestDestination);
 
 			if (StringUtils.hasText(this.correlationKey)){
-				return this.doSendWithExplicitCorrelationKey(jmsRequest, messageProducer, messageConsumer, session, tempReplyTo, this.correlationKey);
+				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, tempReplyTo, this.correlationKey);
 			}
 			else {
 
@@ -542,13 +541,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 */
 	private javax.jms.Message doSendAndReceiveWithNamedReplyToDestination(Destination requestDestination,
 			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
-		if (replyTo instanceof Topic && logger.isWarnEnabled()) {
-			logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
-					"because that ID can only be provided to a MessageSelector after the reuqest Message has been sent thereby " +
-					"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
-					"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
-					"will be created before the request Message is sent.");
-		}
+
 		MessageProducer messageProducer = null;
 		MessageConsumer messageConsumer = null;
 
@@ -556,28 +549,32 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			messageProducer = session.createProducer(requestDestination);
 			javax.jms.Message replyMessage = null;
 
-			if (StringUtils.hasText(this.correlationKey)){
+			if (this.optimizeCorrelation || this.correlationKey != null){
+				String correlationKeyToUse =
+						StringUtils.hasText(this.correlationKey) ? this.correlationKey : "JMSCorrelationID";
+
 				if (!this.cachedConsumers){
 					logger.warn("Using optimized-correlation without caching consumers can lead to " +
-							"significant performance degradation. Consider setting setting 'cacheConsumers' attribute to TRUE");
+							"significant performance degradation. Consider using the CachingConnectionFactory " +
+							"with 'cacheConsumers' attribute set to TRUE");
 				}
-				return this.doSendWithExplicitCorrelationKey(jmsRequest, messageProducer, messageConsumer, session, replyTo, this.correlationKey);
-			}
-			else if (this.optimizeCorrelation){
-				if (!this.cachedConsumers){
-					logger.warn("Using optimized-correlation without caching consumers can lead to " +
-							"significant performance degradation. Consider setting setting 'cacheConsumers' attribute to TRUE");
-				}
-				return this.doSendWithExplicitCorrelationKey(jmsRequest, messageProducer, messageConsumer, session, replyTo, "JMSCorrelationID");
+				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, replyTo, correlationKeyToUse);
 			}
 			else {
-				this.sendRequestMessage(jmsRequest, messageProducer, priority);
+				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
+					logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
+							"because that ID can only be provided to a MessageSelector after the request Message has been sent thereby " +
+							"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
+							"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
+							"will be created before the request Message is sent.");
+				}
 				if (this.cachedConsumers){
 					logger.warn("Caching consumers when using non-optimized correlation strategy can lead to " +
 							"significant performance degradation and OutOfMemoryException. Either do not use consumer caching " +
 							"by setting 'cacheConsumers' attribute to FALSE in CachingConnectionFactory or set 'optimizeCorreltion'" +
 							"flag of this gateway to TRUE");
 				}
+				this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
 				String messageId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
 				String messageSelector = "JMSCorrelationID = '" + messageId + "'";
@@ -593,19 +590,21 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
-	private javax.jms.Message doSendWithExplicitCorrelationKey(javax.jms.Message jmsRequest, MessageProducer messageProducer,
+	private javax.jms.Message doActualSendAndReceive(javax.jms.Message jmsRequest, MessageProducer messageProducer,
 			MessageConsumer messageConsumer, Session session, Destination replyTo, String correlationKey) throws JMSException {
+
 		String consumerCorrelationId = gatewayId + "_" + Thread.currentThread().getId();
 		// We must create an artificial ID to correlate Messages on arrival since the
 		// real Message ID will not be known until the Message is sent
 		String messageCorrelationId = String.valueOf(System.currentTimeMillis());
 
 		jmsRequest.setStringProperty(correlationKey, consumerCorrelationId + "$" + messageCorrelationId);
-		this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
 		String messageSelector = correlationKey + " LIKE '" + consumerCorrelationId + "%'";
 
 		messageConsumer = session.createConsumer(replyTo, messageSelector);
+
+		this.sendRequestMessage(jmsRequest, messageProducer, priority);
 		return this.receiveReplyMessageCorrelated(messageConsumer, messageCorrelationId);
 	}
 

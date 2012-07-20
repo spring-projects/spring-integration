@@ -8,7 +8,7 @@
 		<property name="persistent" value="false" />
 		<property name="transportConnectorURIs">
 			<list>
-				<value>tcp://localhost:61616</value>
+				<value>tcp://localhost:61616?broker.persistent=false&amp;broker.useJmx=false</value>
 			</list>
 		</property> 
 		<property name="deleteAllMessagesOnStartup" value="true" />

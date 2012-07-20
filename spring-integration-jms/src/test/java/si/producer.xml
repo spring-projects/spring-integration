@@ -18,7 +18,7 @@
 		class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
-				<property name="brokerURL" value="tcp://localhost:61616"/>
+				<property name="brokerURL" value="tcp://localhost:61616?broker.persistent=false&amp;broker.useJmx=false"/>
 <!-- 				<property name="brokerURL" value="vm://test-broker?broker.persistent=false&amp;broker.useJmx=false"/>		 -->
 			</bean>
 		</property>
