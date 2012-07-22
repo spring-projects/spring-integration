@@ -78,10 +78,11 @@
 	
 	<int:gateway id="correlationPropagatingConsumerWithOptimizationDelayFirstReply" default-request-channel="jmsInE"/>
 
-	<int-jms:outbound-gateway request-channel="jmsInE"
+	<int-jms:outbound-gateway id="fastGateway" request-channel="jmsInE"
 	    connection-factory="connectionFactory" 
 		request-destination="siOutQueueE"
 		reply-destination="siInQueueE"
+		receive-timeout="500"
 		optimize-correlation="true"/>
 		
 	<bean id="siOutQueueE" class="org.apache.activemq.command.ActiveMQQueue">

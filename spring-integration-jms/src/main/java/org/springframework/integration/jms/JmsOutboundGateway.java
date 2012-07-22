@@ -66,9 +66,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private volatile boolean cachedConsumers;
 
-	private final Map<Long, TemporaryQueue> tempQueueHolder = new ConcurrentHashMap<Long, TemporaryQueue>(10);
+	private final Map<Long, TemporaryQueue> tempQueueCache = new ConcurrentHashMap<Long, TemporaryQueue>(10);
 
-	private final Map<Long, MessageConsumer> tempConsumerHolder = new ConcurrentHashMap<Long, MessageConsumer>(1);
+	private final Map<Long, MessageConsumer> tempQueueConsumerCache = new ConcurrentHashMap<Long, MessageConsumer>(10);
+
+	private final Map<Long, Session> sessionCache = new ConcurrentHashMap<Long, Session>(10);
 
 	private volatile boolean optimizeCorrelation;
 
@@ -373,6 +375,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
+	public void destroy() throws Exception {
+		for (MessageConsumer mc : this.tempQueueConsumerCache.values()) {
+			JmsUtils.closeMessageConsumer(mc);
+		}
+		for (TemporaryQueue tq : this.tempQueueCache.values()) {
+			this.deleteDestinationIfTemporary(tq);
+		}
+	}
+
 	@Override
 	protected Object handleRequestMessage(final Message<?> message) {
 		if (!this.initialized) {
@@ -404,6 +415,33 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		catch (JMSException e) {
 			throw new MessageHandlingException(requestMessage, e);
+		}
+	}
+
+	/**
+	 * Create a new JMS Connection for this JMS gateway.
+	 */
+	protected Connection createConnection() throws JMSException {
+		return this.connectionFactory.createConnection();
+	}
+
+	/**
+	 * Create a new JMS Session using the provided Connection.
+	 */
+	protected Session createSession(Connection connection) throws JMSException {
+		if (this.cachedConsumers){// implies Session caching since consumers are cached by Session object
+			long currentThreadId = Thread.currentThread().getId();
+			if (this.sessionCache.containsKey(currentThreadId)){
+				return this.sessionCache.get(currentThreadId);
+			}
+			else {
+				Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+				this.sessionCache.put(currentThreadId, session);
+				return session;
+			}
+		}
+		else {
+			return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		}
 	}
 
@@ -484,7 +522,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				replyMessage = this.doSendAndReceiveWithTemporaryReplyToDestination(requestDestination, jmsRequest, session, priority);
 			}
 			else {
-				jmsRequest.setJMSReplyTo(replyTo);
 				replyMessage = this.doSendAndReceiveWithNamedReplyToDestination(requestDestination, jmsRequest, replyTo, session, priority);
 			}
 
@@ -502,11 +539,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private javax.jms.Message doSendAndReceiveWithTemporaryReplyToDestination(Destination requestDestination,
 			javax.jms.Message jmsRequest, Session session, int priority) throws JMSException {
 		long threadId = Thread.currentThread().getId();
-		TemporaryQueue tempReplyTo = this.tempQueueHolder.get(threadId);
+		TemporaryQueue tempReplyTo = this.tempQueueCache.get(threadId);
 
 		if (tempReplyTo == null){
 			tempReplyTo = session.createTemporaryQueue();
-			this.tempQueueHolder.put(threadId, tempReplyTo);
+			this.tempQueueCache.put(threadId, tempReplyTo);
 		}
 		jmsRequest.setJMSReplyTo(tempReplyTo);
 
@@ -517,14 +554,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			messageProducer = session.createProducer(requestDestination);
 
 			if (StringUtils.hasText(this.correlationKey)){
-				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, tempReplyTo, this.correlationKey);
+				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, tempReplyTo, this.correlationKey, priority);
 			}
 			else {
 
-				messageConsumer = this.tempConsumerHolder.get(threadId);
+				messageConsumer = this.tempQueueConsumerCache.get(threadId);
 				if (messageConsumer == null){
 					messageConsumer = session.createConsumer(tempReplyTo);
-					this.tempConsumerHolder.put(threadId, messageConsumer);
+					this.tempQueueConsumerCache.put(threadId, messageConsumer);
 				}
 				this.sendRequestMessage(jmsRequest, messageProducer, priority);
 				String messageId = jmsRequest.getJMSMessageID();
@@ -547,6 +584,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		try {
 			messageProducer = session.createProducer(requestDestination);
+			jmsRequest.setJMSReplyTo(replyTo);
+
 			javax.jms.Message replyMessage = null;
 
 			if (this.optimizeCorrelation || this.correlationKey != null){
@@ -558,7 +597,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 							"significant performance degradation. Consider using the CachingConnectionFactory " +
 							"with 'cacheConsumers' attribute set to TRUE");
 				}
-				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, replyTo, correlationKeyToUse);
+				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, replyTo, correlationKeyToUse, priority);
 			}
 			else {
 				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
@@ -570,7 +609,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				}
 				if (this.cachedConsumers){
 					logger.warn("Caching consumers when using non-optimized correlation strategy can lead to " +
-							"significant performance degradation and OutOfMemoryException. Either do not use consumer caching " +
+							"significant performance degradation and OutOfMemoryError. Either do not use consumer caching " +
 							"by setting 'cacheConsumers' attribute to FALSE in CachingConnectionFactory or set 'optimizeCorreltion'" +
 							"flag of this gateway to TRUE");
 				}
@@ -591,7 +630,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	private javax.jms.Message doActualSendAndReceive(javax.jms.Message jmsRequest, MessageProducer messageProducer,
-			MessageConsumer messageConsumer, Session session, Destination replyTo, String correlationKey) throws JMSException {
+			MessageConsumer messageConsumer, Session session, Destination replyTo, String correlationKey, int priority) throws JMSException {
 
 		String consumerCorrelationId = gatewayId + "_" + Thread.currentThread().getId();
 		// We must create an artificial ID to correlate Messages on arrival since the
@@ -612,7 +651,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		javax.jms.Message replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
 
-		if (replyMessage != null){
+		while (replyMessage != null){
 			String jmsCorrelationId = replyMessage.getJMSCorrelationID();
 
 			if (StringUtils.hasText(jmsCorrelationId)){
@@ -622,18 +661,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					return replyMessage;
 				}
 				else {
-					// Essentialy we are discarding the uncorrelated message here and moving on to the next one since we can no longer
-					// communicate with its originating producer for one of two reasons
-					//
-					// A. Original producer resulted in the exception before it was able to receive a reply
-					// B. Original producer timed out waiting for the reply
-					return this.receiveReplyMessageCorrelated(messageConsumer, messageCorrelationIdToMatch);
+					// Essentialy we are discarding the uncorrelated message here and moving on to
+					// the next one since we can no longer communicate with its originating producer
+					// since its already timed out waiting for the reply
+					replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
 				}
 			}
 			else {
 				return replyMessage;
 			}
 		}
+
 		return null;
 	}
 
@@ -662,29 +700,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		catch (JMSException e) {
 			// ignore
-		}
-	}
-
-	/**
-	 * Create a new JMS Connection for this JMS gateway.
-	 */
-	protected Connection createConnection() throws JMSException {
-		return this.connectionFactory.createConnection();
-	}
-
-	/**
-	 * Create a new JMS Session using the provided Connection.
-	 */
-	protected Session createSession(Connection connection) throws JMSException {
-		return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	}
-
-	public void destroy() throws Exception {
-		for (MessageConsumer mc : this.tempConsumerHolder.values()) {
-			JmsUtils.closeMessageConsumer(mc);
-		}
-		for (TemporaryQueue tq : this.tempQueueHolder.values()) {
-			this.deleteDestinationIfTemporary(tq);
 		}
 	}
 }
