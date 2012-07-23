@@ -26,7 +26,11 @@
 		directory-expression="'build/foo'"
 		auto-startup="false"
 		order="777"
-		filename-generator-expression="'foo.txt'"/>
+		filename-generator-expression="'foo.txt'">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.file.config.FileOutboundGatewayParserTests$FooAdvice" />
+		</request-handler-advice-chain>
+	</outbound-gateway>
 
 	<context:property-placeholder />
 

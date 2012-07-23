@@ -41,12 +41,11 @@ public abstract class AbstractRequestHandlerAdvice implements MethodInterceptor 
 		boolean isMessageMethod = (method.getName().equals("handleRequestMessage") || method.getName().equals("handleMessage"))
 				&& (arguments.length == 1 && arguments[0] instanceof Message);
 
-		final Message<?> message = (Message<?>) arguments[0];
-
 		if (!isMessageMethod) {
 			return invocation.proceed();
 		}
 		else {
+			Message<?> message = (Message<?>) arguments[0];
 			return doInvoke(new ExecutionCallback(){
 
 				public Object execute() throws Throwable {

@@ -41,7 +41,11 @@
 		command-options="-P"
 		expression="payload"
 		order="2"
-		/>
+		>
+		<int-ftp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ftp.config.FtpOutboundGatewayParserTests$FooAdvice" />
+		</int-ftp:request-handler-advice-chain>
+	</int-ftp:outbound-gateway>
 
 	<int:channel id="outbound"/>
 

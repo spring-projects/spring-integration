@@ -25,7 +25,6 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -204,6 +203,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	@Override
 	public final void onInit() {
+
+		super.onInit();
 
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 

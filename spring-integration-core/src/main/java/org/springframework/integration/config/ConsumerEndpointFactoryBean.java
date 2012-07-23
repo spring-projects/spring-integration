@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,15 @@
  */
 package org.springframework.integration.config;
 
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -38,6 +43,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -56,13 +62,13 @@ public class ConsumerEndpointFactoryBean
 	private volatile String inputChannelName;
 
 	private volatile PollerMetadata pollerMetadata;
-	
+
 	private volatile boolean autoStartup = true;
 
 	private volatile MessageChannel inputChannel;
 
 	private volatile ConfigurableBeanFactory beanFactory;
-	
+
 	private volatile ClassLoader beanClassLoader;
 
 	private volatile AbstractEndpoint endpoint;
@@ -74,6 +80,8 @@ public class ConsumerEndpointFactoryBean
 	private final Object handlerMonitor = new Object();
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private volatile List<Advice> adviceChain;
 
 	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
@@ -94,7 +102,7 @@ public class ConsumerEndpointFactoryBean
 	public void setPollerMetadata(PollerMetadata pollerMetadata) {
 		this.pollerMetadata = pollerMetadata;
 	}
-	
+
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
 	}
@@ -110,6 +118,10 @@ public class ConsumerEndpointFactoryBean
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.isInstanceOf(ConfigurableBeanFactory.class, beanFactory, "a ConfigurableBeanFactory is required");
 		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
+	}
+
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
 	}
 
 	public void afterPropertiesSet() throws Exception {
@@ -130,6 +142,30 @@ public class ConsumerEndpointFactoryBean
 			if (logger.isDebugEnabled()) {
 				logger.debug("Could not set component name for handler "
 						+ this.handler + " for " + this.beanName + " :" + e.getMessage());
+			}
+		}
+		if (this.adviceChain != null) {
+			List<Advice> adviceChain = this.adviceChain;
+			if (!CollectionUtils.isEmpty(adviceChain)) {
+				if (AopUtils.isAopProxy(this.handler)) {
+					Class<?> targetClass = AopUtils.getTargetClass(this.handler);
+					for (Advice advice : adviceChain) {
+						NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
+						handlerAdvice.addMethodName("handleMessage");
+						if (AopUtils.canApply(handlerAdvice.getPointcut(), targetClass)) {
+							if (this.handler instanceof Advised) {
+								((Advised) this.handler).addAdvice(advice);
+							}
+						}
+					}
+				}
+				else {
+					ProxyFactory proxyFactory = new ProxyFactory(this.handler);
+					for (Advice advice : adviceChain) {
+						proxyFactory.addAdvice(advice);
+					}
+					this.handler = (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
+				}
 			}
 		}
 		this.initializeEndpoint();
@@ -184,9 +220,9 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
 				pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
 				pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
-				
+
 				pollingConsumer.setErrorHandler(this.pollerMetadata.getErrorHandler());
-				
+
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
 				pollingConsumer.setBeanClassLoader(beanClassLoader);
 				pollingConsumer.setBeanFactory(beanFactory);

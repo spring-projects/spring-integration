@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -26,6 +24,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Base class for outbound Channel Adapter parsers.
@@ -34,7 +33,7 @@ import org.springframework.util.xml.DomUtils;
  * an {@link org.springframework.integration.endpoint.AbstractEndpoint} depending on the channel type.
  * If this component is defined as nested element (e.g., inside of the chain) it will produce
  * a {@link org.springframework.integration.core.MessageHandler}.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
@@ -58,6 +57,10 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		}
 		builder.addPropertyValue("inputChannelName", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
+				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, null,
+				builder, parserContext);
 		return builder.getBeanDefinition();
 	}
 
