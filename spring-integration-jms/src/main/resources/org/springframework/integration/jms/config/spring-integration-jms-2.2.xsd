@@ -942,7 +942,7 @@
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 		Will use optimization around correlating reply Messages. Default is 'FALSE' for
-		backward compatibility where the consumer of this gatewy's request message may be a simple MessageListener 
+		backward compatibility where the consumer of this gateway's request message may be a simple MessageListener 
 		that follows the standard practice of copying  the 'messageId' of the consumed Message to the 'correlationId' of 
 		the newly produced reply message, thus forcing this gateway to have a MessageConsumer with selector per sent message 
 		to ensure it receives the correct reply. However most MOMs (including Spring Integration's Inbound Gateway) 

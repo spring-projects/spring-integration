@@ -15,25 +15,73 @@
  */
 package org.springframework.integration.jms.request_reply;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 /**
  * @author Oleg Zhurakousky
  */
 public class RequestReplyScenariosWithCorrelationKeyProvidedTests {
 
+	private final SimpleMessageConverter converter = new SimpleMessageConverter();
+
 	@Test
-	public void messageCorrelationBasedOnRequestMessageId() throws Exception{
+	public void messageCorrelationBasedCustomCorrelationKey() throws Exception{
 		ActiveMqTestUtils.prepare();
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
-		RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
+		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGateway", RequestReplyExchanger.class);
 
 		gateway.exchange(MessageBuilder.withPayload("foo").build());
 		context.close();
+	}
+
+	@Test
+	public void messageCorrelationBasedCustomCorrelationKeyAsJMSCorrelationID() throws Exception{
+		ActiveMqTestUtils.prepare();
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
+		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGatewayB", RequestReplyExchanger.class);
+
+		gateway.exchange(MessageBuilder.withPayload("foo").build());
+		context.close();
+	}
+
+	@Test
+	public void messageCorrelationBasedCustomCorrelationKeyDelayedReplies() throws Exception{
+		ActiveMqTestUtils.prepare();
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("explicit-correlation-key.xml", this.getClass());
+		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGatewayC", RequestReplyExchanger.class);
+
+
+		for (int i = 0; i < 10; i++) {
+			try {
+				gateway.exchange(MessageBuilder.withPayload("hello").build());
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+
+		JmsOutboundGateway outGateway = TestUtils.getPropertyValue(context.getBean("outGateway"), "handler", JmsOutboundGateway.class);
+		outGateway.setReceiveTimeout(5000);
+		assertEquals("foo", gateway.exchange(MessageBuilder.withPayload("foo").build()).getPayload());
+		context.close();
+	}
+
+
+	public static class DelayedService {
+		public String echo(String s) throws Exception{
+			Thread.sleep(2000);
+			return s;
+		}
 	}
 }

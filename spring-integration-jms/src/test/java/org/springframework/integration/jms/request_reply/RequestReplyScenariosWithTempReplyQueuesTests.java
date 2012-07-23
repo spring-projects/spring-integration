@@ -138,6 +138,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests {
 		try {
 			assertEquals("bar", gateway.exchange(new GenericMessage<String>("bar")).getPayload());
 		} catch (Exception e) {
+			e.printStackTrace();
 			fail();
 		}
 	}
