@@ -245,7 +245,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				"Destination directory [" + destinationDirectory + "] is not writable.");
 		Assert.state(!(this.temporaryFileSuffixSet
 						&& FileExistsMode.APPEND.equals(this.fileExistsMode)),
-				"'temporaryFileSuffix' can not be set when appending to an existing file");;
+				"'temporaryFileSuffix' can not be set when appending to an existing file");
 	}
 
 	@Override
@@ -266,14 +266,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					"The destination file already exists at '" + resultFile.getAbsolutePath() + "'.");
 		}
 
-		final boolean ignore;
-
-		if (FileExistsMode.IGNORE.equals(this.fileExistsMode) && resultFile.exists()) {
-			ignore = true;
-		}
-		else {
-			ignore = false;
-		}
+		final boolean ignore = FileExistsMode.IGNORE.equals(this.fileExistsMode) && resultFile.exists();
 
 		if (!ignore) {
 
@@ -363,7 +356,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
-		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode) ? true : false;
+		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
 		final FileOutputStream fos = new FileOutputStream(fileToWriteTo, append);
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
@@ -381,7 +374,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile) throws IOException {
 		File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
-		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode) ? true : false;
+		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
 		final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset);
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){

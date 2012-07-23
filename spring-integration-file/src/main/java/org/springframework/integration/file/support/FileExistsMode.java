@@ -15,9 +15,6 @@
  */
 package org.springframework.integration.file.support;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -62,7 +59,7 @@ public enum FileExistsMode {
 
 		Assert.hasText(fileExistsModeAsString, "'fileExistsModeAsString' must neither be null nor empty.");
 
-		final List<FileExistsMode> fileExistsModeValues = Arrays.asList(FileExistsMode.values());
+		final FileExistsMode[] fileExistsModeValues = FileExistsMode.values();
 
 		for (FileExistsMode fileExistsMode : fileExistsModeValues) {
 			if (fileExistsModeAsString.equalsIgnoreCase(fileExistsMode.name())) {
@@ -72,7 +69,7 @@ public enum FileExistsMode {
 
 		throw new IllegalArgumentException("Invalid fileExistsMode '" + fileExistsModeAsString
 				+ "'. The (case-insensitive) supported values are: "
-				+ StringUtils.collectionToCommaDelimitedString(fileExistsModeValues));
+				+ StringUtils.arrayToCommaDelimitedString(fileExistsModeValues));
 
 	}
 
