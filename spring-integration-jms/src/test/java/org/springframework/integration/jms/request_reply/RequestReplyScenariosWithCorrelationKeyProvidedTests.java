@@ -25,13 +25,10 @@ import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.jms.support.converter.SimpleMessageConverter;
 /**
  * @author Oleg Zhurakousky
  */
 public class RequestReplyScenariosWithCorrelationKeyProvidedTests {
-
-	private final SimpleMessageConverter converter = new SimpleMessageConverter();
 
 	@Test
 	public void messageCorrelationBasedCustomCorrelationKey() throws Exception{
@@ -63,7 +60,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests {
 		RequestReplyExchanger gateway = context.getBean("explicitCorrelationKeyGatewayC", RequestReplyExchanger.class);
 
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 3; i++) {
 			try {
 				gateway.exchange(MessageBuilder.withPayload("hello").build());
 			} catch (Exception e) {
@@ -80,7 +77,7 @@ public class RequestReplyScenariosWithCorrelationKeyProvidedTests {
 
 	public static class DelayedService {
 		public String echo(String s) throws Exception{
-			Thread.sleep(2000);
+			Thread.sleep(200);
 			return s;
 		}
 	}

@@ -187,7 +187,7 @@ public class RequestReplyScenariosWithCachedConsumersTests {
 		final Destination requestDestination = context.getBean("siOutQueueE", Destination.class);
 		final Destination replyDestination = context.getBean("siInQueueE", Destination.class);
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 3; i++) {
 			System.out.println("#### " + i);
 			try {
 				gateway.exchange(gateway.exchange(new GenericMessage<String>("foo")));

@@ -56,7 +56,7 @@
 		reply-destination-name="explicitCorrelationJmsInC"
 		correlation-key="foo"
 		optimize-correlation="true"
-		receive-timeout="1000"/>
+		receive-timeout="100"/>
 		
 	<bean id="explicitCorrelationJmsOutC" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="explicitCorrelationJmsOutC"/>

@@ -150,16 +150,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
-	 * Will use optimization around correlating reply Messages. Default is 'FALSE' for
+	 * Will use optimizations when correlating reply Messages. Default is 'FALSE' for
 	 * backward compatibility where the consumer of this gateway's request message may be
 	 * a simple MessageListener that follows the standard practice of copying  the 'messageId'
 	 * of the consumed Message to the 'correlationId' of the newly produced reply message,
-	 * thus forcing this gateway to have a MessageConsumer with selector per sent message
+	 * thus forcing this gateway to have a MessageConsumer with selector for each sent message
 	 * to ensure it receives the correct reply. However most MOMs (including Spring Integration's Inbound Gateway)
 	 * will also propagate the 'correlationId' of the consumed request message into the
 	 * 'correlationId' of the newly produced reply message. If that is the case
-	 * (e.g., using SI with a pair of outbound -&gt; inbound gateway) then this attribute should
-	 * always be set to TRUE together with 'cacheConsumers' property of
+	 * (e.g., using SI with a pair of outbound -&gt; inbound gateways) then this attribute should
+	 * always be set to TRUE together with the 'cacheConsumers' property of
 	 * the {@link CachingConnectionFactory} to achieve optimal performance.
 	 * @param optimizeCorrelation
 	 */
@@ -554,7 +554,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			messageProducer = session.createProducer(requestDestination);
 
 			if (StringUtils.hasText(this.correlationKey)){
-				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, tempReplyTo, this.correlationKey, priority);
+				return this.doActualSendAndReceive(jmsRequest, messageProducer, session, tempReplyTo, this.correlationKey, priority);
 			}
 			else {
 
@@ -597,7 +597,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 							"significant performance degradation. Consider using the CachingConnectionFactory " +
 							"with 'cacheConsumers' attribute set to TRUE");
 				}
-				return this.doActualSendAndReceive(jmsRequest, messageProducer, messageConsumer, session, replyTo, correlationKeyToUse, priority);
+				return this.doActualSendAndReceive(jmsRequest, messageProducer, session, replyTo, correlationKeyToUse, priority);
 			}
 			else {
 				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
@@ -630,7 +630,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	private javax.jms.Message doActualSendAndReceive(javax.jms.Message jmsRequest, MessageProducer messageProducer,
-			MessageConsumer messageConsumer, Session session, Destination replyTo, String correlationKey, int priority) throws JMSException {
+			Session session, Destination replyTo, String correlationKey, int priority) throws JMSException {
 
 		String consumerCorrelationId = gatewayId + "_" + Thread.currentThread().getId();
 		// We must create an artificial ID to correlate Messages on arrival since the
@@ -646,17 +646,25 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		String messageSelector = correlationKey + " LIKE '" + consumerCorrelationId + "%'";
 
-		messageConsumer = session.createConsumer(replyTo, messageSelector);
+		MessageConsumer messageConsumer = null;
 
-		this.sendRequestMessage(jmsRequest, messageProducer, priority);
-		return this.receiveReplyMessageCorrelated(messageConsumer, messageCorrelationId, correlationKey);
+		try {
+			messageConsumer = session.createConsumer(replyTo, messageSelector);
+			this.sendRequestMessage(jmsRequest, messageProducer, priority);
+			return this.receiveReplyMessageCorrelated(messageConsumer, messageCorrelationId, correlationKey);
+		}
+		finally  {
+			JmsUtils.closeMessageConsumer(messageConsumer);
+		}
 	}
 
 	private javax.jms.Message receiveReplyMessageCorrelated(MessageConsumer messageConsumer,
 			String messageCorrelationIdToMatch, String correlationKey) throws JMSException {
 
+		long timeout = this.receiveTimeout;
+		long startTime = System.currentTimeMillis();
 		javax.jms.Message replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
-
+		long elapsedTime = System.currentTimeMillis() - startTime;
 		while (replyMessage != null){
 
 			String jmsCorrelationId = null;
@@ -676,8 +684,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				else {
 					// Essentially we are discarding the uncorrelated message here and moving on to
 					// the next one since we can no longer communicate with its originating producer
-					// since its already timed out waiting for the reply
-					replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
+					// since it has already timed out waiting for the reply. We are also honoring the original timeout
+					if (timeout > 0){
+						timeout = timeout - elapsedTime;
+						replyMessage = messageConsumer.receive(timeout);
+					}
+					else {
+						return null;
+					}
 				}
 			}
 			else {
