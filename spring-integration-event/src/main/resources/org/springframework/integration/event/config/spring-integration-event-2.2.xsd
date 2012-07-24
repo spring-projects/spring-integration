@@ -81,9 +81,10 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:all>
+			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-			</xsd:all>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>

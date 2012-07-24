@@ -18,6 +18,17 @@
 						  remote-channel="testChannel"
 						  host="localhost"/>
 
+	<channel id="advisedChannel"/>
+
+	<rmi:outbound-gateway id="advised"
+						  request-channel="advisedChannel"
+						  remote-channel="testChannel"
+						  host="localhost">
+		<rmi:request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests$FooAdvice" />
+		</rmi:request-handler-advice-chain>
+	</rmi:outbound-gateway>
+
 	<chain input-channel="rmiOutboundGatewayInsideChain">
 		<rmi:outbound-gateway remote-channel="testChannel" host="localhost"/>
 	</chain>

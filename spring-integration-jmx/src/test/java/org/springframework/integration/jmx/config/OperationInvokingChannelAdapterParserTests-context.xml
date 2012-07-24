@@ -18,7 +18,11 @@
 
 	<jmx:operation-invoking-channel-adapter id="input"
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
-			operation-name="test"/>
+			operation-name="test">
+		<jmx:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jmx.config.OperationInvokingChannelAdapterParserTests$FooADvice" />
+		</jmx:request-handler-advice-chain>
+	</jmx:operation-invoking-channel-adapter>
 
 	<jmx:operation-invoking-channel-adapter id="operationWithNonNullReturn"
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"

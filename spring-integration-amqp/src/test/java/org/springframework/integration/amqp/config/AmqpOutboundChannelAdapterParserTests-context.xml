@@ -9,7 +9,11 @@
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<amqp:outbound-channel-adapter id="rabbitOutbound" exchange-name="outboundchanneladapter.test.1"/>
+	<amqp:outbound-channel-adapter id="rabbitOutbound" exchange-name="outboundchanneladapter.test.1">
+		<amqp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.amqp.config.AmqpOutboundChannelAdapterParserTests$FooAdvice" />
+		</amqp:request-handler-advice-chain>
+	</amqp:outbound-channel-adapter>
 
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 

@@ -314,8 +314,17 @@ public abstract class IntegrationNamespaceUtils {
 		return handlerAlias;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "rawtypes" })
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
+			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
+		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBuilder, parserContext);
+		if (adviceChain.size() > 0) {
+			parentBuilder.addPropertyValue("adviceChain", adviceChain);
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
 			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
 		ManagedList adviceChain = new ManagedList();
 		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
@@ -351,9 +360,7 @@ public abstract class IntegrationNamespaceUtils {
 				}
 			}
 		}
-		if (adviceChain.size() > 0) {
-			parentBuilder.addPropertyValue("adviceChain", adviceChain);
-		}
+		return adviceChain;
 	}
 
 }

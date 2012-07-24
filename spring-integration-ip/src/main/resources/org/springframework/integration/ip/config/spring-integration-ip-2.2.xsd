@@ -84,6 +84,9 @@ message headers (ip_hostName). Default "true".
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="udpAdapterType">
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="host" type="xsd:string" />
 					<xsd:attribute name="acknowledge" type="xsd:string" />
 					<xsd:attribute name="ack-host" type="xsd:string" />
@@ -176,6 +179,9 @@ task executors such as a WorkManagerTaskExecutor.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="smartLifeCycleType">
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="id" type="xsd:string"/>
 					<xsd:attribute name="connection-factory" type="xsd:string">
 						<xsd:annotation>
@@ -298,6 +304,9 @@ task executors such as a WorkManagerTaskExecutor.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="smartLifeCycleType">
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="id" type="xsd:string"/>
 					<xsd:attribute name="connection-factory" type="xsd:string">
 						<xsd:annotation>

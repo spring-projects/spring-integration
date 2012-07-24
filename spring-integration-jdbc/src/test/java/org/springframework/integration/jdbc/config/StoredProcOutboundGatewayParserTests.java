@@ -30,10 +30,15 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
@@ -41,6 +46,7 @@ import org.springframework.jdbc.core.SqlParameter;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  *
  */
@@ -49,6 +55,8 @@ public class StoredProcOutboundGatewayParserTests {
 	private ConfigurableApplicationContext context;
 
 	private EventDrivenConsumer outboundGateway;
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testProcedureNameIsSet() throws Exception {
@@ -206,6 +214,15 @@ public class StoredProcOutboundGatewayParserTests {
 
 	}
 
+	@Test
+	public void advised() throws Exception {
+		setUp("advisedStoredProcOutboundGatewayParserTest.xml", getClass());
+
+		MessageHandler handler = TestUtils.getPropertyValue(this.outboundGateway, "handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
 	@After
 	public void tearDown(){
 		if(context != null){
@@ -218,4 +235,13 @@ public class StoredProcOutboundGatewayParserTests {
 		 this.outboundGateway   = this.context.getBean("storedProcedureOutboundGateway", EventDrivenConsumer.class);
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

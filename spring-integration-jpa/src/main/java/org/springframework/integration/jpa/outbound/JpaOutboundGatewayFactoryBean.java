@@ -39,19 +39,34 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
 public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHandler> {
 
-	private final JpaExecutor   jpaExecutor;
+	private final JpaExecutor jpaExecutor;
+
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
 
+	/**
+	 * &lt;transactional /&gt; element applies to entire flow from this point
+	 */
+	private volatile List<Advice> txAdviceChain;
+
+	/**
+	 * &lt;request-handler-advice-chain /&gt; only applies to the handleRequestMessage.
+	 */
 	private volatile List<Advice> adviceChain;
+
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
 	private boolean producesReply = true;
+
 	private MessageChannel outputChannel;
+
 	private int order;
+
 	private long replyTimeout;
 
 	/**
@@ -69,34 +84,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		this.gatewayType = gatewayType;
 	}
 
-	@Override
-	public Class<?> getObjectType() {
-		return MessageHandler.class;
-	}
-
-	@Override
-	protected MessageHandler createInstance() {
-
-		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(jpaExecutor);
-		jpaOutboundGateway.setGatewayType(this.gatewayType);
-		jpaOutboundGateway.setProducesReply(this.producesReply);
-		jpaOutboundGateway.setOutputChannel(this.outputChannel);
-		jpaOutboundGateway.setOrder(this.order);
-		jpaOutboundGateway.setSendTimeout(replyTimeout);
-
-		if (!CollectionUtils.isEmpty(this.adviceChain)) {
-
-			ProxyFactory proxyFactory = new ProxyFactory(jpaOutboundGateway);
-			if (!CollectionUtils.isEmpty(adviceChain)) {
-				for (Advice advice : adviceChain) {
-					proxyFactory.addAdvice(advice);
-				}
-			}
-
-			return (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
-		}
-
-		return jpaOutboundGateway;
+	public void setTxAdviceChain(List<Advice> txAdviceChain) {
+		this.txAdviceChain = txAdviceChain;
 	}
 
 	public void setAdviceChain(List<Advice> adviceChain) {
@@ -125,7 +114,38 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	public void setReplyTimeout(long replyTimeout) {
 		this.replyTimeout = replyTimeout;
 	}
+	@Override
+	public Class<?> getObjectType() {
+		return MessageHandler.class;
+	}
 
+	@Override
+	protected MessageHandler createInstance() {
 
+		JpaOutboundGateway jpaOutboundGateway = new JpaOutboundGateway(jpaExecutor);
+		jpaOutboundGateway.setGatewayType(this.gatewayType);
+		jpaOutboundGateway.setProducesReply(this.producesReply);
+		jpaOutboundGateway.setOutputChannel(this.outputChannel);
+		jpaOutboundGateway.setOrder(this.order);
+		jpaOutboundGateway.setSendTimeout(replyTimeout);
+		if (this.adviceChain != null) {
+			jpaOutboundGateway.setAdviceChain(this.adviceChain);
+		}
+		jpaOutboundGateway.afterPropertiesSet();
+
+		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
+
+			ProxyFactory proxyFactory = new ProxyFactory(jpaOutboundGateway);
+			if (!CollectionUtils.isEmpty(txAdviceChain)) {
+				for (Advice advice : txAdviceChain) {
+					proxyFactory.addAdvice(advice);
+				}
+			}
+
+			return (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
+		}
+
+		return jpaOutboundGateway;
+	}
 
 }

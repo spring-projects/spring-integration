@@ -77,10 +77,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
-		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
-				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
-		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, null,
-				handlerBuilder, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "order");
 		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
@@ -95,6 +91,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			return handlerBeanDefinition;
 		}
 
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
+				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, null,
+				handlerBuilder, parserContext);
+
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 
 		String handlerBeanName = BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
@@ -102,6 +103,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName, handlerAlias));
 
 		builder.addPropertyReference("handler", handlerBeanName);
+
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)){

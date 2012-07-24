@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2012 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -28,6 +28,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -45,11 +46,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class JdbcMessageHandlerParserTests {
 
 	private JdbcTemplate jdbcTemplate;
-	
+
 	private MessageChannel channel;
-	
+
 	private ConfigurableApplicationContext context;
-	
+
+	private static volatile int adviceCalled;
+
 	@Test
 	public void testSimpleOutboundChannelAdapter(){
 		setUp("handlingWithJdbcOperationsJdbcOutboundChannelAdapterTest.xml", getClass());
@@ -60,6 +63,7 @@ public class JdbcMessageHandlerParserTests {
 		assertEquals("Wrong id", "foo", map.get("name"));
 		JdbcMessageHandler handler = context.getBean(JdbcMessageHandler.class);
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -103,7 +107,7 @@ public class JdbcMessageHandlerParserTests {
 		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
 		assertEquals("Wrong name", "bar", map.get("name"));
 	}
-	
+
 	@Test
 	public void testOutboundAdapterWithPoller() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundAdapterWithPollerTest-context.xml", this.getClass());
@@ -132,11 +136,20 @@ public class JdbcMessageHandlerParserTests {
 			context.close();
 		}
 	}
-	
+
 	public void setUp(String name, Class<?> cls){
 		context = new ClassPathXmlApplicationContext(name, cls);
 		jdbcTemplate = new JdbcTemplate(this.context.getBean("dataSource",DataSource.class));
 		channel = this.context.getBean("target", MessageChannel.class);
 	}
-	
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

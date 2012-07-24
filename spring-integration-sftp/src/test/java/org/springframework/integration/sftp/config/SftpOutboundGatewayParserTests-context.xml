@@ -43,6 +43,24 @@
 		order="2"
 		/>
 
+	<int-sftp:outbound-gateway id="advised"
+		local-directory="/tmp"
+		session-factory="sf"
+		request-channel="inbound2"
+		reply-channel="outbound"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		cache-sessions="true"
+		remote-file-separator="X"
+		command="get"
+		command-options="-P"
+		expression="payload"
+		order="2">
+		<int-sftp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.sftp.config.SftpOutboundGatewayParserTests$FooAdvice" />
+		</int-sftp:request-handler-advice-chain>
+	</int-sftp:outbound-gateway>
+
 	<int:channel id="outbound"/>
 
 </beans>

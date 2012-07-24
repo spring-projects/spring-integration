@@ -27,7 +27,11 @@
 	<jmx:operation-invoking-outbound-gateway request-channel="withReplyChannel"
 			reply-channel="withReplyChannelOutput"
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
-			operation-name="testWithReturn"/>
+			operation-name="testWithReturn">
+		<jmx:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jmx.config.OperationInvokingOutboundGatewayTests$FooADvice" />
+		</jmx:request-handler-advice-chain>
+	</jmx:operation-invoking-outbound-gateway>
 
 	<si:chain input-channel="jmxOutboundGatewayInsideChain" output-channel="withReplyChannelOutput">
 		<jmx:operation-invoking-outbound-gateway operation-name="testWithReturn"

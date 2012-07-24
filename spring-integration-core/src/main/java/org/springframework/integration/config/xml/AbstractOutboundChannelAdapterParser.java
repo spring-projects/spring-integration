@@ -16,12 +16,15 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -47,7 +50,8 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		}
 		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		builder.addPropertyReference("handler", this.parseAndRegisterConsumer(element, parserContext));
+		BeanComponentDefinition handlerBeanDefinition = this.doParseAndRegisterConsumer(element, parserContext);
+		builder.addPropertyReference("handler", handlerBeanDefinition.getBeanName());
 		if (pollerElement != null) {
 			if (!StringUtils.hasText(channelName)) {
 				parserContext.getReaderContext().error(
@@ -57,10 +61,36 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		}
 		builder.addPropertyValue("inputChannelName", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
-		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, null,
+		@SuppressWarnings("rawtypes")
+		ManagedList adviceChain = IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, null,
 				builder, parserContext);
+		if (adviceChain.size() > 0) {
+			/*
+			 * For ARPMH, the advice chain is injected so just the handleRequestMessage method is advised.
+			 * Sometime ARPMHs do double duty as a gateway and channel adapter.
+			 */
+			Class<?> beanClass = null;
+			BeanDefinition beanDefinition = handlerBeanDefinition.getBeanDefinition();
+			if (beanDefinition instanceof AbstractBeanDefinition) {
+				AbstractBeanDefinition abstractBeanDefinition = (AbstractBeanDefinition) beanDefinition;
+				if (abstractBeanDefinition.hasBeanClass()) {
+					beanClass = abstractBeanDefinition.getBeanClass();
+				}
+			}
+
+			boolean isReplyProducer = this.isUsingReplyProducer();
+			isReplyProducer |= beanClass != null && AbstractReplyProducingMessageHandler.class.isAssignableFrom(beanClass);
+			if (isReplyProducer) {
+				beanDefinition.getPropertyValues().add("adviceChain", adviceChain);
+			}
+			else {
+				builder.addPropertyValue("adviceChain", adviceChain);
+			}
+		}
+
 		return builder.getBeanDefinition();
 	}
 
@@ -68,8 +98,19 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	 * Override this method to control the registration process and return the bean name.
 	 * If parsing a bean definition whose name can be auto-generated, consider using
 	 * {@link #parseConsumer(Element, ParserContext)} instead.
+	 * @deprecated Use {@link #doParseAndRegisterConsumer(Element, ParserContext)}
 	 */
+	@Deprecated
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
+		return doParseAndRegisterConsumer(element, parserContext).getBeanName();
+	}
+
+	/**
+	 * Override this method to control the registration process and return the bean name.
+	 * If parsing a bean definition whose name can be auto-generated, consider using
+	 * {@link #parseConsumer(Element, ParserContext)} instead.
+	 */
+	protected BeanComponentDefinition doParseAndRegisterConsumer(Element element, ParserContext parserContext) {
 		AbstractBeanDefinition definition = this.parseConsumer(element, parserContext);
 		if (definition == null) {
 			parserContext.getReaderContext().error("Consumer parsing must return an AbstractBeanDefinition.", element);
@@ -80,8 +121,9 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		}
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry());
 		String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(definition, beanName, handlerAlias));
-		return beanName;
+		BeanComponentDefinition beanComponentDefinition = new BeanComponentDefinition(definition, beanName, handlerAlias);
+		parserContext.registerBeanComponent(beanComponentDefinition);
+		return beanComponentDefinition;
 	}
 
 	/**
@@ -89,5 +131,14 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	 * be registered with a generated name.
 	 */
 	protected abstract AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext);
+
+	/**
+	 * Override this to signal that this channel adapter is actually using a AbstractReplyProducingMessageHandler
+	 * while it is not possible for this parser to determine that because, say, a FactoryBean is being used.
+	 * @return false, unless overridden.
+	 */
+	protected boolean isUsingReplyProducer() {
+		return false;
+	}
 
 }

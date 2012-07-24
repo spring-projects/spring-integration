@@ -27,19 +27,21 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -49,6 +51,8 @@ import org.springframework.integration.test.util.TestUtils;
  * @author David Turanski
  */
 public class OutboundChannelAdapterParserTests {
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testOutboundChannelAdapterWithId(){
@@ -117,6 +121,16 @@ public class OutboundChannelAdapterParserTests {
 		assertFalse((Boolean)TestUtils.getPropertyValue(handler,"useTemporaryFileName"));
 	}
 
+	@Test
+	public void advised(){
+		ApplicationContext context =
+				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
+		Object consumer = context.getBean("advised");
+		MessageHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithRemoteDirAndExpression(){
 		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
@@ -126,6 +140,16 @@ public class OutboundChannelAdapterParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithFileExpressionAndFileGenerator(){
 		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail-fileFileGen.xml", this.getClass());
+
+	}
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
 
 	}
 }

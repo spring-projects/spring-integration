@@ -159,6 +159,9 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="outbound-twitter-type">
+		<xsd:all>
+			<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+		</xsd:all>
 		<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="twitter-template" use="required" type="xsd:string">
 				<xsd:annotation>

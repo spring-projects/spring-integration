@@ -26,4 +26,37 @@
 		<int-jpa:parameter  name="updatedDateTime" expression="new java.util.Date()"/>
 	</int-jpa:outbound-channel-adapter>
 
+	<int-jpa:outbound-channel-adapter id="advised"
+			entity-manager="entityManager"
+			auto-startup="true"
+			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+			jpa-query="from Student"
+			persist-mode="PERSIST"
+			order="1"
+			channel="target">
+		<int-jpa:parameter  name="firstName"   value="kenny"  type="java.lang.String"/>
+		<int-jpa:parameter  name="firstaName"  value="cartman"/>
+		<int-jpa:parameter  name="updatedDateTime" expression="new java.util.Date()"/>
+		<int-jpa:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jpa.config.xml.JpaMessageHandlerParserTests$FooAdvice" />
+		</int-jpa:request-handler-advice-chain>
+	</int-jpa:outbound-channel-adapter>
+
+	<int-jpa:outbound-channel-adapter id="advisedAndTransactional"
+			entity-manager="entityManager"
+			auto-startup="true"
+			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+			jpa-query="from Student"
+			persist-mode="PERSIST"
+			order="1"
+			channel="target">
+		<int-jpa:transactional />
+		<int-jpa:parameter  name="firstName"   value="kenny"  type="java.lang.String"/>
+		<int-jpa:parameter  name="firstaName"  value="cartman"/>
+		<int-jpa:parameter  name="updatedDateTime" expression="new java.util.Date()"/>
+		<int-jpa:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jpa.config.xml.JpaMessageHandlerParserTests$FooAdvice" />
+		</int-jpa:request-handler-advice-chain>
+	</int-jpa:outbound-channel-adapter>
+
 </beans>

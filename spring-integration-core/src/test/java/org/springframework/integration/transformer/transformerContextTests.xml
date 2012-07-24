@@ -13,7 +13,11 @@
 		<queue capacity="50"/>
 	</channel>
 
-	<transformer input-channel="input" ref="testBean" method="upperCase" output-channel="output"/>
+	<transformer input-channel="input" ref="testBean" method="upperCase" output-channel="output">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.transformer.TransformerContextTests$FooAdvice" />
+		</request-handler-advice-chain>
+	</transformer>
 
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.TestBean"/>
 

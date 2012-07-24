@@ -40,6 +40,12 @@
 
 	<outbound-channel-adapter id="withUrlExpression" url-expression="'http://localhost/test1'" channel="requests"/>
 
+	<outbound-channel-adapter id="withAdvice" url-expression="'http://localhost/test1'" channel="requests">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.http.config.HttpOutboundChannelAdapterParserTests$FooAdvice" />
+		</request-handler-advice-chain>
+	</outbound-channel-adapter>
+
 	<outbound-channel-adapter id="withUrlExpressionAndTemplate"
 		url-expression="'http://localhost/test1'" channel="requests"
 		rest-template="customRestTemplate"/>

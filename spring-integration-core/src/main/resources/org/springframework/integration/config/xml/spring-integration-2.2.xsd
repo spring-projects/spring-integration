@@ -1124,6 +1124,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="request-channel" type="xsd:string" use="optional">
 			<xsd:annotation>

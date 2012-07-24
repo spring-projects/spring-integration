@@ -11,6 +11,14 @@
 
 	<int-event:outbound-channel-adapter id="eventAdapter" channel="input"/>
 
+	<int:channel id="inputAdvice"/>
+
+	<int-event:outbound-channel-adapter id="withAdvice" channel="inputAdvice">
+		<int-event:request-handler-advice-chain>
+			<bean class="org.springframework.integration.event.config.EventOutboundChannelAdapterParserTests$FooAdvice" />
+		</int-event:request-handler-advice-chain>
+	</int-event:outbound-channel-adapter>
+
 	<int:chain input-channel="inputChain">
 		<int:transformer expression="payload + 'bar'"/>
 		<int-event:outbound-channel-adapter/>

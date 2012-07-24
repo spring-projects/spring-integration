@@ -41,6 +41,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -145,26 +146,29 @@ public class ConsumerEndpointFactoryBean
 			}
 		}
 		if (this.adviceChain != null) {
-			List<Advice> adviceChain = this.adviceChain;
-			if (!CollectionUtils.isEmpty(adviceChain)) {
-				if (AopUtils.isAopProxy(this.handler)) {
-					Class<?> targetClass = AopUtils.getTargetClass(this.handler);
-					for (Advice advice : adviceChain) {
-						NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
-						handlerAdvice.addMethodName("handleMessage");
-						if (AopUtils.canApply(handlerAdvice.getPointcut(), targetClass)) {
-							if (this.handler instanceof Advised) {
-								((Advised) this.handler).addAdvice(advice);
+			// ARPMHs advise the handleRequesMessage method internally and have the advice chain injected
+			if (!(this.handler instanceof AbstractReplyProducingMessageHandler)) {
+				List<Advice> adviceChain = this.adviceChain;
+				if (!CollectionUtils.isEmpty(adviceChain)) {
+					if (AopUtils.isAopProxy(this.handler)) {
+						Class<?> targetClass = AopUtils.getTargetClass(this.handler);
+						for (Advice advice : adviceChain) {
+							NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(advice);
+							handlerAdvice.addMethodName("handleMessage");
+							if (AopUtils.canApply(handlerAdvice.getPointcut(), targetClass)) {
+								if (this.handler instanceof Advised) {
+									((Advised) this.handler).addAdvice(advice);
+								}
 							}
 						}
 					}
-				}
-				else {
-					ProxyFactory proxyFactory = new ProxyFactory(this.handler);
-					for (Advice advice : adviceChain) {
-						proxyFactory.addAdvice(advice);
+					else {
+						ProxyFactory proxyFactory = new ProxyFactory(this.handler);
+						for (Advice advice : adviceChain) {
+							proxyFactory.addAdvice(advice);
+						}
+						this.handler = (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
 					}
-					this.handler = (MessageHandler) proxyFactory.getProxy(this.beanClassLoader);
 				}
 			}
 		}
