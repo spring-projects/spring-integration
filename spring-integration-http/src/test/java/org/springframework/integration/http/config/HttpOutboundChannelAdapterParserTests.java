@@ -28,7 +28,6 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,8 +40,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -52,6 +55,7 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -75,12 +79,16 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Autowired @Qualifier("withUrlExpression")
 	private AbstractEndpoint withUrlExpression;
 
+	@Autowired @Qualifier("withAdvice")
+	private AbstractEndpoint withAdvice;
+
 	@Autowired @Qualifier("withUrlExpressionAndTemplate")
 	private AbstractEndpoint withUrlExpressionAndTemplate;
 
 	@Autowired
 	private ApplicationContext applicationContext;
 
+	private static volatile int adviceCalled;
 
 	@Test
 	public void minimalConfig() {
@@ -202,6 +210,13 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	public void withAdvice() {
+		MessageHandler handler = TestUtils.getPropertyValue(this.withAdvice, "handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
+	@Test
 	public void withUrlExpressionAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpressionAndTemplate);
 		RestTemplate restTemplate =
@@ -239,4 +254,13 @@ public class HttpOutboundChannelAdapterParserTests {
 		}
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

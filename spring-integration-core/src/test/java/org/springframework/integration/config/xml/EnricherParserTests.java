@@ -35,6 +35,7 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ContentEnricher;
@@ -44,7 +45,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
- * 
+ * @author Gary Russell
+ *
  * @since 2.1
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -54,6 +56,7 @@ public class EnricherParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	private static volatile int adviceCalled;
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -84,13 +87,14 @@ public class EnricherParserTests {
 				throw new IllegalStateException("expected 'name', 'age', and 'gender' only, not: " + e.getKey().getExpressionString());
 			}
 		}
+
 	}
 
 	@Test
 	public void configurationCheckTimeoutParameters() {
-		
+
 		Object endpoint = context.getBean("enricher");
-		
+
 		Long requestTimeout = TestUtils.getPropertyValue(endpoint, "handler.requestTimeout", Long.class);
 		Long replyTimeout   = TestUtils.getPropertyValue(endpoint, "handler.replyTimeout", Long.class);
 
@@ -98,18 +102,18 @@ public class EnricherParserTests {
 		assertEquals(Long.valueOf(9876L), replyTimeout);
 
 	}
-	
+
 	@Test
 	public void configurationCheckRequiresReply() {
-		
+
 		Object endpoint = context.getBean("enricher");
-		
+
 		boolean requiresReply = TestUtils.getPropertyValue(endpoint, "handler.requiresReply", Boolean.class);
 
 		assertTrue("Was expecting requiresReply to be 'false'", requiresReply);
 
 	}
-	
+
 	@Test
 	public void integrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
@@ -128,6 +132,7 @@ public class EnricherParserTests {
 		assertEquals(42, enriched.getAge());
 		assertEquals("male", enriched.getGender());
 		assertNotSame(original, enriched);
+		assertEquals(1, adviceCalled);
 	}
 
 	private static class Source {
@@ -176,6 +181,7 @@ public class EnricherParserTests {
 			this.gender = gender;
 		}
 
+		@Override
 		public Object clone() {
 			Target copy = new Target();
 			copy.setName(this.name);
@@ -184,4 +190,13 @@ public class EnricherParserTests {
 		}
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

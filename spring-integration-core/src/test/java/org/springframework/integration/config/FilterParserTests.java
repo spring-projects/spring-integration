@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
@@ -30,6 +29,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -69,13 +69,16 @@ public class FilterParserTests {
 	@Autowired @Qualifier("discardAndExceptionOutput")
 	PollableChannel discardAndExceptionOutput;
 
+	private static volatile int adviceCalled;
 
 	@Test
 	public void filterWithSelectorAdapterAccepts() {
+		adviceCalled = 0;
 		adapterInput.send(new GenericMessage<String>("test"));
 		Message<?> reply = adapterOutput.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -156,4 +159,13 @@ public class FilterParserTests {
 		}
 	}
 
+	public static class FooFilter extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

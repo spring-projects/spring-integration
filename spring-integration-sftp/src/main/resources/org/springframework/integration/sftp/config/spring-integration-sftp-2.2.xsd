@@ -21,7 +21,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="base-sftp-adapter-type">
-
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="remote-directory-expression"
 						type="xsd:string">
 						<xsd:annotation>
@@ -271,7 +273,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="base-adapter-type">
-
+					<xsd:all>
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="command" use="required" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>

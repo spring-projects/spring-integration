@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
 
 /**
  * An outbound Messaging Gateway for request/reply JMS.
- * 
+ *
  * @author Mark Fisher
  * @author Arjen Poutsma
  * @author Juergen Hoeller
@@ -182,7 +182,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * Specify whether the request destination is a Topic. This value is
 	 * necessary when providing a destination name for a Topic rather than
 	 * a destination reference.
-	 * 
+	 *
 	 * @param requestPubSubDomain true if the request destination is a Topic
 	 */
 	public void setRequestPubSubDomain(boolean requestPubSubDomain) {
@@ -193,7 +193,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * Specify whether the reply destination is a Topic. This value is
 	 * necessary when providing a destination name for a Topic rather than
 	 * a destination reference.
-	 * 
+	 *
 	 * @param replyPubSubDomain true if the reply destination is a Topic
 	 */
 	public void setReplyPubSubDomain(boolean replyPubSubDomain) {
@@ -275,8 +275,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * This property describes how a JMS Message should be generated from the 
-	 * Spring Integration Message. If set to 'true', the body of the JMS Message will be 
+	 * This property describes how a JMS Message should be generated from the
+	 * Spring Integration Message. If set to 'true', the body of the JMS Message will be
 	 * created from the Spring Integration Message's payload (via the MessageConverter).
 	 * If set to 'false', then the entire Spring Integration Message will serve as
 	 * the base for JMS Message creation. Since the JMS Message is created by the
@@ -284,7 +284,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * the entire Spring Integration Message or only its payload.
 	 * <br>
 	 * Default is 'true'
-	 * 
+	 *
 	 * @param extractRequestPayload
 	 */
 	public void setExtractRequestPayload(boolean extractRequestPayload) {
@@ -297,7 +297,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * created from the JMS Reply Message's body (via MessageConverter).
 	 * Otherwise, the entire JMS Message will become the payload of the
 	 * Spring Integration Message.
-	 * 
+	 *
 	 * @param extractReplyPayload
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
@@ -312,6 +312,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.setOutputChannel(replyChannel);
 	}
 
+	@Override
 	public String getComponentType() {
 		return "jms:outbound-gateway";
 	}
@@ -369,6 +370,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 					^ this.requestDestinationName != null
 					^ this.requestDestinationExpressionProcessor != null,
 					"Exactly one of 'requestDestination', 'requestDestinationName', or 'requestDestinationExpression' is required.");
+			super.onInit();
 			if (this.requestDestinationExpressionProcessor != null) {
 				this.requestDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
 				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());
@@ -516,7 +518,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 					"because that ID can only be provided to a MessageSelector after the reuqest Message has been sent thereby " +
 					"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
 					"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
-					"will be created before the request Message is sent."); 
+					"will be created before the request Message is sent.");
 		}
 		MessageProducer messageProducer = null;
 		MessageConsumer messageConsumer = null;
@@ -554,7 +556,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	private void deleteDestinationIfTemporary(Destination destination) {
 		try {
-			if (destination instanceof TemporaryQueue) { 
+			if (destination instanceof TemporaryQueue) {
 				((TemporaryQueue) destination).delete();
 			}
 			else if (destination instanceof TemporaryTopic) {

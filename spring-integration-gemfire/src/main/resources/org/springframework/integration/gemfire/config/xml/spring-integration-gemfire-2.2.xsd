@@ -132,7 +132,7 @@
 					writes Message to a Gemfire cache
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element name="cache-entries" type="beans:mapType"
 					minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
@@ -142,7 +142,8 @@
 					</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
-			</xsd:sequence>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
 
 

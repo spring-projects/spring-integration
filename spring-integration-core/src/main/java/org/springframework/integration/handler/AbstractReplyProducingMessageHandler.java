@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 package org.springframework.integration.handler;
 
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -26,6 +31,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
@@ -33,14 +40,23 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
-public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler implements MessageProducer {
+public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler
+		implements MessageProducer, BeanClassLoaderAware {
 
 	private MessageChannel outputChannel;
 
 	private volatile boolean requiresReply = false;
 
 	private final MessagingTemplate messagingTemplate;
+
+	private volatile RequestHandler advisedRequestHandler;
+
+	private volatile List<Advice> adviceChain;
+
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
 
 
 	public AbstractReplyProducingMessageHandler() {
@@ -82,10 +98,31 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		return this.messagingTemplate;
 	}
 
+
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
+	}
+
+
+	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		this.beanClassLoader = beanClassLoader;
+	}
+
+
 	@Override
 	protected void onInit() {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
+		}
+		if (this.adviceChain != null) {
+			List<Advice> adviceChain = this.adviceChain;
+			if (!CollectionUtils.isEmpty(adviceChain)) {
+				ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
+				for (Advice advice : adviceChain) {
+					proxyFactory.addAdvice(advice);
+				}
+				this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
+			}
 		}
 	}
 
@@ -94,7 +131,13 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	@Override
 	protected final void handleMessageInternal(Message<?> message) {
-		Object result = this.handleRequestMessage(message);
+		Object result;
+		if (this.advisedRequestHandler == null) {
+			result = this.handleRequestMessage(message);
+		}
+		else {
+			result = this.advisedRequestHandler.handleRequestMessage(message);
+		}
 		if (result != null) {
 			MessageHeaders requestHeaders = message.getHeaders();
 			this.handleResult(result, requestHeaders);
@@ -149,7 +192,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * 'outputChannel' is <code>null</code>. In that case, the header value must not also be
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
 	 * @param replyMessage the reply Message to send
-	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request 
+	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request
 	 */
 	private final void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
 		if (logger.isDebugEnabled()) {
@@ -206,5 +249,27 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * points. If the return value is null, the Message flow will end here.
 	 */
 	protected abstract Object handleRequestMessage(Message<?> requestMessage);
+
+
+	private interface RequestHandler {
+
+		Object handleRequestMessage(Message<?> requestMessage);
+
+		String toString();
+	}
+
+	private class AdvisedRequestHandler implements RequestHandler {
+
+		public Object handleRequestMessage(Message<?> requestMessage) {
+			return AbstractReplyProducingMessageHandler.this.handleRequestMessage(requestMessage);
+		}
+
+		@Override
+		public String toString() {
+			return AbstractReplyProducingMessageHandler.this.toString();
+		}
+
+
+	}
 
 }

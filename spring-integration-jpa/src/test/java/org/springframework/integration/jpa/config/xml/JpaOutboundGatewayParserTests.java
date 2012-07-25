@@ -20,18 +20,22 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.outbound.JpaOutboundGateway;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.integration.jpa.support.PersistMode;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gunnar Hillert
  * @author Amol Nayak
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -40,6 +44,8 @@ public class JpaOutboundGatewayParserTests {
 	private ConfigurableApplicationContext context;
 
 	private EventDrivenConsumer consumer;
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParser() throws Exception {
@@ -127,6 +133,16 @@ public class JpaOutboundGatewayParserTests {
 	}
 
 	@Test
+	public void advised() throws Exception {
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "updatingJpaOutboundGateway");
+
+		EventDrivenConsumer consumer = this.context.getBean("advised", EventDrivenConsumer.class);
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(consumer, "handler", JpaOutboundGateway.class);
+		jpaOutboundGateway.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
+	@Test
 	public void testJpaExecutorBeanIdNaming() throws Exception {
 
 		this.context = new ClassPathXmlApplicationContext("JpaOutboundGatewayParserTests.xml", getClass());
@@ -148,4 +164,13 @@ public class JpaOutboundGatewayParserTests {
 		consumer   = this.context.getBean(gatewayId, EventDrivenConsumer.class);
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

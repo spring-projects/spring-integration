@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import javax.jms.DeliveryMode;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -41,9 +40,11 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.support.converter.MessageConverter;
 
@@ -51,9 +52,12 @@ import org.springframework.jms.support.converter.MessageConverter;
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class JmsOutboundGatewayParserTests {
-	
+
+	private static volatile int adviceCalled;
+
 	@Test
 	public void testWithDeliveryPersistentAttribute(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -64,6 +68,16 @@ public class JmsOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(gateway);
 		int deliveryMode = (Integer)accessor.getPropertyValue("deliveryMode");
 		assertEquals(DeliveryMode.PERSISTENT, deliveryMode);
+	}
+
+	@Test
+	public void testAdvised(){
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("advised");
+		JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler", JmsOutboundGateway.class);
+		gateway.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -88,7 +102,7 @@ public class JmsOutboundGatewayParserTests {
 		Object order = accessor.getPropertyValue("order");
 		assertEquals(99, order);
 	}
-	
+
 	@Test
 	public void gatewayMaintainsReplyChannelAndInboundHistory() {
 		ActiveMqTestUtils.prepare();
@@ -96,7 +110,7 @@ public class JmsOutboundGatewayParserTests {
 				"gatewayMaintainsReplyChannel.xml", this.getClass());
 		SampleGateway gateway = context.getBean("gateway", SampleGateway.class);
 		SubscribableChannel jmsInput = context.getBean("jmsInput", SubscribableChannel.class);
-		MessageHandler handler = new MessageHandler() {	
+		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageHistory history = MessageHistory.read(message);
 				assertNotNull(history);
@@ -139,11 +153,20 @@ public class JmsOutboundGatewayParserTests {
 	public static interface SampleGateway{
 		public String echo(String value);
 	}
-	
+
 	public static class SampleService{
 		public String echo(String value){
 			return value.toUpperCase();
 		}
 	}
-	
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

@@ -29,6 +29,20 @@
 	
 	<twitter:outbound-channel-adapter twitter-template="twitter" channel="inputChannel" />
    
+	<twitter:dm-outbound-channel-adapter id="dmAdvised" order="23"
+										 twitter-template="twitter" 
+								         channel="inputChannel">
+		<twitter:request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.twitter.config.TestSendingMessageHandlerParserTests$FooAdvice" />
+		</twitter:request-handler-advice-chain>
+	</twitter:dm-outbound-channel-adapter>
+	
+	<twitter:outbound-channel-adapter id="advised" twitter-template="twitter" channel="inputChannel">
+		<twitter:request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.twitter.config.TestSendingMessageHandlerParserTests$FooAdvice" />
+		</twitter:request-handler-advice-chain>
+	</twitter:outbound-channel-adapter>
+   
 </beans:beans>
 
 

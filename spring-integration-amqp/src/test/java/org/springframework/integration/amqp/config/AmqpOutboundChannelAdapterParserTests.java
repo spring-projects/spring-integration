@@ -20,12 +20,13 @@ import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -48,10 +49,12 @@ import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.MessageHandlerChain;
+import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -72,6 +75,8 @@ import com.rabbitmq.client.Channel;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AmqpOutboundChannelAdapterParserTests {
 
+	private static volatile int adviceCalled;
+
 	@Autowired
 	private ApplicationContext context;
 
@@ -82,16 +87,18 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertEquals(DirectChannel.class, channel.getClass());
 		assertEquals(EventDrivenConsumer.class, adapter.getClass());
 		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
-		assertEquals(AmqpOutboundEndpoint.class, handler.getClass());
-		assertEquals("amqp:outbound-channel-adapter", ((AmqpOutboundEndpoint) handler).getComponentType());
+		assertTrue(handler instanceof NamedComponent);
+		assertEquals("amqp:outbound-channel-adapter", ((NamedComponent) handler).getComponentType());
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
 	}
-	
+
 	@Test
 	public void withHeaderMapperCustomHeaders() {
 		Object eventDrivenConsumer = context.getBean("withHeaderMapperCustomHeaders");
-		
+
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler", AmqpOutboundEndpoint.class);
-		
+
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
@@ -110,8 +117,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
 				 Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
-		
-		
+
+
 		MessageChannel requestChannel = context.getBean("requestChannel", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").setHeader("bar", "bar").setHeader("foobar", "foobar").build();
 		requestChannel.send(message);
@@ -213,5 +220,15 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertEquals("anExchange", returned.getHeaders().get(AmqpHeaders.RETURN_EXCHANGE));
 		assertEquals("bar", returned.getHeaders().get(AmqpHeaders.RETURN_ROUTING_KEY));
 		assertEquals("hello", returned.getPayload());
+	}
+
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+			adviceCalled++;
+			return null;
+		}
+
 	}
 }

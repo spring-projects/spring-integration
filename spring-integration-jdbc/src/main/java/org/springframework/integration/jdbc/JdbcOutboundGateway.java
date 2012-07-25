@@ -106,6 +106,7 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	@Override
 	protected void onInit() {
+		super.onInit();
 
 		if (this.maxRowsPerPoll != null) {
 			Assert.notNull(poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");

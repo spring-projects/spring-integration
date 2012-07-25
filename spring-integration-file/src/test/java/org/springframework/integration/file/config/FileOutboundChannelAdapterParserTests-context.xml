@@ -47,20 +47,24 @@
 	<file:outbound-channel-adapter id="usageChannel"
 	                               filename-generator-expression="'fileToAppend.txt'"
 	                               append="true"
-								   directory="test"/>
-								   
+								   directory="test">
+		<file:request-handler-advice-chain>
+			<bean class="org.springframework.integration.file.config.FileOutboundChannelAdapterParserTests$FooAdvice" />
+		</file:request-handler-advice-chain>
+	</file:outbound-channel-adapter>
+
 	<si:channel id="usageChannelConcurrent">
 		<si:dispatcher task-executor="executor"/>
-	</si:channel>							   
+	</si:channel>
 	<file:outbound-channel-adapter channel="usageChannelConcurrent"
 	                               filename-generator-expression="'fileToAppendConcurrent.txt'"
 	                               append="true"
 								   directory="test"/>
-								   
+
 	<bean id="customFileNameGenerator" class="org.springframework.integration.file.config.CustomFileNameGenerator"/>
 
 	<context:property-placeholder/>
-	
+
 	<task:executor id="executor" pool-size="100"/>
 
 </beans>
