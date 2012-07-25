@@ -119,24 +119,6 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-<!-- The following two attributes should be added once configurable on the RedisMessageListenerContainer -->
-<!-- 		<xsd:attribute name="auto-startup" type="xsd:string"> -->
-<!-- 			<xsd:annotation> -->
-<!-- 				<xsd:documentation><![CDATA[ -->
-<!-- 	Boolean value indicating whether this channel's listener container should start automatically. -->
-<!-- 				]]></xsd:documentation> -->
-<!-- 			</xsd:annotation> -->
-<!-- 		</xsd:attribute> -->
-<!-- 		<xsd:attribute name="phase" type="xsd:string"> -->
-<!-- 			<xsd:annotation> -->
-<!-- 				<xsd:documentation><![CDATA[ -->
-<!-- 	The lifecycle phase within which this channel's listener container should start and stop. -->
-<!-- 	The lower the value the earlier this container will start and the later it will stop. The -->
-<!-- 	default is Integer.MAX_VALUE meaning the container will start as late as possible -->
-<!-- 	and stop as soon as possible. -->
-<!-- 				]]></xsd:documentation> -->
-<!-- 			</xsd:annotation> -->
-<!-- 		</xsd:attribute> -->
 		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
 	</xsd:complexType>
 
@@ -262,6 +244,43 @@
 		</xsd:complexType>
 	</xsd:element>
 	
+	<xsd:element name="list-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines Redis inbound channel adapter that creates a Message with the values of
+	a Redis List identified by a key-expression. 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisCollectionInboundAdapterType"/>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="zset-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines Redis inbound channel adapter that creates a Message with the values of
+	a Redis Sorted Set identified by a key-expression.
+	It also allows you to provide a score-range for the Sorted Set
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisCollectionInboundAdapterType">
+					<xsd:attribute name="score-range" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Score range for the Redis Sorted Set (Zset)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
 	<xsd:complexType name="redisAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -279,6 +298,48 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="redisCollectionInboundAdapterType">
+		<xsd:complexContent>
+				<xsd:extension base="redisAdapterType">
+				    <xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Channel to which Messages will be sent. 
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="key-expression" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+			SpEL expression which returns the name of the key for the collection being used. If you want to provide a 
+			literal string value enclose it in the single quotes (e.g., 'foo')
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="error-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+			Channel to which Error Messages will be sent.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 	</xsd:complexType>
 
 </xsd:schema>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
+
+	<int-redis:zset-inbound-channel-adapter id="zsetAdapterNoScore"
+											connection-factory="redisConnectionFactory" 
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false">
+		<int:poller fixed-rate="2000" max-messages-per-poll="2"/>
+	</int-redis:zset-inbound-channel-adapter>
+	
+	<int-redis:zset-inbound-channel-adapter id="zsetAdapterWithScoreRange"
+											connection-factory="redisConnectionFactory" 
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false"
+											score-range="18 - 20">
+		<int:poller fixed-rate="2000" max-messages-per-poll="2"/>
+	</int-redis:zset-inbound-channel-adapter>
+	
+	<int-redis:zset-inbound-channel-adapter id="zsetAdapterWithSingleScore"
+											connection-factory="redisConnectionFactory" 
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false"
+											score-range="18">
+		<int:poller fixed-rate="2000" max-messages-per-poll="2"/>
+	</int-redis:zset-inbound-channel-adapter>
+	
+	<int-redis:zset-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
+											connection-factory="redisConnectionFactory" 
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false"
+											score-range="18">
+		<int:poller fixed-rate="2000" max-messages-per-poll="2">
+			<int:psuedo-transactional on-success-expression="#resource.removeRangeByScore(18, 18)"/>
+		</int:poller>
+	</int-redis:zset-inbound-channel-adapter>
+	
+	
+	<int:channel id="redisChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="7379"/>
+	</bean>
+
+</beans>

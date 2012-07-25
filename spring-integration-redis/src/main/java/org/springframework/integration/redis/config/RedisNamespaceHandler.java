@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  *  Namespace handler for Spring Integration's 'redis' namespace.
- *  
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  */
@@ -28,6 +28,8 @@ public class RedisNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 	public void init() {
 		registerBeanDefinitionParser("publish-subscribe-channel", new RedisChannelParser());
 		registerBeanDefinitionParser("inbound-channel-adapter", new RedisInboundChannelAdapterParser());
+		registerBeanDefinitionParser("list-inbound-channel-adapter", new RedisCollectionsInboundChannelAdapterParser());
+		registerBeanDefinitionParser("zset-inbound-channel-adapter", new RedisCollectionsInboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new RedisOutboundChannelAdapterParser());
 	}
 

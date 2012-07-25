@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.util;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.BeanResolver;
@@ -26,6 +29,7 @@ import org.springframework.expression.spel.support.StandardTypeConverter;
  * SpEL expressions.
  *
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 2.2
  *
  */
@@ -82,5 +86,20 @@ public class ExpressionUtils {
 			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
 		return evaluationContext;
+	}
+
+	/**
+	 * Creates {@link BeanFactoryResolver}, extracts {@link ConversionService} and delegates to
+	 * {@link #createStandardEvaluationContext(BeanResolver, ConversionService)}
+	 *
+	 * @param beanFactory
+	 * @return
+	 */
+	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
+		ConversionService conversionService = null;
+		if (beanFactory instanceof ConfigurableListableBeanFactory){
+			conversionService = ((ConfigurableListableBeanFactory)beanFactory).getConversionService();
+		}
+		return createStandardEvaluationContext(new BeanFactoryResolver(beanFactory), conversionService);
 	}
 }
