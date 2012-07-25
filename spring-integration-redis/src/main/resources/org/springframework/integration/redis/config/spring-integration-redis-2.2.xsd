@@ -119,24 +119,6 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-<!-- The following two attributes should be added once configurable on the RedisMessageListenerContainer -->
-<!-- 		<xsd:attribute name="auto-startup" type="xsd:string"> -->
-<!-- 			<xsd:annotation> -->
-<!-- 				<xsd:documentation><![CDATA[ -->
-<!-- 	Boolean value indicating whether this channel's listener container should start automatically. -->
-<!-- 				]]></xsd:documentation> -->
-<!-- 			</xsd:annotation> -->
-<!-- 		</xsd:attribute> -->
-<!-- 		<xsd:attribute name="phase" type="xsd:string"> -->
-<!-- 			<xsd:annotation> -->
-<!-- 				<xsd:documentation><![CDATA[ -->
-<!-- 	The lifecycle phase within which this channel's listener container should start and stop. -->
-<!-- 	The lower the value the earlier this container will start and the later it will stop. The -->
-<!-- 	default is Integer.MAX_VALUE meaning the container will start as late as possible -->
-<!-- 	and stop as soon as possible. -->
-<!-- 				]]></xsd:documentation> -->
-<!-- 			</xsd:annotation> -->
-<!-- 		</xsd:attribute> -->
 		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
 	</xsd:complexType>
 
@@ -262,6 +244,130 @@
 		</xsd:complexType>
 	</xsd:element>
 	
+	<xsd:element name="store-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines Redis inbound channel adapter that creates a Message which contains 
+	a view into a redis store. THe view could be one of the subclasses of 
+	org.springframework.data.redis.support.collections.RedisStore
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisCollectionInboundAdapterType">
+					<xsd:attribute name="collection-type">
+						<xsd:annotation>
+							<xsd:documentation>
+								Collection type supported by this adapter
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="LIST">
+									<xsd:annotation>
+										<xsd:documentation>
+											[DEFAULT] Redis List
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="SET">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Set
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="ZSET">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Sorted Set
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="MAP">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Map
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="PROPERTIES">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Properties
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="store-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines Redis outbound channel adapter that distributes a Message to
+	a peropper instance of the 
+	org.springframework.data.redis.support.collections.RedisStore
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisCollectionInboundAdapterType">
+					<xsd:attribute name="collection-type">
+						<xsd:annotation>
+							<xsd:documentation>
+								Collection type supported by this adapter
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="LIST">
+									<xsd:annotation>
+										<xsd:documentation>
+											[DEFAULT] Redis List
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="SET">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Set
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="ZSET">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Sorted Set
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="MAP">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Map
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="PROPERTIES">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Properties
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
 	<xsd:complexType name="redisAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -280,5 +386,94 @@
 		</xsd:attribute>
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 	</xsd:complexType>
-
+	
+	<xsd:complexType name="redisCollectionInboundAdapterType">
+		<xsd:complexContent>
+				<xsd:extension base="redisAdapterType">
+				    <xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Channel to which Messages will be sent. 
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="key-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			SpEL expression which returns the name of the key for the collection being used. If you want to provide a 
+			literal string value enclose it in the single quotes (e.g., 'foo') or use 'key' attribute. 
+			This attribute is mutually exclusive with 'key' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="key" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			The name of the key for the collection being used. If you are requiring a key to be dynamically 
+			determined per each poll use 'key-expression' attribute. 
+			This attribute is mutually exclusive with 'key-expression' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="error-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+			Channel to which Error Messages will be sent.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="redisCollectionOutboundAdapterType">
+		<xsd:complexContent>
+				<xsd:extension base="redisAdapterType">
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Channel to which Messages will be sent. 
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="key-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			SpEL expression which returns the name of the key for the collection being used. If you want to provide a 
+			literal string value enclose it in the single quotes (e.g., 'foo') or use 'key' attribute. 
+			This attribute is mutually exclusive with 'key' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="key" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			The name of the key for the collection being used. If you are requiring a key to be dynamically 
+			determined per each poll use 'key-expression' attribute. 
+			This attribute is mutually exclusive with 'key-expression' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+	</xsd:complexType>
+	
 </xsd:schema>

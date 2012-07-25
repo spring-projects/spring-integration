@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
+
+	
+	<int-redis:store-outbound-channel-adapter id="listWithKeyAsHeader"
+											connection-factory="redisConnectionFactory" 
+											collection-type="LIST">
+	</int-redis:store-outbound-channel-adapter>
+	
+	<int-redis:store-outbound-channel-adapter id="listWithKeyProvided"
+											connection-factory="redisConnectionFactory" 
+											collection-type="LIST"
+											key="pepboys">
+	</int-redis:store-outbound-channel-adapter>
+	
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="7379"/>
+	</bean>
+	
+</beans>

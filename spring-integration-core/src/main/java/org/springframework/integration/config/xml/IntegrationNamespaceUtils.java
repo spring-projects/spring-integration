@@ -17,6 +17,10 @@ import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -24,9 +28,12 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
@@ -34,9 +41,6 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -365,4 +369,36 @@ public abstract class IntegrationNamespaceUtils {
 		return adviceChain;
 	}
 
+	public static RootBeanDefinition createExpressionDefinitionFromValueOrExpression(String valueElementName,
+			String expressionElementName, ParserContext parserContext, Element element, boolean oneRequired) {
+
+	Assert.hasText(valueElementName, "'valueElementName' must not be empty");
+	Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
+
+	String valueElementValue = element.getAttribute(valueElementName);
+	String expressionElementValue = element.getAttribute(expressionElementName);
+
+	boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
+	boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
+
+	if (hasAttributeValue && hasAttributeExpression){
+		parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '"
+					+ expressionElementName + "' is allowed", element);
+	}
+
+	if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)){
+		parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
+				+ expressionElementName + "' is required", element);
+	}
+	RootBeanDefinition expressionDef = null;
+	if (hasAttributeValue) {
+		expressionDef = new RootBeanDefinition(LiteralExpression.class);
+	    expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
+	}
+	else if (hasAttributeExpression){
+		expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+		expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionElementValue);
+	}
+	return expressionDef;
+}
 }
