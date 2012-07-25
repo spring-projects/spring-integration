@@ -9,7 +9,7 @@
 
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRedisTemplate"
-											redis-template="redisTemplate"
+											redis-template="redisTemplate" 
 											connection-factory="redisConnectionFactory"
 											key-expression="'presidents'"
 											auto-startup="false">

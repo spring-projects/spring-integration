@@ -45,7 +45,6 @@
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 
-
 	<int:channel id="redisChannel">
 		<int:queue/>
 	</int:channel>
