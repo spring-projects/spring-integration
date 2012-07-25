@@ -19,12 +19,9 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.WriteResultChecking;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -43,19 +40,6 @@ import com.mongodb.WriteConcern;
  */
 public class MongoDbMessageHandlerTests extends MongoDbAvailableTests {
 
-	@Test
-	@MongoDbAvailable
-	public void testWriteResultCheckingAndConcern() throws Exception {
-		MongoDbMessageHandler handler = new MongoDbMessageHandler(prepareMongoFactory(), "collection");
-		handler.setWriteConcern(WriteConcern.FSYNC_SAFE);
-		handler.setWriteResultChecking(WriteResultChecking.EXCEPTION);
-		handler.afterPropertiesSet();
-		Assert.assertNotNull(TestUtils.getPropertyValue(handler, "template", MongoTemplate.class));
-		Assert.assertEquals(WriteConcern.FSYNC_SAFE,
-				TestUtils.getPropertyValue(handler, "template.writeConcern", WriteConcern.class));
-		Assert.assertEquals(WriteResultChecking.EXCEPTION,
-				TestUtils.getPropertyValue(handler, "template.writeResultChecking", WriteResultChecking.class));
-	}
 
 	@Test
 	@MongoDbAvailable
@@ -67,11 +51,14 @@ public class MongoDbMessageHandlerTests extends MongoDbAvailableTests {
 		coll.remove(new BasicDBObject(), WriteConcern.FSYNC_SAFE);
 
 		MongoDbMessageHandler handler = new MongoDbMessageHandler(prepareMongoFactory(), "collection");
-		handler.setWriteConcern(WriteConcern.FSYNC_SAFE);
-		handler.setWriteResultChecking(WriteResultChecking.EXCEPTION);
 		handler.afterPropertiesSet();
 		handler.handleMessage(MessageBuilder.withPayload("Hello").build());
+		//just want to give sufficient time for the write to be successful
+		try {
+			Thread.sleep(50);
+		} catch (Exception e) {
 
+		}
 		DBCursor cursor = coll.find();
 		Assert.assertEquals(1, cursor.count());
 	}
@@ -86,10 +73,13 @@ public class MongoDbMessageHandlerTests extends MongoDbAvailableTests {
 		coll.remove(new BasicDBObject(), WriteConcern.FSYNC_SAFE);
 
 		MongoDbMessageHandler handler = new MongoDbMessageHandler(prepareMongoFactory());
-		handler.setWriteConcern(WriteConcern.FSYNC_SAFE);
-		handler.setWriteResultChecking(WriteResultChecking.EXCEPTION);
 		handler.afterPropertiesSet();
 		handler.handleMessage(MessageBuilder.withPayload("Hello").build());
+		try {
+			Thread.sleep(50);
+		} catch (Exception e) {
+
+		}
 		DBCursor cursor = coll.find();
 		Assert.assertEquals(1, cursor.count());
 	}

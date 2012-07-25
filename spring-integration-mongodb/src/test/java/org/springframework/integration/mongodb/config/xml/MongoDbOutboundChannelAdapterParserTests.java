@@ -20,13 +20,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.mongodb.core.WriteResultChecking;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.mongodb.outbound.MongoDbMessageHandler;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.test.util.TestUtils;
-
-import com.mongodb.WriteConcern;
 
 /**
  * The test class for the Mongo DB outbound adapter
@@ -54,20 +51,6 @@ public class MongoDbOutboundChannelAdapterParserTests {
 
 	public void setup(String beanId) {
 		consumer = context.getBean(beanId, EventDrivenConsumer.class);
-	}
-
-	@Test
-	@MongoDbAvailable
-	public void configWithWriteResultCheckingAndWriteConcern() {
-		setup("configWithWriteResultCheckingAndWriteConcern");
-		MongoDbMessageHandler handler = TestUtils.getPropertyValue(consumer, "handler", MongoDbMessageHandler.class);
-		Assert.assertNotNull(handler);
-		WriteResultChecking checking = TestUtils.getPropertyValue(handler, "writeResultChecking", WriteResultChecking.class);
-		Assert.assertEquals(WriteResultChecking.LOG, checking);
-		WriteConcern concern = TestUtils.getPropertyValue(handler, "writeConcern", WriteConcern.class);
-		Assert.assertEquals("MAJORITY", concern.getWString());
-		Assert.assertEquals("SomeCollection", TestUtils.getPropertyValue(handler, "collection", String.class));
-		Assert.assertNotNull(TestUtils.getPropertyValue(handler, "factory"));
 	}
 
 	@Test

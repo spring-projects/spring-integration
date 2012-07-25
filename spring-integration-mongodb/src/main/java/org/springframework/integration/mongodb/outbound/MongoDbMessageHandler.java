@@ -15,24 +15,17 @@
  */
 package org.springframework.integration.mongodb.outbound;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.WriteResultChecking;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mongodb.MessageReadingMongoConverter;
 import org.springframework.integration.mongodb.MessageWrapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import com.mongodb.WriteConcern;
 
 /**
  * The Message handler implementation for the  Mongo DB outbound adapter
@@ -42,15 +35,9 @@ import com.mongodb.WriteConcern;
  * @since 2.2
  *
  */
-public class MongoDbMessageHandler implements MessageHandler, BeanClassLoaderAware, InitializingBean {
-
-	private static Log logger = LogFactory.getLog(MongoDbMessageHandler.class);
-
-	private WriteResultChecking writeResultChecking = WriteResultChecking.NONE;
+public class MongoDbMessageHandler extends AbstractMessageHandler implements  BeanClassLoaderAware, InitializingBean {
 
 	private MongoTemplate template;
-
-	private WriteConcern writeConcern = WriteConcern.NONE;
 
 	private final String collection;
 
@@ -89,56 +76,24 @@ public class MongoDbMessageHandler implements MessageHandler, BeanClassLoaderAwa
 		converter.setBeanClassLoader(classLoader);
 	}
 
-	public void afterPropertiesSet() throws Exception {
+	@Override
+	public void onInit() {
 		converter.afterPropertiesSet();
 		template = new MongoTemplate(factory, converter);
-		template.setWriteConcern(writeConcern);
-		template.setWriteResultChecking(writeResultChecking);
 		//saving it here as we dont want to invoke hasText always in handleMessage
 		isCollectionNameProvided = StringUtils.hasText(collection);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.core.MessageHandler#handleMessage(org.springframework.integration.Message)
-	 */
-	public void handleMessage(Message<?> message) throws MessagingException {
-		Assert.notNull(message, "provided message is null");
-		try {
-			if(isCollectionNameProvided) {
-				template.save(new MessageWrapper(message), collection);
-			}
-			else {
-				template.save(new MessageWrapper(message));
-			}
-		} catch (DataIntegrityViolationException e) {
-			logger.error("Data integrity violation exception caught, " + e.getMessage());
-			throw new MessagingException(message, "Data integrity violation exception caught", e);
-			//This exception will not be caught for a bug in Spring Data Mongo which doesn't
-			//consider the WriteResultChecking for save and inserts but only for updates and removes
-			//issue DATAMONGO-480 is raised for this.
+
+	@Override
+	public void handleMessageInternal(Message<?> message) throws Exception {
+		if(isCollectionNameProvided) {
+			template.save(new MessageWrapper(message), collection);
+		}
+		else {
+			template.save(new MessageWrapper(message));
 		}
 	}
 
-	/**
-	 * Sets the {@link WriteResultChecking} for the outbound adapters. The write to mongo DB
-	 * is by default asynchronous and hence any errors in writing of data will not be caught.
-	 * Setting this value to <i>LOG</i> will log the error and setting to <i>EXCEPTION</i>
-	 * will thrown an exception if write fails. The default is <i>NONE</i> and is the suggested value
-	 * in production environments where the application is stable and performance is important.
-	 * Set it to  <i>LOG</i> or <i>EXCEPTION</i> during development of the application.
-	 *
-	 * @param writeResultChecking
-	 */
-	public void setWriteResultChecking(WriteResultChecking writeResultChecking) {
-		Assert.notNull(writeResultChecking, "Null WriteResultChecking value provided");
-		this.writeResultChecking = writeResultChecking;
-	}
 
-	/**
-	 * The write concern to be used for the writes, by default it is <i>NONE</i>.
-	 * @param writeConcern
-	 */
-	public void setWriteConcern(WriteConcern writeConcern) {
-		this.writeConcern = writeConcern;
-	}
 }

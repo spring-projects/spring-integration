@@ -70,41 +70,7 @@
 			</xsd:attribute>
 			
 			<!-- Mongo DB Outbound adapter specific attributes -->
-			<xsd:attribute name="write-result-checking" default="NONE">
-				<xsd:annotation>
-					<xsd:documentation>
-						The value which can have three possible values NONE, LOG and EXCEPTION.
-						This value if used to specify the action the adapter needs to take after 
-						writing to the Mongo DB. By default the write happens asynchronously and
-						errors are not reported. Setting this value to LOG or EXCEPTION will result
-						in the WriteResult to be checked and the error if any to be logged or re thrown.						 
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="writeResultChecking xsd:string"/>
-				</xsd:simpleType>
-			</xsd:attribute>
-			
-			<xsd:attribute name="write-concern" default="NORMAL">
-				<xsd:annotation>
-					<xsd:documentation>
-						The write concern determining the level we desire in case of 
-						write operations. The set of permitted values are
-							NONE
-							NORMAL
-							SAFE
-							MAJORITY
-							FSYNC_SAFE
-							JOURNAL_SAFE
-							REPLICA_SAFE
-						The default value is NORMAL			
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="writeConcernTypes xsd:string"/>
-				</xsd:simpleType>
-			</xsd:attribute>
-			
+						
 			<xsd:attribute name="collection" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -129,31 +95,8 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			
-			<!-- 
-			TODO: Do we need to accept more parameters that would be an alternative to
-			the mongo-db-factory reference? 
-			  -->
+			
 		</xsd:complexType>
-	</xsd:element>
-	
-	<xsd:simpleType name="writeResultChecking">
-		<xsd:restriction base="xsd:token">
-			<xsd:enumeration value="NONE"/>
-			<xsd:enumeration value="LOG"/>
-			<xsd:enumeration value="EXCEPTION"/>
-		</xsd:restriction>
-	</xsd:simpleType>
-	
-	<xsd:simpleType name="writeConcernTypes">
-		<xsd:restriction base="xsd:token">
-			<xsd:enumeration value="NONE"/>
-			<xsd:enumeration value="NORMAL"/>
-			<xsd:enumeration value="SAFE"/>
-			<xsd:enumeration value="MAJORITY"/>
-			<xsd:enumeration value="FSYNC_SAFE"/>
-			<xsd:enumeration value="JOURNAL_SAFE"/>
-			<xsd:enumeration value="REPLICA_SAFE"/>
-		</xsd:restriction>
-	</xsd:simpleType>
+	</xsd:element>	
 </xsd:schema>	
 

@@ -11,20 +11,13 @@
 						http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
 	<import resource="common-mongodb-config.xml"/>
-	<int:channel id="mongodDbInputChannel"/>
-	
-	<int-mongo:outbound-channel-adapter
-					id="configWithWriteResultCheckingAndWriteConcern"
-					channel="mongodDbInputChannel"
-					mongo-db-factory="dbFactory"
-					collection="SomeCollection"
-					write-result-checking="LOG"
-					write-concern="MAJORITY"/>
+	<int:channel id="mongodDbInputChannel"/>	
+
 					
 	<int-mongo:outbound-channel-adapter
 					id="configWithNoCollection"
 					channel="mongodDbInputChannel"
-					mongo-db-factory="dbFactory"/>				
+					mongo-db-factory="dbFactory"/>
 					
 
 </beans>
