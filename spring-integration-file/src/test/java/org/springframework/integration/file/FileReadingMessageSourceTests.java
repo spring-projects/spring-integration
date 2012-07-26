@@ -37,10 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Iwein Fuld
@@ -159,17 +156,4 @@ public class FileReadingMessageSourceTests {
         verify(inputDirectoryMock, times(2)).listFiles();
     }
 
-    @Test
-    public void disposition() {
-        source.setDispositionExpression(new LiteralExpression("foo"));
-        QueueChannel channel = new QueueChannel();
-        source.setDispositionResultChannel(channel);
-        FileMessageHolder resource = source.getResource();
-        File file = mock(File.class);
-        resource.setMessage(new GenericMessage<File>(file));
-        source.afterCommit(resource);
-        Message<?> result = channel.receive(10000);
-        assertSame(file, result.getPayload());
-        assertEquals("foo", result.getHeaders().get(FileHeaders.DISPOSITION_RESULT));
-    }
 }

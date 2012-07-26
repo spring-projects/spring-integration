@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -58,7 +59,7 @@ public class FileToChannelIntegrationTests {
 		assertNotNull(received.getPayload());
 		Message<?> result = resultChannel.receive(10000);
 		assertNotNull(result);
-		assertEquals(Boolean.TRUE, result.getHeaders().get(FileHeaders.DISPOSITION_RESULT));
+		assertEquals(Boolean.TRUE, result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 		assertTrue(!file.exists());
 	}
 

@@ -14,14 +14,17 @@
                              directory="${java.io.tmpdir}"
                              filter="filter"
                              comparator="testComparator"
-                             disposition-expression="payload.delete()"
-                             disposition-result-channel="resultChannel"
-                             disposition-send-timeout="123"
                              auto-startup="false">
-        <integration:poller fixed-rate="5000"/>
+        <integration:poller fixed-rate="5000">
+        	<integration:psuedo-transactional on-success-expression="payload.delete()"
+        				on-success-result-channel="successChannel"
+        				on-failure-expression="'foo'"
+        				on-failure-result-channel="nullChannel"
+        				send-timeout="5000" />
+        </integration:poller>
     </inbound-channel-adapter>
 
-	<integration:channel id="resultChannel" />
+	<integration:channel id="successChannel" />
 
     <beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean"/>
 

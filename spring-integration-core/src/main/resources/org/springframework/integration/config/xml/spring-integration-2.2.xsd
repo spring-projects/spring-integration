@@ -1504,6 +1504,34 @@
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:choice>
+			<xsd:choice minOccurs="0" maxOccurs="1">
+				<xsd:element name="psuedo-transactional" type="pseudoTransactionalType" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+							This element is used to provide expressions that will be executed on success or failure,
+							when sending a message resulting from a poll. It provides semantics similar to a transaction
+							but users need to be aware that it is not a true transaction because the underlying resource
+							is not transactional.
+							The element is not allowed when a <transactional/> element is present.
+						]]></xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="transaction-synchronization" type="pseudoTransactionalType" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+							This element is used with <transactional/> to provide expressions that will be executed
+							on success or failure, when sending a message resulting from a poll.
+							The execution of the expressions is synchronized
+							with the encompassing transaction in that the onSuccess expression will be evaluated
+							immediately after the commit or the onFailure expression will be evaluated immediately
+							after the rollback. Users need to be aware that transaction synchronization does not
+							make an inherently non-transactional resource transactional, it simply implements the
+							best-effort one phase commit pattern.
+							The element is only allowed when a <transactional/> or <advice-chain/> element is present.
+						]]></xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
 		</xsd:sequence>
 		<xsd:attribute name="fixed-delay" type="xsd:string">
 			<xsd:annotation>
@@ -1576,20 +1604,6 @@
 					poller's invocation. To completely suppress Exceptions, provide a
 					reference to the "nullChannel" here.
 				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="synchronized" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Specifies whether the resource, used by the MessageSource that this poller
-					polls, is synchronized with the transaction. The resource may be disposed of
-					in different manners, depending on whether the transaction commits,
-					or rolls back. Only applied if a transaction subelement (or
-					an advice-chain that contains a transaction advice)	is provided.
-					Also, only applies if the MessageSource implements
-					PseudoTransactionalMessageSource.
-					Default true.
-				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -3404,6 +3418,10 @@ is provided, the return value is expected to match a channel name exactly.
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:complexType name="pseudoTransactionalType">
+		<xsd:attributeGroup ref="transactionSyncAttributeGroup" />
+	</xsd:complexType>
+
 	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
@@ -3738,6 +3756,74 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					Specifies the maximum subscribers allowed on this channel; defaults to
 					Integer.MAX_VALUE, unless a 'channelInitializer' bean has previously been
 					declared, with a different default.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+	
+	<xsd:attributeGroup name="transactionSyncAttributeGroup">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Attributes provided in either a <transactional/> or <psedo-transactional/> poller
+				sub element.
+				Used to take action after the transaction completes (<transactional/>) or after
+				the channel.send() is complete (<pseudo-transactional/>). 
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="on-success-expression">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Expression to be evaluated when no exception is thrown (<pseudo-transactional/>),
+					or after the transaction commits (<transactional/>). The #root variable of the
+					expression evaluation is the original message; a BeanResolver is also available. 
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="on-success-result-channel">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Channel where the result (if any) from the evaluation of the on-success-expression is sent.
+					The message sent is the original message, enhanced with a 'dispositionResult' header
+					containing the result, or an Exception, if the evaluation failed. Default:
+					nullChannel.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+				    <tool:annotation kind="ref">
+				        <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+				    </tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="on-failure-expression">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Expression to be evaluated when an exception is thrown (<pseudo-transactional/>),
+					or after the transaction rolls back (<transactional/>). The #root variable of the
+					expression evaluation is the original message; a BeanResolver is also available. 
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="on-failure-result-channel">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Channel where the result (if any) from the evaluation of the on-failure-expression is sent.
+					The message sent is the original message, enhanced with a 'dispositionResult' header
+					containing the result, or an Exception, if the evaluation failed. Default:
+					nullChannel.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+				    <tool:annotation kind="ref">
+				        <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+				    </tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="send-timeout">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					A timout used when sending expression evaluation results to the success or
+					failure channels. Only applies if the channel can block on a send, such as
+					a limited-capacity QueueChannel that is currently full.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
