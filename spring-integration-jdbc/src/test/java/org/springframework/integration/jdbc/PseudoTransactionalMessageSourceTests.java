@@ -22,8 +22,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -45,27 +49,39 @@ public class PseudoTransactionalMessageSourceTests {
 
 	private static boolean rolledBack;
 
-	private static boolean doRollback;
+	@Autowired
+	private SubscribableChannel input;
 
 	@Test
 	public void testCommit() throws Exception {
+		MessageHandler handler = new MessageHandler() {
+
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		};
+		input.subscribe(handler);
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		assertTrue(committed);
+		input.unsubscribe(handler);
 	}
 
 	@Test
 	public void testRollback() throws Exception {
-		doRollback = true;
+		MessageHandler handler = new MessageHandler() {
+
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new RuntimeException("expected");
+			}
+		};
+		input.subscribe(handler);
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertTrue(rolledBack);
+		input.unsubscribe(handler);
 	}
 
 	public static class MessageSource implements PseudoTransactionalMessageSource<String, Object> {
 
 		public Message<String> receive() {
-			if (doRollback) {
-				throw new RuntimeException("Expected");
-			}
 			return new GenericMessage<String>("foo");
 		}
 

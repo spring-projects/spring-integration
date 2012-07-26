@@ -35,7 +35,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
@@ -78,12 +77,16 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(filter);
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
-		FileReadingMessageSource source = TestUtils.getPropertyValue(inbound, "fileSource", FileReadingMessageSource.class);
-		assertEquals("foo", TestUtils.getPropertyValue(source, "dispositionExpression", Expression.class).getValue());
-		assertSame(ac.getBean("dispoChannel"), TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(source, "dispositionMessagingTemplate"), "defaultChannel"));
+		assertEquals("foo", TestUtils.getPropertyValue(adapter, "onSuccessExpression", Expression.class).getValue());
+		assertSame(ac.getBean("successChannel"), TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(adapter, "onSuccessMessagingTemplate"), "defaultChannel"));
 		assertEquals(123L, TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(source, "dispositionMessagingTemplate"), "sendTimeout"));
+				TestUtils.getPropertyValue(adapter, "onSuccessMessagingTemplate"), "sendTimeout"));
+		assertEquals("bar", TestUtils.getPropertyValue(adapter, "onFailureExpression", Expression.class).getValue());
+		assertSame(ac.getBean("failureChannel"), TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(adapter, "onFailureMessagingTemplate"), "defaultChannel"));
+		assertEquals(123L, TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(adapter, "onFailureMessagingTemplate"), "sendTimeout"));
 	}
 
 	@Test

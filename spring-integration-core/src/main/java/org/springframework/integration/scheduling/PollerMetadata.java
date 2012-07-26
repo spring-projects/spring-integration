@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,15 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+import org.springframework.expression.Expression;
+import org.springframework.integration.MessageChannel;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class PollerMetadata {
 
@@ -39,11 +42,19 @@ public class PollerMetadata {
 
 	private volatile ErrorHandler errorHandler;
 
-	private List<Advice> adviceChain;
+	private volatile List<Advice> adviceChain;
 
 	private volatile Executor taskExecutor;
 
-	private volatile boolean synchronizedTx = true;
+	private volatile Expression onSuccessExpression;
+
+	private volatile MessageChannel onSuccessResultChannel;
+
+	private volatile Expression onFailureExpression;
+
+	private volatile MessageChannel onFailureResultChannel;
+
+	private volatile long sendTimeout;
 
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;
@@ -102,11 +113,44 @@ public class PollerMetadata {
 		return this.taskExecutor;
 	}
 
-	public boolean isSynchronized() {
-		return synchronizedTx;
+	public Expression getOnSuccessExpression() {
+		return onSuccessExpression;
 	}
 
-	public void setSynchronized(boolean synchronizedTx) {
-		this.synchronizedTx = synchronizedTx;
+	public void setOnSuccessExpression(Expression onSuccessExpression) {
+		this.onSuccessExpression = onSuccessExpression;
 	}
+
+	public MessageChannel getOnSuccessResultChannel() {
+		return onSuccessResultChannel;
+	}
+
+	public void setOnSuccessResultChannel(MessageChannel onSuccessResultChannel) {
+		this.onSuccessResultChannel = onSuccessResultChannel;
+	}
+
+	public Expression getOnFailureExpression() {
+		return onFailureExpression;
+	}
+
+	public void setOnFailureExpression(Expression onFailureExpression) {
+		this.onFailureExpression = onFailureExpression;
+	}
+
+	public MessageChannel getOnFailureResultChannel() {
+		return onFailureResultChannel;
+	}
+
+	public void setOnFailureResultChannel(MessageChannel onFailureResultChannel) {
+		this.onFailureResultChannel = onFailureResultChannel;
+	}
+
+	public long getSendTimeout() {
+		return sendTimeout;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
 }

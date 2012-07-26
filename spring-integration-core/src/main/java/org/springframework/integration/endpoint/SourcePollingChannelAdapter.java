@@ -16,14 +16,21 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.transaction.support.ResourceHolder;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -50,7 +57,15 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile boolean synchronizedTx = true;
+	private volatile Expression onSuccessExpression;
+
+	private final MessagingTemplate onSuccessMessagingTemplate = new MessagingTemplate();
+
+	private volatile Expression onFailureExpression;
+
+	private final MessagingTemplate onFailureMessagingTemplate = new MessagingTemplate();
+
+	private volatile StandardEvaluationContext evaluationContext;
 
 	/**
 	 * Specify the source to be polled for Messages.
@@ -82,8 +97,30 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		this.shouldTrack = shouldTrack;
 	}
 
-	public void setSynchronized(boolean synchronizedTx) {
-		this.synchronizedTx = synchronizedTx;
+
+	public void setOnSuccessExpression(Expression onSuccessExpression) {
+		Assert.notNull(onSuccessExpression, "onSuccessExpression cannot be null");
+		this.onSuccessExpression = onSuccessExpression;
+	}
+
+	public void setOnFailureExpression(Expression onFailureExpression) {
+		Assert.notNull(onFailureExpression, "onFailureExpression cannot be null");
+		this.onFailureExpression = onFailureExpression;
+	}
+
+	public void setOnSuccessResultChannel(MessageChannel onSuccessResultChannel) {
+		Assert.notNull(onSuccessResultChannel, "onSuccessChannel cannot be null");
+		this.onSuccessMessagingTemplate.setDefaultChannel(onSuccessResultChannel);
+	}
+
+	public void setOnFailureChannel(MessageChannel onFailureResultChannel) {
+		Assert.notNull(onFailureResultChannel, "onFailureChannel cannot be null");
+		this.onFailureMessagingTemplate.setDefaultChannel(onFailureResultChannel);
+	}
+
+	public void setResultSendTimeout(long sendTimeout) {
+		this.onSuccessMessagingTemplate.setSendTimeout(sendTimeout);
+		this.onFailureMessagingTemplate.setSendTimeout(sendTimeout);
 	}
 
 	@Override
@@ -96,6 +133,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
+		this.evaluationContext = this.createEvaluationContext();
 		super.onInit();
 	}
 
@@ -104,25 +142,25 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	protected boolean doPoll() {
 		boolean isInTx = false;
 		PseudoTransactionalMessageSource<?,Object> messageSource = null;
-		Object resource = null;
+		Object resource = new Object();
 		if (this.isPseudoTxMessageSource) {
 			messageSource = (PseudoTransactionalMessageSource<?,Object>) this.source;
 			resource = messageSource.getResource();
-			Assert.state(resource != null, "Pseudo Transactional Message Source returned null resource");
-			if (this.synchronizedTx && TransactionSynchronizationManager.isActualTransactionActive()) {
-				TransactionSynchronizationManager.bindResource(messageSource, resource);
-				TransactionSynchronizationManager.registerSynchronization(
-					new PseudoTransactionalResourceSynchronization(
-						new PseudoTransactionalResourceHolder(resource), this.source));
-				isInTx = true;
-			}
 		}
 		Message<?> message;
 		try {
 			message = this.source.receive();
+			if (TransactionSynchronizationManager.isActualTransactionActive()) {
+				TransactionSynchronizationManager.bindResource(this, resource);
+				TransactionSynchronizationManager.registerSynchronization(
+					new PseudoTransactionalResourceSynchronization(
+						new PseudoTransactionalResourceHolder(message, resource), this));
+				isInTx = true;
+			}
 		}
 		finally {
-			if (this.isPseudoTxMessageSource && !isInTx) {
+			// legacy adapters that took action after receive e.g. mail
+			if (!isInTx && this.isPseudoTxMessageSource) {
 				messageSource.afterReceiveNoTx(resource);
 			}
 		}
@@ -133,9 +171,25 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this);
 			}
-			this.messagingTemplate.send(this.outputChannel, message);
-			if (this.isPseudoTxMessageSource && !isInTx) {
-				messageSource.afterSendNoTx(resource);
+			try {
+				this.messagingTemplate.send(this.outputChannel, message);
+				if (!isInTx) {
+					if (this.isPseudoTxMessageSource) {
+						messageSource.afterSendNoTx(resource);
+					}
+					this.onSuccess(message, resource);
+				}
+			}
+			catch (Exception e) {
+				if (!isInTx) {
+					this.onFailure(message, resource);
+				}
+				if (e instanceof MessagingException) {
+					throw (MessagingException) e;
+				}
+				else {
+					throw new MessagingException(message, e);
+				}
 			}
 			return true;
 		}
@@ -145,16 +199,103 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		return false;
 	}
 
+	private void onSuccess(Message<?> message, Object resource) {
+		if (this.onSuccessExpression != null && message != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Evaluating '" + this.onSuccessExpression.getExpressionString() + "' on " + message);
+			}
+			StandardEvaluationContext evaluationContextToUse = this.determineEvaluationContextToUse(resource);
+			Object value;
+			try {
+				value = this.onSuccessExpression.getValue(evaluationContextToUse, message);
+			}
+			catch (Exception e) {
+				value = e;
+			}
+			if (value != null) {
+				try {
+					this.onSuccessMessagingTemplate.send(MessageBuilder.fromMessage(message)
+							.setHeader(MessageHeaders.DISPOSITION_RESULT, value).build());
+				}
+				catch (Exception e) {
+					logger.error("Failed to send success evaluation result " + message, e);
+				}
+			}
+		}
+	}
+
+	private void onFailure(Message<?> message, Object resource) {
+		if (this.onFailureExpression != null && message != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Evaluating '" + this.onFailureExpression.getExpressionString() + "' on " + message);
+			}
+			StandardEvaluationContext evaluationContextToUse = this.determineEvaluationContextToUse(resource);
+			Object value;
+			try {
+				value = this.onFailureExpression.getValue(evaluationContextToUse, message);
+			}
+			catch (Exception e) {
+				value = e;
+			}
+			if (value != null) {
+				try {
+					this.onFailureMessagingTemplate.send(MessageBuilder.fromMessage(message)
+							.setHeader(MessageHeaders.DISPOSITION_RESULT, value).build());
+				}
+				catch (Exception e) {
+					logger.error("Failed to send success evaluation result " + message, e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * If we don't need a resource variable (not a {@link PseudoTransactionalMessageSource})
+	 * we can use a singleton context; otherwise we need a new one each time.
+	 * @param resource The resource
+	 * @return The context.
+	 */
+	private StandardEvaluationContext determineEvaluationContextToUse(Object resource) {
+		StandardEvaluationContext evaluationContextToUse = this.evaluationContext;
+		if (resource != null) {
+			evaluationContextToUse = this.createEvaluationContext();
+			evaluationContextToUse.setVariable("resource", resource);
+		}
+		else {
+			if (evaluationContextToUse == null) {
+				this.evaluationContext = this.createEvaluationContext();
+				evaluationContextToUse = this.evaluationContext;
+			}
+		}
+		return evaluationContextToUse;
+	}
+
+	protected StandardEvaluationContext createEvaluationContext(){
+		if (this.getBeanFactory() != null) {
+			return ExpressionUtils.createStandardEvaluationContext(new BeanFactoryResolver(this.getBeanFactory()),
+					this.getConversionService());
+		}
+		else {
+			return ExpressionUtils.createStandardEvaluationContext(this.getConversionService());
+		}
+	}
+
 	private class PseudoTransactionalResourceHolder implements ResourceHolder {
 
+		private final Message<?> message;
 		private final Object resource;
 
-		public PseudoTransactionalResourceHolder(Object resource) {
+		public PseudoTransactionalResourceHolder(Message<?> message, Object resource) {
+			this.message = message;
 			this.resource = resource;
 		}
 
 		protected Object getResource() {
 			return resource;
+		}
+
+		public Message<?> getMessage() {
+			return message;
 		}
 
 		public void reset() {
@@ -185,28 +326,30 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			return false;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		protected void processResourceAfterCommit(PseudoTransactionalResourceHolder resourceHolder) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("'Committing' pseudo-transactional resource");
 			}
-			((PseudoTransactionalMessageSource<?,Object>) source).afterCommit(resourceHolder.getResource());
+			if (isPseudoTxMessageSource) {
+				((PseudoTransactionalMessageSource<?, ?>) source).afterCommit(resourceHolder.getResource());
+			}
+			onSuccess(resourceHolder.getMessage(), resourceHolder.getResource());
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public void afterCompletion(int status) {
 			if (status != TransactionSynchronization.STATUS_COMMITTED) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("'Rolling back' pseudo-transactional resource");
 				}
-				((PseudoTransactionalMessageSource<?,Object>) source).afterRollback(this.resourceHolder.getResource());
+				if (isPseudoTxMessageSource) {
+					((PseudoTransactionalMessageSource<?, ?>) source).afterRollback(resourceHolder.getResource());
+				}
+				onFailure(this.resourceHolder.getMessage(), this.resourceHolder.getResource());
 			}
 			super.afterCompletion(status);
 		}
-
-
 
 	}
 }

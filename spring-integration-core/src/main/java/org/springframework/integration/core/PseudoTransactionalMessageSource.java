@@ -34,6 +34,10 @@ import org.springframework.transaction.support.TransactionSynchronization;
  * small (but present) window in which a transaction might commit but the
  * resource is not updated to reflect that. This could result in
  * duplicate messages.
+ * <p>All {@link MessageSource}s can have success/failure expressions evaluated either as part
+ * of a transaction with a &kt;transactional/&gt; poller or after success/failure when
+ * running in a &lt;pseudo-transactional/&gt; poller. This interface is for those
+ * message sources that need additional flexibility than that provided by SpEL expressions.
  * @author Gary Russell
  * @since 2.2
  *
@@ -42,7 +46,9 @@ public interface PseudoTransactionalMessageSource<T, V> extends MessageSource<T>
 
 	/**
 	 * Obtain the resource on which appropriate action needs
-	 * to be taken.
+	 * to be taken. This resource is passed back into the other
+	 * methods. In addition, it is made available to transaction
+	 * synchronization SpEL expressions in the '#resource' variable.
 	 * @return The resource.
 	 */
 	V getResource();
@@ -50,16 +56,16 @@ public interface PseudoTransactionalMessageSource<T, V> extends MessageSource<T>
 	/**
 	 * Invoked via {@link TransactionSynchronization} when the
 	 * transaction commits.
-	 * @param resource The resource to be "committed"
+	 * @param object The resource to be "committed"
 	 */
-	void afterCommit(V resource);
+	void afterCommit(Object object);
 
 	/**
 	 * Invoked via {@link TransactionSynchronization} when the
 	 * transaction rolls back.
-	 * @param resource
+	 * @param object
 	 */
-	void afterRollback(V resource);
+	void afterRollback(Object object);
 
 	/**
 	 * Called when there is no transaction and the receive() call completed.

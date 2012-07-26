@@ -81,25 +81,25 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 		return this.mailReceiver.getTransactionContext();
 	}
 
-	public void afterCommit(MailReceiverContext context) {
+	public void afterCommit(Object context) {
 		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
-		this.mailReceiver.closeContextAfterSuccess(context);
+		this.mailReceiver.closeContextAfterSuccess((MailReceiverContext) context);
 	}
 
-	public void afterRollback(MailReceiverContext context) {
+	public void afterRollback(Object context) {
 		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
-		this.mailReceiver.closeContextAfterFailure(context);
+		this.mailReceiver.closeContextAfterFailure((MailReceiverContext) context);
 	}
 
 	/**
-	 * For backwards-compatibility; the mail adapter updates the status before the send.
+	 * For backwards-compatibility; with no tx, the mail adapter updates the status before the send.
 	 */
 	public void afterReceiveNoTx(MailReceiverContext resource) {
 		this.afterCommit(resource);
 	}
 
 	/**
-	 * For backwards-compatibility; the mail adapter updates the status before the send.
+	 * For backwards-compatibility; with no tx, the mail adapter updates the status before the send.
 	 */
 	public void afterSendNoTx(MailReceiverContext resource) {
 		// No op

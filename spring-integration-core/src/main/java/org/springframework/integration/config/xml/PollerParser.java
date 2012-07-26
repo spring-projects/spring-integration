@@ -28,9 +28,11 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.CronTrigger;
@@ -48,6 +50,7 @@ import org.w3c.dom.NodeList;
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class PollerParser extends AbstractBeanDefinitionParser {
 
@@ -93,6 +96,19 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
 		configureAdviceChain(adviceChainElement, txElement, metadataBuilder, parserContext);
 
+		Element pseudoTxElement = DomUtils.getChildElementByTagName(element, "psuedo-transactional");
+		if (pseudoTxElement != null && txElement != null) {
+			parserContext.getReaderContext().error(
+					"Cannot have both 'transactional' and 'pseudo-transactional' elements", element);
+		}
+		Element txSyncElement = DomUtils.getChildElementByTagName(element, "transaction-synchronization");
+		if (pseudoTxElement != null && txSyncElement != null) {
+			parserContext.getReaderContext().error(
+					"Cannot have both 'transaction-synchronization' and 'pseudo-transactional' elements", element);
+		}
+		pseudoTxElement = pseudoTxElement == null ? txSyncElement : pseudoTxElement;
+		configureTransactionSync(pseudoTxElement, metadataBuilder, parserContext);
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
 		String errorChannel = element.getAttribute("error-channel");
 		if (StringUtils.hasText(errorChannel)) {
@@ -100,7 +116,6 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			errorHandler.addPropertyReference("defaultErrorChannel", errorChannel);
 			metadataBuilder.addPropertyValue("errorHandler", errorHandler.getBeanDefinition());
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "synchronized");
 		return metadataBuilder.getBeanDefinition();
 	}
 
@@ -201,4 +216,24 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		targetBuilder.addPropertyValue("adviceChain", adviceChain);
 	}
 
+	private void configureTransactionSync(Element element, BeanDefinitionBuilder metadataBuilder,
+			ParserContext parserContext) {
+		if (element != null) {
+			configureSyncExpression(element, metadataBuilder, parserContext, "on-success-expression", "onSuccessExpression");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "on-success-result-channel");
+			configureSyncExpression(element, metadataBuilder, parserContext, "on-failure-expression", "onFailureExpression");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "on-failure-result-channel");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "send-timeout", "sendTimeout");
+		}
+	}
+
+	private void configureSyncExpression(Element element, BeanDefinitionBuilder metadataBuilder,
+			ParserContext parserContext, String expressionAttribute, String expressionProperty) {
+		String expression = element.getAttribute(expressionAttribute);
+		if (StringUtils.hasText(expression)) {
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
+			metadataBuilder.addPropertyValue(expressionProperty, expressionDef);
+		}
+	}
 }

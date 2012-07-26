@@ -48,19 +48,24 @@
 			local-filename-generator-expression="#this.toUpperCase() + '.a'"
 			temporary-file-suffix=".bar"
 			comparator="comparator"
-			delete-remote-files="${delete.remote.files}"
-			disposition-expression="'foo'"
-			disposition-result-channel="dispoChannel"
-			disposition-send-timeout="123">
-		<poller fixed-rate="1000"/>
+			delete-remote-files="${delete.remote.files}">
+		<poller fixed-rate="1000">
+			<psuedo-transactional on-success-expression="'foo'"
+				on-success-result-channel="successChannel"
+				on-failure-expression="'bar'"
+				on-failure-result-channel="failureChannel"
+				send-timeout="123" />
+		</poller>
 	</sftp:inbound-channel-adapter>
 
-	<channel id="dispoChannel" />
-	
+	<channel id="successChannel" />
+
+	<channel id="failureChannel" />
+
 	<beans:bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
 		<beans:constructor-arg value="java.util.Comparator"/>
 	</beans:bean>
-	
+
 	<sftp:inbound-channel-adapter id="sftpAdapter"
 			channel="requestChannel"
 			session-factory="sftpSessionFactory"
@@ -71,7 +76,7 @@
 			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
-	
+
 	<sftp:inbound-channel-adapter id="sftpAdapterWithPattern"
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
@@ -82,7 +87,7 @@
 			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
-	
+
 	<sftp:inbound-channel-adapter id="sftpAdapterNoLocalDir"
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
@@ -93,7 +98,7 @@
 			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
-	
+
 	<beans:bean id="filter" class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter">
 		<beans:constructor-arg value="."/>
 	</beans:bean>

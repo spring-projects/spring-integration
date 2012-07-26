@@ -70,7 +70,6 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 			localFileGeneratorExpressionBuilder.addConstructorArgValue(localFileGeneratorExpression);
 			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
 		}
-		FileNamespaceUtils.setDispositionAttributes(element, messageSourceBuilder);
 		return messageSourceBuilder.getBeanDefinition();
 	}
 

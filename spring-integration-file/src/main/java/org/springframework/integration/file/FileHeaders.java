@@ -35,6 +35,4 @@ public abstract class FileHeaders {
 
 	public static final String REMOTE_FILE = PREFIX + "remoteFile";
 
-	public static final String DISPOSITION_RESULT = PREFIX + "dispositionResult";
-
 }

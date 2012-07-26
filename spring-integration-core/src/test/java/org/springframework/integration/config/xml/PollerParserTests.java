@@ -140,24 +140,4 @@ public class PollerParserTests {
 				"pollerWithCronAndFixedDelay.xml", PollerParserTests.class);
 	}
 
-	@Test
-	public void pollerWithSync() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"pollerWithSynchronization.xml", PollerParserTests.class);
-		Object poller = context.getBean("noSync");
-		assertNotNull(poller);
-		PollerMetadata metadata = (PollerMetadata) poller;
-		assertEquals(true, metadata.isSynchronized());
-
-		poller = context.getBean("syncTrue");
-		assertNotNull(poller);
-		metadata = (PollerMetadata) poller;
-		assertEquals(true, metadata.isSynchronized());
-
-		poller = context.getBean("syncFalse");
-		assertNotNull(poller);
-		metadata = (PollerMetadata) poller;
-		assertEquals(false, metadata.isSynchronized());
-	}
-
 }
