@@ -843,7 +843,7 @@
 			</xsd:attribute>
 			<xsd:attribute name="reply-destination-name" type="xsd:string"/>
 			<xsd:attribute name="reply-pub-sub-domain" type="xsd:string"/>
-			<xsd:attribute name=" ">
+			<xsd:attribute name="correlation-key">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 						Provide the name of a JMS property that should hold a generated CorrelationID.
