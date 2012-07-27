@@ -17,12 +17,12 @@
 package org.springframework.integration.mongodb.store;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.integration.mongodb.MongoDBIntegrationConstants.CREATED_DATE;
-import static org.springframework.integration.mongodb.MongoDBIntegrationConstants.DEFAULT_COLLECTION_NAME;
-import static org.springframework.integration.mongodb.MongoDBIntegrationConstants.GROUP_COMPLETE_KEY;
-import static org.springframework.integration.mongodb.MongoDBIntegrationConstants.GROUP_ID_KEY;
-import static org.springframework.integration.mongodb.MongoDBIntegrationConstants.GROUP_UPDATE_TIMESTAMP_KEY;
-import static org.springframework.integration.mongodb.MongoDBIntegrationConstants.LAST_RELEASED_SEQUENCE_NUMBER;
+import static org.springframework.integration.mongodb.MongoDbIntegrationConstants.CREATED_DATE;
+import static org.springframework.integration.mongodb.MongoDbIntegrationConstants.DEFAULT_COLLECTION_NAME;
+import static org.springframework.integration.mongodb.MongoDbIntegrationConstants.GROUP_COMPLETE_KEY;
+import static org.springframework.integration.mongodb.MongoDbIntegrationConstants.GROUP_ID_KEY;
+import static org.springframework.integration.mongodb.MongoDbIntegrationConstants.GROUP_UPDATE_TIMESTAMP_KEY;
+import static org.springframework.integration.mongodb.MongoDbIntegrationConstants.LAST_RELEASED_SEQUENCE_NUMBER;
 
 import java.util.ArrayList;
 import java.util.HashMap;

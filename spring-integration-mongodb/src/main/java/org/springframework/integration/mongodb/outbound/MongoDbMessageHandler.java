@@ -77,7 +77,8 @@ public class MongoDbMessageHandler extends AbstractMessageHandler implements  Be
 	}
 
 	@Override
-	public void onInit() {
+	public void onInit() throws Exception {
+		super.onInit();
 		converter.afterPropertiesSet();
 		template = new MongoTemplate(factory, converter);
 		//saving it here as we dont want to invoke hasText always in handleMessage

@@ -24,7 +24,7 @@ package org.springframework.integration.mongodb;
  * @since 2.2
  *
  */
-public interface MongoDBIntegrationConstants {
+public interface MongoDbIntegrationConstants {
 
 	public final static String DEFAULT_COLLECTION_NAME = "messages";
 
