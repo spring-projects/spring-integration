@@ -50,6 +50,7 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -253,12 +254,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * MessageSelector will be expecting the JMSCorrelationID to equal the Message ID
 	 * of the request. However this would also mean that the MessageSelector will be different
 	 * for each new message, thus requiring a new reply consumer to be created for each Message sent.
-	 * Although this is a very common JMS exchange pattern it is not optimal for high thru-put request/reply
-	 * applications.Most MOMs (including Spring Integration's Inbound Gateway) also support propagation
+	 * Although this is a very common JMS exchange pattern it is not optimal for high throughput	 request/reply
+	 * applications. Most MOMs (including Spring Integration's Inbound Gateway) also support propagation
 	 * of the 'CorrelationID' of the consumed request message into the 'CorrelationID' of the newly produced
-	 * reply message. This also allows us to use optimized value generation algorithm which results in caching
+	 * reply message. This also allows us to use an optimized value generation algorithm which results in caching
 	 * and reuse of reply consumers resulting in significant performance improvement of the request/reply
-	 * scenarios. So if you have Spring JMS consumer (e.g.,  Spring Integration's Inbound Gateway) or
+	 * scenarios. So if you have a Spring JMS consumer (e.g.,  Spring Integration's Inbound Gateway) or
 	 * you know that your MOM supports propagation of the 'CorrelationID' it is highly recommended to set this
 	 * value to 'JMSCorrelationID'. If you set this value to something else the receiving end must now how
 	 * to propagate it. For example: if the receiving end is an inbound-gateway its correlation-key attribute
@@ -363,7 +364,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 						"with 'cacheConsumers' attribute set to TRUE");
 			}
 
-			this.ensureDefaultReplyDestinationExists();
+			if (this.connectionFactory instanceof CachingConnectionFactory){
+				this.ensureDefaultReplyDestinationExists();
+			}
 		}
 	}
 
@@ -488,7 +491,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					session, this.replyDestinationName, this.replyPubSubDomain);
 		}
 
-		return null;
+		return session.createTemporaryQueue();
 	}
 
 	private javax.jms.Message sendAndReceive(Message<?> requestMessage) throws JMSException {
@@ -520,7 +523,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 			Destination requestDestinationToUse = this.determineRequestDestination(requestMessage, session);
 
-			long sessionId = session.hashCode() + Thread.currentThread().getId();
+			long sessionId = ObjectUtils.getIdentityHexString(session).hashCode() + Thread.currentThread().getId();
 
 			javax.jms.Message replyMessage = this.doSendAndReceive(requestDestinationToUse, jmsRequest, replyTo, session, priority, sessionId);
 
@@ -588,9 +591,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				catch (InvalidDestinationException e) {
 					if (this.replyDestination instanceof TemporaryQueue){
 						this.replyDestination = null;
-						this.ensureDefaultReplyDestinationExists();
-						messageConsumer = session.createConsumer(this.replyDestination, messageSelector);
-						jmsRequest.setJMSReplyTo(this.replyDestination);
+						Destination newReplyTo = null;
+						if (this.connectionFactory instanceof CachingConnectionFactory){
+							this.ensureDefaultReplyDestinationExists();
+							newReplyTo = this.replyDestination;
+						}
+						else {
+							newReplyTo = this.determineReplyDestination(session);
+						}
+
+						messageConsumer = session.createConsumer(newReplyTo, messageSelector);
+						jmsRequest.setJMSReplyTo(newReplyTo);
 					}
 					else {
 						throw e;

@@ -843,7 +843,7 @@
 			</xsd:attribute>
 			<xsd:attribute name="reply-destination-name" type="xsd:string"/>
 			<xsd:attribute name="reply-pub-sub-domain" type="xsd:string"/>
-			<xsd:attribute name="correlation-key">
+			<xsd:attribute name=" ">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 						Provide the name of a JMS property that should hold a generated CorrelationID.
@@ -852,11 +852,11 @@
 						of the request. However this would also mean that the MessageSelector will be different 
 						for each new message, thus requiring a new reply consumer to be created for each Message sent.
 						Although this is a very common JMS exchange pattern it is not optimal for high thru-put request/reply 
-						applications.Most MOMs (including Spring Integration's Inbound Gateway) also support propagation 
+						applications. Most MOMs (including Spring Integration's Inbound Gateway) also support propagation 
 						of the 'CorrelationID' of the consumed request message into the 'CorrelationID' of the newly produced 
-						reply message. This also allows us to use optimized value generation algorithm which results in caching 
+						reply message. This also allows us to use an optimized value generation algorithm which results in caching 
 						and reuse of reply consumers resulting in significant performance improvement of the request/reply 
-						scenarios. So if you have Spring JMS consumer (e.g.,  Spring Integration's Inbound Gateway) or
+						scenarios. So if you have a Spring JMS consumer (e.g.,  Spring Integration's Inbound Gateway) or
 						you know that your MOM supports propagation of the 'CorrelationID' it is highly recommended to set this 
 						value to 'JMSCorrelationID'. If you set this value to something else the receiving end must now how 
 						to propagate it. For example: if the receiving end is an inbound-gateway its correlation-key attribute 
