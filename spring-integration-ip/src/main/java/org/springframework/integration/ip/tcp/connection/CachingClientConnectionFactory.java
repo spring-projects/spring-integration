@@ -67,11 +67,13 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public synchronized void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public int getPoolSize() {
 		return this.pool.getPoolSize();
 	}

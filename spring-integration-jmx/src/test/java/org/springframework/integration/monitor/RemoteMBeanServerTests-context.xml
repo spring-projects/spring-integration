@@ -67,14 +67,19 @@
 		The CI build runs with the default profile.
 	 -->
 
-	<beans profile="remote">
-		<bean id="clientConnector" class="org.springframework.jmx.support.MBeanServerConnectionFactoryBean">
-			<property name="serviceUrl" value="service:jmx:rmi://localhost/jndi/rmi://localhost:11099/jmxrmi"/>
-		</bean>
-	</beans>
+	<!-- 	Commented out for Spring 3.0.x backwards compatibility
 
-	<beans profile="default">
-		<context:mbean-server id="clientConnector"/>
-	</beans>
+			<beans profile="remote">
+				<bean id="clientConnector" class="org.springframework.jmx.support.MBeanServerConnectionFactoryBean">
+					<property name="serviceUrl" value="service:jmx:rmi://localhost/jndi/rmi://localhost:11099/jmxrmi"/>
+				</bean>
+			</beans>
+
+			<beans profile="default">
+				<context:mbean-server id="clientConnector"/>
+			</beans>
+	-->
+
+	<context:mbean-server id="clientConnector"/>
 
 </beans>

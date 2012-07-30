@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -139,6 +140,7 @@ public class OutboundResponseTypeTests {
 			String response = null;
 			if (requestMethod.equalsIgnoreCase(this.httpMethod)){
 				response = httpMethod;
+				t.getResponseHeaders().add("Content-Type", MediaType.TEXT_PLAIN.toString()); //Required for Spring 3.0.x
 				t.sendResponseHeaders(200, response.length());
 			}
 			else {

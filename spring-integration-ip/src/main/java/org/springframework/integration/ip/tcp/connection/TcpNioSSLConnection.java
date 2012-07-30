@@ -112,6 +112,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	 * is handled by the thread running in the {@link SSLChannelOutputStream#doWrite(ByteBuffer)}
 	 * method, which is awoken here, as a result of reaching that stage in the handshaking.
 	 */
+	@SuppressWarnings("fallthrough")
 	private SSLEngineResult decode(ByteBuffer networkBuffer) throws IOException {
 		SSLEngineResult result = new SSLEngineResult(Status.OK, this.sslEngine.getHandshakeStatus(), 0, 0);
 		HandshakeStatus handshakeStatus = this.sslEngine.getHandshakeStatus();
