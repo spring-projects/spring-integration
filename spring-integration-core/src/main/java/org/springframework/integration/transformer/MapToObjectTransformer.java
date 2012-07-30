@@ -29,12 +29,12 @@ import org.springframework.validation.DataBinder;
 
 /**
  * Will transform Map to an instance of Object. There are two ways to specify the type of the transformed Object.
- * You can use one of two constructors. The constructor that takes the Class&lt;?&gt; as an argument will construct the Object of 
+ * You can use one of two constructors. The constructor that takes the Class&lt;?&gt; as an argument will construct the Object of
  * that type. There is another constructor that takes a 'beanName' as an argument and will populate this bean with transformed data.
  * Such bean must be of 'prototype' scope otherwise {@link MessageTransformationException} will be thrown.
- * This transformer is integrated with the {@link ConversionService} allowing values in the Map to be converted 
+ * This transformer is integrated with the {@link ConversionService} allowing values in the Map to be converted
  * to types that represent the properties of the Object.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0
  */
@@ -63,11 +63,12 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 	 * (non-Javadoc)
 	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)
 	 */
+	@SuppressWarnings("deprecation")
 	protected Object transformPayload(Map<?,?> payload) throws Exception {
 		Object target = (this.targetClass != null)
 				? BeanUtils.instantiate(this.targetClass)
 				: this.getBeanFactory().getBean(this.targetBeanName);
-		DataBinder binder = new DataBinder(target);	
+		DataBinder binder = new DataBinder(target);
 		ConversionService conversionService = null;
 		if (this.getBeanFactory() instanceof ConfigurableBeanFactory){
 			conversionService = ((ConfigurableBeanFactory)this.getBeanFactory()).getConversionService();
@@ -79,7 +80,7 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 		binder.bind(new MutablePropertyValues(payload));
 		return target;
 	}
-	
+
 	protected void onInit(){
 		if (StringUtils.hasText(this.targetBeanName)) {
 			Assert.isTrue(this.getBeanFactory().isPrototype(this.targetBeanName),

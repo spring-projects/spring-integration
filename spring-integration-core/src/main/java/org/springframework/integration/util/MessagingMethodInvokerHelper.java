@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,10 +68,12 @@ import org.springframework.util.StringUtils;
  * is provided, and more than one declared method has that name, the method-selection will be dynamic, based on the
  * underlying SpEL method resolution. Alternatively, an annotation type may be provided so that the candidates for
  * SpEL's method resolution are determined by the presence of that annotation rather than the method name.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator {
@@ -280,7 +282,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				if (isMethodDefinedOnObjectClass(method)) {
 					return;
 				}
-				if (method.getDeclaringClass().equals(Proxy.class)) { 
+				if (method.getDeclaringClass().equals(Proxy.class)) {
 					return;
 				}
 				if (!Modifier.isPublic(method.getModifiers())) {
@@ -354,6 +356,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		return fallbackMethods;
 	}
 
+	@SuppressWarnings("deprecation")
 	private Class<?> getTargetClass(Object targetObject) {
 		Class<?> targetClass = targetObject.getClass();
 		if (AopUtils.isAopProxy(targetObject)) {

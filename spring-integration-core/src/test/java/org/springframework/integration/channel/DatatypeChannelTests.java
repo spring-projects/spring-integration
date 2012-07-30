@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class DatatypeChannelTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void unsupportedTypeButConversionServiceSupports() {
 		QueueChannel channel = createChannel(Integer.class);
 		ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
@@ -65,6 +66,7 @@ public class DatatypeChannelTests {
 	}
 
 	@Test(expected = MessageDeliveryException.class)
+	@SuppressWarnings("deprecation")
 	public void unsupportedTypeAndConversionServiceDoesNotSupport() {
 		QueueChannel channel = createChannel(Integer.class);
 		ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
@@ -73,6 +75,7 @@ public class DatatypeChannelTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void unsupportedTypeButCustomConversionServiceSupports() {
 		QueueChannel channel = createChannel(Integer.class);
 		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
@@ -104,10 +107,11 @@ public class DatatypeChannelTests {
 		context.registerBeanDefinition("testChannel", channelBuilder.getBeanDefinition());
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
 		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(new Integer(1), channel.receive().getPayload());		
+		assertEquals(new Integer(1), channel.receive().getPayload());
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void conversionServiceReferenceOverridesDefault() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		Converter<Boolean, Integer> defaultConverter = new Converter<Boolean, Integer>() {
@@ -131,7 +135,7 @@ public class DatatypeChannelTests {
 		context.registerBeanDefinition("testChannel", channelBuilder.getBeanDefinition());
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
 		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(new Integer(99), channel.receive().getPayload());		
+		assertEquals(new Integer(99), channel.receive().getPayload());
 	}
 
 	@Test

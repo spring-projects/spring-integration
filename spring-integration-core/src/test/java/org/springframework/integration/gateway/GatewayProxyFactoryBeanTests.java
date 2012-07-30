@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,8 +65,9 @@ public class GatewayProxyFactoryBeanTests {
 		String result = service.requestReply("foo");
 		assertEquals("foobar", result);
 	}
-	
+
 	@Test
+	@SuppressWarnings("deprecation")
 	public void testRequestReplyWithAnonymousChannelConvertedTypeViaConversionService() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
@@ -75,13 +76,13 @@ public class GatewayProxyFactoryBeanTests {
 			public byte[] convert(String source) {
 				return source.getBytes();
 			}
-		};	
+		};
 		stringToByteConverter = Mockito.spy(stringToByteConverter);
 		cs.addConverter(stringToByteConverter);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, cs);
-		
+
 		proxyFactory.setBeanFactory(bf);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestService.class);
@@ -334,7 +335,7 @@ public class GatewayProxyFactoryBeanTests {
 //		MessageHistoryEvent event1 = historyIterator.next();
 //		MessageHistoryEvent event2 = historyIterator.next();
 //		MessageHistoryEvent event3 = historyIterator.next();
-//		
+//
 //		//assertEquals("echo", event1.getAttribute("method", String.class));
 //		assertEquals("gateway", event1.getType());
 //		assertEquals("testGateway", event1.getName());

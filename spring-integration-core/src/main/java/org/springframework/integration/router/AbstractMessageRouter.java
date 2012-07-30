@@ -32,7 +32,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Base class for all Message Routers.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
@@ -50,12 +50,12 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 
 	/**
-	 * Set the default channel where Messages should be sent if channel resolution 
-	 * fails to return any channels. If no default channel is provided and channel 
-	 * resolution fails to return any channels, the router will throw an 
-	 * {@link MessageDeliveryException}. 
-	 * 
-	 * If messages shall be ignored (dropped) instead, please provide a {@link NullChannel}. 
+	 * Set the default channel where Messages should be sent if channel resolution
+	 * fails to return any channels. If no default channel is provided and channel
+	 * resolution fails to return any channels, the router will throw an
+	 * {@link MessageDeliveryException}.
+	 *
+	 * If messages shall be ignored (dropped) instead, please provide a {@link NullChannel}.
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
@@ -100,6 +100,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		return this.messagingTemplate;
 	}
 
+	@SuppressWarnings("deprecation")
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
 			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());

@@ -34,7 +34,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -57,131 +57,131 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", "bar");
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 	}
-	
+
 	@Test
 	public void validateAllowAsString(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", "GET");
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(1, headers.getAllow().size());
 		assertEquals(HttpMethod.GET, headers.getAllow().iterator().next());
 	}
-	
+
 	@Test
 	public void validateAllowAsStringCaseInsensitive(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("allow", "GET");
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(1, headers.getAllow().size());
 		assertEquals(HttpMethod.GET, headers.getAllow().iterator().next());
 	}
-	
+
 	@Test
 	public void validateAllowAsHttpMethod(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", HttpMethod.GET);
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(1, headers.getAllow().size());
 		assertEquals(HttpMethod.GET, headers.getAllow().iterator().next());
 	}
-	
+
 	@Test
 	public void validateAllowAsDelimitedString(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", "GET, POST");
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAllow().size());
 		assertTrue(headers.getAllow().contains(HttpMethod.GET));
 		assertTrue(headers.getAllow().contains(HttpMethod.POST));
 	}
-	
+
 	@Test
 	public void validateAllowAsStringArray(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", new String[]{"GET", "POST"});
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAllow().size());
 		assertTrue(headers.getAllow().contains(HttpMethod.GET));
 		assertTrue(headers.getAllow().contains(HttpMethod.POST));
 	}
-	
+
 	@Test
 	public void validateAllowAsHttpMethodArray(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", new HttpMethod[]{HttpMethod.GET, HttpMethod.POST});
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAllow().size());
 		assertTrue(headers.getAllow().contains(HttpMethod.GET));
 		assertTrue(headers.getAllow().contains(HttpMethod.POST));
 	}
-	
+
 	@Test
 	public void validateAllowAsCollectionOfString(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", CollectionUtils.arrayToList(new String[]{"GET", "POST"}));
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAllow().size());
 		assertTrue(headers.getAllow().contains(HttpMethod.GET));
 		assertTrue(headers.getAllow().contains(HttpMethod.POST));
 	}
-	
+
 	@Test
 	public void validateAllowAsCollectionOfHttpMethods(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Allow", CollectionUtils.arrayToList(new HttpMethod[]{HttpMethod.GET, HttpMethod.POST}));
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAllow().size());
 		assertTrue(headers.getAllow().contains(HttpMethod.GET));
 		assertTrue(headers.getAllow().contains(HttpMethod.POST));
 	}
-	
+
 	// Cache-Control tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
 	// Content-Length tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
 	// Content-Type tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
 	// Date tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
-	
+
 	// ETag tests
-	
+
 	@Test
 	public void validateETag(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("ETag", "\"1234\"");
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals("\"1234\"", headers.getETag());
 	}
-	
+
 	// Expires tests
-	
+
 	@Test
 	public void validateExpiresAsNumber() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
@@ -189,12 +189,12 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Expires", 12345678);
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-	
+
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-	
+
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getExpires());
 	}
-	
+
 	@Test
 	public void validateExpiresAsString() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
@@ -202,9 +202,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Expires", "12345678");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-	
+
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-	
+
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getExpires());
 	}
 	@Test
@@ -214,14 +214,14 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Expires", new Date(12345678));
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-	
+
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-	
+
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getExpires());
 	}
-	
+
 	// Last-Modified tests
-	
+
 	@Test
 	public void validateLastModifiedAsNumber() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
@@ -229,12 +229,12 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Last-Modified", 12345678);
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-	
+
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-	
+
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getLastModified());
 	}
-	
+
 	@Test
 	public void validateLastModifiedAsString() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
@@ -242,9 +242,9 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Last-Modified", "12345678");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-	
+
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-	
+
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getLastModified());
 	}
 	@Test
@@ -254,14 +254,14 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Last-Modified", new Date(12345678));
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-	
+
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-	
+
 		assertEquals(simpleDateFormat.parse("Thu, 01 Jan 1970 03:25:45 GMT").getTime(), headers.getLastModified());
 	}
-	
+
 	// Location tests
-	
+
 	@Test
 	public void validateLocation() throws Exception{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
@@ -269,10 +269,10 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		messageHeaders.put("Location", "http://foo.com");
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-	
+
 		assertEquals(new URI("http://foo.com").toString(), headers.getLocation().toString());
 	}
-	
+
 	// Pragma tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
 
 	@Test
@@ -315,7 +315,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals(1, headers.get("X-1z").size());
 		assertEquals("1z-value", headers.getFirst("X-1z"));
 		assertEquals(1, headers.get("X-abcdef").size());
-		assertEquals("abcdef-value", headers.getFirst("X-abcdef"));		
+		assertEquals("abcdef-value", headers.getFirst("X-abcdef"));
 	}
 
 	@Test
@@ -334,7 +334,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals(1, headers.get("X-foobar").size());
 		assertEquals("abc", headers.getFirst("X-foobar"));
 	}
-	
+
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefix() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
@@ -352,7 +352,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals(1, headers.get("Z-foobar").size());
 		assertEquals("abc", headers.getFirst("Z-foobar"));
 	}
-	
+
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixEmptyString() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
@@ -370,7 +370,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals(1, headers.get("foobar").size());
 		assertEquals("abc", headers.getFirst("foobar"));
 	}
-	
+
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixNull() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
@@ -439,76 +439,79 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals("abc", result.get("foobar"));
 		assertEquals(MediaType.TEXT_XML, result.get("Accept"));
 	}
-	
+
 	@Test
 	public void validateCustomHeadersWithNonStringValuesAndNoConverter() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("customHeaderA", 123);
 		messageHeaders.put("customHeaderB", new TestClass());
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertNull(headers.get("X-customHeaderA"));
 		assertNull(headers.get("X-customHeaderB"));
 	}
-	
+
+
 	@Test
+	@SuppressWarnings("deprecation")
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterOnly() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
-		ConversionService cs = new DefaultConversionService();
+		ConversionService cs = ConversionServiceFactory.createDefaultConversionService();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);
 		mapper.setBeanFactory(beanFactory);
 		mapper.afterPropertiesSet();
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("customHeaderA", 123);
 		messageHeaders.put("customHeaderB", new TestClass());
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertNotNull(headers.get("X-customHeaderA"));
 		assertEquals("123", headers.get("X-customHeaderA").get(0));
 		assertNull(headers.get("X-customHeaderB"));
 	}
-	
+
 	@Test
+	@SuppressWarnings("deprecation")
 	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterWithCustomConverter() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
-		GenericConversionService cs = new DefaultConversionService();
+		GenericConversionService cs = ConversionServiceFactory.createDefaultConversionService();
 		cs.addConverter(new TestClassConverter());
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("integrationConversionService", cs);
 		mapper.setBeanFactory(beanFactory);
 		mapper.afterPropertiesSet();
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("customHeaderA", 123);
 		messageHeaders.put("customHeaderB", new TestClass());
-		
+
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertNotNull(headers.get("X-customHeaderA"));
 		assertEquals("123", headers.get("X-customHeaderA").get(0));
 		assertNotNull(headers.get("X-customHeaderB"));
 		assertEquals("TestClass.class", headers.get("X-customHeaderB").get(0));
 	}
-	
+
 	public static class TestClass {
-		
+
 	}
-	
+
 	public static class TestClassConverter implements Converter<TestClass, String>{
 
 		public String convert(TestClass source) {
 			return "TestClass.class";
 		}
-		
+
 	}
 
 }

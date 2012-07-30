@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
@@ -289,14 +290,33 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 		Assert.isInstanceOf(GenericConversionService.class, conversionService);
 		GenericConversionService gConversionService = (GenericConversionService) conversionService;
-		gConversionService.addConverter(new Converter<Class<?>, String>() {
-			public String convert(Class<?> source) {
-				return source.getName();
-			}
-		});
+
+		gConversionService.addConverter(new ClassToStringConverter());
+		gConversionService.addConverter(new ObjectToStringConverter());
 
 		if (conversionService != null) {
 			this.evaluationContext.setTypeConverter(new StandardTypeConverter(gConversionService));
+		}
+	}
+
+	private class ClassToStringConverter implements Converter<Class<?>, String> {
+		public String convert(Class<?> source) {
+			return source.getName();
+		}
+	}
+
+	/**
+	 *  Spring 3.0.7.RELEASE unfortunately does not trigger the ClassToStringConverter.
+	 *  Therefore, this converter will also test for Class instances and do a
+	 *  respective type conversion.
+	 *
+	 */
+	private class ObjectToStringConverter implements Converter<Object, String> {
+		public String convert(Object source) {
+			if (source instanceof Class) {
+				return ((Class<?>) source).getName();
+			}
+			return source.toString();
 		}
 	}
 

@@ -20,7 +20,6 @@ import javax.sql.DataSource;
 
 import org.hibernate.HibernateException;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.ejb.Ejb3Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,14 +50,13 @@ public class HibernateJpaOperationsTests extends AbstractJpaOperationsTests {
 	@Test
 	public void generateDdl() {
 
-		final Ejb3Configuration cfg = new Ejb3Configuration();
+		final org.hibernate.ejb.Ejb3Configuration cfg = new org.hibernate.ejb.Ejb3Configuration();
 
-		Map properties = fb.getJpaPropertyMap();
-
+		Map<String, Object> properties = fb.getJpaPropertyMap();
 
 		properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
 
-		final Ejb3Configuration configured = cfg.configure( fb.getPersistenceUnitInfo(), fb.getJpaPropertyMap() );
+		final org.hibernate.ejb.Ejb3Configuration configured = cfg.configure( fb.getPersistenceUnitInfo(), fb.getJpaPropertyMap() );
 		final Configuration configuration = configured.getHibernateConfiguration();
 
 		final SchemaExport schemaExport;

@@ -48,6 +48,7 @@ import org.springframework.web.servlet.View;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class HttpRequestHandlingControllerTests {
@@ -61,7 +62,11 @@ public class HttpRequestHandlingControllerTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
 		assertEquals("foo", modelAndView.getViewName());
@@ -81,7 +86,11 @@ public class HttpRequestHandlingControllerTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
 		assertEquals("baz", modelAndView.getViewName());
@@ -106,8 +115,12 @@ public class HttpRequestHandlingControllerTests {
 		controller.setViewName("foo");
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
-		request.setContent("hello".getBytes());
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+		request.setContent("hello".getBytes()); //For Spring 3.0.7.RELEASE the Content must be set,
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
 		assertEquals("foo", modelAndView.getViewName());
@@ -191,7 +204,11 @@ public class HttpRequestHandlingControllerTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("howdy".getBytes());
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
 		assertEquals("foo", modelAndView.getViewName());
@@ -218,7 +235,11 @@ public class HttpRequestHandlingControllerTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("abc".getBytes());
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		ModelAndView modelAndView = controller.handleRequest(request, response);
 		assertEquals("foo", modelAndView.getViewName());
@@ -279,7 +300,11 @@ public class HttpRequestHandlingControllerTests {
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		final AtomicInteger active = new AtomicInteger();
 		final AtomicBoolean expected503 = new AtomicBoolean();

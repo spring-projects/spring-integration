@@ -35,6 +35,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 
@@ -53,7 +54,10 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
-		request.setContentType("text/plain");
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");

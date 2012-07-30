@@ -113,7 +113,9 @@ public class HttpOutboundGatewayWithMethodExpression {
 			String response = null;
 			if (requestMethod.equalsIgnoreCase(this.httpMethod)){
 				response = httpMethod;
+				t.getResponseHeaders().add("Content-Type", "text/plain"); //Required for Spring 3.0.x
 				t.sendResponseHeaders(200, response.length());
+
 			}
 			else {
 				response = "Request is NOT valid";

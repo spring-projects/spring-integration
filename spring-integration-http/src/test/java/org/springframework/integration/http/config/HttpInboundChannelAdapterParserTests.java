@@ -57,6 +57,7 @@ import org.springframework.util.MultiValueMap;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -73,21 +74,21 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Autowired
 	private HttpRequestHandlingMessagingGateway putOrDeleteAdapter;
-	
+
 	@Autowired
 	private HttpRequestHandlingMessagingGateway withMappedHeaders;
-	
+
 	@Autowired
 	private HttpRequestHandlingMessagingGateway inboundAdapterWithExpressions;
-	
+
 	@Autowired
 	@Qualifier("/fname/{blah}/lname/{boo}")
 	private HttpRequestHandlingMessagingGateway inboundAdapterWithNameAndExpressions;
-	
+
 	@Autowired
 	@Qualifier("/fname/{f}/lname/{l}")
 	private HttpRequestHandlingMessagingGateway inboundAdapterWithNameNoPath;
-	
+
 	@Autowired
 	private HttpRequestHandlingController inboundController;
 
@@ -117,12 +118,12 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("bar", map.getFirst("foo"));
 		assertNotNull(TestUtils.getPropertyValue(defaultAdapter, "errorChannel"));
 	}
-	
+
 	@Test
 	public void getRequestWithHeaders() throws Exception {
-		DefaultHttpHeaderMapper headerMapper = 
+		DefaultHttpHeaderMapper headerMapper =
 			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
@@ -132,7 +133,7 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));
 	}
-	
+
 	@Test
 	// INT-1677
 	public void withExpressions() throws Exception {
@@ -142,7 +143,7 @@ public class HttpInboundChannelAdapterParserTests {
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
-		
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		inboundAdapterWithExpressions.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
@@ -163,7 +164,7 @@ public class HttpInboundChannelAdapterParserTests {
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
-		
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		inboundAdapterWithNameAndExpressions.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
@@ -174,7 +175,7 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("bill", payload);
 		assertEquals("clinton", message.getHeaders().get("lname"));
 	}
-	
+
 	@Test(expected=SpelEvaluationException.class)
 	// INT-1677
 	public void withNameAndExpressionsNoPath() throws Exception {
@@ -184,7 +185,7 @@ public class HttpInboundChannelAdapterParserTests {
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
-		
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		inboundAdapterWithNameNoPath.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
@@ -195,8 +196,8 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("hello", payload); // default payload
 		assertNull(message.getHeaders().get("lname"));
 	}
-	
-	
+
+
 
 	@Test
 	public void getRequestNotAllowed() throws Exception {
@@ -215,7 +216,11 @@ public class HttpInboundChannelAdapterParserTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("test".getBytes());
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but not in Spring 3.0.7.RELEASE
+		//Instead use:
+		request.addHeader("Content-Type", "text/plain");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		postOnlyAdapter.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
@@ -237,7 +242,11 @@ public class HttpInboundChannelAdapterParserTests {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		new ObjectOutputStream(byteStream).writeObject(obj);
 		request.setContent(byteStream.toByteArray());
-		request.setContentType("application/x-java-serialized-object");
+
+//		//request.setContentType("application/x-java-serialized-object"); //Works in Spring 3.1.2.RELEASE but not in Spring 3.0.7.RELEASE
+//		//Instead use:
+		request.addHeader("Content-Type", "application/x-java-serialized-object");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		postOnlyAdapter.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());

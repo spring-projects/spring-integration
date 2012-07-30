@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,14 @@ import static junit.framework.Assert.assertNull;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class MapToObjectTransformerTests {
 
-	
+
 	@Test
 	public void testMapToObjectTransformation(){
 		Map map = new HashMap();
@@ -50,9 +52,9 @@ public class MapToObjectTransformerTests {
 		Address address = new Address();
 		address.setStreet("1123 Main st");
 		map.put("address", address);
-		
+
 		Message message = MessageBuilder.withPayload(map).build();
-		
+
 		MapToObjectTransformer transformer = new MapToObjectTransformer(Person.class);
 		transformer.setBeanFactory(this.getBeanFactory());
 		Message newMessage = transformer.transform(message);
@@ -64,7 +66,7 @@ public class MapToObjectTransformerTests {
 		assertNotNull(person.getAddress());
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
-	
+
 	@Test
 	public void testMapToObjectTransformationWithPrototype(){
 		Map map = new HashMap();
@@ -73,7 +75,7 @@ public class MapToObjectTransformerTests {
 		Address address = new Address();
 		address.setStreet("1123 Main st");
 		map.put("address", address);
-		
+
 		Message message = MessageBuilder.withPayload(map).build();
 		StaticApplicationContext ac = new StaticApplicationContext();
 		ac.registerPrototype("person", Person.class);
@@ -95,14 +97,14 @@ public class MapToObjectTransformerTests {
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		map.put("address", "1123 Main st");
-		
+
 		Message message = MessageBuilder.withPayload(map).build();
-		
+
 		MapToObjectTransformer transformer = new MapToObjectTransformer(Person.class);
 		ConfigurableBeanFactory beanFactory = this.getBeanFactory();
 		((GenericConversionService)beanFactory.getConversionService()).addConverter(new StringToAddressConverter());
 		transformer.setBeanFactory(beanFactory);
-		
+
 		Message newMessage = transformer.transform(message);
 		Person person = (Person) newMessage.getPayload();
 		assertNotNull(person);
@@ -111,7 +113,8 @@ public class MapToObjectTransformerTests {
 		assertNotNull(person.getAddress());
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
-	
+
+	@SuppressWarnings("deprecation")
 	private ConfigurableBeanFactory getBeanFactory(){
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
@@ -129,7 +132,7 @@ public class MapToObjectTransformerTests {
 		}
 		public void setSsn(String ssn) {
 			this.ssn = ssn;
-		}	
+		}
 		public String getFname() {
 			return fname;
 		}
@@ -149,7 +152,7 @@ public class MapToObjectTransformerTests {
 			this.address = address;
 		}
 	}
-	
+
 	public static class Address {
 		private String street;
 
@@ -161,7 +164,7 @@ public class MapToObjectTransformerTests {
 			this.street = street;
 		}
 	}
-	
+
 	public class StringToAddressConverter implements Converter<String, Address>{
 		public Address convert(String source) {
 			Address address = new Address();
