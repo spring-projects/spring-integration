@@ -45,6 +45,7 @@ import org.springframework.util.SerializationUtils;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class HttpRequestHandlingMessagingGatewayTests {
@@ -76,7 +77,11 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		gateway.setRequestChannel(requestChannel);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
@@ -101,7 +106,11 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.addHeader("Accept", "x-application/octet-stream");
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
@@ -122,7 +131,11 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		gateway.setRequestChannel(requestChannel);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
-		request.setContentType("text/plain");
+
+		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "text/plain");
+
 		request.setContent("hello".getBytes());
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
@@ -183,7 +196,11 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		gateway.setRequestPayloadType(TestBean.class);
 		gateway.setRequestChannel(channel);
 		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/test");
-		request.setContentType("application/x-java-serialized-object");
+
+		//request.setContentType("application/x-java-serialized-object"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE
+		//Instead do:
+		request.addHeader("Content-Type", "application/x-java-serialized-object");
+
 		TestBean testBean = new TestBean();
 		testBean.setName("T. Bean");
 		testBean.setAge(42);
