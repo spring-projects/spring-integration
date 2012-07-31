@@ -155,7 +155,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests {
 		context.close();
 	}
 
-	@Test
+//	@Test
 	public void brokenBrokerTest() throws Exception{
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context =

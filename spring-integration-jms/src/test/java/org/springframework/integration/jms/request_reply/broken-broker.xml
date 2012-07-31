@@ -24,7 +24,7 @@
 							 		 
 	<int:service-activator input-channel="jmsInChannel" expression="payload"/>
 		
-	<bean id="connectionFactory" class="org.springframework.integration.jms.IntegrationCachingConnectionFactory" depends-on="broker">
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory" depends-on="broker">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="tcp://localhost:61623"/>		

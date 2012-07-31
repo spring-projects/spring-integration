@@ -34,7 +34,7 @@
 		<bean class="org.springframework.integration.jms.request_reply.RequestReplyScenariosWithTempReplyQueuesTests.MyRandomlySlowService"/>
 	</int:service-activator>
 		
-	<bean id="connectionFactory" class="org.springframework.integration.jms.IntegrationCachingConnectionFactory">
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
 				<property name="brokerURL" value="vm://localhost"/>		
