@@ -293,10 +293,6 @@ public class ChannelPublishingJmsMessageListener
 						this.copyCorrelationIdFromRequestToReply(jmsMessage, jmsReply);
 						this.sendReply(jmsReply, destination, session);
 				    }
-					catch (javax.jms.IllegalStateException e) {
-					    logger.debug("Reply can no longer be sent because: '" + e.getMessage() +
-							"'. Most likely cause is that the reply destination '" + destination + "' may no longer exist");
-				    }
 					catch (RuntimeException e) {
 						logger.error("Failed to generate JMS Reply Message from: " + replyResult, e);
 						throw e;

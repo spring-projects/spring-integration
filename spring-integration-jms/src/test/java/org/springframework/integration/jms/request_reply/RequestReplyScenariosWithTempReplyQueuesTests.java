@@ -184,8 +184,10 @@ public class RequestReplyScenariosWithTempReplyQueuesTests {
 				timeoutCounter++;
 			}
 			if (i == 0 || i == 20 || i == 40){
-				Destination replyDestination = TestUtils.getPropertyValue(context.getBean("jog"), "handler.replyDestination", Destination.class);
-				broker.removeDestination((ActiveMQDestination) replyDestination);
+				Object replyDestination = TestUtils.getPropertyValue(context.getBean("jog"), "handler.replyDestination");
+				if (replyDestination != null){
+					broker.removeDestination((ActiveMQDestination) replyDestination);
+				}
 			}
 		}
 		assertEquals(50, replyCounter + timeoutCounter);
@@ -233,7 +235,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests {
 		}
 		latch.await();
 		print(failures, timeouts, missmatches, testNumbers);
-		Thread.sleep(1000);
+		Thread.sleep(5000);
 		assertEquals(0, missmatches.get());
 		assertEquals(0, failures.get());
 		assertEquals(0, timeouts.get());

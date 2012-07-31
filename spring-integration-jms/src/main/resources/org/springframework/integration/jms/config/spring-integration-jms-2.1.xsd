@@ -900,9 +900,7 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:simpleType name="correlation-key-ext">
-		<xsd:restriction base="xsd:string">
-			<xsd:pattern value="([a-zA-Z0-9])*"/>
-		</xsd:restriction>
+		<xsd:restriction base="xsd:string"/>
 	</xsd:simpleType>
 
 	<xsd:element name="outbound-channel-adapter">

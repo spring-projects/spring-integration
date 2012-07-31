@@ -17,6 +17,8 @@
 package org.springframework.integration.jms;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,6 +35,7 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -50,7 +53,6 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,6 +68,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private final String gatewayId = UUID.randomUUID().toString();
 
 	private volatile boolean cachedConsumers;
+
+	private volatile Map<Integer, LinkedList<Session>> cachedSessionView;
+
+	private volatile boolean replyDestinationExplicitlySet;
 
 	private final Map<Long, Destination> tempQueuePerSessionMap = new HashMap<Long, Destination>(10);
 
@@ -170,6 +176,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			this.replyPubSubDomain = true;
 		}
 		this.replyDestination = replyDestination;
+		this.replyDestinationExplicitlySet = true;
 	}
 
 	/**
@@ -178,6 +185,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	public void setReplyDestinationName(String replyDestinationName) {
 		this.replyDestinationName = replyDestinationName;
+		this.replyDestinationExplicitlySet = true;
 	}
 
 	/**
@@ -251,7 +259,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * Provide the name of a JMS property that should hold a generated CorrelationID.
+	 * Provide the name of a JMS property that should hold a generated JMSCorrelationID.
 	 * If NO value is provided for this attribute, then the reply consumer's
 	 * MessageSelector will be expecting the JMSCorrelationID to equal the Message ID
 	 * of the request. However this would also mean that the MessageSelector will be different
@@ -334,6 +342,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return "jms:outbound-gateway";
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public final void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -352,9 +361,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			this.initialized = true;
 			if (this.connectionFactory instanceof CachingConnectionFactory){
 				this.cachedConsumers = ((CachingConnectionFactory)this.connectionFactory).isCacheConsumers();
+				DirectFieldAccessor cfDfa = new DirectFieldAccessor(this.connectionFactory);
+				this.cachedSessionView = (Map<Integer, LinkedList<Session>>) cfDfa.getPropertyValue("cachedSessions");
 			}
 
-			if (this.cachedConsumers && !StringUtils.hasText(this.correlationKey)){
+			if (this.cachedConsumers && !StringUtils.hasText(this.correlationKey)
+					&& (this.replyDestination != null || StringUtils.hasText(this.replyDestinationName))){
 				logger.warn("Caching consumers  without custom correlation-key can lead to " +
 						"significant performance degradation and OutOfMemoryError. Either do not use consumer caching " +
 						"by setting 'cacheConsumers' attribute to FALSE in the CachingConnectionFactory or set 'correlation-key'" +
@@ -462,12 +474,20 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			return this.tempQueuePerSessionMap.get(sessionId);
 		}
 
-		if (this.cachedConsumers && StringUtils.hasText(this.correlationKey)){
-			// will rely on LIKE  MessageSelector. Only need one TemporaryQueue for reply
-			// as if the replyDestinationName was specified
-			this.replyDestination = session.createTemporaryQueue();
-			return this.replyDestination;
+		if (this.cachedConsumers){
+			if (StringUtils.hasText(this.correlationKey)){
+				// will rely on LIKE  MessageSelector. Only need one TemporaryQueue for reply
+				// as if the replyDestinationName was specified
+				this.replyDestination = session.createTemporaryQueue();
+				return this.replyDestination;
+			}
+			else {
+				Destination replyTo = session.createTemporaryQueue();
+				this.tempQueuePerSessionMap.put(sessionId, replyTo);
+				return replyTo;
+			}
 		}
+
 		return session.createTemporaryQueue();
 	}
 
@@ -478,7 +498,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		long sessionId = 0;
 		try {
 			session = this.createSession(connection);
-			sessionId = ObjectUtils.getIdentityHexString(session).hashCode();
+			sessionId = System.identityHashCode(session);
 
 			// convert to JMS Message
 			Object objectToSend = requestMessage;
@@ -508,12 +528,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		}
 		finally {
 			JmsUtils.closeSession(session);
-			if (this.deleteDestinationIfTemporary(replyTo)){
+
+			if (!this.replyDestinationExplicitlySet && this.isTemporaryDestination(replyTo)){
+				this.deleteDestinationIfTemporary(replyTo);
+			}
+
+			if (!this.isCachedSession(session)){
 				this.tempQueuePerSessionMap.remove(sessionId);
 			}
-			else {
-				this.tempQueuePerSessionMap.put(sessionId, replyTo);
-			}
+
 			ConnectionFactoryUtils.releaseConnection(connection, this.connectionFactory, true);
 		}
 	}
@@ -562,24 +585,28 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private MessageConsumer createMessageConsumer(Session session, Destination replyTo, String messageSelector, long sessionId) throws JMSException{
 		try {
-			if (StringUtils.hasText(messageSelector)){
-				if (this.cachedConsumers && replyTo instanceof TemporaryQueue){
+			if (this.cachedConsumers && this.isTemporaryDestination(replyTo)){
+				if (StringUtils.hasText(messageSelector)){
 					return TemporaryConsumerUtils.createConsumer(session, replyTo, messageSelector);
 				}
-				return session.createConsumer(replyTo, messageSelector);
-			}
-			else {
-				if (this.cachedConsumers && replyTo instanceof TemporaryQueue){
+				else {
 					return TemporaryConsumerUtils.createConsumer(session, replyTo, null);
 				}
-				return session.createConsumer(replyTo);
+			}
+			else {
+				if (StringUtils.hasText(messageSelector)){
+					return session.createConsumer(replyTo, messageSelector);
+				}
+				else {
+					return session.createConsumer(replyTo);
+				}
 			}
 		}
 		catch (InvalidDestinationException e) {
 			if (this.tempQueuePerSessionMap.containsKey(sessionId)){
 				this.tempQueuePerSessionMap.remove(sessionId);
 			}
-			if (this.replyDestination instanceof TemporaryQueue){
+			else if (this.isTemporaryDestination(this.replyDestination) && !this.replyDestinationExplicitlySet){
 				this.replyDestination = null;
 			}
 			throw e;
@@ -598,27 +625,29 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 				this.sendRequestMessage(jmsRequest, messageProducer, priority);
 			}
 			else {
-				this.sendRequestMessage(jmsRequest, messageProducer, priority);
-				messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
-				if (replyTo instanceof TemporaryQueue){
-					messageConsumer = this.createMessageConsumer(session, replyTo, null, sessionId);
-				}
-				else {
+				if (this.replyDestinationExplicitlySet){
+					this.sendRequestMessage(jmsRequest, messageProducer, priority);
+					messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
 					messageSelector = "JMSCorrelationID = '" + messageCorrelationId + "'";
 					messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
+				}
+				else {
+					messageConsumer = this.createMessageConsumer(session, replyTo, null, sessionId);
+					this.sendRequestMessage(jmsRequest, messageProducer, priority);
+					messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
 				}
 			}
 
 			try {
-				javax.jms.Message jmsMessage = this.receiveCorrelatedReplyMessage(messageConsumer, messageCorrelationId, correlationKey);
+				javax.jms.Message jmsMessage = this.receiveCorrelatedReplyMessage(messageConsumer, correlationKey, messageCorrelationId);
 				return jmsMessage;
 			}
 			catch (javax.jms.IllegalStateException e) {
 				// clear up the temp queue cache
-				if (this.replyDestination != null && this.replyDestination instanceof TemporaryQueue){
-					this.replyDestination = null;
+				if (this.tempQueuePerSessionMap.containsKey(sessionId)){
+					this.tempQueuePerSessionMap.remove(sessionId);
 				}
-				if (this.replyDestination instanceof TemporaryQueue){
+				else if (this.isTemporaryDestination(this.replyDestination) && !this.replyDestinationExplicitlySet){
 					this.replyDestination = null;
 				}
 				throw e;
@@ -630,12 +659,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private javax.jms.Message receiveCorrelatedReplyMessage(MessageConsumer messageConsumer,
-			String messageCorrelationIdToMatch, String correlationKey) throws JMSException {
+			String correlationKey, String messageCorrelationIdToMatch) throws JMSException {
 
 		long timeout = this.receiveTimeout;
 		long startTime = System.currentTimeMillis();
 		javax.jms.Message replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
-		long elapsedTime = System.currentTimeMillis() - startTime;
+
 		while (replyMessage != null){
 
 			String jmsCorrelationId = null;
@@ -647,9 +676,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			}
 
 			if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
-				boolean messageMatched = jmsCorrelationId.contains(messageCorrelationIdToMatch);
 
-				if (messageMatched){
+				if (jmsCorrelationId.contains(messageCorrelationIdToMatch)){
 					return replyMessage;
 				}
 				else {
@@ -660,8 +688,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 						this.logger.debug("Discarded late arriving reply: " + replyMessage);
 					}
 					if (timeout > 0){
+						long elapsedTime = System.currentTimeMillis() - startTime;
 						timeout = timeout - elapsedTime;
+						if (timeout < 0){
+							return null;
+						}
 						replyMessage = messageConsumer.receive(timeout);
+					}
+					else if (this.receiveTimeout < 0){
+						replyMessage = messageConsumer.receive();
 					}
 					else {
 						return null;
@@ -690,7 +725,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * Ignores any other {@link Destination} type and also ignores any
 	 * {@link JMSException}s that may be thrown when attempting to delete.
 	 */
-	private boolean deleteDestinationIfTemporary(Destination destination) {
+	private void deleteDestinationIfTemporary(Destination destination) {
 		try {
 			if (destination instanceof TemporaryQueue) {
 				((TemporaryQueue) destination).delete();
@@ -698,9 +733,25 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			else if (destination instanceof TemporaryTopic) {
 				((TemporaryTopic) destination).delete();
 			}
-			return true;
 		}
 		catch (JMSException e) {
+			// ignore
+		}
+	}
+
+	private boolean isTemporaryDestination(Destination destination){
+		return destination instanceof TemporaryQueue || destination instanceof TemporaryTopic;
+	}
+
+	private boolean isCachedSession(Session session){
+		try {
+			if (this.cachedSessionView.containsKey(Session.AUTO_ACKNOWLEDGE)){
+				List<Session> cachedSessions = this.cachedSessionView.get(Session.AUTO_ACKNOWLEDGE);
+				if (cachedSessions != null){
+					return cachedSessions.contains(session);
+				}
+			}
+		} catch (NullPointerException e) {
 			// ignore
 		}
 		return false;
