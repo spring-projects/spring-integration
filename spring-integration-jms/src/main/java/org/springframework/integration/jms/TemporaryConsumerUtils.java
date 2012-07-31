@@ -51,7 +51,6 @@ class TemporaryConsumerUtils {
 		if (Proxy.isProxyClass(session.getClass())){
 			InvocationHandler invocationHandler = Proxy.getInvocationHandler(session);
 			DirectFieldAccessor ihDa = new DirectFieldAccessor(invocationHandler);
-			ihDa.getPropertyValue("cachedConsumers");
 			@SuppressWarnings("unchecked")
 			Map<Object, MessageConsumer> cachedConsumers =
 				(Map<Object, MessageConsumer>) ihDa.getPropertyValue("cachedConsumers");

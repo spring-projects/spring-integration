@@ -65,7 +65,6 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			builder.addPropertyValue("requestDestinationExpression", expressionBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-destination");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "optimize-correlation");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-destination-name");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "correlation-key");
