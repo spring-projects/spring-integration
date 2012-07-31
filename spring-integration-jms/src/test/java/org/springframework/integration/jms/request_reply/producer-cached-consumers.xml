@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.2.xsd">
+
+	<int:gateway id="standardMessageIdCopyingConsumerWithOptimization" default-request-channel="jmsInOptimizedA"/>
+
+	<int-jms:outbound-gateway request-channel="jmsInOptimizedA"
+	    connection-factory="connectionFactory" 
+		request-destination="siOutQueueOptimizedA"
+		reply-destination="siInQueueOptimizedA"
+		correlation-key="JMSCorrelationID"/>
+		
+	<bean id="siOutQueueOptimizedA" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siOutQueueOptimizedA"/>
+	</bean>
+	
+	<bean id="siInQueueOptimizedA" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siInQueueOptimizedA"/>
+	</bean>
+	
+	<!--  -->
+	
+	<int:gateway id="standardMessageIdCopyingConsumerWithoutOptimization" default-request-channel="jmsInNonOptimizedB"/>
+
+	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedB"
+	    connection-factory="connectionFactory" 
+		request-destination="siOutQueueNonOptimizedB"
+		reply-destination="siInQueueNonOptimizedB"/>
+		
+	<bean id="siOutQueueNonOptimizedB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siOutQueueNonOptimizedB"/>
+	</bean>
+	
+	<bean id="siInQueueNonOptimizedB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siInQueueNonOptimizedB"/>
+	</bean>
+	
+	<!--  -->
+	
+	<int:gateway id="correlationPropagatingConsumerWithOptimization" default-request-channel="jmsInOptimizedC"/>
+
+	<int-jms:outbound-gateway request-channel="jmsInOptimizedC"
+	    connection-factory="connectionFactory" 
+		request-destination="siOutQueueOptimizedC"
+		reply-destination="siInQueueOptimizedC"
+		correlation-key="JMSCorrelationID"/>
+		
+	<bean id="siOutQueueOptimizedC" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siOutQueueOptimizedC"/>
+	</bean>
+	
+	<bean id="siInQueueOptimizedC" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siInQueueOptimizedC"/>
+	</bean>
+	
+	<!--  -->
+	
+	<int:gateway id="correlationPropagatingConsumerWithoutOptimization" default-request-channel="jmsInNonOptimizedD"/>
+
+	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedD"
+	    connection-factory="connectionFactory" 
+		request-destination="siOutQueueNonOptimizedD"
+		reply-destination="siInQueueNonOptimizedD"/>
+		
+	<bean id="siOutQueueNonOptimizedD" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siOutQueueNonOptimizedD"/>
+	</bean>
+	
+	<bean id="siInQueueNonOptimizedD" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siInQueueNonOptimizedD"/>
+	</bean>
+	
+	<!--  -->
+	
+	<int:gateway id="correlationPropagatingConsumerWithOptimizationDelayFirstReply" default-request-channel="jmsInE"/>
+
+	<int-jms:outbound-gateway id="fastGateway" request-channel="jmsInE"
+	    connection-factory="connectionFactory" 
+		request-destination="siOutQueueE"
+		reply-destination="siInQueueE"
+		receive-timeout="500"
+		correlation-key="JMSCorrelationID"/>
+		
+	<bean id="siOutQueueE" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siOutQueueE"/>
+	</bean>
+	
+	<bean id="siInQueueE" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="siInQueueE"/>
+	</bean>
+	 
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="vm://localhost"/>		
+			</bean>
+		</property>
+		<property name="cacheProducers" value="true" />
+		<property name="cacheConsumers" value="true" />
+		<property name="sessionCacheSize" value="10" />
+	</bean>
+	
+</beans>
