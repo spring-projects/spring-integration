@@ -1120,5 +1120,5 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '1.0-rc-1'
+	gradleVersion = '1.0'
 }
