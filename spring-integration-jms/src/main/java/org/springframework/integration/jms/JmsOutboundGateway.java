@@ -53,6 +53,7 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -266,7 +267,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * for each new message, thus requiring a new reply consumer to be created for each Message sent.
 	 * Although this is a very common JMS exchange pattern it is not optimal for high throughput	 request/reply
 	 * applications. Most MOMs (including Spring Integration's Inbound Gateway) also support propagation
-	 * of the 'CorrelationID' of the consumed request message into the 'CorrelationID' of the newly produced
+	 * of the 'JMSCorrelationID' of the consumed request message into the 'JMSCorrelationID' of the newly produced
 	 * reply message. This also allows us to use an optimized value generation algorithm which results in caching
 	 * and reuse of reply consumers resulting in significant performance improvement of the request/reply
 	 * scenarios. So if you have a Spring JMS consumer (e.g.,  Spring Integration's Inbound Gateway) or
@@ -460,35 +461,37 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private Destination determineReplyDestination(Session session, long sessionId) throws JMSException {
-		if (this.replyDestination != null){
-			return this.replyDestination;
-		}
-		if (StringUtils.hasText(this.replyDestinationName)) {
-			Assert.notNull(this.destinationResolver,
-					"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
-			return this.destinationResolver.resolveDestinationName(
-					session, this.replyDestinationName, this.replyPubSubDomain);
-		}
 
-		if (this.tempQueuePerSessionMap.containsKey(sessionId)){
-			return this.tempQueuePerSessionMap.get(sessionId);
-		}
+		Destination replyDestinationToReturn = this.replyDestination;
 
-		if (this.cachedConsumers){
-			if (StringUtils.hasText(this.correlationKey)){
-				// will rely on LIKE  MessageSelector. Only need one TemporaryQueue for reply
-				// as if the replyDestinationName was specified
-				this.replyDestination = session.createTemporaryQueue();
-				return this.replyDestination;
+		if (replyDestinationToReturn == null){
+			if (StringUtils.hasText(this.replyDestinationName)) {
+				Assert.notNull(this.destinationResolver,
+						"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
+				replyDestinationToReturn = this.destinationResolver.resolveDestinationName(
+						session, this.replyDestinationName, this.replyPubSubDomain);
+			}
+			else if (this.tempQueuePerSessionMap.containsKey(sessionId)){
+				replyDestinationToReturn = this.tempQueuePerSessionMap.get(sessionId);
+			}
+			else if (this.cachedConsumers){
+				if (StringUtils.hasText(this.correlationKey)){
+					// will rely on LIKE  MessageSelector. Only need one TemporaryQueue for reply
+					// as if the replyDestinationName was specified
+					replyDestinationToReturn = session.createTemporaryQueue();
+					this.replyDestination = replyDestinationToReturn;
+				}
+				else {
+					replyDestinationToReturn = session.createTemporaryQueue();
+					this.tempQueuePerSessionMap.put(sessionId, replyDestinationToReturn);
+				}
 			}
 			else {
-				Destination replyTo = session.createTemporaryQueue();
-				this.tempQueuePerSessionMap.put(sessionId, replyTo);
-				return replyTo;
+				replyDestinationToReturn = session.createTemporaryQueue();
 			}
 		}
 
-		return session.createTemporaryQueue();
+		return replyDestinationToReturn;
 	}
 
 	private javax.jms.Message sendAndReceive(Message<?> requestMessage) throws JMSException {
@@ -529,11 +532,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		finally {
 			JmsUtils.closeSession(session);
 
-			if (!this.replyDestinationExplicitlySet && this.isTemporaryDestination(replyTo)){
-				this.deleteDestinationIfTemporary(replyTo);
-			}
+			if (!this.replyDestinationExplicitlySet &&
+				this.isTemporaryDestination(replyTo) &&
+				!this.isCachedSession(session)) {
 
-			if (!this.isCachedSession(session)){
+				this.deleteDestinationIfTemporary(replyTo);
 				this.tempQueuePerSessionMap.remove(sessionId);
 			}
 
@@ -548,34 +551,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority, long sessionId) throws JMSException {
 
 		MessageProducer messageProducer = session.createProducer(requestDestinationToUse);
-
+		jmsRequest.setJMSReplyTo(replyTo);
 		try {
 			if (StringUtils.hasText(this.correlationKey)){
-
-				String messageCorrelationId = String.valueOf(System.currentTimeMillis() +
-    					                      String.valueOf(System.nanoTime()));
-
-				String consumerCorrelationId = gatewayId + "_" + sessionId;
-
-				if (this.correlationKey.equals("JMSCorrelationID")) {
-					jmsRequest.setJMSCorrelationID(consumerCorrelationId + "$" + messageCorrelationId);
-				}
-				else {
-					jmsRequest.setStringProperty(correlationKey, consumerCorrelationId + "$" + messageCorrelationId);
-				}
-				String messageSelector = correlationKey + " LIKE '" + consumerCorrelationId + "%'";
-
-				return this.exchange(messageProducer, jmsRequest, session, sessionId, replyTo, priority, messageSelector, messageCorrelationId);
+				return this.exchangeWithCorrelationKey(messageProducer, jmsRequest, session, sessionId, replyTo, priority);
 			}
 			else {
-				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
-					logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
-							"because that ID can only be provided to a MessageSelector after the request Message has been sent thereby " +
-							"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
-							"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
-							"will be created before the request Message is sent.");
-				}
-				return this.exchange(messageProducer, jmsRequest, session, sessionId, replyTo, priority, null, null);
+				return this.exchangeWithoutCorrelationKey(messageProducer, jmsRequest, session, sessionId, replyTo, priority);
 			}
 		}
 		finally {
@@ -583,78 +565,80 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		}
 	}
 
-	private MessageConsumer createMessageConsumer(Session session, Destination replyTo, String messageSelector, long sessionId) throws JMSException{
-		try {
-			if (this.cachedConsumers && this.isTemporaryDestination(replyTo)){
-				if (StringUtils.hasText(messageSelector)){
-					return TemporaryConsumerUtils.createConsumer(session, replyTo, messageSelector);
-				}
-				else {
-					return TemporaryConsumerUtils.createConsumer(session, replyTo, null);
-				}
-			}
-			else {
-				if (StringUtils.hasText(messageSelector)){
-					return session.createConsumer(replyTo, messageSelector);
-				}
-				else {
-					return session.createConsumer(replyTo);
-				}
-			}
-		}
-		catch (InvalidDestinationException e) {
-			if (this.tempQueuePerSessionMap.containsKey(sessionId)){
-				this.tempQueuePerSessionMap.remove(sessionId);
-			}
-			else if (this.isTemporaryDestination(this.replyDestination) && !this.replyDestinationExplicitlySet){
-				this.replyDestination = null;
-			}
-			throw e;
-		}
-	}
 
-	private javax.jms.Message exchange(MessageProducer messageProducer, javax.jms.Message jmsRequest,
-			Session session, long sessionId, Destination replyTo, int priority,
-			String messageSelector, String messageCorrelationId) throws JMSException {
+	private javax.jms.Message exchangeWithCorrelationKey(MessageProducer messageProducer, javax.jms.Message jmsRequest,
+			Session session, long sessionId, Destination replyTo, int priority) throws JMSException {
+
+		String messageCorrelationId = ObjectUtils.getIdentityHexString(jmsRequest);
+
+		String consumerCorrelationId = gatewayId + "_" + sessionId;
+
+		if (this.correlationKey.equals("JMSCorrelationID")) {
+			jmsRequest.setJMSCorrelationID(consumerCorrelationId + "$" + messageCorrelationId);
+		}
+		else {
+			jmsRequest.setStringProperty(correlationKey, consumerCorrelationId + "$" + messageCorrelationId);
+		}
+
+		String messageSelector = correlationKey + " LIKE '" + consumerCorrelationId + "%'";
 
 		MessageConsumer messageConsumer = null;
-		jmsRequest.setJMSReplyTo(replyTo);
-		try {
-			if (StringUtils.hasText(messageSelector)){
-				messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
-				this.sendRequestMessage(jmsRequest, messageProducer, priority);
-			}
-			else {
-				if (this.replyDestinationExplicitlySet){
-					this.sendRequestMessage(jmsRequest, messageProducer, priority);
-					messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
-					messageSelector = "JMSCorrelationID = '" + messageCorrelationId + "'";
-					messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
-				}
-				else {
-					messageConsumer = this.createMessageConsumer(session, replyTo, null, sessionId);
-					this.sendRequestMessage(jmsRequest, messageProducer, priority);
-					messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
-				}
-			}
 
-			try {
-				javax.jms.Message jmsMessage = this.receiveCorrelatedReplyMessage(messageConsumer, correlationKey, messageCorrelationId);
-				return jmsMessage;
-			}
-			catch (javax.jms.IllegalStateException e) {
-				// clear up the temp queue cache
-				if (this.tempQueuePerSessionMap.containsKey(sessionId)){
-					this.tempQueuePerSessionMap.remove(sessionId);
-				}
-				else if (this.isTemporaryDestination(this.replyDestination) && !this.replyDestinationExplicitlySet){
-					this.replyDestination = null;
-				}
-				throw e;
-			}
+		try {
+			messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
+
+			this.sendRequestMessage(jmsRequest, messageProducer, priority);
+
+			return this.doReceive(messageConsumer, this.correlationKey, messageCorrelationId, sessionId);
 		}
 		finally  {
 			JmsUtils.closeMessageConsumer(messageConsumer);
+		}
+	}
+
+	private javax.jms.Message exchangeWithoutCorrelationKey(MessageProducer messageProducer, javax.jms.Message jmsRequest,
+			Session session, long sessionId, Destination replyTo, int priority) throws JMSException {
+
+		MessageConsumer messageConsumer = null;
+		try {
+			String messageCorrelationId = null;
+
+			if (this.replyDestinationExplicitlySet){
+				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
+					logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
+							"because that ID can only be provided to a MessageSelector after the request Message has been sent thereby " +
+							"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
+							"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
+							"will be created before the request Message is sent.");
+				}
+				this.sendRequestMessage(jmsRequest, messageProducer, priority);
+				messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
+				String messageSelector = "JMSCorrelationID = '" + messageCorrelationId + "'";
+				messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
+			}
+			else {
+				messageConsumer = this.createMessageConsumer(session, replyTo, null, sessionId);
+				this.sendRequestMessage(jmsRequest, messageProducer, priority);
+				messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
+			}
+
+			return this.doReceive(messageConsumer, null, messageCorrelationId, sessionId);
+		}
+		finally  {
+			JmsUtils.closeMessageConsumer(messageConsumer);
+		}
+	}
+
+	/**
+	 * Will perform clean up if failures detected during message receive
+	 */
+	private javax.jms.Message doReceive(MessageConsumer messageConsumer, String correlationKey, String messageCorrelationIdToMatch, long sessionId) throws JMSException{
+		try {
+			return this.receiveCorrelatedReplyMessage(messageConsumer, correlationKey, messageCorrelationIdToMatch);
+		}
+		catch (javax.jms.IllegalStateException e) {
+			this.clearDestination(sessionId);
+			throw e;
 		}
 	}
 
@@ -711,6 +695,36 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		return null;
 	}
 
+	private MessageConsumer createMessageConsumer(Session session, Destination replyTo, String messageSelector, long sessionId) throws JMSException{
+		try {
+			if (this.cachedConsumers && this.isTemporaryDestination(replyTo)){
+				if (StringUtils.hasText(messageSelector)){
+					return TemporaryConsumerUtils.createConsumer(session, replyTo, messageSelector);
+				}
+				else {
+					return TemporaryConsumerUtils.createConsumer(session, replyTo, null);
+				}
+			}
+			else {
+				if (StringUtils.hasText(messageSelector)){
+					return session.createConsumer(replyTo, messageSelector);
+				}
+				else {
+					return session.createConsumer(replyTo);
+				}
+			}
+		}
+		catch (InvalidDestinationException e) {
+			if (this.tempQueuePerSessionMap.containsKey(sessionId)){
+				this.tempQueuePerSessionMap.remove(sessionId);
+			}
+			else if (this.isTemporaryDestination(this.replyDestination) && !this.replyDestinationExplicitlySet){
+				this.replyDestination = null;
+			}
+			throw e;
+		}
+	}
+
 	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer, int priority) throws JMSException {
 		if (this.explicitQosEnabled) {
 			messageProducer.send(jmsRequest, this.deliveryMode, priority, this.timeToLive);
@@ -739,10 +753,29 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		}
 	}
 
+	/**
+	 * Will clear reply destination *only* if such reply destination is temporary
+	 * and was created internally
+	 */
+	private void clearDestination(long sessionId){
+		if (this.tempQueuePerSessionMap.containsKey(sessionId)){
+			this.tempQueuePerSessionMap.remove(sessionId);
+		}
+		else if (this.isTemporaryDestination(this.replyDestination) && !this.replyDestinationExplicitlySet){
+			this.replyDestination = null;
+		}
+	}
+
+	/**
+	 * Checks if this destination (topic or queue) is a temporary destination
+	 */
 	private boolean isTemporaryDestination(Destination destination){
 		return destination instanceof TemporaryQueue || destination instanceof TemporaryTopic;
 	}
 
+	/**
+	 * Validates if this session is cached by the CachingConnectionFactory
+	 */
 	private boolean isCachedSession(Session session){
 		try {
 			if (this.cachedSessionView.containsKey(Session.AUTO_ACKNOWLEDGE)){
