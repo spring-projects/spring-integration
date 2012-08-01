@@ -43,6 +43,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	private volatile ConversionService conversionService;
 
 
+	@SuppressWarnings("deprecation")
 	public BeanFactoryTypeConverter() {
 		synchronized (BeanFactoryTypeConverter.class) {
 			if (defaultConversionService == null) {

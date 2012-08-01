@@ -24,7 +24,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
@@ -53,7 +52,6 @@ public class JpaOutboundGatewayTests {
 		this.jdbcTemplate.execute("delete from Student where rollNumber > 1003");
 	}
 
-
 	@Test
 	public void getStudent() {
 		final StudentDomain student = studentService.getStudent(1001L);
@@ -61,7 +59,6 @@ public class JpaOutboundGatewayTests {
 	}
 
 	@Test
-	@Transactional
 	public void deleteNonExistingStudent() {
 
 		StudentDomain student = JpaTestUtils.getTestStudent();

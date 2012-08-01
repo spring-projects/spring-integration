@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
-import com.gemstone.gemfire.cache.AttributesFactory;
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.DataPolicy;
@@ -32,13 +31,15 @@ import com.gemstone.gemfire.distributed.DistributedSystem;
 /**
  * @author Costin Leau
  * @author David Turanski
- * 
+ * @author Gunnar Hillert
+ *
  * Runs as a standalone Java app.
  * Modified from SGF implementation for testing client/server CQ features
  */
+@SuppressWarnings("deprecation")
 public class CacheServerProcess {
 
-	@SuppressWarnings({ "deprecation", "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void main(String[] args) throws Exception {
 
 		Properties props = new Properties();
@@ -46,12 +47,12 @@ public class CacheServerProcess {
 		props.setProperty("log-level", "info");
 
 		System.out.println("\nConnecting to the distributed system and creating the cache.");
-		
+
 		DistributedSystem ds = DistributedSystem.connect(props);
 		Cache cache = CacheFactory.create(ds);
 
 		// Create region.
-		AttributesFactory factory = new AttributesFactory();
+		com.gemstone.gemfire.cache.AttributesFactory factory = new com.gemstone.gemfire.cache.AttributesFactory();
 		factory.setDataPolicy(DataPolicy.REPLICATE);
 		factory.setScope(Scope.DISTRIBUTED_ACK);
 		Region testRegion = cache.createRegion("test", factory.create());
@@ -65,7 +66,7 @@ public class CacheServerProcess {
 		server.start();
 		ForkUtil.createControlFile(CacheServerProcess.class.getName());
 		System.out.println("Waiting for shutdown");
-	 
+
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 		bufferedReader.readLine();
 

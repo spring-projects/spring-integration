@@ -59,6 +59,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -109,10 +110,14 @@ public class HttpInboundGatewayParserTests {
 		request.setMethod("GET");
 		request.addHeader("Accept", "application/x-java-serialized-object");
 		request.setParameter("foo", "bar");
+
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
-		assertThat(response.getContentType(), is("application/x-java-serialized-object"));
+
+		//MockHttpServletResponse#getContentType() works in Spring 3.1.2.RELEASE but not in 3.0.7.RELEASE
+		//For 3.0.7.RELEASE we have to rely on MockHttpServletResponse#getHeader instead
+		assertEquals(response.getHeader("Content-Type"), "application/x-java-serialized-object");
 	}
 
 	@Test

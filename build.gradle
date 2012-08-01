@@ -45,8 +45,9 @@ subprojects { subproject ->
 		junitVersion = '4.8.2'
 		log4jVersion = '1.2.12'
 		mockitoVersion = '1.9.0'
+
 		// When changing Spring Versions - don't forget to update bundlor ranges
-		springVersion = '3.1.2.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : '3.1.2.RELEASE'
 		springAmqpVersion = '1.1.1.RELEASE'
 		springDataMongoVersion = '1.1.0.M1'
 		springDataRedisVersion = '1.0.1.RELEASE'
@@ -355,7 +356,7 @@ project('spring-integration-http') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
-		compile("javax.servlet:servlet-api:2.4", provided)
+		compile("javax.servlet:javax.servlet-api:3.0.1", provided)
 		compile("commons-httpclient:commons-httpclient:3.1") { dep ->
 			optional dep
 			exclude group: 'junit', module: 'junit'
@@ -517,12 +518,15 @@ project('spring-integration-jpa') {
 		testCompile "org.aspectj:aspectjrt:$aspectjVersion"
 		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
 
-		testCompile "org.hibernate:hibernate-entitymanager:4.0.1.Final"
+		testCompile "org.hibernate:hibernate-entitymanager:3.6.10.Final"
 		testCompile "org.eclipse.persistence:org.eclipse.persistence.jpa:2.3.2"
 		testCompile "org.apache.openjpa:openjpa:2.2.0"
 
 		javaAgentSpringInstrument "org.springframework:spring-instrument:$springVersion"
 		javaAgentOpenJpa "org.apache.openjpa:openjpa:2.2.0"
+
+		//Suppress openjpa annotation processor warnings
+		compileTestJava.options.compilerArgs = ["${xLintArg},-processing"]
 	}
 
 	bundlor {

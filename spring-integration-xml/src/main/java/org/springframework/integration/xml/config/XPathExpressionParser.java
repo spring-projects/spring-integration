@@ -98,6 +98,7 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	protected Map<?,?> parseNamespaceMapElement(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
 		BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext());
 		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement());
