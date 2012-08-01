@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.springframework.org/schema/integration/file"
-	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
@@ -13,21 +13,38 @@
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-	<outbound-gateway id="ordered"
-		request-channel="someChannel"
-		reply-timeout="777"
-		directory="${java.io.tmpdir}"
-		auto-startup="false"
-		order="777"
-		filename-generator-expression="'foo.txt'"/>
+	<int-file:outbound-gateway id="ordered"
+		request-channel="someChannel" reply-timeout="777" directory="${java.io.tmpdir}"
+		auto-startup="false" order="777" filename-generator-expression="'foo.txt'" />
 
-	<outbound-gateway id="gatewayWithDirectoryExpression"
-		request-channel="someChannel"
-		directory-expression="'build/foo'"
-		auto-startup="false"
-		order="777"
-		filename-generator-expression="'foo.txt'"/>
+	<int-file:outbound-gateway id="gatewayWithDirectoryExpression"
+		request-channel="someChannel" directory-expression="'build/foo'"
+		auto-startup="false" order="777" filename-generator-expression="'foo.txt'" />
 
+	<int-file:outbound-gateway id="gatewayWithReplaceMode"
+		request-channel="gatewayWithReplaceModeChannel"
+		filename-generator-expression="'fileToAppend.txt'" mode="REPLACE"
+		directory="test" />
+
+	<int-file:outbound-gateway id="gatewayWithAppendMode"
+		request-channel="gatewayWithAppendModeChannel"
+		filename-generator-expression="'fileToAppend.txt'" mode="APPEND"
+		directory="test" />
+
+	<int-file:outbound-gateway id="gatewayWithFailMode"
+		request-channel="gatewayWithFailModeChannel"
+		filename-generator-expression="'fileToAppend.txt'" mode="FAIL"
+		directory="test" />
+
+	<int-file:outbound-gateway id="gatewayWithIgnoreMode"
+		request-channel="gatewayWithIgnoreModeChannel"
+		filename-generator-expression="'fileToAppend.txt'" mode="IGNORE"
+		directory="test" />
+
+	<int-file:outbound-gateway id="gatewayWithFailModeLowercase"
+		request-channel="gatewayWithFailModeLowercaseChannel"
+		filename-generator-expression="'fileToAppend.txt'" mode="fail"
+		directory="test" />
 	<context:property-placeholder />
 
 </beans:beans>

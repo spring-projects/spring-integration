@@ -43,24 +43,34 @@
 								   order="555"
 								   auto-startup="false"
 								   directory="${java.io.tmpdir}"/>
-								   
+
 	<file:outbound-channel-adapter id="usageChannel"
 	                               filename-generator-expression="'fileToAppend.txt'"
-	                               append="true"
+								   mode="APPEND"
 								   directory="test"/>
-								   
+
+	<file:outbound-channel-adapter id="usageChannelWithFailMode"
+	                               filename-generator-expression="'fileToAppend.txt'"
+								   mode="FAIL"
+								   directory="test"/>
+
+	<file:outbound-channel-adapter id="usageChannelWithIgnoreMode"
+								   filename-generator-expression="'fileToAppend.txt'"
+								   mode="IGNORE"
+								   directory="test"/>
+
 	<si:channel id="usageChannelConcurrent">
 		<si:dispatcher task-executor="executor"/>
-	</si:channel>							   
+	</si:channel>
 	<file:outbound-channel-adapter channel="usageChannelConcurrent"
 	                               filename-generator-expression="'fileToAppendConcurrent.txt'"
-	                               append="true"
+								   mode="APPEND"
 								   directory="test"/>
-								   
+
 	<bean id="customFileNameGenerator" class="org.springframework.integration.file.config.CustomFileNameGenerator"/>
 
 	<context:property-placeholder/>
-	
+
 	<task:executor id="executor" pool-size="100"/>
 
 </beans>

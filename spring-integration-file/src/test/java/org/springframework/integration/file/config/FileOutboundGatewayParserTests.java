@@ -18,17 +18,28 @@ package org.springframework.integration.file.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Mark Fisher
@@ -43,6 +54,21 @@ public class FileOutboundGatewayParserTests {
 
 	@Autowired
 	private EventDrivenConsumer gatewayWithDirectoryExpression;
+
+	@Autowired
+	MessageChannel gatewayWithIgnoreModeChannel;
+
+	@Autowired
+	MessageChannel gatewayWithFailModeChannel;
+
+	@Autowired
+	MessageChannel gatewayWithAppendModeChannel;
+
+	@Autowired
+	MessageChannel gatewayWithReplaceModeChannel;
+
+	@Autowired
+	MessageChannel gatewayWithFailModeLowercaseChannel;
 
 	@Test
 	public void checkOrderedGateway() throws Exception {
@@ -68,6 +94,192 @@ public class FileOutboundGatewayParserTests {
 	public void testOutboundGatewayWithDirectoryExpression() throws Exception {
 		FileWritingMessageHandler handler = TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
 		assertEquals("'build/foo'", TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class).getExpressionString());
+	}
+
+	/**
+	 * Test uses the Ignore Mode of the File OutboundGateway. When persisting
+	 * a payload using the File Outbound Gateway and the mode is set to IGNORE,
+	 * then the destination file will be created and written if it does not yet exist,
+	 * BUT if it exists it will not be overwritten. Instead the Message Payload will
+	 * be silently ignored. The reply message will contain the pre-existing destination
+	 * {@link File} as its payload.
+	 *
+	 */
+	@Test
+	public void gatewayWithIgnoreMode() throws Exception{
+
+		final MessagingTemplate messagingTemplate = new MessagingTemplate(this.gatewayWithIgnoreModeChannel);
+
+		final String expectedFileContent = "Initial File Content:";
+		final File testFile = new File("test/fileToAppend.txt");
+
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+
+		Message<?> replyMessage = messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+
+		assertTrue(replyMessage.getPayload() instanceof File);
+
+		File replyPayload = (File) replyMessage.getPayload();
+
+		assertEquals(expectedFileContent, new String(FileCopyUtils.copyToByteArray(replyPayload)));
+
+	}
+
+	/**
+	 * Test uses the Fail mode of the File Outbound Gateway. When persisting
+	 * a payload using the File Outbound Gateway and the mode is set to Fail,
+	 * then the destination {@link File} will be created and written if it does
+	 * not yet exist. BUT if the destination {@link File} already exists, a
+	 * {@link MessageHandlingException} will be thrown.
+	 *
+	 */
+	@Test
+	public void gatewayWithFailMode() throws Exception{
+
+		final MessagingTemplate messagingTemplate = new MessagingTemplate(this.gatewayWithFailModeChannel);
+
+		String expectedFileContent = "Initial File Content:";
+
+		File testFile = new File("test/fileToAppend.txt");
+
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+
+		final String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+
+		try {
+
+			messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+
+		} catch (MessageHandlingException e) {
+			assertTrue(e.getMessage().startsWith("The destination file already exists at '"));
+			return;
+		}
+
+		fail("Was expecting a MessageHandlingException to be thrown.");
+
+	}
+
+	/**
+	 * Test is exactly the same as {@link #gatewayWithFailMode()}. However, the
+	 * mode is provided in lower-case ensuring that the mode can be provided
+	 * in an case-insensitive fashion.
+	 *
+	 * Instead a {@link MessageHandlingException} will be thrown.
+	 *
+	 */
+	@Test
+	public void gatewayWithFailModeLowercase() throws Exception{
+
+		final MessagingTemplate messagingTemplate = new MessagingTemplate(this.gatewayWithFailModeLowercaseChannel);
+
+		String expectedFileContent = "Initial File Content:";
+
+		File testFile = new File("test/fileToAppend.txt");
+
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+
+		final String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+
+		try {
+
+			messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+
+		} catch (MessageHandlingException e) {
+			assertTrue(e.getMessage().startsWith("The destination file already exists at '"));
+			return;
+		}
+
+		fail("Was expecting a MessageHandlingException to be thrown.");
+
+	}
+
+	/**
+	 * Test uses the Append Mode of the File Outbound Gateway. When persisting
+	 * a payload using the File Outbound Gateway and the mode is set to APPEND,
+	 * then the destination file will be created and written, if it does not yet
+	 * exist. BUT if it exists it will be appended to the existing file.
+	 *
+	 * The reply message will contain the concatenated destination
+	 * {@link File} as its payload.
+	 *
+	 */
+	@Test
+	public void gatewayWithAppendMode() throws Exception{
+
+		final MessagingTemplate messagingTemplate = new MessagingTemplate(this.gatewayWithAppendModeChannel);
+
+		String expectedFileContent = "Initial File Content:String content:";
+
+		File testFile = new File("test/fileToAppend.txt");
+
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+
+		assertTrue(m.getPayload() instanceof File);
+
+		File replyPayload = (File) m.getPayload();
+		assertEquals(expectedFileContent, new String(FileCopyUtils.copyToByteArray(replyPayload)));
+
+	}
+
+	/**
+	 * Test uses the Replace Mode of the File OutboundGateway. When persisting
+	 * a payload using the File Outbound Gateway and the mode is set to REPLACE,
+	 * then the destination file will be created and written if it does not yet exist.
+	 * If the destination file exists, it will be replaced.
+	 *
+	 * The reply message will contain the concatenated destination
+	 * {@link File} as its payload.
+	 *
+	 */
+	@Test
+	public void gatewayWithReplaceMode() throws Exception{
+
+		final MessagingTemplate messagingTemplate = new MessagingTemplate(this.gatewayWithReplaceModeChannel);
+
+		String expectedFileContent = "String content:";
+
+		File testFile = new File("test/fileToAppend.txt");
+
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+
+		assertTrue(m.getPayload() instanceof File);
+
+		File replyPayload = (File) m.getPayload();
+		assertEquals(expectedFileContent, new String(FileCopyUtils.copyToByteArray(replyPayload)));
+
 	}
 
 }

@@ -26,12 +26,14 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
@@ -76,6 +78,12 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Autowired
 	MessageChannel usageChannel;
+
+	@Autowired
+	MessageChannel usageChannelWithFailMode;
+
+	@Autowired
+	MessageChannel usageChannelWithIgnoreMode;
 
 	@Autowired
 	MessageChannel usageChannelConcurrent;
@@ -143,7 +151,7 @@ public class FileOutboundChannelAdapterParserTests {
 	@Test
 	public void adapterWithCharset() {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithCharset);
-			 FileWritingMessageHandler handler = (FileWritingMessageHandler)
+			FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
@@ -162,61 +170,107 @@ public class FileOutboundChannelAdapterParserTests {
 
 	}
 
-    @Test
-    public void adapterUsageWithAppend() throws Exception{
+	@Test
+	public void adapterUsageWithAppend() throws Exception{
 
-    	String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
+		String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
 
-    	File testFile = new File("test/fileToAppend.txt");
-    	if (testFile.exists()){
-    		testFile.delete();
-    	}
-    	usageChannel.send(new GenericMessage<String>("Initial File Content:"));
-        usageChannel.send(new GenericMessage<String>("String content:"));
-        usageChannel.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
-        usageChannel.send(new GenericMessage<File>(new File("test/input.txt")));
+		File testFile = new File("test/fileToAppend.txt");
+		if (testFile.exists()){
+			testFile.delete();
+		}
+		usageChannel.send(new GenericMessage<String>("Initial File Content:"));
+		usageChannel.send(new GenericMessage<String>("String content:"));
+		usageChannel.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
+		usageChannel.send(new GenericMessage<File>(new File("test/input.txt")));
 
-        String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
-        assertEquals(expectedFileContent, actualFileContent);
-    }
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+	}
 
-    @Test
-    public void adapterUsageWithAppendConcurrent() throws Exception{
+	@Test
+	public void adapterUsageWithFailMode() throws Exception{
 
-    	File testFile = new File("test/fileToAppendConcurrent.txt");
-    	if (testFile.exists()){
-    		testFile.delete();
-    	}
+		String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
 
-    	StringBuffer aBuffer = new StringBuffer();
-    	StringBuffer bBuffer = new StringBuffer();
-    	for (int i = 0; i < 100000; i++) {
+		File testFile = new File("test/fileToAppend.txt");
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		usageChannelWithFailMode.send(new GenericMessage<String>("Initial File Content:"));
+
+		try {
+			usageChannelWithFailMode.send(new GenericMessage<String>("String content:"));
+		}
+		catch (MessagingException e) {
+
+			return;
+		}
+
+		Assert.fail("Was expecting an Exception to be thrown.");
+
+
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+	}
+
+	@Test
+	public void adapterUsageWithIgnoreMode() throws Exception{
+
+
+		String expectedFileContent = "Initial File Content:";
+
+		File testFile = new File("test/fileToAppend.txt");
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		usageChannelWithIgnoreMode.send(new GenericMessage<String>("Initial File Content:"));
+		usageChannelWithIgnoreMode.send(new GenericMessage<String>("String content:"));
+
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		assertEquals(expectedFileContent, actualFileContent);
+
+	}
+
+	@Test
+	public void adapterUsageWithAppendConcurrent() throws Exception{
+
+		File testFile = new File("test/fileToAppendConcurrent.txt");
+		if (testFile.exists()){
+			testFile.delete();
+		}
+
+		StringBuffer aBuffer = new StringBuffer();
+		StringBuffer bBuffer = new StringBuffer();
+		for (int i = 0; i < 100000; i++) {
 			aBuffer.append("a");
 			bBuffer.append("b");
 		}
-    	String aString = aBuffer.toString();
-    	String bString = bBuffer.toString();
+		String aString = aBuffer.toString();
+		String bString = bBuffer.toString();
 
-    	for (int i = 0; i < 1; i	++) {
-    		usageChannelConcurrent.send(new GenericMessage<String>(aString));
-    		usageChannelConcurrent.send(new GenericMessage<String>(bString));
+		for (int i = 0; i < 1; i	++) {
+			usageChannelConcurrent.send(new GenericMessage<String>(aString));
+			usageChannelConcurrent.send(new GenericMessage<String>(bString));
 		}
 
-    	Thread.sleep(2000);
-        String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
-        int beginningIndex = 0;
-        for (int i = 0; i < 2; i++) {
-        	assertAllCharactersAreSame(actualFileContent.substring(beginningIndex, beginningIndex+99999));
-        	beginningIndex += 100000;
+		Thread.sleep(2000);
+		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
+		int beginningIndex = 0;
+		for (int i = 0; i < 2; i++) {
+			assertAllCharactersAreSame(actualFileContent.substring(beginningIndex, beginningIndex+99999));
+			beginningIndex += 100000;
 		}
 
-    }
+	}
 
-    private void assertAllCharactersAreSame(String substring){
-    	char[] characters = substring.toCharArray();
-    	char c = characters[0];
-    	for (char character : characters) {
+	private void assertAllCharactersAreSame(String substring){
+		char[] characters = substring.toCharArray();
+		char c = characters[0];
+		for (char character : characters) {
 			assertEquals(c, character);
 		}
-    }
+	}
 }
