@@ -22,6 +22,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.file.support.FileExistsMode;
 
 /**
  * Factory bean used to create {@link FileWritingMessageHandler}s.
@@ -55,12 +56,12 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 
 	private volatile String temporaryFileSuffix;
 
-	private volatile boolean append;
+	private volatile FileExistsMode fileExistsMode;
 
 	private volatile boolean expectReply = true;
 
-	public void setAppend(boolean append) {
-		this.append = append;
+	public void setFileExistsMode(String fileExistsModeAsString) {
+		this.fileExistsMode = FileExistsMode.getForString(fileExistsModeAsString);
 	}
 
 	public void setDirectory(File directory) {
@@ -142,7 +143,11 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 			handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
 		}
 		handler.setExpectReply(this.expectReply);
-		handler.setAppend(this.append);
+
+		if (this.fileExistsMode != null) {
+			handler.setFileExistsMode(this.fileExistsMode);
+		}
+
 		return handler;
 	}
 }
