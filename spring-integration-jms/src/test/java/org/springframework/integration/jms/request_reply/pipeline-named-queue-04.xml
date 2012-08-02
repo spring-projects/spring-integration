@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<int:gateway default-request-channel="pipeline04" default-request-timeout="10000" default-reply-timeout="10000"/>
+
+	<int-jms:outbound-gateway request-channel="pipeline04"
+	    connection-factory="connectionFactory" 
+	    reply-destination-name="pipeline04-01"
+	    correlation-key="foo"
+		request-destination-name="siOutQueue"/>
+	
+	<int-jms:inbound-gateway request-channel="jmsIn"
+		request-destination-name="siOutQueue"
+		connection-factory="connectionFactory"
+		concurrent-consumers="10"
+		correlation-key="foo"
+		reply-timeout="10000"/>
+
+	<int:chain input-channel="jmsIn" output-channel="anotherGatewayChannel">
+		<int:header-enricher>
+			<int:header name="delay" expression="new java.util.Random().nextInt(3000)"/>
+		</int:header-enricher>
+		<int:delayer id="foo" default-delay="0" delay-header-name="delay"/>
+		<int:transformer expression="payload"/>
+	</int:chain>
+	
+	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
+	    connection-factory="connectionFactory" 
+	    reply-destination-name="pipeline04-02"
+		request-destination-name="anotherGatewayQueue"/>
+		
+	<int-jms:inbound-gateway request-channel="anotherIn"
+		request-destination-name="anotherGatewayQueue"
+		connection-factory="connectionFactory"
+		concurrent-consumers="10"
+		reply-timeout="10000"/>
+		
+	<int:transformer input-channel="anotherIn" expression="payload"/>
+
+	<bean id="connectionFactory"
+		class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="vm://localhost"/>
+			</bean>
+		</property>
+		<property name="sessionCacheSize" value="10"/>
+		<property name="cacheProducers" value="true" />
+		<property name="cacheConsumers" value="true" />
+	</bean>
+
+</beans>
