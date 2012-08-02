@@ -795,7 +795,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	private boolean isCachedSession(Session session){
 		try {
-			if (this.cachedSessionView.containsKey(Session.AUTO_ACKNOWLEDGE)){
+			// this.cacheConsumers means we are using CCF
+			if (this.cachedConsumers && this.cachedSessionView.containsKey(Session.AUTO_ACKNOWLEDGE)){
 				List<Session> cachedSessions = this.cachedSessionView.get(Session.AUTO_ACKNOWLEDGE);
 				if (cachedSessions != null){
 					return cachedSessions.contains(session);
