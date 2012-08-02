@@ -660,10 +660,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private javax.jms.Message receiveCorrelatedReplyMessage(MessageConsumer messageConsumer,
 			String correlationKey, String messageCorrelationIdToMatch, boolean correlationIdPropagated) throws JMSException {
 
-		long timeout = this.receiveTimeout;
+		long timeLeft = this.receiveTimeout;
 		long startTime = System.currentTimeMillis();
-		javax.jms.Message replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
-		while (replyMessage != null){
+		javax.jms.Message replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(this.receiveTimeout) : messageConsumer.receive();
+
+		boolean theOneIWant = false;
+
+		while (!theOneIWant && replyMessage != null){
 
 			String jmsCorrelationId = null;
 			if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
@@ -679,7 +682,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 					if (!correlationIdPropagated){
 						replyMessage.setJMSCorrelationID(null);
 					}
-					return replyMessage;
+					theOneIWant = true;
 				}
 				else {
 					// Essentially we are discarding the uncorrelated message here and moving on to
@@ -688,28 +691,29 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 					if (this.logger.isDebugEnabled()){
 						this.logger.debug("Discarded late arriving reply: " + replyMessage);
 					}
-					if (timeout > 0){
-						long elapsedTime = System.currentTimeMillis() - startTime;
-						timeout = timeout - elapsedTime;
-						if (timeout < 0){
-							return null;
+					if (timeLeft > 0){
+						timeLeft = timeLeft - (System.currentTimeMillis() - startTime);
+						if (timeLeft < 0){
+							theOneIWant = true;
 						}
-						replyMessage = messageConsumer.receive(timeout);
+						else {
+							replyMessage = messageConsumer.receive(timeLeft);
+						}
 					}
 					else if (this.receiveTimeout < 0){
 						replyMessage = messageConsumer.receive();
 					}
 					else {
-						return null;
+						theOneIWant = true;
 					}
 				}
 			}
 			else {
-				return replyMessage;
+				theOneIWant = true;
 			}
 		}
 
-		return null;
+		return replyMessage;
 	}
 
 	private MessageConsumer createMessageConsumer(Session session, Destination replyTo, String messageSelector, long sessionId) throws JMSException{
@@ -732,12 +736,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			}
 		}
 		catch (InvalidDestinationException e) {
-			if (this.tempQueuePerSessionMap.containsKey(sessionId)){
-				this.tempQueuePerSessionMap.remove(sessionId);
-			}
-			else if (this.isTemporaryDestination(this.replyDestination) && !this.replyDestinationExplicitlySet){
-				this.replyDestination = null;
-			}
+			this.clearDestination(sessionId);
 			throw e;
 		}
 	}
@@ -792,6 +791,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	/**
 	 * Validates if this session is cached by the CachingConnectionFactory
+	 * Ignores any exception that may be thrown
 	 */
 	private boolean isCachedSession(Session session){
 		try {
@@ -801,7 +801,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 					return cachedSessions.contains(session);
 				}
 			}
-		} catch (NullPointerException e) {
+		} catch (Throwable e) {
 			// ignore
 		}
 		return false;
