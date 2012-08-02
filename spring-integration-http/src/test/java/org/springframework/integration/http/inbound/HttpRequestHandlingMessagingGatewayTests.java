@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,6 +31,7 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -37,6 +39,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.LinkedMultiValueMap;
@@ -218,6 +221,68 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		assertEquals(84, result.age);
 	}
 
+	@Test
+	public void INT2680DuplicateContentTypeHeader() throws Exception {
+
+		final DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return MessageBuilder.withPayload("Cartman".getBytes())
+						.setHeader("Content-type", "text/plain")
+						.build();
+			}
+
+		});
+
+		final List<MediaType> supportedMediaTypes = new ArrayList<MediaType>();
+		supportedMediaTypes.add(MediaType.TEXT_HTML);
+
+		final ByteArrayHttpMessageConverter messageConverter = new ByteArrayHttpMessageConverter();
+		messageConverter.setSupportedMediaTypes(supportedMediaTypes);
+
+		final List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+		messageConverters.add(messageConverter);
+
+		final HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setMessageConverters(messageConverters);
+		gateway.setRequestChannel(requestChannel);
+
+		final MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		request.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+		final ContentTypeCheckingMockHttpServletResponse response = new ContentTypeCheckingMockHttpServletResponse();
+		gateway.handleRequest(request, response);
+
+		assertEquals("Cartman", response.getContentAsString());
+
+		/* Before fixing INT2680, 2 content type headers were being written. */
+		final List<String> contentTypes = response.getContentTypeList();
+
+		assertEquals("Exptecting only 1 content type being set.", Integer.valueOf(1), Integer.valueOf(contentTypes.size()));
+		assertEquals("text/plain", contentTypes.get(0));
+	}
+
+	private class ContentTypeCheckingMockHttpServletResponse extends MockHttpServletResponse {
+
+		private List<String> contentTypeList = new ArrayList<String>();
+
+		@Override
+		public void addHeader(String name, String value) {
+
+			if ("Content-Type".equalsIgnoreCase(name)) {
+				this.contentTypeList.add(value);
+			}
+
+			super.addHeader(name, value);
+		}
+
+		public List<String> getContentTypeList() {
+			return contentTypeList;
+		}
+
+	}
 
 	private static class TestHttpMessageConverter extends AbstractHttpMessageConverter<Exception> {
 

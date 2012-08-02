@@ -93,18 +93,21 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 			throws ServletException, IOException {
 		Object responseContent = null;
 		Message<?> responseMessage;
+
+		final ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+		final ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+
 		try {
 			responseMessage = super.doHandleRequest(servletRequest, servletResponse);
 			if (responseMessage != null) {
-				responseContent = setupResponseAndConvertReply(servletResponse, responseMessage);
+				responseContent = setupResponseAndConvertReply(response, responseMessage);
 			}
 		}
 		catch (Exception e) {
 			responseContent = handleExceptionInternal(e);
 		}
 		if (responseContent != null) {
-			ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
-			ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+
 			if (responseContent instanceof HttpStatus) {
 				response.setStatusCode((HttpStatus) responseContent);
 			}

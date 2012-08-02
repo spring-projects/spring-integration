@@ -47,7 +47,9 @@ subprojects { subproject ->
 		mockitoVersion = '1.9.0'
 
 		// When changing Spring Versions - don't forget to update bundlor ranges
-		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : '3.1.2.RELEASE'
+		springVersionDefault = '3.1.2.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
+
 		springAmqpVersion = '1.1.1.RELEASE'
 		springDataMongoVersion = '1.1.0.M1'
 		springDataRedisVersion = '1.0.1.RELEASE'
@@ -356,7 +358,13 @@ project('spring-integration-http') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
-		compile("javax.servlet:javax.servlet-api:3.0.1", provided)
+
+		if (springVersionDefault.equalsIgnoreCase(springVersion)) {
+			compile("javax.servlet:javax.servlet-api:3.0.1", provided)
+		} else {
+			compile("javax.servlet:servlet-api:2.5", provided)
+		}
+
 		compile("commons-httpclient:commons-httpclient:3.1") { dep ->
 			optional dep
 			exclude group: 'junit', module: 'junit'
