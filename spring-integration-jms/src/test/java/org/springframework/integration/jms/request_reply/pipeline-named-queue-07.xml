@@ -11,19 +11,20 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
-	<int:gateway default-request-channel="pipeline08" default-request-timeout="10000" default-reply-timeout="10000"/>
+	<int:gateway default-request-channel="pipeline07" default-request-timeout="10000" default-reply-timeout="10000"/>
 
-	<int-jms:outbound-gateway request-channel="pipeline08"
+	<int-jms:outbound-gateway request-channel="pipeline07"
 	    connection-factory="connectionFactory" 
-		request-destination-name="pipeline08-queue-01"
-		correlation-key="foo"/>
+	    reply-destination-name="pipeline07-01"
+	    correlation-key="foo"
+		request-destination-name="siOutQueue"/>
 	
 	<int-jms:inbound-gateway request-channel="jmsIn"
-		request-destination-name="pipeline08-queue-01"
+		request-destination-name="siOutQueue"
 		connection-factory="connectionFactory"
 		concurrent-consumers="10"
-		reply-timeout="10000"
-		correlation-key="foo"/>
+		correlation-key="foo"
+		reply-timeout="10000"/>
 
 	<int:chain input-channel="jmsIn" output-channel="anotherGatewayChannel">
 		<int:header-enricher>
@@ -35,14 +36,16 @@
 	
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
 	    connection-factory="connectionFactory" 
-		request-destination-name="pipeline08-queue-02"
-		correlation-key="JMSCorrelationID"/>
+	    reply-destination-name="pipeline07-02"
+		request-destination-name="anotherGatewayQueue"
+		correlation-key="bar"/>
 		
 	<int-jms:inbound-gateway request-channel="anotherIn"
-		request-destination-name="pipeline08-queue-02"
+		request-destination-name="anotherGatewayQueue"
 		connection-factory="connectionFactory"
 		concurrent-consumers="10"
-		reply-timeout="10000"/>
+		reply-timeout="10000"
+		correlation-key="bar"/>
 		
 	<int:transformer input-channel="anotherIn" expression="payload"/>
 
