@@ -119,6 +119,16 @@ public class PipelineJmsTests {
 		this.test("pipeline-08.xml");
 	}
 
+	/**
+	 * jms:out(correlation-key="foo") -> jms:in(correlation-key="foo") -> randomTimeoutProcess ->
+	 * jms:out(correlation-key="bar") -> jms:in(correlation-key="bar")
+	 * All reply queues are TEMPORARY
+	 */
+	@Test
+	public void testPipeline9() throws Exception{
+		this.test("pipeline-09.xml");
+	}
+
 	public void test(String contextConfig) throws Exception{
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(contextConfig, this.getClass());

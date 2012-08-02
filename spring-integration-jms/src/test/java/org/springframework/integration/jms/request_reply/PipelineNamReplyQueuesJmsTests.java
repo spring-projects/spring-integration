@@ -85,12 +85,21 @@ public class PipelineNamReplyQueuesJmsTests {
 	}
 
 	/**
-	 * jms:out(reply-destination-name="pipeline05-01", correlation-key="JMSCorrelationID") -> jms:in -> randomTimeoutProcess ->
-	 * jms:out(reply-destination-name="pipeline05-02", correlation-key="foo") -> jms:in(correlation-key="foo")
+	 * jms:out(reply-destination-name="pipeline06-01", correlation-key="JMSCorrelationID") -> jms:in -> randomTimeoutProcess ->
+	 * jms:out(reply-destination-name="pipeline06-02", correlation-key="foo") -> jms:in(correlation-key="foo")
 	 */
 	@Test
 	public void testPipeline6() throws Exception{
 		this.test("pipeline-named-queue-06.xml");
+	}
+
+	/**
+	 * jms:out(reply-destination-name="pipeline07-01", correlation-key="JMSCorrelationID") -> jms:in -> randomTimeoutProcess ->
+	 * jms:out(reply-destination-name="pipeline07-02", correlation-key="foo") -> jms:in(correlation-key="foo")
+	 */
+	@Test
+	public void testPipeline7() throws Exception{
+		this.test("pipeline-named-queue-07.xml");
 	}
 
 	public void test(String contextConfig) throws Exception{

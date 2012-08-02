@@ -695,6 +695,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 						timeLeft = timeLeft - (System.currentTimeMillis() - startTime);
 						if (timeLeft < 0){
 							theOneIWant = true;
+							replyMessage = null;
 						}
 						else {
 							replyMessage = messageConsumer.receive(timeLeft);
