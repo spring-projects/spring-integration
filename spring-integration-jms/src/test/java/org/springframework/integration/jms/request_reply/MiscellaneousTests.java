@@ -1,3 +1,18 @@
+/*
+ * Copyright 2002-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.integration.jms.request_reply;
 
 import static org.junit.Assert.assertEquals;
@@ -13,13 +28,15 @@ import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.StopWatch;
-
+/**
+ * @author Oleg Zhurakousky
+ */
 public class MiscellaneousTests {
 
 	/**
-	 * jms:out -> jms:in -> randomTimeoutProcess ->
-	 * jms:out -> jms:in
-	 * All reply queues are TEMPORARY
+	 * Asserts that receive-timeout is honored even if
+	 * requests (once in process), takes less then receive-timeout value
+	 * when requests are queued up (e.g., single consumer receiver)
 	 */
 	@Test
 	public void testTimeoutHonoringWhenRequestsQueuedUp() throws Exception{
