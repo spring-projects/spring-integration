@@ -50,8 +50,8 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		}
 		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		BeanComponentDefinition handlerBeanDefinition = this.doParseAndRegisterConsumer(element, parserContext);
-		builder.addPropertyReference("handler", handlerBeanDefinition.getBeanName());
+		BeanComponentDefinition handlerBeanComponentDefinition = this.doParseAndRegisterConsumer(element, parserContext);
+		builder.addPropertyReference("handler", handlerBeanComponentDefinition.getBeanName());
 		if (pollerElement != null) {
 			if (!StringUtils.hasText(channelName)) {
 				parserContext.getReaderContext().error(
@@ -67,24 +67,28 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		@SuppressWarnings("rawtypes")
 		ManagedList adviceChain = IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, null,
 				builder, parserContext);
-		if (adviceChain.size() > 0) {
+		if (adviceChain != null) {
+			BeanDefinition handlerBeanDefinition = handlerBeanComponentDefinition.getBeanDefinition();
 			/*
 			 * For ARPMH, the advice chain is injected so just the handleRequestMessage method is advised.
-			 * Sometime ARPMHs do double duty as a gateway and channel adapter.
+			 * Sometime ARPMHs do double duty as a gateway and a channel adapter. The parser subclass
+			 * can indicate this by overriding isUsingReplyProducer(), or we can try to determine it from
+			 * the bean class.
 			 */
-			Class<?> beanClass = null;
-			BeanDefinition beanDefinition = handlerBeanDefinition.getBeanDefinition();
-			if (beanDefinition instanceof AbstractBeanDefinition) {
-				AbstractBeanDefinition abstractBeanDefinition = (AbstractBeanDefinition) beanDefinition;
-				if (abstractBeanDefinition.hasBeanClass()) {
-					beanClass = abstractBeanDefinition.getBeanClass();
+			boolean isReplyProducer = this.isUsingReplyProducer();
+			if (!isReplyProducer) {
+				Class<?> beanClass = null;
+				if (handlerBeanDefinition instanceof AbstractBeanDefinition) {
+					AbstractBeanDefinition abstractBeanDefinition = (AbstractBeanDefinition) handlerBeanDefinition;
+					if (abstractBeanDefinition.hasBeanClass()) {
+						beanClass = abstractBeanDefinition.getBeanClass();
+					}
 				}
+				isReplyProducer = beanClass != null && AbstractReplyProducingMessageHandler.class.isAssignableFrom(beanClass);
 			}
 
-			boolean isReplyProducer = this.isUsingReplyProducer();
-			isReplyProducer |= beanClass != null && AbstractReplyProducingMessageHandler.class.isAssignableFrom(beanClass);
 			if (isReplyProducer) {
-				beanDefinition.getPropertyValues().add("adviceChain", adviceChain);
+				handlerBeanDefinition.getPropertyValues().add("adviceChain", adviceChain);
 			}
 			else {
 				builder.addPropertyValue("adviceChain", adviceChain);

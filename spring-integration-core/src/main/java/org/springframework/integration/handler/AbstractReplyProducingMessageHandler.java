@@ -100,6 +100,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 
 	public void setAdviceChain(List<Advice> adviceChain) {
+		Assert.notNull(adviceChain, "adviceChain cannot be null");
 		this.adviceChain = adviceChain;
 	}
 
@@ -114,15 +115,12 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
 		}
-		if (this.adviceChain != null) {
-			List<Advice> adviceChain = this.adviceChain;
-			if (!CollectionUtils.isEmpty(adviceChain)) {
-				ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
-				for (Advice advice : adviceChain) {
-					proxyFactory.addAdvice(advice);
-				}
-				this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
+		if (!CollectionUtils.isEmpty(this.adviceChain)) {
+			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
+			for (Advice advice : this.adviceChain) {
+				proxyFactory.addAdvice(advice);
 			}
+			this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
 		}
 	}
 

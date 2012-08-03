@@ -318,7 +318,7 @@ public abstract class IntegrationNamespaceUtils {
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
 			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
 		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBuilder, parserContext);
-		if (adviceChain.size() > 0) {
+		if (adviceChain != null) {
 			parentBuilder.addPropertyValue("adviceChain", adviceChain);
 		}
 	}
@@ -326,12 +326,14 @@ public abstract class IntegrationNamespaceUtils {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
 			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
-		ManagedList adviceChain = new ManagedList();
+		ManagedList adviceChain = null;
 		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
 		if (txElement != null) {
+			adviceChain = new ManagedList();
 			adviceChain.add(IntegrationNamespaceUtils.configureTransactionAttributes(txElement));
 		}
 		if (adviceChainElement != null) {
+			adviceChain = new ManagedList();
 			NodeList childNodes = adviceChainElement.getChildNodes();
 			for (int i = 0; i < childNodes.getLength(); i++) {
 				Node child = childNodes.item(i);

@@ -28,6 +28,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Dave Syer
@@ -99,7 +100,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			if (handler instanceof BeanFactoryAware) {
 				((BeanFactoryAware) handler).setBeanFactory(getBeanFactory());
 			}
-			if (this.adviceChain != null &&
+			if (!CollectionUtils.isEmpty(this.adviceChain) &&
 					this.handler instanceof AbstractReplyProducingMessageHandler) {
 				((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
 			}
