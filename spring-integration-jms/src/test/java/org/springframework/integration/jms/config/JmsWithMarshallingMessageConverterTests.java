@@ -44,7 +44,7 @@ import org.springframework.oxm.XmlMappingException;
  * @author Oleg Zhurakousky
  */
 public class JmsWithMarshallingMessageConverterTests {
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void demoWithMarshallingConverter() {
@@ -58,7 +58,6 @@ public class JmsWithMarshallingMessageConverterTests {
 		MessageHeaders headers = replyMessage.getHeaders();
 		// check for couple of JMS headers, make sure they are present
 		assertNotNull(headers.get("jms_redelivered"));
-		assertNotNull(headers.get("jms_correlationId"));
 		assertEquals("HELLO", replyMessage.getPayload());
 	}
 
@@ -86,7 +85,7 @@ public class JmsWithMarshallingMessageConverterTests {
 
 		public boolean supports(Class<?> clazz) {
 			return true;
-		}	
+		}
 	}
 
 
