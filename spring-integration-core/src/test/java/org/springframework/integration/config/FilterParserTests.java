@@ -29,7 +29,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -162,7 +162,7 @@ public class FilterParserTests {
 	public static class FooFilter extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return callback.execute();
 		}

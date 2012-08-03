@@ -53,7 +53,7 @@ import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -225,7 +225,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

@@ -37,7 +37,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
@@ -267,7 +267,7 @@ public class AmqpOutboundGatewayParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return callback.execute();
 		}

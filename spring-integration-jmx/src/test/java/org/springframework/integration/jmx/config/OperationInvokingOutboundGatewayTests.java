@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -102,7 +102,7 @@ public class OperationInvokingOutboundGatewayTests {
 	public static class FooADvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return callback.execute();
 		}

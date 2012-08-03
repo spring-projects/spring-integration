@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.handler;
+package org.springframework.integration.handler.advice;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.handler.RetryStateGenerator;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -61,7 +62,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	}
 
 	@Override
-	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) throws Throwable {
+	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) throws Exception {
 		RetryState retryState = null;
 		retryState = this.retryStateGenerator.determineRetryState(message);
 
@@ -76,8 +77,8 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 					}
 					throw e;
 				}
-				catch (Throwable t) {
-					throw new MessagingException(message, "Failed to invoke handler", t);
+				catch (Exception e) {
+					throw new MessagingException(message, "Failed to invoke handler", e);
 				}
 			}
 		}, this.recoveryCallback, retryState);

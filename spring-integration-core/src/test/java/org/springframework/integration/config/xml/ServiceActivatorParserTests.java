@@ -25,8 +25,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -164,7 +164,7 @@ public class ServiceActivatorParserTests {
 	public static class BarAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			callback.execute();
 			return "bar";
 		}

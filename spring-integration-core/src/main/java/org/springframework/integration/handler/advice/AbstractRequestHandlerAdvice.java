@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.handler;
+package org.springframework.integration.handler.advice;
 
 import java.lang.reflect.Method;
 
@@ -46,19 +46,42 @@ public abstract class AbstractRequestHandlerAdvice implements MethodInterceptor 
 		}
 		else {
 			Message<?> message = (Message<?>) arguments[0];
-			return doInvoke(new ExecutionCallback(){
+			try {
+				return doInvoke(new ExecutionCallback(){
 
-				public Object execute() throws Throwable {
-					return invocation.proceed();
+					public Object execute() throws Exception {
+						try {
+							return invocation.proceed();
+						}
+						catch (Throwable e) {
+							throw new ThrowableHolderException(e);
+						}
+					}
+				}, invocation.getThis(), message);
+			}
+			catch (Exception e) {
+				if (e instanceof ThrowableHolderException) {
+					throw e.getCause();
 				}
-			}, invocation.getThis(), message);
+				else {
+					throw e;
+				}
+			}
 		}
 	}
 
-	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable;
+	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
 
 	protected interface ExecutionCallback {
 
-		Object execute() throws Throwable;
+		Object execute() throws Exception;
+	}
+
+	@SuppressWarnings("serial")
+	private class ThrowableHolderException extends RuntimeException {
+
+		public ThrowableHolderException(Throwable cause) {
+			super(cause);
+		}
 	}
 }

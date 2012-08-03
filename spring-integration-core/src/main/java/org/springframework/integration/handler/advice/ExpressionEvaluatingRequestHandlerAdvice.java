@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.handler;
+package org.springframework.integration.handler.advice;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -22,11 +22,13 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
- * Used to advise {@link AbstractReplyProducingMessageHandler#handleRequestMessage(Message)}.
+ * Used to advise {@link MessageHandler}s.
  * Two expressions 'onSuccessExpression' and 'onFailureExpression' are evaluated when
  * appropriate. If the evaluation returns a result, a message is sent to the onSuccessChannel
  * or onFailureChannel as appropriate; the message is the input message with a header
@@ -95,7 +97,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	/**
 	 * If true, the result of evaluating the onFailureExpression will
-	 * be returned as the result of {@link AbstractReplyProducingMessageHandler#handleRequestMessage(Message)}.
+	 * be returned as the result of AbstractReplyProducingMessageHandler.handleRequestMessage(Message).
 	 * @param returnFailureExpressionResult
 	 */
 	public void setReturnFailureExpressionResult(boolean returnFailureExpressionResult) {
@@ -117,7 +119,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 		try {
 			Object result = callback.execute();
 			if (onSuccessMessageProcessor != null) {
@@ -125,13 +127,13 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			}
 			return result;
 		}
-		catch (Throwable t) {
+		catch (Exception e) {
 			Object evalResult = evaluateExpression(message, this.onFailureMessageProcessor, this.failureChannel, false);
 			if (this.returnFailureExpressionResult) {
 				return evalResult;
 			}
 			if (!this.trapException) {
-				throw t;
+				throw e;
 			}
 			return null;
 		}

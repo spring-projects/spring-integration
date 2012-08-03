@@ -28,7 +28,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -146,7 +146,7 @@ public class JdbcMessageHandlerParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return callback.execute();
 		}

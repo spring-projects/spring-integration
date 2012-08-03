@@ -42,7 +42,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -635,7 +635,7 @@ public class ParserUnitTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.handler;
+package org.springframework.integration.handler.advice;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -48,7 +48,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 	}
 
 	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 		AdvisedMetadata metadata = this.metadataMap.get(target);
 		if (metadata == null) {
 			this.metadataMap.putIfAbsent(target, new AdvisedMetadata());

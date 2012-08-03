@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
@@ -105,7 +105,7 @@ public class SftpOutboundGatewayParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

@@ -34,7 +34,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.message.GenericMessage;
@@ -238,7 +238,7 @@ public class StoredProcOutboundGatewayParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

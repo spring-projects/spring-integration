@@ -28,7 +28,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.support.JpaParameter;
@@ -219,7 +219,7 @@ public class JpaMessageHandlerParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

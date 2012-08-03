@@ -31,7 +31,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
@@ -94,7 +94,7 @@ public class PresenceOutboundChannelAdapterParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

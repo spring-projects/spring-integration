@@ -40,7 +40,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
@@ -163,7 +163,7 @@ public class JmsOutboundGatewayParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

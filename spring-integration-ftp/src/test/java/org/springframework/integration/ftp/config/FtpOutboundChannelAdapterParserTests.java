@@ -36,7 +36,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -123,7 +123,7 @@ public class FtpOutboundChannelAdapterParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			return null;
 		}

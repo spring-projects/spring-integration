@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.handler.AbstractRequestHandlerAdvice;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -119,7 +119,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 	public static class FooADvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Throwable {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 			adviceCalled++;
 			System.out.println("foo");
 			new RuntimeException("foo").printStackTrace();
