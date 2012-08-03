@@ -432,24 +432,37 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	/**
 	 * Converts the reply message to the appropriate HTTP reply object and
-	 * sets up the servlet response.
-	 * @param servletResponse The servlet response.
+	 * sets up the {@link ServletServerHttpResponse}.
+	 *
+	 * @param response The ServletServerHttpResponse.
 	 * @param replyMessage The reply message.
 	 * @return The message payload (if {@link #extractReplyPayload}) otherwise the
 	 * message.
 	 */
-	protected final Object setupResponseAndConvertReply(HttpServletResponse servletResponse, Message<?> replyMessage) {
-		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+	protected final Object setupResponseAndConvertReply(ServletServerHttpResponse response, Message<?> replyMessage) {
+
 		this.headerMapper.fromHeaders(replyMessage.getHeaders(), response.getHeaders());
 		HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(((Message<?>) replyMessage).getHeaders());
 		if (httpStatus != null) {
 			response.setStatusCode(httpStatus);
 		}
-		response.close();
+
 		Object reply = replyMessage;
 		if (this.extractReplyPayload) {
 			reply = replyMessage.getPayload();
 		}
+		return reply;
+
+	}
+
+	/**
+	 * @deprecated As of release 2.2, please use {@link #setupResponseAndConvertReply(ServletServerHttpResponse, Message)} instead.
+	 */
+	@Deprecated
+	protected final Object setupResponseAndConvertReply(HttpServletResponse servletResponse, Message<?> replyMessage) {
+		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+		Object reply = setupResponseAndConvertReply(response, replyMessage);
+		response.close();
 		return reply;
 	}
 

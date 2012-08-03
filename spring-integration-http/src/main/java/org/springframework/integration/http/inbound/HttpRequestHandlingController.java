@@ -27,6 +27,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -140,7 +141,9 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 		try {
 			Message<?> replyMessage = super.doHandleRequest(servletRequest, servletResponse);
 			if (replyMessage != null) {
-				Object reply = setupResponseAndConvertReply(servletResponse, replyMessage);
+				ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+				Object reply = setupResponseAndConvertReply(response, replyMessage);
+				response.close();
 				modelAndView.addObject(this.replyKey, reply);
 			}
 			if (this.viewExpression != null) {
