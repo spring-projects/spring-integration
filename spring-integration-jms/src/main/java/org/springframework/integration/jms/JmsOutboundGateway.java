@@ -658,64 +658,57 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private javax.jms.Message receiveCorrelatedReplyMessage(MessageConsumer messageConsumer,
-			String correlationKey, String messageCorrelationIdToMatch, boolean correlationIdPropagated) throws JMSException {
+            String correlationKey, String messageCorrelationIdToMatch, boolean correlationIdPropagated) throws JMSException {
 
-		long timeLeft = this.receiveTimeout;
-		long startTime = System.currentTimeMillis();
-		javax.jms.Message replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(this.receiveTimeout) : messageConsumer.receive();
+        long timeLeft = this.receiveTimeout < 0 ? Long.MAX_VALUE : this.receiveTimeout;
 
-		boolean theOneIWant = false;
+        javax.jms.Message replyMessage = null;
+        boolean foundMyReply = false;
 
-		while (!theOneIWant && replyMessage != null){
+        while (!foundMyReply && timeLeft > 0){
+            long startTime = System.currentTimeMillis();
 
-			String jmsCorrelationId = null;
-			if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
-				jmsCorrelationId = replyMessage.getStringProperty(correlationKey);
-			}
-			else {
-				jmsCorrelationId = replyMessage.getJMSCorrelationID();
-			}
+            replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(timeLeft)
+                    : messageConsumer.receive();
 
-			if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
+            if (replyMessage != null) {
+                String jmsCorrelationId = null;
+                if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
+                    jmsCorrelationId = replyMessage.getStringProperty(correlationKey);
+                }
+                else {
+                    jmsCorrelationId = replyMessage.getJMSCorrelationID();
+                }
 
-				if (jmsCorrelationId.contains(messageCorrelationIdToMatch)){
-					if (!correlationIdPropagated){
-						replyMessage.setJMSCorrelationID(null);
-					}
-					theOneIWant = true;
-				}
-				else {
-					// Essentially we are discarding the uncorrelated message here and moving on to
-					// the next one since we can no longer communicate with its originating producer
-					// since it has already timed out waiting for the reply. We are also honoring the original timeout
-					if (this.logger.isDebugEnabled()){
-						this.logger.debug("Discarded late arriving reply: " + replyMessage);
-					}
-					if (timeLeft > 0){
-						timeLeft = timeLeft - (System.currentTimeMillis() - startTime);
-						if (timeLeft < 0){
-							theOneIWant = true;
-							replyMessage = null;
-						}
-						else {
-							replyMessage = messageConsumer.receive(timeLeft);
-						}
-					}
-					else if (this.receiveTimeout < 0){
-						replyMessage = messageConsumer.receive();
-					}
-					else {
-						theOneIWant = true;
-					}
-				}
-			}
-			else {
-				theOneIWant = true;
-			}
-		}
+                if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
 
-		return replyMessage;
-	}
+                    if (jmsCorrelationId.contains(messageCorrelationIdToMatch)){
+                        if (!correlationIdPropagated){
+                            replyMessage.setJMSCorrelationID(null);
+                        }
+                        foundMyReply = true;
+                    }
+                    else {
+                        // Essentially we are discarding the uncorrelated message here and moving on to
+                        // the next one since we can no longer communicate with its originating producer
+                        // since it has already timed out waiting for the reply. We are also honoring the original timeout
+                        if (this.logger.isDebugEnabled()){
+                            this.logger.debug("Discarded late arriving reply: " + replyMessage);
+                        }
+                        timeLeft -= (System.currentTimeMillis() - startTime);
+                    }
+                }
+                else {
+                    foundMyReply = true;
+                }
+            }
+            else {
+                timeLeft = 0;
+            }
+        }
+
+        return replyMessage;
+    }
 
 	private MessageConsumer createMessageConsumer(Session session, Destination replyTo, String messageSelector, long sessionId) throws JMSException{
 		try {
