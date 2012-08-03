@@ -35,7 +35,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
  * resource is not updated to reflect that. This could result in
  * duplicate messages.
  * <p>All {@link MessageSource}s can have success/failure expressions evaluated either as part
- * of a transaction with a &kt;transactional/&gt; poller or after success/failure when
+ * of a transaction with a &lt;transactional/&gt; poller or after success/failure when
  * running in a &lt;pseudo-transactional/&gt; poller. This interface is for those
  * message sources that need additional flexibility than that provided by SpEL expressions.
  * @author Gary Russell

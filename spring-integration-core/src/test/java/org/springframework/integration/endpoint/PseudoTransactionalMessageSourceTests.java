@@ -80,7 +80,86 @@ public class PseudoTransactionalMessageSourceTests {
 		assertSame(object, committed.get());
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
 		assertNull(rolledBack.get());
+	}
+
+	@Test
+	public void testPseudoCommitWithMessage() {
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		final Object object = new Object();
+		final AtomicReference<Object> afterReceive = new AtomicReference<Object>();
+		final AtomicReference<Object> afterSend = new AtomicReference<Object>();
+		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
+
+			public Message<String> receive() {
+				return new GenericMessage<String>("foo");
+			}
+
+			public Object getResource() {
+				return object;
+			}
+
+			public void afterCommit(Object resource) {
+				throw new RuntimeException("no tx - commit not expected");
+			}
+
+			public void afterRollback(Object resource) {
+				throw new RuntimeException("no tx - rollback not expected");
+			}
+
+			public void afterReceiveNoTx(Object resource) {
+				afterReceive.set(resource);
+			}
+
+			public void afterSendNoTx(Object resource) {
+				afterSend.set(resource);
+			}
+		});
+
+		adapter.doPoll();
+		assertSame(object, afterReceive.get());
+		assertSame(object, afterSend.get());
+	}
+
+	@Test
+	public void testPseudoCommitNoMessage() {
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		final Object object = new Object();
+		final AtomicReference<Object> afterReceive = new AtomicReference<Object>();
+		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
+
+			public Message<String> receive() {
+				return null;
+			}
+
+			public Object getResource() {
+				return object;
+			}
+
+			public void afterCommit(Object resource) {
+				throw new RuntimeException("no tx - commit not expected");
+			}
+
+			public void afterRollback(Object resource) {
+				throw new RuntimeException("no tx - rollback not expected");
+			}
+
+			public void afterReceiveNoTx(Object resource) {
+				afterReceive.set(resource);
+			}
+
+			public void afterSendNoTx(Object resource) {
+				throw new RuntimeException("no message - after send not expected");
+			}
+		});
+
+		adapter.doPoll();
+		assertSame(object, afterReceive.get());
 	}
 
 	@Test
@@ -122,6 +201,7 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
 		assertSame(object, rolledBack.get());
 		TransactionSynchronizationManager.clearSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
 		assertNull(committed.get());
 	}
 
@@ -172,6 +252,7 @@ public class PseudoTransactionalMessageSourceTests {
 		assertSame(object, committed.get());
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
 		assertNull(rolledBack.get());
 		Message<?> result = success.receive(10000);
 		assertNotNull(result);
@@ -184,11 +265,12 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
 		assertSame(object, rolledBack.get());
 		TransactionSynchronizationManager.clearSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
 		assertNull(committed.get());
 		result = failure.receive(10000);
 		assertNotNull(result);
 		assertEquals("fooXbar", result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
-}
+	}
 
 	public class Bar {
 		public String getValue() {

@@ -47,6 +47,13 @@ import org.springframework.util.Assert;
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements TrackableComponent {
 
+	/**
+	 * Transaction synchronization needs a non-null resource; this constant is used for
+	 * message sources that have no need for a resource, because the post-process
+	 * action just needs the message.
+	 */
+	private static final Object NO_TX_RESOURCE = new Object();
+
 	private volatile MessageSource<?> source;
 
 	private volatile boolean isPseudoTxMessageSource;
@@ -142,7 +149,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	protected boolean doPoll() {
 		boolean isInTx = false;
 		PseudoTransactionalMessageSource<?,Object> messageSource = null;
-		Object resource = new Object();
+		Object resource = NO_TX_RESOURCE;
 		if (this.isPseudoTxMessageSource) {
 			messageSource = (PseudoTransactionalMessageSource<?,Object>) this.source;
 			resource = messageSource.getResource();
@@ -159,8 +166,15 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			}
 		}
 		finally {
-			// legacy adapters that took action after receive e.g. mail
 			if (!isInTx && this.isPseudoTxMessageSource) {
+				/*
+				 * This callback is provided for 'legacy' message sources
+				 * that used to take action after the receive and before
+				 * the send. When in a transaction, that action is now
+				 * taken after the commit but, when not in a transaction
+				 * this callback provides backwards compatibility. An
+				 * example is the mail reader that deletes from the inbox.
+				 */
 				messageSource.afterReceiveNoTx(resource);
 			}
 		}
@@ -175,6 +189,11 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 				this.messagingTemplate.send(this.outputChannel, message);
 				if (!isInTx) {
 					if (this.isPseudoTxMessageSource) {
+						/*
+						 * For 'legacy' message sources that need more flexibility than simple
+						 * expression evaluation, we invoke this callback after a
+						 * successful send.
+						 */
 						messageSource.afterSendNoTx(resource);
 					}
 					this.onSuccess(message, resource);
@@ -200,50 +219,34 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	}
 
 	private void onSuccess(Message<?> message, Object resource) {
-		if (this.onSuccessExpression != null && message != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Evaluating '" + this.onSuccessExpression.getExpressionString() + "' on " + message);
-			}
-			StandardEvaluationContext evaluationContextToUse = this.determineEvaluationContextToUse(resource);
-			Object value;
-			try {
-				value = this.onSuccessExpression.getValue(evaluationContextToUse, message);
-			}
-			catch (Exception e) {
-				value = e;
-			}
-			if (value != null) {
-				try {
-					this.onSuccessMessagingTemplate.send(MessageBuilder.fromMessage(message)
-							.setHeader(MessageHeaders.DISPOSITION_RESULT, value).build());
-				}
-				catch (Exception e) {
-					logger.error("Failed to send success evaluation result " + message, e);
-				}
-			}
-		}
+		doPostProcess(message, resource, this.onSuccessExpression, this.onSuccessMessagingTemplate, "success");
 	}
 
 	private void onFailure(Message<?> message, Object resource) {
-		if (this.onFailureExpression != null && message != null) {
+		doPostProcess(message, resource, this.onFailureExpression, this.onFailureMessagingTemplate, "failure");
+	}
+
+	private void doPostProcess(Message<?> message, Object resource, Expression expression,
+			MessagingTemplate messagingTemplate, String expressionType) {
+		if (expression != null && message != null) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Evaluating '" + this.onFailureExpression.getExpressionString() + "' on " + message);
+				logger.debug("Evaluating " + expressionType + " expression: '" + expression.getExpressionString() + "' on " + message);
 			}
 			StandardEvaluationContext evaluationContextToUse = this.determineEvaluationContextToUse(resource);
 			Object value;
 			try {
-				value = this.onFailureExpression.getValue(evaluationContextToUse, message);
+				value = expression.getValue(evaluationContextToUse, message);
 			}
 			catch (Exception e) {
 				value = e;
 			}
 			if (value != null) {
 				try {
-					this.onFailureMessagingTemplate.send(MessageBuilder.fromMessage(message)
+					messagingTemplate.send(MessageBuilder.fromMessage(message)
 							.setHeader(MessageHeaders.DISPOSITION_RESULT, value).build());
 				}
 				catch (Exception e) {
-					logger.error("Failed to send success evaluation result " + message, e);
+					logger.error("Failed to send " + expressionType + " evaluation result " + message, e);
 				}
 			}
 		}
@@ -256,16 +259,16 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	 * @return The context.
 	 */
 	private StandardEvaluationContext determineEvaluationContextToUse(Object resource) {
-		StandardEvaluationContext evaluationContextToUse = this.evaluationContext;
-		if (resource != null) {
+		StandardEvaluationContext evaluationContextToUse;
+		if (resource != NO_TX_RESOURCE) {
 			evaluationContextToUse = this.createEvaluationContext();
 			evaluationContextToUse.setVariable("resource", resource);
 		}
 		else {
-			if (evaluationContextToUse == null) {
+			if (this.evaluationContext == null) {
 				this.evaluationContext = this.createEvaluationContext();
-				evaluationContextToUse = this.evaluationContext;
 			}
+			evaluationContextToUse = this.evaluationContext;
 		}
 		return evaluationContextToUse;
 	}
