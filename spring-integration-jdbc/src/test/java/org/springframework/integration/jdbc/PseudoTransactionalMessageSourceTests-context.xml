@@ -9,16 +9,15 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<int:inbound-channel-adapter channel="queue">
+	<int:inbound-channel-adapter channel="input">
 		<bean class="org.springframework.integration.jdbc.PseudoTransactionalMessageSourceTests$MessageSource"/>
 		<int:poller fixed-delay="2000">
 			<int:transactional />
+			<int:transaction-synchronization/>
 		</int:poller>
 	</int:inbound-channel-adapter>
 
-	<int:channel id="queue">
-		<int:queue />
-	</int:channel>
+	<int:channel id="input" />
 
 	<jdbc:embedded-database id="dataSource" type="HSQL" />
 

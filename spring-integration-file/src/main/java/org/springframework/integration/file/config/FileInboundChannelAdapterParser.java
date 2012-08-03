@@ -47,7 +47,6 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-size");
-		FileNamespaceUtils.setDispositionAttributes(element, builder);
 		String filterBeanName = this.registerFilter(element, parserContext);
 		String lockerBeanName = registerLocker(element, parserContext);
 		if (lockerBeanName != null) {
