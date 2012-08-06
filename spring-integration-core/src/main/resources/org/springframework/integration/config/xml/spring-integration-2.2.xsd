@@ -1298,6 +1298,16 @@
 	</xsd:element>
 
 	<xsd:complexType name="delayer-type">
+		<xsd:choice>
+			<xsd:annotation>
+				<xsd:documentation>
+					'transactional' and 'advice-chain' elements specify the configuration List of AOP Advice
+					to proxying DelayHandler's 'release Message task'.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+		</xsd:choice>
 		<xsd:attribute name="id" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
