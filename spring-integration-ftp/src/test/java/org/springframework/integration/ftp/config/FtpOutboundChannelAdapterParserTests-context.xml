@@ -59,7 +59,16 @@
 				channel="ftpChannel" 
 				session-factory="cachingSessionFactory"
 				remote-directory="foo/bar"/>
-				
+
+	<int-ftp:outbound-channel-adapter id="advisedAdapter"
+				channel="ftpChannel"
+				session-factory="cachingSessionFactory"
+				remote-directory="foo/bar">
+		<int-ftp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.ftp.config.FtpOutboundChannelAdapterParserTests$FooAdvice" />
+		</int-ftp:request-handler-advice-chain>
+	</int-ftp:outbound-channel-adapter>
+
 	<int:channel id="anotherFtpChannel"/>
 
 	<int:publish-subscribe-channel id="ftpChannel"/>

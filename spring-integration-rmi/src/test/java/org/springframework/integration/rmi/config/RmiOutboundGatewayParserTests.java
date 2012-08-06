@@ -27,6 +27,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.rmi.RmiOutboundGateway;
@@ -42,6 +43,8 @@ public class RmiOutboundGatewayParserTests {
 
 	private final QueueChannel testChannel = new QueueChannel();
 
+	private static volatile int adviceCalled;
+
 	@Before
 	public void setupTestInboundGateway() throws Exception {
 		testChannel.setBeanName("testChannel");
@@ -55,7 +58,7 @@ public class RmiOutboundGatewayParserTests {
 	public void testOrder() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
-		RmiOutboundGateway gateway = context.getBean(RmiOutboundGateway.class);
+		RmiOutboundGateway gateway = context.getBean("gateway.handler", RmiOutboundGateway.class);
 		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
 	}
 
@@ -63,11 +66,12 @@ public class RmiOutboundGatewayParserTests {
 	public void directInvocation() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
-		MessageChannel localChannel = (MessageChannel) context.getBean("localChannel");
+		MessageChannel localChannel = (MessageChannel) context.getBean("advisedChannel");
 		localChannel.send(new GenericMessage<String>("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test //INT-1029
@@ -93,4 +97,13 @@ public class RmiOutboundGatewayParserTests {
 		assertEquals("TEST", result.getPayload());
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

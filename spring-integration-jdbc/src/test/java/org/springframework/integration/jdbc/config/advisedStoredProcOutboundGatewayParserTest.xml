@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int:channel id="requestChannel" />
+	<int:channel id="replyChannel" />
+
+	<jdbc:embedded-database id="datasource" type="HSQL" />
+
+	<int-jdbc:stored-proc-outbound-gateway
+		request-channel="requestChannel" stored-procedure-name="GET_PRIME_NUMBERS"
+		data-source="datasource" auto-startup="true" id="storedProcedureOutboundGateway"
+		ignore-column-meta-data="false" is-function="false"
+		skip-undeclared-results="false" order="2" reply-channel="replyChannel"
+		reply-timeout="555" return-value-required="false">
+
+		<int-jdbc:sql-parameter-definition name="username" direction="IN" type="VARCHAR" />
+		<int-jdbc:sql-parameter-definition name="password" direction="OUT" />
+		<int-jdbc:sql-parameter-definition name="age" direction="INOUT" type="INTEGER" scale="5" />
+		<int-jdbc:sql-parameter-definition name="description" />
+		<int-jdbc:parameter name="username" value="kenny" type="java.lang.String" />
+		<int-jdbc:parameter name="description" value="Who killed Kenny?" />
+		<int-jdbc:parameter name="password" expression="payload.username" />
+		<int-jdbc:parameter name="age" value="30" type="java.lang.Integer" />
+		<int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
+
+		<int-jdbc:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jdbc.config.StoredProcOutboundGatewayParserTests$FooAdvice" />
+		</int-jdbc:request-handler-advice-chain>
+	</int-jdbc:stored-proc-outbound-gateway>
+
+	<int:poller default="true" fixed-rate="10000" />
+</beans>

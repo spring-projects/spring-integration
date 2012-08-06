@@ -23,7 +23,11 @@
 		<queue capacity="1"/>
 	</channel>
 
-	<filter ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput"/>
+	<filter ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.config.FilterParserTests$FooFilter" />
+		</request-handler-advice-chain>
+	</filter>
 
 	<beans:bean id="selectorBean"
 		class="org.springframework.integration.config.FilterParserTests$TestSelectorBean"/>

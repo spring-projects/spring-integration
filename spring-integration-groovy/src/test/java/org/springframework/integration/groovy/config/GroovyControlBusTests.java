@@ -20,11 +20,10 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import groovy.lang.GroovyObject;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import groovy.lang.GroovyObject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +35,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -49,6 +49,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 /**
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
@@ -64,6 +65,8 @@ public class GroovyControlBusTests {
 	@Autowired
 	private MyGroovyCustomizer groovyCustomizer;
 
+	private static volatile int adviceCalled;
+
 	@Test
 	public void testOperationOfControlBus() { // long is > 3
 		this.groovyCustomizer.executed = false;
@@ -72,6 +75,7 @@ public class GroovyControlBusTests {
 		assertEquals("catbar", output.receive(0).getPayload());
 		assertNull(output.receive(0));
 		assertTrue(this.groovyCustomizer.executed);
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test //INT-2567
@@ -201,4 +205,13 @@ public class GroovyControlBusTests {
 
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

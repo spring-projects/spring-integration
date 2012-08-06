@@ -24,5 +24,14 @@
 			</bean>
 		</constructor-arg>
 	</bean>
-	
+
+	<jms:outbound-gateway id="advised"
+		request-destination-name="requestQueue"
+		request-channel="requestChannel"
+		delivery-persistent="true">
+		<jms:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$FooAdvice" />
+		</jms:request-handler-advice-chain>
+	</jms:outbound-gateway>
+
 </beans>

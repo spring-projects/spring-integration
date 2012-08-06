@@ -42,6 +42,12 @@
 
 	<outbound-gateway id="withUrlExpression" url-expression="'http://localhost/test1'" request-channel="requests"/>
 
+	<outbound-gateway id="withAdvice" url-expression="'http://localhost/test1'" request-channel="requests">
+		<request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.http.config.HttpOutboundGatewayParserTests$FooAdvice" />
+		</request-handler-advice-chain>
+	</outbound-gateway>
+
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 
 	<beans:bean id="testErrorHandler" class="org.springframework.integration.http.config.HttpOutboundGatewayParserTests$StubErrorHandler"/>

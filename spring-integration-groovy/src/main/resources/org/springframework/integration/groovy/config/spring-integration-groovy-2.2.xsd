@@ -49,10 +49,11 @@
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:all minOccurs="0" maxOccurs="1">
+			<xsd:choice minOccurs="0" maxOccurs="2">
 				<xsd:element ref="integration:poller" minOccurs="0"
 					maxOccurs="1" />
-			</xsd:all>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+			</xsd:choice>
 			<xsd:attributeGroup ref="integration:inputOutputChannelGroupWithId" />
 			<xsd:attribute name="customizer" type="xsd:string">
 				<xsd:annotation>

@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -58,6 +59,8 @@ public class OperationInvokingChannelAdapterParserTests {
 	@Autowired
 	private TestBean testBean;
 
+	private static volatile int adviceCalled;
+
 	@After
 	public void resetLists() {
 		testBean.messages.clear();
@@ -71,6 +74,7 @@ public class OperationInvokingChannelAdapterParserTests {
 		input.send(new GenericMessage<String>("test2"));
 		input.send(new GenericMessage<String>("test3"));
 		assertEquals(3, testBean.messages.size());
+		assertEquals(3, adviceCalled);
 	}
 
 	@Test
@@ -117,5 +121,15 @@ public class OperationInvokingChannelAdapterParserTests {
 		return MessageBuilder.withPayload(payload)
 			.setHeader(JmxHeaders.OBJECT_NAME, "org.springframework.integration.jmx.config:type=TestBean,name=foo")
 			.setHeader(JmxHeaders.OPERATION_NAME, "blah").build();
+	}
+
+	public static class FooADvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return callback.execute();
+		}
+
 	}
 }

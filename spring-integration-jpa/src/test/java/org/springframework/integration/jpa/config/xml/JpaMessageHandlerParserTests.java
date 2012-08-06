@@ -24,12 +24,16 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.PersistMode;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -43,6 +47,8 @@ public class JpaMessageHandlerParserTests {
 	private ConfigurableApplicationContext context;
 
 	private EventDrivenConsumer consumer;
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testJpaMessageHandlerParser() throws Exception {
@@ -75,6 +81,47 @@ public class JpaMessageHandlerParserTests {
 		assertNotNull(jpaParameters);
 		assertTrue(jpaParameters.size() == 3);
 
+	}
+
+	@Test
+	public void advised() throws Exception {
+		setUp("JpaMessageHandlerParserTests.xml", getClass());
+
+		EventDrivenConsumer consumer = this.context.getBean("advised", EventDrivenConsumer.class);
+
+		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+
+		assertEquals("target", inputChannel.getComponentName());
+
+		final MessageHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageHandler.class);
+
+		adviceCalled = 0;
+
+		handler.handleMessage(new GenericMessage<String>("foo"));
+
+		assertEquals(1, adviceCalled);
+	}
+
+	/*
+	 * Tests that an already advised handler (tx) gets the request handler advice added to its chain.
+	 */
+	@Test
+	public void advisedAndTransactional() throws Exception {
+		setUp("JpaMessageHandlerParserTests.xml", getClass());
+
+		EventDrivenConsumer consumer = this.context.getBean("advisedAndTransactional", EventDrivenConsumer.class);
+
+		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(consumer, "inputChannel", AbstractMessageChannel.class);
+
+		assertEquals("target", inputChannel.getComponentName());
+
+		final MessageHandler handler = TestUtils.getPropertyValue(consumer, "handler", MessageHandler.class);
+
+		adviceCalled = 0;
+
+		handler.handleMessage(new GenericMessage<String>("foo"));
+
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -156,7 +203,7 @@ public class JpaMessageHandlerParserTests {
 		assertNotNull(context.getBean("jpaOutboundChannelAdapter.jpaExecutor", JpaExecutor.class));
 
 	}
-	
+
 	@After
 	public void tearDown(){
 		if(context != null){
@@ -169,4 +216,13 @@ public class JpaMessageHandlerParserTests {
 		consumer   = this.context.getBean("jpaOutboundChannelAdapter", EventDrivenConsumer.class);
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

@@ -21,7 +21,11 @@
     </beans:bean>
 
 	<groovy:control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true"
-						customizer="groovyCustomizer"/>
+						customizer="groovyCustomizer">
+		<groovy:request-handler-advice-chain>
+			<beans:bean class="org.springframework.integration.groovy.config.GroovyControlBusTests$FooAdvice" />
+		</groovy:request-handler-advice-chain>
+	</groovy:control-bus>
 
 	<beans:bean id="service" class="org.springframework.integration.groovy.config.GroovyControlBusTests$Service" />
 

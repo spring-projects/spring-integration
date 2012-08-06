@@ -29,6 +29,16 @@
 					xmpp-connection="testConnection" 
 					channel="eventChannel"
 					order="34"/>
+
+	<int-xmpp:presence-outbound-channel-adapter id="advised" 
+					xmpp-connection="testConnection" 
+					channel="eventChannel"
+					order="34">
+		<int-xmpp:request-handler-advice-chain>
+			<bean class="org.springframework.integration.xmpp.config.PresenceOutboundChannelAdapterParserTests$FooAdvice" />
+		</int-xmpp:request-handler-advice-chain>
+	</int-xmpp:presence-outbound-channel-adapter>
+					
 					
 	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterChannel" 
 					xmpp-connection="testConnection"

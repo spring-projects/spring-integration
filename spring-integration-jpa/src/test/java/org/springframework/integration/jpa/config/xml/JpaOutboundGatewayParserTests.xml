@@ -36,4 +36,19 @@
 		reply-channel="out"
 		reply-timeout="100"/>
 
+	<int-jpa:updating-outbound-gateway id="advised"
+		entity-manager-factory="entityManagerFactory"
+		auto-startup="false"
+		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+		persist-mode="PERSIST"
+		use-payload-as-parameter-source="true"
+		order="2"
+		request-channel="in"
+		reply-channel="out"
+		reply-timeout="100">
+		<int-jpa:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jpa.config.xml.JpaOutboundGatewayParserTests$FooAdvice" />
+		</int-jpa:request-handler-advice-chain>
+	</int-jpa:updating-outbound-gateway>
+
 </beans>

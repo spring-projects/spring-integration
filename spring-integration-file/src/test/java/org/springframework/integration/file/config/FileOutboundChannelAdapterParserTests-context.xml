@@ -47,7 +47,11 @@
 	<file:outbound-channel-adapter id="usageChannel"
 	                               filename-generator-expression="'fileToAppend.txt'"
 								   mode="APPEND"
-								   directory="test"/>
+								   directory="test">
+		<file:request-handler-advice-chain>
+			<bean class="org.springframework.integration.file.config.FileOutboundChannelAdapterParserTests$FooAdvice" />
+		</file:request-handler-advice-chain>
+	</file:outbound-channel-adapter>
 
 	<file:outbound-channel-adapter id="usageChannelWithFailMode"
 	                               filename-generator-expression="'fileToAppend.txt'"

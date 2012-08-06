@@ -22,7 +22,11 @@
 	<jmx:notification-publishing-channel-adapter
 			id="adapter" channel="channel"
 			object-name="test.publisher:name=publisher"
-			default-notification-type="default.type"/>
+			default-notification-type="default.type">
+		<jmx:request-handler-advice-chain>
+			<bean class="org.springframework.integration.jmx.config.NotificationPublishingChannelAdapterParserTests$FooADvice" />
+		</jmx:request-handler-advice-chain>
+	</jmx:notification-publishing-channel-adapter>
 
 
 	<si:chain input-channel="publishingWithinChainChannel">

@@ -19,8 +19,7 @@ package org.springframework.integration.config.xml;
 import java.util.Collection;
 import java.util.List;
 
-import org.w3c.dom.Element;
-
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
@@ -32,10 +31,10 @@ import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Base class parser for elements that create Message Endpoints.
@@ -92,6 +91,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			return handlerBeanDefinition;
 		}
 
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
+				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, null,
+				handlerBuilder, parserContext);
+
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 
 		String handlerBeanName = BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
@@ -99,6 +103,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName, handlerAlias));
 
 		builder.addPropertyReference("handler", handlerBeanName);
+
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)){
@@ -136,4 +141,5 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
 		return null;
 	}
+
 }

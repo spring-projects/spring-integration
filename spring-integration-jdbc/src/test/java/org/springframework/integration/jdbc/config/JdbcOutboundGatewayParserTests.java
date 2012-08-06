@@ -32,6 +32,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -55,6 +56,8 @@ public class JdbcOutboundGatewayParserTests {
 
 	private MessagingTemplate messagingTemplate;
 
+	private static volatile int adviceCalled;
+
 	@Test
 	public void testMapPayloadMapReply() {
 		setUp("handlingMapPayloadJdbcOutboundGatewayTest.xml", getClass());
@@ -71,6 +74,8 @@ public class JdbcOutboundGatewayParserTests {
 		assertEquals("bar", payload.get("name"));
 		JdbcOutboundGateway gateway = context.getBean(JdbcOutboundGateway.class);
 		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
+		Object gw = context.getBean("jdbcGateway");
+		assertEquals(1, adviceCalled);
 	}
 
 	@Test
@@ -230,4 +235,13 @@ public class JdbcOutboundGatewayParserTests {
 		setupMessagingTemplate();
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return callback.execute();
+		}
+
+	}
 }

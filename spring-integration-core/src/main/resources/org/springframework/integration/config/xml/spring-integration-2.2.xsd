@@ -1124,6 +1124,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="request-channel" type="xsd:string" use="optional">
 			<xsd:annotation>
@@ -1481,28 +1482,7 @@
 		<xsd:sequence>
 			<xsd:choice>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
-					<xsd:complexType>
-						<xsd:sequence>
-							<xsd:choice minOccurs="0" maxOccurs="unbounded">
-								<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
-									<xsd:complexType>
-										<xsd:attribute name="bean" type="xsd:string" use="required">
-											<xsd:annotation>
-												<xsd:appinfo>
-													<tool:annotation kind="ref">
-														<tool:expected-type type="java.lang.Object" />
-													</tool:annotation>
-												</xsd:appinfo>
-											</xsd:annotation>
-										</xsd:attribute>
-									</xsd:complexType>
-								</xsd:element>
-								<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
-							</xsd:choice>
-						</xsd:sequence>
-					</xsd:complexType>
-				</xsd:element>
+				<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:choice minOccurs="0" maxOccurs="1">
 				<xsd:element name="psuedo-transactional" type="pseudoTransactionalType" minOccurs="0" maxOccurs="1">
@@ -3422,12 +3402,34 @@ is provided, the return value is expected to match a channel name exactly.
 		<xsd:attributeGroup ref="transactionSyncAttributeGroup" />
 	</xsd:complexType>
 
+	<xsd:complexType name="adviceChainType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="bean" type="xsd:string" use="required">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="java.lang.Object" />
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
-				<xsd:choice minOccurs="0" maxOccurs="2">
+				<xsd:choice minOccurs="0" maxOccurs="3">
 					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 				<xsd:attribute name="expression" type="xsd:string">

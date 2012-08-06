@@ -19,9 +19,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
@@ -33,6 +35,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -54,6 +58,7 @@ public abstract class IntegrationNamespaceUtils {
 	static final String ORDER = "order";
 	static final String EXPRESSION_ATTRIBUTE = "expression";
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
+	public static final String REQUEST_HANDLER_ADVICE_CHAIN = "request-handler-advice-chain";
 
 	/**
 	 * Property name on ChannelInitializer used to configure the default max subscribers for
@@ -308,4 +313,56 @@ public abstract class IntegrationNamespaceUtils {
 		}
 		return handlerAlias;
 	}
+
+	@SuppressWarnings({ "rawtypes" })
+	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
+			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
+		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBuilder, parserContext);
+		if (adviceChain != null) {
+			parentBuilder.addPropertyValue("adviceChain", adviceChain);
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
+			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
+		ManagedList adviceChain = null;
+		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
+		if (txElement != null) {
+			adviceChain = new ManagedList();
+			adviceChain.add(IntegrationNamespaceUtils.configureTransactionAttributes(txElement));
+		}
+		if (adviceChainElement != null) {
+			adviceChain = new ManagedList();
+			NodeList childNodes = adviceChainElement.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); i++) {
+				Node child = childNodes.item(i);
+				if (child.getNodeType() == Node.ELEMENT_NODE) {
+					Element childElement = (Element) child;
+					String localName = child.getLocalName();
+					if ("bean".equals(localName)) {
+						BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
+								childElement, parentBuilder.getBeanDefinition());
+						parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
+						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
+					}
+					else if ("ref".equals(localName)) {
+						String ref = childElement.getAttribute("bean");
+						adviceChain.add(new RuntimeBeanReference(ref));
+					}
+					else {
+						BeanDefinition customBeanDefinition = parserContext.getDelegate().parseCustomElement(
+								childElement, parentBuilder.getBeanDefinition());
+						if (customBeanDefinition == null) {
+							parserContext.getReaderContext().error(
+									"failed to parse custom element '" + localName + "'", childElement);
+						}
+						adviceChain.add(customBeanDefinition);
+					}
+				}
+			}
+		}
+		return adviceChain;
+	}
+
 }

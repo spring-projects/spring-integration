@@ -35,6 +35,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -70,6 +71,8 @@ public class FileOutboundGatewayParserTests {
 	@Autowired
 	MessageChannel gatewayWithFailModeLowercaseChannel;
 
+	private volatile static int adviceCalled;
+
 	@Test
 	public void checkOrderedGateway() throws Exception {
 
@@ -94,6 +97,8 @@ public class FileOutboundGatewayParserTests {
 	public void testOutboundGatewayWithDirectoryExpression() throws Exception {
 		FileWritingMessageHandler handler = TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
 		assertEquals("'build/foo'", TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class).getExpressionString());
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
 	}
 
 	/**
@@ -282,4 +287,13 @@ public class FileOutboundGatewayParserTests {
 
 	}
 
+    public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

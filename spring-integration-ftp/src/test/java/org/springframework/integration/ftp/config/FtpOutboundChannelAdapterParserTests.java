@@ -26,16 +26,18 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -44,6 +46,8 @@ import org.springframework.integration.test.util.TestUtils;
  * @since 2.0
  */
 public class FtpOutboundChannelAdapterParserTests {
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testFtpOutboundChannelAdapterComplete() throws Exception{
@@ -97,6 +101,15 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals(DefaultFtpSessionFactory.class, innerSfProperty.getClass());
 	}
 
+	@Test
+	public void adviceChain() {
+		ApplicationContext ac = new ClassPathXmlApplicationContext(
+				"FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
+		Object adapter = ac.getBean("advisedAdapter");
+		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
 
 	@Test
 	public void testTemporaryFileSuffix() {
@@ -107,4 +120,13 @@ public class FtpOutboundChannelAdapterParserTests {
 			assertFalse((Boolean)TestUtils.getPropertyValue(handler,"useTemporaryFileName"));
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }

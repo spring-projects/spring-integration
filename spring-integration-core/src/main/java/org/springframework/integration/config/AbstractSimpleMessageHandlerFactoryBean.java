@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -13,6 +13,9 @@
 
 package org.springframework.integration.config;
 
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -23,11 +26,14 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler> implements FactoryBean<MessageHandler>, BeanFactoryAware {
 
@@ -42,6 +48,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
+
+	private volatile List<Advice> adviceChain;
 
 
 	public AbstractSimpleMessageHandlerFactoryBean() {
@@ -64,15 +72,16 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return this.beanFactory;
 	}
 
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
+	}
+
 	public H getObject() throws Exception {
 		if (this.handler == null) {
 			this.handler = this.createHandlerInternal();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
 			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
 				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
-			}
-			if (this.handler instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.handler).setBeanFactory(beanFactory);
 			}
 			if (this.handler instanceof Orderable && this.order != null) {
 				((Orderable) this.handler).setOrder(this.order.intValue());
@@ -90,6 +99,10 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			handler = createHandler();
 			if (handler instanceof BeanFactoryAware) {
 				((BeanFactoryAware) handler).setBeanFactory(getBeanFactory());
+			}
+			if (!CollectionUtils.isEmpty(this.adviceChain) &&
+					this.handler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
 			}
 			this.initialized = true;
 		}

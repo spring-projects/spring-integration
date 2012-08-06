@@ -16,6 +16,11 @@
 
 package org.springframework.integration.xmpp.config;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import java.util.List;
 
 import org.jivesoftware.smack.XMPPConnection;
@@ -24,15 +29,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -40,11 +47,6 @@ import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
 import org.springframework.integration.xmpp.support.XmppHeaderMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
@@ -57,9 +59,11 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
-	
+
 	@Autowired
 	private XmppHeaderMapper headerMapper;
+
+	private static volatile int adviceCalled;
 
 	@Test
 	public void testPollingConsumer() {
@@ -75,11 +79,19 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		assertTrue(eventConsumer instanceof SubscribableChannel);
 	}
 
+	@Test
+	public void advised() {
+		MessageHandler handler = TestUtils.getPropertyValue(context.getBean("advised"),
+				"handler", MessageHandler.class);
+		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEventConsumer() {
 		Object eventConsumer = context.getBean("outboundEventAdapter");
-		DefaultXmppHeaderMapper headerMapper = 
+		DefaultXmppHeaderMapper headerMapper =
 				TestUtils.getPropertyValue(eventConsumer, "handler.headerMapper", DefaultXmppHeaderMapper.class);
 		List<String> requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", List.class);
 		assertEquals(2, requestHeaderNames.size());
@@ -98,7 +110,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.TO, "oleg").
 				setHeader("foobar", "foobar").build();
 		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
-		
+
 		Mockito.doAnswer(new Answer() {
 		      public Object answer(InvocationOnMock invocation) {
 		          Object[] args = invocation.getArguments();
@@ -108,9 +120,9 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		          return null;
 		      }})
 		  .when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
-		
+
 		channel.send(message);
-		
+
 		verify(connection, times(1)).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 		Mockito.reset(connection);
 	}
@@ -137,4 +149,13 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		Mockito.reset(connection);
 	}
 
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			adviceCalled++;
+			return null;
+		}
+
+	}
 }
