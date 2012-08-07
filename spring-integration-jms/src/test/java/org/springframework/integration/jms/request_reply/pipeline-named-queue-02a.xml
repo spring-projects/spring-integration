@@ -11,12 +11,11 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
-	<int:gateway default-request-channel="pipeline03" default-request-timeout="10000" default-reply-timeout="10000"/>
+	<int:gateway default-request-channel="pipeline02" default-request-timeout="10000" default-reply-timeout="10000"/>
 
-	<int-jms:outbound-gateway request-channel="pipeline03"
+	<int-jms:outbound-gateway request-channel="pipeline02"
 	    connection-factory="connectionFactory" 
-	    reply-destination-name="pipeline03-01"
-	    correlation-key="JMSCorrelationID"
+	    reply-destination-name="pipeline02a-01"
 		request-destination-name="siOutQueue"/>
 	
 	<int-jms:inbound-gateway request-channel="jmsIn"
@@ -27,7 +26,7 @@
 
 	<int:chain input-channel="jmsIn" output-channel="anotherGatewayChannel">
 		<int:header-enricher>
-			<int:header name="delay" expression="new java.util.Random().nextInt(3000)"/>
+			<int:header name="delay" expression="0"/>
 		</int:header-enricher>
 		<int:delayer id="foo" default-delay="0" delay-header-name="delay"/>
 		<int:transformer expression="payload"/>
@@ -35,7 +34,7 @@
 	
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
 	    connection-factory="connectionFactory" 
-	    reply-destination-name="pipeline03-02"
+	    reply-destination-name="pipeline02a-01"
 		request-destination-name="anotherGatewayQueue"/>
 		
 	<int-jms:inbound-gateway request-channel="anotherIn"
@@ -48,7 +47,7 @@
 
 	<int-jms:outbound-gateway request-channel="toThird"
 	    connection-factory="connectionFactory" 
-	    reply-destination-name="pipeline03-03"
+	    reply-destination-name="pipeline02a-01"
 		request-destination-name="thirdGatewayQueue"/>
 		
 	<int-jms:inbound-gateway request-channel="thirdIn"

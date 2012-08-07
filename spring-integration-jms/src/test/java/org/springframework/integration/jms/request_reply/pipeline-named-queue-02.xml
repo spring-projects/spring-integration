@@ -43,7 +43,20 @@
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 		
-	<int:transformer input-channel="anotherIn" expression="payload"/>
+	<int:transformer input-channel="anotherIn" expression="payload" output-channel="toThird" />
+
+	<int-jms:outbound-gateway request-channel="toThird"
+	    connection-factory="connectionFactory" 
+	    reply-destination-name="pipeline02-03"
+		request-destination-name="thirdGatewayQueue"/>
+		
+	<int-jms:inbound-gateway request-channel="thirdIn"
+		request-destination-name="thirdGatewayQueue"
+		connection-factory="connectionFactory"
+		concurrent-consumers="10"
+		reply-timeout="10000"/>
+
+	<int:bridge input-channel="thirdIn" />
 
 	<bean id="connectionFactory"
 		class="org.springframework.jms.connection.CachingConnectionFactory">

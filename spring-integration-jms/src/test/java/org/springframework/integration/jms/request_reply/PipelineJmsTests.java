@@ -24,7 +24,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -164,5 +163,6 @@ public class PipelineJmsTests {
 		assertTrue(successCounter.get() > 10);
 		assertEquals(0, failureCounter.get());
 		assertEquals(requests, successCounter.get() + timeoutCounter.get());
+		context.destroy();
 	}
 }

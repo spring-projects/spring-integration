@@ -15,7 +15,7 @@
 
 	<int-jms:outbound-gateway request-channel="pipeline03"
 	    connection-factory="connectionFactory" 
-	    reply-destination-name="pipeline03-01"
+	    reply-destination-name="pipeline03a-01"
 	    correlation-key="JMSCorrelationID"
 		request-destination-name="siOutQueue"/>
 	
@@ -27,7 +27,7 @@
 
 	<int:chain input-channel="jmsIn" output-channel="anotherGatewayChannel">
 		<int:header-enricher>
-			<int:header name="delay" expression="new java.util.Random().nextInt(3000)"/>
+			<int:header name="delay" expression="0"/>
 		</int:header-enricher>
 		<int:delayer id="foo" default-delay="0" delay-header-name="delay"/>
 		<int:transformer expression="payload"/>
@@ -35,7 +35,7 @@
 	
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
 	    connection-factory="connectionFactory" 
-	    reply-destination-name="pipeline03-02"
+	    reply-destination-name="pipeline03a-01"
 		request-destination-name="anotherGatewayQueue"/>
 		
 	<int-jms:inbound-gateway request-channel="anotherIn"
@@ -47,9 +47,12 @@
 	<int:transformer input-channel="anotherIn" expression="payload" output-channel="toThird" />
 
 	<int-jms:outbound-gateway request-channel="toThird"
+		reply-channel="add10kOnTheWayBack"
 	    connection-factory="connectionFactory" 
-	    reply-destination-name="pipeline03-03"
+	    reply-destination-name="pipeline03a-01"
 		request-destination-name="thirdGatewayQueue"/>
+
+	<int:transformer input-channel="add10kOnTheWayBack" expression="payload + 10000" />
 		
 	<int-jms:inbound-gateway request-channel="thirdIn"
 		request-destination-name="thirdGatewayQueue"
@@ -57,7 +60,7 @@
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
 
-	<int:bridge input-channel="thirdIn" />
+	<int:transformer input-channel="thirdIn" expression="payload + 10000" />
 
 	<bean id="connectionFactory"
 		class="org.springframework.jms.connection.CachingConnectionFactory">

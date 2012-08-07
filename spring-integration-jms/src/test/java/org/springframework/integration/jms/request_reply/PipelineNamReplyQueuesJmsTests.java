@@ -21,10 +21,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -32,12 +32,15 @@ import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class PipelineNamReplyQueuesJmsTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
 
 	int requests = 50;
+
+	int timeouts;
 
 	/**
 	 * jms:out(reply-destination-name="pipeline01-01") -> jms:in -> randomTimeoutProcess ->
@@ -50,7 +53,8 @@ public class PipelineNamReplyQueuesJmsTests {
 
 	/**
 	 * jms:out(reply-destination-name="pipeline02-01") -> jms:in -> randomTimeoutProcess ->
-	 * jms:out(reply-destination-name="pipeline02-02") -> jms:in
+	 * jms:out(reply-destination-name="pipeline02-02") -> jms:in ->
+	 * jms:out(reply-destination-name="pipeline02-03") -> jms:in
 	 */
 	@Test
 	public void testPipeline2() throws Exception{
@@ -58,12 +62,40 @@ public class PipelineNamReplyQueuesJmsTests {
 	}
 
 	/**
+	 * Same as {@link #testPipeline2()} except all gateways use the same reply queue.
+	 * and zero failures expected (no timeouts on server).
+	 * jms:out(reply-destination-name="pipeline02a-01") -> jms:in -> zeroTimeoutProcess ->
+	 * jms:out(reply-destination-name="pipeline02a-01") -> jms:in ->
+	 * jms:out(reply-destination-name="pipeline02a-01") -> jms:in
+	 */
+	@Test
+	public void testPipeline2a() throws Exception{
+		this.test("pipeline-named-queue-02a.xml");
+		assertEquals(0, this.timeouts);
+	}
+
+	/**
 	 * jms:out(reply-destination-name="pipeline03-01", correlation-key="JMSCorrelationID") -> jms:in -> randomTimeoutProcess ->
-	 * jms:out(reply-destination-name="pipeline03-02") -> jms:in
+	 * jms:out(reply-destination-name="pipeline03-02") -> jms:in ->
+	 * jms:out(reply-destination-name="pipeline03-03") -> jms:in
 	 */
 	@Test
 	public void testPipeline3() throws Exception{
 		this.test("pipeline-named-queue-03.xml");
+	}
+
+	/**
+	 * Same as {@link #testPipeline3()} except all gateways use the same reply queue.
+	 * Ensures the correlation id is not propagated. No timeouts expected.
+	 * jms:out(reply-destination-name="pipeline03a-01", correlation-key="JMSCorrelationID") -> jms:in -> zeroTimeoutProcess ->
+	 * jms:out(reply-destination-name="pipeline03a-01") -> jms:in ->
+	 * jms:out(reply-destination-name="pipeline03a-01") -> jms:in
+	 * Ensures reply came from service after third gateway
+	 */
+	@Test
+	public void testPipeline3a() throws Exception{
+		this.test("pipeline-named-queue-03a.xml", 20000);
+		assertEquals(0, this.timeouts);
 	}
 
 	/**
@@ -102,7 +134,12 @@ public class PipelineNamReplyQueuesJmsTests {
 		this.test("pipeline-named-queue-07.xml");
 	}
 
-	public void test(String contextConfig) throws Exception{
+	public void test(String contextConfig) throws Exception {
+		test(contextConfig, 0);
+	}
+
+	public void test(String contextConfig, final int offset) throws Exception {
+		this.timeouts = 0;
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(contextConfig, this.getClass());
 		final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
@@ -116,11 +153,12 @@ public class PipelineNamReplyQueuesJmsTests {
 			executor.execute(new Runnable() {
 				public void run() {
 					try {
-						assertEquals(y, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
+						assertEquals(y + offset, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
 						successCounter.incrementAndGet();
 					} catch (MessageTimeoutException e) {
 						timeoutCounter.incrementAndGet();
 					} catch (Throwable t) {
+						t.printStackTrace();
 						failureCounter.incrementAndGet();
 					} finally {
 						latch.countDown();
@@ -128,7 +166,7 @@ public class PipelineNamReplyQueuesJmsTests {
 				}
 			});
 		}
-		latch.await();
+		assertTrue(latch.await(60, TimeUnit.SECONDS));
 		System.out.println("Success: " + successCounter.get());
 		System.out.println("Timeout: " + timeoutCounter.get());
 		System.out.println("Failure: " + failureCounter.get());
@@ -137,5 +175,7 @@ public class PipelineNamReplyQueuesJmsTests {
 		assertTrue(successCounter.get() > 10);
 		assertEquals(0, failureCounter.get());
 		assertEquals(requests, successCounter.get() + timeoutCounter.get());
+		this.timeouts = timeoutCounter.get();
+		context.destroy();
 	}
 }
