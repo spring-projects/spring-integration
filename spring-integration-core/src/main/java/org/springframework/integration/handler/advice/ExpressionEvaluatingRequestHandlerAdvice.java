@@ -19,6 +19,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
@@ -26,6 +27,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.StringUtils;
 
 /**
  * Used to advise {@link MessageHandler}s.
@@ -84,6 +86,16 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 		this.failureChannel = failureChannel;
 
+	}
+
+	public ExpressionEvaluatingRequestHandlerAdvice(String onSuccessExpression, MessageChannel successChannel,
+			String onFailureExpression, MessageChannel failureChannel) {
+		this(!StringUtils.hasText(onSuccessExpression) ? null :
+				new SpelExpressionParser().parseExpression(onSuccessExpression),
+			 successChannel,
+			 !StringUtils.hasText(onFailureExpression) ? null :
+				new SpelExpressionParser().parseExpression(onFailureExpression),
+			 failureChannel);
 	}
 
 	/**

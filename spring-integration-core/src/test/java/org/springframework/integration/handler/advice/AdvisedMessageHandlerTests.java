@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.handler;
+package org.springframework.integration.handler.advice;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,9 +34,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
-import org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice;
-import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
@@ -75,8 +73,8 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice(
-				new SpelExpressionParser().parseExpression("'foo'"), successChannel,
-				new SpelExpressionParser().parseExpression("'bar'"), failureChannel);
+				"'foo'", successChannel,
+				"'bar'", failureChannel);
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -448,6 +446,35 @@ public class AdvisedMessageHandlerTests {
 			}
 		});
 
+		defaultStatefulRetryRecoverAfterThirdTryGuts(counter, handler, replies, advice);
+
+	}
+
+	@Test
+	public void defaultStatefulRetryRecoverAfterThirdTrySpelState() {
+		final AtomicInteger counter = new AtomicInteger(3);
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				if (counter.getAndDecrement() > 0) {
+					throw new RuntimeException("foo");
+				}
+				return "bar";
+			}
+		};
+		QueueChannel replies = new QueueChannel();
+		handler.setOutputChannel(replies);
+		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
+
+		advice.setRetryStateGenerator(new SpelExpressionRetryStateGenerator("headers['id']"));
+
+		defaultStatefulRetryRecoverAfterThirdTryGuts(counter, handler, replies, advice);
+
+	}
+
+	private void defaultStatefulRetryRecoverAfterThirdTryGuts(final AtomicInteger counter,
+			AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
 		advice.setRecoveryCallback(new RecoveryCallback<Object>() {
 
 			public Object recover(RetryContext context) throws Exception {
@@ -472,6 +499,5 @@ public class AdvisedMessageHandlerTests {
 		Message<?> reply = replies.receive(1000);
 		assertNotNull(reply);
 		assertEquals("baz", reply.getPayload());
-
 	}
 }
