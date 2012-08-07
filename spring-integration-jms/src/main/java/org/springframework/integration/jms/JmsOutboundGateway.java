@@ -590,7 +590,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
-			return this.doReceive(messageConsumer, this.correlationKey, messageCorrelationId, sessionId, false);
+			return this.doReceive(messageConsumer, this.correlationKey, messageCorrelationId, sessionId);
 		}
 		finally  {
 			JmsUtils.closeMessageConsumer(messageConsumer);
@@ -601,9 +601,19 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			Session session, long sessionId, Destination replyTo, int priority) throws JMSException {
 
 		MessageConsumer messageConsumer = null;
-		boolean correlationIdPropagated = false;
 		try {
 			String messageCorrelationId = null;
+
+			/*
+			 * When using the message id for correlation, we must null any correlation id because we
+			 * may have an upstream gateway waiting on this correlation id; consider:
+			 * ob->ib->ob->ib->ob->ib
+			 * If we propagate the correlation id, the third ob will attempt to correlate on
+			 * the same selector.
+			 */
+			if (jmsRequest.getJMSCorrelationID() != null) {
+				jmsRequest.setJMSCorrelationID(null);
+			}
 
 			if (this.replyDestinationExplicitlySet) {
 				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
@@ -615,29 +625,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 				}
 				this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
-				if (jmsRequest.getJMSCorrelationID() != null) {
-					messageCorrelationId = jmsRequest.getJMSCorrelationID();
-					correlationIdPropagated = true;
-				}
-				else {
-					messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
-				}
+				messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
 				String messageSelector = "JMSCorrelationID = '" + messageCorrelationId + "'";
 				messageConsumer = this.createMessageConsumer(session, replyTo, messageSelector, sessionId);
 			}
 			else {
 				messageConsumer = this.createMessageConsumer(session, replyTo, null, sessionId);
 				this.sendRequestMessage(jmsRequest, messageProducer, priority);
-				if (jmsRequest.getJMSCorrelationID() != null){
-					messageCorrelationId = jmsRequest.getJMSCorrelationID();
-					correlationIdPropagated = true;
-				}
-				else {
-					messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
-				}
+				messageCorrelationId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
 			}
 
-			return this.doReceive(messageConsumer, null, messageCorrelationId, sessionId, correlationIdPropagated);
+			return this.doReceive(messageConsumer, null, messageCorrelationId, sessionId);
 		}
 		finally  {
 			JmsUtils.closeMessageConsumer(messageConsumer);
@@ -647,10 +645,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * Will perform clean up if failures detected during message receive
 	 */
-	private javax.jms.Message doReceive(MessageConsumer messageConsumer, String correlationKey, String messageCorrelationIdToMatch, long sessionId,
-			boolean correlationIdPropagated) throws JMSException{
+	private javax.jms.Message doReceive(MessageConsumer messageConsumer, String correlationKey, String messageCorrelationIdToMatch,
+			long sessionId) throws JMSException{
 		try {
-			return this.receiveCorrelatedReplyMessage(messageConsumer, correlationKey, messageCorrelationIdToMatch, correlationIdPropagated);
+			return this.receiveCorrelatedReplyMessage(messageConsumer, correlationKey, messageCorrelationIdToMatch);
 		}
 		catch (javax.jms.IllegalStateException e) {
 			this.clearDestination(sessionId);
@@ -659,7 +657,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private javax.jms.Message receiveCorrelatedReplyMessage(MessageConsumer messageConsumer,
-            String correlationKey, String messageCorrelationIdToMatch, boolean correlationIdPropagated) throws JMSException {
+            String correlationKey, String messageCorrelationIdToMatch) throws JMSException {
 
         long timeLeft = this.receiveTimeout < 0 ? Long.MAX_VALUE : this.receiveTimeout;
 
@@ -672,10 +670,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(timeLeft) : messageConsumer.receive();
 
             if (replyMessage != null) {
-                replyFound = checkReplyMessage(correlationKey, messageCorrelationIdToMatch, correlationIdPropagated,
-						replyMessage);
+                replyFound = checkReplyMessage(correlationKey, messageCorrelationIdToMatch, replyMessage);
                 if (!replyFound) {
                     timeLeft -= (System.currentTimeMillis() - startTime);
+                }
+                else {
+		            replyMessage.setJMSCorrelationID(null);
                 }
             }
             else {
@@ -691,7 +691,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * @return true if the reply is correlated.
 	 */
 	private boolean checkReplyMessage(String correlationKey, String messageCorrelationIdToMatch,
-			boolean correlationIdPropagated, javax.jms.Message replyMessage) throws JMSException {
+			javax.jms.Message replyMessage) throws JMSException {
 		String jmsCorrelationId = null;
 		boolean replyFound;
 		if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
@@ -704,9 +704,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
 
 		    if (jmsCorrelationId.endsWith(messageCorrelationIdToMatch)){
-		        if (!correlationIdPropagated){
-		            replyMessage.setJMSCorrelationID(null);
-		        }
 		        replyFound = true;
 		    }
 		    else {
