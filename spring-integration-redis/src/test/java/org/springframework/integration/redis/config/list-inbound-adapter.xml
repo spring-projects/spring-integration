@@ -7,15 +7,16 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
 
-	<int-redis:list-inbound-channel-adapter id="listAdapter"
+	<int-redis:store-inbound-channel-adapter id="listAdapter"
 											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
-											auto-startup="false">
+											auto-startup="false"
+											collection-type="LIST">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
-	</int-redis:list-inbound-channel-adapter>
+	</int-redis:store-inbound-channel-adapter>
 	
-	<int-redis:list-inbound-channel-adapter id="listAdapterWithSynchronization"
+	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronization"
 											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
@@ -23,7 +24,7 @@
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
 			<int:psuedo-transactional on-success-expression="#resource.rename('bar')"/>
 		</int:poller>
-	</int-redis:list-inbound-channel-adapter>
+	</int-redis:store-inbound-channel-adapter>
 	
 	<int:channel id="redisChannel">
 		<int:queue/>

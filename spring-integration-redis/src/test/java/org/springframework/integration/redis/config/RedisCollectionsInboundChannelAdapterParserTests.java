@@ -19,12 +19,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.Collection;
-
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.support.collections.RedisList;
+import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -49,14 +49,15 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
 
-		Message<Collection<Object>> message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
 		//poll again, should get the same stuff
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisList<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
+		context.close();
 	}
 
 	@Test
@@ -71,15 +72,16 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
 
-		Message<Collection<Object>> message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
 		//poll again, should get nothing since the collection was removed during synchronization
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisList<Object>>) redisChannel.receive(1000);
 		assertNull(message);
 
 		spca.stop();
+		context.close();
 	}
 
 	@Test
@@ -95,16 +97,17 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<Collection<Object>> message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
 		//poll again, should get the same stuff
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
 		zsetAdapterNoScore.stop();
+		context.close();
 	}
 
 	@Test
@@ -120,16 +123,17 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<Collection<Object>> message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(11, message.getPayload().size());
+		assertEquals(11, message.getPayload().rangeByScore(18, 20).size());
 
 		//poll again, should get the same stuff
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(11, message.getPayload().size());
+		assertEquals(11, message.getPayload().rangeByScore(18, 20).size());
 
 		zsetAdapterWithScoreRange.stop();
+		context.close();
 	}
 
 	@Test
@@ -145,16 +149,17 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-		Message<Collection<Object>> message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(2, message.getPayload().size());
+		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
 		//poll again, should get the same stuff
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(2, message.getPayload().size());
+		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
 		zsetAdapterWithSingleScore.stop();
+		context.close();
 	}
 
 	@Test
@@ -171,10 +176,11 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 				context.getBean("zsetAdapterNoScore", SourcePollingChannelAdapter.class);
 
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
+		QueueChannel otherRedisChannel = context.getBean("otherRedisChannel", QueueChannel.class);
 		// get all 13 presidents
 		zsetAdapterNoScore.start();
 
-		Message<Collection<Object>> message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		Message<RedisZSet<Object>> message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
 
@@ -183,22 +189,20 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 		// get only presidents for 18th century
 		zsetAdapterWithSingleScoreAndSynchronization.start();
 
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) otherRedisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(2, message.getPayload().size());
-
-		//poll again, should get nothing since the collection range was removed during synchronization
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
-		assertNull(message);
-
+		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
+		//message.getPayload().remo
 		zsetAdapterWithSingleScoreAndSynchronization.stop();
-		Thread.sleep(500);
+		Thread.sleep(1000);
+
 		// ... however other elements are still available 13-2=11
 		zsetAdapterNoScore.start();
-		message = (Message<Collection<Object>>) redisChannel.receive(1000);
+		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(11, message.getPayload().size());
 
 		zsetAdapterNoScore.stop();
+		context.close();
 	}
 }

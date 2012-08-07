@@ -23,6 +23,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
+import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * Utility class with static methods for helping with establishing environments for
@@ -96,8 +97,8 @@ public class ExpressionUtils {
 	 * @return
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
-		ConversionService conversionService = null;
-		if (beanFactory instanceof ConfigurableListableBeanFactory){
+		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+		if (conversionService == null && beanFactory instanceof ConfigurableListableBeanFactory){
 			conversionService = ((ConfigurableListableBeanFactory)beanFactory).getConversionService();
 		}
 		return createStandardEvaluationContext(new BeanFactoryResolver(beanFactory), conversionService);

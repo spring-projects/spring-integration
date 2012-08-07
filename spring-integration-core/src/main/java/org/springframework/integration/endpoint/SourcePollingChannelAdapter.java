@@ -156,8 +156,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		Message<?> message;
 		try {
 			message = this.source.receive();
-			Object underlyingResource = messageSource.getResource();
-			resource = underlyingResource != null ? underlyingResource : resource;
+			if (this.isPseudoTxMessageSource) {
+				Object actualResource = messageSource.getResource();
+				resource = actualResource != null ? actualResource : resource;
+			}
 
 			if (TransactionSynchronizationManager.isActualTransactionActive()) {
 				TransactionSynchronizationManager.bindResource(this, resource);

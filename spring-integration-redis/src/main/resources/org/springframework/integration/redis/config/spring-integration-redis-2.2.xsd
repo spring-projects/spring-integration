@@ -244,37 +244,62 @@
 		</xsd:complexType>
 	</xsd:element>
 	
-	<xsd:element name="list-inbound-channel-adapter">
+	<xsd:element name="store-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines Redis inbound channel adapter that creates a Message with the values of
-	a Redis List identified by a key-expression. 
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="redisCollectionInboundAdapterType"/>
-			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
-	
-	<xsd:element name="zset-inbound-channel-adapter">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines Redis inbound channel adapter that creates a Message with the values of
-	a Redis Sorted Set identified by a key-expression.
-	It also allows you to provide a score-range for the Sorted Set
+	Defines Redis inbound channel adapter that creates a Message which contains 
+	a view into a redis store. THe view could be one of the subclasses of 
+	org.springframework.data.redis.support.collections.RedisStore
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="redisCollectionInboundAdapterType">
-					<xsd:attribute name="score-range" type="xsd:string">
+					<xsd:attribute name="collection-type">
 						<xsd:annotation>
 							<xsd:documentation>
-							Score range for the Redis Sorted Set (Zset)
+								Collection type supported by this adapter
 							</xsd:documentation>
 						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="LIST">
+									<xsd:annotation>
+										<xsd:documentation>
+											[DEFAULT] Redis List
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="SET">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Set
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="ZSET">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Sorted Set
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="MAP">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Map
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+								<xsd:enumeration value="PROPERTIES">
+									<xsd:annotation>
+										<xsd:documentation>
+											Redis Properties
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:enumeration>
+							</xsd:restriction>
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -318,11 +343,21 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="key-expression" type="xsd:string" use="required">
+					<xsd:attribute name="key-expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 			SpEL expression which returns the name of the key for the collection being used. If you want to provide a 
-			literal string value enclose it in the single quotes (e.g., 'foo')
+			literal string value enclose it in the single quotes (e.g., 'foo') or use 'key' attribute. 
+			This attribute is mutually exclusive with 'key' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="key" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			The name of the key for the collection being used. If you are requiring a key to be dynamically 
+			determined per each poll use 'key-expression' attribute. 
+			This attribute is mutually exclusive with 'key-expression' attribute.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -341,5 +376,5 @@
 				</xsd:extension>
 			</xsd:complexContent>
 	</xsd:complexType>
-
+	
 </xsd:schema>

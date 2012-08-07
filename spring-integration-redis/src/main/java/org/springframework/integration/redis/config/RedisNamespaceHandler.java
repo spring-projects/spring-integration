@@ -28,9 +28,7 @@ public class RedisNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 	public void init() {
 		registerBeanDefinitionParser("publish-subscribe-channel", new RedisChannelParser());
 		registerBeanDefinitionParser("inbound-channel-adapter", new RedisInboundChannelAdapterParser());
-		registerBeanDefinitionParser("list-inbound-channel-adapter", new RedisCollectionsInboundChannelAdapterParser());
-		registerBeanDefinitionParser("zset-inbound-channel-adapter", new RedisCollectionsInboundChannelAdapterParser());
+		registerBeanDefinitionParser("store-inbound-channel-adapter", new RedisCollectionsInboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new RedisOutboundChannelAdapterParser());
 	}
-
 }

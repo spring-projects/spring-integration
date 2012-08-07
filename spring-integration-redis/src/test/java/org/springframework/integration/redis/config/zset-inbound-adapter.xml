@@ -7,45 +7,50 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
 
-	<int-redis:zset-inbound-channel-adapter id="zsetAdapterNoScore"
-											connection-factory="redisConnectionFactory" 
-											key-expression="'presidents'"
-											channel="redisChannel"
-											auto-startup="false">
-		<int:poller fixed-rate="2000" max-messages-per-poll="2"/>
-	</int-redis:zset-inbound-channel-adapter>
-	
-	<int-redis:zset-inbound-channel-adapter id="zsetAdapterWithScoreRange"
+	<int-redis:store-inbound-channel-adapter id="zsetAdapterNoScore"
 											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
-											score-range="18 - 20">
-		<int:poller fixed-rate="2000" max-messages-per-poll="2"/>
-	</int-redis:zset-inbound-channel-adapter>
+											collection-type="ZSET">
+		<int:poller fixed-rate="1000" max-messages-per-poll="2"/>
+	</int-redis:store-inbound-channel-adapter>
 	
-	<int-redis:zset-inbound-channel-adapter id="zsetAdapterWithSingleScore"
+	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithScoreRange"
 											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
-											score-range="18">
-		<int:poller fixed-rate="2000" max-messages-per-poll="2"/>
-	</int-redis:zset-inbound-channel-adapter>
+											collection-type="ZSET">
+		<int:poller fixed-rate="1000" max-messages-per-poll="2"/>
+	</int-redis:store-inbound-channel-adapter>
 	
-	<int-redis:zset-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
+	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScore"
 											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
-											score-range="18">
-		<int:poller fixed-rate="2000" max-messages-per-poll="2">
-			<int:psuedo-transactional on-success-expression="#resource.removeRangeByScore(18, 18)"/>
+											collection-type="ZSET">
+		<int:poller fixed-rate="1000" max-messages-per-poll="2"/>
+	</int-redis:store-inbound-channel-adapter>
+	
+	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
+											connection-factory="redisConnectionFactory" 
+											key-expression="'presidents'"
+											channel="otherRedisChannel"
+											auto-startup="false"
+											collection-type="ZSET">
+		<int:poller fixed-rate="1000" max-messages-per-poll="2">
+			<int:psuedo-transactional on-success-expression="#resource.removeByScore(18, 18)" on-success-result-channel="nullChannel"/>
 		</int:poller>
-	</int-redis:zset-inbound-channel-adapter>
+	</int-redis:store-inbound-channel-adapter>
 	
 	
 	<int:channel id="redisChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int:channel id="otherRedisChannel">
 		<int:queue/>
 	</int:channel>
 	
