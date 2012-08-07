@@ -31,6 +31,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -55,6 +56,8 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -303,6 +306,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Transactional(propagation=Propagation.REQUIRED)
 	public <T> Message<T> addMessage(final Message<T> message) {
 		if (message.getHeaders().containsKey(SAVED_KEY)) {
 			Message<T> saved = (Message<T>) getMessage(message.getHeaders().getId());
@@ -338,6 +342,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return result;
 	}
 
+	@Transactional(propagation=Propagation.REQUIRED)
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(message.getHeaders().getId());
@@ -434,6 +439,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return messageGroup;
 	}
 
+	@Transactional(propagation=Propagation.REQUIRED)
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(messageToRemove.getHeaders().getId());
@@ -452,6 +458,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return getMessageGroup(groupId);
 	}
 
+	@Transactional(propagation=Propagation.REQUIRED)
 	public void removeMessageGroup(Object groupId) {
 
 		final String groupKey = getKey(groupId);
@@ -487,6 +494,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		});
 	}
 
+	@Transactional(propagation=Propagation.REQUIRED)
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, final int sequenceNumber) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		final long updatedDate = System.currentTimeMillis();
@@ -506,6 +514,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		this.updateMessageGroup(groupKey);
 	}
 
+	@Transactional(propagation=Propagation.REQUIRED)
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		String key = getKey(groupId);
 
