@@ -605,7 +605,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		try {
 			String messageCorrelationId = null;
 
-			if (this.replyDestinationExplicitlySet){
+			if (this.replyDestinationExplicitlySet) {
 				if (replyTo instanceof Topic && logger.isWarnEnabled()) {
 					logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
 							"because that ID can only be provided to a MessageSelector after the request Message has been sent thereby " +
@@ -615,7 +615,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 				}
 				this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
-				if (jmsRequest.getJMSCorrelationID() != null){
+				if (jmsRequest.getJMSCorrelationID() != null) {
 					messageCorrelationId = jmsRequest.getJMSCorrelationID();
 					correlationIdPropagated = true;
 				}
@@ -664,43 +664,18 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
         long timeLeft = this.receiveTimeout < 0 ? Long.MAX_VALUE : this.receiveTimeout;
 
         javax.jms.Message replyMessage = null;
-        boolean foundMyReply = false;
+        boolean replyFound = false;
 
-        while (!foundMyReply && timeLeft > 0){
+        while (!replyFound && timeLeft > 0){
             long startTime = System.currentTimeMillis();
 
-            replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(timeLeft)
-                    : messageConsumer.receive();
+			replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(timeLeft) : messageConsumer.receive();
 
             if (replyMessage != null) {
-                String jmsCorrelationId = null;
-                if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
-                    jmsCorrelationId = replyMessage.getStringProperty(correlationKey);
-                }
-                else {
-                    jmsCorrelationId = replyMessage.getJMSCorrelationID();
-                }
-
-                if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
-
-                    if (jmsCorrelationId.contains(messageCorrelationIdToMatch)){
-                        if (!correlationIdPropagated){
-                            replyMessage.setJMSCorrelationID(null);
-                        }
-                        foundMyReply = true;
-                    }
-                    else {
-                        // Essentially we are discarding the uncorrelated message here and moving on to
-                        // the next one since we can no longer communicate with its originating producer
-                        // since it has already timed out waiting for the reply. We are also honoring the original timeout
-                        if (this.logger.isDebugEnabled()){
-                            this.logger.debug("Discarded late arriving reply: " + replyMessage);
-                        }
-                        timeLeft -= (System.currentTimeMillis() - startTime);
-                    }
-                }
-                else {
-                    foundMyReply = true;
+                replyFound = checkReplyMessage(correlationKey, messageCorrelationIdToMatch, correlationIdPropagated,
+						replyMessage);
+                if (!replyFound) {
+                    timeLeft -= (System.currentTimeMillis() - startTime);
                 }
             }
             else {
@@ -708,25 +683,65 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
             }
         }
 
-        return replyMessage;
+        return replyFound ? replyMessage : null;
     }
 
+	/**
+	 * Examine the reply to determine if it is the one we are expecting
+	 * @return true if the reply is correlated.
+	 */
+	private boolean checkReplyMessage(String correlationKey, String messageCorrelationIdToMatch,
+			boolean correlationIdPropagated, javax.jms.Message replyMessage) throws JMSException {
+		String jmsCorrelationId = null;
+		boolean replyFound;
+		if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
+		    jmsCorrelationId = replyMessage.getStringProperty(correlationKey);
+		}
+		else {
+		    jmsCorrelationId = replyMessage.getJMSCorrelationID();
+		}
+
+		if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
+
+		    if (jmsCorrelationId.endsWith(messageCorrelationIdToMatch)){
+		        if (!correlationIdPropagated){
+		            replyMessage.setJMSCorrelationID(null);
+		        }
+		        replyFound = true;
+		    }
+		    else {
+		        // Essentially we are discarding the uncorrelated message here and moving on to
+		        // the next one since we can no longer communicate with its originating producer
+		        // since it has already timed out waiting for the reply. We are also honoring the original timeout
+		        if (this.logger.isDebugEnabled()){
+		            this.logger.debug("Discarded late arriving reply: " + replyMessage);
+		        }
+		        replyFound = false;
+		    }
+		}
+		else {
+		    replyFound = true;
+		}
+		return replyFound;
+	}
+
 	private MessageConsumer createMessageConsumer(Session session, Destination replyTo, String messageSelector, long sessionId) throws JMSException{
+		MessageConsumer consumer;
 		try {
 			if (this.cachedConsumers && this.isTemporaryDestination(replyTo)){
 				if (StringUtils.hasText(messageSelector)){
-					return TemporaryConsumerUtils.createConsumer(session, replyTo, messageSelector);
+					consumer = TemporaryConsumerUtils.createConsumer(session, replyTo, messageSelector);
 				}
 				else {
-					return TemporaryConsumerUtils.createConsumer(session, replyTo, null);
+					consumer = TemporaryConsumerUtils.createConsumer(session, replyTo, null);
 				}
 			}
 			else {
 				if (StringUtils.hasText(messageSelector)){
-					return session.createConsumer(replyTo, messageSelector);
+					consumer = session.createConsumer(replyTo, messageSelector);
 				}
 				else {
-					return session.createConsumer(replyTo);
+					consumer = session.createConsumer(replyTo);
 				}
 			}
 		}
@@ -734,6 +749,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			this.clearDestination(sessionId);
 			throw e;
 		}
+		return consumer;
 	}
 
 	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer, int priority) throws JMSException {
@@ -791,14 +807,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private boolean isCachedSession(Session session){
 		try {
 			// this.cacheConsumers means we are using CCF
-			if (this.cachedConsumers && this.cachedSessionView.containsKey(Session.AUTO_ACKNOWLEDGE)){
+			if (this.cachedConsumers && this.cachedSessionView != null &&
+					this.cachedSessionView.containsKey(Session.AUTO_ACKNOWLEDGE)){
 				List<Session> cachedSessions = this.cachedSessionView.get(Session.AUTO_ACKNOWLEDGE);
 				if (cachedSessions != null){
 					return cachedSessions.contains(session);
 				}
 			}
-		} catch (Throwable e) {
-			// ignore
+		} catch (Exception e) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Exception while detecting cached session", e);
+			}
 		}
 		return false;
 	}
