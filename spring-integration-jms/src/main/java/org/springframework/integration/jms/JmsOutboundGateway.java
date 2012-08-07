@@ -657,34 +657,34 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private javax.jms.Message receiveCorrelatedReplyMessage(MessageConsumer messageConsumer,
-            String correlationKey, String messageCorrelationIdToMatch) throws JMSException {
+			String correlationKey, String messageCorrelationIdToMatch) throws JMSException {
 
-        long timeLeft = this.receiveTimeout < 0 ? Long.MAX_VALUE : this.receiveTimeout;
+		long timeLeft = this.receiveTimeout < 0 ? Long.MAX_VALUE : this.receiveTimeout;
 
-        javax.jms.Message replyMessage = null;
-        boolean replyFound = false;
+		javax.jms.Message replyMessage = null;
+		boolean replyFound = false;
 
-        while (!replyFound && timeLeft > 0){
-            long startTime = System.currentTimeMillis();
+		while (!replyFound && timeLeft > 0){
+			long startTime = System.currentTimeMillis();
 
 			replyMessage = (this.receiveTimeout >= 0) ? messageConsumer.receive(timeLeft) : messageConsumer.receive();
 
-            if (replyMessage != null) {
-                replyFound = checkReplyMessage(correlationKey, messageCorrelationIdToMatch, replyMessage);
-                if (!replyFound) {
-                    timeLeft -= (System.currentTimeMillis() - startTime);
-                }
-                else {
-		            replyMessage.setJMSCorrelationID(null);
-                }
-            }
-            else {
-                timeLeft = 0;
-            }
-        }
+			if (replyMessage != null) {
+				replyFound = checkReplyMessage(correlationKey, messageCorrelationIdToMatch, replyMessage);
+				if (!replyFound) {
+					timeLeft -= (System.currentTimeMillis() - startTime);
+				}
+				else {
+					replyMessage.setJMSCorrelationID(null);
+				}
+			}
+			else {
+				timeLeft = 0;
+			}
+		}
 
-        return replyFound ? replyMessage : null;
-    }
+		return replyFound ? replyMessage : null;
+	}
 
 	/**
 	 * Examine the reply to determine if it is the one we are expecting
@@ -695,29 +695,29 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		String jmsCorrelationId = null;
 		boolean replyFound;
 		if (correlationKey != null && !correlationKey.equals("JMSCorrelationID")){
-		    jmsCorrelationId = replyMessage.getStringProperty(correlationKey);
+			jmsCorrelationId = replyMessage.getStringProperty(correlationKey);
 		}
 		else {
-		    jmsCorrelationId = replyMessage.getJMSCorrelationID();
+			jmsCorrelationId = replyMessage.getJMSCorrelationID();
 		}
 
 		if (StringUtils.hasText(jmsCorrelationId) && StringUtils.hasText(messageCorrelationIdToMatch)){
 
-		    if (jmsCorrelationId.endsWith(messageCorrelationIdToMatch)){
-		        replyFound = true;
-		    }
-		    else {
-		        // Essentially we are discarding the uncorrelated message here and moving on to
-		        // the next one since we can no longer communicate with its originating producer
-		        // since it has already timed out waiting for the reply. We are also honoring the original timeout
-		        if (this.logger.isDebugEnabled()){
-		            this.logger.debug("Discarded late arriving reply: " + replyMessage);
-		        }
-		        replyFound = false;
-		    }
+			if (jmsCorrelationId.endsWith(messageCorrelationIdToMatch)){
+				replyFound = true;
+			}
+			else {
+				// Essentially we are discarding the uncorrelated message here and moving on to
+				// the next one since we can no longer communicate with its originating producer
+				// since it has already timed out waiting for the reply. We are also honoring the original timeout
+				if (this.logger.isDebugEnabled()){
+					this.logger.debug("Discarded late arriving reply: " + replyMessage);
+				}
+				replyFound = false;
+			}
 		}
 		else {
-		    replyFound = true;
+			replyFound = true;
 		}
 		return replyFound;
 	}
