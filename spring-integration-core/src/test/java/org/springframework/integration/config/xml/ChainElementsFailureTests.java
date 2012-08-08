@@ -18,6 +18,8 @@ package org.springframework.integration.config.xml;
 import java.io.ByteArrayInputStream;
 import java.util.Properties;
 
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -35,71 +37,176 @@ import org.springframework.core.io.InputStreamResource;
  */
 public class ChainElementsFailureTests {
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainServiceActivator() throws Exception {
-		this.bootStrap("service-activator");
+
+		try {
+			this.bootStrap("service-activator");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:service-activator'.", e.getCause().getMessage());
+		}
+
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainAggregator() throws Exception {
-		this.bootStrap("aggregator");
+
+		try {
+			this.bootStrap("aggregator");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:aggregator'.", e.getCause().getMessage());
+		}
+
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainChain() throws Exception {
-		this.bootStrap("chain");
+
+		try {
+			this.bootStrap("chain");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:chain'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainDelayer() throws Exception {
-		this.bootStrap("delayer");
+
+		try {
+			this.bootStrap("delayer");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:delayer'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainFilter() throws Exception {
-		this.bootStrap("filter");
+
+		try {
+			this.bootStrap("filter");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:filter'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainGateway() throws Exception {
-		this.bootStrap("gateway");
+
+		try {
+			this.bootStrap("gateway");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:gateway'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainHeaderEnricher() throws Exception {
-		this.bootStrap("header-enricher");
+
+		try {
+			this.bootStrap("header-enricher");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:header-enricher'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainHeaderFilter() throws Exception {
-		this.bootStrap("header-filter");
+
+		try {
+			this.bootStrap("header-filter");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:header-filter'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainHeaderValueRouter() throws Exception {
-		this.bootStrap("header-value-router");
+
+		try {
+			this.bootStrap("header-value-router");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:header-value-router'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainTransformer() throws Exception {
-		this.bootStrap("transformer");
+
+		try {
+			this.bootStrap("transformer");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:transformer'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainRouter() throws Exception {
-		this.bootStrap("router");
+
+		try {
+			this.bootStrap("router");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:router'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainSplitter() throws Exception {
-		this.bootStrap("splitter");
+
+		try {
+			this.bootStrap("splitter");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:splitter'.", e.getCause().getMessage());
+		}
 	}
 
-	@Test(expected=XmlBeanDefinitionStoreException.class)
+	@Test
 	public void chainResequencer() throws Exception {
-		this.bootStrap("resequencer");
-	}
 
+		try {
+			this.bootStrap("resequencer");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
+					" allowed to appear in element 'int:resequencer'.", e.getCause().getMessage());
+		}
+	}
 
 	private ApplicationContext bootStrap(String configProperty) throws Exception {
 		PropertiesFactoryBean pfb = new PropertiesFactoryBean();
