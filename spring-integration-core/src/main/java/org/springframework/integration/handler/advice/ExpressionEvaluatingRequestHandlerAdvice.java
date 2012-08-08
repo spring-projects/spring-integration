@@ -134,15 +134,17 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
 		try {
 			Object result = callback.execute();
-			if (onSuccessMessageProcessor != null) {
+			if (this.onSuccessMessageProcessor != null) {
 				evaluateExpression(message, this.onSuccessMessageProcessor, this.successChannel, this.propagateOnSuccessEvaluationFailures);
 			}
 			return result;
 		}
 		catch (Exception e) {
-			Object evalResult = evaluateExpression(message, this.onFailureMessageProcessor, this.failureChannel, false);
-			if (this.returnFailureExpressionResult) {
-				return evalResult;
+			if (this.onFailureMessageProcessor != null) {
+				Object evalResult = evaluateExpression(message, this.onFailureMessageProcessor, this.failureChannel, false);
+				if (this.returnFailureExpressionResult) {
+					return evalResult;
+				}
 			}
 			if (!this.trapException) {
 				throw e;
