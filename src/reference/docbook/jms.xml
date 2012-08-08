@@ -11,8 +11,8 @@
   </para>
   <para>
   As you can see from above by using <classname>JmsTemplate</classname> and <classname>MessageListener</classname> container Spring Integration relies on Spring's JMS support.
-  This is important to understand since most of the attributes exposed on these adapters will configure the underlying Spring's <classname>JmsTemplate</classname> and/or 
-  <classname>MessageListener</classname> container. For more details about <classname>JmsTemplate</classname> and <classname>MessageListener</classname> container please refer to 
+  This is important to understand since most of the attributes exposed on these adapters will configure the underlying Spring's <classname>JmsTemplate</classname> and/or
+  <classname>MessageListener</classname> container. For more details about <classname>JmsTemplate</classname> and <classname>MessageListener</classname> container please refer to
   <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>.
   </para>
   <para>
@@ -68,7 +68,7 @@
     <title>Message-Driven Channel Adapter</title>
     <para>
       The "message-driven-channel-adapter" requires a reference to either an instance of a Spring MessageListener
-      container (any subclass of <classname>AbstractMessageListenerContainer</classname>) or both  
+      container (any subclass of <classname>AbstractMessageListenerContainer</classname>) or both
       <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
       (a 'destinationName' can be provided in place of the 'destination' reference). The following example defines a
       message-driven Channel Adapter with a <classname>Destination</classname> reference.
@@ -91,7 +91,7 @@
     </para>
     <para>Finally, the &lt;message-driven-channel-adapter&gt; also accepts the 'error-channel' attribute. This
       provides the same basic functionality as described in <xref linkend="gateway-proxy"/>.
-<programlisting language="xml"><![CDATA[ <int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" 
+<programlisting language="xml"><![CDATA[ <int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue"
          channel="exampleChannel"
          error-channel="exampleErrorChannel"/>
 ]]></programlisting>
@@ -161,16 +161,16 @@
     </para>
     <para>
     As with anything else, Gateway invocation might result in error.
-    By default Producer will not be notified of the errors that might have occurred on the consumer side and will time out waiting for 
-    the reply. However there might be times when you want to communicate an error condition back to the consumer, 
-    in other words treat the Exception as a valid reply by mapping it to a Message. To accomplish this 
+    By default Producer will not be notified of the errors that might have occurred on the consumer side and will time out waiting for
+    the reply. However there might be times when you want to communicate an error condition back to the consumer,
+    in other words treat the Exception as a valid reply by mapping it to a Message. To accomplish this
     JMS Inbound Gateway provides support for a Message Channel to which errors
     can be sent for processing, potentially resulting in a reply Message payload
     that conforms to some contract defining what a caller may expect as an "error"
     reply. Such a channel can be configured via the <emphasis>error-channel</emphasis>
     attribute.
 
-<programlisting language="xml"><![CDATA[<int-jms:inbound-gateway request-destination="requestQueue" 
+<programlisting language="xml"><![CDATA[<int-jms:inbound-gateway request-destination="requestQueue"
           request-channel="jmsinputchannel"
           error-channel="errorTransformationChannel"/>
 
@@ -207,39 +207,39 @@
       Message to be subsequently sent to the 'reply-channel' as shown in the example configuration above.
     </para>
   </section>
-  
+
   <section id="jms-header-mapping">
   	<title>Mapping Message Headers to/from JMS Message</title>
-  
+
     <para>
-    JMS Message can contain meta-information such as  JMS API headers as well as simple properties. 
+    JMS Message can contain meta-information such as  JMS API headers as well as simple properties.
     You can map those to/from Spring Integration Message Headers using <classname>JmsHeaderMapper</classname>.
-    The JMS API headers are passed to the appropriate setter methods (e.g. setJMSReplyTo) whereas other headers will 
+    The JMS API headers are passed to the appropriate setter methods (e.g. setJMSReplyTo) whereas other headers will
     be copied to the general properties of the JMS Message.
 
-    JMS Outbound Gateway is bootstrapped with the default implementation of <classname>JmsHeaderMapper</classname> which will map 
+    JMS Outbound Gateway is bootstrapped with the default implementation of <classname>JmsHeaderMapper</classname> which will map
     standard JMS API Headers as well as primitive/String Message Headers. Custom  header mapper could also be
     provided via <code>header-mapper</code> attribute of inbound and outbound gateways.
     </para>
-  
+
   </section>
-  
-  
+
+
    <section id="jms-conversion-and-marshalling">
     <title>Message Conversion, Marshalling and Unmarshalling</title>
     <para>
-    	If you need to convert the message, all JMS adapters and gateways, allow you to 
+    	If you need to convert the message, all JMS adapters and gateways, allow you to
     	provide a <interfacename>MessageConverter</interfacename> via <emphasis>message-converter</emphasis> attribute. Simply provide the
         bean name of an instance of <interfacename>MessageConverter</interfacename> that is available within the same
-        ApplicationContext. 
+        ApplicationContext.
         Also, to provide some consistency with Marshaller and Unmarshaller interfaces Spring provides <interfacename>MarshallingMessageConverter</interfacename>
         which you can configure with your own custom Marshallers and Unmarshallers
     </para>
-  <programlisting language="xml"><![CDATA[ <int-jms:inbound-gateway request-destination="requestQueue" 
+  <programlisting language="xml"><![CDATA[ <int-jms:inbound-gateway request-destination="requestQueue"
                              request-channel="inbound-gateway-channel"
                              message-converter="marshallingMessageConverter"/>
-                             
- <bean id="marshallingMessageConverter" 
+
+ <bean id="marshallingMessageConverter"
        class="org.springframework.jms.support.converter.MarshallingMessageConverter">
    <constructor-arg>
       <bean class="org.bar.SampleMarshaller"/>
@@ -247,10 +247,10 @@
    <constructor-arg>
       <bean class="org.bar.SampleUnmarshaller"/>
    </constructor-arg>
- </bean>                                              
- ]]></programlisting>   
-      
-        
+ </bean>
+ ]]></programlisting>
+
+
      <note>
      Note, however, that when you provide your own MessageConverter instance, it will still
      be wrapped within the HeaderMappingMessageConverter. This means that the 'extract-request-payload'
@@ -327,18 +327,37 @@
 
   <section id="jms-samples">
     <title>JMS Samples</title>
-    <para>
-      To experiment with these JMS adapters, check out JMS samples available in our new Samples Git repository
-      available here: http://git.springsource.org/+spring-integration/spring-integration/samples . 
-      There are two samples included. One provides inbound and outbound Channel Adapters, and the
-      other provides inbound and outbound Gateways. They are configured to run with an embedded ActiveMQ process, but
-      the "common.xml" file can easily be modified to support either a different JMS provider or a standalone
-      ActiveMQ process. In other words, you can split the configuration so that the inbound and outbound adapters are
-      running in separate JVMs. If you have ActiveMQ installed, simply modify the "brokerURL" property within the
-      configuration to use "tcp://localhost:61616" for example (instead of "vm://localhost"). Both of the samples
-      accept input via stdin and then echo back to stdout. Look at the configuration to see how these messages are
-      routed over JMS.
-    </para>
+	<para>
+		To experiment with these JMS adapters, check out the JMS samples available
+		in the <emphasis>Spring Integration Samples</emphasis> Git repository:
+	</para>
+	<itemizedlist>
+		<listitem>
+			<ulink url="https://github.com/SpringSource/spring-integration-samples/tree/master/basic/jms">https://github.com/SpringSource/spring-integration-samples/tree/master/basic/jms</ulink>
+		</listitem>
+	</itemizedlist>
+	<para>
+		There are two samples included. One provides <emphasis>Inbound</emphasis>
+		and <emphasis>Outbound Channel Adapters</emphasis>, and the other provides
+		<emphasis>Inbound</emphasis> and <emphasis>Outbound Gateways</emphasis>.
+		They are configured to run with an embedded
+		<emphasis><ulink url="http://activemq.apache.org/">ActiveMQ</ulink></emphasis>
+		process, but the samples'
+		<emphasis><ulink url="https://github.com/SpringSource/spring-integration-samples/blob/master/basic/jms/src/main/resources/META-INF/spring/integration/common.xml">common.xml</ulink></emphasis>
+		<emphasis>Spring Application Context</emphasis> file can easily be modified
+		to support either a different JMS provider or a standalone <emphasis>ActiveMQ</emphasis>
+		process.
+	</para>
+	<para>
+		In other words, you can split the configuration, so that the
+		Inbound and Outbound Adapters are running in separate JVMs. If you have
+		<emphasis>ActiveMQ</emphasis> installed, simply modify the
+		<emphasis>brokerURL</emphasis> property within the <emphasis>common.xml</emphasis>
+		file to use <emphasis>tcp://localhost:61616</emphasis> (instead of
+		<emphasis>vm://localhost</emphasis>). Both of the samples accept input
+		via stdin and then echo back to stdout. Look at the configuration to see
+		how these messages are routed over JMS.
+	</para>
   </section>
 
 </chapter>
