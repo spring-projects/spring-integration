@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip-2.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="mockCf" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory" />
+	</bean>
+
+	<int-ip:tcp-outbound-channel-adapter
+		connection-factory="mockCf" channel="shouldFail" />
+
+	<int-ip:tcp-outbound-channel-adapter
+		connection-factory="mockCf" channel="advised">
+		<int-ip:request-handler-advice-chain>
+			<bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice">
+				<constructor-arg value=""/>
+				<constructor-arg ref="nullChannel"/>
+				<constructor-arg value=""/>
+				<constructor-arg ref="nullChannel"/>
+				<property name="trapException" value="true" />
+			</bean>
+		</int-ip:request-handler-advice-chain>
+	</int-ip:tcp-outbound-channel-adapter>
+
+	<int:channel id="shouldFail" />
+
+	<int:channel id="advised" />
+</beans>
