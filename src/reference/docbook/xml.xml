@@ -187,7 +187,6 @@
         <para>
             All three options are mutially exlusive. Only one option can be set.
         </para>
-    </section>
     <para>
         Below, please find several different usage examples on how to use XPath
         expressions using the XML namespace support including the various option for
@@ -225,8 +224,91 @@
     <util:entry key="ns1" value="www.example.org/one"/>
     <util:entry key="ns2" value="www.example.org/two"/>
 </util:map>]]></programlisting>
-
-    </section>
+	</section>
+	<section>
+		<title>Using XPath Expressions with Default Namespaces</title>
+		<para>
+			When working with default nanmespaces, you may run into situations that
+			behave differently than originally expected. Let's assume we have the
+			following XML document:
+		</para>
+		<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<order>
+	<orderItem>
+		<isbn>0321200683</isbn>
+		<quantity>2</quantity>
+	</orderItem>
+	<orderItem>
+		<isbn>1590596439</isbn>
+		<quantity>1</quantity>
+	</orderItem>
+</order>]]></programlisting>
+		<para>
+			This document is not declaring any namespace. Therefore, applying
+			the following XPath Expression will work as expected:
+		</para>
+		<programlisting language="xml"><![CDATA[<int-xml:xpath-expression expression="/order/orderItem" />]]></programlisting>
+		<para>
+			You might expect that the same expression will also work for the following
+			XML file. It looks exactly the same as the previous example but in addition
+			it also declares a default namespace:
+		</para>
+		<para><emphasis>http://www.example.org/orders</emphasis></para>
+		<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<order xmlns="http://www.example.org/orders">
+	<orderItem>
+		<isbn>0321200683</isbn>
+		<quantity>2</quantity>
+	</orderItem>
+	<orderItem>
+		<isbn>1590596439</isbn>
+		<quantity>1</quantity>
+	</orderItem>
+</order>]]></programlisting>
+		<para>
+			However, the XPath Expression used previously will fail in this case.
+		</para>
+		<para>
+			In order to solve this issue, you must provide a namespace prefix and
+			a namespace URI using either the <emphasis>ns-prefix</emphasis>
+			and <emphasis>ns-uri</emphasis> attibute or by providing a
+			<emphasis>namespace-map</emphasis> attribute instead. The namespace
+			URI must match the namespace declared in your XML document, which in
+			this example is <emphasis>http://www.example.org/orders</emphasis>.
+		</para>
+		<para>
+			The namespace prefix, however, can be arbitrarily chosen. In fact, just
+			providing an empty String will actually work (Null is not allowed). In the
+			case of a namespace prefix consisting of an empty String, your Xpath
+			Expression will use a colon (":") to indicate the default namespace.
+			If you leave the colon off, the XPath expression will not match. The following
+			XPath Expression will match agains the XML document above:
+		</para>
+		<programlisting language="xml"><![CDATA[<si-xml:xpath-expression expression="/:order/:orderItem"
+    ns-prefix="" ns-uri="http://www.example.org/prodcuts"/>]]></programlisting>
+		<para>
+			Of course you can also provide any other arbitrarily chosen namespace prefix.
+			The following XPath expression using the <emphasis>myorder</emphasis>
+			namespace prefix will match also:
+		</para>
+		<programlisting language="xml"><![CDATA[<si-xml:xpath-expression expression="/myorder:order/myorder:orderItem"
+    ns-prefix="myorder" ns-uri="http://www.example.org/prodcuts"/>]]></programlisting>
+		<para>
+			It is important to remember that the namespace URI is the really important
+			piece of information to declare, not the prefix itself. The
+			<ulink url="http://jaxen.codehaus.org/faq.html">Jaxen FAQ</ulink>
+			summarizes the point very well:
+		</para>
+		<para>
+			<quote>
+				In XPath 1.0, all unprefixed names are unqualified. There is no
+				requirement that the prefixes used in the XPath expression are
+				the same as the prefixes used in the document being queried.
+				Only the namespace URIs need to match, not the prefixes.
+			</quote>
+		</para>
+		</section>
+	</section>
   </section>
 	<section id="xml-transformation">
 		<title>Transforming XML Payloads</title>
