@@ -331,6 +331,13 @@
 				    <xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
+					<xsd:attribute name="redis-template" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							RedisTemplate to be used with this adapter
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>

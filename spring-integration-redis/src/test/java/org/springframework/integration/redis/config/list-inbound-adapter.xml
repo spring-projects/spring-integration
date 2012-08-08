@@ -26,6 +26,26 @@
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 	
+	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRedisTemplate"
+											redis-template="redisTemplate" 
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false">
+		<int:poller fixed-rate="2000" max-messages-per-poll="10">
+			<int:psuedo-transactional on-success-expression="#resource.rename('bar')"/>
+		</int:poller>
+	</int-redis:store-inbound-channel-adapter>
+	
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="keySerializer">
+			<bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+		</property>
+		<property name="valueSerializer">
+			<bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+		</property>
+		<property name="connectionFactory" ref="redisConnectionFactory"/>
+	</bean>
+	
 	<int:channel id="redisChannel">
 		<int:queue/>
 	</int:channel>

@@ -53,7 +53,17 @@ public class RedisStoreInboundChannelAdapter extends IntegrationObjectSupport
 
 	private volatile CollectionType collectionType = CollectionType.LIST;
 
-	private final RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<String, ?> redisTemplate;
+
+	public RedisStoreInboundChannelAdapter(RedisTemplate<String, ?> redisTemplate,
+		       Expression keyExpression) {
+
+		Assert.notNull(keyExpression, "'keyExpression' must not be null");
+		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
+
+		this.redisTemplate = redisTemplate;
+		this.keyExpression = keyExpression;
+	}
 
 	public RedisStoreInboundChannelAdapter(RedisConnectionFactory connectionFactory,
 									       Expression keyExpression) {
@@ -65,10 +75,11 @@ public class RedisStoreInboundChannelAdapter extends IntegrationObjectSupport
 		redisTemplate.setConnectionFactory(connectionFactory);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
-		this.redisTemplate = redisTemplate;
+		redisTemplate.setHashKeySerializer(new JdkSerializationRedisSerializer());
+		redisTemplate.setHashValueSerializer(new JdkSerializationRedisSerializer());
 
+		this.redisTemplate = redisTemplate;
 		this.keyExpression = keyExpression;
-		this.collectionType = collectionType;
 	}
 
 	public void setCollectionType(CollectionType collectionType) {
