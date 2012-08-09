@@ -359,7 +359,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 			SpEL expression which returns the name of the key for the collection being used. If you want to provide a 
-			literal string value enclose it in the single quotes (e.g., 'foo') or use 'key' attribute. 
+			literal string value use 'key' attribute. 
 			This attribute is mutually exclusive with 'key' attribute.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -367,7 +367,7 @@
 					<xsd:attribute name="key" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-			The name of the key for the collection being used. If you are requiring a key to be dynamically 
+			The name of the key for the collection being used. If you require a key to be dynamically 
 			determined per each poll use 'key-expression' attribute. 
 			This attribute is mutually exclusive with 'key-expression' attribute.
 							</xsd:documentation>

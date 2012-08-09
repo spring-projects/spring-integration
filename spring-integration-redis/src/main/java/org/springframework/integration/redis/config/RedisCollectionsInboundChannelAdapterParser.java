@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.redis.inbound.RedisStoreInboundChannelAdapter;
+import org.springframework.integration.redis.inbound.RedisStoreMessageSource;
 import org.springframework.util.StringUtils;
 /**
  * Parser for Redis store inbound adapters
@@ -37,7 +37,7 @@ public class RedisCollectionsInboundChannelAdapterParser extends AbstractPolling
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RedisStoreInboundChannelAdapter.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RedisStoreMessageSource.class);
 
 		String redisTemplate = element.getAttribute("redis-template");
 		String connectionFactory = element.getAttribute("connection-factory");

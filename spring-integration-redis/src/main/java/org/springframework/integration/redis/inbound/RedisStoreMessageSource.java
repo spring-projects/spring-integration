@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class RedisStoreInboundChannelAdapter extends IntegrationObjectSupport
+public class RedisStoreMessageSource extends IntegrationObjectSupport
 		implements PseudoTransactionalMessageSource<RedisStore, RedisStore> {
 
 	private final ThreadLocal<RedisStore> resourceHolder = new ThreadLocal<RedisStore>();
@@ -64,7 +64,7 @@ public class RedisStoreInboundChannelAdapter extends IntegrationObjectSupport
 	 * @param redisTemplate
 	 * @param keyExpression
 	 */
-	public RedisStoreInboundChannelAdapter(RedisTemplate<String, ?> redisTemplate,
+	public RedisStoreMessageSource(RedisTemplate<String, ?> redisTemplate,
 		       Expression keyExpression) {
 
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
@@ -86,7 +86,7 @@ public class RedisStoreInboundChannelAdapter extends IntegrationObjectSupport
 	 * @param connectionFactory
 	 * @param keyExpression
 	 */
-	public RedisStoreInboundChannelAdapter(RedisConnectionFactory connectionFactory,
+	public RedisStoreMessageSource(RedisConnectionFactory connectionFactory,
 									       Expression keyExpression) {
 
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
