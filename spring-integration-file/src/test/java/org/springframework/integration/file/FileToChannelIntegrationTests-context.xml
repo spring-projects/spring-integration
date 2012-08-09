@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:file="http://www.springframework.org/schema/integration/file"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
-     xmlns:p="http://www.springframework.org/schema/p"     xmlns:si="http://www.springframework.org/schema/integration" xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"	 xmlns:si="http://www.springframework.org/schema/integration" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <!-- under test -->
-    <file:inbound-channel-adapter
-            directory="#{inputDirectory.path}"
-            channel="fileMessages" filter="compositeFilter"/>
+	<!-- under test -->
+	<file:inbound-channel-adapter
+			directory="#{inputDirectory.path}"
+			channel="fileMessages" filter="compositeFilter"/>
 
-    <bean id="temp" class="org.junit.rules.TemporaryFolder"
-          init-method="create" destroy-method="delete"/>
+	<bean id="temp" class="org.junit.rules.TemporaryFolder"
+		  init-method="create" destroy-method="delete"/>
 
-    <bean id="inputDirectory" class="java.io.File">
-        <constructor-arg value="#{temp.newFolder('FileToChannelIntegrationTests').path}"/>
-    </bean>
+	<bean id="inputDirectory" class="java.io.File">
+		<constructor-arg value="#{temp.newFolder('FileToChannelIntegrationTests').path}"/>
+	</bean>
 
-    <si:channel id="fileMessages">
-        <si:queue capacity="10"/>
-    </si:channel>
+	<si:channel id="fileMessages">
+		<si:queue capacity="10"/>
+	</si:channel>
 
 	<bean class="org.springframework.integration.file.filters.CompositeFileListFilter" id="compositeFilter">
 		<constructor-arg>
-            <util:list>
-                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="true"/>
-                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="false"/>
-                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="test*"/>
-            </util:list>
+			<util:list>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="true"/>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="false"/>
+				<bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="test*"/>
+			</util:list>
 		</constructor-arg>
 	</bean>
 
 	<si:poller default="true" fixed-rate="10">
-		<si:psuedo-transactional on-success-expression="payload.delete()"
+		<si:pseudo-transactional on-success-expression="payload.delete()"
 			on-success-result-channel="resultChannel" />
 	</si:poller>
 
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
 	<si:channel id="resultChannel">
 		<si:queue />

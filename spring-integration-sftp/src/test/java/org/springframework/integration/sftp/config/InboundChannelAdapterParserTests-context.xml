@@ -50,7 +50,7 @@
 			comparator="comparator"
 			delete-remote-files="${delete.remote.files}">
 		<poller fixed-rate="1000">
-			<psuedo-transactional on-success-expression="'foo'"
+			<pseudo-transactional on-success-expression="'foo'"
 				on-success-result-channel="successChannel"
 				on-failure-expression="'bar'"
 				on-failure-result-channel="failureChannel"

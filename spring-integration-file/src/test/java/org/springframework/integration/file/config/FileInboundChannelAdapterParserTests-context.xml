@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration/file"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xmlns:beans="http://www.springframework.org/schema/beans"
-             xmlns:integration="http://www.springframework.org/schema/integration"
-             xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:integration="http://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-    <inbound-channel-adapter id="inputDirPoller"
-                             directory="${java.io.tmpdir}"
-                             filter="filter"
-                             comparator="testComparator"
-                             auto-startup="false">
-        <integration:poller fixed-rate="5000">
-        	<integration:psuedo-transactional on-success-expression="payload.delete()"
-        				on-success-result-channel="successChannel"
-        				on-failure-expression="'foo'"
-        				on-failure-result-channel="nullChannel"
-        				send-timeout="5000" />
-        </integration:poller>
-    </inbound-channel-adapter>
+	<inbound-channel-adapter id="inputDirPoller"
+							 directory="${java.io.tmpdir}"
+							 filter="filter"
+							 comparator="testComparator"
+							 auto-startup="false">
+		<integration:poller fixed-rate="5000">
+			<integration:pseudo-transactional on-success-expression="payload.delete()"
+						on-success-result-channel="successChannel"
+						on-failure-expression="'foo'"
+						on-failure-result-channel="nullChannel"
+						send-timeout="5000" />
+		</integration:poller>
+	</inbound-channel-adapter>
 
 	<integration:channel id="successChannel" />
 
-    <beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean"/>
+	<beans:bean id="filter" class="org.springframework.integration.file.config.FileListFilterFactoryBean"/>
 
 	<beans:bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
-        <beans:constructor-arg>
-            <beans:list/>
-        </beans:constructor-arg>
-    </beans:bean>
+		<beans:constructor-arg>
+			<beans:list/>
+		</beans:constructor-arg>
+	</beans:bean>
 
-    <beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+	<beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
-    <beans:bean id="testComparator"
-                class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator"/>
+	<beans:bean id="testComparator"
+				class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator"/>
 
 </beans:beans>
