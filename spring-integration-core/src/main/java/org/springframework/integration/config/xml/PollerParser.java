@@ -93,7 +93,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
 				metadataBuilder, parserContext);
 
-		Element pseudoTxElement = DomUtils.getChildElementByTagName(element, "psuedo-transactional");
+		Element pseudoTxElement = DomUtils.getChildElementByTagName(element, "pseudo-transactional");
 		if (pseudoTxElement != null && txElement != null) {
 			parserContext.getReaderContext().error(
 					"Cannot have both 'transactional' and 'pseudo-transactional' elements", element);
