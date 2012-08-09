@@ -5,18 +5,23 @@
 	xmlns:int-http="http://www.springframework.org/schema/integration/http"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http-2.2.xsd">
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
 
 	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
 							   request-channel="requestChannel"
 							   reply-channel="replyChannel"/>
-							   
+
 	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
 							   request-channel="resTypeSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="java.lang.String"/>
-							   
+
+	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+							   request-channel="resPrimitiveStringPresentationChannel"
+							   reply-channel="replyChannel"
+							   expected-response-type="[B"/>
+
 	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
 							   request-channel="resTypeExpressionSetChannel"
 							   reply-channel="replyChannel"
