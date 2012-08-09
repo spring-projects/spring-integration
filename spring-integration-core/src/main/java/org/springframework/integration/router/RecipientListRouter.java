@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * <pre>
@@ -49,7 +52,7 @@ import org.springframework.util.Assert;
  * Using this class only makes sense if it is essential to send messages on
  * multiple channels instead of sending them to multiple handlers. If the latter
  * is an option using a publish subscribe channel is the more flexible solution.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -87,6 +90,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 
 	@Override
 	public final void onInit() {
+		super.onInit();
 		Assert.notEmpty(this.recipients, "recipient list must not be empty");
 	}
 
@@ -96,7 +100,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 		List<Recipient> recipientList = this.recipients;
 		for (Recipient recipient : recipientList) {
 			if (recipient.accept(message)) {
-				channels.add(recipient.getChannel());
+				channels.add(recipient.getChannel(this.channelResolver));
 			}
 		}
 		return channels;
@@ -105,10 +109,20 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 
 	public static class Recipient {
 
-		private final MessageChannel channel;
+		private volatile MessageChannel channel;
 
 		private final MessageSelector selector;
 
+		private volatile String channelName;
+
+		public Recipient(String channelName) {
+			this(channelName, null);
+		}
+
+		public Recipient(String channelName, MessageSelector selector) {
+			this.channelName = channelName;
+			this.selector = selector;
+		}
 
 		public Recipient(MessageChannel channel) {
 			this(channel, null);
@@ -119,9 +133,21 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 			this.selector = selector;
 		}
 
-
 		public MessageChannel getChannel() {
 			return this.channel;
+		}
+
+		public MessageChannel getChannel(ChannelResolver channelResolver) {
+			if (this.channel != null){
+				return this.channel;
+			}
+			Assert.notNull(channelResolver, "'channelResolver' must not be null");
+			if (StringUtils.hasText(this.channelName)){
+				return channelResolver.resolveChannelName(this.channelName);
+			}
+			else {
+				throw new ChannelResolutionException("Failed to resolve channel '" + this.channelName + "'");
+			}
 		}
 
 		public boolean accept(Message<?> message) {
