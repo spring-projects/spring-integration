@@ -1495,7 +1495,7 @@
 				<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:choice minOccurs="0" maxOccurs="1">
-				<xsd:element name="psuedo-transactional" type="pseudoTransactionalType" minOccurs="0" maxOccurs="1">
+				<xsd:element name="pseudo-transactional" type="pseudoTransactionalType" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
 							This element is used to provide expressions that will be executed on success or failure,
