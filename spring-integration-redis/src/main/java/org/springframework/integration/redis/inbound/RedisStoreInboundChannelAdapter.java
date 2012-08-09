@@ -55,6 +55,15 @@ public class RedisStoreInboundChannelAdapter extends IntegrationObjectSupport
 
 	private final RedisTemplate<String, ?> redisTemplate;
 
+	/**
+	 * Creates this instance with provided {@link RedisTemplate} and SpEL expression
+	 * which should resolve to a 'key' name of the collection to be used.
+	 * It assumes that {@link RedisTemplate} is fully initialized and ready to be used.
+	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
+	 *
+	 * @param redisTemplate
+	 * @param keyExpression
+	 */
 	public RedisStoreInboundChannelAdapter(RedisTemplate<String, ?> redisTemplate,
 		       Expression keyExpression) {
 
@@ -65,6 +74,18 @@ public class RedisStoreInboundChannelAdapter extends IntegrationObjectSupport
 		this.keyExpression = keyExpression;
 	}
 
+	/**
+	 * Creates this instance with provided {@link RedisConnectionFactory} and SpEL expression
+	 * which should resolve to a 'key' name of the collection to be used.
+	 * It will create and initialize an instance of the {@link RedisTemplate} using
+	 * {@link StringRedisSerializer} as key serializer and {@link JdkSerializationRedisSerializer} for
+	 * value, hashKey and hashValue serializer.
+	 *
+	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
+	 *
+	 * @param connectionFactory
+	 * @param keyExpression
+	 */
 	public RedisStoreInboundChannelAdapter(RedisConnectionFactory connectionFactory,
 									       Expression keyExpression) {
 

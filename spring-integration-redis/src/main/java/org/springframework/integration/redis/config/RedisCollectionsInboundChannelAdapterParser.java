@@ -38,12 +38,18 @@ public class RedisCollectionsInboundChannelAdapterParser extends AbstractPolling
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(RedisStoreInboundChannelAdapter.class);
+
 		String redisTemplate = element.getAttribute("redis-template");
+		String connectionFactory = element.getAttribute("connection-factory");
+		if (StringUtils.hasText(redisTemplate) && StringUtils.hasText(connectionFactory)){
+			parserContext.getReaderContext().error("Only one of '" + redisTemplate + "' or '"
+					+ connectionFactory + "' is allowed", element);
+		}
+
 		if (StringUtils.hasText(redisTemplate)){
 			builder.addConstructorArgReference(redisTemplate);
 		}
 		else {
-			String connectionFactory = element.getAttribute("connection-factory");
 			if (!StringUtils.hasText(connectionFactory)) {
 				connectionFactory = "redisConnectionFactory";
 			}

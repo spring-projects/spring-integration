@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.support.collections.RedisList;
@@ -228,5 +229,10 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 
 		zsetAdapterNoScore.stop();
 		context.close();
+	}
+
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void testTemplateAndCfMutualExclusivity(){
+		new ClassPathXmlApplicationContext("inbound-template-cf-fail.xml", this.getClass());
 	}
 }

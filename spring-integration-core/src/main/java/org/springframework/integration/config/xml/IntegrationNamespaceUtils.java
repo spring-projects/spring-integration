@@ -386,33 +386,33 @@ public abstract class IntegrationNamespaceUtils {
 	public static RootBeanDefinition createExpressionDefinitionFromValueOrExpression(String valueElementName,
 			String expressionElementName, ParserContext parserContext, Element element, boolean oneRequired) {
 
-	Assert.hasText(valueElementName, "'valueElementName' must not be empty");
-	Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
+		Assert.hasText(valueElementName, "'valueElementName' must not be empty");
+		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
 
-	String valueElementValue = element.getAttribute(valueElementName);
-	String expressionElementValue = element.getAttribute(expressionElementName);
+		String valueElementValue = element.getAttribute(valueElementName);
+		String expressionElementValue = element.getAttribute(expressionElementName);
 
-	boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
-	boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
+		boolean hasAttributeValue = StringUtils.hasText(valueElementValue);
+		boolean hasAttributeExpression = StringUtils.hasText(expressionElementValue);
 
-	if (hasAttributeValue && hasAttributeExpression){
-		parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '"
-					+ expressionElementName + "' is allowed", element);
-	}
+		if (hasAttributeValue && hasAttributeExpression){
+			parserContext.getReaderContext().error("Only one of '" + valueElementName + "' or '"
+						+ expressionElementName + "' is allowed", element);
+		}
 
-	if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)){
-		parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
-				+ expressionElementName + "' is required", element);
+		if (oneRequired && (!hasAttributeValue && !hasAttributeExpression)){
+			parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
+					+ expressionElementName + "' is required", element);
+		}
+		RootBeanDefinition expressionDef = null;
+		if (hasAttributeValue) {
+			expressionDef = new RootBeanDefinition(LiteralExpression.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
+		}
+		else if (hasAttributeExpression){
+			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionElementValue);
+		}
+		return expressionDef;
 	}
-	RootBeanDefinition expressionDef = null;
-	if (hasAttributeValue) {
-		expressionDef = new RootBeanDefinition(LiteralExpression.class);
-	    expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
-	}
-	else if (hasAttributeExpression){
-		expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-		expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionElementValue);
-	}
-	return expressionDef;
-}
 }

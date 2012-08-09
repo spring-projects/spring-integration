@@ -336,6 +336,11 @@
 							<xsd:documentation>
 							RedisTemplate to be used with this adapter
 							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.core.RedisTemplate"/>
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string">

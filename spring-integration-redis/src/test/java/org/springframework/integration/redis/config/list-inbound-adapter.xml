@@ -22,7 +22,7 @@
 											channel="redisChannel"
 											auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
-			<int:psuedo-transactional on-success-expression="#resource.rename('bar')"/>
+			<int:pseudo-transactional on-success-expression="#resource.rename('bar')"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 	
@@ -32,7 +32,7 @@
 											channel="redisChannel"
 											auto-startup="false">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10">
-			<int:psuedo-transactional on-success-expression="#resource.rename('bar')"/>
+			<int:pseudo-transactional on-success-expression="#resource.rename('bar')"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 	

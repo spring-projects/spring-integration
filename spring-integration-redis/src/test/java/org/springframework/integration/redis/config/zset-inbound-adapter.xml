@@ -41,7 +41,7 @@
 											auto-startup="false"
 											collection-type="ZSET">
 		<int:poller fixed-rate="1000" max-messages-per-poll="2">
-			<int:psuedo-transactional on-success-expression="#resource.removeByScore(18, 18)" on-success-result-channel="nullChannel"/>
+			<int:pseudo-transactional on-success-expression="#resource.removeByScore(18, 18)" on-success-result-channel="nullChannel"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 	
