@@ -32,7 +32,7 @@ import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -291,17 +291,17 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		if (conversionService == null){
 			conversionService = new GenericConversionService();
 		}
-		if (conversionService instanceof ConfigurableConversionService){
-			ConfigurableConversionService configurableConversionService =
-					(ConfigurableConversionService) conversionService;
+		if (conversionService instanceof ConverterRegistry){
+			ConverterRegistry converterRegistry =
+					(ConverterRegistry) conversionService;
 
-			configurableConversionService.addConverter(new ClassToStringConverter());
-			configurableConversionService.addConverter(new ObjectToStringConverter());
+			converterRegistry.addConverter(new ClassToStringConverter());
+			converterRegistry.addConverter(new ObjectToStringConverter());
 
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(configurableConversionService));
+			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
 		else {
-			logger.warn("ConversionService is not an instance of ConfigurableConversionService therefore" +
+			logger.warn("ConversionService is not an instance of ConverterRegistry therefore" +
 					"ClassToStringConverter and ObjectToStringConverter will not be registered");
 		}
 	}

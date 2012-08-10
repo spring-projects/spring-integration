@@ -21,10 +21,7 @@ import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,19 +29,22 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.transform.Source;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -716,12 +716,23 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpRequestExecutingMessageHandler handler =
 				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		ConfigurableListableBeanFactory bf = new DefaultListableBeanFactory();
-		ConfigurableConversionService mockConfigurableConversionService = mock(ConfigurableConversionService.class);
-		bf.registerSingleton("integrationConversionService", mockConfigurableConversionService);
+		ProxyFactory pf = new ProxyFactory(new Class[] {ConversionService.class, ConverterRegistry.class});
+		final AtomicInteger converterCount = new AtomicInteger();
+		pf.addAdvice(new MethodInterceptor() {
+
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				if (invocation.getMethod().getName().equals("addConverter")) {
+					converterCount.incrementAndGet();
+				}
+				return null;
+			}
+		});
+		ConversionService mockConversionService = (ConversionService) pf.getProxy();
+		bf.registerSingleton("integrationConversionService", mockConversionService);
 		handler.setBeanFactory(bf);
 		handler.afterPropertiesSet();
-		verify(mockConfigurableConversionService, times(2)).addConverter(any(Converter.class));
-		assertSame(mockConfigurableConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
+		assertEquals(2, converterCount.get());
+		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
 	}
 
 	public static class City{
