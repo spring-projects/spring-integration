@@ -18,8 +18,13 @@ package org.springframework.integration.http.outbound;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,8 +38,13 @@ import javax.xml.transform.Source;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -46,6 +56,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -683,8 +694,38 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals(theURL, restTemplate.actualUrl.get());
 	}
 
+	@Test
+	public void nonCompatibleConversionService() throws Exception {
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		ConfigurableListableBeanFactory bf = new DefaultListableBeanFactory();
+		ConversionService mockConversionService = mock(ConversionService.class);
+		bf.registerSingleton("integrationConversionService", mockConversionService);
+		handler.setBeanFactory(bf);
+		try {
+			handler.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			fail("Unexpected exception during initialization " + e.getMessage());
+		}
+		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
+	}
+
+	@Test
+	public void compatibleConversionService() throws Exception {
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		ConfigurableListableBeanFactory bf = new DefaultListableBeanFactory();
+		ConfigurableConversionService mockConfigurableConversionService = mock(ConfigurableConversionService.class);
+		bf.registerSingleton("integrationConversionService", mockConfigurableConversionService);
+		handler.setBeanFactory(bf);
+		handler.afterPropertiesSet();
+		verify(mockConfigurableConversionService, times(2)).addConverter(any(Converter.class));
+		assertSame(mockConfigurableConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
+	}
+
 	public static class City{
-		private String name;
+		private final String name;
 		public City(String name){
 			this.name = name;
 		}
