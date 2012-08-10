@@ -55,6 +55,7 @@ import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -76,6 +77,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
@@ -294,9 +296,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		gConversionService.addConverter(new ClassToStringConverter());
 		gConversionService.addConverter(new ObjectToStringConverter());
 
-		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(gConversionService));
-		}
+		this.evaluationContext.setTypeConverter(new StandardTypeConverter(gConversionService));
 	}
 
 	private class ClassToStringConverter implements Converter<Class<?>, String> {
@@ -350,18 +350,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				if (this.transferCookies) {
 					this.doConvertSetCookie(headers);
 				}
+				MessageBuilder<?> replyBuilder = null;
 				if (httpResponse.hasBody()) {
 					Object responseBody = httpResponse.getBody();
-					MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
+					replyBuilder = (responseBody instanceof Message<?>) ?
 							MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
-					replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
-					return replyBuilder.copyHeaders(headers).build();
+
 				}
 				else {
-					return MessageBuilder.withPayload(httpResponse).
-							copyHeaders(headers).setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode()).
-							build();
+					replyBuilder = MessageBuilder.withPayload(httpResponse);
 				}
+				replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
+				return replyBuilder.copyHeaders(headers).build();
 			}
 			return null;
 		}
@@ -546,7 +546,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			expectedResponseTypeName = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		}
 		if (StringUtils.hasText(expectedResponseTypeName)){
-			expectedResponseType = Class.forName(expectedResponseTypeName);
+			expectedResponseType = ClassUtils.forName(expectedResponseTypeName, ClassUtils.getDefaultClassLoader());
 		}
 		return expectedResponseType;
 	}
