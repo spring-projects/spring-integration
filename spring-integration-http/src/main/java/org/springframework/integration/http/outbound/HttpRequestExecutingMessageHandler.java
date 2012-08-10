@@ -291,17 +291,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		if (conversionService == null){
 			conversionService = new GenericConversionService();
 		}
-		if (!(conversionService instanceof ConfigurableConversionService)){
-			logger.warn("ConversionService is not an instance of ConfigurableConversionService therefore" +
-					"ClassToStringConverter and ObjectToStringConverter will not be registered");
+		if (conversionService instanceof ConfigurableConversionService){
+			ConfigurableConversionService configurableConversionService =
+					(ConfigurableConversionService) conversionService;
+
+			configurableConversionService.addConverter(new ClassToStringConverter());
+			configurableConversionService.addConverter(new ObjectToStringConverter());
+
+			this.evaluationContext.setTypeConverter(new StandardTypeConverter(configurableConversionService));
 		}
 		else {
-			ConfigurableConversionService gConversionService = (ConfigurableConversionService) conversionService;
-
-			gConversionService.addConverter(new ClassToStringConverter());
-			gConversionService.addConverter(new ObjectToStringConverter());
-
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(gConversionService));
+			logger.warn("ConversionService is not an instance of ConfigurableConversionService therefore" +
+					"ClassToStringConverter and ObjectToStringConverter will not be registered");
 		}
 	}
 
