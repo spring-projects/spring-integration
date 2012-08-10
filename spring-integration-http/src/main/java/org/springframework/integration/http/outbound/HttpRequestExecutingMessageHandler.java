@@ -32,6 +32,7 @@ import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -290,13 +291,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		if (conversionService == null){
 			conversionService = new GenericConversionService();
 		}
-		Assert.isInstanceOf(GenericConversionService.class, conversionService);
-		GenericConversionService gConversionService = (GenericConversionService) conversionService;
+		if (!(conversionService instanceof ConfigurableConversionService)){
+			logger.warn("ConversionService is not an instance of ConfigurableConversionService therefore" +
+					"ClassToStringConverter and ObjectToStringConverter will not be registered");
+		}
+		else {
+			ConfigurableConversionService gConversionService = (ConfigurableConversionService) conversionService;
 
-		gConversionService.addConverter(new ClassToStringConverter());
-		gConversionService.addConverter(new ObjectToStringConverter());
+			gConversionService.addConverter(new ClassToStringConverter());
+			gConversionService.addConverter(new ObjectToStringConverter());
 
-		this.evaluationContext.setTypeConverter(new StandardTypeConverter(gConversionService));
+			this.evaluationContext.setTypeConverter(new StandardTypeConverter(gConversionService));
+		}
 	}
 
 	private class ClassToStringConverter implements Converter<Class<?>, String> {

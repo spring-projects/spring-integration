@@ -32,9 +32,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.xml.transform.Source;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -683,8 +687,19 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals(theURL, restTemplate.actualUrl.get());
 	}
 
+	@Test // should not fail after INT-2712
+	public void nonCompatibleConversionService() throws Exception {
+		HttpRequestExecutingMessageHandler handler =
+				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		ConfigurableListableBeanFactory bf = new DefaultListableBeanFactory();
+		ConversionService mockConversionService = mock(ConversionService.class);
+		bf.registerSingleton("integrationConversionService", mockConversionService);
+		handler.setBeanFactory(bf);
+		handler.afterPropertiesSet();
+	}
+
 	public static class City{
-		private String name;
+		private final String name;
 		public City(String name){
 			this.name = name;
 		}
