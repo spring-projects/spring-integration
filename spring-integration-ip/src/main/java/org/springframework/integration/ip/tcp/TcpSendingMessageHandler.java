@@ -22,9 +22,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -93,8 +91,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	 * message format.
 	 * @see org.springframework.integration.core.MessageHandler#handleMessage(org.springframework.integration.Message)
 	 */
-	public void handleMessageInternal(final Message<?> message) throws MessageRejectedException,
-			MessageHandlingException, MessageDeliveryException {
+	@Override
+	public void handleMessageInternal(final Message<?> message) throws
+			MessageHandlingException {
 		if (this.serverConnectionFactory != null) {
 			// We don't own the connection, we are asynchronously replying
 			Object connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID);
@@ -108,9 +107,16 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				} catch (Exception e) {
 					logger.error("Error sending message", e);
 					connection.close();
+					if (e instanceof MessageHandlingException) {
+						throw (MessageHandlingException) e;
+					}
+					else {
+						throw new MessageHandlingException(message, "Error sending message", e);
+					}
 				}
 			} else {
 				logger.error("Unable to find outbound socket for " + message);
+				throw new MessageHandlingException(message, "Unable to find outbound socket");
 			}
 			return;
 		}
@@ -180,6 +186,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		connections.remove(connection.getConnectionId());
 	}
 
+	@Override
 	public String getComponentType(){
 		return "ip:tcp-outbound-channel-adapter";
 	}
