@@ -28,14 +28,14 @@
 											  
 	<int-redis:store-outbound-channel-adapter id="mapToMapB"
 											  collection-type="MAP"
-											  parse-payload="false"/>
+											  store-payload-as-single-value="true"/>
 											  
 	<int-redis:store-outbound-channel-adapter id="set"
 											  collection-type="SET"/>
 											  
 	<int-redis:store-outbound-channel-adapter id="setNotParsed"
 											  collection-type="SET"
-											  parse-payload="false"/>
+											  store-payload-as-single-value="true"/>
 											  
     <int-redis:store-outbound-channel-adapter id="pojoIntoSet"
 											  collection-type="SET"/>

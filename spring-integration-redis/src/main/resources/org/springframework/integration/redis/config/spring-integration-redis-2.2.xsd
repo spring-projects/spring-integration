@@ -317,11 +317,11 @@
 			<xsd:complexContent>
 				<xsd:extension base="redisAdapterType">
 					<xsd:attributeGroup ref="storeAdapterAttributeGroup"/>
-					<xsd:attribute name="parse-payload" type="xsd:string">
+					<xsd:attribute name="store-payload-as-single-value" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-							If set to 'true' (Default) payload will be added via addAll() or putAll()
-							semantics. If 'false' it wil be added as a single entry.
+							If set to 'false' (Default) payload will be added using addAll() or putAll()
+							semantics. If 'true' it wil be added as a single entry.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

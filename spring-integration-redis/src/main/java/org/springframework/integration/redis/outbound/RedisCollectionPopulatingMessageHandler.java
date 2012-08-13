@@ -80,7 +80,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private volatile CollectionType collectionType = CollectionType.LIST;
 
-	private volatile boolean parsePayload = true;
+	private volatile boolean storePayloadAsSingleValue = false;
 
 	/**
 	 * Will construct this instance using fully created and initialized instance of
@@ -159,14 +159,16 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	/**
-	 * Sets the flag signifying that the payload should be parsed
-	 * and its entries (e.g., Collection/Map) are entered as individual entries
-	 * into the underlying Redis collection.
+	 * Sets the flag signifying that the payload should be saved as single value
+	 * instead of using the semantics of Collection.addAll/putAll in the cases where
+	 * payload is Colection or Map. If teh payload is not and instance of
+	 * Collection or Map this attribute is meaningless as the payload will always be
+	 * stored as a single value.
 	 *
-	 * @param parsePayload
+	 * @param storePayloadAsSingleValue
 	 */
-	public void setParsePayload(boolean parsePayload) {
-		this.parsePayload = parsePayload;
+	public void setStorePayloadAsSingleValue(boolean storePayloadAsSingleValue) {
+		this.storePayloadAsSingleValue = storePayloadAsSingleValue;
 	}
 
 	@Override
@@ -243,7 +245,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	private void handleZset(RedisZSet<Object> zset, final Message<?> message) throws Exception{
 		final Object payload = message.getPayload();
 
-		if (this.parsePayload){
+		if (!this.storePayloadAsSingleValue){
 			final BoundZSetOperations<String, Object> ops =
 					(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());
 
@@ -278,24 +280,10 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		}
 	}
 
-
-	private void processInPipeline(PipelineCallback callback){
-		RedisConnection connection =
-				RedisConnectionUtils.bindConnection(redisTemplate.getConnectionFactory());
-		try {
-			connection.openPipeline();
-			callback.process();
-		}
-		finally {
-			connection.closePipeline();
-			RedisConnectionUtils.unbindConnection(redisTemplate.getConnectionFactory());
-		}
-	}
-
 	@SuppressWarnings("unchecked")
 	private void handleList(RedisList<Object> list, Message<?> message){
 		Object payload = message.getPayload();
-		if (this.parsePayload){
+		if (!this.storePayloadAsSingleValue){
 			if (payload instanceof Collection<?>){
 				list.addAll((Collection<? extends Object>) payload);
 			}
@@ -311,22 +299,17 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@SuppressWarnings("unchecked")
 	private void handleSet(final RedisSet<Object> set, Message<?> message){
 		final Object payload = message.getPayload();
-		if (this.parsePayload){
-			if (payload instanceof Collection<?>){
-				final BoundSetOperations<String, Object> ops =
-						(BoundSetOperations<String, Object>) this.redisTemplate.boundSetOps(set.getKey());
+		if ((!(this.storePayloadAsSingleValue)) && payload instanceof Collection<?>){
+			final BoundSetOperations<String, Object> ops =
+					(BoundSetOperations<String, Object>) this.redisTemplate.boundSetOps(set.getKey());
 
-				this.processInPipeline(new PipelineCallback() {
-					public void process() {
-						for (Object object : ((Collection<?>)payload)) {
-							ops.add(object);
-						}
+			this.processInPipeline(new PipelineCallback() {
+				public void process() {
+					for (Object object : ((Collection<?>)payload)) {
+						ops.add(object);
 					}
-				});
-			}
-			else {
-				set.add(payload);
-			}
+				}
+			});
 		}
 		else {
 			set.add(payload);
@@ -336,18 +319,12 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@SuppressWarnings("unchecked")
 	private void handleMap(final RedisMap<Object, Object> map, Message<?> message){
 		final Object payload = message.getPayload();
-		if (this.parsePayload){
-			if (payload instanceof Map<?, ?>){
-				this.processInPipeline(new PipelineCallback() {
-					public void process() {
-						map.putAll((Map<? extends Object, ? extends Object>) payload);
-					}
-				});
-			}
-			else {
-				this.assertMapEntry(message, false);
-				map.put(message.getHeaders().get(RedisHeaders.MAP_KEY), payload);
-			}
+		if ((!(this.storePayloadAsSingleValue)) && payload instanceof Map<?, ?>){
+			this.processInPipeline(new PipelineCallback() {
+				public void process() {
+					map.putAll((Map<? extends Object, ? extends Object>) payload);
+				}
+			});
 		}
 		else {
 			this.assertMapEntry(message, false);
@@ -357,22 +334,29 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private void handleProperties(final RedisProperties properties, Message<?> message){
 		final Object payload = message.getPayload();
-		if (this.parsePayload){
-			if (payload instanceof Properties){
-				this.processInPipeline(new PipelineCallback() {
-					public void process() {
-						properties.putAll((Properties) payload);
-					}
-				});
-			}
-			else {
-				this.assertMapEntry(message, true);
-				properties.put(message.getHeaders().get(RedisHeaders.MAP_KEY), payload);
-			}
+		if ((!(this.storePayloadAsSingleValue)) && payload instanceof Properties){
+			this.processInPipeline(new PipelineCallback() {
+				public void process() {
+					properties.putAll((Properties) payload);
+				}
+			});
 		}
 		else {
 			this.assertMapEntry(message, true);
 			properties.put(message.getHeaders().get(RedisHeaders.MAP_KEY), payload);
+		}
+	}
+
+	private void processInPipeline(PipelineCallback callback){
+		RedisConnection connection =
+				RedisConnectionUtils.bindConnection(redisTemplate.getConnectionFactory());
+		try {
+			connection.openPipeline();
+			callback.process();
+		}
+		finally {
+			connection.closePipeline();
+			RedisConnectionUtils.unbindConnection(redisTemplate.getConnectionFactory());
 		}
 	}
 
