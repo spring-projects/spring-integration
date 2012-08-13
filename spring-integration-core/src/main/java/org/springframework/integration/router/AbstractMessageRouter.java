@@ -18,6 +18,7 @@ package org.springframework.integration.router;
 
 import java.util.Collection;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.Message;
@@ -28,7 +29,11 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.util.Assert;
 
 /**
  * Base class for all Message Routers.
@@ -48,6 +53,17 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
+	protected volatile ChannelResolver channelResolver;
+
+	private volatile boolean resolutionRequired = true;
+
+	/**
+	 * Specify whether this router should ignore any failure to resolve a channel name to
+	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
+	 */
+	public void setResolutionRequired(boolean resolutionRequired) {
+		this.resolutionRequired = resolutionRequired;
+	}
 
 	/**
 	 * Set the default channel where Messages should be sent if channel resolution
@@ -59,6 +75,17 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
+	}
+
+	/**
+	 * Specify the {@link ChannelResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 * This is considered an infrastructural configuration option and
+	 * as of 2.1 has been deprecated as a configuration-driven attribute.
+	 */
+	public void setChannelResolver(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
 	}
 
 	/**
@@ -113,6 +140,34 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * MessageChannels to which the given Message should be routed.
 	 */
 	protected abstract Collection<MessageChannel> determineTargetChannels(Message<?> message);
+
+	@Override
+	public void onInit() {
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (this.channelResolver == null && beanFactory != null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
+	}
+
+	protected MessageChannel resolveChannelForName(String channelName, Message<?> message) {
+		if (this.channelResolver == null) {
+			this.onInit();
+		}
+		Assert.state(this.channelResolver != null, "unable to resolve channel names, no ChannelResolver available");
+		MessageChannel channel = null;
+		try {
+			channel = this.channelResolver.resolveChannelName(channelName);
+		}
+		catch (ChannelResolutionException e) {
+			if (this.resolutionRequired) {
+				throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'", e);
+			}
+		}
+		if (channel == null && this.resolutionRequired) {
+			throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'");
+		}
+		return channel;
+	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {

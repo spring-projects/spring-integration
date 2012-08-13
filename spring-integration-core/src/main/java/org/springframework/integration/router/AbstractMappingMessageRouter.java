@@ -24,21 +24,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Base class for all Message Routers that support mapping from arbitrary String values
  * to Message Channel names.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
@@ -49,14 +45,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
-	private volatile ChannelResolver channelResolver;
-
 	private volatile String prefix;
 
 	private volatile String suffix;
-
-	private volatile boolean resolutionRequired = true;
-
 
 	/**
 	 * Provide mappings from channel keys to channel names.
@@ -74,17 +65,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	/**
-	 * Specify the {@link ChannelResolver} strategy to use.
-	 * The default is a BeanFactoryChannelResolver.
-	 * This is considered an infrastructural configuration option and
-	 * as of 2.1 has been deprecated as a configuration-driven attribute.
-	 */
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.channelResolver = channelResolver;
-	}
-
-	/**
 	 * Specify a prefix to be added to each channel name prior to resolution.
 	 */
 	public void setPrefix(String prefix) {
@@ -96,14 +76,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 */
 	public void setSuffix(String suffix) {
 		this.suffix = suffix;
-	}
-
-	/**
-	 * Specify whether this router should ignore any failure to resolve a channel name to
-	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
-	 */
-	public void setResolutionRequired(boolean resolutionRequired) {
-		this.resolutionRequired = resolutionRequired;
 	}
 
 	/**
@@ -130,14 +102,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		this.channelMappings.remove(key);
 	}
 
-	@Override
-	public void onInit() {
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (this.channelResolver == null && beanFactory != null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
-		}
-	}
-
 	/**
 	 * Subclasses must implement this method to return the channel keys.
 	 * A "key" might be present in this router's "channelMappings", or it
@@ -152,26 +116,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		Collection<Object> channelKeys = this.getChannelKeys(message);
 		addToCollection(channels, channelKeys, message);
 		return channels;
-	}
-
-	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
-		if (this.channelResolver == null) {
-			this.onInit();
-		}
-		Assert.state(this.channelResolver != null, "unable to resolve channel names, no ChannelResolver available");
-		MessageChannel channel = null;
-		try {
-			channel = this.channelResolver.resolveChannelName(channelName);
-		}
-		catch (ChannelResolutionException e) {
-			if (this.resolutionRequired) {
-				throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'", e);
-			}
-		}
-		if (channel == null && this.resolutionRequired) {
-			throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'");
-		}
-		return channel;
 	}
 
 	private void addChannelFromString(Collection<MessageChannel> channels, String channelKey, Message<?> message) {

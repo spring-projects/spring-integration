@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,36 +25,38 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.filter.ExpressionEvaluatingSelector;
+import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;recipient-list-router/&gt; element.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
+public class RecipientListRouterParser extends AbstractRouterParser {
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder recipientListRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.RecipientListRouter");
+	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder recipientListRouterBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(RecipientListRouter.class);
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "recipient");
 		Assert.notEmpty(childElements,
 				"At least one recipient channel must be defined (e.g., <recipient channel=\"channel1\"/>).");
 		ManagedList recipientList = new ManagedList();
 		for (Element childElement : childElements) {
-			BeanDefinitionBuilder recipientBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.router.RecipientListRouter.Recipient");
+			BeanDefinitionBuilder recipientBuilder = BeanDefinitionBuilder.genericBeanDefinition(Recipient.class);
+			//recipientBuilder.addConstructorArgValue(childElement.getAttribute("channel"));
 			recipientBuilder.addConstructorArgReference(childElement.getAttribute("channel"));
 			String expression = childElement.getAttribute("selector-expression");
 			if (StringUtils.hasText(expression)) {
-				BeanDefinition selectorDef = new RootBeanDefinition(
-						"org.springframework.integration.filter.ExpressionEvaluatingSelector");
+				BeanDefinition selectorDef = new RootBeanDefinition(ExpressionEvaluatingSelector.class);
 				selectorDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
 				String selectorBeanName = parserContext.getReaderContext().registerWithGeneratedName(selectorDef);
 				recipientBuilder.addConstructorArgReference(selectorBeanName);
@@ -66,7 +68,7 @@ public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(recipientListRouterBuilder, element, "ignore-send-failures");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(recipientListRouterBuilder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(recipientListRouterBuilder, element, "default-output-channel");
-		return recipientListRouterBuilder;
+		return recipientListRouterBuilder.getBeanDefinition();
 	}
 
 }
