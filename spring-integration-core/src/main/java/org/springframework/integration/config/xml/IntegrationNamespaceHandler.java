@@ -18,7 +18,7 @@ package org.springframework.integration.config.xml;
 
 /**
  * Namespace handler for the integration namespace.
- * 
+ *
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
@@ -51,6 +51,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("payload-serializing-transformer", new PayloadSerializingTransformerParser());
 		registerBeanDefinitionParser("payload-deserializing-transformer", new PayloadDeserializingTransformerParser());
 		registerBeanDefinitionParser("claim-check-in", new ClaimCheckInParser());
+		registerBeanDefinitionParser("syslog-to-map-transformer", new SyslogToMapTransformerParser());
 		registerBeanDefinitionParser("claim-check-out", new ClaimCheckOutParser());
 		registerBeanDefinitionParser("inbound-channel-adapter", new DefaultInboundChannelAdapterParser());
 		registerBeanDefinitionParser("resource-inbound-channel-adapter", new ResourceInboundChannelAdapterParser());

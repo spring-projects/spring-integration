@@ -2209,6 +2209,17 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:element name="syslog-to-map-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Transformer that converts an RFC5424 packet to a Map.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+		</xsd:complexType>
+	</xsd:element>
+
     <!-- Claim Check -->
 
 	<xsd:element name="claim-check-in" type="claimCheckInType">
