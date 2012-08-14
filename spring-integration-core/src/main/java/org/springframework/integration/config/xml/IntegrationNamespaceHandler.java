@@ -51,8 +51,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("payload-serializing-transformer", new PayloadSerializingTransformerParser());
 		registerBeanDefinitionParser("payload-deserializing-transformer", new PayloadDeserializingTransformerParser());
 		registerBeanDefinitionParser("claim-check-in", new ClaimCheckInParser());
-		registerBeanDefinitionParser("syslog-to-map-transformer", new SyslogTransformerParser());
-		registerBeanDefinitionParser("syslog-to-list-transformer", new SyslogTransformerParser());
+		registerBeanDefinitionParser("syslog-to-map-transformer", new SyslogToMapTransformerParser());
 		registerBeanDefinitionParser("claim-check-out", new ClaimCheckOutParser());
 		registerBeanDefinitionParser("inbound-channel-adapter", new DefaultInboundChannelAdapterParser());
 		registerBeanDefinitionParser("resource-inbound-channel-adapter", new ResourceInboundChannelAdapterParser());

@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.ip.udp;
 
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -25,8 +26,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class SyslogdTests {
 
 	public static void main(String[] args) throws Exception {
-		new ClassPathXmlApplicationContext("SyslogdTests-context.xml", SyslogdTests.class);
+		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("SyslogdTests-context.xml", SyslogdTests.class);
 		System.out.println("Hit enter to terminate");
 		System.in.read();
+		ctx.destroy();
 	}
 }

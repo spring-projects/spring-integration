@@ -30,9 +30,7 @@
 
 	<beans:bean id="lfDeser" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer" />
 
-	<transformer input-channel="syslogChannel" output-channel="out">
-		<beans:bean class="org.springframework.integration.transformer.SyslogTransformer" />
-	</transformer>
+	<syslog-to-map-transformer input-channel="syslogChannel" output-channel="out" />
 
 	<channel id="out" />
 

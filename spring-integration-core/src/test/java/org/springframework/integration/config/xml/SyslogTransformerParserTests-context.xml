@@ -5,8 +5,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<int:syslog-to-list-transformer id="toList" input-channel="toListChannel" output-channel="out" />
-
 	<int:syslog-to-map-transformer id="toMap" input-channel="toMapChannel" output-channel="out" />
 
 	<int:channel id="out">

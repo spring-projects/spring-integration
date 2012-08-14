@@ -17,7 +17,7 @@ package org.springframework.integration.config.xml;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.SyslogTransformer;
+import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.w3c.dom.Element;
 
 /**
@@ -25,21 +25,16 @@ import org.w3c.dom.Element;
  * @since 2.2
  *
  */
-public class SyslogTransformerParser extends AbstractTransformerParser {
+public class SyslogToMapTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected String getTransformerClassName() {
-		return SyslogTransformer.class.getName();
+		return SyslogToMapTransformer.class.getName();
 	}
 
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		if (element.getLocalName().contains("-list-")) {
-			builder.addPropertyValue("asMap", false);
-		}
-		else if (element.getLocalName().contains("-map-")) {
-			builder.addPropertyValue("asMap", true);
-		}
+		// no attributes
 	}
 
 }

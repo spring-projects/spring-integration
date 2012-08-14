@@ -12,14 +12,18 @@
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
-	
+
+	<!-- rsyslog conf:
+
+		*.*                             @localhost:1513
+
+	-->
+
 	<ip:udp-inbound-channel-adapter id="udpReceiver"
 		channel="syslogChannel"
 		port="1513" />
 
-	<transformer input-channel="syslogChannel" output-channel="out">
-		<beans:bean class="org.springframework.integration.transformer.SyslogTransformer" />
-	</transformer>
+	<syslog-to-map-transformer input-channel="syslogChannel" output-channel="out" />
 
 	<channel id="out" />
 

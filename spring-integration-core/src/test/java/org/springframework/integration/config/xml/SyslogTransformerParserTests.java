@@ -20,7 +20,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -29,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.transformer.SyslogTransformer;
+import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -43,28 +42,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class SyslogTransformerParserTests {
 
 	@Autowired
-	private MessageChannel toListChannel;
-
-	@Autowired
 	private MessageChannel toMapChannel;
 
 	@Autowired
 	private PollableChannel out;
-
-	@Test
-	public void testList() {
-		toListChannel.send(new GenericMessage<String>("<158>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE"));
-		List<?> list = (List<?>) out.receive(1000).getPayload();
-		assertNotNull(list);
-		assertEquals(6, list.size());
-		System.out.println(list);
-		assertEquals(19, list.get(0));
-		assertEquals(6, list.get(1));
-		assertTrue(list.get(2) instanceof Date);
-		assertEquals("WEBERN", list.get(3));
-		assertEquals("TESTING[70729]", list.get(4));
-		assertEquals("TEST SYSLOG MESSAGE", list.get(5));
-	}
 
 	@Test
 	public void testMap() {
@@ -73,11 +54,11 @@ public class SyslogTransformerParserTests {
 		assertNotNull(map);
 		assertEquals(6, map.size());
 		System.out.println(map);
-		assertEquals(19, map.get(SyslogTransformer.FACILITY));
-		assertEquals(5, map.get(SyslogTransformer.SEVERITY));
-		assertTrue(map.get(SyslogTransformer.TIMESAMP) instanceof Date);
-		assertEquals("WEBERN", map.get(SyslogTransformer.HOST));
-		assertEquals("TESTING[70729]", map.get(SyslogTransformer.TAG));
-		assertEquals("TEST SYSLOG MESSAGE", map.get(SyslogTransformer.MESSAGE));
+		assertEquals(19, map.get(SyslogToMapTransformer.FACILITY));
+		assertEquals(5, map.get(SyslogToMapTransformer.SEVERITY));
+		assertTrue(map.get(SyslogToMapTransformer.TIMESAMP) instanceof Date);
+		assertEquals("WEBERN", map.get(SyslogToMapTransformer.HOST));
+		assertEquals("TESTING[70729]", map.get(SyslogToMapTransformer.TAG));
+		assertEquals("TEST SYSLOG MESSAGE", map.get(SyslogToMapTransformer.MESSAGE));
 	}
 }

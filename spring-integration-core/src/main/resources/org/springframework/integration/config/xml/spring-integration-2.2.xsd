@@ -2220,17 +2220,6 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="syslog-to-list-transformer">
-		<xsd:annotation>
-			<xsd:documentation>
-				Defines a Transformer that converts an RFC5424 packet to a list of fields.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
-		</xsd:complexType>
-	</xsd:element>
-
     <!-- Claim Check -->
 
 	<xsd:element name="claim-check-in" type="claimCheckInType">
