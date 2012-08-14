@@ -29,18 +29,19 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
+
 /**
  * Parser for the &lt;recipient-list-router/&gt; element.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
+public class RecipientListRouterParser extends AbstractRouterParser {
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder recipientListRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.RecipientListRouter");
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "recipient");
@@ -66,7 +67,7 @@ public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(recipientListRouterBuilder, element, "ignore-send-failures");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(recipientListRouterBuilder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(recipientListRouterBuilder, element, "default-output-channel");
-		return recipientListRouterBuilder;
+		return recipientListRouterBuilder.getBeanDefinition();
 	}
 
 }
