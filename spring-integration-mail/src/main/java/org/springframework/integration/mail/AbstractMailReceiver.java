@@ -321,7 +321,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	public synchronized void destroy() throws Exception {
-		MailTransportUtils.closeFolder(this.contextHolder.get().getFolder(), this.shouldDeleteMessages);
 		MailTransportUtils.closeService(this.store);
 		this.store = null;
 		this.initialized = false;
@@ -411,7 +410,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 		Folder folder = context.getFolder();
 		MailTransportUtils.closeFolder(folder, this.shouldDeleteMessages);
-		this.contextHolder.set(null);
+		this.contextHolder.remove();
 		if (exceptionToThrow != null) {
 			throw exceptionToThrow;
 		}
@@ -420,7 +419,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	public void closeContextAfterFailure(MailReceiverContext context) {
 		Assert.notNull(context, "Mail Reader Context cannot be null");
 		MailTransportUtils.closeFolder(context.getFolder(), false);
-		this.contextHolder.set(null);
+		this.contextHolder.remove();
 	}
 
 }
