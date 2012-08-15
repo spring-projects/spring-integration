@@ -135,7 +135,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	public Map<String, Object> toHeadersFromReply(T source) {
 		return this.toHeaders(source, this.replyHeaderNames);
 	}
-	
+
 	private void fromHeaders(MessageHeaders headers, T target, List<String> headerPatterns){
 		try {
 			Map<String, Object> subset = new HashMap<String, Object>();
@@ -250,10 +250,11 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			if (logger.isWarnEnabled()) {
 				logger.warn("skipping header '" + name + "' since it is not of expected type [" + type + "]");
 			}
+			return null;
 		}
 		return (V) value;
 	}
-	
+
 	private boolean containsElementIgnoreCase(List<String> headerNames, String name) {
 		for (String headerName : headerNames) {
 			if (headerName.equalsIgnoreCase(name)){
@@ -287,7 +288,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	protected List<String> getStandardRequestHeaderNames(){
 		return Collections.emptyList();
 	}
-	
+
 	/**
 	 * Returns the list of standard REPLY headers. Implementation provided by a subclass
 	 */
