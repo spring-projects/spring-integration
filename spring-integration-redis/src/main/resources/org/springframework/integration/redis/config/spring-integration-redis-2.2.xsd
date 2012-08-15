@@ -306,6 +306,29 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="store-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines Redis outbound channel adapter that writes the contents of the Message into
+	org.springframework.data.redis.support.collections.RedisStore
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisAdapterType">
+					<xsd:attributeGroup ref="storeAdapterAttributeGroup"/>
+					<xsd:attribute name="redis-template" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							RedisTemplate to be used with this adapter
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="redisAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -346,7 +369,7 @@
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-			Channel to which Messages will be sent.
+			Channel to which Messages will be sent. 
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -358,8 +381,8 @@
 					<xsd:attribute name="key-expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-			SpEL expression which returns the name of the key for the collection being used. If you want to provide a
-			literal string value use the 'key' attribute.
+			SpEL expression that returns the name of the key for the collection being used. If you want to provide a
+			constant key, use the 'key' attribute.
 			This attribute is mutually exclusive with the 'key' attribute.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -368,7 +391,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 			The name of the key for the collection being used. If you require a key to be dynamically
-			determined per each poll use the 'key-expression' attribute.
+			determined per each poll use 'key-expression' attribute. 
 			This attribute is mutually exclusive with the 'key-expression' attribute.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -389,4 +412,90 @@
 			</xsd:complexContent>
 	</xsd:complexType>
 
+	<xsd:attributeGroup name="storeAdapterAttributeGroup">
+		<xsd:attribute name="key" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Provide the name of the key for the collection being used. If you require a key that
+					is determined dynamically for each message, use the 'key-expression' attribute.
+					The default key is dynamically determined from the 'redis_key' header.
+					This attribute is mutually exclusive with the 'key-expression' attribute.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="key-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					SpEL expression that returns the name of the key for the collection being used. If you want to provide a
+					constant key, use the 'key' attribute. Default is the 'redis_key' message header.
+					This attribute is mutually exclusive with the 'key' attribute.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="map-key-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					SpEL expression that returns the name of the key for entry being stored. Only applies
+					if the 'collection-type' is MAP or PROPERTIES and 'extract-payload-elements' is false.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="extract-payload-elements" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				If set to 'true' (Default) and the payload is an instance of a "multi-value" object (i.e., Collection or Map)
+				it will be stored using addAll/putAll semantics. Otherwise, if set to 'false' the payload will be stored
+				as single entry regardless of its type.
+				If the payload is not an instance of a "multi-value" object, the value of this attribute is ignored and
+				the payload will always be stored as a single entry.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="collection-type">
+			<xsd:annotation>
+				<xsd:documentation>
+					Collection type supported by this adapter
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="LIST">
+						<xsd:annotation>
+							<xsd:documentation>
+								[DEFAULT] Redis List
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+					<xsd:enumeration value="SET">
+						<xsd:annotation>
+							<xsd:documentation>
+								Redis Set
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+					<xsd:enumeration value="ZSET">
+						<xsd:annotation>
+							<xsd:documentation>
+								Redis Sorted Set
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+					<xsd:enumeration value="MAP">
+						<xsd:annotation>
+							<xsd:documentation>
+								Redis Map
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+					<xsd:enumeration value="PROPERTIES">
+						<xsd:annotation>
+							<xsd:documentation>
+								Redis Properties
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 </xsd:schema>
