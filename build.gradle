@@ -150,6 +150,7 @@ project('spring-integration-amqp') {
 		}
 		testCompile project(":spring-integration-stream")
 		testCompile project(":spring-integration-test")
+		testCompile project(":spring-integration-http") // need to test INT-2713
 	}
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.amqp'

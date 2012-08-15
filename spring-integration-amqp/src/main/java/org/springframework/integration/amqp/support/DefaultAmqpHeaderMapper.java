@@ -35,21 +35,21 @@ import org.springframework.util.StringUtils;
  * <p/>
  * By default this implementation will only copy AMQP properties (e.g. contentType) to and from
  * Spring Integration MessageHeaders. Any user-defined headers within the AMQP
- * MessageProperties will NOT be copied to or from an AMQP Message unless 
- * explicitly identified via 'requestHeaderNames' and/or 'replyHeaderNames' 
- * (see {@link AbstractHeaderMapper#setRequestHeaderNames(String[])} 
- * and {@link AbstractHeaderMapper#setReplyHeaderNames(String[])}} 
+ * MessageProperties will NOT be copied to or from an AMQP Message unless
+ * explicitly identified via 'requestHeaderNames' and/or 'replyHeaderNames'
+ * (see {@link AbstractHeaderMapper#setRequestHeaderNames(String[])}
+ * and {@link AbstractHeaderMapper#setReplyHeaderNames(String[])}}
  * as well as 'mapped-request-headers' and 'mapped-reply-headers' attributes of the AMQP adapters).
  * If you need to copy all user-defined headers simply use wild-card character '*'.
  * <p/>
  * Constants for the AMQP header keys are defined in {@link AmqpHeaders}.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
-	
+
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
 	static {
@@ -212,7 +212,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (contentLength != null) {
 			amqpMessageProperties.setContentLength(contentLength);
 		}
-		String contentType = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_TYPE, String.class);
+		String contentType = this.extractContentTypeAsString(headers);
+
 		if (StringUtils.hasText(contentType)) {
 			amqpMessageProperties.setContentType(contentType);
 		}
@@ -307,6 +308,38 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	@Override
 	protected String getStandardHeaderPrefix() {
 		return AmqpHeaders.PREFIX;
+	}
+
+	/**
+	 * Will extract Content-Type from MessageHeaders and convert it to String if possible
+	 * Required since Content-Type can be represented as org.springframework.http.MediaType
+	 * see INT-2713 for more details
+	 *
+	 * @param headers
+	 * @return
+	 */
+	private String extractContentTypeAsString(Map<String, Object> headers){
+		String contentTypeStringValue = null;
+
+		Object contentType = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_TYPE, Object.class);
+
+		if (contentType != null){
+			String contentTypeClassName = contentType.getClass().getName();
+
+			if (contentTypeClassName.equals("org.springframework.http.MediaType")){ // see INT-2713
+				contentTypeStringValue = contentType.toString();
+			}
+			else if (contentType instanceof String) {
+				contentTypeStringValue = (String) contentType;
+			}
+			else {
+				if (logger.isWarnEnabled()) {
+					logger.warn("skipping header '" + AmqpHeaders.CONTENT_TYPE +
+							"' since it is not of expected type [" + contentTypeClassName + "]");
+				}
+			}
+		}
+		return contentTypeStringValue;
 	}
 
 }

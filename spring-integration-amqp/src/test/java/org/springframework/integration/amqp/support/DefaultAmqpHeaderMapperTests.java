@@ -16,6 +16,9 @@
 
 package org.springframework.integration.amqp.support;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,15 +31,14 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
+import org.springframework.http.MediaType;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapperTests {
@@ -94,6 +96,21 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("test.userId", amqpProperties.getUserId());
 		assertEquals("test.correlation", amqpProperties.getHeaders().get(RabbitTemplate.STACKED_CORRELATION_HEADER));
 		assertEquals("test.replyTo2", amqpProperties.getHeaders().get(RabbitTemplate.STACKED_REPLY_TO_HEADER));
+	}
+
+	@Test
+	public void fromHeadersWithContentTypeAsMediaType() {
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		Map<String, Object> headerMap = new HashMap<String, Object>();
+
+		MediaType contentType = MediaType.parseMediaType("text/html");
+		headerMap.put(AmqpHeaders.CONTENT_TYPE, contentType);
+
+		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
+		MessageProperties amqpProperties = new MessageProperties();
+		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
+
+		assertEquals("text/html", amqpProperties.getContentType());
 	}
 
 	@Test
