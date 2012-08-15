@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
 
 	<int-redis:store-inbound-channel-adapter id="listAdapter"
-											connection-factory="redisConnectionFactory"
+											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
@@ -17,7 +17,7 @@
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronization"
-											connection-factory="redisConnectionFactory"
+											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false">
@@ -27,7 +27,7 @@
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRedisTemplate"
-											redis-template="redisTemplate"
+											redis-template="redisTemplate" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false">

@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterNoScore"
-											connection-factory="redisConnectionFactory"
+											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
@@ -17,7 +17,7 @@
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithScoreRange"
-											connection-factory="redisConnectionFactory"
+											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
@@ -26,7 +26,7 @@
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScore"
-											connection-factory="redisConnectionFactory"
+											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
@@ -35,7 +35,7 @@
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
-											connection-factory="redisConnectionFactory"
+											connection-factory="redisConnectionFactory" 
 											key-expression="'presidents'"
 											channel="otherRedisChannel"
 											auto-startup="false"
@@ -45,15 +45,14 @@
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
 
-
 	<int:channel id="redisChannel">
 		<int:queue/>
 	</int:channel>
-
+	
 	<int:channel id="otherRedisChannel">
 		<int:queue/>
 	</int:channel>
-
+	
 	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 		<property name="port" value="7379"/>
 	</bean>

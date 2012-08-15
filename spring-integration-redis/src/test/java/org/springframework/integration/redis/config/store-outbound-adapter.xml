@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	
+	<int-redis:store-outbound-channel-adapter id="listWithKeyAsHeader"/>
+	
+	<int-redis:store-outbound-channel-adapter id="listWithKeyProvided" 
+											  collection-type="LIST"
+											  key="pepboys"/>
+											  
+	<int-redis:store-outbound-channel-adapter id="mapToZset"
+											  collection-type="ZSET"
+											  key-expression="'presidents'"/>
+											  
+	<int-redis:store-outbound-channel-adapter id="mapToMapA"
+											  collection-type="MAP"
+											  key="pepboys"/>
+											  
+	<int-redis:store-outbound-channel-adapter id="mapToMapB"
+											  collection-type="MAP"
+											  extract-payload-elements="false"/>
+											  
+	<int-redis:store-outbound-channel-adapter id="set"
+											  collection-type="SET"/>
+											  
+	<int-redis:store-outbound-channel-adapter id="setNotParsed"
+											  collection-type="SET"
+											  extract-payload-elements="false"/>
+											  
+    <int-redis:store-outbound-channel-adapter id="pojoIntoSet"
+											  collection-type="SET"/>
+											  
+	<int-redis:store-outbound-channel-adapter id="property"
+											  collection-type="PROPERTIES"
+											  key="pepboys"/>
+	
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="7379"/>
+	</bean>
+	
+</beans>
