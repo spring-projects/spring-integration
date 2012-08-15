@@ -117,7 +117,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
-	public void testListWithListPayloadAsSingleValue(){
+	public void testListWithListPayloadAsSingleEntry(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<List<String>> redisList =
@@ -128,7 +128,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		RedisCollectionPopulatingMessageHandler handler =
 				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
-		handler.setStorePayloadAsSingleValue(true);
+		handler.setExtractPayloadElements(false);
 
 		List<String> list = new ArrayList<String>();
 		list.add("Manny");
@@ -178,7 +178,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
-	public void testZsetWithListPayloadAsSingleValueAndHeaderKeyHeaderScore(){
+	public void testZsetWithListPayloadAsSingleEntryAndHeaderKeyHeaderScore(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<List<String>> redisZset =
@@ -192,7 +192,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		handler.afterPropertiesSet();
 
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setStorePayloadAsSingleValue(true);
+		handler.setExtractPayloadElements(false);
 
 		List<String> list = new ArrayList<String>();
 		list.add("Manny");
@@ -298,7 +298,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
-	public void testZsetWithMapPayloadPojoAsSingleValueHeaderKey(){
+	public void testZsetWithMapPayloadPojoAsSingleEntryHeaderKey(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "presidents";
 		RedisZSet<Map<President, Double>> redisZset =
@@ -311,7 +311,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
 
 		handler.setCollectionType(CollectionType.ZSET);
-		handler.setStorePayloadAsSingleValue(true);
+		handler.setExtractPayloadElements(false);
 
 		Map<President, Double> presidents = new HashMap<President, Double>();
 		presidents.put(new President("John Adams"), 18D);

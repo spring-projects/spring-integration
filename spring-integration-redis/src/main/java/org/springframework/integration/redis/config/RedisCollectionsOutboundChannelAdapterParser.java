@@ -60,7 +60,7 @@ public class RedisCollectionsOutboundChannelAdapterParser extends AbstractOutbou
 						parserContext, element, atLeastOneRequired);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "store-payload-as-single-value");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload-elements");
 
 		if (expressionDef != null){
 			builder.addConstructorArgValue(expressionDef);

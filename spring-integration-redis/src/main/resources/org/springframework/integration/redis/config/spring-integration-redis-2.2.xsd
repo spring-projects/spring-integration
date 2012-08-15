@@ -317,11 +317,14 @@
 			<xsd:complexContent>
 				<xsd:extension base="redisAdapterType">
 					<xsd:attributeGroup ref="storeAdapterAttributeGroup"/>
-					<xsd:attribute name="store-payload-as-single-value" type="xsd:string">
+					<xsd:attribute name="extract-payload-elements" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-							If set to 'false' (Default) payload will be added using addAll() or putAll()
-							semantics. If 'true' it wil be added as a single entry.
+							If set to 'true' (Default) and payload is an instance of multi-value object (e.g., Collection or Map) 
+							it will be stored using addAll/putAll semantics, otherwise if set to 'false' the payload will be stored 
+							as single entry regardless of its type. 
+							If payload is not an instance of multi-value object the value of this attribute is meaningles and
+							payload will always be stored as a single entry.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

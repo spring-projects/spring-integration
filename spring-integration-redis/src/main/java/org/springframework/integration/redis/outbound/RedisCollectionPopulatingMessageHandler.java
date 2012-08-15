@@ -80,7 +80,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private volatile CollectionType collectionType = CollectionType.LIST;
 
-	private volatile boolean storePayloadAsSingleValue = false;
+	private volatile boolean extractPayloadElements = true;
 
 	/**
 	 * Will construct this instance using fully created and initialized instance of
@@ -159,16 +159,17 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	/**
-	 * Sets the flag signifying that the payload should be saved as single value
-	 * instead of using the semantics of Collection.addAll/putAll in the cases where
-	 * payload is Colection or Map. If teh payload is not and instance of
-	 * Collection or Map this attribute is meaningless as the payload will always be
-	 * stored as a single value.
+	 * Sets the flag signifying that if payload is a multivalue (e.g., Collection or Map)
+	 * it should be saved using addAll/putAll semantics. Default is 'true'
+	 * If set to 'false' payload will be saved as a single entry regardless of its type.
+	 * If the payload is not and instance of multivalue (e.g., Collection or Map)
+	 * the value of this attribute is meaningless as the payload will always be
+	 * stored as a single entry.
 	 *
-	 * @param storePayloadAsSingleValue
+	 * @param extractPayloadElements
 	 */
-	public void setStorePayloadAsSingleValue(boolean storePayloadAsSingleValue) {
-		this.storePayloadAsSingleValue = storePayloadAsSingleValue;
+	public void setExtractPayloadElements(boolean extractPayloadElements) {
+		this.extractPayloadElements = extractPayloadElements;
 	}
 
 	@Override
@@ -245,7 +246,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	private void handleZset(RedisZSet<Object> zset, final Message<?> message) throws Exception{
 		final Object payload = message.getPayload();
 
-		if (!this.storePayloadAsSingleValue){
+		if (this.extractPayloadElements){
 			final BoundZSetOperations<String, Object> ops =
 					(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());
 
@@ -283,7 +284,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@SuppressWarnings("unchecked")
 	private void handleList(RedisList<Object> list, Message<?> message){
 		Object payload = message.getPayload();
-		if (!this.storePayloadAsSingleValue){
+		if (this.extractPayloadElements){
 			if (payload instanceof Collection<?>){
 				list.addAll((Collection<? extends Object>) payload);
 			}
@@ -299,7 +300,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@SuppressWarnings("unchecked")
 	private void handleSet(final RedisSet<Object> set, Message<?> message){
 		final Object payload = message.getPayload();
-		if ((!(this.storePayloadAsSingleValue)) && payload instanceof Collection<?>){
+		if (this.extractPayloadElements && payload instanceof Collection<?>){
 			final BoundSetOperations<String, Object> ops =
 					(BoundSetOperations<String, Object>) this.redisTemplate.boundSetOps(set.getKey());
 
@@ -319,7 +320,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@SuppressWarnings("unchecked")
 	private void handleMap(final RedisMap<Object, Object> map, Message<?> message){
 		final Object payload = message.getPayload();
-		if ((!(this.storePayloadAsSingleValue)) && payload instanceof Map<?, ?>){
+		if (this.extractPayloadElements && payload instanceof Map<?, ?>){
 			this.processInPipeline(new PipelineCallback() {
 				public void process() {
 					map.putAll((Map<? extends Object, ? extends Object>) payload);
@@ -334,7 +335,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private void handleProperties(final RedisProperties properties, Message<?> message){
 		final Object payload = message.getPayload();
-		if ((!(this.storePayloadAsSingleValue)) && payload instanceof Properties){
+		if (this.extractPayloadElements && payload instanceof Properties){
 			this.processInPipeline(new PipelineCallback() {
 				public void process() {
 					properties.putAll((Properties) payload);
