@@ -23,9 +23,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 
 /**
- * Base class for {@link MessageHandler} advice classes.
+ * Base class for {@link MessageHandler} advice classes. Subclasses should provide
+ * an implementation for {@link #doInvoke(ExecutionCallback, Object, Message)}.
+ * Used to advise the handleRequestMessage method for {@link AbstractReplyProducingMessageHandler} or
+ * {@link MessageHandler#handleMessage(Message)} for other message handlers.
+ *
  * @author Gary Russell
  * @since 2.2
  *
@@ -70,6 +75,15 @@ public abstract class AbstractRequestHandlerAdvice implements MethodInterceptor 
 		}
 	}
 
+	/**
+	 * Subclasses implement this method to apply behavior to the {@link MessageHandler}.<p/> callback.execute()
+	 * invokes the handler method and returns its result, or null.
+	 * @param callback Subclasses invoke the execute() method on this interface to invoke the handler method.
+	 * @param target The target handler.
+	 * @param message The message that will be sent to the handler.
+	 * @return the result after invoking the {@link MessageHandler}.
+	 * @throws Exception
+	 */
 	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
 
 	protected interface ExecutionCallback {

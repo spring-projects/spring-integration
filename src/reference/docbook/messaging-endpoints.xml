@@ -10,5 +10,6 @@
 	<xi:include href="./delayer.xml"/>
 	<xi:include href="./scripting.xml"/>	
 	<xi:include href="./groovy.xml"/>
+	<xi:include href="./handler-advice.xml"/>
 
 </chapter>
