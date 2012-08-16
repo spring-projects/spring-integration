@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.1.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/mongodb http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb-2.2.xsd">
+
+	<mongo:db-factory id="mongoDbFactory" dbname="test"/>
+
+	<int-mongodb:store-inbound-channel-adapter id="mongoInboundAdapter" 
+											   channel="replyChannel"
+											   collection-name="bar" 
+											   collection-name-expression="''"
+											   query-expression="''"
+											   auto-startup="false">
+		<int:poller fixed-rate="5000"/>
+	</int-mongodb:store-inbound-channel-adapter>
+	
+	<int:channel id="replyChannel">
+		<int:queue/>
+	</int:channel>
+	
+</beans>
