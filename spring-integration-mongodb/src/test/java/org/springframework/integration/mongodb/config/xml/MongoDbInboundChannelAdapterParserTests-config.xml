@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/integration
+						http://www.springframework.org/schema/integration/spring-integration.xsd
+						http://www.springframework.org/schema/integration/mongodb
+						http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
+
+	<import resource="common-mongodb-config.xml"/>
+
+	<int:channel id="inboundAdapterChannel"/>
+
+	<int-mongodb:inbound-channel-adapter
+					id="withoutCollection"
+					mongo-db-factory="dbFactory"
+					select="{}"
+					channel="inboundAdapterChannel">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter
+					id="withEntityClassAndCollection"
+					mongo-db-factory="dbFactory"
+					select="{}"
+					channel="inboundAdapterChannel"
+					collection="Person"
+					entity-class="org.springframework.integration.mongodb.Person">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter
+					id="withCollectionSelectAndUpdate"
+					mongo-db-factory="dbFactory"
+					select="{}"
+					update="{}"
+					channel="inboundAdapterChannel"
+					collection="Person"
+					entity-class="org.springframework.integration.mongodb.Person">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+
+	<int-mongodb:inbound-channel-adapter
+					id="withOnlySelectAndUpdate"
+					mongo-db-factory="dbFactory"
+					select="{}"
+					update="{}"
+					channel="inboundAdapterChannel"
+					entity-class="org.springframework.integration.mongodb.Person">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter
+					id="withDeleteAfterSelect"
+					mongo-db-factory="dbFactory"
+					channel="inboundAdapterChannel"
+					select="{}"
+					collection="Person"
+					entity-class="org.springframework.integration.mongodb.Person"
+					delete-after-select="true">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter
+					id="withOnlySortOn"
+					mongo-db-factory="dbFactory"
+					channel="inboundAdapterChannel"
+					select="{}"
+					collection="Person"
+					entity-class="org.springframework.integration.mongodb.Person"
+					delete-after-select="true"
+					sort-on="age">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter
+					id="withSortAndOrderOn"
+					mongo-db-factory="dbFactory"
+					channel="inboundAdapterChannel"
+					select="{}"
+					collection="Person"
+					entity-class="org.springframework.integration.mongodb.Person"
+					delete-after-select="true"
+					sort-on="age"
+					sort-order="DESCENDING">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<int-mongodb:inbound-channel-adapter
+					id="withLimitOn"
+					mongo-db-factory="dbFactory"
+					channel="inboundAdapterChannel"
+					select="{}"
+					collection="Person"
+					entity-class="org.springframework.integration.mongodb.Person"					
+					limit="1000">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+</beans>
