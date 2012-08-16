@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.1.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/mongodb http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb-2.2.xsd">
+
+	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.mongodb.MongoDbFactory"/>
+	</bean>
+
+	<int-mongodb:inbound-channel-adapter id="minimalConfig"
+						query="bar"
+						mongo-template="mongoDbTemplate"
+						mongo-converter="mongoConverter"
+						auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
+
+	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+		<constructor-arg ref="mongoDbFactory"/>
+		<constructor-arg>
+			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>
+		</constructor-arg>
+	</bean>
+
+	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg ref="mongoDbFactory"/>
+	</bean>
+
+</beans>
