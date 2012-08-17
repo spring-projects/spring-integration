@@ -33,7 +33,7 @@ import org.springframework.integration.mongodb.inbound.MongoDbMessageSource;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class MongoDbStoreInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+public class MongoDbInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {

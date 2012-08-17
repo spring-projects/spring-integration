@@ -16,7 +16,7 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="store-inbound-channel-adapter">
+	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines mongodb inbound channel adapter that
@@ -81,7 +81,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="store-outbound-channel-adapter">
+	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines mongodb outbound channel adapter that

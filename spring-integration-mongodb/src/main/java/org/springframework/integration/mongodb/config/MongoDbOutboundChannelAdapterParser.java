@@ -28,7 +28,7 @@ import org.springframework.integration.mongodb.outbound.MongoDbStoringMessageHan
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class MongoDbStoreOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class MongoDbOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {

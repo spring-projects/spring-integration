@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -40,7 +39,7 @@ import com.mongodb.util.JSON;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailableTests {
+public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTests {
 
 	@Test
 	public void testWithDefaultMongoFactory() throws Exception{
@@ -48,7 +47,7 @@ public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailab
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Bob"), "data");
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-inbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-adapter-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("mongoInboundAdapter", SourcePollingChannelAdapter.class);
 		QueueChannel replyChannel = context.getBean("replyChannel", QueueChannel.class);
 		spca.start();
@@ -67,7 +66,7 @@ public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailab
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Bob"), "data");
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-inbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-adapter-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("mongoInboundAdapterNamedFactory", SourcePollingChannelAdapter.class);
 		QueueChannel replyChannel = context.getBean("replyChannel", QueueChannel.class);
 		spca.start();
@@ -85,7 +84,7 @@ public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailab
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Bob"), "data");
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-inbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-adapter-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("mongoInboundAdapterWithTemplate", SourcePollingChannelAdapter.class);
 		QueueChannel replyChannel = context.getBean("replyChannel", QueueChannel.class);
 		spca.start();
@@ -103,7 +102,7 @@ public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailab
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Bob"), "foo");
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-inbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-adapter-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("mongoInboundAdapterWithNamedCollection", SourcePollingChannelAdapter.class);
 		QueueChannel replyChannel = context.getBean("replyChannel", QueueChannel.class);
 		spca.start();
@@ -121,7 +120,7 @@ public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailab
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Bob"), "foo");
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-inbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-adapter-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("mongoInboundAdapterWithNamedCollectionExpression", SourcePollingChannelAdapter.class);
 		QueueChannel replyChannel = context.getBean("replyChannel", QueueChannel.class);
 		spca.start();
@@ -139,7 +138,7 @@ public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailab
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.save(this.createPerson("Bob"), "data");
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-inbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-adapter-config.xml", this.getClass());
 		SourcePollingChannelAdapter spca = context.getBean("inboundAdapterWithOnSuccessDisposition", SourcePollingChannelAdapter.class);
 		QueueChannel replyChannel = context.getBean("replyChannel", QueueChannel.class);
 		spca.start();
@@ -163,17 +162,17 @@ public class MongoDbStoreInboundChannelAdapterParserTests extends MongoDbAvailab
 
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void testFailureWithQueryAndQueryExpression() throws Exception{
-		new ClassPathXmlApplicationContext("store-inbound-fail-q-qex.xml", this.getClass());
+		new ClassPathXmlApplicationContext("inbound-fail-q-qex.xml", this.getClass());
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void testFailureWithFactoryAndTemplate() throws Exception{
-		new ClassPathXmlApplicationContext("store-inbound-fail-factory-template.xml", this.getClass());
+		new ClassPathXmlApplicationContext("inbound-fail-factory-template.xml", this.getClass());
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void testFailureWithCollectionAndCollectioinExpression() throws Exception{
-		new ClassPathXmlApplicationContext("store-inbound-fail-c-cex.xml", this.getClass());
+		new ClassPathXmlApplicationContext("inbound-fail-c-cex.xml", this.getClass());
 	}
 
 }

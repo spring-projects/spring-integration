@@ -18,7 +18,6 @@ package org.springframework.integration.mongodb.config;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -35,11 +34,11 @@ import com.mongodb.util.JSON;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class MongoDbStoreOutboundChannelAdapterParserTestsj extends MongoDbAvailableTests {
+public class MongoDbOutboundChannelAdapterParserTestsj extends MongoDbAvailableTests {
 
 	@Test
 	public void testWithDefaultMongoFactory() throws Exception{
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapter", MessageChannel.class);
 		Message<Person> message = new GenericMessage<MongoDbAvailableTests.Person>(this.createPerson("Bob"));
@@ -53,7 +52,7 @@ public class MongoDbStoreOutboundChannelAdapterParserTestsj extends MongoDbAvail
 	@Test
 	public void testWithNamedCollection() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapterWithNamedCollection", MessageChannel.class);
 		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).setHeader("collectionName", "foo").build();
@@ -66,7 +65,7 @@ public class MongoDbStoreOutboundChannelAdapterParserTestsj extends MongoDbAvail
 	@Test
 	public void testWithTemplate() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapterWithTemplate", MessageChannel.class);
 		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).setHeader("collectionName", "foo").build();
@@ -82,7 +81,7 @@ public class MongoDbStoreOutboundChannelAdapterParserTestsj extends MongoDbAvail
 		BasicDBObject dbObject = (BasicDBObject) JSON.parse("{'foo' : 'bar'}");
 
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
 		MessageChannel channel = context.getBean("simpleAdapterWithTemplate", MessageChannel.class);
 		Message<BasicDBObject> message = MessageBuilder.withPayload(dbObject).setHeader("collectionName", "foo").build();

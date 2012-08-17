@@ -11,17 +11,16 @@
 
 	<mongo:db-factory id="mongoDbFactory" dbname="test"/>
 
-	<int-mongodb:store-outbound-channel-adapter id="simpleAdapter"/>
+	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
+											   channel="replyChannel"
+											   query="{'name' : 'Bob'}"
+											   query-expression="''"
+											   auto-startup="false">
+		<int:poller fixed-rate="5000"/>
+	</int-mongodb:inbound-channel-adapter>
 
-	<int-mongodb:store-outbound-channel-adapter id="simpleAdapterWithNamedCollection"
-					collection-name-expression="headers.collectionName"/>
-
-	<int-mongodb:store-outbound-channel-adapter id="simpleAdapterWithTemplate"
-					collection-name-expression="headers.collectionName"
-					mongo-template="mongoDbTemplate"/>
-
-	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
-		<constructor-arg ref="mongoDbFactory"/>
-	</bean>
+	<int:channel id="replyChannel">
+		<int:queue/>
+	</int:channel>
 
 </beans>

@@ -28,7 +28,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class MongoDbNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		registerBeanDefinitionParser("store-inbound-channel-adapter", new MongoDbStoreInboundChannelAdapterParser());
-		registerBeanDefinitionParser("store-outbound-channel-adapter", new MongoDbStoreOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new MongoDbInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new MongoDbOutboundChannelAdapterParser());
 	}
 }
