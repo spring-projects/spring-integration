@@ -66,11 +66,27 @@
 			<int:pseudo-transactional on-success-expression="@documentCleaner.remove(#resource, payload, headers.mongo_collectionName)" on-success-result-channel="nullChannel"/>
 		</int:poller>
 	</int-mongodb:inbound-channel-adapter>
+	
+	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithConverter"
+											   channel="replyChannel"
+											   query="{'name' : 'Bob'}"
+											   entity-class="java.lang.Object"
+											   mongo-converter="mongoConverter"
+											   auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int-mongodb:inbound-channel-adapter>
 
 	<bean id="documentCleaner" class="org.springframework.integration.mongodb.config.MongoDbInboundChannelAdapterParserTests.DocumentCleaner"/>
 
 	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
 		<constructor-arg ref="mongoDbFactory"/>
+	</bean>
+	
+	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
+		<constructor-arg ref="mongoDbFactory"/>
+		<constructor-arg>
+			<bean class="org.springframework.data.mongodb.core.mapping.MongoMappingContext"/>
+		</constructor-arg>
 	</bean>
 
 	<int:channel id="replyChannel">

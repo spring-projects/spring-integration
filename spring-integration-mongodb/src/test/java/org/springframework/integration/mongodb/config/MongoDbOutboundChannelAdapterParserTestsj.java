@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.config;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -89,5 +90,18 @@ public class MongoDbOutboundChannelAdapterParserTestsj extends MongoDbAvailableT
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		assertNotNull(template.find(new BasicQuery("{'foo' : 'bar'}"), BasicDBObject.class, "foo"));
+	}
+
+	@Test
+	public void testWithMongoConverter() throws Exception{
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
+
+		MessageChannel channel = context.getBean("simpleAdapterWithConverter", MessageChannel.class);
+		Message<Person> message = new GenericMessage<MongoDbAvailableTests.Person>(this.createPerson("Bob"));
+		channel.send(message);
+
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		assertNotNull(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "data"));
 	}
 }

@@ -117,7 +117,7 @@ public abstract class MongoDbAvailableTests {
 		}
 	}
 
-	public  class TestMongoConverter extends MappingMongoConverter {
+	public static class TestMongoConverter extends MappingMongoConverter {
 
 		public TestMongoConverter(
 				MongoDbFactory mongoDbFactory,

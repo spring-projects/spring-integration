@@ -11,18 +11,19 @@
 
 	<mongo:db-factory id="mongoDbFactory" dbname="test"/>
 
-	<int-mongodb:outbound-channel-adapter id="simpleAdapter"/>
-
-	<int-mongodb:outbound-channel-adapter id="simpleAdapterWithNamedCollection"
-					collection-name-expression="headers.collectionName"/>
-
-	<int-mongodb:outbound-channel-adapter id="simpleAdapterWithTemplate"
-					collection-name-expression="headers.collectionName"
-					mongo-template="mongoDbTemplate"/>
-					
-	<int-mongodb:outbound-channel-adapter id="simpleAdapterWithConverter"
-					mongo-converter="mongoConverter"/>
-					
+	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
+											   channel="replyChannel"
+											   query="{'name' : 'Bob'}"
+											   mongo-template="mongoDbTemplate"
+											   mongo-converter="mongoConverter"
+											   auto-startup="false">
+		<int:poller fixed-rate="5000"/>
+	</int-mongodb:inbound-channel-adapter>
+	
+	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg ref="mongoDbFactory"/>
+	</bean>
+	
 	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>
@@ -30,8 +31,8 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
-		<constructor-arg ref="mongoDbFactory"/>
-	</bean>
+	<int:channel id="replyChannel">
+		<int:queue/>
+	</int:channel>
 
 </beans>

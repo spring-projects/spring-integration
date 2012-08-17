@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -149,15 +150,23 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 		spca.stop();
 	}
 
-	public static class DocumentCleaner {
-		public void remove(MongoOperations mongoOperations, Object target, String collectionName) {
-			if (target instanceof List<?>){
-				List<?> documents = (List<?>) target;
-				for (Object document : documents) {
-					mongoOperations.remove(new BasicQuery(JSON.serialize(document)), collectionName);
-				}
-			}
-		}
+	@Test
+	public void testWithMongoConverter() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		template.save(this.createPerson("Bob"), "data");
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-adapter-config.xml", this.getClass());
+		SourcePollingChannelAdapter spca = context.getBean("mongoInboundAdapterWithConverter", SourcePollingChannelAdapter.class);
+		QueueChannel replyChannel = context.getBean("replyChannel", QueueChannel.class);
+		spca.start();
+
+		@SuppressWarnings("unchecked")
+		Message<List<Person>> message = (Message<List<Person>>) replyChannel.receive(1000);
+		assertNotNull(message);
+		assertEquals("Bob", message.getPayload().get(0).getName());
+		assertNotNull(replyChannel.receive(1000));
+		spca.stop();
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
@@ -173,6 +182,22 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void testFailureWithCollectionAndCollectioinExpression() throws Exception{
 		new ClassPathXmlApplicationContext("inbound-fail-c-cex.xml", this.getClass());
+	}
+
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void testFailureWithTemplateAndConverter() throws Exception{
+		new ClassPathXmlApplicationContext("inbound-fail-converter-template.xml", this.getClass());
+	}
+
+	public static class DocumentCleaner {
+		public void remove(MongoOperations mongoOperations, Object target, String collectionName) {
+			if (target instanceof List<?>){
+				List<?> documents = (List<?>) target;
+				for (Object document : documents) {
+					mongoOperations.remove(new BasicQuery(JSON.serialize(document)), collectionName);
+				}
+			}
+		}
 	}
 
 }

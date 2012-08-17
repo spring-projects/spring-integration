@@ -15,12 +15,13 @@
  */
 package org.springframework.integration.mongodb.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 /**
  * Utility class used by mongo parsers
  *
@@ -58,7 +59,7 @@ class MongoParserUtils {
 				mongoDbFactory = "mongoDbFactory";
 			}
 			builder.addConstructorArgReference(mongoDbFactory);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "mongo-converter");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "mongo-converter");
 		}
 
 		RootBeanDefinition collectionNameExpressionDef =
