@@ -28,8 +28,8 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.util.Assert;
 /**
- * Implementation of {@link MessageHandler} which writes Message payload into a MongoDb store
- * identified via evaluation of the {@link #collectionNameExpression}
+ * Implementation of {@link MessageHandler} which writes Message payload into a MongoDb collection
+ * identified by evaluation of the {@link #collectionNameExpression}.
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky
@@ -75,11 +75,14 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 
 	/**
 	 * Allows you to provide custom {@link MongoConverter} used to assist in serialization
-	 * of data written to MongoDb
+	 * of data written to MongoDb. Only allowed if this instance was constructed with a
+	 * {@link MongoDbFactory}.
 	 *
 	 * @param mongoConverter
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
+		Assert.isNull(this.mongoTemplate,
+				"'mongoConverter' can not be set when instance was constructed with MongoTemplate");
 		this.mongoConverter = mongoConverter;
 	}
 
@@ -90,6 +93,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	 * @param collectionNameExpression
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
+		Assert.notNull(collectionNameExpression, "'collectionNameExpression' must not be null");
 		this.collectionNameExpression = collectionNameExpression;
 	}
 
@@ -103,12 +107,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
 		}
 		if (this.mongoTemplate == null){
-			if (this.mongoConverter != null){
-				this.mongoTemplate = new MongoTemplate(mongoDbFactory, mongoConverter);
-			}
-			else {
-				this.mongoTemplate = new MongoTemplate(mongoDbFactory);
-			}
+			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
 		}
 		this.initialized = true;
 	}
@@ -117,6 +116,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, message, String.class);
+		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
 
 		Object payload = message.getPayload();
 

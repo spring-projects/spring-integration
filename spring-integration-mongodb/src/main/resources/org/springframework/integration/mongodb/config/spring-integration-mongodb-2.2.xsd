@@ -128,7 +128,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="mongodb-template" type="xsd:string">
+		<xsd:attribute name="mongo-template" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">

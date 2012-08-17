@@ -12,16 +12,16 @@
 	<mongo:db-factory id="mongoDbFactory" dbname="test"/>
 
 	<int-mongodb:store-outbound-channel-adapter id="simpleAdapter"/>
-	
-	<int-mongodb:store-outbound-channel-adapter id="simpleAdapterWithNamedCollection" 
+
+	<int-mongodb:store-outbound-channel-adapter id="simpleAdapterWithNamedCollection"
 					collection-name-expression="headers.collectionName"/>
-					
-	<int-mongodb:store-outbound-channel-adapter id="simpleAdapterWithTemplate" 
+
+	<int-mongodb:store-outbound-channel-adapter id="simpleAdapterWithTemplate"
 					collection-name-expression="headers.collectionName"
-					mongodb-template="mongoDbTemplate"/>
-					
+					mongo-template="mongoDbTemplate"/>
+
 	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
 		<constructor-arg ref="mongoDbFactory"/>
 	</bean>
-	
+
 </beans>

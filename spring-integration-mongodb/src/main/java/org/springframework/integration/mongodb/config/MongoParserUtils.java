@@ -15,13 +15,12 @@
  */
 package org.springframework.integration.mongodb.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 /**
  * Utility class used by mongo parsers
  *
@@ -39,7 +38,7 @@ class MongoParserUtils {
 	 * @param builder
 	 */
 	public static void processCommonAttributes(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
-		String mongoDbTemplate = element.getAttribute("mongodb-template");
+		String mongoDbTemplate = element.getAttribute("mongo-template");
 		String mongoDbFactory = element.getAttribute("mongodb-factory");
 
 		if (StringUtils.hasText(mongoDbTemplate) && StringUtils.hasText(mongoDbFactory)){
@@ -49,12 +48,17 @@ class MongoParserUtils {
 
 		if (StringUtils.hasText(mongoDbTemplate)){
 			builder.addConstructorArgReference(mongoDbTemplate);
+			if (StringUtils.hasText(element.getAttribute("mongo-converter"))) {
+				parserContext.getReaderContext().error("'mongo-converter' is not allowed with 'mongo-template'",
+						element);
+			}
 		}
 		else {
 			if (!StringUtils.hasText(mongoDbFactory)) {
 				mongoDbFactory = "mongoDbFactory";
 			}
 			builder.addConstructorArgReference(mongoDbFactory);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "mongo-converter");
 		}
 
 		RootBeanDefinition collectionNameExpressionDef =
@@ -66,6 +70,5 @@ class MongoParserUtils {
 			builder.addPropertyValue("collectionNameExpression", collectionNameExpressionDef);
 		}
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "mongo-converter");
 	}
 }

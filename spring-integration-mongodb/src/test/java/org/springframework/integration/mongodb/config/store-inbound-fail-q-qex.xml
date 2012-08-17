@@ -11,16 +11,16 @@
 
 	<mongo:db-factory id="mongoDbFactory" dbname="test"/>
 
-	<int-mongodb:store-inbound-channel-adapter id="mongoInboundAdapter" 
+	<int-mongodb:store-inbound-channel-adapter id="mongoInboundAdapter"
 											   channel="replyChannel"
-											   query="{'name' : 'Bob'}" 
+											   query="{'name' : 'Bob'}"
 											   query-expression="''"
 											   auto-startup="false">
 		<int:poller fixed-rate="5000"/>
 	</int-mongodb:store-inbound-channel-adapter>
-	
+
 	<int:channel id="replyChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 </beans>

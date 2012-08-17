@@ -11,21 +11,21 @@
 
 	<mongo:db-factory id="mongoDbFactory" dbname="test"/>
 
-	<int-mongodb:store-inbound-channel-adapter id="mongoInboundAdapter" 
+	<int-mongodb:store-inbound-channel-adapter id="mongoInboundAdapter"
 											   channel="replyChannel"
-											   query="{'name' : 'Bob'}" 
+											   query="{'name' : 'Bob'}"
 											   mongodb-factory="mongoDbFactory"
-											   mongodb-template="mongoDbTemplate"
+											   mongo-template="mongoDbTemplate"
 											   auto-startup="false">
 		<int:poller fixed-rate="5000"/>
 	</int-mongodb:store-inbound-channel-adapter>
-	
+
 	<bean id="mongoDbTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
 		<constructor-arg ref="mongoDbFactory"/>
 	</bean>
-	
+
 	<int:channel id="replyChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 </beans>

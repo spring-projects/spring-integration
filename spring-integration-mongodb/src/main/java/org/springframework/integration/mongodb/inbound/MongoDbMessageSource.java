@@ -30,6 +30,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.util.Assert;
@@ -38,13 +39,18 @@ import org.springframework.util.CollectionUtils;
 import com.mongodb.DBObject;
 
 /**
- * An instance of {@link MessageSource} which returns a {@link Message} with payload
- * which is a result of the execution of {@link Query}.
- * MongoDb {@link Query} is executed using {@link MongoOperations#find(Query, Class)}
+ * An instance of {@link MessageSource} which returns a {@link Message} with a payload
+ * which is the result of execution of a {@link Query}. When expectSingleResult is false
+ * (default),
+ * the MongoDb {@link Query} is executed using {@link MongoOperations#find(Query, Class)}
  * method which returns a {@link List}. The returned {@link List} will be used as
- * a payoad of the {@link Message} returned by the {{@link #receive()} method
- * Empty {@link List} is treated as null, thus resulting in no {@link Message} returned
- * by the {{@link #receive()} method
+ * the payoad of the {@link Message} returned by the {{@link #receive()} method.
+ * An empty {@link List} is treated as null, thus resulting in no {@link Message} returned
+ * by the {{@link #receive()} method.
+ * <p>
+ * When expectSingleResult is true, the {@link MongoOperations#findOne(Query, Class)} is
+ * used instead, and the message payload will be the single object returned from the
+ * query.
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky
@@ -73,9 +79,9 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	private volatile boolean expectSingleResult = false;
 
 	/**
-	 * Creates this instance with provided {@link MongoDbFactory} and SpEL expression
+	 * Creates an instance with the provided {@link MongoDbFactory} and SpEL expression
 	 * which should resolve to a MongoDb 'query' string
-	 * (see http://www.mongodb.org/display/DOCS/Querying)
+	 * (see http://www.mongodb.org/display/DOCS/Querying).
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
 	 * @param mongoDbFactory
@@ -90,10 +96,10 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	}
 
 	/**
-	 * Creates this instance with provided {@link MongoOperations} and SpEL expression
+	 * Creates an instance with the provided {@link MongoOperations} and SpEL expression
 	 * which should resolve to a Mongo 'query' string
-	 * (see http://www.mongodb.org/display/DOCS/Querying)
-	 * It assumes that {@link MongoOperations} is fully initialized and ready to be used.
+	 * (see http://www.mongodb.org/display/DOCS/Querying).
+	 * It assumes that the {@link MongoOperations} is fully initialized and ready to be used.
 	 * The 'queryExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
 	 * @param mongoTemplate
@@ -108,10 +114,10 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	}
 
 	/**
-	 * Allows you to set the type of the entityClass that will be passed to
+	 * Allows you to set the type of the entityClass that will be passed to the
 	 * {@link MongoTemplate#find(Query, Class)} or {@link MongoTemplate#findOne(Query, Class)}
-	 * method;
-	 * Default is {@link DBObject}
+	 * method.
+	 * Default is {@link DBObject}.
 	 *
 	 * @param entityClass
 	 */
@@ -121,10 +127,10 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	}
 
 	/**
-	 * Allows you to manage which find* method to invoke on {@link MongoTemplate}
-	 * Default is 'false' which means {@link #receive()} method will use
-	 * {@link MongoTemplate#find(Query, Class)} method. If set to 'true'
-	 * {@link #receive()} will use {@link MongoTemplate#findOne(Query, Class)}
+	 * Allows you to manage which find* method to invoke on {@link MongoTemplate}.
+	 * Default is 'false', which means the {@link #receive()} method will use
+	 * the {@link MongoTemplate#find(Query, Class)} method. If set to 'true',
+	 * {@link #receive()} will use {@link MongoTemplate#findOne(Query, Class)},
 	 * and the payload of the returned {@link Message} will be the returned target Object of type
 	 * identified by {{@link #entityClass} instead of a List.
 	 *
@@ -136,62 +142,84 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 
 	/**
 	 * Sets the SpEL {@link Expression} that should resolve to a collection name
-	 * used by {@link Query}
+	 * used by the {@link Query}. The resulting collection name will be included
+	 * in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 *
 	 * @param collectionNameExpression
 	 */
 	public void setCollectionNameExpression(Expression collectionNameExpression) {
+		Assert.notNull(collectionNameExpression, "'collectionNameExpression' must not be null");
 		this.collectionNameExpression = collectionNameExpression;
 	}
 
 	/**
-	 * Allows you to provide custom {@link MongoConverter} used to assist in deserialization
-	 * data read from MongoDb
+	 * Allows you to provide a custom {@link MongoConverter} used to assist in deserialization
+	 * data read from MongoDb. Only allowed if this instance was constructed with a
+	 * {@link MongoDbFactory}.
 	 *
 	 * @param mongoConverter
 	 */
 	public void setMongoConverter(MongoConverter mongoConverter) {
+		Assert.isNull(this.mongoTemplate,
+				"'mongoConverter' can not be set when instance was constructed with MongoTemplate");
 		this.mongoConverter = mongoConverter;
 	}
 
+	@Override
+	protected void onInit() throws Exception {
+		if (this.getBeanFactory() != null){
+			this.evaluationContext =
+					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		}
+		else {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+		}
+
+		if (this.mongoTemplate == null){
+			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);
+		}
+		this.initialized = true;
+	}
 
 	/**
-	 * Will execute {@link Query} returning its results as Message payload.
-	 * Payload can be either {@link List} of elements of objects of type
-	 * identified by {{@link #entityClass} or a single element of type identified by {{@link #entityClass}
+	 * Will execute a {@link Query} returning its results as the Message payload.
+	 * The payload can be either {@link List} of elements of objects of type
+	 * identified by {{@link #entityClass}, or a single element of type identified by {{@link #entityClass}
 	 * based on the value of {{@link #expectSingleResult} attribute which defaults to 'false' resulting
-	 * {@link Message} with payload of type {@link List}
+	 * {@link Message} with payload of type {@link List}. The collection name used in the
+	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
 	public Message<Object> receive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
 		Message<Object> message = null;
 		Query query = new BasicQuery(this.queryExpression.getValue(this.evaluationContext, String.class));
+		Assert.notNull(query, "'queryExpression' must not evaluate to null");
 		String collectionName = this.collectionNameExpression.getValue(this.evaluationContext, String.class);
+		Assert.notNull(collectionName, "'collectionNameExpression' must not evaluate to null");
 
 		Object result = null;
 		if (this.expectSingleResult){
-			result = mongoTemplate.
+			result = this.mongoTemplate.
 					findOne(query, this.entityClass, collectionName);
 		}
 		else {
-			List<?> results = mongoTemplate.
+			List<?> results = this.mongoTemplate.
 					find(query, this.entityClass, collectionName);
 			if (!CollectionUtils.isEmpty(results)){
 				result = results;
 			}
 		}
 		if (result != null){
-			message = MessageBuilder.withPayload(result).setHeader("collectionName", collectionName).build();
+			message = MessageBuilder.withPayload(result)
+					.setHeader(MongoHeaders.COLLECTION_NAME, collectionName)
+					.build();
 		}
 
 		return message;
 	}
 
-
-
 	/**
-	 * Will return the result object returned as a payload during the call
-	 * to {@link #receive()}
+	 * Returns the mongo-template.
 	 */
 	public MongoOperations getResource() {
 		return this.mongoTemplate;
@@ -211,20 +239,5 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 
 	public void afterSendNoTx(MongoOperations resource) {
 
-	}
-	@Override
-	protected void onInit() throws Exception {
-		if (this.getBeanFactory() != null){
-			this.evaluationContext =
-					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		}
-		else {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		}
-
-		if (this.mongoTemplate == null){
-			this.mongoTemplate = new MongoTemplate(mongoDbFactory, mongoConverter);
-		}
-		this.initialized = true;
 	}
 }
