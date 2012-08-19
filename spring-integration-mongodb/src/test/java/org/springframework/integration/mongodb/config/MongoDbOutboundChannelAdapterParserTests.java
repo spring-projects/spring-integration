@@ -35,7 +35,7 @@ import com.mongodb.util.JSON;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class MongoDbOutboundChannelAdapterParserTestsj extends MongoDbAvailableTests {
+public class MongoDbOutboundChannelAdapterParserTests extends MongoDbAvailableTests {
 
 	@Test
 	public void testWithDefaultMongoFactory() throws Exception{
