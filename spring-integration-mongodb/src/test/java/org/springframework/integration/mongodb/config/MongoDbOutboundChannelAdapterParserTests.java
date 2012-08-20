@@ -15,99 +15,89 @@
  */
 package org.springframework.integration.mongodb.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.BasicQuery;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.mongodb.rules.MongoDbAvailable;
-import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
-import org.springframework.integration.support.MessageBuilder;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.util.JSON;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.integration.mongodb.outbound.MongoDbStoringMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
- * @since 2.2
  */
-public class MongoDbOutboundChannelAdapterParserTests extends MongoDbAvailableTests {
+public class MongoDbOutboundChannelAdapterParserTests {
 
 	@Test
-	@MongoDbAvailable
-	public void testWithDefaultMongoFactory() throws Exception{
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
-
-		MessageChannel channel = context.getBean("simpleAdapter", MessageChannel.class);
-		Message<Person> message = new GenericMessage<MongoDbAvailableTests.Person>(this.createPerson("Bob"));
-		channel.send(message);
-
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		assertNotNull(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "data"));
+	public void minimalConfig(){
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
+		MongoDbStoringMessageHandler handler =
+				TestUtils.getPropertyValue(context.getBean("minimalConfig.adapter"), "handler", MongoDbStoringMessageHandler.class);
+		assertEquals("minimalConfig.adapter", TestUtils.getPropertyValue(handler, "componentName"));
+		assertEquals(false, TestUtils.getPropertyValue(handler, "shouldTrack"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "mongoTemplate"));
+		assertEquals(context.getBean("mongoDbFactory"), TestUtils.getPropertyValue(handler, "mongoDbFactory"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "evaluationContext"));
+		assertTrue(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof LiteralExpression);
+		assertEquals("data", TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue"));
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithNamedCollection() throws Exception{
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
-
-		MessageChannel channel = context.getBean("simpleAdapterWithNamedCollection", MessageChannel.class);
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).setHeader("collectionName", "foo").build();
-		channel.send(message);
-
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		assertNotNull(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "foo"));
+	public void fullConfigWithCollectionExpression(){
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
+		MongoDbStoringMessageHandler handler =
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollectionExpression.adapter"), "handler", MongoDbStoringMessageHandler.class);
+		assertEquals("fullConfigWithCollectionExpression.adapter", TestUtils.getPropertyValue(handler, "componentName"));
+		assertEquals(false, TestUtils.getPropertyValue(handler, "shouldTrack"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "mongoTemplate"));
+		assertEquals(context.getBean("mongoDbFactory"), TestUtils.getPropertyValue(handler, "mongoDbFactory"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "evaluationContext"));
+		assertTrue(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof SpelExpression);
+		assertEquals("headers.collectionName", TestUtils.getPropertyValue(handler, "collectionNameExpression.expression"));
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testWithTemplate() throws Exception{
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
-
-		MessageChannel channel = context.getBean("simpleAdapterWithTemplate", MessageChannel.class);
-		Message<Person> message = MessageBuilder.withPayload(this.createPerson("Bob")).setHeader("collectionName", "foo").build();
-		channel.send(message);
-
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		assertNotNull(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "foo"));
+	public void fullConfigWithCollection(){
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
+		MongoDbStoringMessageHandler handler =
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithCollection.adapter"), "handler", MongoDbStoringMessageHandler.class);
+		assertEquals("fullConfigWithCollection.adapter", TestUtils.getPropertyValue(handler, "componentName"));
+		assertEquals(false, TestUtils.getPropertyValue(handler, "shouldTrack"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "mongoTemplate"));
+		assertEquals(context.getBean("mongoDbFactory"), TestUtils.getPropertyValue(handler, "mongoDbFactory"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "evaluationContext"));
+		assertTrue(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof LiteralExpression);
+		assertEquals("foo", TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue"));
 	}
 
 	@Test
-	@MongoDbAvailable
-	public void testSavingDbObject() throws Exception{
-
-		BasicDBObject dbObject = (BasicDBObject) JSON.parse("{'foo' : 'bar'}");
-
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
-
-		MessageChannel channel = context.getBean("simpleAdapterWithTemplate", MessageChannel.class);
-		Message<BasicDBObject> message = MessageBuilder.withPayload(dbObject).setHeader("collectionName", "foo").build();
-		channel.send(message);
-
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		assertNotNull(template.find(new BasicQuery("{'foo' : 'bar'}"), BasicDBObject.class, "foo"));
+	public void fullConfigWithMongoTemplate(){
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
+		MongoDbStoringMessageHandler handler =
+				TestUtils.getPropertyValue(context.getBean("fullConfigWithMongoTemplate.adapter"), "handler", MongoDbStoringMessageHandler.class);
+		assertEquals("fullConfigWithMongoTemplate.adapter", TestUtils.getPropertyValue(handler, "componentName"));
+		assertEquals(false, TestUtils.getPropertyValue(handler, "shouldTrack"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "mongoTemplate"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "evaluationContext"));
+		assertTrue(TestUtils.getPropertyValue(handler, "collectionNameExpression") instanceof LiteralExpression);
+		assertEquals("foo", TestUtils.getPropertyValue(handler, "collectionNameExpression.literalValue"));
 	}
 
-	@Test
-	@MongoDbAvailable
-	public void testWithMongoConverter() throws Exception{
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void templateAndFactoryFail(){
+		new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-factory-config.xml", this.getClass());
+	}
 
-		MessageChannel channel = context.getBean("simpleAdapterWithConverter", MessageChannel.class);
-		Message<Person> message = new GenericMessage<MongoDbAvailableTests.Person>(this.createPerson("Bob"));
-		channel.send(message);
-
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		assertNotNull(template.find(new BasicQuery("{'name' : 'Bob'}"), Person.class, "data"));
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void templateAndConverterFail(){
+		new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-converter-config.xml", this.getClass());
 	}
 }
