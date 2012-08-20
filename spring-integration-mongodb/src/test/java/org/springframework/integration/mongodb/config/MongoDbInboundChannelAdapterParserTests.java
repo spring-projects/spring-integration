@@ -32,6 +32,7 @@ import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
 import com.mongodb.DBObject;
@@ -43,6 +44,7 @@ import com.mongodb.util.JSON;
 public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTests {
 
 	@Test
+	@MongoDbAvailable
 	public void testWithDefaultMongoFactory() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -62,6 +64,7 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithNamedMongoFactory() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -80,6 +83,7 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithMongoTemplate() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -98,6 +102,7 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithNamedCollection() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -116,6 +121,7 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithNamedCollectionExpression() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -134,6 +140,7 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithOnSuccessDisposition() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -151,6 +158,7 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithMongoConverter() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -170,21 +178,25 @@ public class MongoDbInboundChannelAdapterParserTests extends MongoDbAvailableTes
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
+	@MongoDbAvailable
 	public void testFailureWithQueryAndQueryExpression() throws Exception{
 		new ClassPathXmlApplicationContext("inbound-fail-q-qex.xml", this.getClass());
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
+	@MongoDbAvailable
 	public void testFailureWithFactoryAndTemplate() throws Exception{
 		new ClassPathXmlApplicationContext("inbound-fail-factory-template.xml", this.getClass());
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
+	@MongoDbAvailable
 	public void testFailureWithCollectionAndCollectioinExpression() throws Exception{
 		new ClassPathXmlApplicationContext("inbound-fail-c-cex.xml", this.getClass());
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
+	@MongoDbAvailable
 	public void testFailureWithTemplateAndConverter() throws Exception{
 		new ClassPathXmlApplicationContext("inbound-fail-converter-template.xml", this.getClass());
 	}

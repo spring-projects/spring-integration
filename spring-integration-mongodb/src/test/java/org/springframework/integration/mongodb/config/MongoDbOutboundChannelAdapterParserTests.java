@@ -26,6 +26,7 @@ import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -38,6 +39,7 @@ import com.mongodb.util.JSON;
 public class MongoDbOutboundChannelAdapterParserTests extends MongoDbAvailableTests {
 
 	@Test
+	@MongoDbAvailable
 	public void testWithDefaultMongoFactory() throws Exception{
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
@@ -51,6 +53,7 @@ public class MongoDbOutboundChannelAdapterParserTests extends MongoDbAvailableTe
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithNamedCollection() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
@@ -64,6 +67,7 @@ public class MongoDbOutboundChannelAdapterParserTests extends MongoDbAvailableTe
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithTemplate() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory("foo");
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
@@ -77,6 +81,7 @@ public class MongoDbOutboundChannelAdapterParserTests extends MongoDbAvailableTe
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testSavingDbObject() throws Exception{
 
 		BasicDBObject dbObject = (BasicDBObject) JSON.parse("{'foo' : 'bar'}");
@@ -93,6 +98,7 @@ public class MongoDbOutboundChannelAdapterParserTests extends MongoDbAvailableTe
 	}
 
 	@Test
+	@MongoDbAvailable
 	public void testWithMongoConverter() throws Exception{
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-config.xml", this.getClass());
 
