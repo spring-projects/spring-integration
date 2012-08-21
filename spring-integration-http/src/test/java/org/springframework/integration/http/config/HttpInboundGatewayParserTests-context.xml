@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans
-	xmlns="http://www.springframework.org/schema/integration/http"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+<beans:beans xmlns="http://www.springframework.org/schema/integration/http"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:si="http://www.springframework.org/schema/integration"
+	    xmlns:util="http://www.springframework.org/schema/util"
+		xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
@@ -19,27 +18,35 @@
 	</si:channel>
 
 	<inbound-gateway id="inboundGateway"
-		request-channel="requests"
-		reply-channel="responses"
-		convert-exceptions="true"
-		request-timeout="1234"
-		reply-timeout="4567"
-		error-channel="errorChannel"/>
+					 request-channel="requests"
+					 reply-channel="responses"
+					 convert-exceptions="true"
+					 request-timeout="1234"
+					 reply-timeout="4567"
+					 error-channel="errorChannel"/>
+
+	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo"
+					 error-code="oops">
+		<request-mapping headers="BAR"/>
+	</inbound-gateway>
 
 	<inbound-gateway id="inboundGatewayWithOneCustomConverter"
 		request-channel="requests"
 		reply-channel="responses"
+		supported-methods="DELETE"
 		message-converters="customConverters"/>
 
 	<inbound-gateway id="inboundGatewayNoDefaultConverters"
 		request-channel="requests"
 		reply-channel="responses"
+		supported-methods="TRACE"
 		message-converters="customConverters"
 		merge-with-default-converters="false"/>
 
 	<inbound-gateway id="inboundGatewayWithCustomAndDefaultConverters"
 		request-channel="requests"
 		reply-channel="responses"
+		supported-methods="HEAD"
 		message-converters="customConverters"
 		merge-with-default-converters="true"/>
 
@@ -47,26 +54,28 @@
 		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
 	</util:list>
 
-
-	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo" error-code="oops"/>
-	
 	<inbound-gateway id="inboundControllerViewExp"
-		request-channel="requests"
-		reply-channel="responses"
-		view-expression="'bar'"
-		error-code="oops"/>
+					 request-channel="requests"
+					 reply-channel="responses"
+					 view-expression="'bar'"
+					 error-code="oops">
+		<request-mapping headers="BAR2"/>
+	</inbound-gateway>
 
 	<inbound-gateway id="withMappedHeaders" request-channel="requests"
-								mapped-response-headers="abc, xyz"
-								mapped-request-headers="foo,bar"/>
-
+					 mapped-response-headers="abc, xyz"
+					 mapped-request-headers="foo,bar">
+		<request-mapping headers="foo=bar"/>
+	</inbound-gateway>
 	<inbound-gateway id="withMappedHeadersAndConverter" request-channel="requests"
-								mapped-response-headers="abc, xyz, person"
-								mapped-request-headers="foo,bar"/>
+					 mapped-response-headers="abc, xyz, person"
+					 mapped-request-headers="foo,bar">
+		<request-mapping headers="foo=bar2"/>
+	</inbound-gateway>
 
 	<si:converter ref="personConverter"/>
 
-	<beans:bean id="personConverter" class="org.springframework.integration.http.config.HttpInboundGatewayParserTests.PersonConverter"/>
-
+	<beans:bean id="personConverter"
+				class="org.springframework.integration.http.config.HttpInboundGatewayParserTests$PersonConverter"/>
 
 </beans:beans>

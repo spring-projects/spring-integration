@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.springframework.integration.mongodb.config;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
@@ -62,7 +62,7 @@ class MongoParserUtils {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "mongo-converter");
 		}
 
-		RootBeanDefinition collectionNameExpressionDef =
+		BeanDefinition collectionNameExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("collection-name", "collection-name-expression",
 						parserContext, element, false);
 

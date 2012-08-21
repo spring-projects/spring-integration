@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's <em>http</em> namespace.
- * 
+ *
  * @author Mark Fisher
  * @since 1.0.2
  */

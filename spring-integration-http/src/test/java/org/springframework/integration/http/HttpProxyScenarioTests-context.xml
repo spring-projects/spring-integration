@@ -7,8 +7,6 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<beans:bean class="org.springframework.integration.http.inbound.UriPathHandlerMapping"/>
-
 	<inbound-gateway path="/test" request-channel="testChannel"
 					 payload-expression="T(org.springframework.web.context.request.RequestContextHolder).requestAttributes.request.queryString"/>
 

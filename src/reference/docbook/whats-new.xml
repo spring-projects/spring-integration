@@ -119,6 +119,19 @@
 				For more information see <xref linkend="spel-property-accessors" />.
 			</para>
 		</section>
+		<section id="3.0-request-mapping">
+			<title>HTTP Request Mapping</title>
+			<para>
+				The HTTP module now provides powerful Request Mapping support for Inbound Endpoints. Class <classname>UriPathHandlerMapping</classname>
+				was replaced by <classname>IntegrationRequestMappingHandlerMapping</classname>, which is registered under the bean name
+				<code>integrationRequestMappingHandlerMapping</code> in the application context. Upon parsing of the HTTP Inbound Endpoint,
+				a new <classname>IntegrationRequestMappingHandlerMapping</classname> bean is either registered or an existing bean is being reused.
+				To achieve flexible Request Mapping configuration, Spring Integration provides the <code>&lt;request-mapping/&gt;</code>
+				sub-element for <code>&lt;http:inbound-channel-adapter/&gt;</code> and <code>&lt;http:inbound-gateway/&gt;</code>.
+				Both HTTP Inbound Endpoints are now fully based on the Request Mapping infrastructure that was introduced with Spring MVC 3.1.
+				For more information see <xref linkend="http-namespace"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">
@@ -260,14 +273,14 @@
 					<listitem>
 						<emphasis role="bold">Outbound Endpoint 'encode-uri'</emphasis> - <code>&lt;http:outbound-gateway/&gt;</code>
 						and <code>&lt;http:outbound-channel-adapter/&gt;</code> now
-						provides an <code>encode-uri</code> attribute to allow disabling the encoding of the URI object
+						provide an <code>encode-uri</code> attribute to allow disabling the encoding of the URI object
 						before sending the request.
 					</listitem>
 					<listitem>
 						<emphasis role="bold">Inbound Endpoint 'merge-with-default-converters'</emphasis> -
 						<code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code> now
 						have a <code>merge-with-default-converters</code> attribute to include the list of default
-						<interfacename>HttpMessageConverter</interfacename> after the custom message converters.
+						<interfacename>HttpMessageConverter</interfacename>s after the custom message converters.
 					</listitem>
 					<listitem>
 						<emphasis role="bold">'If-(Un)Modified-Since' HTTP headers</emphasis> - previously,
