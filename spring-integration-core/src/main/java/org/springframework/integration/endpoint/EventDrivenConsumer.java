@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
@@ -25,9 +26,10 @@ import org.springframework.util.StringUtils;
 
 /**
  * Message Endpoint that connects any {@link MessageHandler} implementation to a {@link SubscribableChannel}.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class EventDrivenConsumer extends AbstractEndpoint {
 
@@ -45,18 +47,24 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 	}
 
 
-	@Override 
+	@Override
 	protected void doStart() {
 		this.logComponentSubscriptionEvent(true);
 		this.inputChannel.subscribe(this.handler);
+		if (this.handler instanceof Lifecycle) {
+			((Lifecycle) this.handler).start();
+		}
 	}
 
-	@Override 
+	@Override
 	protected void doStop() {
 		this.logComponentSubscriptionEvent(false);
 		this.inputChannel.unsubscribe(this.handler);
+		if (this.handler instanceof Lifecycle) {
+			((Lifecycle) this.handler).stop();
+		}
 	}
-	
+
 	private void logComponentSubscriptionEvent(boolean add){
 		if (this.handler instanceof NamedComponent && this.inputChannel instanceof NamedComponent){
 			String channelName = ((NamedComponent)this.inputChannel).getComponentName();
