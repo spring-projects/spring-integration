@@ -245,14 +245,14 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       In order to use the <emphasis>HTTP Inbound Gateway</emphasis> or the
       <emphasis>HTTP Inbound Channel Adapter</emphasis> you must define a
 
-      <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/UriPathHandlerMapping.html"
-          >UriPathHandlerMapping</ulink></interfacename>. This particular implementation of the
+      <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
+          >IntegrationRequestMappingHandlerMapping</ulink></interfacename>. This particular implementation of the
       <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html"
           ><interfacename>HandlerMapping</interfacename></ulink> matches against
       the value of the <emphasis>path</emphasis> attribute.
     </para>
 
-    <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.http.inbound.UriPathHandlerMapping"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping"/>]]></programlisting>
     <para>
         For more information regarding <emphasis>Handler Mappings</emphasis>, please
         see:

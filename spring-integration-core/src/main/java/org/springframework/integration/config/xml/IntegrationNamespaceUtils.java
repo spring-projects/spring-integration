@@ -17,10 +17,6 @@ import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -58,11 +54,11 @@ import org.springframework.util.xml.DomUtils;
  */
 public abstract class IntegrationNamespaceUtils {
 
-	static final String BASE_PACKAGE = "org.springframework.integration";
-	static final String REF_ATTRIBUTE = "ref";
-	static final String METHOD_ATTRIBUTE = "method";
-	static final String ORDER = "order";
-	static final String EXPRESSION_ATTRIBUTE = "expression";
+	public static final String BASE_PACKAGE = "org.springframework.integration";
+	public static final String REF_ATTRIBUTE = "ref";
+	public static final String METHOD_ATTRIBUTE = "method";
+	public static final String ORDER = "order";
+	public static final String EXPRESSION_ATTRIBUTE = "expression";
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 	public static final String REQUEST_HANDLER_ADVICE_CHAIN = "request-handler-advice-chain";
 	public static final String AUTO_STARTUP = "auto-startup";
@@ -303,7 +299,8 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Utility method to configure HeaderMapper for Inbound and Outbound channel adapters/gateway
 	 */
-	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue){
+	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
+								ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue){
 		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
 		if (!StringUtils.hasText(replyHeaderValue)){
 			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
@@ -429,7 +426,7 @@ public abstract class IntegrationNamespaceUtils {
 		return adviceChain;
 	}
 
-	public static RootBeanDefinition createExpressionDefinitionFromValueOrExpression(String valueElementName,
+	public static BeanDefinition createExpressionDefinitionFromValueOrExpression(String valueElementName,
 			String expressionElementName, ParserContext parserContext, Element element, boolean oneRequired) {
 
 		Assert.hasText(valueElementName, "'valueElementName' must not be empty");
@@ -450,19 +447,16 @@ public abstract class IntegrationNamespaceUtils {
 			parserContext.getReaderContext().error("One of '" + valueElementName + "' or '"
 					+ expressionElementName + "' is required", element);
 		}
-		RootBeanDefinition expressionDef = null;
+		BeanDefinition expressionDef = null;
 		if (hasAttributeValue) {
 			expressionDef = new RootBeanDefinition(LiteralExpression.class);
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(valueElementValue);
 		}
-		else if (hasAttributeExpression){
-			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionElementValue);
+		else {
+			expressionDef = createExpressionDefIfAttributeDefined(expressionElementName, element);
 		}
 		return expressionDef;
 	}
-
-
 	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, String className,
 												String methodSignature) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
@@ -470,4 +464,28 @@ public abstract class IntegrationNamespaceUtils {
 				.addConstructorArgValue(methodSignature);
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
+	public static BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
+
+		String expressionElementValue = element.getAttribute(expressionElementName);
+
+		if (StringUtils.hasText(expressionElementValue)){
+			BeanDefinitionBuilder expressionDefBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionDefBuilder.addConstructorArgValue(expressionElementValue);
+			return expressionDefBuilder.getRawBeanDefinition();
+		}
+		return null;
+	}
+
+	public static String createDirectChannel(Element element, ParserContext parserContext) {
+		String channelId = element.getAttribute(ID_ATTRIBUTE);
+		if (!StringUtils.hasText(channelId)) {
+			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
+					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
+		}
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
+		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+		return channelId;
+	}
+
 }

@@ -34,15 +34,16 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
- * @author Gary Russell
  * @author Biju Kunjummen
- */
-public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
+ * @author Artem Bilan
+*/public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 
 	private static ExpressionParser PARSER = new SpelExpressionParser();
 
@@ -69,8 +70,9 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.setPath("/fname/{f}/lname/{l}");
-		gateway.setRequestChannel(echoChannel);
+		RequestMapping requestMapping = new RequestMapping();
+		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
+		gateway.setRequestMapping(requestMapping);		gateway.setRequestChannel(echoChannel);
 		gateway.afterPropertiesSet();
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -97,12 +99,21 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
-		request.setRequestURI("/fname/bill/lname/clinton");
+
+		String requestURI = "/fname/bill/lname/clinton";
+
+		//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleMatch
+		Map<String, String> uriTemplateVariables =
+				new AntPathMatcher().extractUriTemplateVariables("/fname/{f}/lname/{l}", requestURI);
+		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVariables);
+
+		request.setRequestURI(requestURI);
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.setPath("/fname/{f}/lname/{l}");
-		gateway.setRequestChannel(echoChannel);
+		RequestMapping requestMapping = new RequestMapping();
+		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
+		gateway.setRequestMapping(requestMapping);		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables.f"));
 		gateway.afterPropertiesSet();
 
@@ -130,12 +141,21 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
-		request.setRequestURI("/fname/bill/lname/clinton");
+
+		String requestURI = "/fname/bill/lname/clinton";
+
+		//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleMatch
+		Map<String, String> uriTemplateVariables =
+				new AntPathMatcher().extractUriTemplateVariables("/fname/{f}/lname/{l}", requestURI);
+		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVariables);
+
+		request.setRequestURI(requestURI);
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.setPath("/fname/{f}/lname/{l}");
-		gateway.setRequestChannel(echoChannel);
+		RequestMapping requestMapping = new RequestMapping();
+		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
+		gateway.setRequestMapping(requestMapping);		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables"));
 		gateway.afterPropertiesSet();
 

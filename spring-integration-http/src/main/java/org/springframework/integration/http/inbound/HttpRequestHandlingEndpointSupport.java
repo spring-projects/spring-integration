@@ -58,25 +58,21 @@ import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonUtils;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.PathMatcher;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
-import org.springframework.web.util.UrlPathHelper;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * Base class for HTTP request handling endpoints.
  * <p>
- * By default GET and POST requests are accepted, but the 'supportedMethods' property may be set to include others or
- * limit the options (e.g. POST only). A GET request will generate a payload containing its 'parameterMap' while a POST
+ * By default GET and POST requests are accepted via supplied default instance of {@link RequestMapping}.
+ * A GET request will generate a payload containing its 'parameterMap' while a POST
  * request will be converted to a Message payload according to the registered {@link HttpMessageConverter}s. Several are
  * registered by default, but the list can be explicitly set via {@link #setMessageConverters(List)}.
  * <p>
@@ -101,7 +97,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @since 2.0
  */
 public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
-	implements OrderlyShutdownCapable {
+		implements OrderlyShutdownCapable {
 
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
@@ -113,8 +109,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+	private static final List<HttpMethod> nonReadableBodyHttpMethods =
+			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
-	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
+	private volatile RequestMapping requestMapping = new RequestMapping();
 
 	private volatile Class<?> requestPayloadType = null;
 
@@ -125,12 +123,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
 
 	private final boolean expectReply;
-
-	private volatile String path;
-
-	private final UrlPathHelper urlPathHelper = new UrlPathHelper();
-
-	private final PathMatcher pathMatcher = new AntPathMatcher();
 
 	private volatile boolean extractReplyPayload = true;
 
@@ -195,18 +187,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	 * Set the path template for which this endpoint expects requests.
-	 * May include path variable {keys} to match against.
-	 */
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	String getPath() {
-		return path;
-	}
-
-	/**
 	 * Specifies a SpEL expression to evaluate in order to generate the Message payload.
 	 * The EvaluationContext will be populated with an HttpEntity instance as the root object,
 	 * and it may contain one or both of the <code>#pathVariables</code> and
@@ -263,23 +243,16 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	 * Specify the supported request method names for this gateway. By default, only GET and POST are supported.
+	 * Set the {@link RequestMapping} to allow provide flexible RESTFul-mapping for this endpoint.
+	 * See Spring MVC 3.1
 	 */
-	public void setSupportedMethodNames(String... supportedMethods) {
-		Assert.notEmpty(supportedMethods, "at least one supported method is required");
-		HttpMethod[] methodArray = new HttpMethod[supportedMethods.length];
-		for (int i = 0; i < methodArray.length; i++) {
-			methodArray[i] = HttpMethod.valueOf(supportedMethods[i].toUpperCase());
-		}
-		this.supportedMethods = Arrays.asList(methodArray);
+	public void setRequestMapping(RequestMapping requestMapping) {
+		Assert.notNull(requestMapping, "requestMapping must not be null");
+		this.requestMapping = requestMapping;
 	}
 
-	/**
-	 * Specify the supported request methods for this gateway. By default, only GET and POST are supported.
-	 */
-	public void setSupportedMethods(HttpMethod... supportedMethods) {
-		Assert.notEmpty(supportedMethods, "at least one supported method is required");
-		this.supportedMethods = Arrays.asList(supportedMethods);
+	public RequestMapping getRequestMapping() {
+		return requestMapping;
 	}
 
 	/**
@@ -308,10 +281,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this.multipartResolver = multipartResolver;
 	}
 
-	protected boolean isShuttingDown() {
-		return this.shuttingDown;
-	}
-
 	@Override
 	public String getComponentType() {
 		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter";
@@ -329,7 +298,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.multipartResolver == null && beanFactory != null) {
 			try {
-				MultipartResolver multipartResolver = this.getBeanFactory().getBean(
+				MultipartResolver multipartResolver = beanFactory.getBean(
 						DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Using MultipartResolver [" + multipartResolver + "]");
@@ -350,15 +319,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this.validateSupportedMethods();
 	}
 
-	@Override
-	protected void doStart() {
-		this.shuttingDown = false;
-		super.doStart();
-	}
-
 	/**
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
+	 *
 	 * @return a the response Message
 	 */
 	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
@@ -370,15 +334,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
 		this.activeCount.incrementAndGet();
 		try {
 			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
-			if (!this.supportedMethods.contains(request.getMethod())) {
-				servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-				return null;
-			}
 
 			Object requestBody = null;
 			if (this.isReadable(request)) {
@@ -392,15 +352,14 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			LinkedMultiValueMap<String, String> requestParams = this.convertParameterMap(servletRequest.getParameterMap());
 			evaluationContext.setVariable("requestParams", requestParams);
 
-			if (StringUtils.hasText(this.path)) {
-				String lookupPath = this.urlPathHelper.getLookupPathForRequest(servletRequest);
-				Map pathVariables = this.pathMatcher.extractUriTemplateVariables(this.path, lookupPath);
-				if (!pathVariables.isEmpty()) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Mapped path variables: " + pathVariables);
-					}
-					evaluationContext.setVariable("pathVariables", pathVariables);
+			Map<String, String> pathVariables =
+					(Map<String, String>) servletRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+
+			if (!CollectionUtils.isEmpty(pathVariables)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Mapped path variables: " + pathVariables);
 				}
+				evaluationContext.setVariable("pathVariables", pathVariables);
 			}
 
 			Map<String, Object> headers = this.headerMapper.toHeaders(request.getHeaders());
@@ -430,7 +389,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 			MessageBuilder<?> messageBuilder = null;
 
-			if (payload instanceof Message<?>){
+			if (payload instanceof Message<?>) {
 				messageBuilder = MessageBuilder.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
 			}
 			else {
@@ -471,15 +430,14 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Converts the reply message to the appropriate HTTP reply object and
 	 * sets up the {@link ServletServerHttpResponse}.
 	 *
-	 * @param response The ServletServerHttpResponse.
+	 * @param response     The ServletServerHttpResponse.
 	 * @param replyMessage The reply message.
-	 * @return The message payload (if {@link #extractReplyPayload}) otherwise the
-	 * message.
+	 * @return The message payload (if {@link #extractReplyPayload}) otherwise the message.
 	 */
 	protected final Object setupResponseAndConvertReply(ServletServerHttpResponse response, Message<?> replyMessage) {
 
 		this.headerMapper.fromHeaders(replyMessage.getHeaders(), response.getHeaders());
-		HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(((Message<?>) replyMessage).getHeaders());
+		HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(replyMessage.getHeaders());
 		if (httpStatus != null) {
 			response.setStatusCode(httpStatus);
 		}
@@ -490,17 +448,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		}
 		return reply;
 
-	}
-
-	/**
-	 * @deprecated As of release 2.2, please use {@link #setupResponseAndConvertReply(ServletServerHttpResponse, Message)} instead.
-	 */
-	@Deprecated
-	protected final Object setupResponseAndConvertReply(HttpServletResponse servletResponse, Message<?> replyMessage) {
-		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-		Object reply = setupResponseAndConvertReply(response, replyMessage);
-		response.close();
-		return reply;
 	}
 
 	/**
@@ -525,15 +472,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request) and a Content-Type header.
 	 */
 	private boolean isReadable(ServletServerHttpRequest request) {
-		HttpMethod method = request.getMethod();
-		if (HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method) || HttpMethod.OPTIONS.equals(method)) {
-			return false;
-		}
-		return request.getHeaders().getContentType() != null;
+		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()))
+				&& request.getHeaders().getContentType() != null;
 	}
 
 	/**
 	 * Clean up any resources used by the given multipart request (if any).
+	 *
 	 * @param request current HTTP request
 	 * @see MultipartResolver#cleanupMultipart
 	 */
@@ -548,7 +493,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 */
 	@SuppressWarnings("rawtypes")
 	private LinkedMultiValueMap<String, String> convertParameterMap(Map parameterMap) {
-		LinkedMultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>();
+		LinkedMultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>(parameterMap.size());
 		for (Object key : parameterMap.keySet()) {
 			String[] values = (String[]) parameterMap.get(key);
 			for (String value : values) {
@@ -595,16 +540,26 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	private void validateSupportedMethods() {
-		if (this.requestPayloadType != null){
-			for (HttpMethod httpMethod : this.supportedMethods) {
-				if (HttpMethod.GET.equals(httpMethod) || HttpMethod.HEAD.equals(httpMethod) || HttpMethod.OPTIONS.equals(httpMethod)){
-					if (logger.isWarnEnabled()){
-						logger.warn("The 'requestPayloadType' attribute will have no relevance for one of the specified HTTP methods '" +
-			               httpMethod + "'");
-					}
-				}
+		if (this.requestPayloadType != null
+				&& CollectionUtils.containsAny(nonReadableBodyHttpMethods, Arrays.asList(this.requestMapping.getMethods()))) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("The 'requestPayloadType' attribute will have no relevance for one of the specified HTTP methods '" +
+						nonReadableBodyHttpMethods + "'");
 			}
 		}
+	}
+
+	/**
+	 * Lifecycle
+	 */
+	@Override
+	protected void doStart() {
+		this.shuttingDown = false;
+		super.doStart();
+	}
+
+	protected boolean isShuttingDown() {
+		return this.shuttingDown;
 	}
 
 	public int beforeShutdown() {
@@ -615,4 +570,5 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	public int afterShutdown() {
 		return this.activeCount.get();
 	}
+
 }

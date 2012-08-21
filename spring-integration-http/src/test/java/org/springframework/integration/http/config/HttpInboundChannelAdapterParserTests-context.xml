@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans
 	xmlns="http://www.springframework.org/schema/integration/http"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:si="http://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/http
+			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<si:message-history/>
 
@@ -18,7 +21,7 @@
 
 	<inbound-channel-adapter id="defaultAdapter" channel="requests" error-channel="errorChannel"/>
 
-	<inbound-channel-adapter id="postOnlyAdapter" channel="requests" supported-methods="POST"/>
+	<inbound-channel-adapter id="postOnlyAdapter" path="/postOnly" channel="requests" supported-methods="POST"/>
 
 	<inbound-channel-adapter id="adapterWithCustomConverterWithDefaults" message-converters="customConverters"
 							channel="requests" supported-methods="POST" merge-with-default-converters="true"/>
@@ -34,43 +37,41 @@
 
 	<inbound-channel-adapter id="putOrDeleteAdapter" channel="requests" supported-methods="PUT, delete"/>
 
-	<inbound-channel-adapter id="inboundController" channel="requests" view-name="foo" error-code="oops"/>
+	<inbound-channel-adapter id="inboundController" channel="requests" view-name="foo" error-code="oops">
+		<request-mapping headers="BAR"/>
+	</inbound-channel-adapter>
 
-	<inbound-channel-adapter id="inboundControllerViewExp" channel="requests" view-expression="'foo'"/>
+	<inbound-channel-adapter id="inboundControllerViewExp" channel="requests" view-expression="'foo'">
+		<request-mapping headers="BAR2"/>
+	</inbound-channel-adapter>
 
 	<inbound-channel-adapter id="withMappedHeaders" channel="requests"
-								mapped-request-headers="foo,bar"/>
+							 mapped-request-headers="foo,bar">
+		<request-mapping headers="foo=bar"/>
+	</inbound-channel-adapter>
 
 	<inbound-channel-adapter id="inboundAdapterWithExpressions"
-	                         path="/fname/{f}/lname/{l}"
-	                         channel="requests"
+							 path="/fname/{f}/lname/{l}"
+							 channel="requests"
 							 mapped-request-headers="foo,bar"
 							 payload-expression="#pathVariables.f">
 		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
 
-	<inbound-channel-adapter name="/fname/{blah}/lname/{boo}"
-	                         path="/fname/{f}/lname/{l}"
-	                         channel="requests"
+	<inbound-channel-adapter channel="requests"
 							 mapped-request-headers="foo,bar"
 							 payload-expression="#pathVariables.f">
-		<header name="lname" expression="#pathVariables.l"/>
-	</inbound-channel-adapter>
-
-	<inbound-channel-adapter name="/fname/{f}/lname/{l}"
-	                         channel="requests"
-							 mapped-request-headers="foo,bar"
-							 payload-expression="#pathVariables.f">
+		<request-mapping headers="invalid"/>
 		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
 
 	<inbound-channel-adapter id="autoChannel"
-	                         path="/fname/{f}/lname/{l}"
+							 path="/fname/{f}/lname2/{l}"
 							 mapped-request-headers="foo,bar"
 							 payload-expression="#pathVariables.f">
 		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
 
-	<si:bridge input-channel="autoChannel" output-channel="nullChannel" />
+	<si:bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
 </beans:beans>
