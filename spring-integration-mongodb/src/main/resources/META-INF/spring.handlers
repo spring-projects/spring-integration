@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/mongodb=org.springframework.integration.mongodb.config.MongoDbNamespaceHandler
