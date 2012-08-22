@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/mongodb"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/mongodb"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+			Defines the configuration elements for Spring Integration mongodb Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines mongodb inbound channel adapter that
+				creates
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="mongodbAdapterType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+					</xsd:sequence>
+					<xsd:attribute name="query" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								String representation of MongoDb Query (e.g.,
+								query="{'name' : 'Bob'}").
+								Please refer to MongoDb documentation for more query samples
+								http://www.mongodb.org/display/DOCS/Querying
+								This attribute is
+								mutually exclusive with 'query-expression' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="query-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression which should resolve to a
+								String value identifying the
+								MongoDb Query. Also see 'query' attribute
+								This attribute is mutually exclusive with 'query' attribute.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="entity-class" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									The fully qualified name of the entity class to be passed to
+									find(..) or findOne(..) method MongoTemplate.
+									If this attribute is not provided the default value is com.mongodb.DBObject
+								</xsd:documentation>
+								<tool:annotation kind="direct">
+									<tool:expected-type type="java.lang.Class" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expect-single-result" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to manage find* method of MongoTemplate is used to query MongoDb. Default value for this
+								attribute is 'false'. This means that we'll use find(..) method thus resulting in a Message with
+								payload of type List of entities identified by 'entity-class' attribute. If you want/expect a single
+								value set this attribute to 'true' which will result in invocation of findOne(..) method resulting in
+								the payload of type identified by 'entity-class' attribute (default com.mongodb.DBObject)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines mongodb outbound channel adapter that
+				writes the contents of the
+				Message into
+				org.springframework.data.mongodb.support.collections.mongodbStore
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="mongodbAdapterType" />
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="mongodbAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Common configuration for mongodb adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string" />
+		<xsd:attribute name="channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a Message Channel that will be used
+					by this adapter to
+					'receiveFrom' or 'sendTo' Messages depending on the adapter type (e.g.,
+					inbound/outbound)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mongodb-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<xsd:documentation>
+							Reference to an instance of
+							org.springframework.data.mongodb.MongoDbFactory
+						</xsd:documentation>
+						<tool:expected-type
+							type="org.springframework.data.mongodb.MongoDbFactory" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mongo-template" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<xsd:documentation>
+							Reference to an instance of
+							org.springframework.data.mongodb.core.MongoTemplate
+						</xsd:documentation>
+						<tool:expected-type
+							type="org.springframework.data.mongodb.core.MongoTemplate" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="collection-name" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the name of the MongoDb collection to
+					use.
+					This attribute is mutually exclusive with
+					'collection-name-expression'
+					attribute.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="collection-name-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					SpEL expression which should resolve to a String
+					value identifying the
+					name of the MongoDb collection to use.
+					This
+					attribute is mutually exclusive with 'collection-name' attribute.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mongo-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+							type="org.springframework.data.mongodb.core.convert.MongoConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					Reference to an instance of
+					org.springframework.data.mongodb.core.convert.MongoConverter
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string"
+			default="true" />
+	</xsd:complexType>
+</xsd:schema>

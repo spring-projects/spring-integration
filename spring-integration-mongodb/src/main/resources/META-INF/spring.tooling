@@ -1,0 +1,4 @@
+# Tooling related information for the integration mongodb namespace
+http\://www.springframework.org/schema/integration/mongodb@name=integration mongodb Namespace
+http\://www.springframework.org/schema/integration/mongodb@prefix=int-mongodb
+http\://www.springframework.org/schema/integration/mongodb@icon=org/springframework/integration/mongodb/config/spring-integration-mongodb.gif
