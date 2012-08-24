@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,8 +42,11 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannel;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannelImpl;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
@@ -220,6 +224,18 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertEquals("anExchange", returned.getHeaders().get(AmqpHeaders.RETURN_EXCHANGE));
 		assertEquals("bar", returned.getHeaders().get(AmqpHeaders.RETURN_ROUTING_KEY));
 		assertEquals("hello", returned.getPayload());
+	}
+
+	@Test
+	public void testInt2718FailForOutboundAdapterChannelAttribute() {
+		try {
+			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterWithinChainParserTests-fail-context.xml", this.getClass());
+			fail("Expected BeanDefinitionParsingException");
+		}
+		catch (BeansException e) {
+			assertTrue(e instanceof BeanDefinitionParsingException);
+			assertTrue(e.getMessage().contains("'channel' attribute isn't allowed for outbound-channel-adapter when it uses as nested element"));
+		}
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

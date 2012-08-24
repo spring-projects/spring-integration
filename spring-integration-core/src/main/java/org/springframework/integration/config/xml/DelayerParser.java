@@ -72,8 +72,8 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
 
-		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, builder,
-				parserContext, "delayedAdviceChain");
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
+				builder.getRawBeanDefinition(), parserContext, "delayedAdviceChain");
 
 		return builder;
 	}

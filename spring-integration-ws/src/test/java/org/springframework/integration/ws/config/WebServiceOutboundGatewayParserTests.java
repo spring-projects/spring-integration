@@ -28,6 +28,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -52,6 +53,7 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class WebServiceOutboundGatewayParserTests {
 
@@ -367,12 +369,23 @@ public class WebServiceOutboundGatewayParserTests {
 
 	@Test
 	public void advised() {
+		adviceCalled = 0;
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAdvice");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		handler.handleMessage(new GenericMessage<String>("foo"));
+		assertEquals(1, adviceCalled);
+	}
+
+	@Test
+	public void testInt2718AdvisedInsideTheChain() {
+		adviceCalled = 0;
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		MessageChannel channel = context.getBean("gatewayWithAdviceInsideTheChain", MessageChannel.class);
+		channel.send(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
 	}
 

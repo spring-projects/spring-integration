@@ -18,8 +18,12 @@ package org.springframework.integration.twitter.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -33,6 +37,7 @@ import org.springframework.integration.twitter.outbound.DirectMessageSendingMess
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class TestSendingMessageHandlerParserTests {
@@ -55,6 +60,20 @@ public class TestSendingMessageHandlerParserTests {
 		handler2.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(2, adviceCalled);
 	}
+
+	@Test
+	public void testInt2718FailForOutboundAdapterWithRequestHandlerAdviceChainWithinChainConfig() {
+		try {
+			new ClassPathXmlApplicationContext("OutboundAdapterWithRHACWithinChain-fail-context.xml", this.getClass());
+			fail("Expected BeanDefinitionParsingException");
+		}
+		catch (BeansException e) {
+			assertTrue(e instanceof BeanDefinitionParsingException);
+			assertTrue(e.getMessage().contains("'request-handler-advice-chain' isn't allowed " +
+					"for 'outbound-channel-adapter' within <chain>, when its Handler isn't instanceOf AbstractReplyProducingMessageHandler"));
+		}
+	}
+
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 

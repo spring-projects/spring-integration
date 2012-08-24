@@ -20,16 +20,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
@@ -51,6 +55,7 @@ import org.springframework.web.client.ResponseErrorHandler;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -174,6 +179,20 @@ public class HttpOutboundGatewayParserTests {
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
 	}
+
+	@Test
+	public void testInt2718FailForGatewayRequestChannelAttribute() {
+		try {
+			new ClassPathXmlApplicationContext("HttpOutboundGatewayWithinChainTests-fail-context.xml", this.getClass());
+			fail("Expected BeanDefinitionParsingException");
+		}
+		catch (BeansException e) {
+			assertTrue(e instanceof BeanDefinitionParsingException);
+			assertTrue(e.getMessage().contains("'request-channel' attribute isn't allowed for the nested"));
+		}
+	}
+
+
 
 	public static class StubErrorHandler implements ResponseErrorHandler {
 

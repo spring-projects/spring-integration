@@ -39,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.1
  *
@@ -62,7 +63,7 @@ public class FtpOutboundGatewayParserTests {
 		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(new File("/tmp"), TestUtils.getPropertyValue(gateway, "localDirectory"));
+		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
 		assertEquals("ls", TestUtils.getPropertyValue(gateway, "command"));
@@ -83,7 +84,7 @@ public class FtpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "sessionFactory") instanceof CachingSessionFactory);
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(new File("/tmp"), TestUtils.getPropertyValue(gateway, "localDirectory"));
+		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertEquals("get", TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")

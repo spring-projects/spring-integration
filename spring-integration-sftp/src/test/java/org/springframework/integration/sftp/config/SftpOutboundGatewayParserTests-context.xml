@@ -12,7 +12,7 @@
 	</bean>
 
 	<int-sftp:outbound-gateway id="gateway1"
-		local-directory="/tmp"
+		local-directory="local-test-dir"
 		session-factory="sf"
 		request-channel="inbound1"
 		reply-channel="outbound"
@@ -29,7 +29,7 @@
 		/>
 
 	<int-sftp:outbound-gateway id="gateway2"
-		local-directory="/tmp"
+		local-directory="local-test-dir"
 		session-factory="sf"
 		request-channel="inbound2"
 		reply-channel="outbound"
@@ -44,7 +44,7 @@
 		/>
 
 	<int-sftp:outbound-gateway id="advised"
-		local-directory="/tmp"
+		local-directory="local-test-dir"
 		session-factory="sf"
 		request-channel="inbound2"
 		reply-channel="outbound"

@@ -55,6 +55,13 @@ import static org.junit.Assert.assertTrue;
 
 import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
+/**
+ * @author Dave Syer
+ * @author Mark Fisher
+ * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ * @author Artem Bilan
+ */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JdbcMessageStoreTests {
@@ -88,17 +95,17 @@ public class JdbcMessageStoreTests {
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.CREATED_DATE_KEY));
 	}
-	
+
 	@Test
 	@Transactional
-	public void testWithMessageHistory() throws Exception{	
-		
+	public void testWithMessageHistory() throws Exception{
+
 		Message<?> message = new GenericMessage<String>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
 		barChannel.setBeanName("barChannel");
-		
+
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
 		messageStore.addMessage(message);
@@ -226,7 +233,7 @@ public class JdbcMessageStoreTests {
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
-	
+
 	@Test
 	@Transactional
 	public void testCompleteMessageGroup() throws Exception {
@@ -238,7 +245,7 @@ public class JdbcMessageStoreTests {
 		assertTrue(group.isComplete());
 		assertEquals(1, group.size());
 	}
-	
+
 	@Test
 	@Transactional
 	public void testUpdateLastReleasedSequence() throws Exception {
@@ -272,10 +279,10 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testOrderInMessageGroup() throws Exception {
 		String groupId = "X";
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
-		message = MessageBuilder.withPayload("bar").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
+		
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
+		Thread.sleep(1);
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(2, group.size());
 		assertEquals("foo", messageStore.pollMessageFromGroup(groupId).getPayload());
@@ -303,7 +310,7 @@ public class JdbcMessageStoreTests {
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
-	
+
 	@Test
 	@Transactional
 	public void testExpireMessageGroupOnIdleOnly() throws Exception {
@@ -334,26 +341,31 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testMessagePollingFromTheGroup() throws Exception {
 		String groupId = "X";
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
 
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
+		Thread.sleep(1);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		Thread.sleep(1);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("baz").setCorrelationId(groupId).build());
+
 		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupId).build());
+		Thread.sleep(1);
 		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("bazA").setCorrelationId(groupId).build());
+
 		MessageGroup group = messageStore.getMessageGroup("X");
 		assertEquals(3, group.size());
 
 		Message<?> message1 = messageStore.pollMessageFromGroup("X");
 		assertNotNull(message1);
 		assertEquals("foo", message1.getPayload());
-		System.out.println("Polled Message" + message1);
+
 		group = messageStore.getMessageGroup("X");
 		assertEquals(2, group.size());
 
 		Message<?> message2 = messageStore.pollMessageFromGroup("X");
 		assertNotNull(message2);
 		assertEquals("bar", message2.getPayload());
+
 		group = messageStore.getMessageGroup("X");
 		assertEquals(1, group.size());
 	}

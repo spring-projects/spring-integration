@@ -25,6 +25,7 @@ import org.junit.Test;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -36,10 +37,10 @@ public class SysLogTransformerTests {
 		Map<String, ?> transformed = t.transformPayload(
 				"<158>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes());
 		assertEquals(6, transformed.size());
-//		System.out.println(transformed);
 		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
 		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
-		assertTrue(transformed.get(SyslogToMapTransformer.TIMESAMP) instanceof Date);
+		Object date = transformed.get(SyslogToMapTransformer.TIMESAMP);
+		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
 		assertEquals("TESTING[70729]", transformed.get(SyslogToMapTransformer.TAG));
 		assertEquals("TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
