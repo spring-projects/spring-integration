@@ -90,7 +90,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
-				metadataBuilder, parserContext);
+				metadataBuilder.getRawBeanDefinition(), parserContext);
 
 		if (txElement != null){
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, txElement,

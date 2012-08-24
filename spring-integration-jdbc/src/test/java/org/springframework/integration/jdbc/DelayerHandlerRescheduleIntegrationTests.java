@@ -133,7 +133,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		input.send(MessageBuilder.withPayload("test").build());
 
-		Thread.sleep(30);
+		Thread.sleep(100);
 
 		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
 
@@ -141,12 +141,13 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		context.destroy();
 		context.refresh();
 
-		assertTrue(RollbackTxSync.latch.await(2, TimeUnit.SECONDS));
+		assertTrue(RollbackTxSync.latch.await(20, TimeUnit.SECONDS));
 
 		//On transaction rollback the delayed Message should remain in the persistent MessageStore
 		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
 	}
 
+	@SuppressWarnings("unused")
 	private static class TestJdbcMessageStore extends JdbcMessageStore {
 
 		private TestJdbcMessageStore() {
@@ -156,6 +157,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 	}
 
+	@SuppressWarnings("unused")
 	private static class ExceptionMessageHandler implements MessageHandler {
 
 		public void handleMessage(Message<?> message) throws MessagingException {

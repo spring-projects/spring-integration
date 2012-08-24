@@ -79,22 +79,31 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "order");
-		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
-		String inputChannelAttributeName = this.getInputChannelAttributeName();
-		if (!element.hasAttribute(inputChannelAttributeName)) {
-			if (!parserContext.isNested()) {
-				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
-				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
-						+ "' attribute is required for the top-level endpoint element "
-						+ elementDescription + ".", element);
-			}
-			return handlerBeanDefinition;
-		}
 
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, null,
-				handlerBuilder, parserContext);
+				handlerBuilder.getRawBeanDefinition(), parserContext);
+
+		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
+		String inputChannelAttributeName = this.getInputChannelAttributeName();
+		boolean hasInputChannelAttribute = element.hasAttribute(inputChannelAttributeName);
+		if (parserContext.isNested()) {
+			if (hasInputChannelAttribute) {
+				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
+				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
+						+ "' attribute isn't allowed for a nested (e.g. inside a <chain/>) endpoint element: "
+						+ elementDescription + ".", element);
+			}
+			return handlerBeanDefinition;
+		} else {
+			if (!hasInputChannelAttribute) {
+				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
+				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
+						+ "' attribute is required for the top-level endpoint element: "
+						+ elementDescription + ".", element);
+			}
+		}
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 

@@ -46,7 +46,17 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		if (parserContext.isNested()) {
-			return this.parseConsumer(element, parserContext);
+			if (channelName != null) {
+				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
+				parserContext.getReaderContext().error(
+						"The 'channel' attribute isn't allowed for " +
+						elementDescription +
+						" when it is used as a nested element," +
+								" e.g. inside a <chain/>", element);
+			}
+			AbstractBeanDefinition consumerBeanDefinition = this.parseConsumer(element, parserContext);
+			this.configureRequestHandlerAdviceChain(element, parserContext, consumerBeanDefinition, null);
+			return consumerBeanDefinition;
 		}
 		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
@@ -62,13 +72,19 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		builder.addPropertyValue("inputChannelName", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 
+		this.configureRequestHandlerAdviceChain(element, parserContext, handlerBeanComponentDefinition.getBeanDefinition(), builder);
+
+		return builder.getBeanDefinition();
+	}
+
+	private void configureRequestHandlerAdviceChain(Element element, ParserContext parserContext,
+							BeanDefinition handlerBeanDefinition, BeanDefinitionBuilder consumerBuilder) {
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
 		@SuppressWarnings("rawtypes")
-		ManagedList adviceChain = IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, null,
-				builder, parserContext);
+		ManagedList adviceChain =
+				IntegrationNamespaceUtils.configureAdviceChain(adviceChainElement, null, handlerBeanDefinition, parserContext);
 		if (adviceChain != null) {
-			BeanDefinition handlerBeanDefinition = handlerBeanComponentDefinition.getBeanDefinition();
 			/*
 			 * For ARPMH, the advice chain is injected so just the handleRequestMessage method is advised.
 			 * Sometime ARPMHs do double duty as a gateway and a channel adapter. The parser subclass
@@ -90,12 +106,17 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 			if (isReplyProducer) {
 				handlerBeanDefinition.getPropertyValues().add("adviceChain", adviceChain);
 			}
+			else if (consumerBuilder != null) {
+				consumerBuilder.addPropertyValue("adviceChain", adviceChain);
+			}
 			else {
-				builder.addPropertyValue("adviceChain", adviceChain);
+				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
+				parserContext.getReaderContext().error("'request-handler-advice-chain' isn't allowed for " +
+						elementDescription +
+						" within a <chain/>, because its Handler " +
+						"isn't an AbstractReplyProducingMessageHandler", element);
 			}
 		}
-
-		return builder.getBeanDefinition();
 	}
 
 	/**
