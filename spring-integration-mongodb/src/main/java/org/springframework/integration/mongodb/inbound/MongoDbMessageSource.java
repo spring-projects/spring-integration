@@ -226,18 +226,10 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	}
 
 	public void afterCommit(Object object) {
-
+		// noop
 	}
 
 	public void afterRollback(Object object) {
-
-	}
-
-	public void afterReceiveNoTx(MongoOperations resource) {
-
-	}
-
-	public void afterSendNoTx(MongoOperations resource) {
-
+		// noop
 	}
 }

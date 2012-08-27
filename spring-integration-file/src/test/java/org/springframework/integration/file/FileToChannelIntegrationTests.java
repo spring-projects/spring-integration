@@ -25,6 +25,7 @@ import java.io.File;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -47,7 +48,7 @@ public class FileToChannelIntegrationTests {
 	@Autowired
 	PollableChannel resultChannel;
 
-	@Test(timeout = 2000)
+	@Test//(timeout = 2000)
 	public void fileMessageToChannel() throws Exception {
 		File file = File.createTempFile("test", null, inputDirectory);
 		file.setLastModified(System.currentTimeMillis() - 1000);

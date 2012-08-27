@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -98,12 +99,5 @@ public class PseudoTransactionalMessageSourceTests {
 			rolledBack = true;
 			latch2.countDown();
 		}
-
-		public void afterReceiveNoTx(Object resource) {
-		}
-
-		public void afterSendNoTx(Object resource) {
-		}
-
 	}
 }
