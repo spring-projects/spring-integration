@@ -97,16 +97,16 @@
     </para>
     <para>
       The <code>&lt;delayer&gt;</code> can be enriched with mutually exclusive sub-elements <code>&lt;transactional&gt;</code>
-      and <code>&lt;advice-chain&gt;</code>. The List of these AOP Advices is applied to proxy internal handler
-      <classname>DelayHandler.ReleaseMessageHandler</classname>, which has responsibility to release Message after delay in the
-      <classname>Thread</classname> of scheduled task. It is useful, e.g., when downstream message-flow throws Exception and
-      <classname>DelayHandler.ReleaseMessageHandler</classname>'s transaction will be rollbacked. So, in this case the delayed
-      Message will remain in the <interfacename>MessageStore</interfacename>. Via <code>&lt;advice-chain&gt;</code> you can use
-      any custom <interfacename>org.aopalliance.aop.Advice</interfacename> implementations. With <code>&lt;advice-chain&gt;</code>
-      ability a config of the <code>&lt;delayer&gt;</code> may look like this:
+      or <code>&lt;advice-chain&gt;</code>. The List of these AOP Advices is applied to the proxy of internal handler
+      <classname>DelayHandler.ReleaseMessageHandler</classname>, which has the responsibility to release the Message after the delay
+      on the <classname>Thread</classname> of the scheduled task. It is useful, e.g., when the downstream message-flow throws an
+      Exception and the <classname>ReleaseMessageHandler</classname>'s transaction will be rolled back. So, in this case the delayed
+      Message will remain in the persistent <interfacename>MessageStore</interfacename>. You can use any custom
+      <interfacename>org.aopalliance.aop.Advice</interfacename> implementation within the <code>&lt;advice-chain&gt;</code>.
+      Via this ability a config of the <code>&lt;delayer&gt;</code> may look like this:
       <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
         delay-header-name="delay"
-        message-store="messageStore">
+        message-store="jdbcMessageStore">
      <int:advice-chain>
        <beans:ref bean="customAdviceBean"/>
        <tx:advice>
@@ -114,7 +114,6 @@
           <tx:method name="*" read-only="true"/>
          </tx:attributes>
        </tx:advice>
-       <beans:bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice">
      </int:advice-chain>
  </int:delayer>]]></programlisting>
     </para>
