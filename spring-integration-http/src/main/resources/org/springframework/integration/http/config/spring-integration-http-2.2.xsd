@@ -75,7 +75,9 @@
 					<xsd:documentation>
 						SpEL expression that resolves to a view to be resolved when rendering a response.
 						The expression can resolve to a view name or View object.
-						The root object of the evaluation context is the reply message.
+						However the 'evaluationContext' for this expression is very lightweight, it has only
+						'BeanFactoryResolver', so the usage of this attribute has limited abilities.
+						E.g. to resolve at runtime some scoped Bean, which returns as view name or View object.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
