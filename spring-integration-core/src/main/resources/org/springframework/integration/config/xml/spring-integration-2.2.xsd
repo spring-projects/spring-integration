@@ -1302,7 +1302,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					'transactional' and 'advice-chain' elements specify the configuration List of AOP Advice
-					to proxying DelayHandler's 'release Message task'.
+					to proxy DelayHandler's 'release Message task'.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
@@ -3783,14 +3783,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
-	
+
 	<xsd:attributeGroup name="transactionSyncAttributeGroup">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
 				Attributes provided in either a <transactional/> or <psedo-transactional/> poller
 				sub element.
 				Used to take action after the transaction completes (<transactional/>) or after
-				the channel.send() is complete (<pseudo-transactional/>). 
+				the channel.send() is complete (<pseudo-transactional/>).
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="on-success-expression">
@@ -3798,7 +3798,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:documentation><![CDATA[
 					Expression to be evaluated when no exception is thrown (<pseudo-transactional/>),
 					or after the transaction commits (<transactional/>). The #root variable of the
-					expression evaluation is the original message; a BeanResolver is also available. 
+					expression evaluation is the original message; a BeanResolver is also available.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -3822,7 +3822,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:documentation><![CDATA[
 					Expression to be evaluated when an exception is thrown (<pseudo-transactional/>),
 					or after the transaction rolls back (<transactional/>). The #root variable of the
-					expression evaluation is the original message; a BeanResolver is also available. 
+					expression evaluation is the original message; a BeanResolver is also available.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
