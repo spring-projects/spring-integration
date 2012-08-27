@@ -36,8 +36,7 @@
 	</bean>
 
 	<si:poller default="true" fixed-rate="10">
-		<si:pseudo-transactional on-success-expression="payload.delete()"
-			on-success-result-channel="resultChannel" />
+		<si:transactional synchronization-factory="syncFactory"/>
 	</si:poller>
 
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
@@ -45,4 +44,15 @@
 	<si:channel id="resultChannel">
 		<si:queue />
 	</si:channel>
+	
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+	
+	<bean id="syncFactory" class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+				<property name="afterCommitResultChannel" ref="resultChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
 </beans>

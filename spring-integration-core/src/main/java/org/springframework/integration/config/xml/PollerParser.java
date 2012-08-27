@@ -19,22 +19,21 @@ package org.springframework.integration.config.xml;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;poller&gt; element.
@@ -93,18 +92,14 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(adviceChainElement, txElement,
 				metadataBuilder, parserContext);
 
-		Element pseudoTxElement = DomUtils.getChildElementByTagName(element, "pseudo-transactional");
-		if (pseudoTxElement != null && txElement != null) {
-			parserContext.getReaderContext().error(
-					"Cannot have both 'transactional' and 'pseudo-transactional' elements", element);
+		if (txElement != null){
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, txElement,
+					"synchronization-factory", "transactionSynchronizationFactory");
 		}
-		Element txSyncElement = DomUtils.getChildElementByTagName(element, "transaction-synchronization");
-		if (pseudoTxElement != null && txSyncElement != null) {
-			parserContext.getReaderContext().error(
-					"Cannot have both 'transaction-synchronization' and 'pseudo-transactional' elements", element);
+		else if (adviceChainElement != null){
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, adviceChainElement,
+					"synchronization-factory", "transactionSynchronizationFactory");
 		}
-		pseudoTxElement = pseudoTxElement == null ? txSyncElement : pseudoTxElement;
-		configureTransactionSync(pseudoTxElement, metadataBuilder, parserContext);
 
 		String errorChannel = element.getAttribute("error-channel");
 		if (StringUtils.hasText(errorChannel)) {
@@ -168,26 +163,5 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			parserContext.getReaderContext().error(MULTIPLE_TRIGGER_DEFINITIONS, pollerElement);
 		}
 		targetBuilder.addPropertyReference("trigger", triggerBeanNames.get(0));
-	}
-
-	private void configureTransactionSync(Element element, BeanDefinitionBuilder metadataBuilder,
-			ParserContext parserContext) {
-		if (element != null) {
-			configureSyncExpression(element, metadataBuilder, parserContext, "on-success-expression", "onSuccessExpression");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "on-success-result-channel");
-			configureSyncExpression(element, metadataBuilder, parserContext, "on-failure-expression", "onFailureExpression");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "on-failure-result-channel");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "send-timeout", "sendTimeout");
-		}
-	}
-
-	private void configureSyncExpression(Element element, BeanDefinitionBuilder metadataBuilder,
-			ParserContext parserContext, String expressionAttribute, String expressionProperty) {
-		String expression = element.getAttribute(expressionAttribute);
-		if (StringUtils.hasText(expression)) {
-			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
-			metadataBuilder.addPropertyValue(expressionProperty, expressionDef);
-		}
 	}
 }

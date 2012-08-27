@@ -34,11 +34,12 @@ import org.springframework.transaction.support.TransactionSynchronization;
  * small (but present) window in which a transaction might commit but the
  * resource is not updated to reflect that. This could result in
  * duplicate messages.
- * <p>All {@link MessageSource}s can have success/failure expressions evaluated either as part
- * of a transaction with a &lt;transactional/&gt; poller or after success/failure when
- * running in a &lt;pseudo-transactional/&gt; poller. This interface is for those
+ * <p>All {@link MessageSource}s can have success/failure expressions evaluated as part
+ * of a transaction with a &lt;transactional/&gt; poller. This interface is for those
  * message sources that need additional flexibility than that provided by SpEL expressions.
+ *
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 2.2
  *
  */
@@ -66,18 +67,4 @@ public interface PseudoTransactionalMessageSource<T, V> extends MessageSource<T>
 	 * @param object
 	 */
 	void afterRollback(Object object);
-
-	/**
-	 * Called when there is no transaction and the receive() call completed.
-	 * @param resource
-	 */
-	void afterReceiveNoTx(V resource);
-
-	/**
-	 * Called when there is no transaction and after the message was
-	 * sent to the channel.
-	 * @param resource
-	 */
-	void afterSendNoTx(V resource);
-
 }

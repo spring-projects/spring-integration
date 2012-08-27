@@ -16,11 +16,7 @@
 							 comparator="testComparator"
 							 auto-startup="false">
 		<integration:poller fixed-rate="5000">
-			<integration:pseudo-transactional on-success-expression="payload.delete()"
-						on-success-result-channel="successChannel"
-						on-failure-expression="'foo'"
-						on-failure-result-channel="nullChannel"
-						send-timeout="5000" />
+		    <integration:transactional synchronization-factory="syncFactory"/>
 		</integration:poller>
 	</inbound-channel-adapter>
 
@@ -38,5 +34,18 @@
 
 	<beans:bean id="testComparator"
 				class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator"/>
+				
+	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+	
+	<beans:bean id="syncFactory" class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory">
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<beans:property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+				<beans:property name="afterCommitResultChannel" ref="successChannel"/>
+				<beans:property name="afterRollbackExpression" value="#{new org.springframework.expression.common.LiteralExpression('foo')}"/>
+				<beans:property name="afterRollbackResultChannel" ref="nullChannel"/>
+			</beans:bean>
+		</beans:constructor-arg>
+	</beans:bean>
 
 </beans:beans>

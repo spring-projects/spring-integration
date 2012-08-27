@@ -32,11 +32,11 @@ public interface MailReceiver {
 
 	javax.mail.Message[] receive() throws javax.mail.MessagingException;
 
-	MailReceiverContext getTransactionContext();
-
-	void closeContextAfterSuccess(MailReceiverContext context);
-
-	void closeContextAfterFailure(MailReceiverContext context);
+//	MailReceiverContext getTransactionContext();
+//
+//	void closeContextAfterSuccess(MailReceiverContext context);
+//
+//	void closeContextAfterFailure(MailReceiverContext context);
 
 	public static class MailReceiverContext {
 
