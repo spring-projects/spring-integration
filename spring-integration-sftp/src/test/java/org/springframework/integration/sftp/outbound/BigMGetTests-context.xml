@@ -5,7 +5,7 @@
 	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.2.xsd">
+		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<bean id="ftpSessionFactory"
 		class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
