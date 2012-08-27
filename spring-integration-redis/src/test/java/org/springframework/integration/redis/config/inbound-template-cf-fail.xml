@@ -5,11 +5,11 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRedisTemplate"
-											redis-template="redisTemplate" 
+											redis-template="redisTemplate"
 											connection-factory="redisConnectionFactory"
 											key-expression="'presidents'"
 											auto-startup="false">
