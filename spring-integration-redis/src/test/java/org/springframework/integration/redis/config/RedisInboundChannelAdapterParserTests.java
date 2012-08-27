@@ -54,7 +54,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 	@Autowired @Qualifier("autoChannel.adapter")
 	private RedisInboundChannelAdapter autoChannelAdapter;
 
-	@Test 
+	@Test
 	@RedisAvailable
 	public void validateConfiguration() {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
@@ -67,7 +67,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 	}
 
-	@Test 
+	@Test
 	@RedisAvailable
 	public void testInboundChannelAdapterMessaging() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();

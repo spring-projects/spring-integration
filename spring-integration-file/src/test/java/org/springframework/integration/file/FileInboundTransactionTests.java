@@ -26,10 +26,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
@@ -95,7 +95,7 @@ public class FileInboundTransactionTests {
 		file.createNewFile();
 		Message<?> result = successChannel.receive(10000);
 		assertNotNull(result);
-		assertEquals(Boolean.TRUE, result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
+		assertEquals(Boolean.TRUE, result.getPayload());
 		System.out.println(result);
 		assertFalse(file.delete());
 		crash.set(true);
@@ -105,7 +105,7 @@ public class FileInboundTransactionTests {
 		assertNotNull(result);
 		System.out.println(result);
 		assertTrue(file.delete());
-		assertEquals("foo", result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
+		assertEquals("foo", result.getPayload());
 		pseudoTx.stop();
 		assertFalse(transactionManager.getCommitted());
 		assertFalse(transactionManager.getRolledBack());
@@ -131,7 +131,7 @@ public class FileInboundTransactionTests {
 		file.createNewFile();
 		Message<?> result = successChannel.receive(10000);
 		assertNotNull(result);
-		assertEquals(Boolean.TRUE, result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
+		assertEquals(Boolean.TRUE, result.getPayload());
 		assertTrue(file.delete());
 		System.out.println(result);
 		assertTrue(transactionManager.getCommitted());
@@ -142,7 +142,7 @@ public class FileInboundTransactionTests {
 		assertNotNull(result);
 		System.out.println(result);
 		assertTrue(file.delete());
-		assertEquals(Boolean.TRUE, result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
+		assertEquals(Boolean.TRUE, result.getPayload());
 		realTx.stop();
 		assertTrue(transactionManager.getRolledBack());
 	}

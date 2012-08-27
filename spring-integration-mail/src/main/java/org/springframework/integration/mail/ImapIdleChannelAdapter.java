@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.mail;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
-import javax.mail.Folder;
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -27,7 +26,6 @@ import javax.mail.Store;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
@@ -40,11 +38,10 @@ import org.springframework.util.Assert;
  * messages will be converted and sent as Spring Integration Messages to the
  * output channel. The Message payload will be the {@link javax.mail.Message}
  * instance that was received.
- *
+ * 
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
- * @author Gary Russell
  */
 public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
@@ -61,7 +58,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	private volatile ScheduledFuture<?> pingTask;
 
 	private volatile long connectionPingInterval = 10000;
-
+	
 	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
 
 
@@ -80,7 +77,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
 	}
 
-	@Override
 	public String getComponentType() {
 		return "mail:imap-idle-channel-adapter";
 	}
@@ -134,16 +130,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		public void run() {
 			final TaskScheduler scheduler =  getTaskScheduler();
 			Assert.notNull(scheduler, "'taskScheduler' must not be null" );
-			MailReceiverContext context = null;
 			try {
 				if (logger.isDebugEnabled()) {
 					logger.debug("waiting for mail");
 				}
 				mailReceiver.waitForNewMessages();
-				context = mailReceiver.getTransactionContext();
-				Assert.state(context != null, "Mail receiver returned a null context");
-				Folder folder = context.getFolder();
-				if (folder.isOpen()) {
+				if (mailReceiver.getFolder().isOpen()) {
 					Message[] mailMessages = mailReceiver.receive();
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");
@@ -167,11 +159,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 							"Failure in 'idle' task. Will NOT resubmit.", e);
 				}
 			}
-			finally {
-				if (context != null) {
-					mailReceiver.closeContextAfterSuccess(context);
-				}
-			}
 		}
 	}
 
@@ -189,9 +176,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			}
 		}
 	}
-
+	
 	private class ExceptionAwarePeriodicTrigger implements Trigger {
-
+		
 		private volatile boolean delayNextExecution;
 
 
@@ -199,12 +186,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			if (delayNextExecution){
 				delayNextExecution = false;
 				return new Date(System.currentTimeMillis() + reconnectDelay);
-			}
+			} 
 			else {
 				return new Date(System.currentTimeMillis());
-			}
+			}		
 		}
-
+		
 		public void delayNextExecution() {
 			this.delayNextExecution = true;
 		}
