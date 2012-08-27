@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,31 +17,24 @@
 package org.springframework.integration.ws;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.transform.TransformerException;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
-import org.springframework.web.util.UriUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
@@ -61,6 +54,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -72,7 +66,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private volatile  StandardEvaluationContext evaluationContext;
 
 	private volatile WebServiceMessageCallback requestCallback;
 
@@ -82,30 +76,14 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	public AbstractWebServiceOutboundGateway(final String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
-		this.webServiceTemplate = (messageFactory != null) ?
-				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
-		if (uri.toLowerCase().startsWith("http")) {
-			this.uriTemplate = new HttpUrlTemplate(uri);
-			this.destinationProvider = null;
-		}
-		else {
-			this.uriTemplate = null;
-			this.destinationProvider = new DestinationProvider() {
-				private volatile URI cachedUri;
-				public URI getDestination() {
-					if (this.cachedUri == null) {
-						this.cachedUri = URI.create(uri);
-					}
-					return this.cachedUri;
-				}
-			};
-		}
+		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
+		this.destinationProvider = null;
+		this.uriTemplate = new UriTemplate(uri);
 	}
 
 	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider, WebServiceMessageFactory messageFactory) {
 		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
-		this.webServiceTemplate = (messageFactory != null) ?
-				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
+		this.webServiceTemplate = new WebServiceTemplate(messageFactory);
 		this.destinationProvider = destinationProvider;
 		// we always call WebServiceTemplate methods with an explicit URI argument,
 		// but in case the WebServiceTemplate is accessed directly we'll set this:
@@ -157,29 +135,25 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.webServiceTemplate.setMessageSender(messageSender);
 	}
 
-	public void setMessageSenders(WebServiceMessageSender[] messageSenders) {
+	public void setMessageSenders(WebServiceMessageSender... messageSenders) {
 		this.webServiceTemplate.setMessageSenders(messageSenders);
 	}
 
-	public void setInterceptors(ClientInterceptor[] interceptors) {
+	public void setInterceptors(ClientInterceptor... interceptors) {
 		this.webServiceTemplate.setInterceptors(interceptors);
 	}
 
 	@Override
 	public void onInit() {
 		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		if (this.getBeanFactory() != null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		}
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		else {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
 		}
-		this.evaluationContext.addPropertyAccessor(new MapAccessor());
-		Assert.state(this.destinationProvider != null ? CollectionUtils.isEmpty(this.uriVariableExpressions) : true,
-				"uri variables are not supported when a DestinationProvider is supplied, or the uri " +
-				"scheme is not http: or https:");
+		Assert.state(this.destinationProvider == null || CollectionUtils.isEmpty(this.uriVariableExpressions),
+				"uri variables are not supported when a DestinationProvider is supplied.");
 	}
 
 	protected WebServiceTemplate getWebServiceTemplate() {
@@ -188,7 +162,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	@Override
 	public final Object handleRequestMessage(Message<?> requestMessage) {
-		URI uri = prepareUri(requestMessage);
+		URI uri = this.prepareUri(requestMessage);
 		if (uri == null) {
 			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
 					"Web Service request in outbound gateway: " + this.getComponentName());
@@ -222,6 +196,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	protected abstract class RequestMessageCallback extends TransformerObjectSupport implements WebServiceMessageCallback {
 
 		private final WebServiceMessageCallback requestCallback;
+
 		private final Message<?> requestMessage;
 
 		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
@@ -233,15 +208,17 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			Object payload = this.requestMessage.getPayload();
 			if (message instanceof SoapMessage){
 				this.doWithMessageInternal(message, payload);
-				headerMapper.fromHeadersToRequest(this.requestMessage.getHeaders(), (SoapMessage)message);
-	            if (requestCallback != null) {
-	                requestCallback.doWithMessage(message);
-	            }
+				AbstractWebServiceOutboundGateway.this.headerMapper.fromHeadersToRequest(this.requestMessage.getHeaders(),
+						(SoapMessage) message);
+				if (this.requestCallback != null) {
+					this.requestCallback.doWithMessage(message);
+				}
 			}
 
 		}
 
 		public abstract void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException, TransformerException;
+
 	}
 
 	protected abstract class ResponseMessageExtractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
@@ -251,10 +228,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 			Object resultObject = this.doExtractData(message);
 
-            if (message instanceof SoapMessage){
-				Map<String, Object> mappedMessageHeaders = headerMapper.toHeadersFromReply((SoapMessage) message);
-				Message<?> siMessage = MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
-				return siMessage;
+			if (message instanceof SoapMessage){
+				Map<String, Object> mappedMessageHeaders =
+						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
+				return MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
 			}
 			else {
 				return resultObject;
@@ -262,34 +239,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		}
 
 		public abstract Object doExtractData(WebServiceMessage message) throws IOException, TransformerException;
-	}
 
-	/**
-	 * HTTP-specific subclass of UriTemplate, overriding the encode method.
-	 * This was copied from RestTemplate in version 3.0.6 (since it's private)
-	 */
-	@SuppressWarnings("serial")
-	private static class HttpUrlTemplate extends UriTemplate {
-
-		public HttpUrlTemplate(String uriTemplate) {
-			super(uriTemplate);
-		}
-
-		@SuppressWarnings("deprecation")
-		@Override
-		protected URI encodeUri(String uri) {
-			try {
-				String encoded = UriUtils.encodeHttpUrl(uri, "UTF-8");
-				return new URI(encoded);
-			}
-			catch (UnsupportedEncodingException ex) {
-				// should not happen, UTF-8 is always supported
-				throw new IllegalStateException(ex);
-			}
-			catch (URISyntaxException ex) {
-				throw new IllegalArgumentException("Could not create HTTP URL from [" + uri + "]: " + ex, ex);
-			}
-		}
 	}
 
 }

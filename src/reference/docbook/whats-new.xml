@@ -71,7 +71,13 @@
 				payloads to <classname>String</classname>. For more information see <xref linkend="transformer"/>.
 			</para>
 		</section>
-
+		<section id="3.0-ws-outbound-uri-substitution">
+			<title>Web Service Outbound URI Configuration</title>
+			<para>
+				Web Service Outbound Gateway 'uri' attribute now supports <code>&lt;uri-variable/&gt;</code> substitution for all
+				URI-schemes supported by Spring Web Services. For more information see <xref linkend="outbound-uri"/>.
+			</para>
+		</section>
 	</section>
 
 </chapter>
