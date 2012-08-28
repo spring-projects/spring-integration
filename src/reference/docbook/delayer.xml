@@ -57,7 +57,7 @@
           delay-header-name="delay"
           scheduler="exampleTaskScheduler"/>
 
-  <task:scheduler id="exampleTaskScheduler" pool-size="3"/>]]></programlisting>
+ <task:scheduler id="exampleTaskScheduler" pool-size="3"/>]]></programlisting>
       <tip>
          If you configure an external <classname>ThreadPoolTaskScheduler</classname>
          you can set on this scheduler property <code>waitForTasksToCompleteOnShutdown = true</code>.
@@ -96,13 +96,36 @@
       than its 'delay', it will be sent immediately after startup.
     </para>
     <para>
+      The <code>&lt;delayer&gt;</code> can be enriched with mutually exclusive sub-elements <code>&lt;transactional&gt;</code>
+      or <code>&lt;advice-chain&gt;</code>. The List of these AOP Advices is applied to the proxied internal
+      <classname>DelayHandler.ReleaseMessageHandler</classname>, which has the responsibility to release the Message, after the delay,
+      on a <classname>Thread</classname> of the scheduled task. It might be used, for example, when the downstream message flow throws an
+      Exception and the <classname>ReleaseMessageHandler</classname>'s transaction will be rolled back. In this case the delayed
+      Message will remain in the persistent <interfacename>MessageStore</interfacename>. You can use any custom
+      <interfacename>org.aopalliance.aop.Advice</interfacename> implementation within the <code>&lt;advice-chain&gt;</code>.
+      A sample configuration of the <code>&lt;delayer&gt;</code> may look like this:
+      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
+        delay-header-name="delay"
+        message-store="jdbcMessageStore">
+     <int:advice-chain>
+       <beans:ref bean="customAdviceBean"/>
+       <tx:advice>
+         <tx:attributes>
+          <tx:method name="*" read-only="true"/>
+         </tx:attributes>
+       </tx:advice>
+     </int:advice-chain>
+ </int:delayer>]]></programlisting>
+    </para>
+    <para>
       The <classname>DelayHandler</classname> can be exported as a JMX <code>MBean</code>
       with managed operations <code>getDelayedMessageCount</code> and <code>reschedulePersistedMessages</code>,
       which allows the rescheduling of delayed persisted Messages at runtime, for example, if the
-      <interfacename>TaskScheduler</interfacename> has previously been stopped. These operations can be invoked via a <code>Control Bus</code> command:
-      <programlisting language="java"><![CDATA[
-      Message<String> delayerReschedulingMessage = MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
-      controlBusChannel.send(delayerReschedulingMessage);]]></programlisting>
+      <interfacename>TaskScheduler</interfacename> has previously been stopped.
+      These operations can be invoked via a <code>Control Bus</code> command:
+      <programlisting language="java"><![CDATA[ Message<String> delayerReschedulingMessage =
+                MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
+ controlBusChannel.send(delayerReschedulingMessage);]]></programlisting>
     </para>
     <note>
       For more information regarding the Message Store, JMX and the Control Bus, please read <xref linkend="system-management-chapter"/>.
