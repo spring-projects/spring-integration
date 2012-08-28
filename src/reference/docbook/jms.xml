@@ -324,7 +324,41 @@
               connection-factory="customConnectionFactory"/>]]></programlisting>
     </para>
   </section>
-
+  <section id="jms-selectors">
+	<title>Using JMS Message Selectors</title>
+	<para>
+		With JMS message selectors you can filter <ulink url="http://docs.oracle.com/javaee/6/api/javax/jms/Message.html">JMS Messages</ulink>
+		based on JMS headers as well as JMS properties. For example,
+		if you want to listen to messages whose custom JMS header
+		property <emphasis>fooHeaderProperty</emphasis> equals
+		<emphasis>bar</emphasis>, you can specify the following expression:
+	</para>
+	<programlisting language="xml"><![CDATA[fooHeaderProperty = 'bar']]></programlisting>
+	<para>
+		Message selector expressions are a subset of the <ulink url="http://en.wikipedia.org/wiki/SQL-92">SQL-92</ulink>
+		conditional expression syntax, and are defined as part of the
+		<emphasis><ulink url="http://download.oracle.com/otn-pub/jcp/7195-jms-1.1-fr-spec-oth-JSpec/jms-1_1-fr-spec.pdf">Java Message Service</ulink></emphasis>
+		specification (Version 1.1  April 12, 2002). Specifically, please see
+		chapter "3.8 Message Selection". It contains a detailed explanation of the
+		expressions syntax.
+	</para>
+	<para>
+		You can specify the JMS message <emphasis>selector</emphasis> attribute
+		using XML Namespace configuration for the following Spring Integration
+		JMS components:
+	</para>
+	<itemizedlist>
+		<listitem>JMS Channel</listitem>
+		<listitem>JMS Publish Subscribe Channel</listitem>
+		<listitem>JMS Inbound Channel Adapter</listitem>
+		<listitem>JMS Inbound Gateway</listitem>
+		<listitem>JMS Message-driven Channel Adapter</listitem>
+	</itemizedlist>
+	<important>
+		It is important to remember that you cannot reference message body values
+		using JMS Message selectors.
+	</important>
+</section>
   <section id="jms-samples">
     <title>JMS Samples</title>
 	<para>
