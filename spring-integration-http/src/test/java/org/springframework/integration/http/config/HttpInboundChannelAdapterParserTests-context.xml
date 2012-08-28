@@ -23,27 +23,29 @@
 	<inbound-channel-adapter id="putOrDeleteAdapter" channel="requests" supported-methods="PUT, delete"/>
 
 	<inbound-channel-adapter id="inboundController" channel="requests" view-name="foo" error-code="oops"/>
-	
+
+	<inbound-channel-adapter id="inboundControllerViewExp" channel="requests" view-expression="'foo'"/>
+
 	<inbound-channel-adapter id="withMappedHeaders" channel="requests"
 								mapped-request-headers="foo,bar"/>
-								
-	<inbound-channel-adapter id="inboundAdapterWithExpressions" 
+
+	<inbound-channel-adapter id="inboundAdapterWithExpressions"
 	                         path="/fname/{f}/lname/{l}"
 	                         channel="requests"
 							 mapped-request-headers="foo,bar"
 							 payload-expression="#pathVariables.f">
 		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
-	
-	<inbound-channel-adapter name="/fname/{blah}/lname/{boo}" 
+
+	<inbound-channel-adapter name="/fname/{blah}/lname/{boo}"
 	                         path="/fname/{f}/lname/{l}"
 	                         channel="requests"
 							 mapped-request-headers="foo,bar"
 							 payload-expression="#pathVariables.f">
 		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
-	
-	<inbound-channel-adapter name="/fname/{f}/lname/{l}" 
+
+	<inbound-channel-adapter name="/fname/{f}/lname/{l}"
 	                         channel="requests"
 							 mapped-request-headers="foo,bar"
 							 payload-expression="#pathVariables.f">

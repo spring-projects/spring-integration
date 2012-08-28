@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -58,6 +59,7 @@ import org.springframework.util.MultiValueMap;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -91,6 +93,9 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Autowired
 	private HttpRequestHandlingController inboundController;
+
+	@Autowired
+	private HttpRequestHandlingController inboundControllerViewExp;
 
 	@Autowired
 	private MessageChannel autoChannel;
@@ -268,9 +273,16 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Test
 	public void testController() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
-		String errorCode =  (String) accessor.getPropertyValue("errorCode");
+		String errorCode = TestUtils.getPropertyValue(inboundController, "errorCode", String.class);
 		assertEquals("oops", errorCode);
+		Expression viewExpression = TestUtils.getPropertyValue(inboundController, "viewExpression", Expression.class);
+		assertEquals("foo", viewExpression.getExpressionString());
+	}
+
+	@Test
+	public void testInt2717ControllerWithViewExpression() throws Exception {
+		Expression viewExpression = TestUtils.getPropertyValue(inboundControllerViewExp, "viewExpression", Expression.class);
+		assertEquals("'foo'", viewExpression.getExpressionString());
 	}
 
 	@Test
