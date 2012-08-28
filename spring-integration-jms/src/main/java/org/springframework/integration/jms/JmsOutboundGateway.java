@@ -51,9 +51,7 @@ import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
-import org.springframework.jms.connection.SingleConnectionFactory;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -431,16 +429,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.requestDestinationExpressionProcessor != null) {
 				this.requestDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
 				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());
-			}
-			/*
-			 *  this is needed because SimpleMessageListenerContainer doesn't support SingleConnectionFactory.
-			 */
-			if (this.useReplyContainer && this.connectionFactory instanceof SingleConnectionFactory &&
-					!CachingConnectionFactory.class.isAssignableFrom(this.connectionFactory.getClass())) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("Cannot use a listener container with a SingleConnectionFactory, falling back to legacy");
-				}
-				this.useReplyContainer = false;
 			}
 			/*
 			 *  This is needed because there is no way to enforce 2 or more gateways using the same reply queue
@@ -982,6 +970,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			else {
 				return super.getDestinationDescription();
 			}
+		}
+
+		@Override
+		protected void recoverAfterListenerSetupFailure() {
+			this.replyDestination = null;
+			super.recoverAfterListenerSetupFailure();
 		}
 	}
 
