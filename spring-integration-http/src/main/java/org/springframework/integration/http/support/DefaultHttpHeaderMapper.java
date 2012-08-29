@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,11 @@ import org.springframework.util.StringUtils;
 
 /**
  * Default {@link HeaderMapper} implementation for HTTP.
- * 
+ *
  * @author Mark Fisher
  * @author Jeremy Grelle
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean{
@@ -63,7 +64,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private static final Log logger = LogFactory.getLog(DefaultHttpHeaderMapper.class);
 
 	private volatile ConversionService conversionService;
-	
+
 	private volatile BeanFactory beanFactory;
 
 	private static final String ACCEPT = "Accept";
@@ -152,8 +153,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final String TRAILER = "Trailer";
 
-	private static final String TRANSFER_ENCODING = "Transfer-Encoding";
-
 	private static final String UPGRADE = "Upgrade";
 
 	private static final String USER_AGENT = "User-Agent";
@@ -223,7 +222,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			SERVER,
 			SET_COOKIE,
 			TRAILER,
-			TRANSFER_ENCODING,
 			VARY,
 			VIA,
 			WARNING,
@@ -240,7 +238,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private volatile String[] inboundHeaderNames = new String[0];
 
 	private volatile String userDefinedHeaderPrefix = "X-";
-	
+
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
@@ -250,7 +248,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * or HTTP response (for inbound adapters) from a Spring Integration Message's headers.
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
-	 * Any non-standard headers will be prefixed with the value specified by 
+	 * Any non-standard headers will be prefixed with the value specified by
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 */
 	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
@@ -263,7 +261,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
 	 * This will match the header name directly or, for non-standard HTTP headers, it will match
-	 * the header name prefixed with the value specified by 
+	 * the header name prefixed with the value specified by
 	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 */
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
@@ -280,7 +278,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	/**
 	 * Map from the integration MessageHeaders to an HttpHeaders instance.
 	 * Depending on which type of adapter is using this mapper, the HttpHeaders might be
-	 * for an HTTP request (outbound adapter) or for an HTTP response (inbound adapter). 
+	 * for an HTTP request (outbound adapter) or for an HTTP response (inbound adapter).
 	 */
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
 		if (logger.isDebugEnabled()){
@@ -291,18 +289,18 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			if (this.shouldMapOutboundHeader(name)) {
 				Object value = headers.get(name);
 				if (value != null) {
-					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) && 
+					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) &&
 						!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
 						// prefix the user-defined header names if not already prefixed
-						
-						name = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name : 
+
+						name = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name :
 							this.userDefinedHeaderPrefix + name;
 					}
 					if (logger.isDebugEnabled()) {
 						logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
 					}
 					this.setHttpHeader(target, name, value);
-				}	
+				}
 			}
 		}
 	}
@@ -310,7 +308,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	/**
 	 * Map from an HttpHeaders instance to integration MessageHeaders.
 	 * Depending on which type of adapter is using this mapper, the HttpHeaders might be
-	 * from an HTTP request (inbound adapter) or from an HTTP response (outbound adapter). 
+	 * from an HTTP request (inbound adapter) or from an HTTP response (outbound adapter).
 	 */
 	public Map<String, Object> toHeaders(HttpHeaders source) {
 		if (logger.isDebugEnabled()) {
@@ -321,7 +319,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		for (String name : headerNames) {
 			if (this.shouldMapInboundHeader(name)) {
 				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
-					String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name : 
+					String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name :
 						this.userDefinedHeaderPrefix + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
 					if (value != null) {
@@ -344,7 +342,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 		return target;
 	}
-	
+
 	public void afterPropertiesSet() throws Exception {
 		if (this.beanFactory != null){
 			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
@@ -535,7 +533,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				else {
 					Class<?> clazz = (value != null) ? value.getClass() : null;
 					throw new IllegalArgumentException(
-							"Expected HttpMethod or String value for 'Allow' header value, but received: " + clazz);	
+							"Expected HttpMethod or String value for 'Allow' header value, but received: " + clazz);
 				}
 			}
 		}
@@ -546,7 +544,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			else {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
 				throw new IllegalArgumentException(
-						"Expected String value for 'Cache-Control' header value, but received: " + clazz);				
+						"Expected String value for 'Cache-Control' header value, but received: " + clazz);
 			}
 		}
 		else if (CONTENT_LENGTH.equalsIgnoreCase(name)) {
@@ -715,7 +713,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			for (Object next : (Iterable<?>) value) {
 				String convertedValue = null;
 				if (next instanceof String) {
-					convertedValue = (String) next;				
+					convertedValue = (String) next;
 				}
 				else {
 					convertedValue = this.convertToString(value);
@@ -724,7 +722,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 					target.add(name, (String) next);
 				}
 				else {
-					logger.warn("Element of the header '" + name + "' with value '" + value + 
+					logger.warn("Element of the header '" + name + "' with value '" + value +
 							"' will not be set since it is not a String and no Converter " +
 							"is available. Consider registering a Converter with ConversionService (e.g., <int:converter>)");
 				}
@@ -736,7 +734,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				target.set(name, convertedValue);
 			}
 			else {
-				logger.warn("Header '" + name + "' with value '" + value + 
+				logger.warn("Header '" + name + "' with value '" + value +
 						"' will not be set since it is not a String and no Converter " +
 						"is available. Consider registering a Converter with ConversionService (e.g., <int:converter>)");
 			}
@@ -824,9 +822,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			target.put(name, value);
 		}
 	}
-	
+
 	private String convertToString(Object value){
-		if (this.conversionService != null && 
+		if (this.conversionService != null &&
 				this.conversionService.canConvert(TypeDescriptor.forObject(value), TypeDescriptor.valueOf(String.class))){
 			return this.conversionService.convert(value, String.class);
 		}
@@ -836,7 +834,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	/**
 	 * Factory method for creating a basic outbound mapper instance.
-	 * This will map all standard HTTP request headers when sending an HTTP request, 
+	 * This will map all standard HTTP request headers when sending an HTTP request,
 	 * and it will map all standard HTTP response headers when receiving an HTTP response.
 	 */
 	public static DefaultHttpHeaderMapper outboundMapper() {
