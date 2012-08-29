@@ -120,12 +120,12 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	/**
 	 * Will construct this instance using the provided {@link RedisConnectionFactory}.
 	 * It will create an instance of {@link RedisTemplate}, initializing it with a
-	 * {@link StringRedisSerializer} for the keySerializer and a {@link JdkSeriaalizationRedisSerializer}
+	 * {@link StringRedisSerializer} for the keySerializer and a {@link JdkSerializationRedisSerializer}
 	 * for each of valueSerializer, hasKeySerializer, and hashValueSerializer.
 	 *
 	 * The default expression 'headers.{@link RedisHeaders#KEY}'
 	 * will be used.
-	 * @param redisTemplate
+	 * @param connectionFactory
 	 */
 	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, null);
@@ -140,7 +140,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
 	 * will be used.
 	 *
-	 * @param redisTemplate
+	 * @param connectionFactory
 	 * @param keyExpression
 	 */
 	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory, Expression keyExpression) {
