@@ -355,8 +355,17 @@
 		<listitem>JMS Message-driven Channel Adapter</listitem>
 	</itemizedlist>
 	<para>
-		When specifying the <emphasis>selector</emphasis> attribute, it will ultimately
-		be applied on the
+		When setting the <emphasis>selector</emphasis> attribute on the
+		<emphasis>JMS Inbound Channel Adapter</emphasis>, its value will be used
+		to specify the <code><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/jms/JmsDestinationPollingSource.html#setMessageSelector(java.lang.String)">messageSelector</ulink></code> property on the
+		<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/jms/JmsDestinationPollingSource.html">JmsDestinationPollingSource</ulink></classname>.
+		There the <code>messageSelector</code> property will be passed into the
+		<classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jms/core/JmsTemplate.html">JmsTemplate's</ulink></classname>
+		<code><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jms/core/JmsTemplate.html#receiveSelected(java.lang.String)">receiveSelected(...)</ulink></code> methods.
+	</para>
+	<para>
+		When specifying the <emphasis>selector</emphasis> attribute on any of the
+		other JMS components, it will ultimately be applied to the
 		<classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jms/listener/AbstractMessageListenerContainer.html">AbstractMessageListenerContainer</ulink></classname>
 		class.
 	</para>
