@@ -49,7 +49,7 @@ public class ExpressionUtils {
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
 	 * property accessor property and the supplied {@link BeanResolver} in its
 	 * beanResolver property.
-	 * @param beanResolver the bean factory.
+	 * @param beanResolver the bean resolver.
 	 * @return the evaluation context.
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanResolver beanResolver) {
@@ -72,7 +72,7 @@ public class ExpressionUtils {
 	 * property accessor property, the supplied {@link BeanResolver} in its
 	 * beanResolver property, and the supplied {@link ConversionService} in its
 	 * conversionService property.
-	 * @param beanResolver the bean factory.
+	 * @param beanResolver the bean resolver.
 	 * @param conversionService the conversion service.
 	 * @return the evaluation context.
 	 */
@@ -93,8 +93,8 @@ public class ExpressionUtils {
 	 * Creates {@link BeanFactoryResolver}, extracts {@link ConversionService} and delegates to
 	 * {@link #createStandardEvaluationContext(BeanResolver, ConversionService)}
 	 *
-	 * @param beanFactory
-	 * @return
+	 * @param beanFactory the beanFactory.
+	 * @return the evaluation context.
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
 		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
