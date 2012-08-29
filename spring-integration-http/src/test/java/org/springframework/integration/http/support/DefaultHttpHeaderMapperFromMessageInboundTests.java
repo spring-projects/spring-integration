@@ -46,6 +46,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageInboundTests {
@@ -271,6 +272,33 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 
 		assertEquals(new URI("http://foo.com").toString(), headers.getLocation().toString());
+	}
+
+	// Transfer Encoding tests
+
+	@Test
+	public void validateTransferEncodingNotMappedFromMessageHeaders() throws Exception{
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("Transfer-Encoding", "chunked");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+
+		assertTrue(String.format("'Headers' is not empty. It contains '%s' element(s).",
+				headers.size()), headers.isEmpty());
+	}
+
+	@Test
+	public void validateTransferEncodingMappedFromHttpHeaders() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setInboundHeaderNames(new String[] {"Transfer-Encoding"});
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Transfer-Encoding", "chunked");
+
+		Map<String, ?> result = mapper.toHeaders(headers);
+		assertEquals(1, result.size());
+		assertEquals("chunked", result.get("Transfer-Encoding"));
+
 	}
 
 	// Pragma tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
