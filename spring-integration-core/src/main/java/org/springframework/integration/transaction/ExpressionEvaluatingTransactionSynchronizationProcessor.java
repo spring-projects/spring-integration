@@ -115,6 +115,11 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 						logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
 					}
 				}
+				else {
+					if (logger.isTraceEnabled()) {
+				        logger.trace("Expression evaluation returned null");
+				    }
+				}
 			}
 			else {
 				if (logger.isDebugEnabled()) {
@@ -139,7 +144,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	 */
 	private StandardEvaluationContext determineEvaluationContextToUse(Object resource) {
 		StandardEvaluationContext evaluationContextToUse;
-		if (resource != TransactionSynchronizationFactory.NO_TX_RESOURCE) {
+		if (resource != null) {
 			evaluationContextToUse = this.createEvaluationContext();
 			evaluationContextToUse.setVariable("resource", resource);
 		}

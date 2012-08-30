@@ -32,10 +32,6 @@ public class PseudoTransactionManager extends AbstractPlatformTransactionManager
 
 	private static final long serialVersionUID = 1L;
 
-	boolean committed;
-
-	boolean rolledBack;
-
 	@Override
 	protected Object doGetTransaction() throws TransactionException {
 		return new Object();
@@ -43,15 +39,16 @@ public class PseudoTransactionManager extends AbstractPlatformTransactionManager
 
 	@Override
 	protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
+		//noop
 	}
 
 	@Override
 	protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
-		committed = true;
+		//noop
 	}
 
 	@Override
 	protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
-		rolledBack = true;
+		//noop
 	}
 }

@@ -43,11 +43,11 @@
 				allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a 
 				transaction - see {TransactionSynchronization}. Expressions for before-commit, after.-commit, and after-rollback 
 				are supported, together with a channel for each where the evaluation result  (if any) will be sent.
-				For each sub-element you can specify 'expression' and/or 'channel' attribute
-				If only 'channel' attribute is present the received Message will be sent there as part of a particular synchronization scenario.
-				If only 'expression' attribute is present and the result of an expression is non-Null value, the Message with the 
+				For each sub-element you can specify 'expression' and/or 'channel' attributes.
+				If only the 'channel' attribute is present the received Message will be sent there as part of a particular synchronization scenario.
+				If only the 'expression' attribute is present and the result of an expression is a non-Null value, a Message with the 
 				result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the logs. 
-				If you want such result to go to a specific channel add 'channel' attribute. If result of an expression is null 
+				If you want the evaluation result to go to a specific channel add a 'channel' attribute. If the result of an expression is null 
 				or void, no Message will be generated.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1554,23 +1554,6 @@
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
-<!-- 			<xsd:choice minOccurs="0" maxOccurs="1"> -->
-<!-- 				<xsd:element name="transaction-synchronization" type="pseudoTransactionalType" minOccurs="0" maxOccurs="1"> -->
-<!-- 					<xsd:annotation> -->
-<!-- 						<xsd:documentation><![CDATA[ -->
-<!-- 							This element is used with <transactional/> to provide expressions that will be executed -->
-<!-- 							on success or failure, when sending a message resulting from a poll. -->
-<!-- 							The execution of the expressions is synchronized -->
-<!-- 							with the encompassing transaction in that the onSuccess expression will be evaluated -->
-<!-- 							immediately after the commit or the onFailure expression will be evaluated immediately -->
-<!-- 							after the rollback. Users need to be aware that transaction synchronization does not -->
-<!-- 							make an inherently non-transactional resource transactional, it simply implements the -->
-<!-- 							best-effort one phase commit pattern. -->
-<!-- 							The element is only allowed when a <transactional/> or <advice-chain/> element is present. -->
-<!-- 						]]></xsd:documentation> -->
-<!-- 					</xsd:annotation> -->
-<!-- 				</xsd:element> -->
-<!-- 			</xsd:choice> -->
 		</xsd:sequence>
 		<xsd:attribute name="fixed-delay" type="xsd:string">
 			<xsd:annotation>
@@ -3470,7 +3453,7 @@ is provided, the return value is expected to match a channel name exactly.
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Reference to an instance of org.springframework.integration.transaction.TransactionSynchronizationFactory
-	which return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
+	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -3508,8 +3491,8 @@ is provided, the return value is expected to match a channel name exactly.
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Reference to an instance of org.springframework.integration.transaction.TransactionSynchronizationFactory
-	which return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
-	Setting of this attribute will only have an affect if Transactioin advice is present in the chain.
+	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
+	Setting of this attribute will only have an affect if a Transaction advice is present in the chain.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">

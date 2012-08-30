@@ -43,8 +43,8 @@ public class TransactionSynchronizationFactoryParser extends
 		Element afterCommitElement =  DomUtils.getChildElementByTagName(element, "after-commit");
 		Element afterRollbackElement =  DomUtils.getChildElementByTagName(element, "after-rollback");
 
-		if (this.nonDefined(false, beforeCommitElement, afterCommitElement, afterRollbackElement)){
-			parserContext.getReaderContext().error("Ate least one sub-element " +
+		if (this.elementsNotDefined(beforeCommitElement, afterCommitElement, afterRollbackElement)){
+			parserContext.getReaderContext().error("At least one sub-element " +
 					"('before-commit', 'after-commit' and/or 'after-rollback') must be defined", element);
 		}
 		BeanDefinitionBuilder expressionProcessor =
@@ -63,8 +63,8 @@ public class TransactionSynchronizationFactoryParser extends
 		if (element != null){
 			String expression = element.getAttribute("expression");
 			String channel = element.getAttribute("channel");
-			if (this.nonDefined(true, expression, channel)){
-				parserContext.getReaderContext().error("Ate least one attribute " +
+			if (this.attributesNotDefined(expression, channel)){
+				parserContext.getReaderContext().error("At least one attribute " +
 						"('expression' and/or 'channel') must be defined", element);
 			}
 
@@ -82,17 +82,21 @@ public class TransactionSynchronizationFactoryParser extends
 		}
 	}
 
-	private boolean nonDefined(boolean validateForEmptyValues, Object... o){
-		for (Object object : o) {
-			if (validateForEmptyValues && StringUtils.hasText((String)object)){
-				return false;
-			}
-			else if (!validateForEmptyValues && object != null){
+	private boolean elementsNotDefined(Element... elements){
+		for (Object element : elements) {
+			if (element != null){
 				return false;
 			}
 		}
 		return true;
 	}
-
+	private boolean attributesNotDefined(String... attributes){
+		for (String attribute : attributes) {
+			if (StringUtils.hasText(attribute)){
+				return false;
+			}
+		}
+		return true;
+	}
 
 }

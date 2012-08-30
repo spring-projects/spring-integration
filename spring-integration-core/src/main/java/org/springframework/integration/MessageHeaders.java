@@ -89,8 +89,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String CONTENT_TYPE = "content-type";
 
-	public static final String DISPOSITION_RESULT = "dispositionResult";
-
 	public static final String POSTPROCESS_RESULT = "postProcessResult";
 
 
