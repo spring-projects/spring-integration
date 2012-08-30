@@ -22,12 +22,5 @@ import org.springframework.transaction.support.TransactionSynchronization;
  */
 public interface TransactionSynchronizationFactory {
 
-	/**
-	 * Transaction synchronization needs a non-null resource; this constant is used for
-	 * message sources that have no need for a resource, because the post-process
-	 * action just needs the message.
-	 */
-	public static final Object NO_TX_RESOURCE = new Object();
-
 	TransactionSynchronization create(Object key);
 }

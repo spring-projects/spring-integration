@@ -16,8 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
@@ -28,7 +26,6 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.transaction.MessageSourceResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
-import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
@@ -136,15 +133,5 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			this.logger.debug("Received no Message during the poll, returning 'false'");
 		}
 		return false;
-	}
-
-	protected StandardEvaluationContext createEvaluationContext(){
-		if (this.getBeanFactory() != null) {
-			return ExpressionUtils.createStandardEvaluationContext(new BeanFactoryResolver(this.getBeanFactory()),
-					this.getConversionService());
-		}
-		else {
-			return ExpressionUtils.createStandardEvaluationContext(this.getConversionService());
-		}
 	}
 }

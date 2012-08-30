@@ -14,7 +14,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 
-public class TransactioinSynchronizationFactoryParserTests {
+public class TransactionSynchronizationFactoryParserTests {
 
 	@Test // nothing to assert. Validates only XSD
 	public void validateXsdCombinationOfOrderOfSubelements(){

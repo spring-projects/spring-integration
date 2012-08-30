@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -26,7 +25,6 @@ import org.junit.Test;
 
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.integration.message.GenericMessage;
@@ -190,7 +188,6 @@ public class PseudoTransactionalMessageSourceTests {
 		assertNull(rolledBack.get());
 		Message<?> result = success.receive(10000);
 		assertNotNull(result);
-		assertEquals("foobar", result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 		committed.set(null);
 
 		TransactionSynchronizationManager.initSynchronization();
@@ -203,7 +200,6 @@ public class PseudoTransactionalMessageSourceTests {
 		assertNull(committed.get());
 		result = failure.receive(10000);
 		assertNotNull(result);
-		assertEquals("fooXbar", result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 	}
 
 	public class Bar {
