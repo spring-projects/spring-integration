@@ -301,6 +301,19 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
 	}
 
+	@Test
+	public void validateTransferEncodingNotMappedFromHttpHeadersByDefault() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Transfer-Encoding", "chunked");
+
+		Map<String, ?> result = mapper.toHeaders(headers);
+		assertTrue(String.format("'result' is not empty. It contains '%s' element(s).",
+				result.size()), result.isEmpty());
+
+	}
+
 	// Pragma tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
 
 	@Test
