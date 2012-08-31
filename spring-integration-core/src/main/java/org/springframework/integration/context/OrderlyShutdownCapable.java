@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.core;
+package org.springframework.integration.context;
 
 /**
  * Interface for components that wish to be considered for
- * an orderly shutdown using management interfaces. beforeShuddown()
+ * an orderly shutdown using management interfaces. beforeShutdown()
  * will be called before schedulers, executors etc, are stopped.
  * afterShutdown() is called after the shutdown delay.
  *

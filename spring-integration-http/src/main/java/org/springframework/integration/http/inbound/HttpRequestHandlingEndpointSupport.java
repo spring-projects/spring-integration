@@ -50,7 +50,7 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.OrderlyShutdownCapable;
+import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
