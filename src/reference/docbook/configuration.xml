@@ -99,7 +99,7 @@
       couple configuration options to consider. First, you may want to control the central TaskScheduler instance.
       You can do so by providing a single bean with the name "taskScheduler". This is also defined as a constant:
       <programlisting><![CDATA[ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME ]]></programlisting>
-      By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/scheduling.html">Task Execution and Scheduling</ulink>
+      By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the <ulink url="http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html">Task Execution and Scheduling</ulink>
       section of the Spring Framework reference manual. That default TaskScheduler will startup automatically with a
       pool of 10 threads. If you provide your own TaskScheduler instance instead, you can set the 'autoStartup' property
       to <emphasis>false</emphasis>, and/or you can provide your own pool size value.
@@ -115,6 +115,16 @@
          input channels have dispatchers instead of queues (i.e. they are subscribable). Such endpoints have no
          poller configuration since their handlers will be invoked directly.
       </note>
+      <important>
+         When running in a JEE container, you may need to use Spring's <classname>TimerManagerTaskScheduler</classname>
+         as described <ulink url="http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations">
+         here</ulink>, instead of the default <emphasis>taskScheduler</emphasis>. To do that, simply define a bean
+         with the appropriate JNDI name for your environment, for example:
+         <programlisting><![CDATA[<bean id="taskScheduler" class="org.springframework.scheduling.commonj.TimerManagerTaskScheduler">
+  <property name="timerManagerName" value="tm/MyTimerManager" />
+  <property name="resourceRef" value="true" />
+</bean>]]></programlisting>
+      </important>
       <para>
         The next section will describe what happens if Exceptions occur within the asynchronous invocations.
       </para>
