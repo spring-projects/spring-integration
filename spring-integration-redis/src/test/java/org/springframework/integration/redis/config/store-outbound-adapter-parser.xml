@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<int-redis:store-outbound-channel-adapter id="storeAdapter"
+											  collection-type="PROPERTIES"
+											  key="pepboys"
+											  key-serializer="keySerializer"
+											  value-serializer="valueSerializer"
+											  hash-key-serializer="hashKeySerializer"
+											  hash-value-serializer="hashValueSerializer"
+											  auto-startup="false"/>
+
+	<bean id="keySerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+	<bean id="valueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="hashKeySerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="hashValueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="7379"/>
+	</bean>
+
+</beans>
