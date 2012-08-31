@@ -49,8 +49,8 @@
 	</int-redis:store-inbound-channel-adapter>
 	
 	<int:transaction-synchronization-factory id="syncFactory">
-		<int:after-commit expression="#resource.rename('bar')"/>
-		<int:after-rollback expression="#resource.rename('baz')"/>
+		<int:after-commit expression="#resource.attributes['store'].rename('bar')"/>
+		<int:after-rollback expression="#resource.attributes['store'].rename('baz')"/>
 	</int:transaction-synchronization-factory>
 	
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationBeforeCommit"

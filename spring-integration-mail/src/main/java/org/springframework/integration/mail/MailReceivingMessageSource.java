@@ -22,12 +22,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
-import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -41,7 +38,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  */
-public class MailReceivingMessageSource implements PseudoTransactionalMessageSource<javax.mail.Message, MailReceiverContext> {
+public class MailReceivingMessageSource implements MessageSource<javax.mail.Message> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -78,15 +75,4 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 		return null;
 	}
 
-	public MailReceiverContext getResource() {
-		return null;
-	}
-
-	public void afterCommit(Object context) {
-		//noop
-	}
-
-	public void afterRollback(Object context) {
-		//noop
-	}
 }

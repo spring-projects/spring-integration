@@ -15,22 +15,18 @@
  */
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-
-import java.util.concurrent.atomic.AtomicReference;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
-import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
+import org.springframework.integration.transaction.MessageSourceResourceHolder;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
@@ -46,8 +42,11 @@ public class PseudoTransactionalMessageSourceTests {
 	@Test
 	public void testCommit() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		TransactionSynchronizationProcessor syncProcessor =
+		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+		PollableChannel queueChannel = new QueueChannel();
+		syncProcessor.setAfterCommitChannel(queueChannel);
+		syncProcessor.setAfterCommitExpression(new SpelExpressionParser().parseExpression("#resource.attributes['baz']"));
 
 		DefaultTransactionSynchronizationFactory syncFactory =
 				new DefaultTransactionSynchronizationFactory(syncProcessor);
@@ -56,25 +55,13 @@ public class PseudoTransactionalMessageSourceTests {
 
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
-		final Object object = new Object();
-		final AtomicReference<Object> committed = new AtomicReference<Object>();
-		final AtomicReference<Object> rolledBack = new AtomicReference<Object>();
-		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
+		adapter.setSource(new MessageSource<String>() {
 
 			public Message<String> receive() {
-				return new GenericMessage<String>("foo");
-			}
-
-			public Object getResource() {
-				return object;
-			}
-
-			public void afterCommit(Object resource) {
-				committed.set(resource);
-			}
-
-			public void afterRollback(Object resource) {
-				rolledBack.set(resource);
+				GenericMessage<String> message = new GenericMessage<String>("foo");
+				((MessageSourceResourceHolder) TransactionSynchronizationManager.getResource(this)).getAttributes()
+						.put("baz", "qux");
+				return message;
 			}
 		});
 
@@ -82,64 +69,21 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationManager.setActualTransactionActive(true);
 		adapter.doPoll();
 		TransactionSynchronizationUtils.triggerAfterCommit();
-		assertSame(object, committed.get());
+		Message<?> commitMessage = queueChannel.receive(1000);
+		assertEquals("qux", commitMessage.getPayload());
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
-		assertNull(rolledBack.get());
 	}
 
 	@Test
 	public void testRollback() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		TransactionSynchronizationProcessor syncProcessor =
-				new ExpressionEvaluatingTransactionSynchronizationProcessor();
-
-		DefaultTransactionSynchronizationFactory syncFactory =
-				new DefaultTransactionSynchronizationFactory(syncProcessor);
-
-		adapter.setTransactionSynchronizationFactory(syncFactory);
-
-		QueueChannel outputChannel = new QueueChannel();
-		adapter.setOutputChannel(outputChannel);
-		final Object object = new Object();
-		final AtomicReference<Object> committed = new AtomicReference<Object>();
-		final AtomicReference<Object> rolledBack = new AtomicReference<Object>();
-		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
-
-			public Message<String> receive() {
-				return new GenericMessage<String>("foo");
-			}
-
-			public Object getResource() {
-				return object;
-			}
-
-			public void afterCommit(Object resource) {
-				committed.set(resource);
-			}
-
-			public void afterRollback(Object resource) {
-				rolledBack.set(resource);
-			}
-		});
-
-		TransactionSynchronizationManager.initSynchronization();
-		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.doPoll();
-		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
-		assertSame(object, rolledBack.get());
-		TransactionSynchronizationManager.clearSynchronization();
-		TransactionSynchronizationManager.setActualTransactionActive(false);
-		assertNull(committed.get());
-	}
-
-	@Test
-	public void testSuccessAndFailureEvaluationWithResource() {
-		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-
 		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+		PollableChannel queueChannel = new QueueChannel();
+		syncProcessor.setAfterRollbackChannel(queueChannel);
+		syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#resource.attributes['baz']"));
 
 		DefaultTransactionSynchronizationFactory syncFactory =
 				new DefaultTransactionSynchronizationFactory(syncProcessor);
@@ -148,60 +92,24 @@ public class PseudoTransactionalMessageSourceTests {
 
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
-		final Object object = new Bar();
-		final AtomicReference<Object> committed = new AtomicReference<Object>();
-		final AtomicReference<Object> rolledBack = new AtomicReference<Object>();
-		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
+		adapter.setSource(new MessageSource<String>() {
 
 			public Message<String> receive() {
-				return new GenericMessage<String>("foo");
-			}
-
-			public Object getResource() {
-				return object;
-			}
-
-			public void afterCommit(Object resource) {
-				committed.set(resource);
-			}
-
-			public void afterRollback(Object resource) {
-				rolledBack.set(resource);
+				GenericMessage<String> message = new GenericMessage<String>("foo");
+				((MessageSourceResourceHolder) TransactionSynchronizationManager.getResource(this)).getAttributes()
+						.put("baz", "qux");
+				return message;
 			}
 		});
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-
-		syncProcessor.setAfterCommitExpression(new SpelExpressionParser().parseExpression("payload + #resource.value"));
-		QueueChannel success = new QueueChannel();
-		syncProcessor.setAfterCommitChannel(success);
-		syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("payload + 'X' + #resource.value"));
-		QueueChannel failure = new QueueChannel();
-		syncProcessor.setAfterRollbackChannel(failure);
-
-		adapter.doPoll();
-		TransactionSynchronizationUtils.triggerAfterCommit();
-		assertSame(object, committed.get());
-		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
-		TransactionSynchronizationManager.clearSynchronization();
-		TransactionSynchronizationManager.setActualTransactionActive(false);
-		assertNull(rolledBack.get());
-		Message<?> result = success.receive(10000);
-		assertNotNull(result);
-		committed.set(null);
-
-		TransactionSynchronizationManager.initSynchronization();
-		TransactionSynchronizationManager.setActualTransactionActive(true);
 		adapter.doPoll();
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
-		assertSame(object, rolledBack.get());
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
-		assertNull(committed.get());
-		result = failure.receive(10000);
-		assertNotNull(result);
 	}
+
 
 	public class Bar {
 		public String getValue() {

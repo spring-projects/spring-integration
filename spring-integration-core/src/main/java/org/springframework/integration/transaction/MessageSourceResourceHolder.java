@@ -12,9 +12,11 @@
  */
 package org.springframework.integration.transaction;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.transaction.support.ResourceHolder;
 
 /**
@@ -28,27 +30,30 @@ import org.springframework.transaction.support.ResourceHolder;
  */
 public class MessageSourceResourceHolder implements ResourceHolder {
 
-	private final Message<?> message;
 	private final MessageSource<?> source;
 
-	public MessageSourceResourceHolder(Message<?> message,  MessageSource<?> source) {
-		this.message = message;
-		this.source = source;
-	}
+	private volatile Message<?> message;
 
-	protected Object getResource() {
-		if (source instanceof PseudoTransactionalMessageSource<?,?>){
-			return ((PseudoTransactionalMessageSource<?,?>)source).getResource();
-		}
-		return null;
+	private final Map<String, Object> attributes = new HashMap<String, Object>();
+
+	public MessageSourceResourceHolder(MessageSource<?> source) {
+		this.source = source;
 	}
 
 	protected MessageSource<?> getMessageSource() {
 		return this.source;
 	}
 
+	public void setMessage(Message<?> message) {
+		this.message = message;
+	}
+
 	public Message<?> getMessage() {
 		return message;
+	}
+
+	public Map<String, Object> getAttributes() {
+		return attributes;
 	}
 
 	public void reset() {

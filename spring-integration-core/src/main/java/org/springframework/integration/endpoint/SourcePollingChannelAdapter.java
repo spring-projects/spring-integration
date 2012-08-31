@@ -100,19 +100,25 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	protected boolean doPoll() {
 
 		Message<?> message;
-		message = this.source.receive();
+		MessageSourceResourceHolder holder = null;
 
 		if (TransactionSynchronizationManager.isActualTransactionActive()) {
-			TransactionSynchronizationManager.bindResource(source, new MessageSourceResourceHolder(message, source));
+			holder = new MessageSourceResourceHolder(source);
+			TransactionSynchronizationManager.bindResource(source, holder);
 
 			if (transactionSynchronizationFactory != null){
 				TransactionSynchronizationManager.registerSynchronization(transactionSynchronizationFactory.create(source));
 			}
 		}
+		message = this.source.receive();
+
 		if (this.logger.isDebugEnabled()){
 			this.logger.debug("Poll resulted in Message: " + message);
 		}
 		if (message != null) {
+			if (holder != null) {
+				holder.setMessage(message);
+			}
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this);
 			}

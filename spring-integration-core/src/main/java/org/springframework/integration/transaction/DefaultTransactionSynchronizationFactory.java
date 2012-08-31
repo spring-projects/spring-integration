@@ -14,9 +14,6 @@ package org.springframework.integration.transaction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -66,7 +63,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 			if (logger.isTraceEnabled()) {
 				logger.trace("'pre-Committing' transactional resource");
 			}
-			processor.processBeforeCommit(messageSourceHolder.getMessage(), messageSourceHolder.getResource());
+			processor.processBeforeCommit(messageSourceHolder);
 		}
 
 		@Override
@@ -81,12 +78,8 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 				logger.trace("'Committing' transactional resource");
 			}
 
-			processor.processAfterCommit(resourceHolder.getMessage(), resourceHolder.getResource());
+			processor.processAfterCommit(resourceHolder);
 
-			MessageSource<?> messageSource = resourceHolder.getMessageSource();
-			if (messageSource instanceof PseudoTransactionalMessageSource<?,?>){
-				((PseudoTransactionalMessageSource<?,?>)messageSource).afterCommit(resourceHolder.getResource());
-			}
 		}
 
 		@Override
@@ -96,12 +89,8 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 					logger.trace("'Rolling back' transactional resource");
 				}
 
-				processor.processAfterRollback(messageSourceHolder.getMessage(), messageSourceHolder.getResource());
+				processor.processAfterRollback(messageSourceHolder);
 
-				MessageSource<?> messageSource = messageSourceHolder.getMessageSource();
-				if (messageSource instanceof PseudoTransactionalMessageSource<?,?>){
-					((PseudoTransactionalMessageSource<?,?>)messageSource).afterRollback(messageSourceHolder.getResource());
-				}
 			}
 			super.afterCompletion(status);
 		}

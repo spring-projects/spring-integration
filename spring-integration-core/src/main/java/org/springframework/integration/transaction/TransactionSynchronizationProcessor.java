@@ -12,20 +12,20 @@
  */
 package org.springframework.integration.transaction;
 
-import org.springframework.integration.Message;
 /**
  * Strategy for implementing transaction synchronization processors
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  *
  */
 public interface TransactionSynchronizationProcessor {
 
-	public abstract void processBeforeCommit(Message<?> message, Object resource);
+	public abstract void processBeforeCommit(MessageSourceResourceHolder holder);
 
-	public abstract void processAfterCommit(Message<?> message, Object resource);
+	public abstract void processAfterCommit(MessageSourceResourceHolder holder);
 
-	public abstract void processAfterRollback(Message<?> message, Object resource);
+	public abstract void processAfterRollback(MessageSourceResourceHolder holder);
 
 }

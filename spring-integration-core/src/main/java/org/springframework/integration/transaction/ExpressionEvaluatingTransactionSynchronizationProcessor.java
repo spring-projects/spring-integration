@@ -18,7 +18,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -89,31 +88,32 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.transaction.TransactionSynchronizationProcessor#processBeforeCommit(org.springframework.integration.Message, java.lang.Object)
 	 */
-	public void processBeforeCommit(Message<?> message, Object resource){
-		this.doProcess(message, resource, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
+	public void processBeforeCommit(MessageSourceResourceHolder holder) {
+		this.doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.transaction.TransactionSynchronizationProcessor#processAfterCommit(org.springframework.integration.Message, java.lang.Object)
 	 */
-	public void processAfterCommit(Message<?> message, Object resource){
-		this.doProcess(message, resource, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
+	public void processAfterCommit(MessageSourceResourceHolder holder) {
+		this.doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.transaction.TransactionSynchronizationProcessor#processAfterRollback(org.springframework.integration.Message, java.lang.Object)
 	 */
-	public void processAfterRollback(Message<?> message, Object resource){
-		this.doProcess(message, resource, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
+	public void processAfterRollback(MessageSourceResourceHolder holder) {
+		this.doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
 	}
 
-	private void doProcess(Message<?> message, Object resource, Expression expression, MessageChannel messageChannel, String expressionType) {
+	private void doProcess(MessageSourceResourceHolder holder, Expression expression, MessageChannel messageChannel, String expressionType) {
+		Message<?> message = holder.getMessage();
 		if (message != null){
 			if (expression != null){
 				if (logger.isDebugEnabled()) {
 					logger.debug("Evaluating " + expressionType + " expression: '" + expression.getExpressionString() + "' on " + message);
 				}
-				StandardEvaluationContext evaluationContextToUse = this.prepareEvaluationContextToUse(resource);
+				StandardEvaluationContext evaluationContextToUse = this.prepareEvaluationContextToUse(holder);
 				Object value = expression.getValue(evaluationContextToUse, message);
 				if (value != null) {
 					Message<?> spelResultMessage = null;
