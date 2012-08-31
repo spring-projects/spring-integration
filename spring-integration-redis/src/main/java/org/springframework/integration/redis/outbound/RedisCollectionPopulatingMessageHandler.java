@@ -166,22 +166,22 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	public void setKeySerializer(RedisSerializer<?> keySerializer) {
-		Assert.notNull(keySerializer, "'keySerializer not be null");
+		Assert.notNull(keySerializer, "'keySerializer'must not be null");
 		this.keySerializer = keySerializer;
 	}
 
 	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
-		Assert.notNull(valueSerializer, "'valueSerializer'must not be null");
+		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
 		this.valueSerializer = valueSerializer;
 	}
 
 	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
-		Assert.notNull(hashKeySerializer, "'hashKeySerializer not be null");
+		Assert.notNull(hashKeySerializer, "'hashKeySerializer' must not be null");
 		this.hashKeySerializer = hashKeySerializer;
 	}
 
 	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
-		Assert.notNull(hashValueSerializer, "'hashValueSerializer not be null");
+		Assert.notNull(hashValueSerializer, "'hashValueSerializer' must not be null");
 		this.hashValueSerializer = hashValueSerializer;
 	}
 
