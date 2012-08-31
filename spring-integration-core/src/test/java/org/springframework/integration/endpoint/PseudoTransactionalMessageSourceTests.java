@@ -28,8 +28,9 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory;
+import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
+import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
@@ -45,11 +46,11 @@ public class PseudoTransactionalMessageSourceTests {
 	@Test
 	public void testCommit() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
+		TransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
 
-		ExpressionEvaluatingTransactionSynchronizationFactory syncFactory =
-				new ExpressionEvaluatingTransactionSynchronizationFactory(syncProcessor);
+		DefaultTransactionSynchronizationFactory syncFactory =
+				new DefaultTransactionSynchronizationFactory(syncProcessor);
 
 		adapter.setTransactionSynchronizationFactory(syncFactory);
 
@@ -91,11 +92,11 @@ public class PseudoTransactionalMessageSourceTests {
 	@Test
 	public void testRollback() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
+		TransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
 
-		ExpressionEvaluatingTransactionSynchronizationFactory syncFactory =
-				new ExpressionEvaluatingTransactionSynchronizationFactory(syncProcessor);
+		DefaultTransactionSynchronizationFactory syncFactory =
+				new DefaultTransactionSynchronizationFactory(syncProcessor);
 
 		adapter.setTransactionSynchronizationFactory(syncFactory);
 
@@ -140,8 +141,8 @@ public class PseudoTransactionalMessageSourceTests {
 		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
 
-		ExpressionEvaluatingTransactionSynchronizationFactory syncFactory =
-				new ExpressionEvaluatingTransactionSynchronizationFactory(syncProcessor);
+		DefaultTransactionSynchronizationFactory syncFactory =
+				new DefaultTransactionSynchronizationFactory(syncProcessor);
 
 		adapter.setTransactionSynchronizationFactory(syncFactory);
 
@@ -174,10 +175,10 @@ public class PseudoTransactionalMessageSourceTests {
 
 		syncProcessor.setAfterCommitExpression(new SpelExpressionParser().parseExpression("payload + #resource.value"));
 		QueueChannel success = new QueueChannel();
-		syncProcessor.setAfterCommitResultChannel(success);
+		syncProcessor.setAfterCommitChannel(success);
 		syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("payload + 'X' + #resource.value"));
 		QueueChannel failure = new QueueChannel();
-		syncProcessor.setAfterRollbackResultChannel(failure);
+		syncProcessor.setAfterRollbackChannel(failure);
 
 		adapter.doPoll();
 		TransactionSynchronizationUtils.triggerAfterCommit();

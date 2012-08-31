@@ -47,11 +47,11 @@
 	
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 	
-	<bean id="syncFactory" class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory">
+	<bean id="syncFactory" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
 				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
-				<property name="afterCommitResultChannel" ref="resultChannel"/>
+				<property name="afterCommitChannel" ref="resultChannel"/>
 			</bean>
 		</constructor-arg>
 	</bean>

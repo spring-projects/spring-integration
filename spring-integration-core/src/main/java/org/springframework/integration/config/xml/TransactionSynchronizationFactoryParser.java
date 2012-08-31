@@ -20,7 +20,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
-import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory;
+import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -37,7 +37,7 @@ public class TransactionSynchronizationFactoryParser extends
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder syncFactoryBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingTransactionSynchronizationFactory.class);
+				BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionSynchronizationFactory.class);
 
 		Element beforeCommitElement =  DomUtils.getChildElementByTagName(element, "before-commit");
 		Element afterCommitElement =  DomUtils.getChildElementByTagName(element, "after-commit");
@@ -74,10 +74,10 @@ public class TransactionSynchronizationFactoryParser extends
 				expressionProcessor.addPropertyValue(elementPrefix + "Expression", expressionDef);
 			}
 			if (StringUtils.hasText(channel)){
-				expressionProcessor.addPropertyReference(elementPrefix + "ResultChannel", channel);
+				expressionProcessor.addPropertyReference(elementPrefix + "Channel", channel);
 			}
 			else {
-				expressionProcessor.addPropertyReference(elementPrefix + "ResultChannel", "nullChannel");
+				expressionProcessor.addPropertyReference(elementPrefix + "Channel", "nullChannel");
 			}
 		}
 	}

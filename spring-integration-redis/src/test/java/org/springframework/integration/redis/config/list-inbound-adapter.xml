@@ -52,6 +52,24 @@
 		<int:after-commit expression="#resource.rename('bar')"/>
 		<int:after-rollback expression="#resource.rename('baz')"/>
 	</int:transaction-synchronization-factory>
+	
+	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationBeforeCommit"
+											redis-template="redisTemplate"
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false">
+		<int:poller fixed-rate="2000" max-messages-per-poll="10" error-channel="adapterErrors">
+		    <int:transactional synchronization-factory="syncFactory2"/>
+		</int:poller>
+	</int-redis:store-inbound-channel-adapter>
+	
+	<int:channel id="adapterErrors">
+		<int:queue/>
+	</int:channel>
+	
+	<int:transaction-synchronization-factory id="syncFactory2">
+		<int:before-commit expression="5/0"/>
+	</int:transaction-synchronization-factory>
 
 	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
 		<property name="keySerializer">

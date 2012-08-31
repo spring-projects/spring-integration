@@ -23,13 +23,23 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.util.Assert;
 /**
+ * This implementation of {@link TransactionSynchronizationFactory}
+ * allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a
+ * transaction - see {TransactionSynchronization}. Expressions for before-commit, after.-commit, and after-rollback
+ * are supported, together with a channel for each where the evaluation result  (if any) will be sent.
+ * For each sub-element you can specify 'expression' and/or 'channel' attributes.
+ * If only the 'channel' attribute is present the received Message will be sent there as part of a particular synchronization scenario.
+ * If only the 'expression' attribute is present and the result of an expression is a non-Null value, a Message with the
+ * result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the logs.
+ * If you want the evaluation result to go to a specific channel add a 'channel' attribute. If the result of an expression is null
+ * or void, no Message will be generated.
  *
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @since 2.2
  *
  */
-public class ExpressionEvaluatingTransactionSynchronizationProcessor extends IntegrationObjectSupport {
+public class ExpressionEvaluatingTransactionSynchronizationProcessor extends IntegrationObjectSupport implements TransactionSynchronizationProcessor {
 
 	private volatile StandardEvaluationContext evaluationContext;
 
@@ -39,25 +49,25 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 
 	private volatile Expression afterRollbackExpression;
 
-	private volatile MessageChannel beforeCommitResultChannel;
+	private volatile MessageChannel beforeCommitChannel;
 
-	private volatile MessageChannel afterCommitResultChannel;
+	private volatile MessageChannel afterCommitChannel;
 
-	private volatile MessageChannel afterRollbackResultChannel;
+	private volatile MessageChannel afterRollbackChannel;
 
-	public void setBeforeCommitResultChannel(MessageChannel beforeCommitResultChannel) {
-		Assert.notNull(beforeCommitResultChannel, "'beforeCommitResultChannel' must not be null");
-		this.beforeCommitResultChannel = beforeCommitResultChannel;
+	public void setBeforeCommitChannel(MessageChannel beforeCommitChannel) {
+		Assert.notNull(beforeCommitChannel, "'beforeCommitChannel' must not be null");
+		this.beforeCommitChannel = beforeCommitChannel;
 	}
 
-	public void setAfterCommitResultChannel(MessageChannel afterCommitResultChannel) {
-		Assert.notNull(afterCommitResultChannel, "'afterCommitResultChannel' must not be null");
-		this.afterCommitResultChannel = afterCommitResultChannel;
+	public void setAfterCommitChannel(MessageChannel afterCommitChannel) {
+		Assert.notNull(afterCommitChannel, "'afterCommitChannel' must not be null");
+		this.afterCommitChannel = afterCommitChannel;
 	}
 
-	public void setAfterRollbackResultChannel(MessageChannel afterRollbackResultChannel) {
-		Assert.notNull(afterRollbackResultChannel, "'afterRollbackResultChannel' must not be null");
-		this.afterRollbackResultChannel = afterRollbackResultChannel;
+	public void setAfterRollbackChannel(MessageChannel afterRollbackChannel) {
+		Assert.notNull(afterRollbackChannel, "'afterRollbackChannel' must not be null");
+		this.afterRollbackChannel = afterRollbackChannel;
 	}
 
 	public void setBeforeCommitExpression(Expression beforeCommitExpression) {
@@ -75,16 +85,25 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		this.afterRollbackExpression = afterRollbackExpression;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.transaction.TransactionSynchronizationProcessor#processBeforeCommit(org.springframework.integration.Message, java.lang.Object)
+	 */
 	public void processBeforeCommit(Message<?> message, Object resource){
-		this.doProcess(message, resource, this.beforeCommitExpression, this.beforeCommitResultChannel, "beforeCommit");
+		this.doProcess(message, resource, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.transaction.TransactionSynchronizationProcessor#processAfterCommit(org.springframework.integration.Message, java.lang.Object)
+	 */
 	public void processAfterCommit(Message<?> message, Object resource){
-		this.doProcess(message, resource, this.afterCommitExpression, this.afterCommitResultChannel, "afterCommit");
+		this.doProcess(message, resource, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.transaction.TransactionSynchronizationProcessor#processAfterRollback(org.springframework.integration.Message, java.lang.Object)
+	 */
 	public void processAfterRollback(Message<?> message, Object resource){
-		this.doProcess(message, resource, this.afterRollbackExpression, this.afterRollbackResultChannel, "afterRollback");
+		this.doProcess(message, resource, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
 	}
 
 	private void doProcess(Message<?> message, Object resource, Expression expression, MessageChannel messageChannel, String expressionType) {
@@ -93,14 +112,8 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 				if (logger.isDebugEnabled()) {
 					logger.debug("Evaluating " + expressionType + " expression: '" + expression.getExpressionString() + "' on " + message);
 				}
-				StandardEvaluationContext evaluationContextToUse = this.determineEvaluationContextToUse(resource);
-				Object value;
-				try {
-					value = expression.getValue(evaluationContextToUse, message);
-				}
-				catch (Exception e) {
-					value = e;
-				}
+				StandardEvaluationContext evaluationContextToUse = this.prepareEvaluationContextToUse(resource);
+				Object value = expression.getValue(evaluationContextToUse, message);
 				if (value != null) {
 					Message<?> spelResultMessage = null;
 					if (logger.isDebugEnabled()) {
@@ -109,7 +122,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 					}
 					try {
 						spelResultMessage = MessageBuilder.withPayload(value).build();
-						messageChannel.send(spelResultMessage, 0);
+						this.sendMessage(messageChannel, spelResultMessage);
 					}
 					catch (Exception e) {
 						logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
@@ -127,7 +140,11 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 							expressionType + "' transaction synchronization");
 				}
 				try {
-					messageChannel.send(MessageBuilder.fromMessage(message).build());
+					// rollback will be initiated if any of the previous sync operations fail (e.g., beforeCommit)
+					// this means that this method will be called without explicit configuration thus no channel
+					if (messageChannel != null){
+						this.sendMessage(messageChannel, MessageBuilder.fromMessage(message).build());
+					}
 				} catch (Exception e) {
 					logger.error("Failed to send " + message, e);
 				}
@@ -136,13 +153,17 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		}
 	}
 
+	private void sendMessage(MessageChannel channel, Message<?> message){
+		channel.send(message, 0);
+	}
+
 	/**
 	 * If we don't need a resource variable (not a {@link PseudoTransactionalMessageSource})
 	 * we can use a singleton context; otherwise we need a new one each time.
 	 * @param resource The resource
 	 * @return The context.
 	 */
-	private StandardEvaluationContext determineEvaluationContextToUse(Object resource) {
+	private StandardEvaluationContext prepareEvaluationContextToUse(Object resource) {
 		StandardEvaluationContext evaluationContextToUse;
 		if (resource != null) {
 			evaluationContextToUse = this.createEvaluationContext();

@@ -41,24 +41,24 @@
 	
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 	
-	<bean id="syncFactoryA" class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory">
+	<bean id="syncFactoryA" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
 				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
-				<property name="afterCommitResultChannel" ref="successChannel"/>
+				<property name="afterCommitChannel" ref="successChannel"/>
 				<property name="afterRollbackExpression" value="#{new org.springframework.expression.common.LiteralExpression('foo')}"/>
-				<property name="afterRollbackResultChannel" ref="failureChannel"/>
+				<property name="afterRollbackChannel" ref="failureChannel"/>
 			</bean>
 		</constructor-arg>
 	</bean>
 	
-	<bean id="syncFactoryB" class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory">
+	<bean id="syncFactoryB" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
 				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('@txManager.committed')}"/>
-				<property name="afterCommitResultChannel" ref="successChannel"/>
+				<property name="afterCommitChannel" ref="successChannel"/>
 				<property name="afterRollbackExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('@txManager.rolledBack')}"/>
-				<property name="afterRollbackResultChannel" ref="failureChannel"/>
+				<property name="afterRollbackChannel" ref="failureChannel"/>
 			</bean>
 		</constructor-arg>
 	</bean>
