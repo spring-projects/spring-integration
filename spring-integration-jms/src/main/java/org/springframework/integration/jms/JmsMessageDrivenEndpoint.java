@@ -17,7 +17,7 @@
 package org.springframework.integration.jms;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.core.OrderlyShutdownCapable;
+import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.util.Assert;

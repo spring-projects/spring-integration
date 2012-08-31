@@ -35,7 +35,7 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.OrderlyShutdownCapable;
+import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.jmx.export.annotation.ManagedResource;
