@@ -4,14 +4,12 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/jmx
-			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:mbean-export/>
 	<context:mbean-server/>
@@ -26,9 +24,36 @@
 
 	<bean id="testPublisher" class="org.springframework.integration.jmx.config.TestPublisher"/>
 
+	<bean id="testPublisher2" class="org.springframework.integration.jmx.config.TestPublisher"/>
+
 	<jmx:notification-listening-channel-adapter id="autoChannel"
 			object-name="org.springframework.integration.jmx.config:type=TestPublisher,name=testPublisher"/>
 
 	<si:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
+	<si:channel id="patternChannel">
+		<si:queue/>
+	</si:channel>
+
+	<jmx:notification-listening-channel-adapter id="patternAdapter"
+			channel="patternChannel"
+			object-name="org.springframework.integration.jmx.config:type=*,name=testPublisher"/>
+
+	<si:channel id="multiChannel">
+		<si:queue/>
+	</si:channel>
+
+	<jmx:notification-listening-channel-adapter id="multiAdapter"
+			channel="multiChannel"
+			object-names-ref="patterns"/>
+
+	<util:list id="patterns">
+		<bean class="java.lang.String">
+			<constructor-arg value="org.springframework.integration.jmx.config:type=*,name=testPublisher"/>
+		</bean>
+		<bean class="java.lang.String">
+			<constructor-arg value="org.springframework.integration.jmx.config:type=*,name=testPub*"/>
+		</bean>
+	</util:list>
 
 </beans>

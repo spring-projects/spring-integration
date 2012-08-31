@@ -17,6 +17,10 @@
 package org.springframework.integration.jmx;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
@@ -24,6 +28,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
@@ -32,6 +37,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * A JMX {@link NotificationListener} implementation that will send Messages
@@ -47,7 +53,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	private volatile MBeanServerConnection server;
 
-	private volatile ObjectName objectName;
+	private volatile ObjectName[] objectNames;
 
 	private volatile NotificationFilter filter;
 
@@ -63,11 +69,23 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	}
 
 	/**
-	 * Specify the JMX ObjectName of the notification publisher
+	 * Specify the JMX ObjectName (or pattern)
+	 * of the notification publisher
  	 * to which this notification listener should be subscribed.
 	 */
 	public void setObjectName(ObjectName objectName) {
-		this.objectName = objectName;
+		Assert.notNull(objectName, "'objectName' must not be null");
+		this.objectNames = new ObjectName[] { objectName };
+	}
+
+	/**
+	 * Specify the JMX ObjectNames (or patterns)
+	 * of the notification publishers
+	 * to which this notification listener should be subscribed.
+	 */
+	public void setObjectNames(Collection<ObjectName> objectNames) {
+		Assert.isTrue(!CollectionUtils.isEmpty(objectNames), "'objectNames' must contain at least one ObjectName");
+		this.objectNames = objectNames.toArray(new ObjectName[objectNames.size()]);
 	}
 
 	/**
@@ -116,8 +134,11 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	protected void doStart() {
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
-			Assert.notNull(this.objectName, "An ObjectName is required.");
-			this.server.addNotificationListener(this.objectName, this, this.filter, this.handback);
+			Assert.notNull(this.objectNames, "An ObjectName is required.");
+			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
+			for (ObjectName objectName : objectNames) {
+				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
+			}
 		}
 		catch (InstanceNotFoundException e) {
 			throw new IllegalStateException("Failed to find MBean instance.", e);
@@ -132,20 +153,39 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	protected void doStop() {
-		if (this.server != null && this.objectName != null) {
-			try {
-				this.server.removeNotificationListener(this.objectName, this, this.filter, this.handback);
-			}
-			catch (InstanceNotFoundException e) {
-				throw new IllegalStateException("Failed to find MBean instance.", e);
-			}
-			catch (ListenerNotFoundException e) {
-				throw new IllegalStateException("Failed to find NotificationListener.", e);
-			}
-			catch (IOException e) {
-				throw new IllegalStateException("IOException on MBeanServerConnection.", e);
+		if (this.server != null && this.objectNames != null) {
+			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
+			for (ObjectName objectName : objectNames) {
+				try {
+					this.server.removeNotificationListener(objectName, this, this.filter, this.handback);
+				}
+				catch (InstanceNotFoundException e) {
+					logger.error("Failed to find MBean instance.", e);
+				}
+				catch (ListenerNotFoundException e) {
+					logger.error("Failed to find NotificationListener.", e);
+				}
+				catch (IOException e) {
+					logger.error("IOException on MBeanServerConnection.", e);
+				}
 			}
 		}
 	}
 
+	protected Collection<ObjectName> retrieveMBeanNames() {
+		List<ObjectName> objectNames = new ArrayList<ObjectName>();
+		for (ObjectName pattern : this.objectNames) {
+			Set<ObjectInstance> mBeanInfos;
+			try {
+				mBeanInfos = this.server.queryMBeans(pattern, null);
+			}
+			catch (IOException e) {
+				throw new IllegalStateException("IOException on MBeanServerConnection.", e);
+			}
+			for (ObjectInstance instance : mBeanInfos) {
+				objectNames.add(instance.getObjectName());
+			}
+		}
+		return objectNames;
+	}
 }

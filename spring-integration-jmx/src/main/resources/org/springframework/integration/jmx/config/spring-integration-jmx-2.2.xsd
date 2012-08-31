@@ -78,10 +78,27 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="adapterType">
+				<xsd:extension base="baseAdapterType">
 					<xsd:attribute name="notification-filter" type="xsd:string" use="optional" />
 					<xsd:attribute name="handback" type="xsd:string" use="optional" />
 					<xsd:attribute name="send-timeout" type="xsd:string" use="optional" />
+					<xsd:attribute name="object-name" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object name (or pattern) for MBeans that this adapter will receive
+								notifications for.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="object-names-ref" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								A reference to a collection of
+								object names (or patterns) for MBeans that this adapter will receive
+								notifications for.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -172,13 +189,25 @@
 	<xsd:complexType name="adapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines inbound operation invoking type
+				Defines inbound adapter type requiring object-name.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="baseAdapterType">
+				<xsd:attribute name="object-name" type="xsd:string" use="required" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="baseAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines inbound adapter type.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="mbeanServerIdentifyerType">
 				<xsd:attribute name="channel" type="xsd:string" />
-				<xsd:attribute name="object-name" type="xsd:string" use="required" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
