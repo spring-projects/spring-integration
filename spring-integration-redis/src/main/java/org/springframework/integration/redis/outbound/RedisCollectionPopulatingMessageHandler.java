@@ -21,14 +21,14 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.data.redis.support.collections.RedisList;
@@ -87,6 +87,14 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private volatile boolean extractPayloadElements = true;
 
+	private volatile RedisSerializer<?> keySerializer;
+
+	private volatile RedisSerializer<?> valueSerializer;
+
+	private volatile RedisSerializer<?> hashKeySerializer;
+
+	private volatile RedisSerializer<?> hashValueSerializer;
+
 	/**
 	 * Will construct this instance using fully created and initialized instance of
 	 * provided {@link RedisTemplate}
@@ -119,9 +127,8 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	/**
 	 * Will construct this instance using the provided {@link RedisConnectionFactory}.
-	 * It will create an instance of {@link RedisTemplate}, initializing it with a
-	 * {@link StringRedisSerializer} for the keySerializer and a {@link JdkSerializationRedisSerializer}
-	 * for each of valueSerializer, hasKeySerializer, and hashValueSerializer.
+	 * It will create an instance of {@link RedisTemplate} with default serializers unless those
+	 * are overridden via this instance's corresponding setters.
 	 *
 	 * The default expression 'headers.{@link RedisHeaders#KEY}'
 	 * will be used.
@@ -133,9 +140,8 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	/**
 	 * Will construct this instance using the provided {@link RedisConnectionFactory} and {@link #keyExpression}
-	 * It will create an instance of {@link RedisTemplate} initializing it with a
-	 * {@link StringRedisSerializer} for the keySerializer and a {@link JdkSerializationRedisSerializer}
-	 * for each of valueSerializer, hasKeySerializer, and hashValueSerializer.
+	 * It will create an instance of {@link RedisTemplate} with default serializers unless those
+	 * are overridden via this instance's corresponding setters.
 	 *
 	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
 	 * will be used.
@@ -148,15 +154,31 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
 		redisTemplate.setConnectionFactory(connectionFactory);
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
-		redisTemplate.setHashKeySerializer(new JdkSerializationRedisSerializer());
-		redisTemplate.setHashValueSerializer(new JdkSerializationRedisSerializer());
 
 		this.redisTemplate = redisTemplate;
 		if (keyExpression != null) {
 			this.keyExpression = keyExpression;
 		}
+	}
+
+	public void setKeySerializer(RedisSerializer<?> keySerializer) {
+		Assert.notNull(keySerializer, "'keySerializer' must not be null");
+		this.keySerializer = keySerializer;
+	}
+
+	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
+		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
+		this.valueSerializer = valueSerializer;
+	}
+
+	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
+		Assert.notNull(hashKeySerializer, "'hashKeySerializer' must not be null");
+		this.hashKeySerializer = hashKeySerializer;
+	}
+
+	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
+		Assert.notNull(hashValueSerializer, "'hashValueSerializer' must not be null");
+		this.hashValueSerializer = hashValueSerializer;
 	}
 
 	/**
@@ -212,6 +234,19 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||
 				(this.collectionType == CollectionType.MAP || this.collectionType == CollectionType.PROPERTIES),
 				"'mapKeyExpression' can only be set for CollectionType.MAP or CollectionType.PROPERTIES");
+		if (this.keySerializer != null){
+			redisTemplate.setKeySerializer(this.keySerializer);
+		}
+		if (this.valueSerializer != null){
+			redisTemplate.setValueSerializer(this.valueSerializer);
+		}
+		if (this.hashKeySerializer != null){
+			redisTemplate.setHashKeySerializer(this.hashKeySerializer);
+		}
+		if (this.hashValueSerializer != null){
+			redisTemplate.setHashValueSerializer(this.hashValueSerializer);
+		}
+		this.redisTemplate.afterPropertiesSet();
 	}
 
 	/**
@@ -244,7 +279,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String key = this.keyExpression.getValue(this.evaluationContext, message, String.class);
 
-		Assert.hasText(key, "Can not determine a 'key' for a Redis store. The key can be provided via the " +
+		Assert.hasText(key, "Cannot determine a 'key' for a Redis store. The key can be provided via the " +
 				"'key' or 'key-expression' attributes.");
 
 		RedisStore store = this.createStoreView(key);
@@ -392,7 +427,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private Object assertMapEntry(Message<?> message, boolean property) {
 		Object mapKey = this.mapKeyExpression.getValue(this.evaluationContext, message);
-		Assert.notNull(mapKey, "Can not determine a map key for the entry. The key is determined by evaluating " +
+		Assert.notNull(mapKey, "Cannot determine a map key for the entry. The key is determined by evaluating " +
 				"the 'mapKeyExpression' property.");
 		Object payload = message.getPayload();
 		if (property) {

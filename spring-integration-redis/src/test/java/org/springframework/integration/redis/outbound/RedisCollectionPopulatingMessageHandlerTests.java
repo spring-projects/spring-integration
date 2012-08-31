@@ -12,13 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.DefaultRedisZSet;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -48,6 +47,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		RedisCollectionPopulatingMessageHandler handler =
 				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
+		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
 		list.add("Manny");
@@ -76,6 +76,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		RedisCollectionPopulatingMessageHandler handler =
 				new RedisCollectionPopulatingMessageHandler(jcf, null);
+
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -105,6 +106,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		RedisCollectionPopulatingMessageHandler handler =
 				new RedisCollectionPopulatingMessageHandler(jcf, null);
+		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
 		list.add("Manny");
@@ -128,7 +130,9 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		RedisCollectionPopulatingMessageHandler handler =
 				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
+
 		handler.setExtractPayloadElements(false);
+		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
 		list.add("Manny");
@@ -160,6 +164,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
 
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
 		list.add("Manny");
@@ -189,10 +194,10 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		RedisCollectionPopulatingMessageHandler handler =
 				new RedisCollectionPopulatingMessageHandler(jcf, null);
-		handler.afterPropertiesSet();
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
+		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
 		list.add("Manny");
@@ -225,6 +230,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
 
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.afterPropertiesSet();
 
 		Map<String, Double> presidents = new HashMap<String, Double>();
 		presidents.put("John Adams", 18D);
@@ -268,6 +274,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
 
 		handler.setCollectionType(CollectionType.ZSET);
+		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<President, Double>();
 		presidents.put(new President("John Adams"), 18D);
@@ -312,6 +319,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
+		handler.afterPropertiesSet();
 
 		Map<President, Double> presidents = new HashMap<President, Double>();
 		presidents.put(new President("John Adams"), 18D);
@@ -396,8 +404,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 	private RedisTemplate<?,?> initTemplate(RedisConnectionFactory rcf, RedisTemplate<?, ?> redisTemplate) {
 		redisTemplate.setConnectionFactory(rcf);
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+		redisTemplate.afterPropertiesSet();
 		return redisTemplate;
 	}
 
