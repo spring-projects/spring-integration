@@ -21,6 +21,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -28,6 +29,7 @@ import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -86,6 +88,14 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	private volatile CollectionType collectionType = CollectionType.LIST;
 
 	private volatile boolean extractPayloadElements = true;
+
+	private volatile RedisSerializer<?> keySerializer;
+
+	private volatile RedisSerializer<?> valueSerializer;
+
+	private volatile RedisSerializer<?> hashKeySerializer;
+
+	private volatile RedisSerializer<?> hashValueSerializer;
 
 	/**
 	 * Will construct this instance using fully created and initialized instance of
@@ -148,15 +158,31 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
 		redisTemplate.setConnectionFactory(connectionFactory);
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
-		redisTemplate.setHashKeySerializer(new JdkSerializationRedisSerializer());
-		redisTemplate.setHashValueSerializer(new JdkSerializationRedisSerializer());
 
 		this.redisTemplate = redisTemplate;
 		if (keyExpression != null) {
 			this.keyExpression = keyExpression;
 		}
+	}
+
+	public void setKeySerializer(RedisSerializer<?> keySerializer) {
+		Assert.notNull(keySerializer, "'keySerializer'must not be null");
+		this.keySerializer = keySerializer;
+	}
+
+	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
+		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
+		this.valueSerializer = valueSerializer;
+	}
+
+	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
+		Assert.notNull(hashKeySerializer, "'hashKeySerializer' must not be null");
+		this.hashKeySerializer = hashKeySerializer;
+	}
+
+	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
+		Assert.notNull(hashValueSerializer, "'hashValueSerializer' must not be null");
+		this.hashValueSerializer = hashValueSerializer;
 	}
 
 	/**
@@ -212,6 +238,19 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||
 				(this.collectionType == CollectionType.MAP || this.collectionType == CollectionType.PROPERTIES),
 				"'mapKeyExpression' can only be set for CollectionType.MAP or CollectionType.PROPERTIES");
+		if (this.keySerializer != null){
+			redisTemplate.setKeySerializer(this.keySerializer);
+		}
+		if (this.valueSerializer != null){
+			redisTemplate.setValueSerializer(this.valueSerializer);
+		}
+		if (this.hashKeySerializer != null){
+			redisTemplate.setHashKeySerializer(this.hashKeySerializer);
+		}
+		if (this.hashValueSerializer != null){
+			redisTemplate.setHashValueSerializer(this.hashValueSerializer);
+		}
+		this.redisTemplate.afterPropertiesSet();
 	}
 
 	/**
