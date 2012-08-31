@@ -245,7 +245,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		String key = this.keyExpression.getValue(this.evaluationContext, message, String.class);
 
 		Assert.hasText(key, "Can not determine a 'key' for a Redis store. The key can be provided via the " +
-				"'key' or 'key-expression' atributes.");
+				"'key' or 'key-expression' attributes.");
 
 		RedisStore store = this.createStoreView(key);
 
