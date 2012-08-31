@@ -29,7 +29,6 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @since 2.2
- *
  */
 public class DefaultTransactionSynchronizationFactory implements TransactionSynchronizationFactory {
 
@@ -49,6 +48,8 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 		return new DefaultTransactionalResourceSynchronization((MessageSourceResourceHolder) resourceHolder, key);
 	}
 
+	/**
+	 */
 	private class DefaultTransactionalResourceSynchronization
 		extends ResourceHolderSynchronization<MessageSourceResourceHolder, Object> {
 
@@ -63,7 +64,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 		@Override
 		public void beforeCommit(boolean readOnly) {
 			if (logger.isTraceEnabled()) {
-				logger.trace("'pre-Committing' pseudo-transactional resource");
+				logger.trace("'pre-Committing' transactional resource");
 			}
 			processor.processBeforeCommit(messageSourceHolder.getMessage(), messageSourceHolder.getResource());
 		}
@@ -77,7 +78,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 		protected void processResourceAfterCommit(MessageSourceResourceHolder resourceHolder) {
 
 			if (logger.isTraceEnabled()) {
-				logger.trace("'Committing' pseudo-transactional resource");
+				logger.trace("'Committing' transactional resource");
 			}
 
 			processor.processAfterCommit(resourceHolder.getMessage(), resourceHolder.getResource());
@@ -92,7 +93,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 		public void afterCompletion(int status) {
 			if (status != TransactionSynchronization.STATUS_COMMITTED) {
 				if (logger.isTraceEnabled()) {
-					logger.trace("'Rolling back' pseudo-transactional resource");
+					logger.trace("'Rolling back' transactional resource");
 				}
 
 				processor.processAfterRollback(messageSourceHolder.getMessage(), messageSourceHolder.getResource());
