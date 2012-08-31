@@ -11,8 +11,9 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationFactory;
+import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
+import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
 
 public class TransactionSynchronizationFactoryParserTests {
 
@@ -26,27 +27,27 @@ public class TransactionSynchronizationFactoryParserTests {
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("TransactioinSynchronizationFactoryParserTests-config.xml", this.getClass());
 
-		ExpressionEvaluatingTransactionSynchronizationFactory syncFactory =
-				context.getBean("syncFactoryComplete", ExpressionEvaluatingTransactionSynchronizationFactory.class);
+		DefaultTransactionSynchronizationFactory syncFactory =
+				context.getBean("syncFactoryComplete", DefaultTransactionSynchronizationFactory.class);
 		assertNotNull(syncFactory);
-		ExpressionEvaluatingTransactionSynchronizationProcessor processor =
+		TransactionSynchronizationProcessor processor =
 				TestUtils.getPropertyValue(syncFactory, "processor", ExpressionEvaluatingTransactionSynchronizationProcessor.class);
 		assertNotNull(processor);
 
-		MessageChannel beforeCommitResultChannel = TestUtils.getPropertyValue(processor, "beforeCommitResultChannel", MessageChannel.class);
+		MessageChannel beforeCommitResultChannel = TestUtils.getPropertyValue(processor, "beforeCommitChannel", MessageChannel.class);
 		assertNotNull(beforeCommitResultChannel);
 		assertEquals(beforeCommitResultChannel, context.getBean("beforeCommitChannel"));
 		Object beforeCommitExpression = TestUtils.getPropertyValue(processor, "beforeCommitExpression");
 		assertNull(beforeCommitExpression);
 
-		MessageChannel afterCommitResultChannel = TestUtils.getPropertyValue(processor, "afterCommitResultChannel", MessageChannel.class);
+		MessageChannel afterCommitResultChannel = TestUtils.getPropertyValue(processor, "afterCommitChannel", MessageChannel.class);
 		assertNotNull(afterCommitResultChannel);
 		assertEquals(afterCommitResultChannel, context.getBean("nullChannel"));
 		Expression afterCommitExpression = TestUtils.getPropertyValue(processor, "afterCommitExpression", Expression.class);
 		assertNotNull(afterCommitExpression);
 		assertEquals("'afterCommit'", ((SpelExpression)afterCommitExpression).getExpressionString());
 
-		MessageChannel afterRollbackResultChannel = TestUtils.getPropertyValue(processor, "afterRollbackResultChannel", MessageChannel.class);
+		MessageChannel afterRollbackResultChannel = TestUtils.getPropertyValue(processor, "afterRollbackChannel", MessageChannel.class);
 		assertNotNull(afterRollbackResultChannel);
 		assertEquals(afterRollbackResultChannel, context.getBean("afterRollbackChannel"));
 		Expression afterRollbackExpression = TestUtils.getPropertyValue(processor, "afterRollbackExpression", Expression.class);

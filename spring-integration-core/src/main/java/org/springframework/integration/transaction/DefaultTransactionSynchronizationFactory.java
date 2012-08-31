@@ -22,20 +22,22 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 /**
-*
-* @author Gary Russell
-* @author Oleg Zhurakousky
-* @since 2.2
-*
-*/
-public class ExpressionEvaluatingTransactionSynchronizationFactory implements
-		TransactionSynchronizationFactory {
+ * Default implementation of {@link TransactionSynchronizationFactory} which takes an instance of
+ * {@link TransactionSynchronizationProcessor} allowing you to create a {@link TransactionSynchronization}
+ * using {{@link #create(Object)} method.
+ *
+ * @author Gary Russell
+ * @author Oleg Zhurakousky
+ * @since 2.2
+ *
+ */
+public class DefaultTransactionSynchronizationFactory implements TransactionSynchronizationFactory {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private final ExpressionEvaluatingTransactionSynchronizationProcessor processor;
+	private final TransactionSynchronizationProcessor processor;
 
-	public ExpressionEvaluatingTransactionSynchronizationFactory(ExpressionEvaluatingTransactionSynchronizationProcessor processor){
+	public DefaultTransactionSynchronizationFactory(TransactionSynchronizationProcessor processor){
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
 	}
@@ -44,18 +46,26 @@ public class ExpressionEvaluatingTransactionSynchronizationFactory implements
 		Assert.notNull(key, "'key' must not be null");
 		Object resourceHolder = TransactionSynchronizationManager.getResource(key);
 		Assert.isInstanceOf(MessageSourceResourceHolder.class, resourceHolder);
-		return new PseudoTransactionalResourceSynchronization((MessageSourceResourceHolder) resourceHolder, key);
+		return new DefaultTransactionalResourceSynchronization((MessageSourceResourceHolder) resourceHolder, key);
 	}
 
-	private class PseudoTransactionalResourceSynchronization
+	private class DefaultTransactionalResourceSynchronization
 		extends ResourceHolderSynchronization<MessageSourceResourceHolder, Object> {
 
-		private final MessageSourceResourceHolder resourceHolder;
+		private final MessageSourceResourceHolder messageSourceHolder;
 
-		public PseudoTransactionalResourceSynchronization(MessageSourceResourceHolder resourceHolder,
+		public DefaultTransactionalResourceSynchronization(MessageSourceResourceHolder messageSourceHolder,
 				Object resourceKey) {
-			super(resourceHolder, resourceKey);
-			this.resourceHolder = resourceHolder;
+			super(messageSourceHolder, resourceKey);
+			this.messageSourceHolder = messageSourceHolder;
+		}
+
+		@Override
+		public void beforeCommit(boolean readOnly) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("'pre-Committing' pseudo-transactional resource");
+			}
+			processor.processBeforeCommit(messageSourceHolder.getMessage(), messageSourceHolder.getResource());
 		}
 
 		@Override
@@ -65,6 +75,7 @@ public class ExpressionEvaluatingTransactionSynchronizationFactory implements
 
 		@Override
 		protected void processResourceAfterCommit(MessageSourceResourceHolder resourceHolder) {
+
 			if (logger.isTraceEnabled()) {
 				logger.trace("'Committing' pseudo-transactional resource");
 			}
@@ -84,11 +95,11 @@ public class ExpressionEvaluatingTransactionSynchronizationFactory implements
 					logger.trace("'Rolling back' pseudo-transactional resource");
 				}
 
-				processor.processAfterRollback(resourceHolder.getMessage(), resourceHolder.getResource());
+				processor.processAfterRollback(messageSourceHolder.getMessage(), messageSourceHolder.getResource());
 
-				MessageSource<?> messageSource = resourceHolder.getMessageSource();
+				MessageSource<?> messageSource = messageSourceHolder.getMessageSource();
 				if (messageSource instanceof PseudoTransactionalMessageSource<?,?>){
-					((PseudoTransactionalMessageSource<?,?>)messageSource).afterRollback(resourceHolder.getResource());
+					((PseudoTransactionalMessageSource<?,?>)messageSource).afterRollback(messageSourceHolder.getResource());
 				}
 			}
 			super.afterCompletion(status);

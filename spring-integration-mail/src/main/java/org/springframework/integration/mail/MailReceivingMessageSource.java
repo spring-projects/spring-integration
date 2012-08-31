@@ -55,7 +55,6 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 		this.mailReceiver = mailReceiver;
 	}
 
-
 	public Message<javax.mail.Message> receive() {
 		try {
 			javax.mail.Message mailMessage = this.mailQueue.poll();
@@ -81,16 +80,13 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 
 	public MailReceiverContext getResource() {
 		return null;
-		//return this.mailReceiver.getTransactionContext();
 	}
 
 	public void afterCommit(Object context) {
-//		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
-//		this.mailReceiver.closeContextAfterSuccess((MailReceiverContext) context);
+		//noop
 	}
 
 	public void afterRollback(Object context) {
-//		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
-//		this.mailReceiver.closeContextAfterFailure((MailReceiverContext) context);
+		//noop
 	}
 }

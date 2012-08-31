@@ -156,6 +156,27 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
+	public void testListInboundConfigurationWithBeforeCommit() throws Exception{
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.prepareList(jcf);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
+		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronizationBeforeCommit", SourcePollingChannelAdapter.class);
+		spca.start();
+		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
+
+		QueueChannel adapterErrors = context.getBean("adapterErrors", QueueChannel.class);
+
+		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		assertNotNull(message);
+		assertNotNull(adapterErrors.receive(2000));
+		spca.stop();
+		context.close();
+	}
+
+
+	@Test
+	@RedisAvailable
+	@SuppressWarnings("unchecked")
 	public void testZsetInboundConfiguration(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		this.prepareZset(jcf);
