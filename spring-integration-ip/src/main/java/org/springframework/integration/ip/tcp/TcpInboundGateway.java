@@ -21,7 +21,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.OrderlyShutdownCapable;
+import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;

@@ -20,7 +20,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-import org.springframework.integration.core.OrderlyShutdownCapable;
+import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.util.Assert;
 
 /**
