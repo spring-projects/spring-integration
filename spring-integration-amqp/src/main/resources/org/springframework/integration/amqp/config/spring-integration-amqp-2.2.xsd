@@ -505,13 +505,17 @@ this list can also be simple patterns to be matched against the header names (e.
 		</xsd:attribute>
 		<xsd:attribute name="listener-container" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation>
+				<xsd:documentation><![CDATA[
 	Reference to the MessageListener container to use for receiving AMQP Messages. If this attribute is provided,
 	then no other attribute related to the listener container configuration should be provided. In other words, by
 	setting this reference, you must take full responsibility of the listener container configuration. The only
 	exception is the MessageListener itself. Since that is actually the core responsibility of this Channel Adapter
 	implementation, the referenced listener container must NOT already have its own MessageListener configured.
-				</xsd:documentation>
+	Note that this means that the external listener container must be configured using standard Spring <bean/>
+	(or @Bean) syntax. You cannot use the <rabbit:listener-container/> XML namespace support because it requires
+	attributes such as queue names to be specified on a child <listener/> element and, as stated above, the
+	container must not have a MessageListener defined.
+				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer"/>
