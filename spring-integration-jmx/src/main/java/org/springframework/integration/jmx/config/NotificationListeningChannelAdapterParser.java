@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class NotificationListeningChannelAdapterParser extends AbstractChannelAdapterParser {
-	
+
 	@Override
 	protected boolean shouldGenerateIdAsFallback() {
 		return true;

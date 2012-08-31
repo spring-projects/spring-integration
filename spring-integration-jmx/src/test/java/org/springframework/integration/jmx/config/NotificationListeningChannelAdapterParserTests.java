@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import javax.management.Notification;
 
@@ -37,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
@@ -47,7 +49,16 @@ public class NotificationListeningChannelAdapterParserTests {
 	private PollableChannel channel;
 
 	@Autowired
+	private PollableChannel patternChannel;
+
+	@Autowired
+	private PollableChannel multiChannel;
+
+	@Autowired
 	private TestPublisher testPublisher;
+
+	@Autowired
+	private TestPublisher testPublisher2;
 
 	@Autowired
 	private MessageChannel autoChannel;
@@ -59,10 +70,26 @@ public class NotificationListeningChannelAdapterParserTests {
 	public void receiveNotification() throws Exception {
 		assertNull(channel.receive(0));
 		testPublisher.send("ABC");
+		verifyReceipt(channel, "testPublisher");
+		verifyReceipt(patternChannel, "testPublisher");
+		// multiChannel should see 2 copies
+		verifyReceipt(multiChannel, "testPublisher");
+		verifyReceipt(multiChannel, "testPublisher");
+
+		testPublisher2.send("ABC");
+		assertNull(channel.receive(0));
+		assertNull(patternChannel.receive(0));
+		// multiChannel should see only 1 copy
+		verifyReceipt(multiChannel, "testPublisher2");
+		assertNull(multiChannel.receive(0));
+	}
+
+	private void verifyReceipt(PollableChannel channel, String beanName) {
 		Message<?> message = channel.receive(1000);
 		assertNotNull(message);
 		assertEquals(Notification.class, message.getPayload().getClass());
 		assertEquals("ABC", ((Notification) message.getPayload()).getMessage());
+		assertTrue(((String) ((Notification) message.getPayload()).getSource()).endsWith(beanName));
 	}
 
 	@Test
