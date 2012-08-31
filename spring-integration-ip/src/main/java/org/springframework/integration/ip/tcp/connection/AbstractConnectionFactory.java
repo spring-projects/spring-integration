@@ -430,10 +430,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * Creates a taskExecutor (if one was not provided).
 	 */
 	protected Executor getTaskExecutor() {
+		if (!this.active) {
+			throw new MessagingException("Connection Factory not started");
+		}
 		synchronized (this.lifecycleMonitor) {
-			if (!this.active) {
-				throw new MessagingException("Connection Factory not started");
-			}
 			if (this.taskExecutor == null) {
 				this.privateExecutor = true;
 				this.taskExecutor = Executors.newCachedThreadPool();
