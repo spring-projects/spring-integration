@@ -22,7 +22,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jmx.NotificationListeningMessageProducer;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -46,16 +45,7 @@ public class NotificationListeningChannelAdapterParser extends AbstractChannelAd
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "notification-filter", "filter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "handback");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
-		if (!StringUtils.hasText(element.getAttribute("object-name"))
-				&& !StringUtils.hasText(element.getAttribute("object-names-ref"))) {
-			parserContext.getReaderContext().error("At least one of 'object-name' or 'object-names-ref' is required", element);
-		}
-		if (StringUtils.hasText(element.getAttribute("object-name"))
-				&& StringUtils.hasText(element.getAttribute("object-names-ref"))) {
-			parserContext.getReaderContext().error("Only one of 'object-name' and 'object-names-ref' is allowed", element);
-		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "object-name");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-names-ref", "objectNames");
 		return builder.getBeanDefinition();
 	}
 

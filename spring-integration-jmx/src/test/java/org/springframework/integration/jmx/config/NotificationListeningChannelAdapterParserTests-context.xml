@@ -8,7 +8,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:mbean-export/>
@@ -45,15 +45,11 @@
 
 	<jmx:notification-listening-channel-adapter id="multiAdapter"
 			channel="multiChannel"
-			object-names-ref="patterns"/>
+			object-name="#{patterns}"/>
 
 	<util:list id="patterns">
-		<bean class="java.lang.String">
-			<constructor-arg value="org.springframework.integration.jmx.config:type=*,name=testPublisher"/>
-		</bean>
-		<bean class="java.lang.String">
-			<constructor-arg value="org.springframework.integration.jmx.config:type=*,name=testPub*"/>
-		</bean>
+		<value>org.springframework.integration.jmx.config:type=*,name=testPublisher</value>
+		<value>org.springframework.integration.jmx.config:type=*,name=testPub*</value>
 	</util:list>
 
 </beans>

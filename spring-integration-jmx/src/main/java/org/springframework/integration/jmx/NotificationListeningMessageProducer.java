@@ -37,7 +37,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * A JMX {@link NotificationListener} implementation that will send Messages
@@ -69,23 +69,13 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	}
 
 	/**
-	 * Specify the JMX ObjectName (or pattern)
-	 * of the notification publisher
- 	 * to which this notification listener should be subscribed.
-	 */
-	public void setObjectName(ObjectName objectName) {
-		Assert.notNull(objectName, "'objectName' must not be null");
-		this.objectNames = new ObjectName[] { objectName };
-	}
-
-	/**
 	 * Specify the JMX ObjectNames (or patterns)
-	 * of the notification publishers
+	 * of the notification publisher
 	 * to which this notification listener should be subscribed.
 	 */
-	public void setObjectNames(Collection<ObjectName> objectNames) {
-		Assert.isTrue(!CollectionUtils.isEmpty(objectNames), "'objectNames' must contain at least one ObjectName");
-		this.objectNames = objectNames.toArray(new ObjectName[objectNames.size()]);
+	public void setObjectName(ObjectName... objectNames) {
+		Assert.isTrue(!ObjectUtils.isEmpty(objectNames), "'objectNames' must contain at least one ObjectName");
+		this.objectNames = objectNames;
 	}
 
 	/**
@@ -132,10 +122,14 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	protected void doStart() {
+		logger.debug("Registering to receive notifications");
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
 			Assert.notNull(this.objectNames, "An ObjectName is required.");
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
+			if (objectNames.size() < 1) {
+				logger.error("No MBeans found matching ObjectName pattern(s)");
+			}
 			for (ObjectName objectName : objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
 			}
@@ -153,6 +147,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	protected void doStop() {
+		logger.debug("Unregistering notifications");
 		if (this.server != null && this.objectNames != null) {
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			for (ObjectName objectName : objectNames) {
@@ -182,7 +177,13 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			catch (IOException e) {
 				throw new IllegalStateException("IOException on MBeanServerConnection.", e);
 			}
+			if (mBeanInfos.size() == 0 && logger.isDebugEnabled()) {
+				logger.debug("No MBeans found matching pattern:" + pattern);
+			}
 			for (ObjectInstance instance : mBeanInfos) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Found MBean:" + instance.getObjectName().toString());
+				}
 				objectNames.add(instance.getObjectName());
 			}
 		}
