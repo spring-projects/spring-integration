@@ -158,12 +158,4 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	public void afterRollback(Object object) {
 		this.resourceHolder.remove();
 	}
-
-	public void afterReceiveNoTx(RedisStore resource) {
-		this.resourceHolder.remove();
-	}
-
-	public void afterSendNoTx(RedisStore resource) {
-		this.resourceHolder.remove();
-	}
 }

@@ -29,10 +29,10 @@ import java.util.Comparator;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -77,16 +77,6 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(filter);
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
-		assertEquals("foo", TestUtils.getPropertyValue(adapter, "onSuccessExpression", Expression.class).getValue());
-		assertSame(ac.getBean("successChannel"), TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onSuccessMessagingTemplate"), "defaultChannel"));
-		assertEquals(123L, TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onSuccessMessagingTemplate"), "sendTimeout"));
-		assertEquals("bar", TestUtils.getPropertyValue(adapter, "onFailureExpression", Expression.class).getValue());
-		assertSame(ac.getBean("failureChannel"), TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onFailureMessagingTemplate"), "defaultChannel"));
-		assertEquals(123L, TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onFailureMessagingTemplate"), "sendTimeout"));
 	}
 
 	@Test

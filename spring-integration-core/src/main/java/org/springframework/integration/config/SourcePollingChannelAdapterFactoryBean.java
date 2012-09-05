@@ -24,7 +24,6 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
@@ -145,30 +144,11 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
 			spca.setTrigger(this.pollerMetadata.getTrigger());
 			spca.setErrorHandler(this.pollerMetadata.getErrorHandler());
-			Expression onSuccessExpression = this.pollerMetadata.getOnSuccessExpression();
-			if (onSuccessExpression != null) {
-				spca.setOnSuccessExpression(onSuccessExpression);
-			}
-			MessageChannel onSuccessResultChannel = this.pollerMetadata.getOnSuccessResultChannel();
-			if (onSuccessResultChannel != null) {
-				spca.setOnSuccessResultChannel(onSuccessResultChannel);
-			}
-			Expression onFailureExpression = this.pollerMetadata.getOnFailureExpression();
-			if (onFailureExpression != null) {
-				spca.setOnFailureExpression(onFailureExpression);
-			}
-			MessageChannel onFailureResultChannel = this.pollerMetadata.getOnFailureResultChannel();
-			if (onFailureResultChannel != null) {
-				spca.setOnFailureChannel(onFailureResultChannel);
-			}
-			Long resultSendTimeout = this.pollerMetadata.getSendTimeout();
-			if (resultSendTimeout != null) {
-				spca.setResultSendTimeout(resultSendTimeout);
-			}
 			spca.setBeanClassLoader(this.beanClassLoader);
 			spca.setAutoStartup(this.autoStartup);
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
+			spca.setTransactionSynchronizationFactory(this.pollerMetadata.getTransactionSynchronizationFactory());
 			spca.afterPropertiesSet();
 			this.adapter = spca;
 			this.initialized = true;

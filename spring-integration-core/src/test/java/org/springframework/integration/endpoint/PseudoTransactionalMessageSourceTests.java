@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -23,18 +22,22 @@ import static org.junit.Assert.assertSame;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
+
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PseudoTransactionalMessageSource;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
+import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
+import org.springframework.integration.transaction.TransactionSynchronizationProcessor;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 
 /**
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 2.2
  *
  */
@@ -43,6 +46,14 @@ public class PseudoTransactionalMessageSourceTests {
 	@Test
 	public void testCommit() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+		TransactionSynchronizationProcessor syncProcessor =
+				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+
+		DefaultTransactionSynchronizationFactory syncFactory =
+				new DefaultTransactionSynchronizationFactory(syncProcessor);
+
+		adapter.setTransactionSynchronizationFactory(syncFactory);
+
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		final Object object = new Object();
@@ -64,12 +75,6 @@ public class PseudoTransactionalMessageSourceTests {
 
 			public void afterRollback(Object resource) {
 				rolledBack.set(resource);
-			}
-
-			public void afterReceiveNoTx(Object resource) {
-			}
-
-			public void afterSendNoTx(Object resource) {
 			}
 		});
 
@@ -85,86 +90,16 @@ public class PseudoTransactionalMessageSourceTests {
 	}
 
 	@Test
-	public void testPseudoCommitWithMessage() {
-		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		QueueChannel outputChannel = new QueueChannel();
-		adapter.setOutputChannel(outputChannel);
-		final Object object = new Object();
-		final AtomicReference<Object> afterReceive = new AtomicReference<Object>();
-		final AtomicReference<Object> afterSend = new AtomicReference<Object>();
-		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
-
-			public Message<String> receive() {
-				return new GenericMessage<String>("foo");
-			}
-
-			public Object getResource() {
-				return object;
-			}
-
-			public void afterCommit(Object resource) {
-				throw new RuntimeException("no tx - commit not expected");
-			}
-
-			public void afterRollback(Object resource) {
-				throw new RuntimeException("no tx - rollback not expected");
-			}
-
-			public void afterReceiveNoTx(Object resource) {
-				afterReceive.set(resource);
-			}
-
-			public void afterSendNoTx(Object resource) {
-				afterSend.set(resource);
-			}
-		});
-
-		adapter.doPoll();
-		assertSame(object, afterReceive.get());
-		assertSame(object, afterSend.get());
-	}
-
-	@Test
-	public void testPseudoCommitNoMessage() {
-		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		QueueChannel outputChannel = new QueueChannel();
-		adapter.setOutputChannel(outputChannel);
-		final Object object = new Object();
-		final AtomicReference<Object> afterReceive = new AtomicReference<Object>();
-		adapter.setSource(new PseudoTransactionalMessageSource<String, Object>() {
-
-			public Message<String> receive() {
-				return null;
-			}
-
-			public Object getResource() {
-				return object;
-			}
-
-			public void afterCommit(Object resource) {
-				throw new RuntimeException("no tx - commit not expected");
-			}
-
-			public void afterRollback(Object resource) {
-				throw new RuntimeException("no tx - rollback not expected");
-			}
-
-			public void afterReceiveNoTx(Object resource) {
-				afterReceive.set(resource);
-			}
-
-			public void afterSendNoTx(Object resource) {
-				throw new RuntimeException("no message - after send not expected");
-			}
-		});
-
-		adapter.doPoll();
-		assertSame(object, afterReceive.get());
-	}
-
-	@Test
 	public void testRollback() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+		TransactionSynchronizationProcessor syncProcessor =
+				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+
+		DefaultTransactionSynchronizationFactory syncFactory =
+				new DefaultTransactionSynchronizationFactory(syncProcessor);
+
+		adapter.setTransactionSynchronizationFactory(syncFactory);
+
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		final Object object = new Object();
@@ -186,12 +121,6 @@ public class PseudoTransactionalMessageSourceTests {
 
 			public void afterRollback(Object resource) {
 				rolledBack.set(resource);
-			}
-
-			public void afterReceiveNoTx(Object resource) {
-			}
-
-			public void afterSendNoTx(Object resource) {
 			}
 		});
 
@@ -208,6 +137,15 @@ public class PseudoTransactionalMessageSourceTests {
 	@Test
 	public void testSuccessAndFailureEvaluationWithResource() {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+
+		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
+				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+
+		DefaultTransactionSynchronizationFactory syncFactory =
+				new DefaultTransactionSynchronizationFactory(syncProcessor);
+
+		adapter.setTransactionSynchronizationFactory(syncFactory);
+
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
 		final Object object = new Bar();
@@ -230,22 +168,17 @@ public class PseudoTransactionalMessageSourceTests {
 			public void afterRollback(Object resource) {
 				rolledBack.set(resource);
 			}
-
-			public void afterReceiveNoTx(Object resource) {
-			}
-
-			public void afterSendNoTx(Object resource) {
-			}
 		});
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.setOnSuccessExpression(new SpelExpressionParser().parseExpression("payload + #resource.value"));
+
+		syncProcessor.setAfterCommitExpression(new SpelExpressionParser().parseExpression("payload + #resource.value"));
 		QueueChannel success = new QueueChannel();
-		adapter.setOnSuccessResultChannel(success);
-		adapter.setOnFailureExpression(new SpelExpressionParser().parseExpression("payload + 'X' + #resource.value"));
+		syncProcessor.setAfterCommitChannel(success);
+		syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("payload + 'X' + #resource.value"));
 		QueueChannel failure = new QueueChannel();
-		adapter.setOnFailureChannel(failure);
+		syncProcessor.setAfterRollbackChannel(failure);
 
 		adapter.doPoll();
 		TransactionSynchronizationUtils.triggerAfterCommit();
@@ -256,7 +189,6 @@ public class PseudoTransactionalMessageSourceTests {
 		assertNull(rolledBack.get());
 		Message<?> result = success.receive(10000);
 		assertNotNull(result);
-		assertEquals("foobar", result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 		committed.set(null);
 
 		TransactionSynchronizationManager.initSynchronization();
@@ -269,7 +201,6 @@ public class PseudoTransactionalMessageSourceTests {
 		assertNull(committed.get());
 		result = failure.receive(10000);
 		assertNotNull(result);
-		assertEquals("fooXbar", result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
 	}
 
 	public class Bar {

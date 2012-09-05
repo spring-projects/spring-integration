@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicReference;
+import java.lang.reflect.Field;
 
-import javax.mail.Flags;
 import javax.mail.Flags.Flag;
+import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
@@ -36,18 +35,9 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.support.TransactionSynchronizationUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
 
 /**
  * @author Oleg Zhurakousky
- * @author Gary Russell
  *
  */
 public class Pop3MailReceiverTests {
@@ -57,11 +47,13 @@ public class Pop3MailReceiverTests {
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(true);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-
-		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
-		Folder folder = context.getFolder();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -75,13 +67,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -89,7 +81,6 @@ public class Pop3MailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		receiver.closeContextAfterSuccess(context);
 		verify(msg1, times(1)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
 	}
@@ -99,11 +90,13 @@ public class Pop3MailReceiverTests {
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(false);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-
-		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
-		Folder folder = context.getFolder();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -112,13 +105,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -126,7 +119,6 @@ public class Pop3MailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		receiver.closeContextAfterFailure(context);
 		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
@@ -135,11 +127,13 @@ public class Pop3MailReceiverTests {
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-
-		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
-		Folder folder = context.getFolder();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -148,13 +142,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -162,7 +156,6 @@ public class Pop3MailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		receiver.closeContextAfterFailure(context);
 		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
@@ -171,11 +164,13 @@ public class Pop3MailReceiverTests {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
-
-		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
-		Folder folder = context.getFolder();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -184,13 +179,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-
+		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -198,82 +193,7 @@ public class Pop3MailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
-		receiver.closeContextAfterFailure(context);
 		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
-
-	@Test
-	public void testCommit() throws Exception {
-		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		QueueChannel outputChannel = new QueueChannel();
-		adapter.setOutputChannel(outputChannel);
-		Pop3MailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
-		receiver.setShouldDeleteMessages(true);
-		receiver = spy(receiver);
-		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
-		Folder folder = context.getFolder();
-		when(folder.isOpen()).thenReturn(true);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).openFolder();
-		adapter.setSource(new MailReceivingMessageSource(receiver));
-
-		TransactionSynchronizationManager.initSynchronization();
-		TransactionSynchronizationManager.setActualTransactionActive(true);
-		final AtomicReference<Method> doPollMethod = new AtomicReference<Method>();
-		ReflectionUtils.doWithMethods(SourcePollingChannelAdapter.class, new MethodCallback() {
-
-			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				if (method.getName() == "doPoll") {
-					doPollMethod.set(method);
-					method.setAccessible(true);
-				}
-			}
-		});
-		doPollMethod.get().invoke(adapter, (Object[]) null);
-		TransactionSynchronizationUtils.triggerAfterCommit();
-		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
-		TransactionSynchronizationManager.clearSynchronization();
-		verify(folder).close(true);
-	}
-
-	@Test
-	public void testRollback() throws Exception {
-		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		QueueChannel outputChannel = new QueueChannel();
-		adapter.setOutputChannel(outputChannel);
-		Pop3MailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
-		receiver.setShouldDeleteMessages(true);
-		receiver = spy(receiver);
-		MailReceiverContext context = MailTestsHelper.setupContextHolder(receiver);
-		Folder folder = context.getFolder();
-		when(folder.isOpen()).thenReturn(true);
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).openFolder();
-		adapter.setSource(new MailReceivingMessageSource(receiver));
-
-		TransactionSynchronizationManager.initSynchronization();
-		TransactionSynchronizationManager.setActualTransactionActive(true);
-		final AtomicReference<Method> doPollMethod = new AtomicReference<Method>();
-		ReflectionUtils.doWithMethods(SourcePollingChannelAdapter.class, new MethodCallback() {
-
-			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				if (method.getName() == "doPoll") {
-					doPollMethod.set(method);
-					method.setAccessible(true);
-				}
-			}
-		});
-		doPollMethod.get().invoke(adapter, (Object[]) null);
-		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
-		TransactionSynchronizationManager.clearSynchronization();
-		verify(folder).close(false);
-	}
-
 }

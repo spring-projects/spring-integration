@@ -20,9 +20,10 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
-import org.springframework.expression.Expression;
-import org.springframework.integration.MessageChannel;
+
+import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.Trigger;
+import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -46,15 +47,19 @@ public class PollerMetadata {
 
 	private volatile Executor taskExecutor;
 
-	private volatile Expression onSuccessExpression;
-
-	private volatile MessageChannel onSuccessResultChannel;
-
-	private volatile Expression onFailureExpression;
-
-	private volatile MessageChannel onFailureResultChannel;
-
 	private volatile long sendTimeout;
+
+	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
+
+	public void setTransactionSynchronizationFactory(
+			TransactionSynchronizationFactory transactionSynchronizationFactory) {
+		Assert.notNull(transactionSynchronizationFactory, "'transactionSynchronizationFactory' must not be null");
+		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
+	}
+
+	public TransactionSynchronizationFactory getTransactionSynchronizationFactory() {
+		return transactionSynchronizationFactory;
+	}
 
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;
@@ -111,38 +116,6 @@ public class PollerMetadata {
 
 	public Executor getTaskExecutor() {
 		return this.taskExecutor;
-	}
-
-	public Expression getOnSuccessExpression() {
-		return onSuccessExpression;
-	}
-
-	public void setOnSuccessExpression(Expression onSuccessExpression) {
-		this.onSuccessExpression = onSuccessExpression;
-	}
-
-	public MessageChannel getOnSuccessResultChannel() {
-		return onSuccessResultChannel;
-	}
-
-	public void setOnSuccessResultChannel(MessageChannel onSuccessResultChannel) {
-		this.onSuccessResultChannel = onSuccessResultChannel;
-	}
-
-	public Expression getOnFailureExpression() {
-		return onFailureExpression;
-	}
-
-	public void setOnFailureExpression(Expression onFailureExpression) {
-		this.onFailureExpression = onFailureExpression;
-	}
-
-	public MessageChannel getOnFailureResultChannel() {
-		return onFailureResultChannel;
-	}
-
-	public void setOnFailureResultChannel(MessageChannel onFailureResultChannel) {
-		this.onFailureResultChannel = onFailureResultChannel;
 	}
 
 	public long getSendTimeout() {

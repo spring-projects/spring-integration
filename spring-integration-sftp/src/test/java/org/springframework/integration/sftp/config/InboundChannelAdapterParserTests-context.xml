@@ -50,13 +50,14 @@
 			comparator="comparator"
 			delete-remote-files="${delete.remote.files}">
 		<poller fixed-rate="1000">
-			<pseudo-transactional on-success-expression="'foo'"
-				on-success-result-channel="successChannel"
-				on-failure-expression="'bar'"
-				on-failure-result-channel="failureChannel"
-				send-timeout="123" />
+			<transactional synchronization-factory="syncFactory"/>
 		</poller>
 	</sftp:inbound-channel-adapter>
+	
+	<transaction-synchronization-factory id="syncFactory">
+		<after-commit expression="'foo'" channel="successChannel"/>
+		<after-rollback expression="'bar'" channel="failureChannel"/>
+	</transaction-synchronization-factory>
 
 	<channel id="successChannel" />
 
@@ -114,5 +115,7 @@
 	</sftp:inbound-channel-adapter>
 
 	<bridge input-channel="autoChannel" output-channel="nullChannel" />
+	
+	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans:beans>
