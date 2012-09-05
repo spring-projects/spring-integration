@@ -17,8 +17,10 @@
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline03-01"
 	    correlation-key="JMSCorrelationID"
-		request-destination-name="siOutQueue03"/>
-	
+		request-destination-name="siOutQueue03">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="siOutQueue03"
 		connection-factory="connectionFactory"
@@ -37,8 +39,10 @@
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline03-02"
 	    correlation-key="corr03"
-		request-destination-name="anotherGatewayQueue03"/>
-		
+		request-destination-name="anotherGatewayQueue03">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="anotherGatewayQueue03"
 		correlation-key="corr03"
@@ -52,8 +56,10 @@
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline03-03"
 	    correlation-key="corr03"
-		request-destination-name="thirdGatewayQueue03"/>
-		
+		request-destination-name="thirdGatewayQueue03">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="thirdIn"
 		request-destination-name="thirdGatewayQueue03"
 		correlation-key="corr03"

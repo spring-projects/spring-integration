@@ -12,8 +12,10 @@
 	    connection-factory="connectionFactory" 
 		request-destination="siOutQueueA"
 		reply-destination="siInQueueA"
-		correlation-key="JMSCorrelationID"/>
-		
+		correlation-key="JMSCorrelationID">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<bean id="siOutQueueA" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="siOutQueueA.not.cached"/>
 	</bean>
@@ -29,8 +31,10 @@
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimized"
 	    connection-factory="connectionFactory" 
 		request-destination="siOutQueueB"
-		reply-destination="siInQueueB"/>
-		
+		reply-destination="siInQueueB">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<bean id="siOutQueueB" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="siOutQueueB.not.cached"/>
 	</bean>
@@ -47,8 +51,10 @@
 	    connection-factory="connectionFactory" 
 		request-destination="siOutQueueC"
 		reply-destination="siInQueueC"
-		correlation-key="JMSCorrelationID"/>
-		
+		correlation-key="JMSCorrelationID">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<bean id="siOutQueueC" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="siOutQueueC.not.cached"/>
 	</bean>
@@ -64,8 +70,10 @@
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedD"
 	    connection-factory="connectionFactory" 
 		request-destination="siOutQueueD"
-		reply-destination="siInQueueD"/>
-		
+		reply-destination="siInQueueD">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<bean id="siOutQueueD" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="siOutQueueD.not.cached"/>
 	</bean>

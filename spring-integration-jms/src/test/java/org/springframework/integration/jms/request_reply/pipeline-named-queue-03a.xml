@@ -17,8 +17,10 @@
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline03a-01"
 	    correlation-key="JMSCorrelationID"
-		request-destination-name="siOutQueue03a"/>
-	
+		request-destination-name="siOutQueue03a">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="siOutQueue03a"
 		connection-factory="connectionFactory"
@@ -37,8 +39,10 @@
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline03a-01"
 	    correlation-key="corr03a"
-		request-destination-name="anotherGatewayQueue03a"/>
-		
+		request-destination-name="anotherGatewayQueue03a">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="anotherGatewayQueue03a"
 		correlation-key="corr03a"
@@ -53,7 +57,9 @@
 		correlation-key="corr03a"
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline03a-01"
-		request-destination-name="thirdGatewayQueue03a"/>
+		request-destination-name="thirdGatewayQueue03a">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
 
 	<int:transformer input-channel="add10kOnTheWayBack" expression="payload + 10000" />
 		

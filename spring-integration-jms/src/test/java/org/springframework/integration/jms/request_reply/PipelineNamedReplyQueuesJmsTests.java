@@ -142,12 +142,12 @@ public class PipelineNamedReplyQueuesJmsTests {
 		this.timeouts = 0;
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(contextConfig, this.getClass());
+		final AtomicInteger successCounter = new AtomicInteger();
+		final AtomicInteger timeoutCounter = new AtomicInteger();
+		final AtomicInteger failureCounter = new AtomicInteger();
 		try {
 			final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 			final CountDownLatch latch = new CountDownLatch(requests);
-			final AtomicInteger successCounter = new AtomicInteger();
-			final AtomicInteger timeoutCounter = new AtomicInteger();
-			final AtomicInteger failureCounter = new AtomicInteger();
 
 			for (int i = 0; i < requests; i++) {
 				final int y = i;
@@ -168,10 +168,6 @@ public class PipelineNamedReplyQueuesJmsTests {
 				});
 			}
 			assertTrue(latch.await(60, TimeUnit.SECONDS));
-			System.out.println(contextConfig);
-			System.out.println("Success: " + successCounter.get());
-			System.out.println("Timeout: " + timeoutCounter.get());
-			System.out.println("Failure: " + failureCounter.get());
 			// technically all we care that its > 0,
 			// but reality of this test it has to be something more then 0
 			assertTrue(successCounter.get() > 10);
@@ -180,6 +176,10 @@ public class PipelineNamedReplyQueuesJmsTests {
 			this.timeouts = timeoutCounter.get();
 		}
 		finally {
+			System.out.println(contextConfig);
+			System.out.println("Success: " + successCounter.get());
+			System.out.println("Timeout: " + timeoutCounter.get());
+			System.out.println("Failure: " + failureCounter.get());
 			context.destroy();
 		}
 	}

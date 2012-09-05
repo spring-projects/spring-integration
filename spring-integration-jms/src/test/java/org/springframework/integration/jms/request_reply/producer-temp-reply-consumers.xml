@@ -10,7 +10,9 @@
 
 	<int-jms:outbound-gateway request-channel="jmsIn"
 	    connection-factory="connectionFactory" 
-		request-destination="siOutQueue"/>
+		request-destination="siOutQueue">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
 		
 	<bean id="siOutQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="siOutQueueA"/>

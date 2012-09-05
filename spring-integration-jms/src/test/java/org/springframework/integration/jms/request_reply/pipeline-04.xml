@@ -15,8 +15,10 @@
 
 	<int-jms:outbound-gateway request-channel="pipeline04"
 	    connection-factory="connectionFactory" 
-		request-destination-name="pipeline04-queue-01"/>
-	
+		request-destination-name="pipeline04-queue-01">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="pipeline04-queue-01"
 		connection-factory="connectionFactory"
@@ -34,8 +36,10 @@
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
 	    connection-factory="connectionFactory" 
 		request-destination-name="pipeline04-queue-02"
-		correlation-key="JMSCorrelationID"/>
-		
+		correlation-key="JMSCorrelationID">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="pipeline04-queue-02"
 		connection-factory="connectionFactory"

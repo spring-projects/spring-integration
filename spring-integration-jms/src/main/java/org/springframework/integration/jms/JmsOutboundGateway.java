@@ -114,6 +114,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private volatile GatewayReplyListenerContainer replyContainer;
 
+	private volatile ReplyContainerProperties replyContainerProperties;
+
+	private volatile boolean useReplyContainer;
+
 	private final Object initializationMonitor = new Object();
 
 	private volatile boolean autoStartup;
@@ -133,9 +137,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private volatile ScheduledFuture<?> reaper;
 
 	private final Object lifeCycleMonitor = new Object();
-
-	private volatile boolean useReplyContainer = true; // TODO: false after namespace support?
-
 
 	/**
 	 * Set whether message delivery should be persistent or non-persistent,
@@ -348,6 +349,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		this.setOutputChannel(replyChannel);
 	}
 
+	/**
+	 * @param replyContainerProperties the replyContainerproperties to set
+	 */
+	public void setReplyContainerProperties(ReplyContainerProperties replyContainerProperties) {
+		this.replyContainerProperties = replyContainerProperties;
+		this.useReplyContainer = true;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "jms:outbound-gateway";
@@ -431,40 +440,81 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());
 			}
 			/*
-			 *  This is needed because there is no way to enforce 2 or more gateways using the same reply queue
+			 *  This is needed because there is no way to detect 2 or more gateways using the same reply queue
 			 *  with no correlation key.
-			 *  TODO: Should we really enforce this, or just WARN? legacy actually doesn't work either.
 			 */
 			if (this.useReplyContainer && (this.correlationKey == null &&
 					(this.replyDestination != null || this.replyDestinationName != null))) {
 				if (logger.isWarnEnabled()) {
-					logger.warn("Cannot use a listener container with no correlation key and a specified destination(Name); " +
-							"falling back to legacy");
+					logger.warn("The gateway cannot use a reply listener container with a specified destination(Name) " +
+							"without a 'correlation-key'; " +
+							"a container will NOT be used; " +
+							"to avoid this problem, set the 'correlation-key' attribute; " +
+							"some consumers, including the Spring Integration <jms:inbound-gateway/>, " +
+							"support the use of the value 'JMSCorrelationID' " +
+							"for this purpose. Alternatively, do not specify a reply destination " +
+							"and a temporary queue will be used for replies.");
 				}
 				this.useReplyContainer = false;
 			}
 			if (this.useReplyContainer) {
 				GatewayReplyListenerContainer container = new GatewayReplyListenerContainer();
-				container.setConnectionFactory(this.connectionFactory);
-				if (this.replyDestination != null) {
-					container.setDestination(this.replyDestination);
-				}
-				if (StringUtils.hasText(this.replyDestinationName)) {
-					container.setDestinationName(this.replyDestinationName);
-				}
-				if (this.destinationResolver != null) {
-					container.setDestinationResolver(this.destinationResolver);
-				}
-				String messageSelector;
-				if (this.correlationKey != null) {
-					messageSelector = this.correlationKey + " LIKE '" + this.gatewayCorrelation + "%'";
-					container.setMessageSelector(messageSelector);
-				}
-				container.setMessageListener(this);
+				setContainerProperties(container);
 				container.afterPropertiesSet();
 				this.replyContainer = container;
 			}
 			this.initialized = true;
+		}
+	}
+
+	private void setContainerProperties(GatewayReplyListenerContainer container) {
+		container.setConnectionFactory(this.connectionFactory);
+		if (this.replyDestination != null) {
+			container.setDestination(this.replyDestination);
+		}
+		if (StringUtils.hasText(this.replyDestinationName)) {
+			container.setDestinationName(this.replyDestinationName);
+		}
+		if (this.destinationResolver != null) {
+			container.setDestinationResolver(this.destinationResolver);
+		}
+		container.setPubSubDomain(this.replyPubSubDomain);
+		if (this.correlationKey != null) {
+			String messageSelector = this.correlationKey + " LIKE '" + this.gatewayCorrelation + "%'";
+			container.setMessageSelector(messageSelector);
+		}
+		container.setMessageListener(this);
+		if (this.replyContainerProperties != null) {
+			if (this.replyContainerProperties.isSessionTransacted() != null) {
+				container.setSessionTransacted(this.replyContainerProperties.isSessionTransacted());
+			}
+			if (this.replyContainerProperties.getCacheLevel() != null) {
+				container.setCacheLevel(this.replyContainerProperties.getCacheLevel());
+			}
+			if (this.replyContainerProperties.getConcurrentConsumers() != null) {
+				container.setConcurrentConsumers(this.replyContainerProperties.getConcurrentConsumers());
+			}
+			if (this.replyContainerProperties.getIdleConsumerLimit() != null) {
+				container.setIdleConsumerLimit(this.replyContainerProperties.getIdleConsumerLimit());
+			}
+			if (this.replyContainerProperties.getIdleTaskExecutionLimit() != null) {
+				container.setIdleTaskExecutionLimit(this.replyContainerProperties.getIdleTaskExecutionLimit());
+			}
+			if (this.replyContainerProperties.getMaxConcurrentConsumers() != null) {
+				container.setMaxConcurrentConsumers(this.replyContainerProperties.getMaxConcurrentConsumers());
+			}
+			if (this.replyContainerProperties.getMaxMessagesPerTask() != null) {
+				container.setMaxMessagesPerTask(this.replyContainerProperties.getMaxMessagesPerTask());
+			}
+			if (this.replyContainerProperties.getReceiveTimeout() != null) {
+				container.setReceiveTimeout(this.replyContainerProperties.getReceiveTimeout());
+			}
+			if (this.replyContainerProperties.getRecoveryInterval() != null) {
+				container.setRecoveryInterval(this.replyContainerProperties.getRecoveryInterval());
+			}
+			if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
+				container.setSessionAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+			}
 		}
 	}
 
@@ -702,7 +752,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 		if (replyTo instanceof Topic && logger.isWarnEnabled()) {
 			logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
-					"because that ID can only be provided to a MessageSelector after the reuqest Message has been sent thereby " +
+					"because that ID can only be provided to a MessageSelector after the request Message has been sent thereby " +
 					"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
 					"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
 					"will be created before the request Message is sent.");
@@ -1021,6 +1071,109 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				JmsOutboundGateway.this.reaper = getTaskScheduler().schedule(this,
 						new Date(now + JmsOutboundGateway.this.receiveTimeout));
 			}
+		}
+	}
+
+	public static class ReplyContainerProperties {
+
+		private volatile Boolean sessionTransacted;
+
+		private volatile Integer sessionAcknowledgeMode;
+
+		private volatile Long receiveTimeout;
+
+		private volatile Long recoveryInterval;
+
+		private volatile Integer cacheLevel;
+
+		private volatile Integer concurrentConsumers;
+
+		private volatile Integer maxConcurrentConsumers;
+
+		private volatile Integer maxMessagesPerTask;
+
+		private volatile Integer idleConsumerLimit;
+
+		private volatile Integer idleTaskExecutionLimit;
+
+		public Boolean isSessionTransacted() {
+			return sessionTransacted;
+		}
+
+		public void setSessionTransacted(Boolean sessionTransacted) {
+			this.sessionTransacted = sessionTransacted;
+		}
+
+		public Integer getSessionAcknowledgeMode() {
+			return sessionAcknowledgeMode;
+		}
+
+		public void setSessionAcknowledgeMode(Integer sessionAcknowledgeMode) {
+			this.sessionAcknowledgeMode = sessionAcknowledgeMode;
+		}
+
+		public Long getReceiveTimeout() {
+			return receiveTimeout;
+		}
+
+		public void setReceiveTimeout(Long receiveTimeout) {
+			this.receiveTimeout = receiveTimeout;
+		}
+
+		public Long getRecoveryInterval() {
+			return recoveryInterval;
+		}
+
+		public void setRecoveryInterval(Long recoveryInterval) {
+			this.recoveryInterval = recoveryInterval;
+		}
+
+		public Integer getCacheLevel() {
+			return cacheLevel;
+		}
+
+		public void setCacheLevel(Integer cacheLevel) {
+			this.cacheLevel = cacheLevel;
+		}
+
+		public Integer getConcurrentConsumers() {
+			return concurrentConsumers;
+		}
+
+		public void setConcurrentConsumers(Integer concurrentConsumers) {
+			this.concurrentConsumers = concurrentConsumers;
+		}
+
+		public Integer getMaxConcurrentConsumers() {
+			return maxConcurrentConsumers;
+		}
+
+		public void setMaxConcurrentConsumers(Integer maxConcurrentConsumers) {
+			this.maxConcurrentConsumers = maxConcurrentConsumers;
+		}
+
+		public Integer getMaxMessagesPerTask() {
+			return maxMessagesPerTask;
+		}
+
+		public void setMaxMessagesPerTask(Integer maxMessagesPerTask) {
+			this.maxMessagesPerTask = maxMessagesPerTask;
+		}
+
+		public Integer getIdleConsumerLimit() {
+			return idleConsumerLimit;
+		}
+
+		public void setIdleConsumerLimit(Integer idleConsumerLimit) {
+			this.idleConsumerLimit = idleConsumerLimit;
+		}
+
+		public Integer getIdleTaskExecutionLimit() {
+			return idleTaskExecutionLimit;
+		}
+
+		public void setIdleTaskExecutionLimit(Integer idleTaskExecutionLimit) {
+			this.idleTaskExecutionLimit = idleTaskExecutionLimit;
 		}
 	}
 }

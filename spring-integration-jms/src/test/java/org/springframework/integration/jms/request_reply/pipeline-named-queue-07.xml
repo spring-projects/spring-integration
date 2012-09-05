@@ -17,8 +17,10 @@
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline07-01"
 	    correlation-key="foo"
-		request-destination-name="siOutQueue07"/>
-	
+		request-destination-name="siOutQueue07">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="jmsIn"
 		request-destination-name="siOutQueue07"
 		connection-factory="connectionFactory"
@@ -38,8 +40,10 @@
 	    connection-factory="connectionFactory" 
 	    reply-destination-name="pipeline07-02"
 		request-destination-name="anotherGatewayQueue07"
-		correlation-key="bar"/>
-		
+		correlation-key="bar">
+		<int-jms:reply-listener />
+	</int-jms:outbound-gateway>
+
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="anotherGatewayQueue07"
 		connection-factory="connectionFactory"
