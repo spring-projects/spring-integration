@@ -17,7 +17,6 @@ package org.springframework.integration.mongodb.inbound;
 
 import java.util.List;
 
-import org.springframework.context.MessageSource;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -29,10 +28,12 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transaction.MessageSourceResourceHolder;
 import org.springframework.integration.util.ExpressionUtils;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -58,7 +59,7 @@ import com.mongodb.DBObject;
  * @since 2.2
  */
 public class MongoDbMessageSource extends IntegrationObjectSupport
-				implements PseudoTransactionalMessageSource<Object, MongoOperations>{
+				implements MessageSource<Object> {
 
 	private final Expression queryExpression;
 
@@ -215,29 +216,12 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 					.build();
 		}
 
+		Object holder = TransactionSynchronizationManager.getResource(this);
+		if (holder != null) {
+			Assert.isInstanceOf(MessageSourceResourceHolder.class, holder);
+			((MessageSourceResourceHolder) holder).addAttribute("mongoTemplate", this.mongoTemplate);
+		}
+
 		return message;
-	}
-
-	/**
-	 * Returns the mongo-template.
-	 */
-	public MongoOperations getResource() {
-		return this.mongoTemplate;
-	}
-
-	public void afterCommit(Object object) {
-
-	}
-
-	public void afterRollback(Object object) {
-
-	}
-
-	public void afterReceiveNoTx(MongoOperations resource) {
-
-	}
-
-	public void afterSendNoTx(MongoOperations resource) {
-
 	}
 }

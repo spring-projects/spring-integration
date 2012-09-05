@@ -26,13 +26,14 @@
 				temporary-file-suffix=".foo"
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000">
-				<int:pseudo-transactional on-success-expression="'foo'"
-					on-success-result-channel="successChannel"
-					on-failure-expression="'bar'"
-					on-failure-result-channel="failureChannel"
-					send-timeout="123" />
+				<int:transactional synchronization-factory="syncFactory"/>
 			</int:poller>
 	</int-ftp:inbound-channel-adapter>
+	
+	<int:transaction-synchronization-factory id="syncFactory">
+		<int:after-commit expression="'foo'" channel="successChannel"/>
+		<int:after-rollback expression="'bar'" channel="failureChannel"/>
+	</int:transaction-synchronization-factory>
 
 	<int:channel id="successChannel" />
 
@@ -78,5 +79,7 @@
 	</int-ftp:inbound-channel-adapter>
 
 	<int:bridge input-channel="autoChannel" output-channel="nullChannel" />
+	
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans>

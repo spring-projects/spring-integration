@@ -18,16 +18,24 @@ package org.springframework.integration.redis.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.BoundListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -87,6 +95,42 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 
 	@Test
 	@RedisAvailable
+	public void testListInboundConfigurationWithSynchronizationAndRollback() throws Exception{
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.prepareList(jcf);
+
+		RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<Object, Object>();
+		redisTemplate.setConnectionFactory(jcf);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+
+		BoundListOperations<Object, Object> ops = redisTemplate.boundListOps("baz");
+
+		assertTrue(ops.size() == 0);
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
+		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronizationAndRollback", SourcePollingChannelAdapter.class);
+		SubscribableChannel redisFailChannel = context.getBean("redisFailChannel", SubscribableChannel.class);
+		redisFailChannel.subscribe(new MessageHandler() {
+
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new MessagingException("intentional");
+			}
+		});
+		spca.start();
+
+		Thread.sleep(1000);
+		ops = redisTemplate.boundListOps("baz");
+		assertTrue(ops.size() == 13);
+		ops = redisTemplate.boundListOps("bar");
+		assertTrue(ops.size() == 0);
+
+		spca.stop();
+		context.close();
+	}
+
+	@Test
+	@RedisAvailable
 	@SuppressWarnings("unchecked")
 	public void testListInboundConfigurationWithSynchronizationAndTemplate() throws Exception{
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
@@ -108,6 +152,27 @@ public class RedisCollectionsInboundChannelAdapterParserTests extends RedisAvail
 		spca.stop();
 		context.close();
 	}
+
+	@Test
+	@RedisAvailable
+	@SuppressWarnings("unchecked")
+	public void testListInboundConfigurationWithBeforeCommit() throws Exception{
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		this.prepareList(jcf);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("list-inbound-adapter.xml", this.getClass());
+		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronizationBeforeCommit", SourcePollingChannelAdapter.class);
+		spca.start();
+		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
+
+		QueueChannel adapterErrors = context.getBean("adapterErrors", QueueChannel.class);
+
+		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
+		assertNotNull(message);
+		assertNotNull(adapterErrors.receive(2000));
+		spca.stop();
+		context.close();
+	}
+
 
 	@Test
 	@RedisAvailable

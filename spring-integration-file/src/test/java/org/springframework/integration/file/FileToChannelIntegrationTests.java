@@ -25,9 +25,9 @@ import java.io.File;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -47,7 +47,7 @@ public class FileToChannelIntegrationTests {
 	@Autowired
 	PollableChannel resultChannel;
 
-	@Test(timeout = 2000)
+	@Test//(timeout = 2000)
 	public void fileMessageToChannel() throws Exception {
 		File file = File.createTempFile("test", null, inputDirectory);
 		file.setLastModified(System.currentTimeMillis() - 1000);
@@ -59,7 +59,7 @@ public class FileToChannelIntegrationTests {
 		assertNotNull(received.getPayload());
 		Message<?> result = resultChannel.receive(10000);
 		assertNotNull(result);
-		assertEquals(Boolean.TRUE, result.getHeaders().get(MessageHeaders.DISPOSITION_RESULT));
+		assertEquals(Boolean.TRUE, result.getPayload());
 		assertTrue(!file.exists());
 	}
 

@@ -63,9 +63,13 @@
 												auto-startup="false">
 
 		<int:poller fixed-rate="200" max-messages-per-poll="1">
-			<int:pseudo-transactional on-success-expression="@documentCleaner.remove(#resource, payload, headers.mongo_collectionName)" on-success-result-channel="nullChannel"/>
+		    <int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-mongodb:inbound-channel-adapter>
+	
+	<int:transaction-synchronization-factory id="syncFactory">
+		<int:after-commit expression="@documentCleaner.remove(#mongoTemplate, payload, headers.mongo_collectionName)"/>
+	</int:transaction-synchronization-factory>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithConverter"
 											   channel="replyChannel"
@@ -93,5 +97,6 @@
 		<int:queue/>
 	</int:channel>
 
+    <bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans>

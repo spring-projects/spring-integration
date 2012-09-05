@@ -201,7 +201,8 @@ public abstract class IntegrationNamespaceUtils {
 						"A 'poller' element that provides a 'ref' must have no child elements.", pollerElement);
 			}
 			targetBuilder.addPropertyReference("pollerMetadata", pollerElement.getAttribute("ref"));
-		} else {
+		}
+		else {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(pollerElement,
 					targetBuilder.getBeanDefinition());
 			if (beanDefinition == null) {

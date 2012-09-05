@@ -14,10 +14,7 @@
 	<int-file:inbound-channel-adapter id="pseudoTx"
 		channel="input" auto-startup="false" directory="${java.io.tmpdir}/si-test1">
 		<int:poller fixed-rate="500">
-			<int:pseudo-transactional
-				on-success-expression="payload.delete()" on-success-result-channel="successChannel"
-				on-failure-expression="'foo'" on-failure-result-channel="failureChannel"
-				send-timeout="500" />
+			<int:transactional synchronization-factory="syncFactoryA"/>
 		</int:poller>
 	</int-file:inbound-channel-adapter>
 
@@ -36,15 +33,34 @@
 	<int-file:inbound-channel-adapter id="realTx" channel="txInput" auto-startup="false"
 							 directory="${java.io.tmpdir}/si-test2">
 		<int:poller fixed-rate="500">
-			<int:transactional transaction-manager="txManager" />
-			<int:transaction-synchronization on-success-expression="@txManager.committed"
-						on-success-result-channel="successChannel"
-						on-failure-expression="@txManager.rolledBack"
-						on-failure-result-channel="failureChannel"
-						send-timeout="5000" />
+			<int:transactional transaction-manager="txManager" synchronization-factory="syncFactoryB"/>
 		</int:poller>
 	</int-file:inbound-channel-adapter>
 
 	<bean id="txManager" class="org.springframework.integration.file.FileInboundTransactionTests$DummyTxManager" />
+	
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+	
+	<bean id="syncFactoryA" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload.delete()')}"/>
+				<property name="afterCommitChannel" ref="successChannel"/>
+				<property name="afterRollbackExpression" value="#{new org.springframework.expression.common.LiteralExpression('foo')}"/>
+				<property name="afterRollbackChannel" ref="failureChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+	
+	<bean id="syncFactoryB" class="org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor">
+				<property name="afterCommitExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('@txManager.committed')}"/>
+				<property name="afterCommitChannel" ref="successChannel"/>
+				<property name="afterRollbackExpression" value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('@txManager.rolledBack')}"/>
+				<property name="afterRollbackChannel" ref="failureChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
 
 </beans>

@@ -29,11 +29,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -83,16 +83,6 @@ public class InboundChannelAdapterParserTests {
 		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		assertNotNull(requestChannel.receive(2000));
-		assertEquals("foo", TestUtils.getPropertyValue(adapter, "onSuccessExpression", Expression.class).getValue());
-		assertSame(context.getBean("successChannel"), TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onSuccessMessagingTemplate"), "defaultChannel"));
-		assertEquals(123L, TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onSuccessMessagingTemplate"), "sendTimeout"));
-		assertEquals("bar", TestUtils.getPropertyValue(adapter, "onFailureExpression", Expression.class).getValue());
-		assertSame(context.getBean("failureChannel"), TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onFailureMessagingTemplate"), "defaultChannel"));
-		assertEquals(123L, TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(adapter, "onFailureMessagingTemplate"), "sendTimeout"));
 	}
 
 	@Test
