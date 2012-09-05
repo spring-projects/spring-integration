@@ -12,6 +12,7 @@
  */
 package org.springframework.integration.transaction;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,8 +53,24 @@ public class MessageSourceResourceHolder implements ResourceHolder {
 		return message;
 	}
 
+	/**
+	 * Adds attribute to this {@link ResourceHolder} instance
+	 *
+	 * @param key
+	 * @param value
+	 */
+	public void addAttribute(String key, Object value){
+		this.attributes.put(key, value);
+	}
+
+	/**
+	 * Will return an immutable Mpa of current attributes.
+	 * If you need to add attribute use {{@link #addAttribute(String, Object)} method.
+	 *
+	 * @return
+	 */
 	public Map<String, Object> getAttributes() {
-		return attributes;
+		return Collections.unmodifiableMap(attributes);
 	}
 
 	public void reset() {

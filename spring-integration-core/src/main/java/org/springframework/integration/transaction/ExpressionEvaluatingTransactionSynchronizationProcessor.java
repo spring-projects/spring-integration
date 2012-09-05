@@ -12,6 +12,8 @@
  */
 package org.springframework.integration.transaction;
 
+import java.util.Map.Entry;
+
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -159,7 +161,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	}
 
 	/**
-	 * If we don't need a resource variable (not a {@link PseudoTransactionalMessageSource})
+	 * If we don't need a resource variable (e.g., resource is null)
 	 * we can use a singleton context; otherwise we need a new one each time.
 	 * @param resource The resource
 	 * @return The context.
@@ -168,6 +170,16 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		StandardEvaluationContext evaluationContextToUse;
 		if (resource != null) {
 			evaluationContextToUse = this.createEvaluationContext();
+			if (resource instanceof MessageSourceResourceHolder) {
+				MessageSourceResourceHolder holder = (MessageSourceResourceHolder) resource;
+				for (Entry<String, Object> entry : holder.getAttributes().entrySet()) {
+					String key = entry.getKey();
+					Assert.state(!("messageSource".equals(key)), "'messageSource' is reserved and cannot be used as an attribute name");
+					evaluationContextToUse.setVariable(key, entry.getValue());
+				}
+				evaluationContextToUse.setVariable("messageSource", holder.getMessageSource());
+			}
+
 			evaluationContextToUse.setVariable("resource", resource);
 		}
 		else {

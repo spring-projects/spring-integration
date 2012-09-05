@@ -123,7 +123,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		Object holder = TransactionSynchronizationManager.getResource(this);
 		if (holder != null) {
 			Assert.isInstanceOf(MessageSourceResourceHolder.class, holder);
-			((MessageSourceResourceHolder) holder).getAttributes().put("store", store);
+			((MessageSourceResourceHolder) holder).addAttribute("store", store);
 		}
 
 		if (store instanceof Collection<?> && ((Collection<Object>)store).size() < 1){

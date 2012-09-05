@@ -219,7 +219,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 		Object holder = TransactionSynchronizationManager.getResource(this);
 		if (holder != null) {
 			Assert.isInstanceOf(MessageSourceResourceHolder.class, holder);
-			((MessageSourceResourceHolder) holder).getAttributes().put("mongoTemplate", this.mongoTemplate);
+			((MessageSourceResourceHolder) holder).addAttribute("mongoTemplate", this.mongoTemplate);
 		}
 
 		return message;

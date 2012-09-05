@@ -68,7 +68,7 @@
 	</int-mongodb:inbound-channel-adapter>
 	
 	<int:transaction-synchronization-factory id="syncFactory">
-		<int:after-commit expression="@documentCleaner.remove(#resource.attributes['mongoTemplate'], payload, headers.mongo_collectionName)"/>
+		<int:after-commit expression="@documentCleaner.remove(#mongoTemplate, payload, headers.mongo_collectionName)"/>
 	</int:transaction-synchronization-factory>
 
 	<int-mongodb:inbound-channel-adapter id="mongoInboundAdapterWithConverter"
