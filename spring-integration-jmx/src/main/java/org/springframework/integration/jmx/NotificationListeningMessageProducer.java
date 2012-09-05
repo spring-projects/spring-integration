@@ -18,6 +18,7 @@ package org.springframework.integration.jmx;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -128,7 +129,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 			Assert.notNull(this.objectNames, "An ObjectName is required.");
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			if (objectNames.size() < 1) {
-				logger.error("No MBeans found matching ObjectName pattern(s)");
+				logger.error("No MBeans found matching ObjectName pattern(s): " +
+							Arrays.asList(this.objectNames));
 			}
 			for (ObjectName objectName : objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);

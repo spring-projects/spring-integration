@@ -72,9 +72,12 @@
 
 	<xsd:element name="notification-listening-channel-adapter">
 		<xsd:annotation>
-			<xsd:documentation>
-				Defines an inbound Channel Adapter that listens for JMX notifications.
-			</xsd:documentation>
+			<xsd:documentation><![CDATA[
+				Defines an inbound Channel Adapter that listens for JMX notifications. The 'object-name'
+				attribute on this endpoint can contain an ObjectName pattern and the MBeanServer will
+				be queried for MBeans with ObjectNames matching the pattern. In addition, it can contain
+				a SpEL expression that references a <util:list/> of ObjectNames or ObjectName patterns.
+			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
