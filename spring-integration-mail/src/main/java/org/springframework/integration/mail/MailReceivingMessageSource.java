@@ -25,8 +25,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
-import org.springframework.integration.mail.MailReceiver.MailReceiverContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -38,8 +36,9 @@ import org.springframework.util.Assert;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  */
-public class MailReceivingMessageSource implements PseudoTransactionalMessageSource<javax.mail.Message, MailReceiverContext> {
+public class MailReceivingMessageSource implements MessageSource<javax.mail.Message> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -52,7 +51,6 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 		Assert.notNull(mailReceiver, "mailReceiver must not be null");
 		this.mailReceiver = mailReceiver;
 	}
-
 
 	public Message<javax.mail.Message> receive() {
 		try {
@@ -77,31 +75,4 @@ public class MailReceivingMessageSource implements PseudoTransactionalMessageSou
 		return null;
 	}
 
-	public MailReceiverContext getResource() {
-		return this.mailReceiver.getTransactionContext();
-	}
-
-	public void afterCommit(Object context) {
-		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
-		this.mailReceiver.closeContextAfterSuccess((MailReceiverContext) context);
-	}
-
-	public void afterRollback(Object context) {
-		Assert.isTrue(context instanceof MailReceiverContext, "Expected a MailReceiverContext");
-		this.mailReceiver.closeContextAfterFailure((MailReceiverContext) context);
-	}
-
-	/**
-	 * For backwards-compatibility; with no tx, the mail adapter updates the status before the send.
-	 */
-	public void afterReceiveNoTx(MailReceiverContext resource) {
-		this.afterCommit(resource);
-	}
-
-	/**
-	 * For backwards-compatibility; with no tx, the mail adapter updates the status before the send.
-	 */
-	public void afterSendNoTx(MailReceiverContext resource) {
-		// No op
-	}
 }

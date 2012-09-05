@@ -29,9 +29,11 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.PseudoTransactionalMessageSource;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transaction.MessageSourceResourceHolder;
 import org.springframework.integration.util.ExpressionUtils;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 /**
  * Inbound channel adapter which returns a Message representing a view into
@@ -43,7 +45,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  */
 public class RedisStoreMessageSource extends IntegrationObjectSupport
-		implements PseudoTransactionalMessageSource<RedisStore, RedisStore> {
+		implements MessageSource<RedisStore> {
 
 	private final ThreadLocal<RedisStore> resourceHolder = new ThreadLocal<RedisStore>();
 
@@ -117,7 +119,12 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		Assert.hasText(key, "Failed to determine the key for the collection");
 
 		RedisStore store = this.createStoreView(key);
-		this.resourceHolder.set(store);
+
+		Object holder = TransactionSynchronizationManager.getResource(this);
+		if (holder != null) {
+			Assert.isInstanceOf(MessageSourceResourceHolder.class, holder);
+			((MessageSourceResourceHolder) holder).addAttribute("store", store);
+		}
 
 		if (store instanceof Collection<?> && ((Collection<Object>)store).size() < 1){
 			return null;
@@ -156,14 +163,6 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	}
 
 	public void afterRollback(Object object) {
-		this.resourceHolder.remove();
-	}
-
-	public void afterReceiveNoTx(RedisStore resource) {
-		this.resourceHolder.remove();
-	}
-
-	public void afterSendNoTx(RedisStore resource) {
 		this.resourceHolder.remove();
 	}
 }

@@ -168,18 +168,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="error-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<xsd:documentation>
-	Channel to which Error Messages will be sent.
-						</xsd:documentation>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="message-converter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -191,6 +179,16 @@
 							<tool:expected-type type="org.springframework.integration.support.converter.MessageConverter"/>
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Identifies channel that error messages will be sent to if a failure occurs in this
+						gateway's invocation. If no "error-channel" reference is provided, this gateway will
+						propagate Exceptions to the caller. To completely suppress Exceptions, provide a
+						reference to the "nullChannel" here.
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
