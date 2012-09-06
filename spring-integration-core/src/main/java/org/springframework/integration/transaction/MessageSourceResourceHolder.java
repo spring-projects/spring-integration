@@ -64,10 +64,10 @@ public class MessageSourceResourceHolder implements ResourceHolder {
 	}
 
 	/**
-	 * Will return an immutable Mpa of current attributes.
-	 * If you need to add attribute use {{@link #addAttribute(String, Object)} method.
+	 * Will return an immutable Map of current attributes.
+	 * If you need to add an attribute, use the {@link #addAttribute(String, Object)} method.
 	 *
-	 * @return
+	 * @return the immutable map.
 	 */
 	public Map<String, Object> getAttributes() {
 		return Collections.unmodifiableMap(attributes);
