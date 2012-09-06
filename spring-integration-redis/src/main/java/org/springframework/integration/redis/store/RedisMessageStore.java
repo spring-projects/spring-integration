@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 the original author or authors
+ * Copyright 2007-2012 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 
 /**
  * Redis implementation of the key/value style {@link MessageStore} and {@link MessageGroupStore}
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  */
@@ -52,7 +52,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
 		this.redisTemplate.setValueSerializer(valueSerializer);
 	}
-	
+
 	@Override
 	protected Object doRetrieve(Object id){
 		Assert.notNull(id, "'id' must not be null");
@@ -83,7 +83,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null){
 			redisTemplate.delete(id);
-		}	
+		}
 		return removedObject;
 	}
 
