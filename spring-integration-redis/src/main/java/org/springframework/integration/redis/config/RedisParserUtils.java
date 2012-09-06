@@ -35,8 +35,8 @@ public class RedisParserUtils {
 				element.hasAttribute("hash-key-serializer") ||
 				element.hasAttribute("hash-value-serializer")){
 
-				parserContext.getReaderContext().error("Serializers can not be provided if this adapter is initailized " +
-						"with RedisTemplate. You may set serializers directly on RedisTemplate", element);
+				parserContext.getReaderContext().error("Serializers can not be provided if this adapter is initialized " +
+						"with an external RedisTemplate. You may set serializers directly on the RedisTemplate", element);
 			}
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "key-serializer");

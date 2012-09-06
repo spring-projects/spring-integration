@@ -36,10 +36,10 @@ public class RedisCollectionsInboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-store-adapter-parser.xml", this.getClass());
 		RedisStoreMessageSource source =
 				TestUtils.getPropertyValue(context.getBean("adapterWithConnectionFactory"), "source", RedisStoreMessageSource.class);
-		assertEquals(TestUtils.getPropertyValue(source, "keySerializer"), context.getBean("serializer"));
-		assertEquals(TestUtils.getPropertyValue(source, "valueSerializer"), context.getBean("serializer"));
-		assertEquals(TestUtils.getPropertyValue(source, "hashKeySerializer"), context.getBean("serializer"));
-		assertEquals(TestUtils.getPropertyValue(source, "hashValueSerializer"), context.getBean("serializer"));
+		assertEquals(context.getBean("keySerializer"), TestUtils.getPropertyValue(source, "keySerializer"));
+		assertEquals(context.getBean("valueSerializer"), TestUtils.getPropertyValue(source, "valueSerializer"));
+		assertEquals(context.getBean("hashKeySerializer"), TestUtils.getPropertyValue(source, "hashKeySerializer"));
+		assertEquals(context.getBean("hashValueSerializer"), TestUtils.getPropertyValue(source, "hashValueSerializer"));
 		assertEquals("'presidents'", ((SpelExpression)TestUtils.getPropertyValue(source, "keyExpression")).getExpressionString());
 		assertEquals("LIST", ((CollectionType)TestUtils.getPropertyValue(source, "collectionType")).toString());
 	}

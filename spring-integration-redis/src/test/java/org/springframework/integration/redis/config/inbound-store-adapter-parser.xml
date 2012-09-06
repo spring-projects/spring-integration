@@ -13,10 +13,10 @@
 											channel="redisChannel"
 											auto-startup="false"
 											collection-type="LIST"
-											key-serializer="serializer"
-											value-serializer="serializer"
-											hash-key-serializer="serializer"
-											hash-value-serializer="serializer">
+											key-serializer="keySerializer"
+											value-serializer="valueSerializer"
+											hash-key-serializer="hashKeySerializer"
+											hash-value-serializer="hashValueSerializer">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 	</int-redis:store-inbound-channel-adapter>
 
@@ -26,7 +26,10 @@
 
 	<int:channel id="redisChannel"/>
 		
-	<bean id="serializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="keySerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="valueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="hashKeySerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="hashValueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
 	
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>

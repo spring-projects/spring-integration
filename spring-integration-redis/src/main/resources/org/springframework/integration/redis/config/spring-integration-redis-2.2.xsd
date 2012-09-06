@@ -422,7 +422,9 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer
+								to serialize the 'key' value for this collection. Please refer to the JavaDoc of RedisTemplate 
+								for more detail.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
@@ -435,6 +437,8 @@
 							<xsd:appinfo>
 								<xsd:documentation>
 								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								to serialize the 'value' entered into the collection. Please refer to the JavaDoc of RedisTemplate 
+								for more detail.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
@@ -447,6 +451,8 @@
 							<xsd:appinfo>
 								<xsd:documentation>
 								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								to be used when serializing hash keys (only relevant for hash-typed collections). 
+								Please refer to the JavaDoc of RedisTemplate for more detail.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
@@ -459,6 +465,8 @@
 							<xsd:appinfo>
 								<xsd:documentation>
 								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								to be used when serializing hash values (only relevant for hash-typed collections). 
+								Please refer to the JavaDoc of RedisTemplate for more detail.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
