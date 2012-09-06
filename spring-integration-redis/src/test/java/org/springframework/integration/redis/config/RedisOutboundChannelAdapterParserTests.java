@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.config;
 
+import static junit.framework.Assert.assertEquals;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,8 +35,6 @@ import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static junit.framework.Assert.assertEquals;
-
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
@@ -46,8 +46,8 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 
 	@Autowired
 	private ApplicationContext context;
-	
-	@Test 
+
+	@Test
 	@RedisAvailable
 	public void validateConfiguration() {
 		EventDrivenConsumer adapter = context.getBean("outboundAdapter", EventDrivenConsumer.class);
@@ -58,9 +58,10 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 		assertEquals("foo", accessor.getPropertyValue("defaultTopic"));
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
+		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
 	}
- 
-	@Test 
+
+	@Test
 	@RedisAvailable
 	public void testOutboundChannelAdapterMessaging() throws Exception{
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);

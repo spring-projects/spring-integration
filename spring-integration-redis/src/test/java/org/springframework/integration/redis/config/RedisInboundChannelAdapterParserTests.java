@@ -26,9 +26,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
+import org.springframework.integration.redis.inbound.RedisStoreMessageSource;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
@@ -65,6 +69,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 		assertEquals(errorChannelBean, accessor.getPropertyValue("errorChannel"));
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
+		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
 	}
 
 	@Test
@@ -85,6 +90,46 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 	@RedisAvailable
 	public void testAutoChannel() {
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void cantSetKeySerializer() {
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+		redisTemplate.setConnectionFactory(new JedisConnectionFactory());
+		RedisStoreMessageSource source = new RedisStoreMessageSource(redisTemplate,
+				new LiteralExpression("foo"));
+		source.setKeySerializer(new StringRedisSerializer());
+		source.afterPropertiesSet();
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void cantSetValueSerializer() {
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+		redisTemplate.setConnectionFactory(new JedisConnectionFactory());
+		RedisStoreMessageSource source = new RedisStoreMessageSource(redisTemplate,
+				new LiteralExpression("foo"));
+		source.setValueSerializer(new StringRedisSerializer());
+		source.afterPropertiesSet();
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void cantSetHashKeySerializer() {
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+		redisTemplate.setConnectionFactory(new JedisConnectionFactory());
+		RedisStoreMessageSource source = new RedisStoreMessageSource(redisTemplate,
+				new LiteralExpression("foo"));
+		source.setHashKeySerializer(new StringRedisSerializer());
+		source.afterPropertiesSet();
+	}
+
+	@Test(expected=IllegalStateException.class)
+	public void cantSetHashValueSerializer() {
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+		redisTemplate.setConnectionFactory(new JedisConnectionFactory());
+		RedisStoreMessageSource source = new RedisStoreMessageSource(redisTemplate,
+				new LiteralExpression("foo"));
+		source.setHashValueSerializer(new StringRedisSerializer());
+		source.afterPropertiesSet();
 	}
 
 	@SuppressWarnings("unused")
