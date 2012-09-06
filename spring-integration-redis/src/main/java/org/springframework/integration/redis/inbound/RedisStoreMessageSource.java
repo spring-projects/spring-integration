@@ -84,7 +84,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 
 		this.redisTemplate = redisTemplate;
-		this.usingDefaultTemplate = true;
+		this.usingDefaultTemplate = false;
 		this.keyExpression = keyExpression;
 	}
 

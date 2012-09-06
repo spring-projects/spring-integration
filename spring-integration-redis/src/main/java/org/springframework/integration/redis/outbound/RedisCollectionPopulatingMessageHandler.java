@@ -122,7 +122,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 		this.redisTemplate = redisTemplate;
-		this.usingDefaultTemplate = true;
+		this.usingDefaultTemplate = false;
 		if (keyExpression != null) {
 			this.keyExpression = keyExpression;
 		}
