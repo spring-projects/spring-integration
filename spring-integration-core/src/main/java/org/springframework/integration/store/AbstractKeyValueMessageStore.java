@@ -210,10 +210,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Set<String> normalizedKeys = new HashSet<String>();
 		for (Object key : keys) {
 			String strKey = (String) key;
-			if (strKey.contains(MESSAGE_GROUP_KEY_PREFIX)){
+			if (strKey.startsWith(MESSAGE_GROUP_KEY_PREFIX)){
 				strKey = strKey.replace(MESSAGE_GROUP_KEY_PREFIX, "");
 			}
-			else if (strKey.contains(MESSAGE_KEY_PREFIX)){
+			else if (strKey.startsWith(MESSAGE_KEY_PREFIX)){
 				strKey = strKey.replace(MESSAGE_KEY_PREFIX, "");
 			}
 			normalizedKeys.add(strKey);

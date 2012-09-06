@@ -16,7 +16,6 @@
 package org.springframework.integration.redis.store;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -45,7 +44,6 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.store.AbstractKeyValueMessageStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -278,8 +276,15 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		while (messageGroups.hasNext()) {
 			MessageGroup group = messageGroups.next();
 			String groupId = (String) group.getGroupId();
-			assertFalse(groupId.contains(AbstractKeyValueMessageStore.MESSAGE_GROUP_KEY_PREFIX));
-			assertFalse(groupId.contains(AbstractKeyValueMessageStore.MESSAGE_KEY_PREFIX));
+			if (groupId.equals("1")){
+				assertEquals(1, group.getMessages().size());
+			}
+			else if (groupId.equals("2")) {
+				assertEquals(1, group.getMessages().size());
+			}
+			else if (groupId.equals("3")) {
+				assertEquals(2, group.getMessages().size());
+			}
 			counter++;
 		}
 		assertEquals(3, counter);
