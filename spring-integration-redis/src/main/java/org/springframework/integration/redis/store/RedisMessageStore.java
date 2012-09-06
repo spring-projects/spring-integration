@@ -17,7 +17,6 @@
 package org.springframework.integration.redis.store;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -93,17 +92,6 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	protected Collection<?> doListKeys(String keyPattern) {
 		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
 		Set<Object> keys = redisTemplate.keys(keyPattern);
-		Set<String> normalizedKeys = new HashSet<String>();
-		for (Object key : keys) {
-			String strKey = (String) key;
-			if (strKey.contains(MESSAGE_GROUP_KEY_PREFIX)){
-				strKey = strKey.replace(MESSAGE_GROUP_KEY_PREFIX, "");
-			}
-			else if (strKey.contains(MESSAGE_KEY_PREFIX)){
-				strKey = strKey.replace(MESSAGE_KEY_PREFIX, "");
-			}
-			normalizedKeys.add(strKey);
-		}
-		return normalizedKeys;
+		return keys;
 	}
 }

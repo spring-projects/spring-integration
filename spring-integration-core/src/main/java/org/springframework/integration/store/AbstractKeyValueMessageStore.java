@@ -18,8 +18,10 @@ package org.springframework.integration.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -198,9 +200,25 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Iterator<MessageGroup> iterator() {
-		final Iterator<?> idIterator = this.doListKeys(MESSAGE_GROUP_KEY_PREFIX + "*").iterator();
+		final Iterator<?> idIterator = this.normalizeKeys((Collection<String>) this.doListKeys(MESSAGE_GROUP_KEY_PREFIX + "*")).iterator();
 		return new MessageGroupIterator(idIterator);
+	}
+
+	private Collection<String> normalizeKeys(Collection<String> keys){
+		Set<String> normalizedKeys = new HashSet<String>();
+		for (Object key : keys) {
+			String strKey = (String) key;
+			if (strKey.contains(MESSAGE_GROUP_KEY_PREFIX)){
+				strKey = strKey.replace(MESSAGE_GROUP_KEY_PREFIX, "");
+			}
+			else if (strKey.contains(MESSAGE_KEY_PREFIX)){
+				strKey = strKey.replace(MESSAGE_KEY_PREFIX, "");
+			}
+			normalizedKeys.add(strKey);
+		}
+		return normalizedKeys;
 	}
 
 	public int messageGroupSize(Object groupId) {
