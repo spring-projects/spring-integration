@@ -12,6 +12,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int-redis:store-outbound-channel-adapter id="storeAdapter"
+											  redis-template="redisTemplate"
 											  collection-type="PROPERTIES"
 											  key="pepboys"
 											  key-serializer="keySerializer"
@@ -25,6 +26,10 @@
 	<bean id="hashKeySerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
 	<bean id="hashValueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
 
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="redisConnectionFactory"/>
+	</bean>
+	
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
 	</bean>

@@ -21,7 +21,6 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -95,6 +94,8 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private volatile RedisSerializer<?> hashValueSerializer;
 
+	private volatile boolean usingDefaultTemplate = true;
+
 	/**
 	 * Will construct this instance using fully created and initialized instance of
 	 * provided {@link RedisTemplate}
@@ -120,6 +121,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 		this.redisTemplate = redisTemplate;
+		this.usingDefaultTemplate = false;
 		if (keyExpression != null) {
 			this.keyExpression = keyExpression;
 		}
@@ -162,21 +164,25 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	public void setKeySerializer(RedisSerializer<?> keySerializer) {
+		Assert.state(this.usingDefaultTemplate, "'keySerializer' can not be set if a RedisTemplate was explicitly provided");
 		Assert.notNull(keySerializer, "'keySerializer' must not be null");
 		this.keySerializer = keySerializer;
 	}
 
 	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
+		Assert.state(this.usingDefaultTemplate, "'valueSerializer' can not be set if a RedisTemplate was explicitly provided");
 		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
 		this.valueSerializer = valueSerializer;
 	}
 
 	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
+		Assert.state(this.usingDefaultTemplate, "'hashKeySerializer' can not be set if a RedisTemplate was explicitly provided");
 		Assert.notNull(hashKeySerializer, "'hashKeySerializer' must not be null");
 		this.hashKeySerializer = hashKeySerializer;
 	}
 
 	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
+		Assert.state(this.usingDefaultTemplate, "'hashValueSerializer' can not be set if a RedisTemplate was explicitly provided");
 		Assert.notNull(hashValueSerializer, "'hashValueSerializer' must not be null");
 		this.hashValueSerializer = hashValueSerializer;
 	}
@@ -234,19 +240,22 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||
 				(this.collectionType == CollectionType.MAP || this.collectionType == CollectionType.PROPERTIES),
 				"'mapKeyExpression' can only be set for CollectionType.MAP or CollectionType.PROPERTIES");
-		if (this.keySerializer != null){
-			redisTemplate.setKeySerializer(this.keySerializer);
+
+		if (this.usingDefaultTemplate){
+			if (this.keySerializer != null){
+				redisTemplate.setKeySerializer(this.keySerializer);
+			}
+			if (this.valueSerializer != null){
+				redisTemplate.setValueSerializer(this.valueSerializer);
+			}
+			if (this.hashKeySerializer != null){
+				redisTemplate.setHashKeySerializer(this.hashKeySerializer);
+			}
+			if (this.hashValueSerializer != null){
+				redisTemplate.setHashValueSerializer(this.hashValueSerializer);
+			}
+			this.redisTemplate.afterPropertiesSet();
 		}
-		if (this.valueSerializer != null){
-			redisTemplate.setValueSerializer(this.valueSerializer);
-		}
-		if (this.hashKeySerializer != null){
-			redisTemplate.setHashKeySerializer(this.hashKeySerializer);
-		}
-		if (this.hashValueSerializer != null){
-			redisTemplate.setHashValueSerializer(this.hashValueSerializer);
-		}
-		this.redisTemplate.afterPropertiesSet();
 	}
 
 	/**
