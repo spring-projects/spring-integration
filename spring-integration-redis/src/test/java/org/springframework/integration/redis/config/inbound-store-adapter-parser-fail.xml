@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
+
+	<int-redis:store-inbound-channel-adapter id="adapterWithTemplate"
+											redis-template="redisTemplate"
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false"
+											collection-type="LIST"
+											key-serializer="serializer"
+											value-serializer="serializer"
+											hash-key-serializer="serializer"
+											hash-value-serializer="serializer">
+		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
+	</int-redis:store-inbound-channel-adapter>
+	
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate"/>
+
+	<int:channel id="redisChannel"/>
+	
+	<bean id="serializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	
+	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
+	</bean>
+
+</beans>

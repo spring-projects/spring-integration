@@ -23,6 +23,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -38,27 +39,33 @@ import org.springframework.util.Assert;
 public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-	
+
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile String[] topics;
 
+	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
 	public RedisInboundChannelAdapter(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.container.setConnectionFactory(connectionFactory);
 	}
 
+	public void setSerializer(RedisSerializer<?> serializer) {
+		Assert.notNull(serializer, "'serializer' must not be null");
+		this.serializer = serializer;
+	}
 
 	public void setTopics(String... topics) {
 		this.topics = topics;
 	}
-	
+
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		this.messageConverter = messageConverter;
 	}
 
+	@Override
 	public String getComponentType() {
 		return "redis:inbound-channel-adapter";
 	}
@@ -69,23 +76,23 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		Assert.notEmpty(this.topics, "at least one topis is required for subscription");
 		MessageListenerDelegate delegate = new MessageListenerDelegate();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
-		adapter.setSerializer(new StringRedisSerializer());
+		adapter.setSerializer(this.serializer);
 		List<ChannelTopic> topicList = new ArrayList<ChannelTopic>();
 		for (String topic : this.topics) {
 			topicList.add(new ChannelTopic(topic));
-		}	
+		}
 		adapter.afterPropertiesSet();
 		this.container.addMessageListener(adapter, topicList);
 		this.container.afterPropertiesSet();
 	}
-	
+
 	@Override
 	protected void doStart() {
 		super.doStart();
 		this.container.start();
 	}
 
-	
+
 	@Override
 	protected void doStop() {
 		super.doStop();

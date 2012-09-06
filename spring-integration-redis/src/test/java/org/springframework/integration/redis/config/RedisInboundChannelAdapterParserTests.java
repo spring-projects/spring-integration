@@ -21,6 +21,7 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -65,6 +66,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 		assertEquals(errorChannelBean, accessor.getPropertyValue("errorChannel"));
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
+		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
 	}
 
 	@Test

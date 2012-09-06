@@ -64,6 +64,8 @@ public class RedisCollectionsInboundChannelAdapterParser extends AbstractPolling
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
 
+		RedisParserUtils.setRedisSerializers(StringUtils.hasText(redisTemplate), element, parserContext, builder);
+
 		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());
 		return new RuntimeBeanReference(beanName);

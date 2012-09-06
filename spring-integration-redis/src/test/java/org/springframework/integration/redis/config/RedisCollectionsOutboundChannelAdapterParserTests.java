@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.expression.common.LiteralExpression;
@@ -34,11 +35,16 @@ public class RedisCollectionsOutboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter-parser.xml", this.getClass());
 		RedisCollectionPopulatingMessageHandler handler =
 				TestUtils.getPropertyValue(context.getBean("storeAdapter.adapter"), "handler", RedisCollectionPopulatingMessageHandler.class);
-		assertEquals(TestUtils.getPropertyValue(handler, "keySerializer"), context.getBean("keySerializer"));
-		assertEquals(TestUtils.getPropertyValue(handler, "valueSerializer"), context.getBean("valueSerializer"));
-		assertEquals(TestUtils.getPropertyValue(handler, "hashKeySerializer"), context.getBean("hashKeySerializer"));
-		assertEquals(TestUtils.getPropertyValue(handler, "hashValueSerializer"), context.getBean("hashValueSerializer"));
+		assertEquals(context.getBean("keySerializer"), TestUtils.getPropertyValue(handler, "keySerializer"));
+		assertEquals(context.getBean("valueSerializer"), TestUtils.getPropertyValue(handler, "valueSerializer"));
+		assertEquals(context.getBean("hashKeySerializer"), TestUtils.getPropertyValue(handler, "hashKeySerializer"));
+		assertEquals(context.getBean("hashValueSerializer"), TestUtils.getPropertyValue(handler, "hashValueSerializer"));
 		assertEquals("pepboys", ((LiteralExpression)TestUtils.getPropertyValue(handler, "keyExpression")).getExpressionString());
 		assertEquals("PROPERTIES", ((CollectionType)TestUtils.getPropertyValue(handler, "collectionType")).toString());
+	}
+
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void validateFailureIfTemplateAndSerializers(){
+		new ClassPathXmlApplicationContext("store-outbound-adapter-parser-fail.xml", this.getClass());
 	}
 }
