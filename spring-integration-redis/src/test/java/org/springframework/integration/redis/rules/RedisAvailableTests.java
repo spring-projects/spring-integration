@@ -26,8 +26,6 @@ import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * @author Oleg Zhurakousky
@@ -59,9 +57,7 @@ public class RedisAvailableTests {
 
 		RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<Object, Object>();
 		redisTemplate.setConnectionFactory(jcf);
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
-
+		redisTemplate.afterPropertiesSet();
 		BoundListOperations<Object, Object> ops = redisTemplate.boundListOps("presidents");
 
 		ops.rightPush("John Adams");
@@ -85,8 +81,7 @@ public class RedisAvailableTests {
 
 		RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<Object, Object>();
 		redisTemplate.setConnectionFactory(jcf);
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+		redisTemplate.afterPropertiesSet();
 
 		BoundZSetOperations<Object, Object> ops = redisTemplate.boundZSetOps("presidents");
 

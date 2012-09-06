@@ -46,7 +46,7 @@
 	</int-redis:store-inbound-channel-adapter>
 	
 	<int:transaction-synchronization-factory id="syncFactory">
-		 <int:after-commit expression="#resource.attributes['store'].removeByScore(18, 18)"/>
+		 <int:after-commit expression="#store.removeByScore(18, 18)"/>
 	</int:transaction-synchronization-factory>
 
 	<int:channel id="redisChannel">

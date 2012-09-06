@@ -72,12 +72,6 @@
 	</int:transaction-synchronization-factory>
 
 	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
-		<property name="keySerializer">
-			<bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
-		</property>
-		<property name="valueSerializer">
-			<bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
-		</property>
 		<property name="connectionFactory" ref="redisConnectionFactory"/>
 	</bean>
 

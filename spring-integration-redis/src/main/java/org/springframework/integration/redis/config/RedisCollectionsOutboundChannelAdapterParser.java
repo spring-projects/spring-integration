@@ -62,10 +62,7 @@ public class RedisCollectionsOutboundChannelAdapterParser extends AbstractOutbou
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload-elements");
 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "key-serializer");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "value-serializer");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "hash-key-serializer");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "hash-value-serializer");
+		RedisParserUtils.setRedisSerializers(StringUtils.hasText(redisTemplateRef), element, parserContext, builder);
 
 		if (expressionDef != null){
 			builder.addConstructorArgValue(expressionDef);

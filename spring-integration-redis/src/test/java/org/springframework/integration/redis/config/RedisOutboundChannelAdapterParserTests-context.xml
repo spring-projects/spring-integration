@@ -12,7 +12,8 @@
 	<int-redis:outbound-channel-adapter id="outboundAdapter"
 			channel="sendChannel"
 			topic="foo"
-			message-converter="testConverter"/>
+			message-converter="testConverter"
+			serializer="serializer"/>
 
 	<int-redis:inbound-channel-adapter channel="receiveChannel" topics="foo"/>
 
@@ -29,5 +30,7 @@
 	<int:chain input-channel="redisOutboudChain">
 		<int-redis:outbound-channel-adapter topic="foo"/>
 	</int:chain>
+	
+	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 
 </beans>

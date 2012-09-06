@@ -191,6 +191,18 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="serializer" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+						Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -235,6 +247,18 @@
 	Specifies the order for invocation when this adapter is connected as a
 	subscriber to a SubscribableChannel.
 							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
@@ -392,6 +416,54 @@
 			determined per each poll use 'key-expression' attribute. 
 			This attribute is mutually exclusive with the 'key-expression' attribute.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="key-serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="value-serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="hash-key-serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="hash-value-serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+								Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="error-channel" type="xsd:string">

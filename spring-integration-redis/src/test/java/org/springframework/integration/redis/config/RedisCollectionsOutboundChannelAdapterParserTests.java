@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.expression.common.LiteralExpression;
@@ -40,5 +41,10 @@ public class RedisCollectionsOutboundChannelAdapterParserTests {
 		assertEquals(TestUtils.getPropertyValue(handler, "hashValueSerializer"), context.getBean("hashValueSerializer"));
 		assertEquals("pepboys", ((LiteralExpression)TestUtils.getPropertyValue(handler, "keyExpression")).getExpressionString());
 		assertEquals("PROPERTIES", ((CollectionType)TestUtils.getPropertyValue(handler, "collectionType")).toString());
+	}
+
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void validateFailureIfTemplateAndSerializers(){
+		new ClassPathXmlApplicationContext("store-outbound-adapter-parser-fail.xml", this.getClass());
 	}
 }

@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -57,6 +58,16 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 
 	private final RedisTemplate<String, ?> redisTemplate;
 
+	private volatile RedisSerializer<?> keySerializer;
+
+	private volatile RedisSerializer<?> valueSerializer;
+
+	private volatile RedisSerializer<?> hashKeySerializer;
+
+	private volatile RedisSerializer<?> hashValueSerializer;
+
+	private volatile boolean redisTemplateNotSet = true;
+
 	/**
 	 * Creates this instance with provided {@link RedisTemplate} and SpEL expression
 	 * which should resolve to a 'key' name of the collection to be used.
@@ -73,6 +84,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 
 		this.redisTemplate = redisTemplate;
+		this.redisTemplateNotSet = false;
 		this.keyExpression = keyExpression;
 	}
 
@@ -96,13 +108,33 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
 		redisTemplate.setConnectionFactory(connectionFactory);
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
-		redisTemplate.setHashKeySerializer(new JdkSerializationRedisSerializer());
-		redisTemplate.setHashValueSerializer(new JdkSerializationRedisSerializer());
 
 		this.redisTemplate = redisTemplate;
 		this.keyExpression = keyExpression;
+	}
+
+	public void setKeySerializer(RedisSerializer<?> keySerializer) {
+		Assert.state(this.redisTemplateNotSet, "'keySerializer' can not be set if RedisTemplate provided");
+		Assert.notNull(keySerializer, "'keySerializer' must not be null");
+		this.keySerializer = keySerializer;
+	}
+
+	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
+		Assert.state(this.redisTemplateNotSet, "'valueSerializer' can not be set if RedisTemplate provided");
+		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
+		this.valueSerializer = valueSerializer;
+	}
+
+	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
+		Assert.state(this.redisTemplateNotSet, "'hashKeySerializer' can not be set if RedisTemplate provided");
+		Assert.notNull(hashKeySerializer, "'hashKeySerializer' must not be null");
+		this.hashKeySerializer = hashKeySerializer;
+	}
+
+	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
+		Assert.state(this.redisTemplateNotSet, "'hashValueSerializer' can not be set if RedisTemplate provided");
+		Assert.notNull(hashValueSerializer, "'hashValueSerializer' must not be null");
+		this.hashValueSerializer = hashValueSerializer;
 	}
 
 	public void setCollectionType(CollectionType collectionType) {
@@ -151,6 +183,22 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		}
 		else {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+		}
+
+		if (this.redisTemplateNotSet){
+			if (this.keySerializer != null){
+				redisTemplate.setKeySerializer(this.keySerializer);
+			}
+			if (this.valueSerializer != null){
+				redisTemplate.setValueSerializer(this.valueSerializer);
+			}
+			if (this.hashKeySerializer != null){
+				redisTemplate.setHashKeySerializer(this.hashKeySerializer);
+			}
+			if (this.hashValueSerializer != null){
+				redisTemplate.setHashValueSerializer(this.hashValueSerializer);
+			}
+			this.redisTemplate.afterPropertiesSet();
 		}
 	}
 
