@@ -341,7 +341,11 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		else {
 			Assert.isTrue(!Boolean.TRUE.equals(this.pubSubDomain),
 					"A JMS Topic-backed 'publish-subscribe-channel' must be message-driven.");
-			this.channel = new PollableJmsChannel(this.jmsTemplate);
+			PollableJmsChannel pollableJmschannel = new PollableJmsChannel(this.jmsTemplate);
+			if (this.messageSelector != null) {
+				pollableJmschannel.setMessageSelector(this.messageSelector);
+			}
+			this.channel = pollableJmschannel;
 		}
 		if (!CollectionUtils.isEmpty(this.interceptors)) {
 			this.channel.setInterceptors(this.interceptors);

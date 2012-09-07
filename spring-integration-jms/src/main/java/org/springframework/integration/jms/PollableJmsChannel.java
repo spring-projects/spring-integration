@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,33 @@ import org.springframework.jms.core.JmsTemplate;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class PollableJmsChannel extends AbstractJmsChannel implements PollableChannel {
+
+	private volatile String messageSelector;
 
 	public PollableJmsChannel(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
 	}
 
+	public void setMessageSelector(String messageSelector) {
+		this.messageSelector = messageSelector;
+	}
 
 	public Message<?> receive() {
 		if (!this.getInterceptors().preReceive(this)) {
  			return null;
  		}
-		Object object = this.getJmsTemplate().receiveAndConvert();
-		
+		Object object;
+		if (this.messageSelector == null) {
+			object = this.getJmsTemplate().receiveAndConvert();
+		}
+		else {
+			object = this.getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
+		}
+
 		if (object == null) {
 			return null;
 		}
