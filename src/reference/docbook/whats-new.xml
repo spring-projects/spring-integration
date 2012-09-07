@@ -117,6 +117,27 @@
 				messages to complete.
 			</para>
 		</section>
+		<section id="2.2-handler-advice">
+			<title>Adding Behavior to Endpoints</title>
+			<para>
+				The ability to add an &lt;advice-chain/&gt; to a poller has been available for some time.
+				However, the behavior added by this affects the entire integration flow.
+				It did not address the ability to add, say, retry, to an individual
+				endpoint. The 2.2. release introduces the &lt;request-handler-advice-chain/&gt;
+				to many endpoints.
+			</para>
+			<para>
+				In addition, 3 standard Advice classes have been provided for this purpose:
+			</para>
+			<itemizedlist>
+				<listitem>MessageHandlerRetryAdvice</listitem>
+				<listitem>MessageHandlerCircuitBreakerAdvice</listitem>
+				<listitem>ExpressionEvaluatingMessageHandlerAdvice</listitem>
+			</itemizedlist>
+			<para>
+				For more information, see <xref linkend="message-handler-advice-chain"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="2.2-new-components">
