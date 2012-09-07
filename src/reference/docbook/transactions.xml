@@ -174,16 +174,118 @@ as a convinience.
       </para>
     </section>
 
-    <section id="poller-synch">
-      <title>Pollers and Transaction Synchronization</title>
+    <section id="transaction-synchronization">
+      <title>Transaction Synchronization</title>
       <para>
-        Certain inbound adapters are capable of synchronizing their updates with a transaction. For example, the mail
-        inbound adapters, if running in a transaction and configured to mark or delete messages, will only take those
-        actions on a mail message if the transaction commits; otherwise the mail message is left in the inbox.
+        In some environments, it is advantageous to synchronize operations with a transaction that encompasses the entire flow.
+        For example, consider a &lt;file:inbound-channel-adapter/&gt; at the start of a flow, that performs a number of database
+        updates. If the transaction commits, we might want to move the file to a <emphasis>success</emphasis> directory, while we
+        might want to move it to a <emphasis>failures</emphasis> directory if the transaction rolls back.
       </para>
       <para>
-        For all message sources that implement PseudoTransactionalMessageSource, this is the default behavior (commit and
-        rollback detection). It can be disabled by setting the synchronized attribute on the poller to false.
+        Spring Integration 2.2 introduces the capability of synchronizing these operations with a transaction. In addition, you
+        can configure a <classname>PseudoTransactionManager</classname> if you don't have a 'real' transaction, but still want
+        to perform different actions on success, or failure. For more information, see <xref linkend="pseudo-transactions" />.
       </para>
+      <para>
+        Key strategy interfaces for this feature are
+      <programlisting><![CDATA[public interface TransactionSynchronizationFactory {
+
+	TransactionSynchronization create(Object key);
+}
+
+public interface TransactionSynchronizationProcessor {
+
+	public abstract void processBeforeCommit(MessageSourceResourceHolder holder);
+
+	public abstract void processAfterCommit(MessageSourceResourceHolder holder);
+
+	public abstract void processAfterRollback(MessageSourceResourceHolder holder);
+
+}]]></programlisting>
+        
+        The factory is responsible for creating a
+        <ulink url="http://static.springsource.org/spring-framework/docs/3.1.2.RELEASE/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html">TransactionSynchronization</ulink>
+        object. You can implement your own, or use the one provided by the framework:
+        <classname>DefaultTransactionSynchronizationFactory</classname>. This implementation returns a
+        <classname>TransactionSynchronization</classname> that delegates to a default implementation of
+        <classname>TransactionSynchronizationProcessor</classname>, the
+        <classname>ExpressionEvaluatingTransactionSynchronizationProcessor</classname>. This processor supports three SpEL expressions,
+        <emphasis>beforeCommitExpression</emphasis>, <emphasis>afterCommitExpression</emphasis>, and <emphasis>afterRollbackExpression</emphasis>.
+      </para>
+      <para>
+        These actions should be self-explanatory to those familiar with transactions. In each case, the <emphasis>#root</emphasis>
+        variable is the original <classname>Message</classname>; in some cases, other SpEL variables are made available, depending on the
+        <classname>MessageSource</classname> being polled by the poller. For example, the <classname>MongoDbMessageSource</classname>
+        provides the <emphasis>#mongoTemplate</emphasis> variable which references the message source's
+        <classname>MongoTemplate</classname>; the <classname>RedisStoreMessageSource</classname> provides the <emphasis>#store</emphasis>
+        variable which references the <classname>RedisStore</classname> created by the poll.
+      </para>
+      <para>
+        To enable the feature for a particular poller, you provide a reference to the <classname>TransactionSynchronizationFactory</classname>
+        on the poller's &lt;transactional/&gt; element using the <emphasis>synchronization-factory</emphasis> attribute.
+      </para>
+      <para>
+        To simplify configuration of these components, namespace support for the default factory has been provided. Configuration is best
+        described using an example:
+      </para>
+      <programlisting><![CDATA[<int-file:inbound-channel-adapter id="inputDirPoller"
+				  channel="someChannel"
+				  directory="/foo/bar"
+				  filter="filter"
+				  comparator="testComparator">
+	<int:poller fixed-rate="5000">
+		<int:transactional transaction-manager="transactionManager" synchronization-factory="syncFactory" />
+	</int:poller>
+</int-file:inbound-channel-adapter>
+
+<int:transaction-synchronization-factory id="syncFactory">
+	<int:after-commit expression="payload.renameTo('/success/' + payload.name)" channel="committedChannel" />
+	<int:after-rollback expression="payload.renameTo('/failed/' + payload.name)" channel="rolledBackChannel" />
+</int:transaction-synchronization-factory>]]></programlisting>
+      <para>
+        The result of the SpEL evaluation is sent as the payload to either the <emphasis>committedChannel</emphasis>
+        or <emphasis>rolledBackChannel</emphasis> (in this case, this would be <classname>Boolean.TRUE</classname> or
+        <classname>Boolean.FALSE</classname> - the result of the
+        <classname>java.io.File.renameTo()</classname> method call).
+      </para>
+      <para>
+        If you wish to send the entire payload for further Spring Integration processing, simply use the expression
+        'payload'.
+      </para>
+      <important>
+        It is important to understand that this is simply synchronizing the actions with a transaction, it does not
+        make a resource that is not inherently transactional actually transactional. Instead, the transaction
+        (be it JDBC or otherwise) is started before the poll, and committed/rolled back when the flow completes,
+        followed by the synchronized action.
+      </important>
+      <para>
+        In addition to the <emphasis>after-commit</emphasis> and <emphasis>after-rollback</emphasis> expressions,
+        <emphasis>before-commit</emphasis> is also supported. In that case, if the evaluation (or downstream processing)
+        throws an exception, the transaction will be rolled back instead of being committed.
+      </para>
+    </section>
+    <section id="pseudo-transactions">
+      <title>Pseudo Transactions</title>
+      <para>
+        Referring to the above section, you may be thinking it would be useful to take these 'success' or 'failure'
+        actions when a flow completes, even if there is no 'real' transactional resources (such as JDBC) downstream
+        of the poller. For example, consider a &lt;file:inbound-channel-adapter/&gt; followed by an
+        &lt;ftp:outbout-channel-adapter/&gt;. Neither of these components is transactional but we might want to
+        move the input file to different directories, based on the success or failure of the ftp transfer.
+      </para>
+      <para>
+        To provide this functionality, the framework provides a <classname>PseudoTransactionManager</classname>,
+        enabling the above configuration even when there is no real transactional resource involved. If the flow
+        completes normally, the <emphasis>beforeCommit</emphasis> and <emphasis>afterCommit</emphasis> synchronizations
+        will be called, on failure the <emphasis>afterRollback</emphasis> will be called. Of course, because it
+        is not a real transaction there will be no actual commit or rollback. The pseudo transaction is simply
+        a vehicle used to enable the synchronization features.
+      </para>
+      <para>
+        To use a <classname>PseudoTransactionManager</classname>, simply define it as a &lt;bean/&gt;, in the same
+        way you would configure a real transaction manager:
+      </para>
+      <programlisting><![CDATA[<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />]]></programlisting>
     </section>
 </chapter>
