@@ -35,6 +35,8 @@
 		</xsd:complexType>
 	</xsd:element>
 	
+	<xsd:element name="transactional" type="transactionalType"/>
+	
 	<xsd:element name="transaction-synchronization-factory">
 		<xsd:annotation>
 			<xsd:documentation>

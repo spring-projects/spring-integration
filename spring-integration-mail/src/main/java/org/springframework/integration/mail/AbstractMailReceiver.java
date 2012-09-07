@@ -38,11 +38,12 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MailReceiver} implementations.
- * 
+ *
  * @author Arjen Poutsma
  * @author Jonas Partner
  * @author Mark Fisher
@@ -52,7 +53,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean{
 
 	public final static String SI_USER_FLAG = "spring-integration-mail-adapter";
-	
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final URLName url;
@@ -68,7 +69,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	private volatile Folder folder;
 
 	private volatile boolean shouldDeleteMessages;
-	
+
 	protected volatile int folderOpenMode = Folder.READ_ONLY;
 
 	private volatile Properties javaMailProperties = new Properties();
@@ -117,7 +118,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	/**
 	 * Set the {@link Session}. Otherwise, the Session will be created by invocation of
 	 * {@link Session#getInstance(Properties)} or {@link Session#getInstance(Properties, Authenticator)}.
-	 * 
+	 *
 	 * @see #setJavaMailProperties(Properties)
 	 * @see #setJavaMailAuthenticator(Authenticator)
 	 */
@@ -129,7 +130,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	/**
 	 * A new {@link Session} will be created with these properties (and the JavaMailAuthenticator if provided).
 	 * Use either this method or {@link #setSession}, but not both.
-	 * 
+	 *
 	 * @see #setJavaMailAuthenticator(Authenticator)
 	 * @see #setSession(Session)
 	 */
@@ -140,7 +141,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	/**
 	 * Optional, sets the Authenticator to be used to obtain a session. This will not be used if
 	 * {@link AbstractMailReceiver#setSession} has been used to configure the {@link Session} directly.
-	 * 
+	 *
 	 * @see #setSession(Session)
 	 */
 	public void setJavaMailAuthenticator(Authenticator javaMailAuthenticator) {
@@ -220,8 +221,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 		this.folder.open(this.folderOpenMode);
 	}
-	
-	public Message[] receive() throws javax.mail.MessagingException {	
+
+	public Message[] receive() throws javax.mail.MessagingException {
 		synchronized (this.folderMonitor) {
 			try {
 				this.openFolder();
@@ -240,68 +241,92 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				if (messages.length > 0) {
 					this.fetchMessages(messages);
 				}
-				List<Message> copiedMessages = new LinkedList<Message>();
+
 				logger.debug("Recieved " + messages.length + " messages");
-				
-				boolean recentFlagSupported = false;
-				
-				Flags flags = this.getFolder().getPermanentFlags();
-				
-				if (flags != null){
-					recentFlagSupported = flags.contains(Flags.Flag.RECENT);
+
+				Message[] filteredMessages = this.filterMessagesThruSelector(messages);
+
+				if (TransactionSynchronizationManager.isActualTransactionActive()) {
+
 				}
-				
-				for (int i = 0; i < messages.length; i++) {
-					if (!recentFlagSupported){
-						if (flags != null && flags.contains(Flags.Flag.USER)){
-							if (logger.isDebugEnabled()){
-								logger.debug("USER flags are supported by this mail server. Flagging message with '" + SI_USER_FLAG + "' user flag");
-							}		
-							Flags siFlags = new Flags();
-							siFlags.add(SI_USER_FLAG);
-							messages[i].setFlags(siFlags, true); 
-						}
-						else {
-							if (logger.isDebugEnabled()){
-								logger.debug("USER flags are not supported by this mail server. Flagging message with system flag");
-							}	
-							messages[i].setFlag(Flags.Flag.FLAGGED, true); 
-						}
-					}
-					if (this.selectorExpression != null) {
-						Message message = messages[i];
-						if (this.selectorExpression.getValue(this.context, message, Boolean.class)){
-							this.setAdditionalFlags(message);
-							copiedMessages.add(new MimeMessage((MimeMessage) message));
-						}	
-						else {
-							if (logger.isDebugEnabled()){
-								logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
-												" and will not be flagged as SEEN.");
-							}
-						}
-					}
-					else {
-						this.setAdditionalFlags(messages[i]);
-						copiedMessages.add(new MimeMessage((MimeMessage) messages[i]));
-					}	
+				else {
+					this.postProcessFilteredMessages(filteredMessages);
 				}
-				if (this.shouldDeleteMessages()) {
-					this.deleteMessages(messages);
-				}
-				return copiedMessages.toArray(new Message[copiedMessages.size()]);
+
+				return filteredMessages;
 			}
 			finally {
 				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
 			}
-		}	
+		}
+	}
+
+	private void postProcessFilteredMessages(Message[] filteredMessages) throws MessagingException {
+		this.setMessageFlags(filteredMessages);
+
+		if (this.shouldDeleteMessages()) {
+			this.deleteMessages(filteredMessages);
+		}
+	}
+
+	private void setMessageFlags(Message[] filteredMessages) throws MessagingException {
+		boolean recentFlagSupported = false;
+
+		Flags flags = this.getFolder().getPermanentFlags();
+
+		if (flags != null){
+			recentFlagSupported = flags.contains(Flags.Flag.RECENT);
+		}
+		for (Message message : filteredMessages) {
+			if (!recentFlagSupported){
+				if (flags != null && flags.contains(Flags.Flag.USER)){
+					if (logger.isDebugEnabled()){
+						logger.debug("USER flags are supported by this mail server. Flagging message with '" + SI_USER_FLAG + "' user flag");
+					}
+					Flags siFlags = new Flags();
+					siFlags.add(SI_USER_FLAG);
+					message.setFlags(siFlags, true);
+				}
+				else {
+					if (logger.isDebugEnabled()){
+						logger.debug("USER flags are not supported by this mail server. Flagging message with system flag");
+					}
+					message.setFlag(Flags.Flag.FLAGGED, true);
+				}
+			}
+			this.setAdditionalFlags(message);
+		}
+	}
+
+	/**
+	 * Will filter Messages thru selector. Messages that did not pass selector filtering criteria
+	 * will be filtered out and remain on the server as never touched.
+	 */
+	private Message[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
+		List<Message> filteredMessages = new LinkedList<Message>();
+		for (int i = 0; i < messages.length; i++) {
+			MimeMessage message = (MimeMessage) messages[i];
+			if (this.selectorExpression != null) {
+				if (this.selectorExpression.getValue(this.context, message, Boolean.class)){
+					filteredMessages.add(message);
+				}
+				else {
+					if (logger.isDebugEnabled()){
+						logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
+										" and will not be flagged as SEEN.");
+					}
+				}
+			}
+			filteredMessages.add(message);
+		}
+		return filteredMessages.toArray(new Message[filteredMessages.size()]);
 	}
 
 	/**
 	 * Fetches the specified messages from this receiver's folder. Default
 	 * implementation {@link Folder#fetch(Message[], FetchProfile) fetches}
 	 * every {@link javax.mail.FetchProfile.Item}.
-	 * 
+	 *
 	 * @param messages the messages to fetch
 	 * @throws MessagingException in case of JavaMail errors
 	 */
@@ -315,7 +340,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	/**
 	 * Deletes the given messages from this receiver's folder.
-	 * 
+	 *
 	 * @param messages the messages to delete
 	 * @throws MessagingException in case of JavaMail errors
 	 */
@@ -326,9 +351,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	/**
-	 * Optional method allowing you to set additional flags. 
+	 * Optional method allowing you to set additional flags.
 	 * Currently only implemented in IMapMailReceiver.
-	 * 
+	 *
 	 * @param message
 	 * @throws MessagingException
 	 */

@@ -28,6 +28,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;imap-idle-channel-adapter&gt; element in the 'mail' namespace.
@@ -46,6 +47,14 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+
+		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
+		if (txElement != null){
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, txElement,
+					"synchronization-factory", "transactionSynchronizationFactory");
+		}
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(null,
+				DomUtils.getChildElementByTagName(element, "transactional"), builder, parserContext);
 		return builder.getBeanDefinition();
 	}
 

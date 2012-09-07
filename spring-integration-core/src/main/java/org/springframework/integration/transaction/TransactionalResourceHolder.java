@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.transaction.support.ResourceHolder;
 
 /**
@@ -29,21 +28,11 @@ import org.springframework.transaction.support.ResourceHolder;
  * @since 2.2
  *
  */
-public class MessageSourceResourceHolder implements ResourceHolder {
-
-	private final MessageSource<?> source;
+public class TransactionalResourceHolder implements ResourceHolder {
 
 	private volatile Message<?> message;
 
 	private final Map<String, Object> attributes = new HashMap<String, Object>();
-
-	public MessageSourceResourceHolder(MessageSource<?> source) {
-		this.source = source;
-	}
-
-	protected MessageSource<?> getMessageSource() {
-		return this.source;
-	}
 
 	public void setMessage(Message<?> message) {
 		this.message = message;
