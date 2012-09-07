@@ -18,8 +18,10 @@ package org.springframework.integration.ws.config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.net.URI;
 import java.util.List;
 
 import org.junit.Test;
@@ -45,6 +47,7 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
@@ -380,13 +383,25 @@ public class WebServiceOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testInt2718AdvisedInsideTheChain() {
+	public void testInt2718AdvisedInsideAChain() {
 		adviceCalled = 0;
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = context.getBean("gatewayWithAdviceInsideAChain", MessageChannel.class);
 		channel.send(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
+	}
+
+	@Test
+	public void jmsUri() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithJmsUri");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		DestinationProvider destinationProvider = TestUtils.getPropertyValue(handler, "destinationProvider", DestinationProvider.class);
+		assertNotNull(destinationProvider);
+		assertEquals(URI.create("jms:wsQueue"), destinationProvider.getDestination());
 	}
 
     @Test(expected = BeanDefinitionParsingException.class)

@@ -130,5 +130,20 @@ as per standard Spring Web Services configuration.
       when a custom Transformer works against the <interfacename>WebServiceMessage</interfacename> directly.
     </para>
   </section>
-
+  <section id="outbound-uri">
+    <title>Outbound URI Configuration</title>
+    <para>
+      For URIs with an <emphasis>http:</emphasis> (or <emphasis>https:</emphasis>) scheme,
+      &lt;uri-variable/&gt; substitution is supported:
+    </para>
+    <programlisting><![CDATA[<ws:outbound-gateway id="gateway" request-channel="input" uri="http://springsource.org/{foo}-{bar}">
+	<ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
+	<ws:uri-variable name="bar" expression="headers.x"/>
+</ws:outbound-gateway>]]></programlisting>
+	<para>
+	  For other schemes, such as <emphasis>jms:</emphasis>, or if a <classname>DestinationProvider</classname>
+	  is supplied, variable substitution is not supported and a configuration error will result if variables
+	  are provided.
+	</para>
+  </section>
 </chapter>
