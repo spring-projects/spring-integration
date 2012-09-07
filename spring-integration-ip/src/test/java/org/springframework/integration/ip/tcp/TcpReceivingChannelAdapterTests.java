@@ -594,11 +594,11 @@ public class TcpReceivingChannelAdapterTests {
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
 		channel.subscribe(handler);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write("Test1\r\n".getBytes());
 		socket.getOutputStream().write("Test2\r\n".getBytes());
-		QueueChannel errorChannel = new QueueChannel();
-		adapter.setErrorChannel(errorChannel);
 		Message<?> message = errorChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
