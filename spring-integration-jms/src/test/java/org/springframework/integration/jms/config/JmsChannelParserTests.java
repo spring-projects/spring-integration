@@ -95,6 +95,9 @@ public class JmsChannelParserTests {
 	private MessageChannel pollableQueueNameChannel;
 
 	@Autowired
+	private MessageChannel pollableWithSelectorChannel;
+
+	@Autowired
 	private Topic topic;
 
 	@Autowired
@@ -243,6 +246,16 @@ public class JmsChannelParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		assertEquals("foo", jmsTemplate.getDefaultDestinationName());
+	}
+
+	@Test
+	public void selectorPollableChannel() {
+		assertEquals(PollableJmsChannel.class, pollableWithSelectorChannel.getClass());
+		PollableJmsChannel channel = (PollableJmsChannel) pollableWithSelectorChannel;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
+		assertEquals(queue, jmsTemplate.getDefaultDestination());
+		assertEquals("foo='bar'", accessor.getPropertyValue("messageSelector"));
 	}
 
 	@Test

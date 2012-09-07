@@ -32,6 +32,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
@@ -46,6 +49,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 
 /**
  * @author Mark Fisher
@@ -200,6 +204,42 @@ public class PollableJmsChannelTests {
 		assertEquals(6, message.get().getJMSPriority());
 		assertTrue(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl);
 		assertTrue(message.get().toString().contains("persistent = false"));
+	}
+
+	@Test
+	public void selector() throws Exception {
+		ActiveMqTestUtils.prepare();
+		this.connectionFactory = new ActiveMQConnectionFactory();
+		this.connectionFactory.setBrokerURL("vm://localhost");
+		this.queue = new ActiveMQQueue("pollableJmsChannelSelectorTestQueue");
+
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
+		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setDestination(this.queue);
+
+		factoryBean.setMessageSelector("baz='qux'");
+
+		factoryBean.afterPropertiesSet();
+		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
+		boolean sent1 = channel.send(new GenericMessage<String>("foo"));
+		assertTrue(sent1);
+		Message<?> result1 = channel.receive(100);
+		assertNull(result1);
+
+		JmsTemplate jmsTemplate = new JmsTemplate(this.connectionFactory);
+		jmsTemplate.setDefaultDestinationName("pollableJmsChannelSelectorTestQueue");
+		jmsTemplate.send(new MessageCreator() {
+
+			public javax.jms.Message createMessage(Session session) throws JMSException {
+				TextMessage message = session.createTextMessage("bar");
+				message.setStringProperty("baz", "qux");
+				return message;
+			}
+		});
+
+		Message<?> result2 = channel.receive(1000);
+		assertNotNull(result2);
+		assertEquals("bar", result2.getPayload());
 	}
 
 	public static class SampleInterceptor implements ChannelInterceptor {
