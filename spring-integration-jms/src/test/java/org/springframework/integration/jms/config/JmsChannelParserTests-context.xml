@@ -47,6 +47,9 @@
 
 	<jms:channel id="pollableQueueNameChannel" queue-name="foo" message-driven="false"/>
 
+	<jms:channel id="pollableWithSelectorChannel" queue="testQueue" message-driven="false"
+		selector="foo='bar'" />
+
 	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<property name="physicalName" value="test.queue"/>
 	</bean>
