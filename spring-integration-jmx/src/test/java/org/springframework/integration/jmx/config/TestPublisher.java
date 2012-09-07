@@ -18,6 +18,7 @@ package org.springframework.integration.jmx.config;
 
 import javax.management.Notification;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.notification.NotificationPublisher;
 import org.springframework.jmx.export.notification.NotificationPublisherAware;
@@ -27,17 +28,22 @@ import org.springframework.jmx.export.notification.NotificationPublisherAware;
  * @since 2.0
  */
 @ManagedResource
-public class TestPublisher implements NotificationPublisherAware {
+public class TestPublisher implements NotificationPublisherAware, BeanNameAware {
 
 	private volatile NotificationPublisher notificationPublisher;
+
+	private String beanName;
 
 	public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
 		this.notificationPublisher = notificationPublisher;
 	}
 
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
 	public void send(String s) {
 		Notification notification = new Notification("test.type",
-				"org.springframework.integration.jmx.config:type=TestPublisher,name=testPublisher", 1, s);
+				"org.springframework.integration.jmx.config:type=TestPublisher,name=" + this.beanName, 1, s);
 		this.notificationPublisher.sendNotification(notification);
 	}
 
