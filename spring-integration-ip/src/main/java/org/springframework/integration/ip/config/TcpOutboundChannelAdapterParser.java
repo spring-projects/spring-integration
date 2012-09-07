@@ -28,13 +28,14 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-	
+
 	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
 
+	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
 				".TcpSendingMessageHandler");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.AUTO_STARTUP);
@@ -45,7 +46,7 @@ public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RETRY_INTERVAL);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-				IpAdapterParserUtils.SCHEDULER);
+				IpAdapterParserUtils.SCHEDULER, "taskScheduler");
 		return builder.getBeanDefinition();
 	}
 

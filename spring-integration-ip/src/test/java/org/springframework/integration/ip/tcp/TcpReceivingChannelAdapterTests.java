@@ -58,6 +58,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -126,6 +127,10 @@ public class TcpReceivingChannelAdapterTests {
 		adapter.afterPropertiesSet();
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		adapter.setRetryInterval(10000);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setPoolSize(1);
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		Message<?> message = channel.receive(10000);
 		assertNotNull(message);

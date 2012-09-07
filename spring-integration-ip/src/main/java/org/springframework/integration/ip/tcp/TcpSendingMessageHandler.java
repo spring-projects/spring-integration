@@ -34,7 +34,6 @@ import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -60,8 +59,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	private volatile int phase;
 
 	private volatile boolean isClientMode;
-
-	private volatile TaskScheduler scheduler;
 
 	private volatile long retryInterval = 60000;
 
@@ -216,7 +213,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 					ClientModeConnectionManager manager = new ClientModeConnectionManager(
 							this.clientConnectionFactory);
 					this.clientModeConnectionManager = manager;
-					this.scheduledFuture = this.getScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+					Assert.state(this.getTaskScheduler() != null, "Client mode requires a task scheduler");
+					this.scheduledFuture = this.getTaskScheduler().scheduleAtFixedRate(manager, this.retryInterval);
 				}
 			}
 		}
@@ -314,23 +312,17 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	/**
-	 * @return the scheduler
+	 * @param scheduler the scheduler to set
+	 * @deprecated Use {@link #setTaskScheduler(TaskScheduler)}
 	 */
-	protected TaskScheduler getScheduler() {
-		if (this.scheduler == null) {
-			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-			scheduler.initialize();
-			this.scheduler = scheduler;
-		}
-		return this.scheduler;
+	@Deprecated
+	public void setScheduler(TaskScheduler scheduler) {
+		this.setTaskScheduler(scheduler);
 	}
 
-	/**
-	 * @param scheduler
-	 *            the scheduler to set
-	 */
-	public void setScheduler(TaskScheduler scheduler) {
-		this.scheduler = scheduler;
+	@Override // super class is protected
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		super.setTaskScheduler(taskScheduler);
 	}
 
 	/**

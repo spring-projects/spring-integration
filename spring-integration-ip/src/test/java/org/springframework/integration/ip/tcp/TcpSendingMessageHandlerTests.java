@@ -65,6 +65,7 @@ import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -173,6 +174,10 @@ public class TcpSendingMessageHandlerTests {
 		handler.setClientMode(true);
 		handler.setRetryInterval(10000);
 		handler.afterPropertiesSet();
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setPoolSize(1);
+		taskScheduler.initialize();
+		handler.setTaskScheduler(taskScheduler);
 		handler.start();
 		adapter.start();
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
