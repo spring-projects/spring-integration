@@ -38,6 +38,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
 import org.springframework.web.util.UriUtils;
@@ -59,6 +60,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Mark Fisher
  * @author Jonas Partner
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -78,12 +80,26 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
-	public AbstractWebServiceOutboundGateway(String uri, WebServiceMessageFactory messageFactory) {
+	public AbstractWebServiceOutboundGateway(final String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
 		this.webServiceTemplate = (messageFactory != null) ?
 				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
-		this.destinationProvider = null;
-		this.uriTemplate = new HttpUrlTemplate(uri);
+		if (uri.toLowerCase().startsWith("http")) {
+			this.uriTemplate = new HttpUrlTemplate(uri);
+			this.destinationProvider = null;
+		}
+		else {
+			this.uriTemplate = null;
+			this.destinationProvider = new DestinationProvider() {
+				private volatile URI cachedUri;
+				public URI getDestination() {
+					if (this.cachedUri == null) {
+						this.cachedUri = URI.create(uri);
+					}
+					return this.cachedUri;
+				}
+			};
+		}
 	}
 
 	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider, WebServiceMessageFactory messageFactory) {
@@ -161,6 +177,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
+		Assert.state(this.destinationProvider != null ? CollectionUtils.isEmpty(this.uriVariableExpressions) : true,
+				"uri variables are not supported when a DestinationProvider is supplied, or the uri " +
+				"scheme is not http: or https:");
 	}
 
 	protected WebServiceTemplate getWebServiceTemplate() {
