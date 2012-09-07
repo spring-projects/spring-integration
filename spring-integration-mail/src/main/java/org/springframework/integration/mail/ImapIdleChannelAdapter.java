@@ -17,20 +17,29 @@
 package org.springframework.integration.mail;
 
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
-import javax.mail.internet.MimeMessage;
 
+import org.aopalliance.aop.Advice;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * An event-driven Channel Adapter that receives mail messages from a mail
@@ -38,16 +47,23 @@ import org.springframework.util.Assert;
  * messages will be converted and sent as Spring Integration Messages to the
  * output channel. The Message payload will be the {@link javax.mail.Message}
  * instance that was received.
- * 
+ *
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
-public class ImapIdleChannelAdapter extends MessageProducerSupport {
+public class ImapIdleChannelAdapter extends MessageProducerSupport implements BeanClassLoaderAware {
 
 	private final IdleTask idleTask = new IdleTask();
 
+	private volatile Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
+
 	private volatile boolean shouldReconnectAutomatically = true;
+
+	private volatile ClassLoader classLoader;
+
+	private volatile List<Advice> adviceChain;
 
 	private final ImapMailReceiver mailReceiver;
 
@@ -58,15 +74,35 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	private volatile ScheduledFuture<?> pingTask;
 
 	private volatile long connectionPingInterval = 10000;
-	
+
 	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
 
+	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
 		Assert.notNull(mailReceiver, "'mailReceiver' must not be null");
 		this.mailReceiver = mailReceiver;
 	}
 
+	public void setTransactionSynchronizationFactory(
+			TransactionSynchronizationFactory transactionSynchronizationFactory) {
+		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
+	}
+
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
+	}
+
+
+	/**
+	 * Specify an {@link Executor} used to send messages received by the
+	 * adapter.
+	 * @param sendingTaskExecutor the sendingTaskExecutor to set
+	 */
+	public void setSendingTaskExecutor(Executor sendingTaskExecutor) {
+		Assert.notNull(sendingTaskExecutor, "'sendingTaskExecutor' must not be null");
+		this.sendingTaskExecutor = sendingTaskExecutor;
+	}
 
 	/**
 	 * Specify whether the IDLE task should reconnect automatically after
@@ -77,10 +113,14 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
 	}
 
+	@Override
 	public String getComponentType() {
 		return "mail:imap-idle-channel-adapter";
 	}
 
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
 
 	/*
 	 * Lifecycle implementation
@@ -140,9 +180,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");
 					}
-					for (Message mailMessage : mailMessages) {
-						final MimeMessage copied = new MimeMessage((MimeMessage) mailMessage);
-						sendMessage(MessageBuilder.withPayload(copied).build());
+					for (final Message mailMessage : mailMessages) {
+
+						Runnable messageSendingTask = createMessageSendingTask(mailMessage);
+
+						sendingTaskExecutor.execute(messageSendingTask);
 					}
 				}
 			}
@@ -162,6 +204,39 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		}
 	}
 
+	private Runnable createMessageSendingTask(final Message mailMessage){
+		Runnable sendingTask = new Runnable() {
+			public void run() {
+				org.springframework.integration.Message<?> message =
+						MessageBuilder.withPayload(mailMessage).build();
+
+				if (TransactionSynchronizationManager.isActualTransactionActive()) {
+
+					IntegrationResourceHolder holder = new IntegrationResourceHolder();
+					holder.setMessage(message);
+					TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
+
+					if (transactionSynchronizationFactory != null){
+						TransactionSynchronizationManager.
+							registerSynchronization(transactionSynchronizationFactory.create(ImapIdleChannelAdapter.this));
+					}
+				}
+				sendMessage(message);
+			}
+		};
+
+		// wrap in the TX proxy if neccessery
+		if (!CollectionUtils.isEmpty(adviceChain)) {
+			ProxyFactory proxyFactory = new ProxyFactory(sendingTask);
+			if (!CollectionUtils.isEmpty(adviceChain)) {
+				for (Advice advice : adviceChain) {
+					proxyFactory.addAdvice(advice);
+				}
+			}
+			sendingTask = (Runnable) proxyFactory.getProxy(classLoader);
+		}
+		return sendingTask;
+	}
 
 	private class PingTask implements Runnable {
 
@@ -176,9 +251,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			}
 		}
 	}
-	
+
 	private class ExceptionAwarePeriodicTrigger implements Trigger {
-		
+
 		private volatile boolean delayNextExecution;
 
 
@@ -186,15 +261,14 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			if (delayNextExecution){
 				delayNextExecution = false;
 				return new Date(System.currentTimeMillis() + reconnectDelay);
-			} 
+			}
 			else {
 				return new Date(System.currentTimeMillis());
-			}		
+			}
 		}
-		
+
 		public void delayNextExecution() {
 			this.delayNextExecution = true;
 		}
 	}
-
 }

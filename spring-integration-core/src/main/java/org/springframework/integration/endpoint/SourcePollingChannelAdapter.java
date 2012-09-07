@@ -24,7 +24,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.transaction.MessageSourceResourceHolder;
+import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -100,10 +100,11 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	protected boolean doPoll() {
 
 		Message<?> message;
-		MessageSourceResourceHolder holder = null;
+		IntegrationResourceHolder holder = null;
 
 		if (TransactionSynchronizationManager.isActualTransactionActive()) {
-			holder = new MessageSourceResourceHolder(source);
+			holder = new IntegrationResourceHolder();
+			holder.addAttribute(IntegrationResourceHolder.MESSAGE_SOURCE, source);
 			TransactionSynchronizationManager.bindResource(source, holder);
 
 			if (transactionSynchronizationFactory != null){

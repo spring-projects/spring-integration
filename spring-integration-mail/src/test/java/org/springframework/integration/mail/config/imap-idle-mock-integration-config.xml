@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.2.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+	xmlns:util="http://www.springframework.org/schema/util">
+	
+	<int-mail:imap-idle-channel-adapter id="customAdapter"
+					store-uri="imaps://foo.com:password@imap.foo.com/INBOX"
+					channel="nullChannel"
+					auto-startup="false"
+					should-delete-messages="false">
+			<int-mail:transactional synchronization-factory="syncFactory"/>
+	</int-mail:imap-idle-channel-adapter>
+
+	<int:transaction-synchronization-factory id="syncFactory">
+		<int:before-commit expression="@syncProcessor.process(payload)"/>
+	</int:transaction-synchronization-factory>
+	
+	<bean id="syncProcessor" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.mail.config.ImapIdelIntegrationTests.PostTransactionProcessor"/>
+	</bean>
+	
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
+	
+</beans>

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mail.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -28,6 +26,8 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;imap-idle-channel-adapter&gt; element in the 'mail' namespace.
@@ -46,7 +46,17 @@ public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		return builder.getBeanDefinition();
+
+		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
+		if (txElement != null){
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, txElement,
+					"synchronization-factory", "transactionSynchronizationFactory");
+		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor", "sendingTaskExecutor");
+		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
+		IntegrationNamespaceUtils.configureAndSetAdviceChainIfPresent(null,
+				DomUtils.getChildElementByTagName(element, "transactional"), beanDefinition, parserContext);
+		return beanDefinition;
 	}
 
 	private BeanDefinition parseImapMailReceiver(Element element, ParserContext parserContext) {

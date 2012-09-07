@@ -66,6 +66,21 @@
 			should-delete-messages="${mail.delete}"	
 			search-term-strategy="searchTermStrategy"/>
 			
+	<mail:imap-idle-channel-adapter id="transactionalAdapter"
+			store-uri="imap:foo"
+			channel="channel"
+			auto-startup="false"
+			should-delete-messages="true"
+			task-executor="executor">
+		<mail:transactional synchronization-factory="syncFactory" />
+	</mail:imap-idle-channel-adapter>
+
+	<integration:transaction-synchronization-factory id="syncFactory">
+		<integration:after-commit expression="'foo'" />
+	</integration:transaction-synchronization-factory>
+
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+
 	<bean id="searchTermStrategy" class="org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests.TestSearchTermStrategy"/>
 
 	<util:properties id="javaMailProperties">
