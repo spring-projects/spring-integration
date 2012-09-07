@@ -14,6 +14,7 @@ package org.springframework.integration.transaction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -41,18 +42,18 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 	public TransactionSynchronization create(Object key) {
 		Assert.notNull(key, "'key' must not be null");
 		Object resourceHolder = TransactionSynchronizationManager.getResource(key);
-		Assert.isInstanceOf(MessageSourceResourceHolder.class, resourceHolder);
-		return new DefaultTransactionalResourceSynchronization((MessageSourceResourceHolder) resourceHolder, key);
+		Assert.isInstanceOf(TransactionalResourceHolder.class, resourceHolder);
+		return new DefaultTransactionalResourceSynchronization((TransactionalResourceHolder) resourceHolder, key);
 	}
 
 	/**
 	 */
 	private class DefaultTransactionalResourceSynchronization
-		extends ResourceHolderSynchronization<MessageSourceResourceHolder, Object> {
+		extends ResourceHolderSynchronization<TransactionalResourceHolder, Object> {
 
-		private final MessageSourceResourceHolder messageSourceHolder;
+		private final TransactionalResourceHolder messageSourceHolder;
 
-		public DefaultTransactionalResourceSynchronization(MessageSourceResourceHolder messageSourceHolder,
+		public DefaultTransactionalResourceSynchronization(TransactionalResourceHolder messageSourceHolder,
 				Object resourceKey) {
 			super(messageSourceHolder, resourceKey);
 			this.messageSourceHolder = messageSourceHolder;
@@ -72,7 +73,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 		}
 
 		@Override
-		protected void processResourceAfterCommit(MessageSourceResourceHolder resourceHolder) {
+		protected void processResourceAfterCommit(TransactionalResourceHolder resourceHolder) {
 
 			if (logger.isTraceEnabled()) {
 				logger.trace("'Committing' transactional resource");

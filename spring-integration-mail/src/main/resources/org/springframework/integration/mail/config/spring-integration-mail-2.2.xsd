@@ -108,6 +108,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inboundMailAdapterType">
+				<xsd:choice minOccurs="0" maxOccurs="2">
+					<xsd:element ref="integration:transactional" minOccurs="0" maxOccurs="1" />
+				</xsd:choice>
 					<xsd:attribute name="error-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
