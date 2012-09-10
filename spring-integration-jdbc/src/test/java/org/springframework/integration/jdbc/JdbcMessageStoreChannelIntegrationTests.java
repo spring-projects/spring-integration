@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -41,6 +41,14 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StopWatch;
 
+/**
+ * @author Dave Syer
+ * @author Mark Fisher
+ * @author Gary Russell
+ * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ * @author Artem Bilan
+ */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JdbcMessageStoreChannelIntegrationTests {
@@ -60,6 +68,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 	@Before
 	public void clear() {
+		Service.reset(1);
 		for (MessageGroup group : messageStore) {
 			messageStore.removeMessageGroup(group.getGroupId());
 		}
@@ -67,7 +76,6 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 	@Test
 	public void testSendAndActivate() throws Exception {
-		Service.reset(1);
 		input.send(new GenericMessage<String>("foo"));
 		Service.await(1000);
 		assertEquals(1, Service.messages.size());
@@ -75,7 +83,6 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 	@Test
 	public void testSendAndActivateWithRollback() throws Exception {
-		Service.reset(1);
 		Service.fail = true;
 		input.send(new GenericMessage<String>("foo"));
 		Service.await(1000);
@@ -99,11 +106,9 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		});
 	}
 
-	@Test 
-	@Repeat(10)
+	@Test
+	@Repeat(2)
 	public void testTransactionalSendAndReceive() throws Exception {
-
-		Service.reset(1);
 
 		boolean result = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Boolean>() {
 
@@ -153,14 +158,13 @@ public class JdbcMessageStoreChannelIntegrationTests {
 			}
 			Thread.sleep(50);
 		}
-		
+
 		assertEquals(1, Service.messages.size());
 	}
 
 	@Test
 	public void testSameTransactionSendAndReceive() throws Exception {
 
-		Service.reset(1);
 		final StopWatch stopWatch = new StopWatch();
 		DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
 
@@ -213,7 +217,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 		private static List<String> messages = new CopyOnWriteArrayList<String>();
 
-		private static CountDownLatch latch = new CountDownLatch(0);
+		private static CountDownLatch latch;
 
 		public static void reset(int count) {
 			fail = false;

@@ -34,6 +34,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -53,10 +54,10 @@ public class SyslogTransformerParserTests {
 		Map<?, ?> map = (Map<?, ?>) out.receive(1000).getPayload();
 		assertNotNull(map);
 		assertEquals(6, map.size());
-		System.out.println(map);
 		assertEquals(19, map.get(SyslogToMapTransformer.FACILITY));
 		assertEquals(5, map.get(SyslogToMapTransformer.SEVERITY));
-		assertTrue(map.get(SyslogToMapTransformer.TIMESAMP) instanceof Date);
+		Object date = map.get(SyslogToMapTransformer.TIMESAMP);
+		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", map.get(SyslogToMapTransformer.HOST));
 		assertEquals("TESTING[70729]", map.get(SyslogToMapTransformer.TAG));
 		assertEquals("TEST SYSLOG MESSAGE", map.get(SyslogToMapTransformer.MESSAGE));

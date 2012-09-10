@@ -28,7 +28,7 @@
 	<delayer id="transactionalDelayer"
 			 input-channel="transactionalDelayerInput"
 			 output-channel="transactionalDelayerOutput"
-			 default-delay="10"
+			 default-delay="50"
 			 message-store="messageStore">
 		<transactional/>
 	</delayer>
