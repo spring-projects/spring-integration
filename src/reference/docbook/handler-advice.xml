@@ -43,6 +43,22 @@
 		will not apply to further actions taken downstream after the reply is sent to the
 		<emphasis>nextChannel</emphasis>. The scope of the advice is limited to the endpoint itself.
 	</para>
+	<important>
+		<para>
+			At this time, you cannot advise an entire &lt;chain/&gt; of endpoints. The schema does not allow
+			a &lt;request-handler-advice-chain/&gt; as a child element of the chain itself.
+		</para>
+		<para>
+			However, a &lt;request-handler-advice-chain/&gt; can be added to individual reply-producing endpoints
+			<emphasis>within</emphasis>	a &lt;chain/&gt; element.
+			An exception is that, in a chain that produces no reply, because the last element in the chain is an
+			<emphasis>outbound-channel-adapter</emphasis>, that <emphasis>last</emphasis> element cannot be advised. If you
+			need to advise such an element, it must be moved outside of the chain (with the
+			<emphasis>output-channel</emphasis> of the chain being the <emphasis>input-channel</emphasis> of
+			the adapter. The adapter can then be advised as normal. For chains that produce a reply, every child
+			element can be advised.
+		</para>
+	</important>
 	<section id="advice-classes">
 		<title>Provided Advice Classes</title>
 		<para>

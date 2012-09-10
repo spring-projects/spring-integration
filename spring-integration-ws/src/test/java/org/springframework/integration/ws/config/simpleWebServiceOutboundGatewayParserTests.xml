@@ -102,13 +102,24 @@
 		                 request-channel="inputChannel"
 	                     destination-provider="destinationProvider" />
 
-    <ws:outbound-gateway id="gatewayWithAdvice"
+	<bean id="fooAdvice" class="org.springframework.integration.ws.config.WebServiceOutboundGatewayParserTests$FooAdvice"/>
+
+	<ws:outbound-gateway id="gatewayWithAdvice"
 		                 request-channel="inputChannel"
 	                     destination-provider="destinationProvider">
 		<ws:request-handler-advice-chain>
-			<bean class="org.springframework.integration.ws.config.WebServiceOutboundGatewayParserTests$FooAdvice"/>		
+			<ref bean="fooAdvice"/>
 		</ws:request-handler-advice-chain>
 	</ws:outbound-gateway>
+
+
+	<si:chain input-channel="gatewayWithAdviceInsideAChain">
+		<ws:outbound-gateway destination-provider="destinationProvider">
+			<ws:request-handler-advice-chain>
+				<ref bean="fooAdvice"/>
+			</ws:request-handler-advice-chain>
+		</ws:outbound-gateway>
+	</si:chain>
 
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
 

@@ -329,22 +329,22 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
-			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
-		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, parentBuilder, parserContext, "adviceChain");
+			BeanDefinition parentBeanDefinition, ParserContext parserContext) {
+		configureAndSetAdviceChainIfPresent(adviceChainElement, txElement, parentBeanDefinition, parserContext, "adviceChain");
 	}
 
 	@SuppressWarnings({ "rawtypes" })
 	public static void configureAndSetAdviceChainIfPresent(Element adviceChainElement, Element txElement,
-			BeanDefinitionBuilder parentBuilder, ParserContext parserContext, String propertyName) {
-		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBuilder, parserContext);
+			BeanDefinition parentBeanDefinition, ParserContext parserContext, String propertyName) {
+		ManagedList adviceChain = configureAdviceChain(adviceChainElement, txElement, parentBeanDefinition, parserContext);
 		if (adviceChain != null) {
-			parentBuilder.addPropertyValue(propertyName, adviceChain);
+			parentBeanDefinition.getPropertyValues().add(propertyName, adviceChain);
 		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static ManagedList configureAdviceChain(Element adviceChainElement, Element txElement,
-			BeanDefinitionBuilder parentBuilder, ParserContext parserContext) {
+			BeanDefinition parentBeanDefinition, ParserContext parserContext) {
 		ManagedList adviceChain = null;
 		// Schema validation ensures txElement and adviceChainElement are mutually exclusive
 		if (txElement != null) {
@@ -361,7 +361,7 @@ public abstract class IntegrationNamespaceUtils {
 					String localName = child.getLocalName();
 					if ("bean".equals(localName)) {
 						BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
-								childElement, parentBuilder.getBeanDefinition());
+								childElement, parentBeanDefinition);
 						parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
 					}
@@ -371,7 +371,7 @@ public abstract class IntegrationNamespaceUtils {
 					}
 					else {
 						BeanDefinition customBeanDefinition = parserContext.getDelegate().parseCustomElement(
-								childElement, parentBuilder.getBeanDefinition());
+								childElement, parentBeanDefinition);
 						if (customBeanDefinition == null) {
 							parserContext.getReaderContext().error(
 									"failed to parse custom element '" + localName + "'", childElement);

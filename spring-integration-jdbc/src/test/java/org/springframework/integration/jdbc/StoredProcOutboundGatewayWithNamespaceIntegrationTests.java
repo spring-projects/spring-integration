@@ -28,6 +28,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ import javax.sql.DataSource;
 public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	@Autowired
-	DataSource dataSource;
+	JdbcTemplate jdbcTemplate;
 
 	@Autowired
 	private Consumer consumer;
@@ -67,6 +68,11 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	@Autowired
 	PollableChannel replyChannel;
+
+	@Before
+	public void setUp() {
+		this.jdbcTemplate.execute("delete from USERS");
+	}
 
 	@Test
 	public void test() throws Exception {
@@ -96,10 +102,6 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 	@Test //INT-1029
 	public void testStoredProcOutboundGatewayInsideChain() throws Exception {
-
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-
-		jdbcTemplate.execute("delete from USERS");
 
 		Message<User> requestMessage = MessageBuilder.withPayload(new User("myUsername", "myPassword", "myEmail")).build();
 
