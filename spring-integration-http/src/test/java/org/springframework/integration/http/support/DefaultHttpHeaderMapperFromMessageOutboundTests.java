@@ -32,7 +32,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageHeaders;
@@ -645,5 +644,17 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
             assertEquals(1, headers.get("x-bar").size());
             assertEquals(1, headers.get("X-baz").size());
             assertEquals(1, headers.get("x-baz").size());
+    }
+    @Test
+    public void dontPropagateContentLength() {
+        DefaultHttpHeaderMapper mapper  = DefaultHttpHeaderMapper.outboundMapper();
+        // not suppressed on outbound request, by default
+        mapper.setExcludedOutboundStandardRequestHeaderNames(new String[] {"Content-Length"});
+        Map<String, Object> messageHeaders = new HashMap<String, Object>();
+        messageHeaders.put("Content-Length", 4);
+
+        HttpHeaders headers = new HttpHeaders();
+        mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+        assertNull(headers.get("Content-Length"));
     }
 }

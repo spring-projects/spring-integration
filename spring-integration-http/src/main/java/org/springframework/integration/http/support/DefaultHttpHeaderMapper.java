@@ -32,7 +32,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -45,6 +44,7 @@ import org.springframework.http.MediaType;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
@@ -57,6 +57,7 @@ import org.springframework.util.StringUtils;
  * @author Jeremy Grelle
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean{
@@ -228,6 +229,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			WWW_AUTHENTICATE
 	};
 
+	private static String[] HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS = new String[0];
+
+	private static String[] HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS = new String[] {
+		CONTENT_LENGTH
+	};
+
 	public static final String HTTP_REQUEST_HEADER_NAME_PATTERN = "HTTP_REQUEST_HEADERS";
 
 	public static final String HTTP_RESPONSE_HEADER_NAME_PATTERN = "HTTP_RESPONSE_HEADERS";
@@ -236,6 +243,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	private volatile String[] outboundHeaderNames = new String[0];
 
 	private volatile String[] inboundHeaderNames = new String[0];
+
+	private volatile String[] excludedOutboundStandardRequestHeaderNames = new String[0];
+
+	private volatile String[] excludedInboundStandardResponseHeaderNames = new String[0];
 
 	private volatile String userDefinedHeaderPrefix = "X-";
 
@@ -266,6 +277,26 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
+	}
+
+	/**
+	 * Provide header names from the list of standard headers that should be suppressed when
+	 * mapping outbound endpoint request headers.
+	 * @param excludedOutboundStandardRequestHeaderNames the excludedStandardRequestHeaderNames to set
+	 */
+	public void setExcludedOutboundStandardRequestHeaderNames(String[] excludedOutboundStandardRequestHeaderNames) {
+		Assert.notNull(excludedOutboundStandardRequestHeaderNames, "'excludedOutboundStandardRequestHeaderNames' must not be null");
+		this.excludedOutboundStandardRequestHeaderNames = excludedOutboundStandardRequestHeaderNames;
+	}
+
+	/**
+	 * Provide header names from the list of standard headers that should be suppressed when
+	 * mapping inbound endopoint response headers.
+	 * @param excludedInboundStandardResponseHeaderNames the excludedStandardResponseHeaderNames to set
+	 */
+	public void setExcludedInboundStandardResponseHeaderNames(String[] excludedInboundStandardResponseHeaderNames) {
+		Assert.notNull(excludedInboundStandardResponseHeaderNames, "'excludedInboundStandardResponseHeaderNames' must not be null");
+		this.excludedInboundStandardResponseHeaderNames = excludedInboundStandardResponseHeaderNames;
 	}
 
 	/**
@@ -359,6 +390,30 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	private boolean shouldMapOutboundHeader(String headerName) {
+		if (this.outboundHeaderNames == HTTP_RESPONSE_HEADER_NAMES) { // a default inbound mapper
+			/*
+			 * When using the default response header name list, suppress the
+			 * mapping of exclusions for specific headers.
+			 */
+			if (this.containsElementIgnoreCase(this.excludedInboundStandardResponseHeaderNames, headerName)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
+				}
+				return false;
+			}
+		}
+		else if (this.outboundHeaderNames == HTTP_REQUEST_HEADER_NAMES) { // a default outbound mapper
+			/*
+			 * When using the default request header name list, suppress the
+			 * mapping of exclusions for specific headers.
+			 */
+			if (this.containsElementIgnoreCase(this.excludedOutboundStandardRequestHeaderNames, headerName)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
+				}
+				return false;
+			}
+		}
 		return this.shouldMapHeader(headerName, this.outboundHeaderNames);
 	}
 
@@ -841,6 +896,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setOutboundHeaderNames(HTTP_REQUEST_HEADER_NAMES);
 		mapper.setInboundHeaderNames(HTTP_RESPONSE_HEADER_NAMES);
+		mapper.setExcludedOutboundStandardRequestHeaderNames(HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS);
 		return mapper;
 	}
 
@@ -853,6 +909,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setInboundHeaderNames(HTTP_REQUEST_HEADER_NAMES);
 		mapper.setOutboundHeaderNames(HTTP_RESPONSE_HEADER_NAMES);
+		mapper.setExcludedInboundStandardResponseHeaderNames(HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS);
 		return mapper;
 	}
 }
