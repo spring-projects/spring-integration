@@ -24,6 +24,14 @@
     reference (or "reply-destination-name") can be configured explicitly or else the outbound gateway will use a
     JMS TemporaryQueue.
   </para>
+  <para>
+    Prior to Spring Integration 2.2, if necessary, a TemporaryQueue was created (and removed)
+    for each request/reply. Beginning with Spring Integration 2.2, the outbound gateway can be configured to use
+    a <classname>MessageListener</classname> container to receive replies instead of directly
+    using a new (or cached) <classname>Consumer</classname> to receive the reply for each request. When so
+    configured, and no explicit reply destination is provided, a single TemporaryQueue is used for each gateway
+    instead of one for each request.
+  </para>
 
   <section id="jms-inbound-channel-adapter">
     <title>Inbound Channel Adapter</title>
@@ -192,7 +200,20 @@
       The outbound Gateway creates JMS Messages from Spring Integration Messages and then sends to a
       'request-destination'. It will then handle the JMS reply Message either by using a selector to
       receive from the 'reply-destination' that you configure, or if no 'reply-destination' is provided,
-      it will create JMS TemporaryQueues. Notice that the "reply-channel" is also provided.
+      it will create JMS TemporaryQueues.
+      <caution>
+        <para>
+          Using a reply-destination (or reply-destination-name), together with
+          a <classname>CachingConnectionFactory</classname> with <emphasis>cacheConsumers</emphasis> set to
+          true, can cause Out of Memory conditions. This is because each request gets a new consumer with
+          a new selector (selecting on the correlation-key value, or on the sent JMSMessageID when there is no correlation-key).
+          Given that these selectors are unique, they will remain in the cache unused after the current request completes.
+        </para>
+        <para>
+          If you specify a reply destination, you are advised to NOT use cached consumers. Alternatively,
+          consider using a &lt;reply-listener/&gt; as described below.
+        </para>
+      </caution>
       <programlisting language="xml"><![CDATA[ <int-jms:outbound-gateway id="jmsOutGateway"
                        request-destination="outQueue"
                        request-channel="outboundJmsRequests"
@@ -205,6 +226,54 @@
       <emphasis>sent as a request</emphasis>, and the 'extract-reply-payload' property value applies to the
       JMS Message that is <emphasis>received as a reply</emphasis> and then converted into a Spring Integration
       Message to be subsequently sent to the 'reply-channel' as shown in the example configuration above.
+    </para>
+    <para><emphasis>&lt;reply-listener/&gt;</emphasis></para>
+    <para>
+      Spring Integration 2.2 introduced an alternative technique for handling replies. If you add a
+      &lt;reply-listener/&gt; child element to the gateway, instead of creating a consumer for
+      each reply, a <classname>MessageListener</classname> container is used to receive the replies
+      and hand them over to the requesting thread. This provides a number of performance benefits
+      as well as alleviating the cached consumer memory utilization problem described in the caution
+      above.
+    </para>
+    <para>
+      When using a &lt;reply-listener/&gt;, instead of creating a TemporaryQueue for each request,
+      a single TemporaryQueue is used (the gateway will create an additional TemporaryQueue, as
+      necessary, if the connection to the broker is lost and recovered).
+    </para>
+    <para>
+      When using a <emphasis>correlation-key</emphasis>, multiple gateways can share the same
+      reply destination because the listener container uses a selector that is unique
+      to each gateway.
+    </para>
+    <caution>
+      <para>
+        If you specify a reply listener, and specify a reply destination (or reply destination name),
+        but provide NO correlation key, the gateway will log a warning a fall back to pre-2.2
+        behavior. This is because there is no way to configure a selector in this case, thus there is
+        no way to avoid a reply going to a different gateway that might be configured with the
+        same reply destination.
+      </para>
+      <para>
+        Note that, in this situation, a new consumer is used for each request, and
+        consumers can build up in memory as described in the
+        caution above; therefore cached consumers should not be used in this case.
+      </para>
+    </caution>
+    <para>
+      <programlisting language="xml"><![CDATA[ <int-jms:outbound-gateway id="jmsOutGateway"
+                       request-destination="outQueue"
+                       request-channel="outboundJmsRequests"
+                       reply-channel="jmsReplies">
+    <int-jms:reply-listener />
+</int-jms-outbound-gateway>]]></programlisting>
+      In the above example, a reply listener with default attributes is used. The listener is
+      very lightweight and it is anticipated that, in most cases, only a single consumer will
+      be needed. However, attributes such as <emphasis>concurrent-consumers</emphasis>,
+      <emphasis>max-concurrent-consumers</emphasis> etc., can be added. Refer to the
+      schema for a complete list of supported attributes, together with the
+      <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>
+      for their meanings.
     </para>
   </section>
 
