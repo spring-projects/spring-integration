@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNull;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -542,6 +543,18 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertNotNull(headers.get("X-customHeaderB"));
 		assertEquals("TestClass.class", headers.get("X-customHeaderB").get(0));
 	}
+
+    @Test
+    public void dontPropagateContentLength() {
+        HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+        HttpHeaders headers = new HttpHeaders();
+        // suppressed in response on inbound, by default
+        headers.put("Content-Length", Arrays.asList(new String[] {"3"}));
+        Map<String, Object> messageHeaders = mapper.toHeaders(headers);
+        headers = new HttpHeaders();
+        mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+        assertNull(headers.get("Content-Length"));
+    }
 
 	public static class TestClass {
 
