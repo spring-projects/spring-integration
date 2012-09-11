@@ -153,6 +153,14 @@
 				For more information see <xref linkend="transaction-synchronization"/>.
 			</para>
 		</section>
+		<section id="2.2-jms-og">
+			<title>JMS Oubound Gateway Improvements</title>
+			<para>
+				The JMS Outbound Gateway can now be configured to use a
+				<interfacename>MessageListener</interfacename> container to receive
+				replies. This can improve performance of the gateway.
+			</para>
+		</section>
 	</section>
 
 	<section id="2.2-new-components">
