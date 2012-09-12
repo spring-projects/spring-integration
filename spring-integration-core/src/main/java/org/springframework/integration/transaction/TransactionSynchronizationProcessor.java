@@ -22,10 +22,10 @@ package org.springframework.integration.transaction;
  */
 public interface TransactionSynchronizationProcessor {
 
-	public abstract void processBeforeCommit(IntegrationResourceHolder holder);
+	void processBeforeCommit(IntegrationResourceHolder holder);
 
-	public abstract void processAfterCommit(IntegrationResourceHolder holder);
+	void processAfterCommit(IntegrationResourceHolder holder);
 
-	public abstract void processAfterRollback(IntegrationResourceHolder holder);
+	void processAfterRollback(IntegrationResourceHolder holder);
 
 }
