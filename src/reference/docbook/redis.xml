@@ -220,5 +220,192 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     the <code>valueSerializer</code> property of the <classname>RedisMessageStore</classname>.
     </para>
   </section>
+  
+  <section id="redis-store-inbound-channel-adapter">
+        <title>RedisStore Inbound Channel Adapter</title>
+
+        <para>
+        The <emphasis>RedisStore Inbound Channel Adapter</emphasis> is a polling consumer that reads data
+        from a Redis collection and sends it as a Message payload.
+        </para>
+
+        <programlisting lang="xml"><![CDATA[<int-redis:store-inbound-channel-adapter id="listAdapter"
+		connection-factory="redisConnectionFactory"
+		key="myCollection"
+		channel="redisChannel"
+		collection-type="LIST" >
+			<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
+</int-redis:store-inbound-channel-adapter>]]></programlisting>	
+
+        <para>
+        As you can see from the configuration above you configure a <emphasis>Redis Store Inbound Channel Adapter</emphasis> using
+        the <code>store-inbound-channel-adapter</code> element, providing values for various attributes such as: 
+        <itemizedlist>
+          <listitem>
+            <para><code>key</code> or <code>key-expression</code> - The name of the key for the collection being used. </para>
+          </listitem>
+          <listitem>
+            <para><code>collection-type</code> - enumeration of the Collection types supported by this adapter. Supported Collections are:     LIST, SET, ZSET, PROPERTIES, MAP  </para>
+          </listitem>
+          <listitem>
+            <para><code>key-serializer</code> - reference to an instance of <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing keys </para>
+          </listitem>
+          <listitem>
+            <para><code>value-serializer</code>  - reference to an instance of <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing values </para>
+          </listitem>
+          <listitem>
+            <para><code>hash-key-serializer</code>  - reference to an instance of <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing hash keys </para>
+          </listitem>
+          <listitem>
+            <para><code>hash-value-serializer</code>  - reference to an instance of <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing hash values </para>
+          </listitem>
+          <listitem>
+            <para><code>connection-factory</code>  - 
+            reference to an instance of <classname>org.springframework.data.redis.connection.RedisConnectionFactory</classname>  </para>
+          </listitem>
+          <listitem>
+            <para><code>redis-template</code>  - 
+             reference to an instance of <classname>org.springframework.data.redis.core.RedisTemplate</classname>
+             </para>
+          </listitem>
+        </itemizedlist>
+        and other attributes that are common across all other inbound adapters (e.g., 'channel').  
+        </para>
+        <note>
+          You cannot set both <code>redis-template</code> and <code>connection-factory</code>.
+        </note>
+        <para>
+        The example above is relatively simple and static since it has a literal value for the <code>key</code>.
+        Sometimes, you may need to change the value of the key at runtime based on some condition.
+        To do that, simply use <code>key-expression</code> instead, where the provided expression can be any valid SpEL expression.
+        </para>
+        <para>
+        Also, you may wish to perform some post-processing to the successfully processed data that was read from the Redis collection.
+        For example; you may want to move or remove the value after its been processed.
+        You can do this using the Transaction Synchronization feature that was added with Spring Integration 2.2. 
+        </para>
+        <programlisting lang="xml"><![CDATA[<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
+        connection-factory="redisConnectionFactory"
+        key-expression="'presidents'"
+        channel="otherRedisChannel"
+        auto-startup="false"
+        collection-type="ZSET">
+            <int:poller fixed-rate="1000" max-messages-per-poll="2">
+                <int:transactional synchronization-factory="syncFactory"/>
+            </int:poller>
+</int-redis:store-inbound-channel-adapter>
+
+<int:transaction-synchronization-factory id="syncFactory">
+	<int:after-commit expression="payload.removeByScore(18, 18)"/>
+</int:transaction-synchronization-factory>
+
+<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>]]></programlisting>
+
+
+       <para>
+       As you can see from the above all, you need to do is declare your poller to be transactional with a <code>transactional</code> element.
+       This element can reference a real transaction manager (for example if some other part of your flow invokes JDBC).
+       If you don't have a 'real' transaction, you can use a
+       <classname>org.springframework.integration.transaction.PseudoTransactionManager</classname> which is an implementation
+       of Spring's <classname>PlatformTransactionManager</classname> and enables the use of the transaction synchronization
+       features of the redis adapter when there is no actual transaction.
+       </para>
+       <important>
+         This does NOT make the Redis activities themselves transactional, it simply allows the synchronization of actions to be taken before/after success (commit)
+         or after failure (rollback).
+       </important>
+       <para>
+       Once your poller is transactional all you need to do is set an instance of the
+       <classname>org.springframework.integration.transaction.TransactionSynchronizationFactory</classname> on the <code>transactional</code> element. 
+       <classname>TransactionSynchronizationFactory</classname> will create an instance of the <classname>TransactionSynchronization</classname>.
+       For your convenience we've exposed a default SpEL-based <classname>TransactionSynchronizationFactory</classname> which allows
+       you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
+       Expressions for before-commit, after-commit, and after-rollback are supported, together with a channel for each where the
+       evaluation result  (if any) will be sent. For each sub-element you can specify <code>expression</code> and/or <code>channel</code>
+       attributes. If only the <code>channel</code> attribute is present the received Message will be sent there as part of the particular
+       synchronization scenario. If only the <code>expression</code> attribute is present and the result of an expression is a non-Null
+       value, a Message with the result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the
+       logs (DEBUG). If you want the evaluation result to go to a specific channel add a <code>channel</code> attribute. If the result of an
+       expression is null or void, no Message will be generated.
+       </para>
+       <para>
+       For more information about transaction synchronization, see <xref linkend="transaction-synchronization"/>.
+       </para>
+  </section>
+  
+  <section id="redis-store-outbound-channel-adapter">
+        <title>RedisStore Outbound Channel Adapter</title>
+
+        <para>
+        The <emphasis>RedisStore Outbound Channel Adapter</emphasis> allows you to write a Message payload to a Redis collection
+        </para>
+
+        <programlisting lang="xml"><![CDATA[<int-redis:store-outbound-channel-adapter id="redisListAdapter"
+          collection-type="LIST"
+          channel="requestChannel"
+          key="myCollection" />]]></programlisting>    
+
+        <para>
+        As you can see from the configuration above, you configure a <emphasis>Redis Store Outbound Channel Adapter</emphasis> using
+        the <code>store-inbound-channel-adapter</code> element, providing values for various attributes such as: 
+        <itemizedlist>
+          <listitem>
+            <para><code>key</code> or <code>key-expression</code> - The name of the key for the collection being used. </para>
+          </listitem>
+          <listitem>
+            <para><code>extract-payload-elements</code>  - If set to <code>true</code> (Default) and the payload is an instance of a "multi-
+     value" object (i.e., Collection or Map) it will be stored using addAll/
+     putAll semantics. Otherwise, if set to <code>false</code> the payload will be stored 
+     as a single entry regardless of its type. If the payload is not an instance 
+     of a "multi-value" object, the value of this attribute is ignored and the 
+     payload will always be stored as a single entry.</para>
+          </listitem>
+          <listitem>
+            <para><code>collection-type</code> - enumeration of the Collection types supported by this adapter. Supported Collections are: LIST, SET, ZSET, PROPERTIES, MAP  </para>
+          </listitem>
+          <listitem>
+            <para><code>key-serializer</code>  - reference to an instance of the <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing keys </para>
+          </listitem>
+      <listitem>
+            <para><code>value-serializer</code>  - reference to an instance of the <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing values </para>
+          </listitem>
+      <listitem>
+            <para><code>hash-key-serializer</code>  - reference to an instance of the <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing hash keys </para>
+          </listitem>
+      <listitem>
+            <para><code>hash-value-serializer</code>  - reference to an instance of the <code>org.springframework.data.redis.serializer.RedisSerializer</code>
+            to be used while serializing hash values </para>
+          </listitem>
+          <listitem>
+            <para><code>map-key-expression</code>  - SpEL expression that returns the name of the key for entry being
+     stored. Only applies if the <code>collection-type</code> is MAP or PROPERTIES and
+     'extract-payload-elements' is false. </para>
+          </listitem>
+          <listitem>
+            <para><code>connection-factory</code>  -
+            reference to an instance of <classname>org.springframework.data.redis.connection.RedisConnectionFactory</classname>  </para>
+          </listitem>
+          <listitem>
+            <para><code>redis-template</code>  -
+             reference to an instance of <classname>org.springframework.data.redis.core.RedisTemplate</classname>
+             (NOTE: you can not have both redis-template and connection-factory set)</para>
+          </listitem>
+        </itemizedlist>
+        and other attributes that are common across all other inbound adapters (e.g., 'channel').
+        </para>
+    <para>
+    The example above is relatively simple and static since it has a literal values for the <code>key</code> and other attributes.
+    Sometimes you may need to change the values dynamically at runtime based on some condition.
+    To do that simply use their <code>-expression</code> equivalents (<code>key-expression</code>, <code>map-key-expression</code> etc.) where
+    the provided expression can be any valid SpEL expression.
+    </para>
+  </section>
 
 </chapter>

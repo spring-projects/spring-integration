@@ -32,9 +32,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.transaction.MessageSourceResourceHolder;
 import org.springframework.integration.util.ExpressionUtils;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 /**
  * Inbound channel adapter which returns a Message representing a view into
@@ -151,12 +149,6 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		Assert.hasText(key, "Failed to determine the key for the collection");
 
 		RedisStore store = this.createStoreView(key);
-
-		Object holder = TransactionSynchronizationManager.getResource(this);
-		if (holder != null) {
-			Assert.isInstanceOf(MessageSourceResourceHolder.class, holder);
-			((MessageSourceResourceHolder) holder).addAttribute("store", store);
-		}
 
 		if (store instanceof Collection<?> && ((Collection<Object>)store).size() < 1){
 			return null;
