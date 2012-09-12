@@ -207,6 +207,16 @@ In the above example instead of relying on the default <classname>SearchTermStra
     be aware of the protocol you are configuring to retrieve messages. For example POP3 does not support this flag
     which means setting it to either value will have no effect as messages will NOT be marked as read.</note>
 
+    <important>
+      <para>
+        It is important to understand that that these actions (marking messages read, and deleting messages) are performed after
+        the messages are received, but before they are processed. This can cause messages to be lost.
+      </para>
+      <para>
+        You may wish to consider using transaction synchronization instead - see <xref linkend="mail-tx-sync"/>
+      </para>
+    </important>
+
     <para>
       When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
       This simplifies the application of the headers mentioned above to any Message prior to sending to the
@@ -275,4 +285,55 @@ In the above example instead of relying on the default <classname>SearchTermStra
   	</para>
   </section>
 
+  <section id="mail-tx-sync">
+    <title>Transaction Synchronization</title>
+      <para>
+        Transaction synchronization for inbound adapters allows you to take different actions after a
+        transaction commits, or rolls back. Transaction synchronization is enabled by adding a &lt;transactional/&gt; element
+        to the poller for the polled &lt;inbound-adapter/&gt;, or to the &lt;imap-idle-inbound-adapter/&gt;. Even if there
+        is no 'real' transaction involved, you can still enable this feature by using a
+        <classname>PseudoTransactionManager</classname> with the &lt;transactional/&gt; element.
+        For more information, see <xref linkend="transaction-synchronization" />.
+      </para>
+      <para>
+        Because of the many different mail servers, and specifically the limitations that some have, at this time we
+        only provide a strategy for these transaction synchronizations. You can send the messages to some other Spring
+        Integration components, or invoke a custom bean to perform some action. For example, to move an IMAP message
+        to a different folder after the transaction commits, you might use something similar to the following:
+      </para>
+      <programlisting><![CDATA[<int-mail:imap-idle-channel-adapter id="customAdapter"
+			store-uri="imaps://foo.com:password@imap.foo.com/INBOX"
+			channel="receiveChannel"
+			auto-startup="true"
+			should-delete-messages="false"		
+			java-mail-properties="javaMailProperties">
+	<int:transactional synchronization-factory="syncFactory"/>
+</int-mail:imap-idle-channel-adapter>
+
+<int:transaction-synchronization-factory id="syncFactory">
+	<int:after-commit expression="@syncProcessor.process(payload)"/>
+</int:transaction-synchronization-factory>
+
+<bean id="syncProcessor" class="foo.bar.Mover"/>
+
+public class Mover {
+
+	public void process(MimeMessage message) throws Exception{
+		Folder folder = message.getFolder();
+		Store store = null;
+		if (!folder.isOpen()){
+			folder.open(Folder.READ_WRITE);
+			store = folder.getStore();
+		}
+		message.setFlag(Flags.Flag.DELETED, true);
+		Folder fooFolder = store.getFolder("FOO"));
+		fooFolder.appendMessages(new MimeMessage[]{message});
+		folder.expunge();
+	}
+}]]></programlisting>
+    <important>
+      For the message to be still available for manipulation after the transaction, <emphasis>should-delete-messages</emphasis>
+      must be set to 'false'.
+    </important>
+  </section>
 </chapter>
