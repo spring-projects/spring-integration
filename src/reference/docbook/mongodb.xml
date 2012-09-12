@@ -112,5 +112,167 @@
     <classname>MongoDbFactory</classname> as a constructor argument.
     </para>
   </section>
+  
+  <section id="mongodb-inbound-channel-adapter">
+    <title>MongoDB Inbound Channel Adapter</title>
+
+    <para>
+    The <emphasis>MongoDb Inbound Channel Adapter</emphasis> is a polling consumer that reads data
+    from MongoDb and sends it as a Message payload.
+    </para>
+    
+    <programlisting lang="xml"><![CDATA[<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
+       channel="replyChannel"
+       query="{'name' : 'Bob'}"
+       entity-class="java.lang.Object"
+       auto-startup="false">
+		<int:poller fixed-rate="100"/>
+</int-mongodb:inbound-channel-adapter>]]></programlisting>
+
+    <para>
+    As you can see from the configuration above, you configure a <emphasis>MongoDb Inbound Channel Adapter</emphasis> using
+    the <code>inbound-channel-adapter</code> element, providing values for various attributes such as: 
+    <itemizedlist>
+      <listitem>
+        <para><code>query</code> or <code>query-expression</code> - a 
+        JSON query (see <ulink url="http://www.mongodb.org/display/DOCS/Querying">MongoDb Querying</ulink>) </para>
+      </listitem>
+      <listitem>
+        <para><code>entity-class</code> - the type of the payload object; if not supplied, a
+          <classname>com.mongodb.DBObject</classname> will be returned.</para>
+      </listitem>
+      <listitem>
+        <para><code>collection-name</code> or <code>collection-name-expression</code> -
+        Identifies the name of the MongoDb collection to use.  </para>
+      </listitem>
+      <listitem>
+        <para><code>mongodb-factory</code>  -
+        reference to an instance of <classname>org.springframework.data.mongodb.MongoDbFactory</classname>  </para>
+      </listitem>
+      <listitem>
+        <para><code>mongo-template</code>  -
+         reference to an instance of <classname>org.springframework.data.mongodb.core.MongoTemplate</classname>
+         </para>
+      </listitem>
+    </itemizedlist>
+    and other attributes that are common across all other inbound adapters (e.g., 'channel').
+    </para>
+    <note>
+        You cannot set both <code>mongo-template</code> and <code>mongodb-factory</code>.
+    </note>
+	<para>
+	The example above is relatively simple and static since it has a literal value for the <code>query</code> and uses
+	the default name for a <code>collection</code>. Sometimes you may need to change those values at runtime, based on some condition.
+	To do that, simply use their <code>-expression</code> equivalents (<code>query-expression</code> and
+	<code>collection-name-expression</code>) where the provided expression can be any valid SpEL expression.
+	</para>
+	<para>
+	Also, you may wish to do some post-processing to the successfully processed data that was read from the MongoDb.
+	For example; you may want to move or remove a document after its been processed.
+	You can do this using Transaction Synchronization feature that was added with Spring Integration 2.2.
+	</para>
+	<programlisting lang="xml"><![CDATA[<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
+	   channel="replyChannel"
+	   query="{'name' : 'Bob'}"
+	   entity-class="java.lang.Object"
+	   auto-startup="false">
+				<int:poller fixed-rate="200" max-messages-per-poll="1">
+				    <int:transactional synchronization-factory="syncFactory"/>
+				</int:poller>
+</int-mongodb:inbound-channel-adapter>
+
+<int:transaction-synchronization-factory id="syncFactory">
+	<int:after-commit expression="@documentCleaner.remove(#mongoTemplate, payload, headers.mongo_collectionName)" channe="someChannel"/>
+</int:transaction-synchronization-factory>
+	
+<bean id="documentCleaner" class="foo.bar.DocumentCleaner"/>
+
+<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>]]></programlisting>
+
+<programlisting lang="java"><![CDATA[public class DocumentCleaner {
+		public void remove(MongoOperations mongoOperations, Object target, String collectionName) {
+			if (target instanceof List<?>){
+				List<?> documents = (List<?>) target;
+				for (Object document : documents) {
+					mongoOperations.remove(new BasicQuery(JSON.serialize(document)), collectionName);
+				}
+			}
+		}
+}]]></programlisting>	
+   <para>
+   As you can see from the above, all you need to do is declare your poller to be transactional with a <code>transactional</code> element.
+   This element can reference a real transaction manager (for example if some other part of your flow invokes JDBC).
+   If you don't have a 'real' transaction, you can use a
+   <classname>org.springframework.integration.transaction.PseudoTransactionManager</classname> which is an implementation 
+   of the Spring's <classname>PlatformTransactionManager</classname> and enables the use of the transaction synchronization
+   features of the mongo adapter when there is no actual transaction.
+   </para>
+   <important>
+     This does NOT make MongoDB itself transactional, it simply allows the synchronization of actions to be taken before/after success (commit)
+     or after failure (rollback).
+   </important>
+   <para>
+   Once your poller is transactional all you need to do is set an instance of the 
+   <classname>org.springframework.integration.transaction.TransactionSynchronizationFactory</classname> on the <code>transactional</code> element. 
+   <classname>TransactionSynchronizationFactory</classname> will create an instance of the <classname>TransactioinSynchronization</classname>.
+   For your convenience, we've exposed a default SpEL-based <classname>TransactionSynchronizationFactory</classname> which allows
+   you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
+   Expressions for before-commit, after-commit, and after-rollback are supported, together with a channel for each where the
+   evaluation result (if any) will be sent. For each sub-element you can specify <code>expression</code> and/or <code>channel</code>
+   attributes. If only the <code>channel</code> attribute is present the received Message will be sent there as part of the particular
+   synchronization scenario. If only the <code>expression</code> attribute is present and the result of an expression is a non-Null
+   value, a Message with the result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the
+   logs (DEBUG). If you want the evaluation result to go to a specific channel add a <code>channel</code> attribute. If the result of an 
+   expression is null or void, no Message will be generated.
+   </para>
+   <para>
+   For more information about transaction synchronization, see <xref linkend="transaction-synchronization"/>.
+   </para>
+  </section>
+  
+   <section id="mongodb-outbound-channel-adapter">
+    <title>MongoDB Outbound Channel Adapter</title>
+
+    <para>
+    The <emphasis>MongoDb Outbound Channel Adapter</emphasis> allows you to write the Message payload to a MongoDb document store
+    </para>
+    
+    <programlisting lang="xml"><![CDATA[<int-mongodb:outbound-channel-adapter id="fullConfigWithCollectionExpression"
+	collection-name="myCollection"
+	mongo-converter="mongoConverter"
+	mongodb-factory="mongoDbFactory" />]]></programlisting>	
+
+    <para>
+    As you can see from the configuration above, you configure a <emphasis>MongoDb Outbound Channel Adapter</emphasis> using
+    the <code>outbound-channel-adapter</code> element while also providing values for various attributes such as:
+    <itemizedlist>
+      <listitem>
+        <para><code>collection-name</code> or <code>collection-name-expression</code> -
+        Identifies the name of the MongoDb collection to use.  </para>
+      </listitem>
+      <listitem>
+        <para><code>mongo-converter</code>  -
+        reference to an instance of <classname>org.springframework.data.mongodb.core.convert.MongoConverter</classname> to assist with
+        converting a raw java object to a JSON document representation  </para>
+      </listitem>
+      <listitem>
+        <para><code>mongodb-factory</code>  -
+        reference to an instance of <classname>org.springframework.data.mongodb.MongoDbFactory</classname>  </para>
+      </listitem>
+      <listitem>
+        <para><code>mongo-template</code>  -
+         reference to an instance of <classname>org.springframework.data.mongodb.core.MongoTemplate</classname>
+         (NOTE: you can not have both mongo-template and mongodb-factory set)</para>
+      </listitem>
+    </itemizedlist>
+    and other attributes that are common across all other inbound adapters (e.g., 'channel').
+    </para>
+	<para>
+	The example above is relatively simple and static since it has a literal value for the <code>collection-name</code>.
+	Sometimes you may need to change this value at runtime based on some condition.
+	To do that, simply use <code>collection-name-expression</code>
+	where the provided expression can be any valid SpEL expression.
+	</para>
+  </section>
 
 </chapter>
