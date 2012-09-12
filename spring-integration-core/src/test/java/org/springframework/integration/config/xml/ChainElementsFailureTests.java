@@ -20,8 +20,10 @@ import java.util.Properties;
 
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
@@ -205,6 +207,23 @@ public class ChainElementsFailureTests {
 		catch (XmlBeanDefinitionStoreException e) {
 			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
 					" allowed to appear in element 'int:resequencer'.", e.getCause().getMessage());
+		}
+	}
+
+	@Test
+	public void chainResequencerPoller() throws Exception {
+
+		try {
+			this.bootStrap("resequencer-poller");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (BeanDefinitionParsingException e) {
+			final String expectedMessage = "Configuration problem: " +
+					"'int:resequencer' must not define a 'poller' sub-element " +
+					"when used within a chain.";
+			final String actualMessage = e.getMessage();
+			assertTrue("Error message did not start with '" + expectedMessage +
+					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
 		}
 	}
 
