@@ -33,12 +33,10 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
 /**
@@ -49,6 +47,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean{
 
@@ -242,16 +241,13 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					this.fetchMessages(messages);
 				}
 
-				logger.debug("Recieved " + messages.length + " messages");
+				if (logger.isDebugEnabled()) {
+					logger.debug("Received " + messages.length + " messages");
+				}
 
 				Message[] filteredMessages = this.filterMessagesThruSelector(messages);
 
-				if (TransactionSynchronizationManager.isActualTransactionActive()) {
-
-				}
-				else {
-					this.postProcessFilteredMessages(filteredMessages);
-				}
+				this.postProcessFilteredMessages(filteredMessages);
 
 				return filteredMessages;
 			}

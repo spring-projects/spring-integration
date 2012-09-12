@@ -87,19 +87,19 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		this.afterRollbackExpression = afterRollbackExpression;
 	}
 
-	public void processBeforeCommit(TransactionalResourceHolder holder) {
+	public void processBeforeCommit(IntegrationResourceHolder holder) {
 		this.doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
 	}
 
-	public void processAfterCommit(TransactionalResourceHolder holder) {
+	public void processAfterCommit(IntegrationResourceHolder holder) {
 		this.doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
 	}
 
-	public void processAfterRollback(TransactionalResourceHolder holder) {
+	public void processAfterRollback(IntegrationResourceHolder holder) {
 		this.doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
 	}
 
-	private void doProcess(TransactionalResourceHolder holder, Expression expression, MessageChannel messageChannel, String expressionType) {
+	private void doProcess(IntegrationResourceHolder holder, Expression expression, MessageChannel messageChannel, String expressionType) {
 		Message<?> message = holder.getMessage();
 		if (message != null){
 			if (expression != null){
@@ -161,11 +161,10 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 		StandardEvaluationContext evaluationContextToUse;
 		if (resource != null) {
 			evaluationContextToUse = this.createEvaluationContext();
-			if (resource instanceof TransactionalResourceHolder) {
-				TransactionalResourceHolder holder = (TransactionalResourceHolder) resource;
+			if (resource instanceof IntegrationResourceHolder) {
+				IntegrationResourceHolder holder = (IntegrationResourceHolder) resource;
 				for (Entry<String, Object> entry : holder.getAttributes().entrySet()) {
 					String key = entry.getKey();
-					Assert.state(!("messageSource".equals(key)), "'messageSource' is reserved and cannot be used as an attribute name");
 					evaluationContextToUse.setVariable(key, entry.getValue());
 				}
 			}

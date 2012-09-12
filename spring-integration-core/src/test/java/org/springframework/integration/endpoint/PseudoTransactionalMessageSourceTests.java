@@ -29,7 +29,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.PseudoTransactionManager;
-import org.springframework.integration.transaction.TransactionalResourceHolder;
+import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -67,8 +67,8 @@ public class PseudoTransactionalMessageSourceTests {
 
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
-				((TransactionalResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
-				((TransactionalResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("bix", "qox");
+				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
+				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("bix", "qox");
 				return message;
 			}
 		});
@@ -109,7 +109,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
-				((TransactionalResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
+				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
 				return message;
 			}
 		});
@@ -151,8 +151,8 @@ public class PseudoTransactionalMessageSourceTests {
 
 					public Message<String> receive() {
 						GenericMessage<String> message = new GenericMessage<String>("foo");
-						((TransactionalResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
-						((TransactionalResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("bix", "qox");
+						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("baz", "qux");
+						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this)).addAttribute("bix", "qox");
 						return message;
 					}
 				});
@@ -194,7 +194,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 						public Message<String> receive() {
 							GenericMessage<String> message = new GenericMessage<String>("foo");
-							((TransactionalResourceHolder) TransactionSynchronizationManager.getResource(this))
+							((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
 									.addAttribute("baz", "qux");
 							return message;
 						}
@@ -237,7 +237,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 					public Message<String> receive() {
 						GenericMessage<String> message = new GenericMessage<String>("foo");
-						((TransactionalResourceHolder) TransactionSynchronizationManager.getResource(this))
+						((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
 								.addAttribute("baz", "qux");
 						return message;
 					}

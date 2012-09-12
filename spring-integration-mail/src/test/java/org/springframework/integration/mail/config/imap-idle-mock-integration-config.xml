@@ -16,7 +16,7 @@
 					channel="nullChannel"
 					auto-startup="false"
 					should-delete-messages="false">
-			<int:transactional synchronization-factory="syncFactory"/>
+			<int-mail:transactional synchronization-factory="syncFactory"/>
 	</int-mail:imap-idle-channel-adapter>
 
 	<int:transaction-synchronization-factory id="syncFactory">

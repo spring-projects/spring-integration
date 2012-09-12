@@ -28,13 +28,12 @@ import javax.mail.MessagingException;
 import javax.mail.Store;
 
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
-import org.springframework.integration.transaction.TransactionalResourceHolder;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -52,12 +51,13 @@ import org.springframework.util.CollectionUtils;
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class ImapIdleChannelAdapter extends MessageProducerSupport implements BeanClassLoaderAware {
 
 	private final IdleTask idleTask = new IdleTask();
 
-	private final Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
+	private volatile Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
 
 	private volatile boolean shouldReconnectAutomatically = true;
 
@@ -91,6 +91,17 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	public void setAdviceChain(List<Advice> adviceChain) {
 		this.adviceChain = adviceChain;
+	}
+
+
+	/**
+	 * Specify an {@link Executor} used to send messages received by the
+	 * adapter.
+	 * @param sendingTaskExecutor the sendingTaskExecutor to set
+	 */
+	public void setSendingTaskExecutor(Executor sendingTaskExecutor) {
+		Assert.notNull(sendingTaskExecutor, "'sendingTaskExecutor' must not be null");
+		this.sendingTaskExecutor = sendingTaskExecutor;
 	}
 
 	/**
@@ -201,7 +212,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {
 
-					TransactionalResourceHolder holder = new TransactionalResourceHolder();
+					IntegrationResourceHolder holder = new IntegrationResourceHolder();
 					holder.setMessage(message);
 					TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
 

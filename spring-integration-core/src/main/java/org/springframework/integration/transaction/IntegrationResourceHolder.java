@@ -28,7 +28,9 @@ import org.springframework.transaction.support.ResourceHolder;
  * @since 2.2
  *
  */
-public class TransactionalResourceHolder implements ResourceHolder {
+public class IntegrationResourceHolder implements ResourceHolder {
+
+	public static final String MESSAGE_SOURCE = "messageSource";
 
 	private volatile Message<?> message;
 
