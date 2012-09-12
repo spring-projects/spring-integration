@@ -13,10 +13,13 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -24,6 +27,8 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.handler.MessageHandlerChain;
+import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;chain&gt; element.
@@ -32,14 +37,14 @@ import org.springframework.integration.handler.MessageHandlerChain;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gunnar Hillert
  */
 public class ChainParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
-		ManagedList handlerList = new ManagedList();
+		ManagedList<BeanMetadataElement> handlerList = new ManagedList<BeanMetadataElement>();
 		NodeList children = element.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
@@ -63,12 +68,38 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		return builder;
 	}
 
+	private void validateChild(Element element, ParserContext parserContext) {
+
+		final Object source = parserContext.extractSource(element);
+
+		final String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
+
+		if (StringUtils.hasText(order)) {
+			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
+				"an 'order' attribute when used within a chain.", source);
+		}
+
+		final List<Element> pollerChildElements = DomUtils
+				.getChildElementsByTagName(element, "poller");
+
+		if (!pollerChildElements.isEmpty()) {
+			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
+				"a 'poller' sub-element when used within a chain.", source);
+		}
+
+	}
+
 	private BeanDefinitionHolder parseChild(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
+
 		BeanDefinitionHolder holder = null;
+
 		if ("bean".equals(element.getLocalName())) {
 			holder = parserContext.getDelegate().parseBeanDefinitionElement(element, parentDefinition);
 		}
 		else {
+
+			this.validateChild(element, parserContext);
+
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
 			if (beanDefinition == null) {
 				parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
