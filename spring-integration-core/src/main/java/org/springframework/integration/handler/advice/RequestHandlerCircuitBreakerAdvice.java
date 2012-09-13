@@ -20,7 +20,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 
 /**
  * A circuit breaker that stops calling a failing service after threshold
@@ -56,7 +55,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		}
 		if (metadata.getFailures().get() >= this.threshold &&
 				System.currentTimeMillis() - metadata.getLastFailure() < this.halfOpenAfter) {
-			throw new MessagingException("Circuit Breaker is Open for " + target);
+			throw new CircuitBreakerOpenException("Circuit Breaker is Open for " + target);
 		}
 		try {
 			Object result = callback.execute();
@@ -89,6 +88,15 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 
 		private AtomicInteger getFailures() {
 			return failures;
+		}
+	}
+
+	private class CircuitBreakerOpenException extends RuntimeException {
+
+		private static final long serialVersionUID = 1L;
+
+		public CircuitBreakerOpenException(String message) {
+			super(message);
 		}
 	}
 
