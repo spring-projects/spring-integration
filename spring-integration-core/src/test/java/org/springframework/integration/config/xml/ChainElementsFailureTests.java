@@ -92,6 +92,26 @@ public class ChainElementsFailureTests {
 	}
 
 	@Test
+	public void chainDelayerWithId() throws Exception {
+
+		try {
+			this.bootStrap("delayer-with-id");
+			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
+		}
+		catch (XmlBeanDefinitionStoreException e) {
+			assertEquals("cvc-complex-type.3.2.2: Attribute 'id' is not" +
+					" allowed to appear in element 'int:delayer'.", e.getCause().getMessage());
+		}
+	}
+
+	@Test
+	public void chainDelayerWithName() throws Exception {
+
+		this.bootStrap("delayer-with-name");
+
+	}
+
+	@Test
 	public void chainFilter() throws Exception {
 
 		try {

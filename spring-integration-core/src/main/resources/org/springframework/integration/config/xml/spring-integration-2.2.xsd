@@ -34,24 +34,24 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="transaction-synchronization-factory">
 		<xsd:annotation>
 			<xsd:documentation>
 				Allows you to configure org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory
 				This implementation of org.springframework.integration.transaction.TransactionSynchronizationFactory
-				allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a 
-				transaction - see {TransactionSynchronization}. Expressions for before-commit, after.-commit, and after-rollback 
+				allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a
+				transaction - see {TransactionSynchronization}. Expressions for before-commit, after.-commit, and after-rollback
 				are supported, together with a channel for each where the evaluation result  (if any) will be sent.
 				For each sub-element you can specify 'expression' and/or 'channel' attributes.
 				If only the 'channel' attribute is present the received Message will be sent there as part of a particular synchronization scenario.
-				If only the 'expression' attribute is present and the result of an expression is a non-Null value, a Message with the 
-				result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the logs. 
-				If you want the evaluation result to go to a specific channel add a 'channel' attribute. If the result of an expression is null 
+				If only the 'expression' attribute is present and the result of an expression is a non-Null value, a Message with the
+				result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the logs.
+				If you want the evaluation result to go to a specific channel add a 'channel' attribute. If the result of an expression is null
 				or void, no Message will be generated.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>	
+		<xsd:complexType>
 			<xsd:sequence>
 					<xsd:element name="before-commit" minOccurs="0" maxOccurs="1">
 						<xsd:complexType>
@@ -72,7 +72,7 @@
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:attributeGroup name="synchronizationAttributeGroup">
 		<xsd:attribute name="expression" type="xsd:string">
 			<xsd:annotation>
@@ -1335,29 +1335,42 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="delayer">
+	<xsd:element name="delayer" type="delayerType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint that passes a Message to the output-channel after a
-				delay. The delay may
-				be
-				retrieved from a Message header or else fallback to the
-				'default-delay' of this endpoint.
+				Defines an endpoint that passes a Message to the output-channel
+				after a delay. The delay may be retrieved from a Message header
+				or else fallback to the 'default-delay' of this endpoint.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="delayer-type">
-					<xsd:sequence minOccurs="0" maxOccurs="1">
-						<xsd:element name="poller" type="basePollerType" />
-					</xsd:sequence>
-					<xsd:attributeGroup ref="inputOutputChannelGroup"/>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="delayer-type">
+	<xsd:complexType name="delayerType">
+		<xsd:complexContent>
+			<xsd:extension base="commonDelayerType">
+				<xsd:sequence>
+					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+				</xsd:sequence>
+				<xsd:attributeGroup ref="inputOutputChannelGroup"/>
+				<xsd:attribute name="id" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							'id' value is used:
+							- as the 'AbstractEndpoint' bean 'id' if this tag is defined as root element.
+							- as the DelayHandler bean alias together with suffix '.handler'
+							- as the 'messageGroupId' property of DelayHandler together with suffix '.messageGroupId'
+							  in the operations of the MessageGroupStore for scheduling delayed messages.
+
+							Either this attribute or the equivalent 'name' attribute
+							must be specified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="commonDelayerType">
 		<xsd:choice>
 			<xsd:annotation>
 				<xsd:documentation>
@@ -1368,14 +1381,18 @@
 			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:choice>
-		<xsd:attribute name="id" type="xsd:string" use="required">
+		<xsd:attribute name="name" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					'id' value is used:
+					'name' value is used:
 					- as the 'AbstractEndpoint' bean 'id' if this tag is defined as root element.
 					- as the DelayHandler bean alias together with suffix '.handler'
 					- as the 'messageGroupId' property of DelayHandler together with suffix '.messageGroupId'
 					  in the operations of the MessageGroupStore for scheduling delayed messages.
+
+					Either this attribute or the equivalent 'id' attribute
+					must be specified. Contrary to the 'id' attribute, the 'name'
+					attribute is available inside of Chains.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -1499,7 +1516,7 @@
 					<xsd:element name="recipient-list-router" type="recipientListRouterTypeChain"/>
 					<xsd:element name="exception-type-router" type="exceptionTypeRouterTypeChain"/>
 					<xsd:element name="header-value-router" type="headerValueRouterTypeChain"/>
-					<xsd:element name="delayer" type="delayer-type"/>
+					<xsd:element name="delayer" type="commonDelayerType"/>
 					<xsd:element name="gateway" type="innerGatewayType"/>
 					<xsd:element name="payload-serializing-transformer" type="payload-serializing-transformer-type"/>
 					<xsd:element name="payload-deserializing-transformer"
@@ -3453,7 +3470,7 @@ is provided, the return value is expected to match a channel name exactly.
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Reference to an instance of org.springframework.integration.transaction.TransactionSynchronizationFactory
-	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
+	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -3491,7 +3508,7 @@ is provided, the return value is expected to match a channel name exactly.
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Reference to an instance of org.springframework.integration.transaction.TransactionSynchronizationFactory
-	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
+	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method.
 	Setting of this attribute will only have an affect if a Transaction advice is present in the chain.
 				]]></xsd:documentation>
 				<xsd:appinfo>

@@ -138,6 +138,24 @@
 				For more information, see <xref linkend="message-handler-advice-chain"/>.
 			</para>
 		</section>
+		<section id="2.2-delayer">
+			<title>Delayer - Name Attribute Added</title>
+			<para>
+				A <emphasis>name</emphasis> attribute was added to the delayer.
+				This new attribute is mutually exclusive to the <emphasis>id</emphasis>
+				attribute. However, unlike the <emphasis>id</emphasis>
+				attribute, the new <emphasis>name</emphasis> attribute is also
+				available inside of chains.
+			</para>
+			<para>
+				To be more consistent with the rest of Spring Integration, the
+				delayer's <emphasis>id</emphasis> attribute cannot be used inside
+				of chains any longer.
+			</para>
+			<para>
+				For more information, see <xref linkend="delayer-namespace"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="2.2-new-components">

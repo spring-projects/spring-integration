@@ -28,6 +28,8 @@ import org.w3c.dom.Element;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gunnar Hillert
+ *
  * @since 1.0.3
  */
 public class DelayerParser extends AbstractConsumerEndpointParser {
@@ -37,8 +39,22 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DelayHandler.class);
 
 		String id = element.getAttribute(ID_ATTRIBUTE);
-		if (!StringUtils.hasText(id)) {
-			parserContext.getReaderContext().error("The 'id' attribute is required.", element);
+		String name = element.getAttribute("name");
+
+		if (StringUtils.hasText(id) && StringUtils.hasText(name)) {
+			parserContext.getReaderContext().error("Either the 'id' attribute or " +
+				"the 'name' attribute is required but not both.", element);
+		}
+
+		if (StringUtils.hasText(id)) {
+			builder.addConstructorArgValue(id + ".messageGroupId");
+		}
+		else if (StringUtils.hasText(name)) {
+			builder.addConstructorArgValue(name + ".messageGroupId");
+		}
+		else {
+			parserContext.getReaderContext().error("Either the 'id' attribute or " +
+				"the 'name' attribute is required.", element);
 		}
 
 		String defaultDelay = element.getAttribute("default-delay");
@@ -51,8 +67,6 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 			parserContext.getReaderContext()
 					.error("The 'default-delay' or 'delay-header-name' attributes should be provided.", element);
 		}
-
-		builder.addConstructorArgValue(id + ".messageGroupId");
 
 		String scheduler = element.getAttribute("scheduler");
 		if (StringUtils.hasText(scheduler)) {
