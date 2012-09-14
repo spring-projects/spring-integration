@@ -24,11 +24,16 @@
       but the delayer also has 'default-delay' and 'delay-header-name' attributes that are used to
       determine the number of milliseconds
       that each Message should be delayed. The following delays all messages by 3 seconds:
-      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" default-delay="3000" output-channel="output"/>]]></programlisting>
+	</para>
+      <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" default-delay="3000"
+             output-channel="output"/>]]></programlisting>
+	<para>
       If you need per-Message determination of the delay, then you can also provide the name of a header
       using the 'delay-header-name' attribute:
-      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
-          default-delay="3000" delay-header-name="delay"/>]]></programlisting>
+	</para>
+      <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
+             default-delay="3000" delay-header-name="delay"/>]]></programlisting>
+	<para>
       In the example above the 3 second delay would only apply in the case that the header value is
       not present for a given inbound Message. If you only want to apply a delay to Messages that have
       an explicit header value, then you can set the 'default-delay' to 0 or don't use it at all (by default it is 0).
@@ -46,6 +51,28 @@
         sender's Thread. If the header is not a Date, and can not be parsed as a Long, the default
         delay (if any) will be applied.
       </tip>
+	<important>
+		<para>
+			For the <emphasis>Delayer</emphasis> you have to provide either the
+			<emphasis>id</emphasis> or <emphasis>name</emphasis> attribute. These
+			mutually exclusive attributes are used to create the delayer's
+			<emphasis>messageGroupId</emphasis> that is used as the <emphasis>key</emphasis>
+			for the <interfacename>MessageGroup</interfacename>. The
+			<emphasis>messageGroupId</emphasis> is a concatenation of the
+			<emphasis>id</emphasis> or <emphasis>name</emphasis> attribute's value
+			and the <classname>String</classname> <quote>.messageGroupId</quote>.
+		</para>
+		<para>
+			When using the <emphasis>Delayer</emphasis> within in a
+			<emphasis><link linkend="chain">Chain</link></emphasis> you can provide
+			the <emphasis>name</emphasis>
+			attribute only. The <emphasis>name</emphasis> attribute was introduced
+			with <emphasis>Spring Integration 2.2</emphasis> as the XML namespace
+			parser became more consistent in regards to permissible attributes
+			within chains and generally disallows the usage of <emphasis>id</emphasis>
+			attributes within chains now.
+		</para>
+	</important>
     </para>
     <para>
       The delayer delegates to an instance of Spring's <interfacename>TaskScheduler</interfacename> abstraction.
@@ -68,13 +95,15 @@
          instance and <code>waitForTasksToCompleteOnShutdown</code> was deleted; you should use the scheduler's own configuration.
       </tip>
       <tip>
-         Also keep in mind <classname>ThreadPoolTaskScheduler</classname> has a property <code>errorHandler</code> which
+         Also keep in mind
+         <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/concurrent/ThreadPoolTaskScheduler.html">ThreadPoolTaskScheduler</ulink></classname>
+         has a property <code>errorHandler</code> which
          can be injected with some implementation of <classname>org.springframework.util.ErrorHandler</classname>.
          This handler allows to process an <classname>Exception</classname> from the thread of the scheduled task sending
          the delayed message.
          By default it uses an <classname>org.springframework.scheduling.support.TaskUtils$LoggingErrorHandler</classname>
          and you will see a stack trace in the logs. You might want to consider using an
-         <classname>org.springframework.integration.channel.MessagePublishingErrorHandler</classname>,
+         <classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/channel/MessagePublishingErrorHandler.html">MessagePublishingErrorHandler</ulink></classname>,
          which sends an <classname>ErrorMessage</classname> into an <code>error-channel</code>, either from the failed Message's header or
          into the default <code>error-channel</code>.
       </tip>
@@ -123,10 +152,10 @@
       which allows the rescheduling of delayed persisted Messages at runtime, for example, if the
       <interfacename>TaskScheduler</interfacename> has previously been stopped.
       These operations can be invoked via a <code>Control Bus</code> command:
-      <programlisting language="java"><![CDATA[ Message<String> delayerReschedulingMessage =
-                MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
- controlBusChannel.send(delayerReschedulingMessage);]]></programlisting>
-    </para>
+	</para>
+	<programlisting language="java"><![CDATA[Message<String> delayerReschedulingMessage =
+    MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
+controlBusChannel.send(delayerReschedulingMessage);]]></programlisting>
     <note>
       For more information regarding the Message Store, JMX and the Control Bus, please read <xref linkend="system-management-chapter"/>.
     </note>

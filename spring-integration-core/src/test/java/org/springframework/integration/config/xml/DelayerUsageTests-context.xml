@@ -37,7 +37,7 @@
 
 	<chain input-channel="delayerInsideChain" output-channel="outputA">
 		<transformer expression="payload.toUpperCase()"/>
-		<delayer id="delayerInsideChain" default-delay="1000">
+		<delayer name="delayerInsideChain" default-delay="1000">
 			<advice-chain>
 				<beans:bean class="org.springframework.integration.config.xml.TestAdviceBean">
 					<beans:constructor-arg value="0"/>
