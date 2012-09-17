@@ -121,7 +121,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	/**
 	 * Set the interface class that the generated proxy should implement.
-	 * If none is provided explicitly, the default is MessageHandler.
+	 * If none is provided explicitly, the default is {@link RequestReplyExchanger}.
 	 */
 	public void setServiceInterface(Class<?> serviceInterface) {
 		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
