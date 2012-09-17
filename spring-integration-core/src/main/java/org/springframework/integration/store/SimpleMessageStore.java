@@ -138,7 +138,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		if (group == null) {
 			return new SimpleMessageGroup(groupId);
 		}
-		return new SimpleMessageGroup(group);
+		SimpleMessageGroup simpleMessageGroup = new SimpleMessageGroup(group);
+		simpleMessageGroup.setLastModified(group.getLastModified());
+		return simpleMessageGroup;
 	}
 
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
@@ -156,6 +158,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 					this.groupIdToMessageGroup.putIfAbsent(groupId, group);
 				}
 				group.add(message);
+				this.groupIdToMessageGroup.get(groupId).setLastModified(System.currentTimeMillis());
 				return group;
 			}
 			finally {
@@ -199,6 +202,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to remove Message from the MessageGroup");
 				group.remove(messageToRemove);
+				group.setLastModified(System.currentTimeMillis());
 				return group;
 			}
 			finally {
@@ -224,6 +228,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to set 'lastReleasedSequenceNumber'");
 				group.setLastReleasedMessageSequenceNumber(sequenceNumber);
+				group.setLastModified(System.currentTimeMillis());
 			}
 			finally {
 				lock.unlock();
@@ -244,6 +249,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 				Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
 						"can not be located while attempting to complete the MessageGroup");
 				group.complete();
+				group.setLastModified(System.currentTimeMillis());
 			}
 			finally {
 				lock.unlock();

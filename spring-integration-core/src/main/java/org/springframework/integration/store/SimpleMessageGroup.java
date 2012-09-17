@@ -27,6 +27,7 @@ import org.springframework.integration.Message;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class SimpleMessageGroup implements MessageGroup {
@@ -144,6 +145,7 @@ public class SimpleMessageGroup implements MessageGroup {
 				"groupId=" + groupId +
 				", messages=" + messages +
 				", timestamp=" + timestamp +
+				", lastModified=" + lastModified +
 				'}';
 	}
 }
