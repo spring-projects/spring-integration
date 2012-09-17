@@ -555,7 +555,7 @@ project('spring-integration-jpa') {
 	}
 
 	test.doFirst {
-		String jvmArgsSpringIntrument = "-javaagent:${configurations.javaAgentSpringInstrument.asPath}"
+		String jvmArgsSpringIntrument = "-javaagent:${configurations.javaAgentSpringInstrument.files.iterator().next()}"
 		String jvmArgsOpenJpa         = "-javaagent:${configurations.javaAgentOpenJpa.files.iterator().next()}"
 		jvmArgs jvmArgsSpringIntrument , jvmArgsOpenJpa
 	}
