@@ -124,7 +124,33 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.messageStore = store;
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				forceComplete(group);
+				Lock lock = AbstractCorrelatingMessageHandler.this.lockRegistry.obtain(group.getGroupId());
+
+				try {
+					lock.lockInterruptibly();
+					try {
+						long lastModifiedWhenConsideredCandidate = group.getLastModified();
+						MessageGroup messageGroupNow = AbstractCorrelatingMessageHandler.this.messageStore.getMessageGroup(
+								group.getGroupId());
+						//TODO: 3.0? Consider adding MessageGroupStore.getLastModified(groupId)
+						long lastModifiedNow = messageGroupNow.getLastModified();
+						if (lastModifiedWhenConsideredCandidate == lastModifiedNow) {
+							forceComplete(group);
+						}
+						else {
+							if (logger.isDebugEnabled()) {
+								logger.debug("Group expiry candidate (" + group.getGroupId() +
+										") has changed - may be reconsidered for a future expiration");
+							}
+						}
+					}
+					finally {
+						lock.unlock();
+					}
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 			}
 		});
 	}
