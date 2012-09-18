@@ -112,7 +112,6 @@
 		</ws:request-handler-advice-chain>
 	</ws:outbound-gateway>
 
-
 	<si:chain input-channel="gatewayWithAdviceInsideAChain">
 		<ws:outbound-gateway destination-provider="destinationProvider">
 			<ws:request-handler-advice-chain>
@@ -120,6 +119,10 @@
 			</ws:request-handler-advice-chain>
 		</ws:outbound-gateway>
 	</si:chain>
+
+	<ws:outbound-gateway id="gatewayWithJmsUri"
+	                     request-channel="inputChannel"
+	                     uri="jms:wsQueue" />
 
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
 
