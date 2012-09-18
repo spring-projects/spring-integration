@@ -157,7 +157,7 @@
 			<title>JMS Oubound Gateway Improvements</title>
 			<para>
 				The JMS Outbound Gateway can now be configured to use a
-				<classname>MessageListener</classname> container to receive
+				<interfacename>MessageListener</interfacename> container to receive
 				replies. This can improve performance of the gateway.
 			</para>
 		</section>
