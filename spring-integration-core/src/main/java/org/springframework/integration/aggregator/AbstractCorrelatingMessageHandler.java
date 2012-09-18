@@ -124,33 +124,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.messageStore = store;
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
-				Lock lock = AbstractCorrelatingMessageHandler.this.lockRegistry.obtain(group.getGroupId());
-
-				try {
-					lock.lockInterruptibly();
-					try {
-						long lastModifiedWhenConsideredCandidate = group.getLastModified();
-						MessageGroup messageGroupNow = AbstractCorrelatingMessageHandler.this.messageStore.getMessageGroup(
-								group.getGroupId());
-						//TODO: 3.0? Consider adding MessageGroupStore.getLastModified(groupId)
-						long lastModifiedNow = messageGroupNow.getLastModified();
-						if (lastModifiedWhenConsideredCandidate == lastModifiedNow) {
-							forceComplete(group);
-						}
-						else {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Group expiry candidate (" + group.getGroupId() +
-										") has changed - may be reconsidered for a future expiration");
-							}
-						}
-					}
-					finally {
-						lock.unlock();
-					}
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
+				forceComplete(group);
 			}
 		});
 	}
@@ -270,20 +244,40 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		Object correlationKey = group.getGroupId();
 		Lock lock = this.lockRegistry.obtain(correlationKey);
+		boolean removeGroup = true;
 		try {
 			lock.lockInterruptibly();
 			try {
 				if (group.size() > 0) {
 					try {
-						if (releaseStrategy.canRelease(group)) {
-							this.completeGroup(correlationKey, group);
+						/*
+						 * Need to verify the group hasn't changed while we were waiting on
+						 * its lock. We have to re-fetch the group for this. A possible
+						 * future improvement would be to add MessageGroupStore.getLastModified(groupId).
+						 */
+						MessageGroup messageGroupNow = this.messageStore.getMessageGroup(
+								group.getGroupId());
+						long lastModifiedNow = messageGroupNow.getLastModified();
+						if (group.getLastModified() == lastModifiedNow) {
+							if (releaseStrategy.canRelease(group)) {
+								this.completeGroup(correlationKey, group);
+							}
+							else {
+								this.expireGroup(correlationKey, group);
+							}
 						}
 						else {
-							this.expireGroup(correlationKey, group);
+							removeGroup = false;
+							if (logger.isDebugEnabled()) {
+								logger.debug("Group expiry candidate (" + group.getGroupId() +
+										") has changed - it may be reconsidered for a future expiration");
+							}
 						}
 					}
 					finally {
-						this.remove(group);
+						if (removeGroup) {
+							this.remove(group);
+						}
 					}
 					return true;
 				}
