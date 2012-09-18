@@ -304,7 +304,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
+			assertEquals("Circuit Breaker is Open for baz", e.getCause().getMessage());
 		}
 		Thread.sleep(100);
 		try {
@@ -319,7 +319,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
+			assertEquals("Circuit Breaker is Open for baz", e.getCause().getMessage());
 		}
 		Thread.sleep(100);
 		doFail.set(false);
@@ -344,7 +344,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
+			assertEquals("Circuit Breaker is Open for baz", e.getCause().getMessage());
 		}
 	}
 
