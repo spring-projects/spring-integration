@@ -204,7 +204,7 @@
    This element can reference a real transaction manager (for example if some other part of your flow invokes JDBC).
    If you don't have a 'real' transaction, you can use a
    <classname>org.springframework.integration.transaction.PseudoTransactionManager</classname> which is an implementation 
-   of the Spring's <classname>PlatformTransactionManager</classname> and enables the use of the transaction synchronization
+   of Spring's <classname>PlatformTransactionManager</classname> and enables the use of the transaction synchronization
    features of the mongo adapter when there is no actual transaction.
    </para>
    <important>
@@ -244,7 +244,7 @@
 
     <para>
     As you can see from the configuration above, you configure a <emphasis>MongoDb Outbound Channel Adapter</emphasis> using
-    the <code>outbound-channel-adapter</code> element while also providing values for various attributes such as:
+    the <code>outbound-channel-adapter</code> element, providing values for various attributes such as:
     <itemizedlist>
       <listitem>
         <para><code>collection-name</code> or <code>collection-name-expression</code> -
