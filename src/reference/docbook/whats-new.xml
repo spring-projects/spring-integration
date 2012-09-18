@@ -138,6 +138,21 @@
 				For more information, see <xref linkend="message-handler-advice-chain"/>.
 			</para>
 		</section>
+		<section id="2.2-transaction-sync">
+			<title>Transaction Synchronization and Pseudo Transactions</title>
+			<para>
+				Pollers can now participate in Spring's <emphasis>Transaction Synchronization</emphasis>
+				feature. This allows for synchronizing such operations as renaming files by an inbound channel
+				adapter depending on whether the transaction commits, or rolls back.
+			</para>
+			<para>
+				In addition, these features can be enabled when there is not a 'real' transaction present,
+				by means of a <classname>PseudoTransactionManager</classname>.
+			</para>
+			<para>
+				For more information see <xref linkend="transaction-synchronization"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="2.2-new-components">
