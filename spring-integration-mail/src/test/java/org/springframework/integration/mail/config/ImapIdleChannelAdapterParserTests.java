@@ -17,6 +17,7 @@
 package org.springframework.integration.mail.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
@@ -29,7 +30,6 @@ import javax.mail.search.SearchTerm;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -78,6 +78,7 @@ public class ImapIdleChannelAdapterParserTests {
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
+		assertNull(adapterAccessor.getPropertyValue("adviceChain"));
 	}
 	@Test
 	public void simpleAdapterWithErrorChannel() {
@@ -161,6 +162,27 @@ public class ImapIdleChannelAdapterParserTests {
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}
 
+	@Test
+	public void transactionalAdapter() {
+		Object adapter = context.getBean("transactionalAdapter");
+		assertEquals(ImapIdleChannelAdapter.class, adapter.getClass());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Object channel = context.getBean("channel");
+		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
+		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Object url = receiverAccessor.getPropertyValue("url");
+		assertEquals(new URLName("imap:foo"), url);
+		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
+		assertEquals(0, properties.size());
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
+		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
+		assertEquals(context.getBean("executor"), adapterAccessor.getPropertyValue("sendingTaskExecutor"));
+		assertNotNull(adapterAccessor.getPropertyValue("adviceChain"));
+	}
 	public static class TestSearchTermStrategy implements SearchTermStrategy {
 
 		public SearchTerm generateSearchTerm(Flags supportedFlags, Folder folder) {

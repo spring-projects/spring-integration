@@ -31,7 +31,7 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.transaction.MessageSourceResourceHolder;
+import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -218,8 +218,8 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 
 		Object holder = TransactionSynchronizationManager.getResource(this);
 		if (holder != null) {
-			Assert.isInstanceOf(MessageSourceResourceHolder.class, holder);
-			((MessageSourceResourceHolder) holder).addAttribute("mongoTemplate", this.mongoTemplate);
+			Assert.isInstanceOf(IntegrationResourceHolder.class, holder);
+			((IntegrationResourceHolder) holder).addAttribute("mongoTemplate", this.mongoTemplate);
 		}
 
 		return message;

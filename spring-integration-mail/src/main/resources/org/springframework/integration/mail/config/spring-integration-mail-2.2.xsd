@@ -108,6 +108,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inboundMailAdapterType">
+				<xsd:choice minOccurs="0" maxOccurs="2">
+					<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0" maxOccurs="1" />
+				</xsd:choice>
 					<xsd:attribute name="error-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -138,6 +141,21 @@
                                 which is "All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not 
                                 been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)". 							
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Reference to a bean that implements
+								org.springframework.core.task.TaskExecutor which is used
+								to send Messages received by this adapter.
+								If not provided, the adapter uses a single-threaded executor.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
@@ -230,14 +248,19 @@
 		<xsd:attribute name="should-delete-messages" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Specify whether mail messages should be deleted after retrieval.
+	Specify whether mail messages should be deleted after retrieval. Messages are deleted after
+	retrieval but before they are processed. If you wish to delete a message after completion
+	of message processing, use transaction synchronization instead.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="should-mark-messages-as-read" type="xsd:string" use="optional" default="true">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Specify whether mail messages should be marked as read aftre being retrieved (Not supported in POP3).
+	Specify whether mail messages should be marked as read after being retrieved (Not supported in POP3).
+	Messages are marked after
+	retrieval but before they are processed. If you wish to mark a message after completion
+	of message processing, use transaction synchronization instead.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

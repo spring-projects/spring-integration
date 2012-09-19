@@ -14,6 +14,7 @@ package org.springframework.integration.transaction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.transaction.support.ResourceHolderSynchronization;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -41,21 +42,21 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 	public TransactionSynchronization create(Object key) {
 		Assert.notNull(key, "'key' must not be null");
 		Object resourceHolder = TransactionSynchronizationManager.getResource(key);
-		Assert.isInstanceOf(MessageSourceResourceHolder.class, resourceHolder);
-		return new DefaultTransactionalResourceSynchronization((MessageSourceResourceHolder) resourceHolder, key);
+		Assert.isInstanceOf(IntegrationResourceHolder.class, resourceHolder);
+		return new DefaultTransactionalResourceSynchronization((IntegrationResourceHolder) resourceHolder, key);
 	}
 
 	/**
 	 */
 	private class DefaultTransactionalResourceSynchronization
-		extends ResourceHolderSynchronization<MessageSourceResourceHolder, Object> {
+		extends ResourceHolderSynchronization<IntegrationResourceHolder, Object> {
 
-		private final MessageSourceResourceHolder messageSourceHolder;
+		private final IntegrationResourceHolder resourceHolder;
 
-		public DefaultTransactionalResourceSynchronization(MessageSourceResourceHolder messageSourceHolder,
+		public DefaultTransactionalResourceSynchronization(IntegrationResourceHolder resourceHolder,
 				Object resourceKey) {
-			super(messageSourceHolder, resourceKey);
-			this.messageSourceHolder = messageSourceHolder;
+			super(resourceHolder, resourceKey);
+			this.resourceHolder = resourceHolder;
 		}
 
 		@Override
@@ -63,7 +64,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 			if (logger.isTraceEnabled()) {
 				logger.trace("'pre-Committing' transactional resource");
 			}
-			processor.processBeforeCommit(messageSourceHolder);
+			processor.processBeforeCommit(resourceHolder);
 		}
 
 		@Override
@@ -72,7 +73,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 		}
 
 		@Override
-		protected void processResourceAfterCommit(MessageSourceResourceHolder resourceHolder) {
+		protected void processResourceAfterCommit(IntegrationResourceHolder resourceHolder) {
 
 			if (logger.isTraceEnabled()) {
 				logger.trace("'Committing' transactional resource");
@@ -89,7 +90,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 					logger.trace("'Rolling back' transactional resource");
 				}
 
-				processor.processAfterRollback(messageSourceHolder);
+				processor.processAfterRollback(resourceHolder);
 
 			}
 			super.afterCompletion(status);
