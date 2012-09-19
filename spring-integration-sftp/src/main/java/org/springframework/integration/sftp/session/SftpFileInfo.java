@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.jcraft.jsch.SftpATTRS;
 
 /**
  * A {@link FileInfo} implementation for SFTP.
- * 
+ *
  * @author Gary Russell
  * @since 2.1
  */
@@ -67,7 +67,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	 * @see com.jcraft.jsch.SftpATTRS#getMTime()
 	 */
 	public long getModified() {
-		return this.attrs.getMTime() * 1000;
+		return ((long) this.attrs.getMTime()) * 1000;
 	}
 
 	/**
