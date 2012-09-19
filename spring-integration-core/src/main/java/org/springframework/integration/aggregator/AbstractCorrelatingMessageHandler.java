@@ -38,6 +38,7 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.util.DefaultLockRegistry;
 import org.springframework.integration.util.LockRegistry;
+import org.springframework.integration.util.UUIDConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -197,7 +198,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 
 		// TODO: INT-1117 - make the lock global?
-		Lock lock = this.lockRegistry.obtain(correlationKey);
+		Lock lock = this.lockRegistry.obtain(UUIDConverter.getUUID(correlationKey).toString());
 
 		lock.lockInterruptibly();
 		try {
@@ -243,7 +244,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private final boolean forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getGroupId();
-		Lock lock = this.lockRegistry.obtain(correlationKey);
+		// UUIDConverter is no-op if already converted
+		Lock lock = this.lockRegistry.obtain(UUIDConverter.getUUID(correlationKey).toString());
 		boolean removeGroup = true;
 		try {
 			lock.lockInterruptibly();
