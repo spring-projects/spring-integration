@@ -25,7 +25,7 @@ import com.jcraft.jsch.SftpATTRS;
 
 /**
  * A {@link FileInfo} implementation for SFTP.
- * 
+ *
  * @author Gary Russell
  * @since 2.1
  */
@@ -67,7 +67,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	 * @see com.jcraft.jsch.SftpATTRS#getMTime()
 	 */
 	public long getModified() {
-		return this.attrs.getMTime() * 1000;
+		return ((long)this.attrs.getMTime()) * 1000;
 	}
 
 	/**
