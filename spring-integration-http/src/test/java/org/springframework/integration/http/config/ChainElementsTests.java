@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.file;
+package org.springframework.integration.http.config;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -26,7 +25,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
@@ -43,13 +41,13 @@ public class ChainElementsTests {
 	public void chainOutboundGateway() throws Exception {
 
 		try {
-			this.bootStrap("file-oubound-gateway");
+			this.bootStrap("http-oubound-gateway");
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
 			final String expectedMessage = "Configuration problem: " +
-					"'int-file:outbound-gateway' with id='myFileOutboundGateway' " +
-					"must not define the 'request-channel' attribute when used within a chain.";
+					"'int-http:outbound-gateway' must not define the " +
+					"'request-channel' attribute when used within a chain";
 			final String actualMessage = e.getMessage();
 			assertTrue("Error message did not start with '" + expectedMessage +
 					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
@@ -57,29 +55,14 @@ public class ChainElementsTests {
 
 	}
 
-	@Test
-	public void chainOutboundGatewayWithInputChannel() throws Exception {
-
-		try {
-			this.bootStrap("file-oubound-gateway-input-channel");
-			fail("Expected a XmlBeanDefinitionStoreException to be thrown.");
-		}
-		catch (XmlBeanDefinitionStoreException e) {
-			assertEquals("cvc-complex-type.3.2.2: Attribute 'input-channel' is not" +
-					" allowed to appear in element 'int-file:outbound-gateway'.", e.getCause().getMessage());
-		}
-
-	}
-
 	private ApplicationContext bootStrap(String configProperty) throws Exception {
 		PropertiesFactoryBean pfb = new PropertiesFactoryBean();
-		pfb.setLocation(new ClassPathResource("org/springframework/integration/file/chain-elements-config.properties"));
+		pfb.setLocation(new ClassPathResource("org/springframework/integration/http/config/chain-elements-config.properties"));
 		pfb.afterPropertiesSet();
 		Properties prop = pfb.getObject();
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(prop.getProperty("xmlheaders")).append(prop.getProperty(configProperty)).append(prop.getProperty("xmlfooter"));
 		ByteArrayInputStream stream = new ByteArrayInputStream(buffer.toString().getBytes());
-
 		GenericApplicationContext ac = new GenericApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
 		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
