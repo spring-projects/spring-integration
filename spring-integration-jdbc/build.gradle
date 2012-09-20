@@ -14,8 +14,8 @@ task generateSql {
     configurations { vpp }
     dependencies { vpp 'foundrylogic.vpp:vpp:2.2.1' }
 
-    def generatedResourcesDir = new File(buildDir, 'generated-resources')
-
+    def generatedResourcesDir = new File('src/main/resources/org/springframework/integration/jdbc')
+  
     outputs.dir generatedResourcesDir
 
     ant.typedef(resource: 'foundrylogic/vpp/typedef.properties',
