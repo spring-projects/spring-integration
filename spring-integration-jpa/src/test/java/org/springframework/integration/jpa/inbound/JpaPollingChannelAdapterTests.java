@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,6 +51,7 @@ import org.springframework.test.context.transaction.TransactionConfiguration;
  * Integration tests for the Jpa Polling Channel Adapter {@link JpaPollingChannelAdapter}.
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -270,6 +272,7 @@ public class JpaPollingChannelAdapterTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student s");
 		jpaExecutor.setDeleteAfterPoll(true);
+		jpaExecutor.setDeleteInBatch(true);
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -297,10 +300,27 @@ public class JpaPollingChannelAdapterTests {
 
 		assertTrue(students.size() == 3);
 
-		Long studentCount = entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult();
+		Long studentCount = waitForDeletes(students);
 
 		assertEquals(Long.valueOf(0), studentCount);
 
+	}
+
+	private Long waitForDeletes(Collection<?> students) throws InterruptedException {
+		Long studentCount = Long.valueOf(students.size());
+
+		int n = 0;
+
+		while (studentCount > 0) {
+			studentCount = entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult();
+			if (studentCount > 0) {
+				Thread.sleep(100);
+				if (n++ > 100) {
+					fail("Failed to delete after poll");
+				}
+			}
+		}
+		return studentCount;
 	}
 
 	@Test
@@ -377,7 +397,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertTrue(students.size() == 3);
 
-		final Long studentCount = entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult();
+		Long studentCount = waitForDeletes(students);
 
 		assertEquals(Long.valueOf(0), studentCount);
 
