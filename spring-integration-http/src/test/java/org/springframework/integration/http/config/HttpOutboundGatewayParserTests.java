@@ -188,7 +188,7 @@ public class HttpOutboundGatewayParserTests {
 		}
 		catch (BeansException e) {
 			assertTrue(e instanceof BeanDefinitionParsingException);
-			assertTrue(e.getMessage().startsWith("Configuration problem: 'outbound-gateway' must not define the 'request-channel' attribute when used within a chain."));
+			assertTrue(e.getMessage().contains("'request-channel' attribute isn't allowed for a nested"));
 		}
 	}
 

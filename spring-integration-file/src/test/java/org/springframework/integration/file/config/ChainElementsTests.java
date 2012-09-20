@@ -47,9 +47,10 @@ public class ChainElementsTests {
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
-			final String expectedMessage = "Configuration problem: " +
-					"'int-file:outbound-gateway' with id='myFileOutboundGateway' " +
-					"must not define the 'request-channel' attribute when used within a chain.";
+			final String expectedMessage = "Configuration problem: The " +
+					"'request-channel' attribute isn't allowed for a nested (e.g. " +
+					"inside a <chain/>) endpoint element: 'int-file:outbound-gateway' " +
+					"with id='myFileOutboundGateway'.";
 			final String actualMessage = e.getMessage();
 			assertTrue("Error message did not start with '" + expectedMessage +
 					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));

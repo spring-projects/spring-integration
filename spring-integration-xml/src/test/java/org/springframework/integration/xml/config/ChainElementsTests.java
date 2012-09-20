@@ -46,8 +46,8 @@ public class ChainElementsTests {
 		}
 		catch (BeanDefinitionParsingException e) {
 			final String expectedMessage = "Configuration problem: " +
-					"'int-xml:xpath-transformer' must not define the " +
-					"'input-channel' attribute when used within a chain.";
+					"The 'input-channel' attribute isn't allowed for a nested " +
+					"(e.g. inside a <chain/>) endpoint element: 'int-xml:xpath-transformer'.";
 			final String actualMessage = e.getMessage();
 			assertTrue("Error message did not start with '" + expectedMessage +
 					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));

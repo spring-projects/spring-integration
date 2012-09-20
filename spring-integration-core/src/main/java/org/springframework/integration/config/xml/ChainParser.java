@@ -71,24 +71,6 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 	private void validateChild(Element element, ParserContext parserContext) {
 
 		final Object source = parserContext.extractSource(element);
-		final String elementName = element.getLocalName();
-
-		final String inputChannelAttributeName;
-
-		if (elementName.endsWith("outbound-gateway")) {
-			inputChannelAttributeName = "request-channel";
-		}
-		else {
-			inputChannelAttributeName = "input-channel";
-		}
-
-		final String inputChannel = element.getAttribute(inputChannelAttributeName);
-
-		if (StringUtils.hasText(inputChannel)) {
-			parserContext.getReaderContext().error(
-				String.format(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
-						"the '%s' attribute when used within a chain.", inputChannelAttributeName), source);
-		}
 
 		final String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
 
