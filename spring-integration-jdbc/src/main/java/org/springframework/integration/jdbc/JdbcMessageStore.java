@@ -89,6 +89,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		REMOVE_MESSAGE_FROM_GROUP("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and MESSAGE_ID=?"),
 
+		REMOVE_GROUP_TO_MESSAGE_JOIN("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=?"),
+
 		COUNT_ALL_MESSAGES_IN_GROUPS("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE"),
 
 		COUNT_ALL_MESSAGES_IN_GROUP("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=?"),
@@ -403,7 +405,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region }, mapper);
 
-        jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key},
+		if (messages.size() == 0){
+			return new SimpleMessageGroup(groupId);
+		}
+
+		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key},
 				new RowCallbackHandler() {
 					public void processRow(ResultSet rs) throws SQLException {
 						updateDate.set(rs.getTimestamp("UPDATED_DATE"));
@@ -416,11 +422,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					}
 				});
 
-		if (messages.size() == 0){
+		if (createDate.get() == null && updateDate.get() == null) {
+			if (logger.isWarnEnabled()) {
+				for (Message<?> message : messages) {
+					logger.warn("Missing group row for message id: " + message.getHeaders().getId());
+				}
+			}
 			return new SimpleMessageGroup(groupId);
 		}
-		Assert.state(createDate.get() != null, "Could not locate created date for groupId=" + groupId);
-		Assert.state(updateDate.get() != null, "Could not locate updated date for groupId=" + groupId);
 
 		long timestamp = createDate.get().getTime();
 		boolean complete = completeFlag.get().booleanValue();
@@ -459,6 +468,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		for (UUID messageIds : this.getMessageIdsForGroup(groupId)) {
 			this.removeMessage(messageIds);
 		}
+
+		jdbcTemplate.update(getQuery(Query.REMOVE_GROUP_TO_MESSAGE_JOIN), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				if (logger.isDebugEnabled()){
+					logger.debug("Removing relationships for the group with group key=" + groupKey);
+				}
+				ps.setString(1, groupKey);
+			}
+		});
 
 		jdbcTemplate.update(getQuery(Query.DELETE_MESSAGE_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {

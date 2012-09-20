@@ -16,6 +16,15 @@
 
 package org.springframework.integration.jdbc;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,19 +50,11 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.util.UUIDConverter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
 /**
  * @author Dave Syer
@@ -236,6 +237,24 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	public void testRemoveMessageGroup() throws Exception {
+		JdbcTemplate template = new JdbcTemplate(dataSource);
+		template.afterPropertiesSet();
+		String groupId = "X";
+
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+		messageStore.addMessageToGroup(groupId, message);
+		messageStore.removeMessageGroup(groupId);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
+
+		String uuidGroupId = UUIDConverter.getUUID(groupId).toString();
+		assertTrue(template.queryForList(
+				"SELECT * from INT_GROUP_TO_MESSAGE where GROUP_KEY = '"  + uuidGroupId + "'").size() == 0);
+	}
+
+	@Test
+	@Transactional
 	public void testCompleteMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -279,7 +298,7 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testOrderInMessageGroup() throws Exception {
 		String groupId = "X";
-		
+
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
 		Thread.sleep(1);
 		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
