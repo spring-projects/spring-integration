@@ -17,6 +17,7 @@ package org.springframework.integration.redis.outbound;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -318,20 +319,22 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@SuppressWarnings("unchecked")
 	private void handleZset(RedisZSet<Object> zset, final Message<?> message) throws Exception{
 		final Object payload = message.getPayload();
+		final BoundZSetOperations<String, Object> ops =
+				(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());
+		final Object overWriteHeader = message.getHeaders().get(RedisHeaders.ZSET_OVERWRITE_IF_PRESENT);
 
 		if (this.extractPayloadElements) {
-			final BoundZSetOperations<String, Object> ops =
-					(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());
 
 			if ((payload instanceof Map<?, ?> && this.isMapValuesOfTypeNumber((Map<?, ?>) payload))) {
-				final Map<Object, Number> pyloadAsMap = (Map<Object, Number>) payload;
+				final Map<Object, Number> payloadAsMap = (Map<Object, Number>) payload;
 				this.processInPipeline(new PipelineCallback() {
 					public void process() {
-						for (Object key : pyloadAsMap.keySet()) {
-							Number d = pyloadAsMap.get(key);
-							ops.add(key, d == null ?
+						for (Entry<Object, Number> entry : payloadAsMap.entrySet()) {
+							Number d = entry.getValue();
+							incrementOrOverwrite(ops, entry.getKey(), d == null ?
 									determineScore(message) :
-									NumberUtils.convertNumberToTargetClass(d, Double.class));
+									NumberUtils.convertNumberToTargetClass(d, Double.class),
+									overWriteHeader);
 						}
 					}
 				});
@@ -340,17 +343,17 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 				this.processInPipeline(new PipelineCallback() {
 					public void process() {
 						for (Object object : ((Collection<?>)payload)) {
-							ops.add(object, determineScore(message));
+							incrementOrOverwrite(ops, object, determineScore(message), overWriteHeader);
 						}
 					}
 				});
 			}
 			else {
-				this.addToZset(zset, payload, this.determineScore(message));
+				this.incrementOrOverwrite(ops, payload, this.determineScore(message), overWriteHeader);
 			}
 		}
 		else {
-			this.addToZset(zset, payload, this.determineScore(message));
+			this.incrementOrOverwrite(ops, payload, this.determineScore(message), overWriteHeader);
 		}
 	}
 
@@ -449,13 +452,26 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		return mapKey;
 	}
 
-	private void addToZset(RedisZSet<Object> zset, Object objectToAdd, Double score) {
+	private void incrementOrOverwrite(final BoundZSetOperations<String, Object> ops, Object object, Double score,
+			Object overWrite) {
+		boolean increment = overWrite == null || !(overWrite instanceof Boolean) ||
+				((Boolean) overWrite) == Boolean.FALSE;
 		if (score != null) {
-			zset.add(objectToAdd, score);
+			this.doIncrementOrOverwrite(ops, object, score, increment);
 		}
 		else {
 			logger.debug("Zset Score could not be determined. Using default score of 1");
-			zset.add(objectToAdd);
+			this.doIncrementOrOverwrite(ops, object, Double.valueOf(1), increment);
+		}
+	}
+
+	private void doIncrementOrOverwrite(final BoundZSetOperations<String, Object> ops, Object object, Double score,
+			boolean increment) {
+		if (increment) {
+			ops.incrementScore(object, score);
+		}
+		else {
+			ops.add(object, score);
 		}
 	}
 
