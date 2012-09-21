@@ -18,10 +18,6 @@
 		connection-factory="mockCf" channel="advised">
 		<int-ip:request-handler-advice-chain>
 			<bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice">
-				<constructor-arg value=""/>
-				<constructor-arg ref="nullChannel"/>
-				<constructor-arg value=""/>
-				<constructor-arg ref="nullChannel"/>
 				<property name="trapException" value="true" />
 			</bean>
 		</int-ip:request-handler-advice-chain>
