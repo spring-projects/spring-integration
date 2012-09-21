@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class RedisCollectionsInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+public class RedisCollectionInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {

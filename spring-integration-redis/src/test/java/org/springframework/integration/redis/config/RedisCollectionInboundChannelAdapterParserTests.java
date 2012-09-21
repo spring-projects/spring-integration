@@ -30,7 +30,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class RedisCollectionsInboundChannelAdapterParserTests {
+public class RedisCollectionInboundChannelAdapterParserTests {
 	@Test
 	public void validateFullConfiguration(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-store-adapter-parser.xml", this.getClass());

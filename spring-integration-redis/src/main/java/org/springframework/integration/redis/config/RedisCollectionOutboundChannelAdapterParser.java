@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class RedisCollectionsOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
