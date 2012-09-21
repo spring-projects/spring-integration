@@ -57,7 +57,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class RedisCollectionsOutboundChannelAdapterIntegrationTests extends RedisAvailableTests {
+public class RedisCollectionOutboundChannelAdapterIntegrationTests extends RedisAvailableTests {
 
 	@SuppressWarnings("unchecked")
 	@Test

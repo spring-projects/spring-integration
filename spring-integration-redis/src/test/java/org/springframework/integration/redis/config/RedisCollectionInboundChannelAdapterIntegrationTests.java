@@ -36,7 +36,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class RedisCollectionsInboundChannelAdapterIntegrationTests extends RedisAvailableTests{
+public class RedisCollectionInboundChannelAdapterIntegrationTests extends RedisAvailableTests{
 
 	@Test
 	@RedisAvailable

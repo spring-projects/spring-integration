@@ -28,7 +28,7 @@ import org.springframework.integration.test.util.TestUtils;
  *
  * @author Oleg Zhurakousky
  */
-public class RedisCollectionsOutboundChannelAdapterParserTests {
+public class RedisCollectionOutboundChannelAdapterParserTests {
 
 	@Test
 	public void validateFullConfiguration(){
