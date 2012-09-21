@@ -28,13 +28,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
 import org.junit.Test;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
+import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
@@ -72,9 +73,11 @@ public class AdvisedMessageHandlerTests {
 
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
-		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice(
-				"'foo'", successChannel,
-				"'bar'", failureChannel);
+		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+		advice.setSuccessChannel(successChannel);
+		advice.setFailureChannel(failureChannel);
+		advice.setOnSuccessExpression("'foo'");
+		advice.setOnFailureExpression("'bar:' + #exception.cause.message");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -89,8 +92,8 @@ public class AdvisedMessageHandlerTests {
 
 		Message<?> success = successChannel.receive(1000);
 		assertNotNull(success);
-		assertEquals("Hello, world!", success.getPayload());
-		assertEquals("foo", success.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT));
+		assertEquals("Hello, world!", ((AdviceMessage) success).getInputMessage().getPayload());
+		assertEquals("foo", success.getPayload());
 
 		// advice with failure, not trapped
 		doFail.set(true);
@@ -104,16 +107,16 @@ public class AdvisedMessageHandlerTests {
 
 		Message<?> failure = failureChannel.receive(1000);
 		assertNotNull(failure);
-		assertEquals("Hello, world!", failure.getPayload());
-		assertEquals("bar", failure.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT));
+		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
+		assertEquals("bar:qux", ((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult());
 
 		// advice with failure, trapped
 		advice.setTrapException(true);
 		handler.handleMessage(message);
 		failure = failureChannel.receive(1000);
 		assertNotNull(failure);
-		assertEquals("Hello, world!", failure.getPayload());
-		assertEquals("bar", failure.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT));
+		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
+		assertEquals("bar:qux", ((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult());
 		assertNull(replies.receive(1));
 
 		// advice with failure, eval is result
@@ -121,12 +124,12 @@ public class AdvisedMessageHandlerTests {
 		handler.handleMessage(message);
 		failure = failureChannel.receive(1000);
 		assertNotNull(failure);
-		assertEquals("Hello, world!", failure.getPayload());
-		assertEquals("bar", failure.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT));
+		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
+		assertEquals("bar:qux", ((MessageHandlingExpressionEvaluatingAdviceException) failure.getPayload()).getEvaluationResult());
 
 		reply = replies.receive(1000);
 		assertNotNull(reply);
-		assertEquals("bar", reply.getPayload());
+		assertEquals("bar:qux", reply.getPayload());
 
 	}
 
@@ -148,9 +151,11 @@ public class AdvisedMessageHandlerTests {
 
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
-		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice(
-				new SpelExpressionParser().parseExpression("1/0"), successChannel,
-				new SpelExpressionParser().parseExpression("1/0"), failureChannel);
+		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+		advice.setSuccessChannel(successChannel);
+		advice.setFailureChannel(failureChannel);
+		advice.setOnSuccessExpression("1/0");
+		advice.setOnFailureExpression("1/0");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -165,9 +170,9 @@ public class AdvisedMessageHandlerTests {
 
 		Message<?> success = successChannel.receive(1000);
 		assertNotNull(success);
-		assertEquals("Hello, world!", success.getPayload());
-		assertEquals(MessageHandlingException.class, success.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT).getClass());
-		assertEquals("Expression evaluation failed: 1/0", ((Exception) success.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT)).getMessage());
+		assertEquals("Hello, world!", ((AdviceMessage) success).getInputMessage().getPayload());
+		assertEquals(ArithmeticException.class, success.getPayload().getClass());
+		assertEquals("/ by zero", ((Exception) success.getPayload()).getMessage());
 
 		// propagate failing advice with success
 		advice.setPropagateEvaluationFailures(true);
@@ -176,16 +181,16 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected Exception");
 		}
 		catch (MessageHandlingException e) {
-			assertEquals("Expression evaluation failed: 1/0", e.getMessage());
+			assertEquals("/ by zero", e.getCause().getMessage());
 		}
 		reply = replies.receive(1);
 		assertNull(reply);
 
 		success = successChannel.receive(1000);
 		assertNotNull(success);
-		assertEquals("Hello, world!", success.getPayload());
-		assertEquals(MessageHandlingException.class, success.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT).getClass());
-		assertEquals("Expression evaluation failed: 1/0", ((Exception) success.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT)).getMessage());
+		assertEquals("Hello, world!", ((AdviceMessage) success).getInputMessage().getPayload());
+		assertEquals(ArithmeticException.class, success.getPayload().getClass());
+		assertEquals("/ by zero", ((Exception) success.getPayload()).getMessage());
 
 	}
 
@@ -207,9 +212,11 @@ public class AdvisedMessageHandlerTests {
 
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
-		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice(
-				new SpelExpressionParser().parseExpression("1/0"), successChannel,
-				new SpelExpressionParser().parseExpression("1/0"), failureChannel);
+		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+		advice.setSuccessChannel(successChannel);
+		advice.setFailureChannel(failureChannel);
+		advice.setOnSuccessExpression("1/0");
+		advice.setOnFailureExpression("1/0");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -229,9 +236,9 @@ public class AdvisedMessageHandlerTests {
 
 		Message<?> failure = failureChannel.receive(1000);
 		assertNotNull(failure);
-		assertEquals("Hello, world!", failure.getPayload());
-		assertEquals(MessageHandlingException.class, failure.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT).getClass());
-		assertEquals("Expression evaluation failed: 1/0", ((Exception) failure.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT)).getMessage());
+		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
+		assertEquals(MessageHandlingExpressionEvaluatingAdviceException.class, failure.getPayload().getClass());
+		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getCause().getMessage());
 
 		// propagate failing advice with failure; expect original exception
 		advice.setPropagateEvaluationFailures(true);
@@ -247,9 +254,9 @@ public class AdvisedMessageHandlerTests {
 
 		failure = failureChannel.receive(1000);
 		assertNotNull(failure);
-		assertEquals("Hello, world!", failure.getPayload());
-		assertEquals(MessageHandlingException.class, failure.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT).getClass());
-		assertEquals("Expression evaluation failed: 1/0", ((Exception) failure.getHeaders().get(MessageHeaders.POSTPROCESS_RESULT)).getMessage());
+		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
+		assertEquals(MessageHandlingExpressionEvaluatingAdviceException.class, failure.getPayload().getClass());
+		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getCause().getMessage());
 
 	}
 

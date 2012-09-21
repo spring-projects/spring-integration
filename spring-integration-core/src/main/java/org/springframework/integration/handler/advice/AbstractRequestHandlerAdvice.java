@@ -22,6 +22,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 
@@ -35,7 +36,8 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
  * @since 2.2
  *
  */
-public abstract class AbstractRequestHandlerAdvice implements MethodInterceptor {
+public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupport
+	implements MethodInterceptor {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
