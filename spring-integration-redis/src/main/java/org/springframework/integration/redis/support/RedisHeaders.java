@@ -13,8 +13,10 @@ public class RedisHeaders {
 
 	public static final String KEY = PREFIX + "key";
 
-	public static final String MAP_KEY = PREFIX + "map_key";
+	public static final String MAP_KEY = PREFIX + "mapKey";
 
-	public static final String ZSET_SCORE = PREFIX + "zset_score";
+	public static final String ZSET_SCORE = PREFIX + "zsetScore";
+
+	public static final String ZSET_OVERWRITE_IF_PRESENT = PREFIX + "zsetOverwrite";
 
 }
