@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,22 @@
 
 package org.springframework.integration.jms.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;outbound-gateway&gt; element of the integration 'jms' namespace.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -40,8 +42,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.jms.JmsOutboundGateway");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.class);
 		builder.addPropertyReference("connectionFactory", element.getAttribute("connection-factory"));
 		String requestDestination = element.getAttribute("request-destination");
 		String requestDestinationName = element.getAttribute("request-destination-name");
@@ -96,7 +97,34 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		else if (StringUtils.hasText(deliveryPersistent)) {
 			builder.addPropertyValue("deliveryPersistent", deliveryPersistent);
 		}
+		Element container = DomUtils.getChildElementByTagName(element, "reply-listener");
+		if (container != null) {
+			this.parseReplyContainer(builder, parserContext, container);
+		}
 		return builder;
+	}
+
+	private void parseReplyContainer(BeanDefinitionBuilder gatewayBuilder, ParserContext parserContext, Element element) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.ReplyContainerProperties.class);
+		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
+		if (acknowledgeMode != null) {
+			if (acknowledgeMode.intValue() == JmsAdapterParserUtils.SESSION_TRANSACTED) {
+				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
+			}
+			else {
+				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
+			}
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-messages-per-task");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-consumer-limit");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-task-execution-limit");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "cache-level");
+
+		gatewayBuilder.addPropertyValue("replyContainerProperties", builder.getBeanDefinition());
 	}
 
 }

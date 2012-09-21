@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int:gateway id="multiOutGateway" default-request-channel="outGatewayInChannel"/>
+	
+	<int:channel id="outGatewayInChannel">
+		<int:dispatcher task-executor="executor"/>
+	</int:channel>
+	
+	<int-jms:outbound-gateway request-channel="outGatewayInChannel"
+	    connection-factory="connectionFactory" 
+		request-destination-name="multiOutGatewayTempQueue"
+		correlation-key="JMSCorrelationID"/>
+		
+	<int-jms:inbound-gateway request-channel="jmsInChannel" 
+						     request-destination-name="multiOutGatewayTempQueue"
+							 connection-factory="connectionFactory"
+							 concurrent-consumers="10"
+							 reply-timeout="10000"/>
+							 
+	<int:channel id="jmsInChannel">
+		<int:dispatcher task-executor="executor"/>
+	</int:channel>
+							 
+	<int:service-activator input-channel="jmsInChannel">
+		<bean class="org.springframework.integration.jms.request_reply.RequestReplyScenariosWithTempReplyQueuesTests.MyRandomlySlowService"/>
+	</int:service-activator>
+		
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="vm://localhost"/>		
+			</bean>
+		</property>
+		<property name="cacheProducers" value="true" />
+		<property name="cacheConsumers" value="true" />
+		<property name="sessionCacheSize" value="10" />
+	</bean>
+	
+	<task:executor id="executor" pool-size="20"/>
+</beans>

@@ -28,7 +28,6 @@ import javax.jms.TextMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -111,6 +110,7 @@ public class JmsPriorityTests {
 			String text = "priority=" + request.getJMSPriority();
 			TextMessage reply = session.createTextMessage(text);
 			MessageProducer producer = session.createProducer(request.getJMSReplyTo());
+			reply.setJMSCorrelationID(request.getJMSMessageID());
 			producer.send(reply);
 		}
 	}

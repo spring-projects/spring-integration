@@ -46,6 +46,7 @@ import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 
 /**
@@ -68,6 +69,17 @@ public class JmsOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(gateway);
 		int deliveryMode = (Integer)accessor.getPropertyValue("deliveryMode");
 		assertEquals(DeliveryMode.PERSISTENT, deliveryMode);
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
+				DefaultMessageListenerContainer.class);
+		assertEquals(4, TestUtils.getPropertyValue(container, "concurrentConsumers"));
+		assertEquals(5, TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
+		assertEquals(10, TestUtils.getPropertyValue(container, "maxMessagesPerTask"));
+		assertEquals(2000L, TestUtils.getPropertyValue(container, "receiveTimeout"));
+		assertEquals(10000L, TestUtils.getPropertyValue(container, "recoveryInterval"));
+		assertEquals(7, TestUtils.getPropertyValue(container, "idleConsumerLimit"));
+		assertEquals(2, TestUtils.getPropertyValue(container, "idleTaskExecutionLimit"));
+		assertEquals(3, TestUtils.getPropertyValue(container, "cacheLevel"));
+		assertTrue(container.isSessionTransacted());
 	}
 
 	@Test
@@ -78,6 +90,7 @@ public class JmsOutboundGatewayParserTests {
 		JmsOutboundGateway gateway = TestUtils.getPropertyValue(endpoint, "handler", JmsOutboundGateway.class);
 		gateway.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
+		assertEquals(3, TestUtils.getPropertyValue(gateway, "replyContainer.sessionAcknowledgeMode"));
 	}
 
 	@Test
