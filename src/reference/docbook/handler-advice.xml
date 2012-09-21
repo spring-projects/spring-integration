@@ -369,46 +369,24 @@ Caused by: java.lang.RuntimeException: foo
 				<classname>org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice</classname>.
 				This advice is more general than the other two advices. It provides a mechanism to evaluate an expression on the
 				original inbound message sent to the endpoint. Separate expressions are available to be evaluated, either after
-				success, or failure. Optionally, the original message, together with the result of the evaluation in a
-				header, can be sent to a message channel.
+				success, or failure. Optionally, a message containing the evaluation result, together with the input message,
+				can be sent to a message channel.
 			</para>
 			<para>
 				A typical use case for this advice might be with an &lt;ftp:outbound-channel-adapter /&gt;, perhaps to move
 				the file to one directory if the transfer was successful, or to another directory if it fails:
 			</para>
-			<para><programlisting><![CDATA[<int-ftp:outbound-channel-adapter  id="ftpOutbound" cache-sessions="false"
-			channel="ftpChannel"
-			remote-directory="."
-			session-factory="ftpClientFactory">
-	<int-ftp:request-handler-advice-chain>
-		<bean class="org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice">
-			<constructor-arg name="onSuccessExpression" value="payload.renameTo('/tmp/good/' + payload.name)"/>
-			<constructor-arg name="successChannel" ref="successChannel" />
-			<constructor-arg name="onFailureExpression" value="payload.renameTo('/tmp/bad/' + payload.name)"/>
-			<constructor-arg name="failureChannel" ref="failureChannel" />
-		</bean>
-	</int-ftp:request-handler-advice-chain>
-</int-ftp:outbound-channel-adapter>
-
-
-DEBUG [main] preSend on channel 'ftpChannel', message: [Payload=target/toSend/b.txt][Headers=...]
-DEBUG [main] Connected to server [localhost:21]
-INFO  [main] File has been successfully transfered to: ./b.txt.writing
-INFO  [main] File has been successfully renamed from: ./b.txt.writing to ./b.txt
-DEBUG [main] preSend on channel 'successChannel', message: [Payload=target/toSend/b.txt][Headers={..., postProcessResult=true}]
-
-...
-
-DEBUG [main] preSend on channel 'ftpChannel', message: [Payload=target/toSend/a.txt][Headers=...]
-DEBUG [main] Connected to server [localhost:21]
-...
-DEBUG [main] preSend on channel 'failureChannel', message: [Payload=target/toSend/a.txt][Headers={..., postProcessResult=true}]]]></programlisting></para>
 			<para>
-				As you can see, in the first case, the successful transfer resulted in a message sent to
-				<emphasis>successChannel</emphasis>; the second case shows the result being sent to
-				<emphasis>failureChannel</emphasis>. In both cases, you can see the <emphasis>postProcessResult</emphasis>
-				header containing the result of the evaluation (true because the rename operations were successful -
-				<classname>java.io.File.renameTo(...)</classname> returns a <emphasis>boolean</emphasis>).
+				The Advice has properties to set an expression when successful, an expression for failures,
+				and corresponding channels for each. For the successful case, the message sent to the
+				<emphasis>successChannel</emphasis> is an <classname>AdviceMessage</classname>, with
+				the payload being the result of the expression evaluation, and an additional property
+				<code>inputMessage</code> which contains the original message sent to the handler. A message
+				sent to the <emphasis>failureChannel</emphasis> (when the handler throws an excecption)
+				is an ErrorMessage with a payload of <classname>MessageHandlingExpressionEvaluatingAdviceException</classname>.
+				Like all <classname>MessagingException</classname>s, this payload has <code>failedMessage</code>
+				and <code>cause</code> properties, as well as an additional property <code>evaluationResult</code>,
+				containing the result of the expression evaluation.
 			</para>
 		</section>
 	</section>
