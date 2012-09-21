@@ -13,10 +13,10 @@
       progression. For example, it is fairly common to provide a Transformer before other components. Similarly, when
       providing a <emphasis>Filter</emphasis> before some other component in a chain, you are essentially creating a
       <ulink url="http://www.eaipatterns.com/MessageSelector.html">Selective Consumer</ulink>. In either case, the
-      chain only requires a single <code>input-channel</code> and a single <code>output-channel</code> eliminating 
+      chain only requires a single <code>input-channel</code> and a single <code>output-channel</code> eliminating
       the need to define channels for each individual component.
       <tip>
-        Spring Integration's <interfacename>Filter</interfacename> provides a boolean property <methodname>throwExceptionOnRejection</methodname>. 
+        Spring Integration's <interfacename>Filter</interfacename> provides a boolean property <methodname>throwExceptionOnRejection</methodname>.
         When providing multiple Selective Consumers on the same point-to-point channel with different acceptance criteria,
         this value should be set to 'true' (the default is false) so that the dispatcher will know that the Message was
         rejected and as a result will attempt to pass the Message on to other subscribers. If the Exception were not
@@ -68,7 +68,7 @@
     </para>
   <para>
     The &lt;header-enricher&gt; element used in the above example will set a message header named "foo" with a value
-    of "bar" on the message. A header enricher is a specialization of <interfacename>Transformer</interfacename> 
+    of "bar" on the message. A header enricher is a specialization of <interfacename>Transformer</interfacename>
     that touches only header values. You could obtain the same result by implementing a MessageHandler that did the
     header modifications and wiring that as a bean, but the header-enricher is obviously a simpler option.
   </para>
@@ -84,11 +84,53 @@
      <int:logging-channel-adapter level="INFO" log-full-message="true"/>
  </int:chain>]]></programlisting>
   </para>
-  <para>
+	<para><emphasis>Disallowed Attributes and Elements</emphasis></para>
+	<para>
+		It is important to note that certain attributes, such as
+		<emphasis role="bold">order</emphasis> and <emphasis role="bold">input-channel</emphasis>
+		are not allowed to be specified on components used within a
+		<emphasis>chain</emphasis>. The same is true for the <emphasis role="bold">poller</emphasis>
+		sub-element.
+	</para>
+	<important>
+		<para>
+			For the <emphasis>Spring Integration</emphasis> core components, the
+			XML Schema itself will enforce these constraints. However, for non-core
+			components or your own custom components, these constraints are enforced
+			by the XML namespace parser, not by the XML Schema.
+		</para>
+		<para>
+			These XML namespace parser constraints were added with
+			<emphasis>Spring Integration 2.2</emphasis>. The XML namspace parser
+			will throw an <classname>Exception</classname> if you try to use disallowed
+			attributes and elements.
+		</para>
+	</important>
+	<para>
+		The <emphasis>id</emphasis> attribute, however, is allowed to be specified.
+		In fact, the <link linkend='delayer'><emphasis>Delayer</emphasis></link>
+		component actually requires the <emphasis>id</emphasis> attribute to be present.
+	</para>
+	<para>
+		In most other cases, the <emphasis>id</emphasis> will generally be
+		ignored but may still add value for documentation purposes, and may also
+		be  used for providing more meaningful log messages.
+	</para>
+	<note>
+		The XML Schema of the <emphasis>Spring Integration</emphasis> Core module
+		still prevents you from setting the <emphasis>id</emphasis> attribute for
+		Core components within a Message Handler Chain. Please see Jira ticket
+		<ulink url="https://jira.springsource.org/browse/INT-2755">INT-2755</ulink>
+		for more details.
+	</note>
+	<para><emphasis>Calling a Chain from within a Chain</emphasis></para>
+
+	<para>
   Sometimes you need to make a nested call to another chain from within a chain and then come
   back and continue execution within the original chain.
     To accomplish this you can utilize a Messaging Gateway by including a &lt;gateway&gt; element.
     For example:
+	</para>
     <programlisting language="xml"><![CDATA[  <int:chain id="main-chain" input-channel="in" output-channel="out">
     <int:header-enricher>
       <int:header name="name" value="Many" />
@@ -117,7 +159,7 @@
       <bean class="org.foo.SampleService" />
     </int:service-activator>
   </int:chain>]]></programlisting>
-
+	<para>
     In the above example the <emphasis>nested-chain-a</emphasis> will be called at the end of
     <emphasis>main-chain</emphasis> processing by the 'gateway' element configured there. While in
     <emphasis>nested-chain-a</emphasis> a call to a <emphasis>nested-chain-b</emphasis> will be made
