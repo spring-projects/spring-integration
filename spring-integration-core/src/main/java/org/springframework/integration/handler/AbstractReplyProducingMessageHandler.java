@@ -249,7 +249,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected abstract Object handleRequestMessage(Message<?> requestMessage);
 
 
-	private interface RequestHandler {
+	public interface RequestHandler {
 
 		Object handleRequestMessage(Message<?> requestMessage);
 

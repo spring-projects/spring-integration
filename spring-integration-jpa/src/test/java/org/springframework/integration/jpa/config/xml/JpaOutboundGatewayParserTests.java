@@ -18,10 +18,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Test;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -36,6 +38,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Gunnar Hillert
  * @author Amol Nayak
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -134,10 +137,11 @@ public class JpaOutboundGatewayParserTests {
 
 	@Test
 	public void advised() throws Exception {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "updatingJpaOutboundGateway");
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "advised");
 
-		EventDrivenConsumer consumer = this.context.getBean("advised", EventDrivenConsumer.class);
-		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(consumer, "handler", JpaOutboundGateway.class);
+		MessageHandler jpaOutboundGateway = context.getBean("advised.handler", MessageHandler.class);
+		assertTrue(AopUtils.isAopProxy(jpaOutboundGateway));
+
 		jpaOutboundGateway.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
 	}
