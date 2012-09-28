@@ -46,8 +46,9 @@
 		request-channel="in"
 		reply-channel="out"
 		reply-timeout="100">
+		<int-jpa:transactional/>
 		<int-jpa:request-handler-advice-chain>
-			<bean class="org.springframework.integration.jpa.config.xml.JpaOutboundGatewayParserTests$FooAdvice" />
+			<bean class="org.springframework.integration.jpa.config.xml.JpaOutboundGatewayParserTests$FooAdvice"/>
 		</int-jpa:request-handler-advice-chain>
 	</int-jpa:updating-outbound-gateway>
 
