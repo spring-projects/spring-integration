@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
 
 /**
  * Parser for the AMQP 'outbound-channel-adapter' element.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -44,9 +44,9 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			amqpTemplateRef = "amqpTemplate";
 		}
 		builder.addConstructorArgReference(amqpTemplateRef);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name", true);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key", true);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
 
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultAmqpHeaderMapper.class, null);

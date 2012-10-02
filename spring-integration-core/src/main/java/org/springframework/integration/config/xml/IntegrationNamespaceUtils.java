@@ -17,10 +17,6 @@ import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -41,6 +37,9 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -90,10 +89,7 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element, String attributeName,
 			String propertyName) {
-		String attributeValue = element.getAttribute(attributeName);
-		if (StringUtils.hasText(attributeValue)) {
-			builder.addPropertyValue(propertyName, new TypedStringValue(attributeValue));
-		}
+		setValueIfAttributeDefined(builder, element, attributeName, propertyName, false);
 	}
 
 	/**
@@ -111,8 +107,49 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param attributeName - the name of the attribute whose value will be set on the property
 	 */
 	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element, String attributeName) {
+		setValueIfAttributeDefined(builder, element, attributeName, false);
+	}
+
+	/**
+	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
+	 * is provided if that attribute is defined in the given element.
+	 *
+	 * @param builder the bean definition builder to be configured
+	 * @param element the XML element where the attribute should be defined
+	 * @param attributeName the name of the attribute whose value will be used to populate the property
+	 * @param propertyName the name of the property to be populated
+	 * @param emptyStringAllowed - if true, the value is set, even if an empty String (""); if false, an empty
+	 * String is treated as if the attribute wasn't provided.
+	 */
+	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element, String attributeName,
+			String propertyName, boolean emptyStringAllowed) {
+		String attributeValue = element.getAttribute(attributeName);
+		if (StringUtils.hasText(attributeValue) || (emptyStringAllowed && element.hasAttribute(attributeName))) {
+			builder.addPropertyValue(propertyName, new TypedStringValue(attributeValue));
+		}
+	}
+
+	/**
+	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
+	 * is provided if that attribute is defined in the given element.
+	 *
+	 * <p>
+	 * The property name will be the camel-case equivalent of the lower case hyphen separated attribute (e.g. the
+	 * "foo-bar" attribute would match the "fooBar" property).
+	 *
+	 * @see Conventions#attributeNameToPropertyName(String)
+	 *
+	 * @param builder the bean definition builder to be configured
+	 * @param element - the XML element where the attribute should be defined
+	 * @param attributeName - the name of the attribute whose value will be set on the property
+	 * @param emptyStringAllowed - if true, the value is set, even if an empty String (""); if false, an empty
+	 * String is treated as if the attribute wasn't provided.
+	 *
+	 */
+	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, Element element, String attributeName,
+			boolean emptyStringAllowed) {
 		setValueIfAttributeDefined(builder, element, attributeName,
-				Conventions.attributeNameToPropertyName(attributeName));
+				Conventions.attributeNameToPropertyName(attributeName), emptyStringAllowed);
 	}
 
 	/**

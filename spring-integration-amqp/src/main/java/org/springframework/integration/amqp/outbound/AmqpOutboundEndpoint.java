@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2012 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -39,10 +39,11 @@ import org.springframework.util.Assert;
 
 /**
  * Adapter that converts and sends Messages to an AMQP Exchange.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
@@ -55,9 +56,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 	private volatile boolean expectReply;
 
-	private volatile String exchangeName = "";
+	private volatile String exchangeName;
 
-	private volatile String routingKey = "";
+	private volatile String routingKey;
 
 	private volatile String exchangeNameExpression;
 
@@ -82,15 +83,15 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.state(exchangeNameExpression == null || "".equals(exchangeName),
+		Assert.state(exchangeNameExpression == null || exchangeName == null,
 				"Either an exchangeName or an exchangeNameExpression can be provided, but not both");
-		Assert.state(this.confirmCorrelationExpression != null ? !this.expectReply : true,
+		Assert.state(this.confirmCorrelationExpression == null || !this.expectReply,
 				"Confirm correlation expression does not apply to a gateway");
 		if (exchangeNameExpression != null) {
 			Expression expression = expressionParser.parseExpression(this.exchangeNameExpression);
 			this.exchangeNameGenerator = new ExpressionEvaluatingMessageProcessor<String>(expression, String.class);
 		}
-		Assert.state(routingKeyExpression == null || "".equals(routingKey),
+		Assert.state(routingKeyExpression == null || routingKey == null,
 				"Either a routingKey or a routingKeyExpression can be provided, but not both");
 		if (routingKeyExpression != null) {
 			Expression expression = expressionParser.parseExpression(this.routingKeyExpression);
@@ -104,20 +105,22 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		}
 		if (this.returnChannel != null) {
 			Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for publisher returns");
-			((RabbitTemplate) this.amqpTemplate).setReturnCallback(this);
+			(		(RabbitTemplate) this.amqpTemplate).setReturnCallback(this);
 		}
 	}
 
 	public AmqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
-		Assert.notNull(amqpTemplate, "AmqpTemplate must not be null");
+		Assert.notNull(amqpTemplate, "amqpTemplate must not be null");
 		this.amqpTemplate = amqpTemplate;
 	}
-	
+
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
+		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
 	}
 
 	public void setExchangeName(String exchangeName) {
+		Assert.notNull(exchangeName, "exchangeName must not be null");
 		this.exchangeName = exchangeName;
 	}
 
@@ -126,6 +129,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setRoutingKey(String routingKey) {
+		Assert.notNull(routingKey, "routingKey must not be null");
 		this.routingKey = routingKey;
 	}
 

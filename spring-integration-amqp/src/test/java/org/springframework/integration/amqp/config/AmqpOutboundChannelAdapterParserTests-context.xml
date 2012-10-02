@@ -24,7 +24,7 @@
 	<amqp:outbound-channel-adapter id="withHeaderMapperCustomHeaders" channel="requestChannel"
 								   exchange-name="outboundchanneladapter.test.1"
 								   mapped-request-headers="foo*"/>
-								   
+
 	<int:channel id="requestChannel"/>
 
 	<int:chain id="chainWithRabbitOutbound" input-channel="amqpOutboundChannelAdapterWithinChain">
@@ -53,5 +53,15 @@
 	<int:channel id="returnChannel">
 		<int:queue/>
 	</int:channel>
+
+	<amqp:outbound-channel-adapter id="withDefaultAmqpTemplateExchangeAndRoutingKey"/>
+
+	<rabbit:template id="amqpTemplateWithSuppliedExchangeAndRoutingKey" connection-factory="connectionFactory"
+			exchange="default.test.exchange" routing-key="default.routing.key"/>
+
+	<amqp:outbound-channel-adapter id="toRabbitOnlyWithTemplateChannel" amqp-template="amqpTemplateWithSuppliedExchangeAndRoutingKey"/>
+
+	<amqp:outbound-channel-adapter id="overrideTemplateAttributesToEmpty" amqp-template="amqpTemplateWithSuppliedExchangeAndRoutingKey"
+		exchange-name="" routing-key=""/>
 
 </beans>
