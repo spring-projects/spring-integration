@@ -105,21 +105,26 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	}
 
 	public XsltPayloadTransformer(Resource xslResource) throws Exception {
-		this(TransformerFactory.newInstance().newTemplates(
-				createStreamSourceOnResource(xslResource)), null);
+		this(xslResource, null, null);
 	}
 
 	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) throws Exception {
-		this(TransformerFactory.newInstance().newTemplates(
-				createStreamSourceOnResource(xslResource)), resultTransformer);
+		this(xslResource, resultTransformer, null);
 	}
+
+    public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer, String transformerFactoryClass) throws Exception {
+        this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), resultTransformer);
+    }
+
+    public XsltPayloadTransformer(Resource xslResource, String transformerFactoryClass) throws Exception {
+        this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), null);
+    }
 
 	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
 		this.templates = templates;
 		this.resultTransformer = resultTransformer;
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
-
 
 	/**
 	 * Sets the SourceFactory.
@@ -301,5 +306,12 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 			return new StreamSource(xslResource.getInputStream());
 		}
 	}
-
+	
+    private static TransformerFactory getTransformerFactory(String transformerFactoryImplClass) {
+        if (transformerFactoryImplClass == null || transformerFactoryImplClass.length() <= 0) {
+            return TransformerFactory.newInstance();
+        } else {
+            return TransformerFactory.newInstance(transformerFactoryImplClass, ClassLoader.getSystemClassLoader());
+        }
+    }
 }

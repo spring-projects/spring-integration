@@ -17,7 +17,8 @@
                               input-channel="paramHeadersWithStartWildCharacterChannel"
                               output-channel="output"
                               xsl-resource="classpath:org/springframework/integration/xml/transformer/transformer.xslt"
-                              xslt-param-headers="*Param, foo">
+                              xslt-param-headers="*Param, foo"
+                              transformer-factory-class="com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl">
     </int-xml:xslt-transformer>
 
     <int-xml:xslt-transformer id="paramHeadersWithEndWildCharacter"
