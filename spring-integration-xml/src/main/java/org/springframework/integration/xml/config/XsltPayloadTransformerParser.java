@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Mike Bazos
  */
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
@@ -51,6 +52,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		String resultTransformer = element.getAttribute("result-transformer");
 		String resultFactory = element.getAttribute("result-factory");
 		String resultType = element.getAttribute("result-type");
+		String transformerFactoryClass = element.getAttribute("transformer-factory-class");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "xslt-param-headers");
 		Assert.isTrue(StringUtils.hasText(xslResource) ^ StringUtils.hasText(xslTemplates),
 				"Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
@@ -59,6 +61,9 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		}
 		else if (StringUtils.hasText(xslTemplates)) {
 			builder.addConstructorArgReference(xslTemplates);
+		}
+		if (StringUtils.hasText(transformerFactoryClass)) {
+			builder.addConstructorArgValue(transformerFactoryClass);
 		}
 		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
 		boolean resultFactorySpecified = StringUtils.hasText(resultFactory) || StringUtils.hasText(resultType);
