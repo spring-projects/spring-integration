@@ -466,7 +466,6 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	private void incrementOrOverwrite(final BoundZSetOperations<String, Object> ops, Object object, Double score,
 			boolean zsetIncrementScore) {
 
-		//boolean increment = Boolean.TRUE.equals(zsetIncrementScore);;
 		if (score != null) {
 			this.doIncrementOrOverwrite(ops, object, score, zsetIncrementScore);
 		}
