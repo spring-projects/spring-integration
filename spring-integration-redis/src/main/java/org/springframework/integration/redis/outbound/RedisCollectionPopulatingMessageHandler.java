@@ -72,6 +72,9 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	private final Expression zsetIncrementScoreExpression =
+			new SpelExpressionParser().parseExpression("headers." + RedisHeaders.ZSET_INCREMENT_SCORE);
+
 	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile Expression keyExpression =
@@ -322,7 +325,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		final Object payload = message.getPayload();
 		final BoundZSetOperations<String, Object> ops =
 				(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());
-		final Object zsetIncrementHeader = message.getHeaders().get(RedisHeaders.ZSET_INCREMENT_SCORE);
+		final boolean zsetIncrementHeader = this.extractZsetIncrementHeader(message);
 
 		if (this.extractPayloadElements) {
 
@@ -356,6 +359,13 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		else {
 			this.incrementOrOverwrite(ops, payload, this.determineScore(message), zsetIncrementHeader);
 		}
+	}
+
+	private boolean extractZsetIncrementHeader(Message<?> message){
+		if (message.getHeaders().containsKey(RedisHeaders.ZSET_INCREMENT_SCORE)){
+			return this.zsetIncrementScoreExpression.getValue(this.evaluationContext, message, Boolean.class);
+		}
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -454,15 +464,15 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	private void incrementOrOverwrite(final BoundZSetOperations<String, Object> ops, Object object, Double score,
-			Object zsetIncrementScore) {
+			boolean zsetIncrementScore) {
 
-		boolean increment = Boolean.TRUE.equals(zsetIncrementScore);;
+		//boolean increment = Boolean.TRUE.equals(zsetIncrementScore);;
 		if (score != null) {
-			this.doIncrementOrOverwrite(ops, object, score, increment);
+			this.doIncrementOrOverwrite(ops, object, score, zsetIncrementScore);
 		}
 		else {
 			logger.debug("Zset Score could not be determined. Using default score of 1");
-			this.doIncrementOrOverwrite(ops, object, Double.valueOf(1), increment);
+			this.doIncrementOrOverwrite(ops, object, Double.valueOf(1), zsetIncrementScore);
 		}
 	}
 
