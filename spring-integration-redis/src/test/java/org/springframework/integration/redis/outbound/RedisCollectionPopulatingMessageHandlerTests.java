@@ -235,6 +235,49 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
+	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() {// see INT-2775
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		String key = "foo";
+		RedisZSet<String> redisZset =
+				new DefaultRedisZSet<String>(key,
+						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+
+		assertEquals(0, redisZset.size());
+
+		RedisCollectionPopulatingMessageHandler handler =
+				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
+
+		handler.setCollectionType(CollectionType.ZSET);
+		handler.afterPropertiesSet();
+
+		List<String> list = new ArrayList<String>();
+		list.add("Manny");
+		list.add("Moe");
+		list.add("Jack");
+		Message<List<String>> message = MessageBuilder.withPayload(list)
+				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, "true")
+				.build();
+
+		handler.handleMessage(message);
+
+		assertEquals(3, redisZset.size());
+		Set<TypedTuple<String>> pepboys = redisZset.rangeByScoreWithScores(1, 1);
+		for (TypedTuple<String> pepboy : pepboys) {
+			assertTrue(pepboy.getScore() == 1);
+		}
+
+		handler.handleMessage(message);
+		assertEquals(3, redisZset.size());
+		pepboys = redisZset.rangeByScoreWithScores(1, 2);
+		// should have incremented
+		for (TypedTuple<String> pepboy : pepboys) {
+			assertTrue(pepboy.getScore() == 2);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@RedisAvailable
 	public void testZsetWithListPayloadAsSingleEntryAndHeaderKeyHeaderScore() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
