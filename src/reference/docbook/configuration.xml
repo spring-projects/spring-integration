@@ -220,10 +220,9 @@ public class FooService {
     </para>
     <para>
       Exactly what it means for the method to "handle" the Message depends on the 
-      particular annotation. The following annotations are available in Spring Integration: 
+      particular annotation. Annotations available in Spring Integration include:
       <itemizedlist>
         <listitem>@Aggregator</listitem>
-        <listitem>@ChannelAdapter</listitem>
         <listitem>@Filter</listitem>
 		<listitem>@Router</listitem>
 		<listitem>@ServiceActivator</listitem>
