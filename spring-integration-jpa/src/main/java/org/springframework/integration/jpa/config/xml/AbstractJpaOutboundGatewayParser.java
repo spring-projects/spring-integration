@@ -59,7 +59,7 @@ public abstract class AbstractJpaOutboundGatewayParser extends AbstractConsumerE
 			BeanDefinition txAdviceDefinition = IntegrationNamespaceUtils.configureTransactionAttributes(transactionalElement);
 			ManagedList<BeanDefinition> adviceChain = new ManagedList<BeanDefinition>();
 			adviceChain.add(txAdviceDefinition);
-			jpaOutboundGatewayBuilder.addPropertyValue("adviceChain", adviceChain);
+			jpaOutboundGatewayBuilder.addPropertyValue("txAdviceChain", adviceChain);
 		}
 
 		return jpaOutboundGatewayBuilder;
