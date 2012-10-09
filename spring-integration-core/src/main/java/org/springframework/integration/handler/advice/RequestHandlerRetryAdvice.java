@@ -20,8 +20,10 @@ import org.springframework.integration.MessagingException;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
 import org.springframework.retry.RetryState;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.util.Assert;
 
 /**
  * Uses spring-retry to perform stateless or stateful retry.
@@ -34,11 +36,14 @@ import org.springframework.retry.support.RetryTemplate;
  * @since 2.2
  *
  */
-public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
+public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
+	implements RetryListener {
 
 	private volatile RetryTemplate retryTemplate = new RetryTemplate();
 
 	private volatile RecoveryCallback<Object> recoveryCallback;
+
+	private static final ThreadLocal<Message<?>> messageHolder = new ThreadLocal<Message<?>>();
 
 	// Stateless unless a state generator is provided
 	private volatile RetryStateGenerator retryStateGenerator =
@@ -49,6 +54,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 			};
 
 	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		Assert.notNull(retryTemplate, "'retryTemplate' cannot be null");
 		this.retryTemplate = retryTemplate;
 	}
 
@@ -57,30 +63,54 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice {
 	}
 
 	public void setRetryStateGenerator(RetryStateGenerator retryStateGenerator) {
+		Assert.notNull(retryStateGenerator, "'retryStateGenerator' cannot be null");
 		this.retryStateGenerator = retryStateGenerator;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.retryTemplate.registerListener(this);
 	}
 
 	@Override
 	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) throws Exception {
 		RetryState retryState = null;
 		retryState = this.retryStateGenerator.determineRetryState(message);
+		messageHolder.set(message);
 
-		return retryTemplate.execute(new RetryCallback<Object>(){
-			public Object doWithRetry(RetryContext context) throws Exception {
-				try {
-					return callback.execute();
-				}
-				catch (MessagingException e) {
-					if (e.getFailedMessage() == null) {
-						e.setFailedMessage(message);
+		try {
+			return retryTemplate.execute(new RetryCallback<Object>(){
+				public Object doWithRetry(RetryContext context) throws Exception {
+					try {
+						return callback.execute();
 					}
-					throw e;
+					catch (MessagingException e) {
+						if (e.getFailedMessage() == null) {
+							e.setFailedMessage(message);
+						}
+						throw e;
+					}
+					catch (Exception e) {
+						throw new MessagingException(message, "Failed to invoke handler", e);
+					}
 				}
-				catch (Exception e) {
-					throw new MessagingException(message, "Failed to invoke handler", e);
-				}
-			}
-		}, this.recoveryCallback, retryState);
+			}, this.recoveryCallback, retryState);
+		}
+		finally {
+			messageHolder.remove();
+		}
+	}
+
+	public <T> boolean open(RetryContext context, RetryCallback<T> callback) {
+		context.setAttribute("message", messageHolder.get());
+		return true;
+	}
+
+	public <T> void close(RetryContext context, RetryCallback<T> callback, Throwable throwable) {
+	}
+
+	public <T> void onError(RetryContext context, RetryCallback<T> callback, Throwable throwable) {
 	}
 
 }
