@@ -1,12 +1,33 @@
+/*
+ * Copyright 2002-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
@@ -16,11 +37,17 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
 
-
+/**
+ *
+ * @author Gary Russell
+ * @since 2.0
+ *
+ */
 public class UdpChannelAdapterTests {
 
 	@SuppressWarnings("unchecked")
@@ -41,6 +68,55 @@ public class UdpChannelAdapterTests {
 		new DatagramSocket(SocketUtils.findAvailableUdpSocket()).send(packet);
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testUnicastReceiverWithReply() throws Exception {
+		QueueChannel channel = new QueueChannel(2);
+		int port = SocketUtils.findAvailableUdpSocket();
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.start();
+		SocketTestUtils.waitListening(adapter);
+
+		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
+		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+		DatagramPacket packet = mapper.fromMessage(message);
+		packet.setSocketAddress(new InetSocketAddress("localhost", port));
+		final DatagramSocket socket = new DatagramSocket(SocketUtils.findAvailableUdpSocket());
+		socket.send(packet);
+		final AtomicReference<DatagramPacket> theAnswer = new AtomicReference<DatagramPacket>();
+		final CountDownLatch receiverReadyLatch = new CountDownLatch(1);
+		final CountDownLatch replyReceivedLatch = new CountDownLatch(1);
+		//main thread sends the reply using the headers, this thread will receive it
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				DatagramPacket answer = new DatagramPacket(new byte[2000], 2000);
+				try {
+					receiverReadyLatch.countDown();
+					socket.receive(answer);
+					theAnswer.set(answer);
+					replyReceivedLatch.countDown();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
+		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+		String replyString = "reply:" + System.currentTimeMillis();
+		byte[] replyBytes = replyString.getBytes();
+		DatagramPacket reply = new DatagramPacket(replyBytes, replyBytes.length);
+		reply.setSocketAddress(new InetSocketAddress(
+				(String) receivedMessage.getHeaders().get(IpHeaders.IP_ADDRESS),
+				(Integer) receivedMessage.getHeaders().get(IpHeaders.PORT)));
+		assertTrue(receiverReadyLatch.await(10, TimeUnit.SECONDS));
+		new DatagramSocket().send(reply);
+		assertTrue(replyReceivedLatch.await(10, TimeUnit.SECONDS));
+		DatagramPacket answerPacket = theAnswer.get();
+		assertNotNull(answerPacket);
+		assertEquals(replyString, new String(answerPacket.getData(), 0, answerPacket.getLength()));
 	}
 
 	@SuppressWarnings("unchecked")

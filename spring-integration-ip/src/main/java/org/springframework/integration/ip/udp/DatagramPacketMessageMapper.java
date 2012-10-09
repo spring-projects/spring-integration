@@ -41,16 +41,16 @@ import org.springframework.util.Assert;
  * may be either a byte array or a String. The default charset for converting
  * a String to a byte array is UTF-8, but that may be changed by invoking the
  * {@link #setCharset(String)} method.
- * 
+ *
  * By default, the UDP messages will be unreliable (truncation may occur on
  * the receiving end; packets may be lost).
- * 
+ *
  * Reliability can be enhanced by one or both of the following techniques:
  * <ul>
  *   <li>including a binary message length at the beginning of the packet</li>
  *   <li>requesting a receipt acknowledgment</li>
  * </ul>
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Dave Syer
@@ -63,15 +63,15 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	private boolean acknowledge = false;
 
 	private String ackAddress;
-	
+
 	private boolean lengthCheck = false;
 
 	private boolean lookupHost = true;
 
-	private static Pattern udpHeadersPattern = 
+	private static Pattern udpHeadersPattern =
 		Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
-				"=" + "([^;]*);" + 
-				RegexUtils.escapeRegexSpecials(MessageHeaders.ID) + 
+				"=" + "([^;]*);" +
+				RegexUtils.escapeRegexSpecials(MessageHeaders.ID) +
 				"=" + "([^;]*);");
 
 
@@ -133,7 +133,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		buffer.put(IpHeaders.ACK_ADDRESS.getBytes(this.charset));
 		buffer.put((byte) '=');
 		buffer.put(this.ackAddress.getBytes(this.charset));
-		buffer.put((byte) ';');		
+		buffer.put((byte) ';');
 		buffer.put(MessageHeaders.ID.getBytes(this.charset));
 		buffer.put((byte) '=');
 		buffer.put(message.getHeaders().getId().toString().getBytes(this.charset));
@@ -185,11 +185,12 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		}
 		String hostAddress = packet.getAddress().getHostAddress();
 		String hostName;
-		if (this.lookupHost) { 
+		if (this.lookupHost) {
 			hostName = packet.getAddress().getHostName();
 		} else {
 			hostName = hostAddress;
 		}
+		int port = packet.getPort();
 		// Peek at the message in case they didn't configure us for ack but the sending
 		// side expects it.
 		if (this.acknowledge || startsWith(buffer, IpHeaders.ACK_ADDRESS)) {
@@ -206,6 +207,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))
 							.setHeader(IpHeaders.HOSTNAME, hostName)
 							.setHeader(IpHeaders.IP_ADDRESS, hostAddress)
+							.setHeader(IpHeaders.PORT, port)
 							.build();
 				}  // on no match, just treat as simple payload
 			}
@@ -220,6 +222,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 				message = MessageBuilder.withPayload(payload)
 						.setHeader(IpHeaders.HOSTNAME, hostName)
 						.setHeader(IpHeaders.IP_ADDRESS, hostAddress)
+						.setHeader(IpHeaders.PORT, port)
 						.build();
 			}
 		}
