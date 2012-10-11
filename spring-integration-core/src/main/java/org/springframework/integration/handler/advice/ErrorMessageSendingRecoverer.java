@@ -17,6 +17,7 @@ package org.springframework.integration.handler.advice;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
@@ -49,6 +50,13 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object> {
 
 	public Object recover(RetryContext context) throws Exception {
 		Throwable lastThrowable = context.getLastThrowable();
+		if (lastThrowable == null) {
+			lastThrowable = new RetryExceptionNotAvailableException(
+					(Message<?>) context.getAttribute("message"),
+					"No retry exception available; " +
+					"this can occur, for example, if the RetryPolicy allowed zero attempts to execute the handler; " +
+					"RetryContext: " + context.toString());
+		}
 		if (logger.isDebugEnabled()) {
 			String supplement = "";
 			if (lastThrowable instanceof MessagingException) {
@@ -60,4 +68,12 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object> {
 		return null;
 	}
 
+	public static class RetryExceptionNotAvailableException extends MessagingException {
+
+		private static final long serialVersionUID = 1L;
+
+		public RetryExceptionNotAvailableException(Message<?> message, String description) {
+			super(message, description);
+		}
+	}
 }

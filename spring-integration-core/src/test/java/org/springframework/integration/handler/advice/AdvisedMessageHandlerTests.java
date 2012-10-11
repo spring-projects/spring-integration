@@ -18,6 +18,7 @@ package org.springframework.integration.handler.advice;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -40,7 +41,9 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryState;
+import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.DefaultRetryState;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * @author Gary Russell
@@ -507,4 +510,71 @@ public class AdvisedMessageHandlerTests {
 		assertNotNull(reply);
 		assertEquals("baz", reply.getPayload());
 	}
+
+	@Test
+	public void errorMessageSendingRecovererTests() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				throw new RuntimeException("fooException");
+			}
+		};
+		QueueChannel errors = new QueueChannel();
+		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
+		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(errors);
+		advice.setRecoveryCallback(recoverer);
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		adviceChain.add(advice);
+		handler.setAdviceChain(adviceChain);
+		handler.afterPropertiesSet();
+
+		Message<String> message = new GenericMessage<String>("Hello, world!");
+		handler.handleMessage(message);
+		Message<?> error = errors.receive(1000);
+		assertNotNull(error);
+		assertEquals("fooException", ((Exception) error.getPayload()).getCause().getCause().getMessage());
+
+	}
+
+	@Test
+	public void errorMessageSendingRecovererTestsNoThrowable() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				throw new RuntimeException("fooException");
+			}
+		};
+		QueueChannel errors = new QueueChannel();
+		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
+		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(errors);
+		advice.setRecoveryCallback(recoverer);
+		RetryTemplate retryTemplate = new RetryTemplate();
+		retryTemplate.setRetryPolicy(new SimpleRetryPolicy() {
+
+			@Override
+			public boolean canRetry(RetryContext context) {
+				return false;
+			}
+		});
+		advice.setRetryTemplate(retryTemplate);
+		advice.afterPropertiesSet();
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		adviceChain.add(advice);
+		handler.setAdviceChain(adviceChain);
+		handler.afterPropertiesSet();
+
+		Message<String> message = new GenericMessage<String>("Hello, world!");
+		handler.handleMessage(message);
+		Message<?> error = errors.receive(1000);
+		assertNotNull(error);
+		assertTrue(error.getPayload() instanceof ErrorMessageSendingRecoverer.RetryExceptionNotAvailableException);
+		assertNotNull(((MessagingException) error.getPayload()).getFailedMessage());
+		assertSame(message, ((MessagingException) error.getPayload()).getFailedMessage());
+	}
+
+
 }
