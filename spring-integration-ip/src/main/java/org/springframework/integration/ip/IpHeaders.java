@@ -34,6 +34,8 @@ public abstract class IpHeaders {
 
 	public static final String IP_ADDRESS = IP + "address";
 
+	public static final String PORT = IP + "port";
+
 	public static final String ACK_ADDRESS = IP + "ackTo";
 
 	public static final String ACK_ID = IP + "ackId";
