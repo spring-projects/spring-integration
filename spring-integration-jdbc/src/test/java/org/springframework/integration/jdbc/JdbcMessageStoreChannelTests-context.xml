@@ -32,7 +32,7 @@
 
 	<service-activator id="service-activator" input-channel="input" output-channel="output" xmlns="http://www.springframework.org/schema/integration">
 		<beans:bean class="org.springframework.integration.jdbc.JdbcMessageStoreChannelTests$Service" />
-		<poller fixed-rate="200">
+		<poller fixed-rate="2000">
 			<transactional />
 		</poller>
 	</service-activator>

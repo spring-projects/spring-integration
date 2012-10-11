@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class JdbcMessageStoreChannelTests {
 
 	@Autowired
 	private JdbcMessageStore messageStore;
-	
+
 	@BeforeTransaction
 	public void clear() {
 		for (MessageGroup group : messageStore) {
@@ -60,7 +60,7 @@ public class JdbcMessageStoreChannelTests {
 		assertEquals(1, Service.messages.size());
 		assertEquals(0, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
-	
+
 	@Test
 	public void testSendAndActivateWithRollback() throws Exception {
 		Service.reset(1);
@@ -71,7 +71,7 @@ public class JdbcMessageStoreChannelTests {
 		// After a rollback in the poller the message is still waiting to be delivered
 		assertEquals(1, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
-	
+
 	@Test
 	@Transactional
 	public void testSendAndActivateTransactionalSend() throws Exception {
@@ -89,13 +89,15 @@ public class JdbcMessageStoreChannelTests {
 		// But inside the transaction the message is still there
 		assertEquals(1, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
-	
+
 	public static class Service {
 		private static boolean fail = false;
+		private static boolean alreadyFailed = false;
 		private static List<String> messages = new CopyOnWriteArrayList<String>();
 		private static CountDownLatch latch = new CountDownLatch(0);
 		public static void reset(int count) {
 			fail = false;
+			alreadyFailed = false;
 			messages.clear();
 			latch = new CountDownLatch(count);
 		}
@@ -105,9 +107,12 @@ public class JdbcMessageStoreChannelTests {
 			}
 		}
 		public String echo(String input) {
-			messages.add(input);
-			latch.countDown();
+			if (!alreadyFailed) {
+				messages.add(input);
+				latch.countDown();
+			}
 			if (fail) {
+				alreadyFailed = true;
 				throw new RuntimeException("Planned failure");
 			}
 			return input;
