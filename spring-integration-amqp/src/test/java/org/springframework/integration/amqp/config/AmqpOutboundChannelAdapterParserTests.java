@@ -25,6 +25,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -117,11 +118,11 @@ public class AmqpOutboundChannelAdapterParserTests {
 				assertEquals("foobar", properties.getHeaders().get("foobar"));
 				assertNull(properties.getHeaders().get("bar"));
 				return null;
-			}})
-		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
-				 Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
+			}
+		})
+				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
+				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
-
 
 		MessageChannel requestChannel = context.getBean("requestChannel", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").setHeader("bar", "bar").setHeader("foobar", "foobar").build();
@@ -183,11 +184,11 @@ public class AmqpOutboundChannelAdapterParserTests {
 				org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
 				assertEquals("hello", new String(amqpReplyMessage.getBody()));
 				return null;
-			}})
+			}
+		})
 				.when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
-						Mockito.any(CorrelationData.class));
+				Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
-
 
 		MessageChannel requestChannel = context.getBean("amqpOutboundChannelAdapterWithinChain", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").build();
@@ -210,7 +211,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		requestChannel.send(message);
 		PollableChannel returnChannel = context.getBean("returnChannel", PollableChannel.class);
-		RabbitTemplate template = context.getBean(RabbitTemplate.class);
+		RabbitTemplate template = context.getBean("amqpTemplate", RabbitTemplate.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put(PublisherCallbackChannel.RETURN_CORRELATION, template.getUUID());
 		BasicProperties properties = mock(BasicProperties.class);
@@ -237,6 +238,38 @@ public class AmqpOutboundChannelAdapterParserTests {
 			assertTrue(e.getMessage().contains("The 'channel' attribute isn't allowed for 'amqp:outbound-channel-adapter' " +
 					"when it is used as a nested element"));
 		}
+	}
+
+	@Test
+	public void testInt2773UseDefaultAmqpTemplateExchangeAndRoutingLey() throws IOException {
+		ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
+		Connection mockConnection = mock(Connection.class);
+		Channel mockChannel = mock(Channel.class);
+
+		when(connectionFactory.createConnection()).thenReturn(mockConnection);
+		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
+		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
+
+		MessageChannel requestChannel = context.getBean("toRabbitOnlyWithTemplateChannel", MessageChannel.class);
+		requestChannel.send(MessageBuilder.withPayload("test").build());
+		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq("default.test.exchange"), Mockito.eq("default.routing.key"),
+				Mockito.anyBoolean(), Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
+	}
+
+	@Test
+	public void testInt2773WithDefaultAmqpTemplateExchangeAndRoutingLey() throws IOException {
+		ConnectionFactory connectionFactory = context.getBean(ConnectionFactory.class);
+		Connection mockConnection = mock(Connection.class);
+		Channel mockChannel = mock(Channel.class);
+
+		when(connectionFactory.createConnection()).thenReturn(mockConnection);
+		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
+		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
+
+		MessageChannel requestChannel = context.getBean("withDefaultAmqpTemplateExchangeAndRoutingKey", MessageChannel.class);
+		requestChannel.send(MessageBuilder.withPayload("test").build());
+		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq(""), Mockito.eq(""),
+				Mockito.anyBoolean(), Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
