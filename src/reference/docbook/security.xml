@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="security"
+<appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="security"
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>Security in Spring Integration</title>
 
@@ -61,4 +61,4 @@
   </section>
 
 
-</chapter>
+</appendix>
