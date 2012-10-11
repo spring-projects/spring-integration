@@ -46,6 +46,24 @@
 				<listitem>Support for Dead Letter Exchanges/Dead Letter Queues</listitem>
 			</itemizedlist>
 		</section>
+		<section id="2.2-redis-store-adapters">
+			<title>RedisStore Inbound and Outbound Channel Adapters</title>
+			<para>
+			  Spring Integration now has RedisStore Inbound and Outbound Channel Adapters
+			  allowing you to write and read Message payload to/from a Redis collection(s).
+			  For more information please see <xref linkend="redis-store-outbound-channel-adapter"/> and 
+			  <xref linkend="redis-store-inbound-channel-adapter"/>.
+			</para>		
+		</section>
+		<section id="2.2-mongo-adapters">
+			<title>MongoDb Inbound and Outbound Channel Adapters</title>
+			<para>
+			  Spring Integration now has MongoDb Inbound and Outbound Channel Adapters
+			  allowing you to write and read Message payload to/from a MongoDb document store .
+			  For more information please see <xref linkend="mongodb-outbound-channel-adapter"/> and 
+			  <xref linkend="mongodb-inbound-channel-adapter"/>.
+			</para>		
+		</section>
 		<section id="2.2-jdbc-11">
 			<title>JDBC Adapter - Stored Procedures Components</title>
 			<para><emphasis>SpEL Support</emphasis></para>
