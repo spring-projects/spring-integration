@@ -119,14 +119,6 @@
 				For more information please see <xref linkend="file-writing-destination-exists"/>.
 			</para>
 		</section>
-		<section id="2.2-tx">
-			<title>Transaction Synchronization</title>
-			<para>
-				When running from a transactional poller,
-				mail inbound adapters can be configured to update the mailbox only
-				if the transaction commits.
-			</para>
-		</section>
 		<section id="2.2-shutdown">
 			<title>Orderly Shutdown</title>
 			<para>

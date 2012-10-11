@@ -211,12 +211,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 						MessageBuilder.withPayload(mailMessage).build();
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {
-
-					IntegrationResourceHolder holder = new IntegrationResourceHolder();
-					holder.setMessage(message);
-					TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
-
 					if (transactionSynchronizationFactory != null){
+						IntegrationResourceHolder holder = new IntegrationResourceHolder();
+						holder.setMessage(message);
+						TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
 						TransactionSynchronizationManager.
 							registerSynchronization(transactionSynchronizationFactory.create(ImapIdleChannelAdapter.this));
 					}
