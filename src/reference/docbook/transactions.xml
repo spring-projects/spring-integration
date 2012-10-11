@@ -254,10 +254,20 @@ public interface TransactionSynchronizationProcessor {
         'payload'.
       </para>
       <important>
+       <para>
         It is important to understand that this is simply synchronizing the actions with a transaction, it does not
         make a resource that is not inherently transactional actually transactional. Instead, the transaction
         (be it JDBC or otherwise) is started before the poll, and committed/rolled back when the flow completes,
         followed by the synchronized action.
+       </para>
+       <para>
+        It is also important to understand that if you provide a custom <classname>TransactionSynchronizationFactory</classname>, 
+        it is responsible for creating a resource synchronization that will cause the bound resource to be unbound automatically, 
+        when the transaction completes. 
+        The default <classname>TransactionSynchronizationFactory</classname> does this by returning a subclass 
+        of <classname>ResourceHolderSynchronization</classname>, with the default
+        <emphasis>shouldUnbindAtCompletion()</emphasis> returning <code>true</code>.
+       </para>
       </important>
       <para>
         In addition to the <emphasis>after-commit</emphasis> and <emphasis>after-rollback</emphasis> expressions,
