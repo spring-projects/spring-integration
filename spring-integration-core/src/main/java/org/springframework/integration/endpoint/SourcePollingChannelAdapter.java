@@ -105,9 +105,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		if (TransactionSynchronizationManager.isActualTransactionActive()) {
 			holder = new IntegrationResourceHolder();
 			holder.addAttribute(IntegrationResourceHolder.MESSAGE_SOURCE, source);
-			TransactionSynchronizationManager.bindResource(source, holder);
 
 			if (transactionSynchronizationFactory != null){
+				TransactionSynchronizationManager.bindResource(source, holder);
 				TransactionSynchronizationManager.registerSynchronization(transactionSynchronizationFactory.create(source));
 			}
 		}
