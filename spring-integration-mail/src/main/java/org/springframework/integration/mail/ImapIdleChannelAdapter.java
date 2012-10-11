@@ -28,6 +28,7 @@ import javax.mail.MessagingException;
 import javax.mail.Store;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -214,9 +215,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 					IntegrationResourceHolder holder = new IntegrationResourceHolder();
 					holder.setMessage(message);
-					TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
 
 					if (transactionSynchronizationFactory != null){
+						TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this, holder);
 						TransactionSynchronizationManager.
 							registerSynchronization(transactionSynchronizationFactory.create(ImapIdleChannelAdapter.this));
 					}
