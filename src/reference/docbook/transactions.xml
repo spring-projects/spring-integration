@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="transactions"
+<appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="transactions"
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>Transaction Support</title>
 
@@ -203,7 +203,7 @@ public interface TransactionSynchronizationProcessor {
 	void processAfterRollback(IntegrationResourceHolder holder);
 
 }]]></programlisting>
-        
+
         The factory is responsible for creating a
         <ulink url="http://static.springsource.org/spring-framework/docs/3.1.2.RELEASE/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html">TransactionSynchronization</ulink>
         object. You can implement your own, or use the one provided by the framework:
@@ -288,4 +288,4 @@ public interface TransactionSynchronizationProcessor {
       </para>
       <programlisting><![CDATA[<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />]]></programlisting>
     </section>
-</chapter>
+</appendix>

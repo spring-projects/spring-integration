@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="message-publishing"
+<appendix> xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="message-publishing"
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>Message Publishing</title>
   <para>
@@ -30,7 +30,7 @@
         <emphasis>Message</emphasis> it will publish.
         </para>
 
-        <para>	
+        <para>
        The <classname>PublisherAnnotationAdvisor</classname> defines and binds the following variables:
        <itemizedlist>
             <listitem>
@@ -381,4 +381,4 @@ static class BankingOperationsImpl implements BankingOperations {
        </para>
     </section>
   </section>
-</chapter>
+</appendix>

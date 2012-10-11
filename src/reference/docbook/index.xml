@@ -165,17 +165,17 @@
 	  <xi:include href="./xml.xml"/>
 	  <xi:include href="./xmpp.xml"/>
   </part>
-  <part id="spring-integration-appendices">
-    <title>Appendices</title>
-    <partintro id="spring-integration-adapters">
-    	 <para>Advanced Topics and Additional Resources</para>
-    </partintro>
-      <xi:include href="./message-publishing.xml"/>
-      <xi:include href="./transactions.xml"/>
-	  <xi:include href="./security.xml"/>
-	  <xi:include href="./samples.xml"/>
-	  <xi:include href="./configuration.xml"/>
-	  <xi:include href="./resources.xml"/>
-	  <xi:include href="./history.xml"/>
-  </part>
+	<part id="spring-integration-appendices">
+		<title>Appendices</title>
+		<partintro id="spring-integration-adapters">
+			<para>Advanced Topics and Additional Resources</para>
+		</partintro>
+		<xi:include href="./message-publishing.xml"/>
+		<xi:include href="./transactions.xml"/>
+		<xi:include href="./security.xml"/>
+		<xi:include href="./samples.xml"/>
+		<xi:include href="./configuration.xml"/>
+		<xi:include href="./resources.xml"/>
+		<xi:include href="./history.xml"/>
+	</part>
 </book>
