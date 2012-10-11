@@ -245,8 +245,9 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
-		template.save(JSON.parse("{'name' : 'Manny', 'id' : 1}"), "data");
 
+		template.save(JSON.parse("{'name' : 'Manny', 'id' : 1}"), "data");
+		
 		Expression queryExpression = new LiteralExpression("{'name' : 'Manny'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);
 		messageSource.setExpectSingleResult(true);
@@ -254,7 +255,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 		DBObject result = (DBObject) messageSource.receive().getPayload();
 		Object id = result.get("_id");
 		result.put("company","PepBoys");
-		template.save(result, "data");
+		template.save(result, "data"); 
 		result = (DBObject) messageSource.receive().getPayload();
 		assertEquals(id, result.get("_id"));
 	}

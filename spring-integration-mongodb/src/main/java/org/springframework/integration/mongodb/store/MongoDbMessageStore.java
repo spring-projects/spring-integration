@@ -16,6 +16,11 @@
 
 package org.springframework.integration.mongodb.store;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.integration.history.MessageHistory.NAME_PROPERTY;
+import static org.springframework.integration.history.MessageHistory.TIMESTAMP_PROPERTY;
+import static org.springframework.integration.history.MessageHistory.TYPE_PROPERTY;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,6 +33,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -36,7 +43,6 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
-import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.Message;
@@ -58,15 +64,10 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.integration.history.MessageHistory.NAME_PROPERTY;
-import static org.springframework.integration.history.MessageHistory.TIMESTAMP_PROPERTY;
-import static org.springframework.integration.history.MessageHistory.TYPE_PROPERTY;
-
 /**
  * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
  * strategies that relies upon MongoDB for persistence.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Sean Brandt
@@ -271,7 +272,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private static Query whereGroupIdIs(Object groupId) {
 		Query q = new Query(where(GROUP_ID_KEY).is(groupId));
-		q.sort().on(GROUP_UPDATE_TIMESTAMP_KEY, Order.DESCENDING);
+		q.with(new Sort(Direction.DESC, GROUP_UPDATE_TIMESTAMP_KEY));
 		return q;
 	}
 
@@ -281,7 +282,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private static Query whereGroupIdIsOrdered(Object groupId) {
 		Query q = new Query(where(GROUP_ID_KEY).is(groupId)).limit(1);
-		q.sort().on(CREATED_DATE, Order.ASCENDING);
+		q.with(new Sort(Direction.ASC, CREATED_DATE));
 		return q;
 	}
 
