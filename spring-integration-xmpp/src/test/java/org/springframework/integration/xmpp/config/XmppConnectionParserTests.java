@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,26 @@
 
 package org.springframework.integration.xmpp.config;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+
 import java.util.List;
 
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class XmppConnectionParserTests {
-	
+
 	@Test
 	public void testSmackSasl() {
 		/*
@@ -54,14 +55,17 @@ public class XmppConnectionParserTests {
 		assertEquals("localhost", connection.getServiceName());
 		assertEquals("localhost", connection.getHost());
 		assertEquals(5222, connection.getPort());
-		assertFalse(connection.isConnected()); 
+		assertFalse(connection.isConnected());
 		XmppConnectionFactoryBean xmppFb = ac.getBean("&connection", XmppConnectionFactoryBean.class);
 		assertEquals("happy.user", TestUtils.getPropertyValue(xmppFb, "user"));
 		assertEquals("blah", TestUtils.getPropertyValue(xmppFb, "password"));
-		assertEquals("Smack", TestUtils.getPropertyValue(xmppFb, "resource"));
+		assertNull(TestUtils.getPropertyValue(xmppFb, "resource"));
 		assertEquals("accept_all", TestUtils.getPropertyValue(xmppFb, "subscriptionMode"));
+
+		xmppFb = ac.getBean("&connectionWithResource", XmppConnectionFactoryBean.class);
+		assertEquals("Smack", TestUtils.getPropertyValue(xmppFb, "resource"));
 	}
-	
+
 	@Test
 	public void testDefaultConnectionName() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTests-simple.xml", this.getClass());
@@ -75,7 +79,7 @@ public class XmppConnectionParserTests {
 		assertEquals("foogle.com", connection.getServiceName());
 		assertEquals("localhost", connection.getHost());
 		assertEquals(6222, connection.getPort());
-		assertFalse(connection.isConnected()); 
+		assertFalse(connection.isConnected());
 		XmppConnectionFactoryBean xmppFb = ac.getBean("&connection", XmppConnectionFactoryBean.class);
 		assertEquals("happy.user", TestUtils.getPropertyValue(xmppFb, "user"));
 		assertEquals("blah", TestUtils.getPropertyValue(xmppFb, "password"));

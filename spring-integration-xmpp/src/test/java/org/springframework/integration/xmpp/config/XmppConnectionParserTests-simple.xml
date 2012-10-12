@@ -13,4 +13,6 @@
 				
 	<int-xmpp:xmpp-connection user="happy.user" password="blah" host="localhost" auto-startup="false"/>
 
+	<int-xmpp:xmpp-connection id="connectionWithResource" resource="Smack"
+				user="happy.user" password="blah" host="localhost" auto-startup="false"/>
 </beans>
