@@ -40,7 +40,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private final ConnectionConfiguration connectionConfiguration;
 	
-	private volatile String resource = "Smack"; // default value used by Smack
+	private volatile String resource = null; // server will generate resource if not provided
 	
 	private volatile String user;
 		
