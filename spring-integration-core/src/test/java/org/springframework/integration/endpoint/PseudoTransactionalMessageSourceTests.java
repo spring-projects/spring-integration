@@ -18,6 +18,9 @@ package org.springframework.integration.endpoint;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -30,9 +33,11 @@ import org.springframework.integration.transaction.DefaultTransactionSynchroniza
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -40,6 +45,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -251,6 +257,75 @@ public class PseudoTransactionalMessageSourceTests {
 		Message<?> rollbackMessage = queueChannel.receive(1000);
 		assertNotNull(rollbackMessage);
 		assertEquals("qux", rollbackMessage.getPayload());
+	}
+
+	@Test
+	public void testInt2777UnboundResourceAfterTransactionComplete() {
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+
+		adapter.setSource(new MessageSource<String>() {
+
+			public Message<String> receive() {
+				return null;
+			}
+		});
+
+		TransactionSynchronizationManager.setActualTransactionActive(true);
+		adapter.doPoll();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
+
+		// Before INT-2777 this test was failed here
+		TransactionSynchronizationManager.setActualTransactionActive(true);
+		adapter.doPoll();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
+	}
+
+	@Ignore
+	@Test
+	public void testInt2777CustomTransactionSynchronizationFactoryWithoutDealWithIntegrationResourceHolder() {
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+
+		final AtomicInteger txSyncCounter = new AtomicInteger();
+
+		TransactionSynchronizationFactory syncFactory = new TransactionSynchronizationFactory() {
+
+			public TransactionSynchronization create(Object key) {
+				return new TransactionSynchronizationAdapter() {
+					@Override
+					public void afterCompletion(int status) {
+						txSyncCounter.incrementAndGet();
+					}
+				};
+			}
+		};
+
+		adapter.setTransactionSynchronizationFactory(syncFactory);
+		adapter.setSource(new MessageSource<String>() {
+
+			public Message<String> receive() {
+				return null;
+			}
+		});
+
+		TransactionSynchronizationManager.initSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(true);
+		adapter.doPoll();
+		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
+		TransactionSynchronizationManager.clearSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
+		assertEquals(1, txSyncCounter.get());
+
+		/*TODO: Failed with 'java.lang.IllegalStateException: Already value
+		TODO: [org.springframework.integration.transaction.IntegrationResourceHolder@46b8c8e6]
+		TODO: for key [org.springframework.integration.endpoint.PseudoTransactionalMessageSourceTests$8@78a1d1f4] bound to thread [main]'*/
+		//TODO: Need new JIRA issue to fix it
+		TransactionSynchronizationManager.initSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(true);
+		adapter.doPoll();
+		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
+		TransactionSynchronizationManager.clearSynchronization();
+		TransactionSynchronizationManager.setActualTransactionActive(false);
+		assertEquals(2, txSyncCounter.get());
 	}
 
 	public class Bar {
