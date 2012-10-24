@@ -41,8 +41,8 @@
             regarding Spring's integration with AMQP in general and RabbitMQ in
             particular.</para>
         <para>You can find the documentation at:
-              <ulink url="http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/">
-                  http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/</ulink>
+              <ulink url="http://static.springsource.org/spring-amqp/reference/html/">
+                  http://static.springsource.org/spring-amqp/reference/html/</ulink>
         </para>
     </tip>
   </section>
