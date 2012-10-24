@@ -50,6 +50,7 @@
 			to a channel; this is used to further correlate a confirm to a message. An example is
 			"headers['amqp_confirmCorrelationData']", assuming that header contains the data.
 			Messages that do not have correlation data do not generate publisher confirm messages.
+			Requires a CachingConnectionFactory with the 'publisherConfirms' property set to TRUE.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -436,7 +437,9 @@ this list can also be simple patterns to be matched against the header names (e.
 		<xsd:attribute name="return-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-Channel to which returned messages will be sent.
+Channel to which returned messages will be sent. Requires a RabbitTemplate with the 'mandatory' or
+'immediate' properties set to TRUE; requires a CachingConnectionFactory with the 'publisherReturns'
+property set to TRUE.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
