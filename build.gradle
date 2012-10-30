@@ -56,7 +56,7 @@ subprojects { subproject ->
 		springGemfireVersion = '1.1.1.RELEASE'
 		springSecurityVersion = '3.1.0.RELEASE'
 		springSocialTwitterVersion = '1.0.1.RELEASE'
-		springWsVersion = '2.1.0.RELEASE'
+		springWsVersion = '2.1.1.RELEASE'
 		springRetryVersion = '1.0.2.RELEASE'
 	}
 
@@ -861,7 +861,7 @@ project('spring-integration-ws') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-expression:$springVersion"
 		compile "org.springframework:spring-oxm:$springVersion"
-		compile "org.springframework:spring-web:$springVersion"
+		compile "org.springframework:spring-webmvc:$springVersion"
 		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
 			exclude group: 'org.springframework', module: 'spring-webmvc'
 			exclude group: 'org.springframework', module: 'spring-web'
