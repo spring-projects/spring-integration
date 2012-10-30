@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,10 @@ import org.w3c.dom.Element;
 
 /**
  * Base class for inbound adapter parsers for the AMQP namespace.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1
  */
 abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefinitionParser {
@@ -100,12 +101,16 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 			builder.addConstructorArgValue(listenerContainerBeanDef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
-		
+
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultAmqpHeaderMapper.class, null);
-		
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
+		if (element.hasAttribute("message-converter") && element.hasAttribute("request-payload-type")) {
+			parserContext.getReaderContext().error("Only one of 'message-converter' and 'request-payload-type' is allowed", element);
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type");
 		this.configureChannels(element, parserContext, builder);
 	}
 
