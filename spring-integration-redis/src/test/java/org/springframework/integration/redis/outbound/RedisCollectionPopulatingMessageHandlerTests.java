@@ -1,3 +1,18 @@
+/*
+ * Copyright 2002-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.integration.redis.outbound;
 
 import static org.junit.Assert.assertEquals;
@@ -32,6 +47,11 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.support.MessageBuilder;
 
+/**
+ * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ *
+ */
 public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailableTests{
 
 	@SuppressWarnings("unchecked")
@@ -183,9 +203,9 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		handler.handleMessage(message);
 		assertEquals(3, redisZset.size());
 		pepboys = redisZset.rangeByScoreWithScores(1, 2);
-		// should not have incremented
+		// should have incremented by 1
 		for (TypedTuple<String> pepboy : pepboys) {
-			assertTrue(pepboy.getScore() == 1);
+			assertEquals(Double.valueOf(2), pepboy.getScore());
 		}
 	}
 

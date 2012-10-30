@@ -365,7 +365,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		if (message.getHeaders().containsKey(RedisHeaders.ZSET_INCREMENT_SCORE)){
 			return this.zsetIncrementScoreExpression.getValue(this.evaluationContext, message, Boolean.class);
 		}
-		return false;
+		return true;
 	}
 
 	@SuppressWarnings("unchecked")
