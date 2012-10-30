@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.amqp.support.JsonAwareInboundMessageConverter;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -40,8 +41,9 @@ import org.springframework.util.StringUtils;
  * Spring Integration Messages, and sends the results to a Message Channel.
  * If a reply Message is received, it will be converted and sent back to
  * the AMQP 'replyTo'.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
@@ -49,6 +51,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
 	private volatile MessageConverter amqpMessageConverter = new SimpleMessageConverter();
+
+	private boolean messageConverterSet;
 
 	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
@@ -74,6 +78,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
+	}
+
+	public void setRequestPayloadType(String type) {
+		Assert.notNull(type, "requestPayloadType must not be null");
+		Assert.isTrue(!this.messageConverterSet, "Cannot set requestPayloadType if a MessageConverter has been provided");
+		this.amqpMessageConverter = new JsonAwareInboundMessageConverter(type);
 	}
 
 	@Override
