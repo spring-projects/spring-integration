@@ -35,6 +35,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.support.JsonAwareInboundMessageConverter;
+import org.springframework.integration.amqp.support.JsonAwareInboundMessageConverterTests;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
@@ -233,8 +234,8 @@ public class AmqpInboundChannelAdapterParserTests {
 		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
 		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 		assertTrue(TestUtils.getPropertyValue(adapter, "messageConverter") instanceof JsonAwareInboundMessageConverter);
-		assertEquals(Foo.class, TestUtils.getPropertyValue(adapter, "messageConverter.clazz"));
-		assertEquals(new Foo("bar"), siMessage.getPayload());
+		assertEquals(JsonAwareInboundMessageConverterTests.Foo.class, TestUtils.getPropertyValue(adapter, "messageConverter.clazz"));
+		assertEquals(new JsonAwareInboundMessageConverterTests.Foo("bar"), siMessage.getPayload());
 
 	}
 
@@ -245,51 +246,6 @@ public class AmqpInboundChannelAdapterParserTests {
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().contains("Only one of 'message-converter' and 'request-payload-type' is allowed"));
-		}
-	}
-
-	public static class Foo {
-		private String foo;
-
-		public Foo() {
-		}
-
-		public Foo(String string) {
-			this.foo = string;
-		}
-
-		public String getFoo() {
-			return foo;
-		}
-
-		public void setFoo(String foo) {
-			this.foo = foo;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((foo == null) ? 0 : foo.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Foo other = (Foo) obj;
-			if (foo == null) {
-				if (other.foo != null)
-					return false;
-			}
-			else if (!foo.equals(other.foo))
-				return false;
-			return true;
 		}
 	}
 

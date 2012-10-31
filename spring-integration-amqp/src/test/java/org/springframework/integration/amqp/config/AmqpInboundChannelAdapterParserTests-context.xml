@@ -34,7 +34,7 @@
 
 	<amqp:inbound-channel-adapter id="withRequestPayloadTypeFoo" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"
-		request-payload-type="org.springframework.integration.amqp.config.AmqpInboundChannelAdapterParserTests$Foo" />
+		request-payload-type="org.springframework.integration.amqp.support.JsonAwareInboundMessageConverterTests$Foo" />
 
 	<int:channel id="requestChannel">
 		<int:queue/>

@@ -40,24 +40,21 @@ public class JsonAwareInboundMessageConverterTests {
 	@Test
 	public void testJsonTextToString() {
 		Message amqpMessage = buildMessage("text/json");
-		JsonAwareInboundMessageConverter converter = new JsonAwareInboundMessageConverter(
-				org.springframework.integration.amqp.support.JsonAwareInboundMessageConverterTests.Foo.class);
+		JsonAwareInboundMessageConverter converter = new JsonAwareInboundMessageConverter(Foo.class);
 		assertEquals(foobar, converter.fromMessage(amqpMessage));
 	}
 
 	@Test
 	public void testPlainTextToString() {
 		Message amqpMessage = buildMessage("text/plain");
-		JsonAwareInboundMessageConverter converter = new JsonAwareInboundMessageConverter(
-				org.springframework.integration.amqp.support.JsonAwareInboundMessageConverterTests.Foo.class);
+		JsonAwareInboundMessageConverter converter = new JsonAwareInboundMessageConverter(Foo.class);
 		assertEquals(foobar, converter.fromMessage(amqpMessage));
 	}
 
 	@Test
 	public void testJsonToObject() throws Exception {
 		Message amqpMessage = buildMessage("application/json");
-		JsonAwareInboundMessageConverter converter = new JsonAwareInboundMessageConverter(
-				org.springframework.integration.amqp.support.JsonAwareInboundMessageConverterTests.Foo.class);
+		JsonAwareInboundMessageConverter converter = new JsonAwareInboundMessageConverter(Foo.class);
 		assertEquals(new Foo("bar"), converter.fromMessage(amqpMessage));
 	}
 

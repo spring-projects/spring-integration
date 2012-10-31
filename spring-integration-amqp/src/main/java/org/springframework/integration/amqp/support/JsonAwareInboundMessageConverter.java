@@ -22,10 +22,8 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.ClassMapper;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConversionException;
-import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * MessageConverter used on inbound endpoints that delegates either to a SimpleMessageConverter,
@@ -52,7 +50,7 @@ public class JsonAwareInboundMessageConverter extends SimpleMessageConverter {
 	private final Class<?> clazz;
 
 	public JsonAwareInboundMessageConverter(Class<?> aClass) {
-		Assert.notNull(aClass, "'className' cannot be null");
+		Assert.notNull(aClass, "'class' cannot be null");
 		this.clazz = aClass;
 
 		jsonMessageConverter.setClassMapper(new ClassMapper() {
@@ -67,6 +65,7 @@ public class JsonAwareInboundMessageConverter extends SimpleMessageConverter {
 		});
 	}
 
+	@Override
 	public void setDefaultCharset(String charset) {
 		Assert.notNull(charset, "'charset' cannot be null");
 		this.charset = charset;
@@ -74,6 +73,7 @@ public class JsonAwareInboundMessageConverter extends SimpleMessageConverter {
 		this.jsonMessageConverter.setDefaultCharset(charset);
 	}
 
+	@Override
 	public Object fromMessage(Message message) throws MessageConversionException {
 		MessageProperties properties = message.getMessageProperties();
 		if (properties != null) {
