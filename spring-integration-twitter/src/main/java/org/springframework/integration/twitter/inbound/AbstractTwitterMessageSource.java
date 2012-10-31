@@ -102,31 +102,29 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		}
 		StringBuilder metadataKeyBuilder = new StringBuilder();
 		if (StringUtils.hasText(this.getComponentType())) {
-			metadataKeyBuilder.append(this.getComponentType() + ".");
+			metadataKeyBuilder.append(this.getComponentType());
 		}
 		if (StringUtils.hasText(this.getComponentName())) {
-			metadataKeyBuilder.append(this.getComponentName() + ".");
+			metadataKeyBuilder.append("." + this.getComponentName());
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
 
 		if (this.twitter.isAuthorized()){
-
-	        UserOperations userOperations = this.twitter.userOperations();
+			UserOperations userOperations = this.twitter.userOperations();
 			String profileId = String.valueOf(userOperations.getProfileId());
-
 			if (profileId != null) {
-				metadataKeyBuilder.append(profileId);
+				metadataKeyBuilder.append("." + profileId);
 			}
+		}
 
-			this.metadataKey = metadataKeyBuilder.toString();
-			String lastId = this.metadataStore.get(this.metadataKey);
-			// initialize the last status ID from the metadataStore
-			if (StringUtils.hasText(lastId)) {
-				this.lastProcessedId = Long.parseLong(lastId);
-				this.lastEnqueuedId = this.lastProcessedId;
-			}
+		this.metadataKey = metadataKeyBuilder.toString();
+		String lastId = this.metadataStore.get(this.metadataKey);
+		// initialize the last status ID from the metadataStore
+		if (StringUtils.hasText(lastId)) {
+			this.lastProcessedId = Long.parseLong(lastId);
+		    this.lastEnqueuedId = this.lastProcessedId;
 		}
 
 	}
