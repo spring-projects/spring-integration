@@ -5,11 +5,11 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url 'https://repo.springsource.org/plugins-snapshot' }
+		maven { url 'http://repo.springsource.org/plugins-release' }
 	}
 	dependencies {
 		classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.2'
-		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.1.5'
+		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.1.6'
 	}
 }
 
@@ -1144,5 +1144,5 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '1.0'
+	gradleVersion = '1.2'
 }
