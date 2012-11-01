@@ -108,7 +108,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		if (element.hasAttribute("message-converter") && element.hasAttribute("request-payload-type")) {
-			parserContext.getReaderContext().error("Only one of 'message-converter' and 'request-payload-type' is allowed", element);
+			parserContext.getReaderContext().error("Only one of 'message-converter' or 'request-payload-type' is allowed", element);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type");
 		this.configureChannels(element, parserContext, builder);

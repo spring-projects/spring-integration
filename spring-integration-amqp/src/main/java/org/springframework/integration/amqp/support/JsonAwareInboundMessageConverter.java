@@ -28,11 +28,11 @@ import org.springframework.util.Assert;
 /**
  * MessageConverter used on inbound endpoints that delegates either to a SimpleMessageConverter,
  * or a JsonMessageConverter, with a custom {@link ClassMapper} that uses a configured class name
- * rather than looking for the type information in the message headers.
+ * rather than looking for the type information in the {@link MessageProperties}.
  * <p/>
  * To provide backwards compatibility,
  * if the contentType property contains json (but does not start with text), we delegate to
- * the JsonMessageConverter. Otherwise we delegate to the SimpleMessageConverter.
+ * the JsonMessageConverter. Otherwise we invoke the super class (SimpleMessageConverter).
  * <p/>
  * If the className property is set to <code>java.lang.String</code> the message
  * body is returned as a String.
