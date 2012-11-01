@@ -320,15 +320,27 @@ public class Mover {
 
 	public void process(MimeMessage message) throws Exception{
 		Folder folder = message.getFolder();
-		Store store = null;
-		if (!folder.isOpen()){
-			folder.open(Folder.READ_WRITE);
-			store = folder.getStore();
+		folder.open(Folder.READ_WRITE);
+		String messageId = message.getMessageID();
+		Message[] messages = folder.getMessages();
+		FetchProfile contentsProfile = new FetchProfile();
+		contentsProfile.add(FetchProfile.Item.ENVELOPE);
+		contentsProfile.add(FetchProfile.Item.CONTENT_INFO);
+		contentsProfile.add(FetchProfile.Item.FLAGS);
+		folder.fetch(messages, contentsProfile);
+		// find this message and mark for deletion
+		for (int i = 0; i < messages.length; i++) {
+			if (((MimeMessage) messages[i]).getMessageID().equals(messageId)) {
+				messages[i].setFlag(Flags.Flag.DELETED, true);
+				break;
+			}
 		}
-		message.setFlag(Flags.Flag.DELETED, true);
+
 		Folder fooFolder = store.getFolder("FOO"));
 		fooFolder.appendMessages(new MimeMessage[]{message});
 		folder.expunge();
+		folder.close(true);
+		fooFolder.close(false);
 	}
 }]]></programlisting>
     <important>

@@ -569,7 +569,7 @@ project('spring-integration-mail') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context-support:$springVersion"
-		compile("javax.mail:mail:1.4.4", provided)
+		compile("javax.mail:mail:1.4.5", provided)
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-test")
 	}
