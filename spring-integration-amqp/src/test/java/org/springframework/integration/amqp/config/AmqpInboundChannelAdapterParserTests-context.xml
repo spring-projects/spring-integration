@@ -13,22 +13,29 @@
 
 	<amqp:inbound-channel-adapter id="autoStartFalse" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"/>
-		
+
 	<amqp:inbound-channel-adapter id="withHeaderMapperStandardAndCustomHeaders" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"
 		mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"/>
-		
+
 	<amqp:inbound-channel-adapter id="withHeaderMapperOnlyCustomHeaders" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"
 		mapped-request-headers="foo*"/>
-		
+
 	<amqp:inbound-channel-adapter id="withHeaderMapperNothingToMap" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"
 		mapped-request-headers=""/>
-		
+
 	<amqp:inbound-channel-adapter id="withHeaderMapperDefaultMapping" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"/>
-		
+
+	<amqp:inbound-channel-adapter id="withRequestPayloadTypeString" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123" request-payload-type="java.lang.String" />
+
+	<amqp:inbound-channel-adapter id="withRequestPayloadTypeFoo" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123"
+		request-payload-type="org.springframework.integration.amqp.support.JsonAwareInboundMessageConverterTests$Foo" />
+
 	<int:channel id="requestChannel">
 		<int:queue/>
 	</int:channel>
@@ -36,5 +43,5 @@
 	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>
-		
+
 </beans>

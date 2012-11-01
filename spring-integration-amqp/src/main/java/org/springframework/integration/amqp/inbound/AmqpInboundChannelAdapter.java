@@ -25,6 +25,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.amqp.support.JsonAwareInboundMessageConverter;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
@@ -45,6 +46,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
+	private volatile boolean messageConverterSet;
+
 	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
 
@@ -60,11 +63,18 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		this.messageConverter = messageConverter;
+		this.messageConverterSet = true;
 	}
 
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
+	}
+
+	public void setRequestPayloadType(Class<?> type) {
+		Assert.notNull(type, "requestPayloadType must not be null");
+		Assert.isTrue(!this.messageConverterSet, "Cannot set requestPayloadType if a MessageConverter has been provided");
+		this.messageConverter = new JsonAwareInboundMessageConverter(type);
 	}
 
 	@Override

@@ -540,6 +540,21 @@ this list can also be simple patterns to be matched against the header names (e.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="request-payload-type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Target type for payload that is the conversion result of the request. If the content-type
+					property contains "json", the endpoint will configure a "JsonMessageConverter" to attempt
+					to convert the payload if the message contentType property is 'application/json'.
+					If the 'request-payload-type' is 'java.lang.String' the payload
+					will contain the JSON as a String. Otherwise it will be converted to the type, if
+					possible. This will override the default 'JsonMessageConverter' behavior of getting
+					type information from the message properties. For more control over the conversion,
+					provide a 'message-converter' instead. This attribute is not allowed if a
+					'message-converter' is supplied.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="containerAttributes">

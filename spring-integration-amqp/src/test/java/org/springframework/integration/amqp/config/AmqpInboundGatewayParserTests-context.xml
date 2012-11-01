@@ -23,12 +23,16 @@
 	<si-amqp:inbound-gateway id="autoStartFalseGateway" request-channel="requests" queue-names="test"
 			connection-factory="rabbitConnectionFactory" message-converter="testConverter"
 			auto-startup="false" phase="123"/>
-			
+
 	<si-amqp:inbound-gateway id="withHeaderMapper" request-channel="requestChannel" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"
 		mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"
 		mapped-reply-headers="bar*"/>
-		
+
+	<si-amqp:inbound-gateway id="withPayloadType" request-channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123"
+		request-payload-type="java.lang.String"/>
+
 	<int:channel id="requestChannel"/>
-		
+
 </beans>
