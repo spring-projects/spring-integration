@@ -41,8 +41,8 @@
             regarding Spring's integration with AMQP in general and RabbitMQ in
             particular.</para>
         <para>You can find the documentation at:
-              <ulink url="http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/">
-                  http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/</ulink>
+              <ulink url="http://static.springsource.org/spring-amqp/reference/html/">
+                  http://static.springsource.org/spring-amqp/reference/html/</ulink>
         </para>
     </tip>
   </section>
@@ -327,8 +327,9 @@ this list can also be simple patterns to be matched against the header names (e.
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-8-co" id="amqp-outbound-channel-adapter-xml-8">
                 <para>An expression defining correlation data. When provided, this configures the underlying
-                amqp template to receive publisher confirms. Requires a RabbitTemplate and a
-                CachingConnectionFactory with publisherConfirms enabled. When a publisher confirm
+                amqp template to receive publisher confirms. Requires a <classname>RabbitTemplate</classname> and a
+                <classname>CachingConnectionFactory</classname> with the <code>publisherConfirms</code> property
+                set to <code>true</code>. When a publisher confirm
                 is received, it is written to either the confirm-ack-channel, or the confirm-nack-channel,
                 depending on the confirmation type. The payload of the confirm is the correlation data as
                 defined by this expression and the message will have a header 'amqp_publishConfirm' set to
@@ -347,10 +348,18 @@ this list can also be simple patterns to be matched against the header names (e.
             </callout>
             <callout arearefs="amqp-outbound-channel-adapter-xml-11-co" id="amqp-outbound-channel-adapter-xml-11">
                 <para>The channel to which returned messages are sent. When provided, the underlying amqp template
-                is configured to return undeliverable messages. The message will be constructed from the
+                is configured to return undeliverable messages to the adapter. The message will be constructed from the
                 data received from amqp, with the following additional headers: <emphasis>amqp_returnReplyCode,
                 amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey</emphasis>.
                 <emphasis>Optional</emphasis>.</para>
+                <important>
+                  Using a <code>return-channel</code> requires a <classname>RabbitTemplate</classname> with either
+                  the <code>mandatory</code> or <code>immediate</code> properties set to <code>true</code>,
+                  and a <classname>CachingConnectionFactory</classname>
+                  with the <code>publisherReturns</code> property set to <code>true</code>. When using multiple
+                  outbound endpoints with returns, a separate <classname>RabbitTemplate</classname> is needed
+                  for each endpoint.
+                </important>
             </callout>
         </calloutlist>
     </para>
@@ -468,10 +477,18 @@ this list can also be simple patterns to be matched against the header names (e.
               </callout>
               <callout arearefs="amqp-outbound-gateway-adapter-xml-9-co" id="amqp-outbound-gateway-adapter-xml-9">
                 <para>The channel to which returned messages are sent. When provided, the underlying amqp template
-                is configured to return undeliverable messages. The message will be constructed from the
+                is configured to return undeliverable messages to the gateway. The message will be constructed from the
                 data received from amqp, with the following additional headers: <emphasis>amqp_returnReplyCode,
                 amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey</emphasis>.
                 <emphasis>Optional</emphasis>.</para>
+                <important>
+                  Using a <code>return-channel</code> requires a <classname>RabbitTemplate</classname> with either
+                  the <code>mandatory</code> or <code>immediate</code> properties set to <code>true</code>,
+                  and a <classname>CachingConnectionFactory</classname>
+                  with the <code>publisherReturns</code> property set to <code>true</code>. When using multiple
+                  outbound endpoints with returns, a separate <classname>RabbitTemplate</classname> is needed
+                  for each endpoint.
+                </important>
               </callout>
           </calloutlist>
       </para>
