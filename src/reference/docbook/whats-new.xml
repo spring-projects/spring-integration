@@ -173,6 +173,14 @@
 				replies. This can improve performance of the gateway.
 			</para>
 		</section>
+		<section id="2.2-o-t-j-t">
+			<title>object-to-json-transformer</title>
+			<para>
+				The <classname>ObjectToJsonTransformer</classname> now sets the
+				<emphasis>content-type</emphasis> header to <emphasis>application/json</emphasis>
+				by default. For more information see <xref linkend="transformer"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="2.2-new-components">
