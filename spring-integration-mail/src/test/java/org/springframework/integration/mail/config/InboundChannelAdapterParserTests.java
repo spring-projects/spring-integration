@@ -29,6 +29,7 @@ import javax.mail.Authenticator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,6 +41,7 @@ import org.springframework.integration.mail.AbstractMailReceiver;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -72,7 +74,7 @@ public class InboundChannelAdapterParserTests {
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
 		assertTrue(value);
 	}
-	
+
 	@Test
 	public void imapShouldMarkMessagesAsRead() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldMarkAsReadTrue");
@@ -279,6 +281,30 @@ public class InboundChannelAdapterParserTests {
 		}
 		catch(BeanDefinitionStoreException e) {
 			assertEquals(SAXParseException.class, e.getCause().getClass());
+		}
+	}
+
+
+	//==================== INT-2800 ====================
+
+	@Test
+	public void imapWithSearchTermStrategy() {
+		AbstractMailReceiver receiver = this.getReceiver("imapWithSearch");
+		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		Object sts = new DirectFieldAccessor(receiver).getPropertyValue("searchTermStrategy");
+		assertNotNull(sts);
+		assertSame(context.getBean(SearchTermStrategy.class), sts);
+	}
+
+	@Test
+	public void pop3WithSearchTermStrategy() {
+		try {
+			new ClassPathXmlApplicationContext(
+					"org/springframework/integration/mail/config/InboundChannelAdapterParserTests-pop3Search-context.xml");
+			fail("expected a parser error");
+		}
+		catch(BeanCreationException e) {
+			assertTrue(e.getMessage().contains("searchTermStrategy is only allowed with imap"));
 		}
 	}
 
