@@ -31,6 +31,7 @@ import org.springframework.integration.mail.AbstractMailReceiver;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.MailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -55,8 +56,6 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	private volatile Authenticator authenticator;
 
-	private volatile boolean synchronizedTx;
-
 	/**
 	 * Indicates whether retrieved messages should be deleted from the server.
 	 * This value will be <code>null</code> <i>unless</i> explicitly configured.
@@ -68,6 +67,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	private volatile int maxFetchSize = 1;
 
 	private volatile Expression selectorExpression;
+
+	private volatile SearchTermStrategy searchTermStrategy;
 
 
 	public void setStoreUri(String storeUri) {
@@ -110,8 +111,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		this.selectorExpression = selectorExpression;
 	}
 
-	public void setSynchronized(boolean synchronizedTx) {
-		this.synchronizedTx = synchronizedTx;
+	public void setSearchTermStrategy(SearchTermStrategy searchTermStrategy) {
+		this.searchTermStrategy = searchTermStrategy;
 	}
 
 	public MailReceiver getObject() throws Exception {
@@ -157,6 +158,10 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			Assert.isNull(this.authenticator, "A JavaMail Authenticator is not allowed when a Session has been provied.");
 			receiver.setSession(this.session);
 		}
+		if (this.searchTermStrategy != null) {
+			Assert.isTrue(isImap, "searchTermStrategy is only allowed with imap");
+			((ImapMailReceiver) receiver).setSearchTermStrategy(this.searchTermStrategy);
+		}
 		if (this.javaMailProperties != null) {
 			receiver.setJavaMailProperties(this.javaMailProperties);
 		}
@@ -167,12 +172,6 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			// always set the value if configured explicitly
 			// otherwise, the default is true for POP3 but false for IMAP
 			receiver.setShouldDeleteMessages(this.shouldDeleteMessages);
-		}
-		if (this.synchronizedTx && this.maxFetchSize != 1) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Max Fetch Size is set to 1 because the poller is synchronized; was " + this.maxFetchSize);
-			}
-			this.maxFetchSize = 1;
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
 		receiver.setSelectorExpression(selectorExpression);

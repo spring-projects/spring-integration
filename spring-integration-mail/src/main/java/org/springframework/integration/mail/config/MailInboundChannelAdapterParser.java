@@ -51,6 +51,7 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 		Object source = parserContext.extractSource(element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "store-uri");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "protocol");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "search-term-strategy");
 		String session = element.getAttribute("session");
 		if (StringUtils.hasText(session)) {
 			if (element.hasAttribute("java-mail-properties") || element.hasAttribute("authenticator")) {
@@ -73,9 +74,6 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 				String mmpp = pollerElement.getAttribute("max-messages-per-poll");
 				if (StringUtils.hasText(mmpp)) {
 					receiverBuilder.addPropertyValue("maxFetchSize", mmpp);
-				}
-				if (StringUtils.hasText(pollerElement.getAttribute("synchronized"))) {
-					receiverBuilder.addPropertyValue("synchronized", true);
 				}
 			}
 		}
