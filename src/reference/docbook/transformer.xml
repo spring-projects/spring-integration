@@ -227,6 +227,32 @@ public class Kid {
         <programlisting language="xml"><![CDATA[<bean id="customObjectMapper" class="foo.ObjectMapperFactory"
             factory-method="getMapper"/>]]></programlisting>
     </para>
+    <important>
+     <para>
+      Beginning with version 2.2, the <code>object-to-json-transformer</code> sets the <emphasis>content-type</emphasis>
+      header to <emphasis>application/json</emphasis>, by default. It can be overridden using the <code>content-type</code>
+      attribute. The default behavior has a side affect - causing applications with the following
+      sequence to fail:
+     </para>
+     <para>
+      <code>->object-to-json-transformer->amqp-outbound-adapter----></code>
+     </para>
+     <para>
+      <code>---->amqp-inbound-adapter->json-to-object-transformer-></code>
+     </para>
+     <para>
+      This is because the default <classname>SimpleMessageConverter</classname> used by the inbound adapter doesn't
+      recognize this content type and the adapter emits a message with a <code>byte[]</code> payload instead of
+      <code>String</code>.
+     </para>
+     <para>
+      If you are using this pattern, the simplest work around is to add a text content type to the transformer in the sending
+      application; for example:
+     </para>
+     <para>
+         <programlisting><![CDATA[<object-to-json-transformer ... content-type="text/x-json"/>]]></programlisting>
+     </para>
+    </important>
   </section>
 
   <section id="transformer-annotation">
