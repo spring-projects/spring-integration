@@ -399,7 +399,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * @since 2.2
 	 *
 	 */
-	public class IntegrationMimeMessage extends MimeMessage {
+	private class IntegrationMimeMessage extends MimeMessage {
 
 		public IntegrationMimeMessage(MimeMessage source) throws MessagingException {
 			super(source);
