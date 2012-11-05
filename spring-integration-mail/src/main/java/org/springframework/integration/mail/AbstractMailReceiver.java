@@ -207,7 +207,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	protected void openFolder() throws MessagingException {
 		this.openSession();
 		if (this.folder == null) {
-			this.folder = this.store.getFolder(this.url);
+			this.folder = obtainFolderInstance();
 		}
 		if (this.folder == null || !this.folder.exists()) {
 			throw new IllegalStateException("no such folder [" + this.url.getFile() + "]");
@@ -219,6 +219,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			logger.debug("opening folder [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
 		}
 		this.folder.open(this.folderOpenMode);
+	}
+
+	private Folder obtainFolderInstance() throws MessagingException {
+		return this.store.getFolder(this.url);
 	}
 
 	public Message[] receive() throws javax.mail.MessagingException {
@@ -262,6 +266,11 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 		if (this.shouldDeleteMessages()) {
 			this.deleteMessages(filteredMessages);
+		}
+		// Copy messages to cause an eager fetch
+		for (int i = 0; i < filteredMessages.length; i++) {
+			MimeMessage mimeMessage = new IntegrationMimeMessage((MimeMessage) filteredMessages[i]);
+			filteredMessages[i] = mimeMessage;
 		}
 	}
 
@@ -382,4 +391,29 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return this.store;
 	}
 
+	/**
+	 * Since we copy the message to eagerly fetch the message, it has no folder.
+	 * However, we need to make a folder available in case the user wants to
+	 * perform operations on the message in the folder later in the flow.
+	 * @author Gary Russell
+	 * @since 2.2
+	 *
+	 */
+	private class IntegrationMimeMessage extends MimeMessage {
+
+		public IntegrationMimeMessage(MimeMessage source) throws MessagingException {
+			super(source);
+		}
+
+		@Override
+		public Folder getFolder() {
+			try {
+				return AbstractMailReceiver.this.obtainFolderInstance();
+			}
+			catch (MessagingException e) {
+				throw new org.springframework.integration.MessagingException("Unable to obtain the mail folder", e);
+			}
+		}
+
+	}
 }

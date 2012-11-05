@@ -1,0 +1,50 @@
+Delivered-To: yyyyy@gmail.com
+Received: by 10.64.27.133 with SMTP id t5csp748412ieg;
+        Thu, 1 Nov 2012 09:38:30 -0700 (PDT)
+Received: by 10.220.40.16 with SMTP id i16mr23706195vce.31.1351787910470;
+        Thu, 01 Nov 2012 09:38:30 -0700 (PDT)
+Return-Path: <xxxxx@gmail.com>
+Received: from mail-vb0-f51.google.com (mail-vb0-f51.google.com [209.85.212.51])
+        by mx.google.com with ESMTPS id t8si2299833vcw.15.2012.11.01.09.38.30
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Thu, 01 Nov 2012 09:38:30 -0700 (PDT)
+Received-SPF: pass (google.com: domain of xxxxx@gmail.com designates 209.85.212.51 as permitted sender) client-ip=209.85.212.51;
+Authentication-Results: mx.google.com; spf=pass (google.com: domain of xxxxxx@gmail.com designates 209.85.212.51 as permitted sender) smtp.mail=xxxxx@gmail.com; dkim=pass header.i=@gmail.com
+Received: by mail-vb0-f51.google.com with SMTP id fn1so2898461vbb.24
+        for <yyyyy@gmail.com>; Thu, 01 Nov 2012 09:38:30 -0700 (PDT)
+Received: by 10.220.227.70 with SMTP id iz6mr23760024vcb.45.1351787910197;
+        Thu, 01 Nov 2012 09:38:30 -0700 (PDT)
+Return-Path: <xxxxx@gmail.com>
+Received: from [192.168.1.7] (pool-72-78-102-80.phlapa.fios.verizon.net. [72.78.102.80])
+        by mx.google.com with ESMTPS id g5sm3780201vez.6.2012.11.01.09.38.29
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Thu, 01 Nov 2012 09:38:29 -0700 (PDT)
+Sender: Gary Russell <xxxxx@gmail.com>
+Message-ID: <5092A55B.8050000@foo.bar>
+Date: Thu, 01 Nov 2012 12:37:47 -0400
+From: Gary Russell <xxxxx@gmail.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:16.0) Gecko/20121026 Thunderbird/16.0.2
+MIME-Version: 1.0
+To: yyyyy@gmail.com
+Subject: Test
+Content-Type: multipart/mixed;
+ boundary="------------040903000701040401040200"
+
+This is a multi-part message in MIME format.
+--------------040903000701040401040200
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+bar
+
+--------------040903000701040401040200
+Content-Type: text/plain; charset=UTF-8;
+ name="foo.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="foo.txt"
+
+foo
+
+--------------040903000701040401040200--
+
