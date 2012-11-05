@@ -104,6 +104,15 @@
 
 	<si:bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
+	<!--  INT-2800 -->
+
+	<mail:inbound-channel-adapter id="imapWithSearch" channel="testChannel" protocol="imap" should-delete-messages="false" auto-startup="false"
+		search-term-strategy="searchTermStrategy"/>
+
+	<bean id="searchTermStrategy" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.mail.SearchTermStrategy"/>
+	</bean>
+
 	<!-- COMMON CONFIGURATION -->
 
 	<si:channel id="testChannel"/>
