@@ -50,7 +50,7 @@ subprojects { subproject ->
 		springVersionDefault = '3.1.3.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
-		springAmqpVersion = '1.1.2.RELEASE'
+		springAmqpVersion = '1.1.3.RELEASE'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.0.2.RELEASE'
 		springGemfireVersion = '1.1.1.RELEASE'
