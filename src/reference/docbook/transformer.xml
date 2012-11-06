@@ -227,6 +227,68 @@ public class Kid {
         <programlisting language="xml"><![CDATA[<bean id="customObjectMapper" class="foo.ObjectMapperFactory"
             factory-method="getMapper"/>]]></programlisting>
     </para>
+    <important>
+     <para>
+      Beginning with version 2.2, the <code>object-to-json-transformer</code> sets the <emphasis>content-type</emphasis>
+      header to <emphasis>application/json</emphasis>, by default. It can be overridden using the <code>content-type</code>
+      attribute. The default behavior has a side affect - causing applications with the following
+      sequence to fail:
+     </para>
+     <para>
+      <code>->object-to-json-transformer->amqp-outbound-adapter----></code>
+     </para>
+     <para>
+      <code>---->amqp-inbound-adapter->json-to-object-transformer-></code>
+     </para>
+     <para>
+      This is because the default <classname>SimpleMessageConverter</classname> used by the inbound adapter doesn't
+      recognize this content type and the adapter emits a message with a <code>byte[]</code> payload instead of
+      <code>String</code>, which was the case with earlier versions.
+     </para>
+     <para>
+      If you are using this pattern, there are a number of ways to configure the environment so that JSON
+      conversion will be performed correctly.
+     </para>
+     <para>
+      One solution is to set the content type to a text type, so the inbound converter will convert the JSON to
+      String. This solution requires a change to just the outbound application.
+     </para>
+     <para>
+         <programlisting><![CDATA[<object-to-json-transformer ... content-type="text/x-json"/>]]></programlisting>
+     </para>
+     <para>
+      The second solution is to eliminate the json transformers altogether and use an
+      <classname>org.springframework.amqp.support.converter.JsonMessageConverter</classname> on both the
+      outbound and inbound adapters. This configures the adapters to perform the JSON conversion and
+      the transformers are not necessary. The converter on the outbound adapter adds
+      type information to the message properties; the inbound converter uses this type information for the conversion.
+      The converter is provided to the adapters using the <emphasis>message-converter</emphasis> attribute.
+      This solution requires a change to both the inbound and outbound applications.
+     </para>
+     <para>
+      The third solution is to eliminate the <emphasis>json-to-object-transformer</emphasis> in just
+      the inbound application and use an
+      <classname>org.springframework.amqp.support.converter.JsonMessageConverter</classname> on the
+      inbound adapter. The converter
+      is provided to the adapter using the <emphasis>message-converter</emphasis> attribute.
+      However, because there will be no type information in the message properties,
+      this also requires adding the <emphasis>defaultType</emphasis> to the converter, using the
+      same type as currently configured on the <emphasis>json-to-object-transformer</emphasis>.
+      This solution requires a change to just the inbound application. The configuration below shows
+      how to configure the message converter; it requires <code>spring-amqp</code> 1.1.3 or
+      above.
+     </para>
+      <programlisting language="xml"><![CDATA[<bean id="jsonConverterWithPOType" class="org.springframework.amqp.support.converter.JsonMessageConverter">
+    <property name="classMapper">
+        <bean class="org.springframework.amqp.support.converter.DefaultClassMapper">
+            <property name="defaultType"
+                value="foo.PurchaseOrder" />
+        </bean>
+    </property>
+</bean>
+
+<int-amqp:inbound-channel-adapter ... message-converter="jsonConverterWithPOType" ... />]]></programlisting>
+    </important>
   </section>
 
   <section id="transformer-annotation">
