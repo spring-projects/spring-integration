@@ -29,6 +29,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class RedisAvailableTests {

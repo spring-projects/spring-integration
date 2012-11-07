@@ -27,12 +27,12 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import org.springframework.data.redis.support.collections.DefaultRedisSet;
@@ -189,9 +189,12 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 	@RedisAvailable
 	public void testMapToMapNoKey(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisTemplate<String, Map<String, Map<String, String>>> redisTemplate = new RedisTemplate<String, Map<String, Map<String, String>>>();
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys",
-						this.initTemplate(jcf, new RedisTemplate<String, Map<String, Map<String, String>>>()));
+						this.initTemplate(jcf, redisTemplate));
 
 		assertEquals(0, redisMap.size());
 
@@ -211,9 +214,12 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 	@RedisAvailable
 	public void testMapToMapAsSingleEntryWithKeyAsHeader(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisTemplate<String, Map<String, Map<String, String>>> redisTemplate = new RedisTemplate<String, Map<String, Map<String, String>>>();
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys",
-						this.initTemplate(jcf, new RedisTemplate<String, Map<String, Map<String, String>>>()));
+						this.initTemplate(jcf, redisTemplate));
 
 		assertEquals(0, redisMap.size());
 
@@ -259,8 +265,11 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 	@RedisAvailable
 	public void testSetWithKeyAsHeaderNotParsed(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		RedisSet<String> redisList =
-				new DefaultRedisSet<String>("pepboys", this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisSet<String>("pepboys", this.initTemplate(jcf, redisTemplate));
 		assertEquals(0, redisList.size());
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
