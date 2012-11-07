@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.context;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -41,8 +40,6 @@ public abstract class IntegrationContextUtils {
 	public static final String METADATA_STORE_BEAN_NAME = "metadataStore";
 
 	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
-
-	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME = "org.springframework.integration.context.defaultPollerMetadata";
 
 
 	/**
@@ -78,14 +75,6 @@ public abstract class IntegrationContextUtils {
 		TaskScheduler taskScheduler = getTaskScheduler(beanFactory);
 		Assert.state(taskScheduler != null, "No such bean '" + TASK_SCHEDULER_BEAN_NAME + "'");
 		return taskScheduler;
-	}
-
-	/**
-	 * Return the default {@link PollerMetadata} bean if available.
-	 * @param beanFactory BeanFactory for lookup, must not be null.
-	 */
-	public static PollerMetadata getDefaultPollerMetadata(BeanFactory beanFactory) {
-		return getBeanOfType(beanFactory, DEFAULT_POLLER_METADATA_BEAN_NAME, PollerMetadata.class);
 	}
 
 	/**
