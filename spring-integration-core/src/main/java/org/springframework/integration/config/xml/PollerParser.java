@@ -28,7 +28,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -54,15 +53,15 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
 		String id = super.resolveId(element, definition, parserContext);
 		if (element.getAttribute("default").equals("true")) {
-			if (parserContext.getRegistry().isBeanNameInUse(IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME)) {
+			if (parserContext.getRegistry().isBeanNameInUse(PollerMetadata.DEFAULT_POLLER_METADATA_BEAN_NAME)) {
 				parserContext.getReaderContext().error(
 						"Only one default <poller/> element is allowed per context.", element);
 			}
 			if (StringUtils.hasText(id)) {
-				parserContext.getRegistry().registerAlias(id, IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME);
+				parserContext.getRegistry().registerAlias(id, PollerMetadata.DEFAULT_POLLER_METADATA_BEAN_NAME);
 			}
 			else {
-				id = IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME;
+				id = PollerMetadata.DEFAULT_POLLER_METADATA_BEAN_NAME;
 			}
 		}
 		else if (!StringUtils.hasText(id)) {
