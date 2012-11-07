@@ -26,9 +26,9 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.util.Assert;
 
 /**

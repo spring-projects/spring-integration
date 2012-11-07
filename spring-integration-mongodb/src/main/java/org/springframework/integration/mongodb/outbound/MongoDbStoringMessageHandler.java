@@ -24,8 +24,8 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.util.Assert;
 /**
  * Implementation of {@link MessageHandler} which writes Message payload into a MongoDb collection

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -33,7 +35,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
@@ -216,7 +217,7 @@ public class ConsumerEndpointFactoryBean
 			else if (channel instanceof PollableChannel) {
 				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) channel, this.handler);
 				if (this.pollerMetadata == null) {
-					this.pollerMetadata = IntegrationContextUtils.getDefaultPollerMetadata(this.beanFactory);
+					this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
 					Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '" + this.beanName
 							+ "', and no default poller is available within the context.");
 				}

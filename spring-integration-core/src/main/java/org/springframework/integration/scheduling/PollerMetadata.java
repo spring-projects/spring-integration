@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
@@ -34,6 +35,9 @@ import org.springframework.util.ErrorHandler;
 public class PollerMetadata {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = Integer.MIN_VALUE;
+
+	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME =
+			"org.springframework.integration.context.defaultPollerMetadata";;
 
 	private volatile Trigger trigger;
 
@@ -50,6 +54,7 @@ public class PollerMetadata {
 	private volatile long sendTimeout;
 
 	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
+
 
 	public void setTransactionSynchronizationFactory(
 			TransactionSynchronizationFactory transactionSynchronizationFactory) {
@@ -124,6 +129,19 @@ public class PollerMetadata {
 
 	public void setSendTimeout(long sendTimeout) {
 		this.sendTimeout = sendTimeout;
+	}
+
+
+	/**
+	 * Return the default {@link PollerMetadata} bean if available.
+	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 */
+	public static PollerMetadata getDefaultPollerMetadata(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "BeanFactory must not be null");
+		if (!beanFactory.containsBean(DEFAULT_POLLER_METADATA_BEAN_NAME)) {
+			return null;
+		}
+		return beanFactory.getBean(DEFAULT_POLLER_METADATA_BEAN_NAME, PollerMetadata.class);
 	}
 
 }
