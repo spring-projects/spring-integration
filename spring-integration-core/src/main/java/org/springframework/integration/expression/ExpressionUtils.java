@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.util;
+
+package org.springframework.integration.expression;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -32,9 +33,8 @@ import org.springframework.integration.context.IntegrationContextUtils;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @since 2.2
- *
  */
-public class ExpressionUtils {
+public abstract class ExpressionUtils {
 
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its

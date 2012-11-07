@@ -20,8 +20,8 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.util.ExpressionUtils;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.util.Assert;
 /**

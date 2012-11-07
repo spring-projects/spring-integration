@@ -25,7 +25,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -127,7 +126,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setSource(this.source);
 			spca.setOutputChannel(this.outputChannel);
 			if (this.pollerMetadata == null) {
-				this.pollerMetadata = IntegrationContextUtils.getDefaultPollerMetadata(this.beanFactory);
+				this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
 				Assert.notNull(this.pollerMetadata, "No poller has been defined for channel-adapter '"
 						+ this.beanName + "', and no default poller is available within the context.");
 			}
