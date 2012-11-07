@@ -35,6 +35,7 @@
 
 	<int-redis:store-outbound-channel-adapter id="mapToMapB"
 											  collection-type="MAP"
+											  redis-template="redisTemplate"
 											  extract-payload-elements="false"/>
 
 	<int-redis:store-outbound-channel-adapter id="set"
@@ -42,6 +43,7 @@
 
 	<int-redis:store-outbound-channel-adapter id="setNotParsed"
 											  collection-type="SET"
+											  redis-template="redisTemplate"
 											  extract-payload-elements="false"/>
 
 	<int-redis:store-outbound-channel-adapter id="pojoIntoSet"
@@ -53,6 +55,10 @@
 
 	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 		<property name="port" value="7379"/>
+	</bean>
+
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="redisConnectionFactory"/>
 	</bean>
 
 </beans>
