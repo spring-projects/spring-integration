@@ -29,6 +29,7 @@ import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -94,8 +95,9 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	private volatile RedisConnectionFactory connectionFactory;
 
 	/**
-	 * Will construct this instance using fully created and initialized instance of
-	 * provided {@link RedisTemplate}
+	 * Constructs an instance using the
+	 * provided {@link RedisTemplate}. The RedisTemplate must
+	 * be fully initialized.
 	 *
 	 * The default expression 'headers.{@link RedisHeaders#KEY}'
 	 * will be used.
@@ -106,7 +108,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	/**
-	 * Will construct this instance using
+	 * Constructs an instance using the
 	 * provided {@link RedisTemplate} and {@link #keyExpression}. The RedisTemplate must
 	 * be fully initialized.
 	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
@@ -124,12 +126,15 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	/**
-	 * Will construct this instance using the provided {@link RedisConnectionFactory}.
-	 * It will create an instance of {@link RedisTemplate} with default serializers unless those
-	 * are overridden via this instance's corresponding setters.
+	 * Constructs an instance using the provided {@link RedisConnectionFactory}.
+	 * It will use either a {@link StringRedisTemplate} if {@link #extractPayloadElements} is
+	 * true (default) or a {@link RedisTemplate} with {@link StringRedisSerializer}s for
+	 * keys and hash keys and {@link JdkSerializationRedisSerializer}s for values and
+	 * hash values, when it is false.
 	 *
 	 * The default expression 'headers.{@link RedisHeaders#KEY}'
 	 * will be used.
+	 * @see #setExtractPayloadElements(boolean)
 	 * @param connectionFactory
 	 */
 	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory) {
@@ -137,13 +142,16 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	/**
-	 * Will construct this instance using the provided {@link RedisConnectionFactory} and {@link #keyExpression}
-	 * It will create an instance of {@link RedisTemplate} with default serializers unless those
-	 * are overridden via this instance's corresponding setters.
+	 * Constructs an instance using the provided {@link RedisConnectionFactory} and {@link #keyExpression}
+	 * It will use either a {@link StringRedisTemplate} if {@link #extractPayloadElements} is
+	 * true (default) or a {@link RedisTemplate} with {@link StringRedisSerializer}s for
+	 * keys and hash keys and {@link JdkSerializationRedisSerializer}s for values and
+	 * hash values, when it is false.
 	 *
 	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
 	 * will be used.
 	 *
+	 * @see #setExtractPayloadElements(boolean)
 	 * @param connectionFactory
 	 * @param keyExpression
 	 */
@@ -171,8 +179,6 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 * If the payload is not an instance of "multivalue" (i.e., Collection or Map)
 	 * the value of this attribute is meaningless as the payload will always be
 	 * stored as a single entry.
-	 *
-	 * @see #setExtractPayloadElements(boolean)
 	 *
 	 * @param extractPayloadElements
 	 */

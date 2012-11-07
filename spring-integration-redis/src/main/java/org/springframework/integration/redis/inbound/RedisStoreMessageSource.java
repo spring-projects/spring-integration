@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * {@link CollectionType}
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  */
 public class RedisStoreMessageSource extends IntegrationObjectSupport
