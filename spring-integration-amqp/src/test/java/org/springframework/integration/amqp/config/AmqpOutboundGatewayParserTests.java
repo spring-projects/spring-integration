@@ -217,9 +217,9 @@ public class AmqpOutboundGatewayParserTests {
 	@Test //INT-1029
 	public void amqpOutboundGatewayWithinChain() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-context.xml", this.getClass());
-		Object eventDrivernConsumer = context.getBean("chainWithRabbitOutboundGateway");
+		Object eventDrivenConsumer = context.getBean("chainWithRabbitOutboundGateway");
 
-		List chainHandlers = TestUtils.getPropertyValue(eventDrivernConsumer, "handler.handlers", List.class);
+		List<?> chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers", List.class);
 
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
 
@@ -228,8 +228,8 @@ public class AmqpOutboundGatewayParserTests {
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
 
-		Mockito.doAnswer(new Answer() {
-			public Object answer(InvocationOnMock invocation) {
+		Mockito.doAnswer(new Answer<org.springframework.amqp.core.Message>() {
+			public org.springframework.amqp.core.Message answer(InvocationOnMock invocation) {
 				Object[] args = invocation.getArguments();
 				org.springframework.amqp.core.Message amqpRequestMessage = (org.springframework.amqp.core.Message) args[2];
 				MessageProperties properties = amqpRequestMessage.getMessageProperties();
