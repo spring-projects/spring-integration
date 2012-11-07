@@ -37,6 +37,9 @@
 											  collection-type="MAP"
 											  extract-payload-elements="false"/>
 
+	<int-redis:store-outbound-channel-adapter id="simpleMap"
+											  collection-type="MAP"/>
+
 	<int-redis:store-outbound-channel-adapter id="set"
 											  collection-type="SET"/>
 

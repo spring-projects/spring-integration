@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
@@ -20,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -49,7 +49,6 @@ public class RedisCollectionInboundChannelAdapterIntegrationTests extends RedisA
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
 
-
 		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(13, message.getPayload().size());
@@ -71,7 +70,6 @@ public class RedisCollectionInboundChannelAdapterIntegrationTests extends RedisA
 		SourcePollingChannelAdapter spca = context.getBean("listAdapterWithSynchronization", SourcePollingChannelAdapter.class);
 		spca.start();
 		QueueChannel redisChannel = context.getBean("redisChannel", QueueChannel.class);
-
 
 		Message<RedisList<Object>> message = (Message<RedisList<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
@@ -216,7 +214,6 @@ public class RedisCollectionInboundChannelAdapterIntegrationTests extends RedisA
 		message = (Message<RedisZSet<Object>>) otherRedisChannel.receive(1000);
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
-		//message.getPayload().remo
 		zsetAdapterWithSingleScoreAndSynchronization.stop();
 		Thread.sleep(1000);
 
