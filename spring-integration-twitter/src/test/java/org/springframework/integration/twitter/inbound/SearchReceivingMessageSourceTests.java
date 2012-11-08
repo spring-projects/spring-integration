@@ -79,17 +79,23 @@ public class SearchReceivingMessageSourceTests {
 	public void testSearchReceivingMessageSourceInit() {
 
 		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(new TwitterTemplate());
+		messageSource.setComponentName("twitterSearchMessageSource");
 
 		final Object metadataStore = TestUtils.getPropertyValue(messageSource, "metadataStore");
+		final Object metadataKey = TestUtils.getPropertyValue(messageSource, "metadataKey");
 
 		assertNull(metadataStore);
+		assertNull(metadataKey);
 
 		messageSource.afterPropertiesSet();
 
 		final Object metadataStoreInitialized = TestUtils.getPropertyValue(messageSource, "metadataStore");
+		final Object metadataKeyInitialized = TestUtils.getPropertyValue(messageSource, "metadataKey");
 
 		assertNotNull(metadataStoreInitialized);
 		assertTrue(metadataStoreInitialized instanceof SimpleMetadataStore);
+		assertNotNull(metadataKeyInitialized);
+		assertEquals("twitter:search-inbound-channel-adapter.twitterSearchMessageSource", metadataKeyInitialized);
 
 		final Twitter twitter = TestUtils.getPropertyValue(messageSource, "twitter", Twitter.class);
 
