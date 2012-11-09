@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.redis.outbound;
 
 import java.util.Collection;
@@ -67,6 +68,7 @@ import org.springframework.util.NumberUtils;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Mark Fisher
  * @since 2.2
  */
 public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHandler {
@@ -86,13 +88,17 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private volatile boolean mapKeyExpressionExplicitlySet;
 
-	private volatile RedisTemplate<String, ?> redisTemplate;
+	private volatile RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
+
+	private volatile boolean redisTemplateExplicitlySet;
 
 	private volatile CollectionType collectionType = CollectionType.LIST;
 
 	private volatile boolean extractPayloadElements = true;
 
 	private volatile RedisConnectionFactory connectionFactory;
+
+	private volatile boolean initialized;
 
 	/**
 	 * Constructs an instance using the
@@ -120,6 +126,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 		this.redisTemplate = redisTemplate;
+		this.redisTemplateExplicitlySet = true;
 		if (keyExpression != null) {
 			this.keyExpression = keyExpression;
 		}
@@ -214,21 +221,18 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||
 				(this.collectionType == CollectionType.MAP || this.collectionType == CollectionType.PROPERTIES),
 				"'mapKeyExpression' can only be set for CollectionType.MAP or CollectionType.PROPERTIES");
-		if (this.redisTemplate == null) {
-			RedisTemplate<String, ?> template;
-			if (this.extractPayloadElements) {
-				template = new StringRedisTemplate();
-			}
-			else {
-				template = new RedisTemplate<String, Object>();
+		if (!this.redisTemplateExplicitlySet) {
+			if (!this.extractPayloadElements) {
+				RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
 				StringRedisSerializer serializer = new StringRedisSerializer();
 				template.setKeySerializer(serializer);
 				template.setHashKeySerializer(serializer);
+				this.redisTemplate = template;
 			}
-			template.setConnectionFactory(this.connectionFactory);
-			template.afterPropertiesSet();
-			this.redisTemplate = template;
+			this.redisTemplate.setConnectionFactory(this.connectionFactory);
+			this.redisTemplate.afterPropertiesSet();
 		}
+		this.initialized = true;
 	}
 
 	/**
@@ -266,6 +270,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 		RedisStore store = this.createStoreView(key);
 
+		Assert.state(this.initialized, "handler not initialized");
 		try {
 			if (collectionType == CollectionType.ZSET) {
 				this.handleZset((RedisZSet<Object>) store, message);

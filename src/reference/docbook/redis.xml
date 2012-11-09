@@ -397,9 +397,11 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
           <classname>StringRedisSerializer</classname>s for keys, values, hash keys and hash values. However, if
           <code>extract-payload-elements</code> is set to false, a <classname>RedisTemplate</classname> using
           <classname>StringRedisSerializer</classname>s for keys and hash keys, and
-          <classname>JdkSerializationRedisSerializer</classname>s for values and hash values. It is important
+          <classname>JdkSerializationRedisSerializer</classname>s for values and hash values will be used. With the JDK serializer, it is important
           to understand that java serialization is used for all values, regardless of whether the value
-          is actually a collection or not.
+          is actually a collection or not. If you need more control over
+the serialization of values, you may want to consider providing your own
+<classname>RedisTemplate</classname> rather than relying upon these defaults.
         </important>
     <para>
     The example above is relatively simple and static since it has a literal values for the <code>key</code> and other attributes.
