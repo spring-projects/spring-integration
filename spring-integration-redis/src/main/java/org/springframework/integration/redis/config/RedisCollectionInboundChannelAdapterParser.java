@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * Parser for Redis store inbound adapters
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  */
 public class RedisCollectionInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -63,8 +64,6 @@ public class RedisCollectionInboundChannelAdapterParser extends AbstractPollingI
 		builder.addConstructorArgValue(expressionDef);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
-
-		RedisParserUtils.setRedisSerializers(StringUtils.hasText(redisTemplate), element, parserContext, builder);
 
 		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());

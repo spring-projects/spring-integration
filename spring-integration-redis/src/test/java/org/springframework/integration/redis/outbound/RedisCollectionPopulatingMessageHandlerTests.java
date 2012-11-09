@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.outbound;
 
 import static org.junit.Assert.assertEquals;
@@ -30,8 +31,8 @@ import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.DefaultRedisZSet;
@@ -50,19 +51,17 @@ import org.springframework.integration.support.MessageBuilder;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
- *
+ * @author Mark Fisher
  */
 public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailableTests{
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadParsedAndProvidedKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<String> redisList =
-				new DefaultRedisList<String>(key,
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisList.size());
 
@@ -83,15 +82,13 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals("Jack", redisList.get(2));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadParsedAndProvidedKeyAsHeader() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<String> redisList =
-				new DefaultRedisList<String>(key,
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisList.size());
 
@@ -113,15 +110,13 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals("Jack", redisList.get(2));
 	}
 
-	@SuppressWarnings("unchecked")
 	@RedisAvailable
 	@Test(expected=MessageHandlingException.class)
 	public void testListWithListPayloadParsedAndNoKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<String> redisList =
-				new DefaultRedisList<String>(key,
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisList<String>(key, this.initTemplate(jcf, new RedisTemplate<String, String>()));
 
 		assertEquals(0, redisList.size());
 
@@ -137,20 +132,19 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		handler.handleMessage(message);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadAsSingleEntry() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<List<String>> redisList =
-				new DefaultRedisList<List<String>>(key,
-						(RedisOperations<String, List<String>>) this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
+				new DefaultRedisList<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
 
 		assertEquals(0, redisList.size());
 
+		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
 		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
+				new RedisCollectionPopulatingMessageHandler(template, new LiteralExpression(key));
 
 		handler.setExtractPayloadElements(false);
 		handler.afterPropertiesSet();
@@ -169,15 +163,13 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals("Jack", resultList.get(2));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyDefault() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key,
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisZset.size());
 
@@ -209,15 +201,13 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrement() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key,
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisZset.size());
 
@@ -252,15 +242,13 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() {// see INT-2775
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key,
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisZset.size());
 
@@ -295,20 +283,19 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadAsSingleEntryAndHeaderKeyHeaderScore() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<List<String>> redisZset =
-				new DefaultRedisZSet<List<String>>(key,
-						(RedisOperations<String, List<String>>) this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
+				new DefaultRedisZSet<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
 
 		assertEquals(0, redisZset.size());
 
+		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
 		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf, null);
+				new RedisCollectionPopulatingMessageHandler(template, null);
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
@@ -329,15 +316,13 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadParsedHeaderKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "presidents";
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>(key,
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisZset.size());
 
@@ -373,20 +358,19 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals(6, entries.size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadPojoParsedHeaderKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "presidents";
 		RedisZSet<President> redisZset =
-				new DefaultRedisZSet<President>(key,
-						(RedisOperations<String, President>) this.initTemplate(jcf, new RedisTemplate<String, President>()));
+				new DefaultRedisZSet<President>(key, this.initTemplate(jcf, new RedisTemplate<String, President>()));
 
 		assertEquals(0, redisZset.size());
 
+		RedisTemplate<String, President> template = this.initTemplate(jcf, new RedisTemplate<String, President>());
 		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
+				new RedisCollectionPopulatingMessageHandler(template, new LiteralExpression(key));
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.afterPropertiesSet();
@@ -417,20 +401,19 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals(6, entries.size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadPojoAsSingleEntryHeaderKey() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "presidents";
 		RedisZSet<Map<President, Double>> redisZset =
-				new DefaultRedisZSet<Map<President, Double>>(key,
-						(RedisOperations<String, Map<President, Double>>) this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>()));
+				new DefaultRedisZSet<Map<President, Double>>(key, this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>()));
 
 		assertEquals(0, redisZset.size());
 
+		RedisTemplate<String, Map<President, Double>> template = this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>());
 		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf, new LiteralExpression(key));
+				new RedisCollectionPopulatingMessageHandler(template, new LiteralExpression(key));
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
@@ -517,7 +500,7 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		}
 	}
 
-	private RedisTemplate<?,?> initTemplate(RedisConnectionFactory rcf, RedisTemplate<?, ?> redisTemplate) {
+	private <K,V> RedisTemplate<K,V> initTemplate(RedisConnectionFactory rcf, RedisTemplate<K,V> redisTemplate) {
 		redisTemplate.setConnectionFactory(rcf);
 		redisTemplate.afterPropertiesSet();
 		return redisTemplate;

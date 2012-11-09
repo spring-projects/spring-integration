@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.redis.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -26,10 +24,12 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.outbound.RedisCollectionPopulatingMessageHandler;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 /**
  * Parser for redis:store-outbound-channel-adapter element
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  */
 public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -61,8 +61,6 @@ public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboun
 						parserContext, element, atLeastOneRequired);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload-elements");
-
-		RedisParserUtils.setRedisSerializers(StringUtils.hasText(redisTemplateRef), element, parserContext, builder);
 
 		if (expressionDef != null){
 			builder.addConstructorArgValue(expressionDef);
