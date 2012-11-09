@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author David Turanski
+ * @author Gary Russell
  * @since 2.0
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
@@ -81,7 +82,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.autoCreateDirectory = autoCreateDirectory;
 	}
-	
+
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
 		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
@@ -91,12 +92,12 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
-	
+
 	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
 		Assert.notNull(temporaryRemoteDirectoryExpression, "temporaryRemoteDirectoryExpression must not be null");
 		this.temporaryDirectoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(temporaryRemoteDirectoryExpression, String.class);
 	}
-	
+
 	protected String getTemporaryFileSuffix() {
 		return this.temporaryFileSuffix;
 	}
@@ -123,13 +124,14 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	public void setCharset(String charset) {
 		this.charset = charset;
 	}
-	
+
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
 		this.hasExplicitlySetSuffix = true;
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
 
+	@Override
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
 		if (this.autoCreateDirectory){
@@ -149,7 +151,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 				String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
 				String temporaryRemoteDirectory = remoteDirectory;
 				if (this.temporaryDirectoryExpressionProcessor != null){
-					temporaryRemoteDirectory = this.directoryExpressionProcessor.processMessage(message);
+					temporaryRemoteDirectory = this.temporaryDirectoryExpressionProcessor.processMessage(message);
 				}
 				String fileName = this.fileNameGenerator.generateFileName(message);
 				this.sendFileToRemoteDirectory(file, temporaryRemoteDirectory, remoteDirectory, fileName, session);
@@ -192,7 +194,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			if (payload instanceof File) {
 				sendableFile = (File) payload;
 			}
-			else if (payload instanceof byte[] || payload instanceof String) { 
+			else if (payload instanceof byte[] || payload instanceof String) {
 				String tempFileName = this.fileNameGenerator.generateFileName(message) + ".tmp";
 				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
 				byte[] bytes = null;
@@ -215,7 +217,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		}
 	}
 
-	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<F> session) 
+	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<F> session)
 			throws FileNotFoundException, IOException {
 
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
@@ -226,17 +228,17 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		// write remote file first with temporary file extension if enabled
 
 		String tempFilePath = tempRemoteFilePath + (useTemporaryFileName ? this.temporaryFileSuffix : "");
-		
+
 		if (this.autoCreateDirectory) {
 			try {
 				this.makeDirectories(remoteDirectory, session);
-			} 
+			}
 			catch (IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
 				session.mkdir(remoteDirectory);
 			}
 		}
-		
+
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
@@ -244,7 +246,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			if (useTemporaryFileName){
 			   session.rename(tempFilePath, remoteFilePath);
 			}
-		} 
+		}
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
 		}
@@ -252,22 +254,22 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			fileInputStream.close();
 		}
 	}
-	
+
 	private String normalizeDirectoryPath(String directoryPath){
 		if (!StringUtils.hasText(directoryPath)) {
 			directoryPath = "";
 		}
 		else if (!directoryPath.endsWith(this.remoteFileSeparator)) {
-			directoryPath += this.remoteFileSeparator; 
+			directoryPath += this.remoteFileSeparator;
 		}
 		return directoryPath;
 	}
-	
+
 	private void makeDirectories(String path, Session<F> session) throws IOException {
-		if (!session.exists(path)){		
+		if (!session.exists(path)){
 
 			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
-			
+
 			if (nextSeparatorIndex > -1){
 				List<String> pathsToCreate = new LinkedList<String>();
 				while (nextSeparatorIndex > -1){
@@ -276,12 +278,12 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 						// no more paths to create
 						break;
 					}
-					else {				
+					else {
 						pathsToCreate.add(0, pathSegment);
 						nextSeparatorIndex = pathSegment.lastIndexOf(remoteFileSeparator);
 					}
 				}
-				
+
 				for (String pathToCreate : pathsToCreate) {
 					if (logger.isDebugEnabled()){
 						logger.debug("Creating '" + pathToCreate + "'");
