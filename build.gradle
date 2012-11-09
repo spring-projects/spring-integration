@@ -546,8 +546,8 @@ project('spring-integration-jpa') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.jpa'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.1.0, 2.1.1)"',
-			'org.springframework.*;version="[3.0.5, 4.0.0)"',
+			'org.springframework.integration.*;version="[2.2.0, 2.2.1)"',
+			'org.springframework.*;version="[3.0.7, 4.0.0)"',
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.aopalliance.*;version="[1.0.0, 2.0.0)"',
 			'javax.persistence.*;version="[1.0.0, 2.0.0)"',
@@ -888,9 +888,9 @@ project('spring-integration-ws') {
 			'org.springframework.scheduling.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.util.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.web.*;version="[3.0.7, 4.0.0)"',
-			'org.springframework.oxm;version="[1.5.9, 3.1.0)"',
-			'org.springframework.ws.*;version="[2.0.0, 2.1.0)"',
-			'org.springframework.xml.*;version="[1.5.9, 2.1.0)"',
+			'org.springframework.oxm;version="[3.0.7, 4.0.0)"',
+			'org.springframework.ws.*;version="[2.0.0, 3.0.0)"',
+			'org.springframework.xml.*;version="[2.0.0, 3.0.0)"',
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.w3c.dom.*;version="0"',
 			'javax.xml.*;version="0"'
@@ -924,8 +924,8 @@ project('spring-integration-xml') {
 			'org.springframework.context.expression.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.expression.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.util.*;version="[3.0.7, 4.0.0)"',
-			'org.springframework.oxm;version="[1.5.9, 3.1.0)";resolution:=optional',
-			'org.springframework.xml.*;version="[1.5.9, 2.1.0)"',
+			'org.springframework.oxm;version="[3.0.7, 4.0.0)";resolution:=optional',
+			'org.springframework.xml.*;version="[2.0.0, 3.0.0)"',
 			'org.apache.commons.logging.*;version="[1.0, 2.0)"',
 			'org.w3c.dom.*;version="0"',
 			'org.xml.sax.*;version="0"',
