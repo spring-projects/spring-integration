@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
@@ -26,12 +27,12 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
 import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import org.springframework.data.redis.support.collections.DefaultRedisSet;
@@ -55,19 +56,18 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.2
  */
 public class RedisCollectionOutboundChannelAdapterIntegrationTests extends RedisAvailableTests {
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testListWithKeyAsHeader(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 
 		RedisList<String> redisList =
-				new DefaultRedisList<String>("pepboys",
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisList<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
 		assertEquals(0, redisList.size());
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
@@ -82,14 +82,12 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals(3, redisList.size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testListWithProvidedKey(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisList<String> redisList =
-				new DefaultRedisList<String>("pepboys",
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisList<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
 		assertEquals(0, redisList.size());
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
@@ -104,14 +102,12 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals(3, redisList.size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testMapToZsetWithProvidedKey(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisZSet<String> redisZset =
-				new DefaultRedisZSet<String>("presidents",
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
+				new DefaultRedisZSet<String>("presidents", this.initTemplate(jcf, new StringRedisTemplate()));
 		assertEquals(0, redisZset.size());
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
@@ -136,14 +132,13 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals("'presidents'", TestUtils.getPropertyValue(handler, "keyExpression", SpelExpression.class).getExpressionString());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testMapToMapWithProvidedKey(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMap<String, String> redisMap =
 				new DefaultRedisMap<String, String>("pepboys",
-						(RedisOperations<String, ?>) this.initTemplate(jcf, new RedisTemplate<String, Map<String, String>>()));
+						this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisMap.size());
 
@@ -153,7 +148,6 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		pepboys.put("1", "Manny");
 		pepboys.put("2", "Moe");
 		pepboys.put("3", "Jack");
-
 
 		Message<Map<String, String>> message = MessageBuilder.withPayload(pepboys).build();
 		redisChannel.send(message);
@@ -167,14 +161,13 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals("'foo'", TestUtils.getPropertyValue(handler, "mapKeyExpression", SpelExpression.class).getExpressionString());
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test(expected=MessageHandlingException.class)// map key is not proivided
+	@Test(expected=MessageHandlingException.class) // map key is not provided
 	@RedisAvailable
 	public void testMapToMapAsSingleEntryWithKeyAsHeaderFail(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys",
-						(RedisOperations<String, ?>) this.initTemplate(jcf, new RedisTemplate<String, Map<String, Map<String, String>>>()));
+						this.initTemplate(jcf, new RedisTemplate<String, Map<String, Map<String, String>>>()));
 
 		assertEquals(0, redisMap.size());
 
@@ -184,21 +177,22 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		pepboys.put("1", "Manny");
 		pepboys.put("2", "Moe");
 		pepboys.put("3", "Jack");
-
 
 		Message<Map<String, String>> message = MessageBuilder.withPayload(pepboys).
 				setHeader(RedisHeaders.KEY, "pepboys").build();
 		redisChannel.send(message);
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test(expected=MessageHandlingException.class)//key is not provided
+	@Test(expected=MessageHandlingException.class) // key is not provided
 	@RedisAvailable
 	public void testMapToMapNoKey(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisTemplate<String, Map<String, Map<String, String>>> redisTemplate = new RedisTemplate<String, Map<String, Map<String, String>>>();
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys",
-						(RedisOperations<String, ?>) this.initTemplate(jcf, new RedisTemplate<String, Map<String, Map<String, String>>>()));
+						this.initTemplate(jcf, redisTemplate));
 
 		assertEquals(0, redisMap.size());
 
@@ -208,20 +202,21 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		pepboys.put("1", "Manny");
 		pepboys.put("2", "Moe");
 		pepboys.put("3", "Jack");
-
 
 		Message<Map<String, String>> message = MessageBuilder.withPayload(pepboys).build();
 		redisChannel.send(message);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testMapToMapAsSingleEntryWithKeyAsHeader(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisTemplate<String, Map<String, Map<String, String>>> redisTemplate = new RedisTemplate<String, Map<String, Map<String, String>>>();
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys",
-						(RedisOperations<String, ?>) this.initTemplate(jcf, new RedisTemplate<String, Map<String, Map<String, String>>>()));
+						this.initTemplate(jcf, redisTemplate));
 
 		assertEquals(0, redisMap.size());
 
@@ -231,7 +226,6 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		pepboys.put("1", "Manny");
 		pepboys.put("2", "Moe");
 		pepboys.put("3", "Jack");
-
 
 		Message<Map<String, String>> message = MessageBuilder.withPayload(pepboys).
 				setHeader(RedisHeaders.KEY, "pepboys").setHeader(RedisHeaders.MAP_KEY, "foo").build();
@@ -243,15 +237,13 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals("Jack", pepboyz.get("3"));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeader(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisSet<String> redisList =
-				new DefaultRedisSet<String>("pepboys",
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
-		assertEquals(0, redisList.size());
+		RedisSet<String> redisSet =
+				new DefaultRedisSet<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
+		assertEquals(0, redisSet.size());
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
 		MessageChannel redisChannel = context.getBean("set", MessageChannel.class);
@@ -262,18 +254,19 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		Message<Set<String>> message = MessageBuilder.withPayload(pepboys).setHeader("redis_key", "pepboys").build();
 		redisChannel.send(message);
 
-		assertEquals(3, redisList.size());
+		assertEquals(3, redisSet.size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeaderNotParsed(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisSet<String> redisList =
-				new DefaultRedisSet<String>("pepboys",
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
-		assertEquals(0, redisList.size());
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+		RedisSet<String> redisSet =
+				new DefaultRedisSet<String>("pepboys", this.initTemplate(jcf, redisTemplate));
+		assertEquals(0, redisSet.size());
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
 		MessageChannel redisChannel = context.getBean("setNotParsed", MessageChannel.class);
@@ -284,18 +277,16 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		Message<Set<String>> message = MessageBuilder.withPayload(pepboys).setHeader("redis_key", "pepboys").build();
 		redisChannel.send(message);
 
-		assertEquals(1, redisList.size());
+		assertEquals(1, redisSet.size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
 	public void testPojoIntoSet(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisSet<String> redisList =
-				new DefaultRedisSet<String>("pepboys",
-						(RedisOperations<String, String>) this.initTemplate(jcf, new RedisTemplate<String, String>()));
-		assertEquals(0, redisList.size());
+		RedisSet<String> redisSet =
+				new DefaultRedisSet<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
+		assertEquals(0, redisSet.size());
 
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
 		MessageChannel redisChannel = context.getBean("pojoIntoSet", MessageChannel.class);
@@ -303,17 +294,15 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		Message<String> message = MessageBuilder.withPayload(pepboy).setHeader("redis_key", "pepboys").build();
 		redisChannel.send(message);
 
-		assertEquals(1, redisList.size());
+		assertEquals(1, redisSet.size());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
-	public void testProperty(){
+	public void testProperties(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisProperties redisProperties =
-				new RedisProperties("pepboys",
-						(RedisOperations<String, ?>) this.initTemplate(jcf, new RedisTemplate<String, Properties>()));
+				new RedisProperties("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
 
 		assertEquals(0, redisProperties.size());
 
@@ -331,7 +320,7 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals("Jack", redisProperties.get("3"));
 	}
 
-	private RedisTemplate<?,?> initTemplate(RedisConnectionFactory rcf, RedisTemplate<?, ?> redisTemplate){
+	private <K,V> RedisTemplate<K,V> initTemplate(RedisConnectionFactory rcf, RedisTemplate<K,V> redisTemplate){
 		redisTemplate.setConnectionFactory(rcf);
 		redisTemplate.afterPropertiesSet();
 		return redisTemplate;

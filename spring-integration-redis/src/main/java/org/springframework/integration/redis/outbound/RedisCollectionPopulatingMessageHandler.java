@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.redis.outbound;
 
 import java.util.Collection;
@@ -22,14 +23,15 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.data.redis.support.collections.RedisList;
@@ -39,6 +41,7 @@ import org.springframework.data.redis.support.collections.RedisSet;
 import org.springframework.data.redis.support.collections.RedisStore;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
@@ -66,6 +69,7 @@ import org.springframework.util.NumberUtils;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Mark Fisher
  * @since 2.2
  */
 public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHandler {
@@ -85,111 +89,72 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private volatile boolean mapKeyExpressionExplicitlySet;
 
-	private final RedisTemplate<String, ?> redisTemplate;
+	private volatile RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
+
+	private volatile boolean redisTemplateExplicitlySet;
 
 	private volatile CollectionType collectionType = CollectionType.LIST;
 
 	private volatile boolean extractPayloadElements = true;
 
-	private volatile RedisSerializer<?> keySerializer;
+	private volatile RedisConnectionFactory connectionFactory;
 
-	private volatile RedisSerializer<?> valueSerializer;
+	private volatile boolean initialized;
 
-	private volatile RedisSerializer<?> hashKeySerializer;
-
-	private volatile RedisSerializer<?> hashValueSerializer;
-
-	private volatile boolean usingDefaultTemplate = true;
 
 	/**
-	 * Will construct this instance using fully created and initialized instance of
-	 * provided {@link RedisTemplate}
+	 * Constructs an instance using the provided {@link RedisTemplate}.
+	 * The RedisTemplate must be fully initialized.
 	 *
-	 * The default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
 	 * @param redisTemplate
 	 */
 	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
-		this(redisTemplate, null);
-	}
-
-	/**
-	 * Will construct this instance using
-	 * provided {@link RedisTemplate} and {@link #keyExpression}. The RedisTemplate must
-	 * be fully initialized.
-	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
-	 *
-	 * @param redisTemplate
-	 * @param keyExpression
-	 */
-	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 		this.redisTemplate = redisTemplate;
-		this.usingDefaultTemplate = false;
-		if (keyExpression != null) {
-			this.keyExpression = keyExpression;
-		}
+		this.redisTemplateExplicitlySet = true;
 	}
 
 	/**
-	 * Will construct this instance using the provided {@link RedisConnectionFactory}.
-	 * It will create an instance of {@link RedisTemplate} with default serializers unless those
-	 * are overridden via this instance's corresponding setters.
+	 * Constructs an instance using the provided {@link RedisConnectionFactory}.
+	 * It will use either a {@link StringRedisTemplate} if {@link #extractPayloadElements} is
+	 * true (default) or a {@link RedisTemplate} with {@link StringRedisSerializer}s for
+	 * keys and hash keys and {@link JdkSerializationRedisSerializer}s for values and
+	 * hash values, when it is false.
 	 *
-	 * The default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
+	 * @see #setExtractPayloadElements(boolean)
 	 * @param connectionFactory
 	 */
 	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, null);
+		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
+		this.connectionFactory = connectionFactory;
+	}
+
+
+	/**
+	 * Specifies the key for the Redis store. If an expression is needed, then call
+	 * {@link #setKeyExpression(Expression)} instead of this method (they are mutually exclusive).
+	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
+	 *
+	 * @see #setKeyExpression(Expression)
+	 * @param key
+	 */
+	public void setKey(String key) {
+		Assert.hasText(key, "key must not be empty");
+		this.setKeyExpression(new LiteralExpression(key));
 	}
 
 	/**
-	 * Will construct this instance using the provided {@link RedisConnectionFactory} and {@link #keyExpression}
-	 * It will create an instance of {@link RedisTemplate} with default serializers unless those
-	 * are overridden via this instance's corresponding setters.
+	 * Specifies a SpEL Expression to be used to determine the key for the Redis store.
+	 * If an expression is not needed, then a literal value may be passed to the
+	 * {@link #setKey(String)} method instead of this one (they are mutually exclusive).
+	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
 	 *
-	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
-	 *
-	 * @param connectionFactory
+	 * @see #setKey(String)
 	 * @param keyExpression
 	 */
-	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory, Expression keyExpression) {
-		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
-		redisTemplate.setConnectionFactory(connectionFactory);
-
-		this.redisTemplate = redisTemplate;
-		if (keyExpression != null) {
-			this.keyExpression = keyExpression;
-		}
-	}
-
-	public void setKeySerializer(RedisSerializer<?> keySerializer) {
-		Assert.state(this.usingDefaultTemplate, "'keySerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(keySerializer, "'keySerializer' must not be null");
-		this.keySerializer = keySerializer;
-	}
-
-	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
-		Assert.state(this.usingDefaultTemplate, "'valueSerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
-		this.valueSerializer = valueSerializer;
-	}
-
-	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
-		Assert.state(this.usingDefaultTemplate, "'hashKeySerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(hashKeySerializer, "'hashKeySerializer' must not be null");
-		this.hashKeySerializer = hashKeySerializer;
-	}
-
-	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
-		Assert.state(this.usingDefaultTemplate, "'hashValueSerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(hashValueSerializer, "'hashValueSerializer' must not be null");
-		this.hashValueSerializer = hashValueSerializer;
+	public void setKeyExpression(Expression keyExpression) {
+		Assert.notNull(keyExpression, "keyExpression must not be null");
+		this.keyExpression = keyExpression;
 	}
 
 	/**
@@ -208,8 +173,6 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 * If the payload is not an instance of "multivalue" (i.e., Collection or Map)
 	 * the value of this attribute is meaningless as the payload will always be
 	 * stored as a single entry.
-	 *
-	 * @see #setExtractPayloadElements(boolean)
 	 *
 	 * @param extractPayloadElements
 	 */
@@ -245,22 +208,18 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||
 				(this.collectionType == CollectionType.MAP || this.collectionType == CollectionType.PROPERTIES),
 				"'mapKeyExpression' can only be set for CollectionType.MAP or CollectionType.PROPERTIES");
-
-		if (this.usingDefaultTemplate){
-			if (this.keySerializer != null){
-				redisTemplate.setKeySerializer(this.keySerializer);
+		if (!this.redisTemplateExplicitlySet) {
+			if (!this.extractPayloadElements) {
+				RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+				StringRedisSerializer serializer = new StringRedisSerializer();
+				template.setKeySerializer(serializer);
+				template.setHashKeySerializer(serializer);
+				this.redisTemplate = template;
 			}
-			if (this.valueSerializer != null){
-				redisTemplate.setValueSerializer(this.valueSerializer);
-			}
-			if (this.hashKeySerializer != null){
-				redisTemplate.setHashKeySerializer(this.hashKeySerializer);
-			}
-			if (this.hashValueSerializer != null){
-				redisTemplate.setHashValueSerializer(this.hashValueSerializer);
-			}
+			this.redisTemplate.setConnectionFactory(this.connectionFactory);
 			this.redisTemplate.afterPropertiesSet();
 		}
+		this.initialized = true;
 	}
 
 	/**
@@ -292,12 +251,12 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String key = this.keyExpression.getValue(this.evaluationContext, message, String.class);
-
-		Assert.hasText(key, "Cannot determine a 'key' for a Redis store. The key can be provided via the " +
-				"'key' or 'key-expression' attributes.");
+		Assert.hasText(key, "Failed to determine a key for the Redis store using expression: "
+				+ this.keyExpression.getExpressionString());
 
 		RedisStore store = this.createStoreView(key);
 
+		Assert.state(this.initialized, "handler not initialized");
 		try {
 			if (collectionType == CollectionType.ZSET) {
 				this.handleZset((RedisZSet<Object>) store, message);

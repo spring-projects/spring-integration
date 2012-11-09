@@ -20,8 +20,7 @@ import java.util.Collection;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -43,6 +42,7 @@ import org.springframework.util.Assert;
  * {@link CollectionType}
  *
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  */
 public class RedisStoreMessageSource extends IntegrationObjectSupport
@@ -58,18 +58,8 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 
 	private final RedisTemplate<String, ?> redisTemplate;
 
-	private volatile RedisSerializer<?> keySerializer;
-
-	private volatile RedisSerializer<?> valueSerializer;
-
-	private volatile RedisSerializer<?> hashKeySerializer;
-
-	private volatile RedisSerializer<?> hashValueSerializer;
-
-	private volatile boolean usingDefaultTemplate = true;
-
 	/**
-	 * Creates this instance with provided {@link RedisTemplate} and SpEL expression
+	 * Creates an instance with the provided {@link RedisTemplate} and SpEL expression
 	 * which should resolve to a 'key' name of the collection to be used.
 	 * It assumes that {@link RedisTemplate} is fully initialized and ready to be used.
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
@@ -84,16 +74,14 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 
 		this.redisTemplate = redisTemplate;
-		this.usingDefaultTemplate = false;
 		this.keyExpression = keyExpression;
 	}
 
 	/**
-	 * Creates this instance with provided {@link RedisConnectionFactory} and SpEL expression
+	 * Creates an instance with the provided {@link RedisConnectionFactory} and SpEL expression
 	 * which should resolve to a 'key' name of the collection to be used.
-	 * It will create and initialize an instance of the {@link RedisTemplate} using
-	 * {@link StringRedisSerializer} as key serializer and {@link JdkSerializationRedisSerializer} for
-	 * value, hashKey and hashValue serializer.
+	 * It will create and initialize an instance of {@link StringRedisTemplate} that uses
+	 * {@link StringRedisSerializer} for all serialization.
 	 *
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
 	 *
@@ -106,35 +94,11 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(connectionFactory);
 
 		this.redisTemplate = redisTemplate;
 		this.keyExpression = keyExpression;
-	}
-
-	public void setKeySerializer(RedisSerializer<?> keySerializer) {
-		Assert.state(this.usingDefaultTemplate, "'keySerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(keySerializer, "'keySerializer' must not be null");
-		this.keySerializer = keySerializer;
-	}
-
-	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
-		Assert.state(this.usingDefaultTemplate, "'valueSerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
-		this.valueSerializer = valueSerializer;
-	}
-
-	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
-		Assert.state(this.usingDefaultTemplate, "'hashKeySerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(hashKeySerializer, "'hashKeySerializer' must not be null");
-		this.hashKeySerializer = hashKeySerializer;
-	}
-
-	public void setHashValueSerializer(RedisSerializer<?> hashValueSerializer) {
-		Assert.state(this.usingDefaultTemplate, "'hashValueSerializer' can not be set if a RedisTemplate was explicitly provided");
-		Assert.notNull(hashValueSerializer, "'hashValueSerializer' must not be null");
-		this.hashValueSerializer = hashValueSerializer;
 	}
 
 	public void setCollectionType(CollectionType collectionType) {
@@ -183,22 +147,6 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		}
 		else {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		}
-
-		if (this.usingDefaultTemplate){
-			if (this.keySerializer != null){
-				redisTemplate.setKeySerializer(this.keySerializer);
-			}
-			if (this.valueSerializer != null){
-				redisTemplate.setValueSerializer(this.valueSerializer);
-			}
-			if (this.hashKeySerializer != null){
-				redisTemplate.setHashKeySerializer(this.hashKeySerializer);
-			}
-			if (this.hashValueSerializer != null){
-				redisTemplate.setHashValueSerializer(this.hashValueSerializer);
-			}
-			this.redisTemplate.afterPropertiesSet();
 		}
 	}
 

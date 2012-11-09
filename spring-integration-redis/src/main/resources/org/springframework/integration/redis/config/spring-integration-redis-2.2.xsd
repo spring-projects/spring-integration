@@ -335,6 +335,11 @@
 							<xsd:documentation>
 							RedisTemplate to be used with this adapter
 							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.core.RedisTemplate"/>
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
@@ -518,54 +523,6 @@
 				If the payload is not an instance of a "multi-value" object, the value of this attribute is ignored and
 				the payload will always be stored as a single entry.
 				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="key-serializer" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-					Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
-					</xsd:documentation>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="value-serializer" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-					Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
-					</xsd:documentation>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="hash-key-serializer" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-					Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
-					</xsd:documentation>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="hash-value-serializer" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-					Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer 
-					</xsd:documentation>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
-					</tool:annotation>
-				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="collection-type">

@@ -11,14 +11,15 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<int-redis:store-outbound-channel-adapter id="storeAdapter"
-											  redis-template="redisTemplate"
+	<int-redis:store-outbound-channel-adapter id="withStringTemplate"
 											  collection-type="PROPERTIES"
 											  key="pepboys"
-											  key-serializer="keySerializer"
-											  value-serializer="valueSerializer"
-											  hash-key-serializer="hashKeySerializer"
-											  hash-value-serializer="hashValueSerializer"
+											  auto-startup="false"/>
+
+	<int-redis:store-outbound-channel-adapter id="withStringObjectTemplate"
+											  collection-type="PROPERTIES"
+											  key="pepboys"
+											  extract-payload-elements="false"
 											  auto-startup="false"/>
 
 	<bean id="keySerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
@@ -28,10 +29,20 @@
 
 	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
 		<property name="connectionFactory" ref="redisConnectionFactory"/>
+		<property name="keySerializer" ref="keySerializer"/>
+		<property name="valueSerializer" ref="valueSerializer"/>
+		<property name="hashKeySerializer" ref="hashKeySerializer"/>
+		<property name="hashValueSerializer" ref="hashValueSerializer"/>						
 	</bean>
 	
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
 	</bean>
+
+	<int-redis:store-outbound-channel-adapter id="withExternalTemplate"
+											  collection-type="PROPERTIES"
+											  key="pepboys"
+											  redis-template="redisTemplate"
+											  auto-startup="false"/>
 
 </beans>

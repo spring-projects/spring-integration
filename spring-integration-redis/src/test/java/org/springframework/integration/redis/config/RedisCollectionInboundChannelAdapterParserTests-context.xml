@@ -7,28 +7,37 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
 
-	<int-redis:store-inbound-channel-adapter id="adapterWithConnectionFactory"
+	<int-redis:store-inbound-channel-adapter id="withStringTemplate"
 											connection-factory="redisConnectionFactory"
 											key-expression="'presidents'"
 											channel="redisChannel"
 											auto-startup="false"
-											collection-type="LIST"
-											key-serializer="keySerializer"
-											value-serializer="valueSerializer"
-											hash-key-serializer="hashKeySerializer"
-											hash-value-serializer="hashValueSerializer">
+											collection-type="LIST">
 		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 	</int-redis:store-inbound-channel-adapter>
 
 	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
 		<property name="connectionFactory" ref="redisConnectionFactory"/>
+		<property name="keySerializer" ref="keySerializer"/>
+		<property name="valueSerializer" ref="valueSerializer"/>
+		<property name="hashKeySerializer" ref="hashKeySerializer"/>
+		<property name="hashValueSerializer" ref="hashValueSerializer"/>						
 	</bean>
+
+	<int-redis:store-inbound-channel-adapter id="withExternalTemplate"
+											key-expression="'presidents'"
+											channel="redisChannel"
+											auto-startup="false"
+											redis-template="redisTemplate"
+											collection-type="LIST">
+		<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
+	</int-redis:store-inbound-channel-adapter>
 
 	<int:channel id="redisChannel"/>
 		
-	<bean id="keySerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="keySerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 	<bean id="valueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
-	<bean id="hashKeySerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+	<bean id="hashKeySerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 	<bean id="hashValueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
 	
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
