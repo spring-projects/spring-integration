@@ -16,36 +16,52 @@
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.redis.inbound.RedisStoreMessageSource;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RedisCollectionInboundChannelAdapterParserTests {
+
+	@Autowired
+	private ApplicationContext context;
+
+	@Autowired
+	private RedisTemplate<?,?> redisTemplate;
+
 	@Test
-	public void validateFullConfiguration(){
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("inbound-store-adapter-parser.xml", this.getClass());
-		RedisStoreMessageSource source =
-				TestUtils.getPropertyValue(context.getBean("adapterWithConnectionFactory"), "source", RedisStoreMessageSource.class);
-		assertEquals(context.getBean("keySerializer"), TestUtils.getPropertyValue(source, "keySerializer"));
-		assertEquals(context.getBean("valueSerializer"), TestUtils.getPropertyValue(source, "valueSerializer"));
-		assertEquals(context.getBean("hashKeySerializer"), TestUtils.getPropertyValue(source, "hashKeySerializer"));
-		assertEquals(context.getBean("hashValueSerializer"), TestUtils.getPropertyValue(source, "hashValueSerializer"));
-		assertEquals("'presidents'", ((SpelExpression)TestUtils.getPropertyValue(source, "keyExpression")).getExpressionString());
-		assertEquals("LIST", ((CollectionType)TestUtils.getPropertyValue(source, "collectionType")).toString());
+	public void validateWithStringTemplate(){
+		RedisStoreMessageSource withStringTemplate =
+				TestUtils.getPropertyValue(context.getBean("withStringTemplate"), "source", RedisStoreMessageSource.class);
+		assertEquals("'presidents'", ((SpelExpression)TestUtils.getPropertyValue(withStringTemplate, "keyExpression")).getExpressionString());
+		assertEquals("LIST", ((CollectionType)TestUtils.getPropertyValue(withStringTemplate, "collectionType")).toString());
+		assertTrue(TestUtils.getPropertyValue(withStringTemplate, "redisTemplate") instanceof StringRedisTemplate);
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void validateFailureIfTemplateAndSerializers(){
-		new ClassPathXmlApplicationContext("inbound-store-adapter-parser-fail.xml", this.getClass());
+	@Test
+	public void validateWithExternalTemplate(){
+		RedisStoreMessageSource withExternalTemplate =
+				TestUtils.getPropertyValue(context.getBean("withExternalTemplate"), "source", RedisStoreMessageSource.class);
+		assertEquals("'presidents'", ((SpelExpression)TestUtils.getPropertyValue(withExternalTemplate, "keyExpression")).getExpressionString());
+		assertEquals("LIST", ((CollectionType)TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString());
+		assertSame(redisTemplate, TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate"));
 	}
 }

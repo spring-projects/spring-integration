@@ -18,7 +18,6 @@ package org.springframework.integration.redis.rules;
 import java.util.UUID;
 
 import org.junit.Rule;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -26,9 +25,11 @@ import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class RedisAvailableTests {
@@ -55,10 +56,10 @@ public class RedisAvailableTests {
 
 	protected void prepareList(JedisConnectionFactory jcf){
 
-		RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<Object, Object>();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(jcf);
 		redisTemplate.afterPropertiesSet();
-		BoundListOperations<Object, Object> ops = redisTemplate.boundListOps("presidents");
+		BoundListOperations<String, String> ops = redisTemplate.boundListOps("presidents");
 
 		ops.rightPush("John Adams");
 
@@ -79,11 +80,11 @@ public class RedisAvailableTests {
 
 	protected void prepareZset(JedisConnectionFactory jcf){
 
-		RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<Object, Object>();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(jcf);
 		redisTemplate.afterPropertiesSet();
 
-		BoundZSetOperations<Object, Object> ops = redisTemplate.boundZSetOps("presidents");
+		BoundZSetOperations<String, String> ops = redisTemplate.boundZSetOps("presidents");
 
 		ops.add("John Adams", 18);
 
