@@ -17,6 +17,7 @@
 package org.springframework.integration.file.remote.handler;
 
 import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -24,12 +25,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.file.remote.session.Session;
@@ -40,6 +43,7 @@ import org.springframework.test.annotation.ExpectedException;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class FileTransferringMessageHandlerTests {
 
@@ -63,6 +67,32 @@ public class FileTransferringMessageHandlerTests {
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public <F> void testTemporaryRemoteDir() throws Exception{
+		SessionFactory<F> sf = mock(SessionFactory.class);
+		Session<F> session = mock(Session.class);
+
+		final AtomicReference<String> temporaryPath = new AtomicReference<String>();
+		final AtomicReference<String> finalPath = new AtomicReference<String>();
+		when(sf.getSession()).thenReturn(session);
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				temporaryPath.set((String) invocation.getArguments()[0]);
+				finalPath.set((String) invocation.getArguments()[1]);
+				return null;
+			}
+		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
+		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("foo"));
+		handler.setTemporaryRemoteDirectoryExpression(new LiteralExpression("bar"));
+		handler.afterPropertiesSet();
+		handler.handleMessage(new GenericMessage<String>("hello"));
+		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+		assertEquals("bar", temporaryPath.get().substring(0, 3));
+		assertEquals("foo", finalPath.get().substring(0, 3));
 	}
 
 	@SuppressWarnings("unchecked")
