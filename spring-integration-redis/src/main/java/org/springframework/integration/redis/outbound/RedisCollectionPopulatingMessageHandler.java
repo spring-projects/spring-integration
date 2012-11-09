@@ -41,6 +41,7 @@ import org.springframework.data.redis.support.collections.RedisSet;
 import org.springframework.data.redis.support.collections.RedisStore;
 import org.springframework.data.redis.support.collections.RedisZSet;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
@@ -100,36 +101,17 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private volatile boolean initialized;
 
+
 	/**
-	 * Constructs an instance using the
-	 * provided {@link RedisTemplate}. The RedisTemplate must
-	 * be fully initialized.
+	 * Constructs an instance using the provided {@link RedisTemplate}.
+	 * The RedisTemplate must be fully initialized.
 	 *
-	 * The default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
 	 * @param redisTemplate
 	 */
 	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
-		this(redisTemplate, null);
-	}
-
-	/**
-	 * Constructs an instance using the
-	 * provided {@link RedisTemplate} and {@link #keyExpression}. The RedisTemplate must
-	 * be fully initialized.
-	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
-	 *
-	 * @param redisTemplate
-	 * @param keyExpression
-	 */
-	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 		this.redisTemplate = redisTemplate;
 		this.redisTemplateExplicitlySet = true;
-		if (keyExpression != null) {
-			this.keyExpression = keyExpression;
-		}
 	}
 
 	/**
@@ -139,35 +121,40 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 * keys and hash keys and {@link JdkSerializationRedisSerializer}s for values and
 	 * hash values, when it is false.
 	 *
-	 * The default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
 	 * @see #setExtractPayloadElements(boolean)
 	 * @param connectionFactory
 	 */
 	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, null);
+		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
+		this.connectionFactory = connectionFactory;
+	}
+
+
+	/**
+	 * Specifies the key for the Redis store. If an expression is needed, then call
+	 * {@link #setKeyExpression(Expression)} instead of this method (they are mutually exclusive).
+	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
+	 *
+	 * @see #setKeyExpression(Expression)
+	 * @param key
+	 */
+	public void setKey(String key) {
+		Assert.hasText(key, "key must not be empty");
+		this.setKeyExpression(new LiteralExpression(key));
 	}
 
 	/**
-	 * Constructs an instance using the provided {@link RedisConnectionFactory} and {@link #keyExpression}
-	 * It will use either a {@link StringRedisTemplate} if {@link #extractPayloadElements} is
-	 * true (default) or a {@link RedisTemplate} with {@link StringRedisSerializer}s for
-	 * keys and hash keys and {@link JdkSerializationRedisSerializer}s for values and
-	 * hash values, when it is false.
+	 * Specifies a SpEL Expression to be used to determine the key for the Redis store.
+	 * If an expression is not needed, then a literal value may be passed to the
+	 * {@link #setKey(String)} method instead of this one (they are mutually exclusive).
+	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
 	 *
-	 * If {@link #keyExpression} is null, the default expression 'headers.{@link RedisHeaders#KEY}'
-	 * will be used.
-	 *
-	 * @see #setExtractPayloadElements(boolean)
-	 * @param connectionFactory
+	 * @see #setKey(String)
 	 * @param keyExpression
 	 */
-	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory, Expression keyExpression) {
-		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-		this.connectionFactory = connectionFactory;
-		if (keyExpression != null) {
-			this.keyExpression = keyExpression;
-		}
+	public void setKeyExpression(Expression keyExpression) {
+		Assert.notNull(keyExpression, "keyExpression must not be null");
+		this.keyExpression = keyExpression;
 	}
 
 	/**
@@ -264,9 +251,8 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String key = this.keyExpression.getValue(this.evaluationContext, message, String.class);
-
-		Assert.hasText(key, "Cannot determine a 'key' for a Redis store. The key can be provided via the " +
-				"'key' or 'key-expression' attributes.");
+		Assert.hasText(key, "Failed to determine a key for the Redis store using expression: "
+				+ this.keyExpression.getExpressionString());
 
 		RedisStore store = this.createStoreView(key);
 

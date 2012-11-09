@@ -13,8 +13,10 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.redis.config;
 
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -25,11 +27,13 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.outbound.RedisCollectionPopulatingMessageHandler;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
 /**
- * Parser for redis:store-outbound-channel-adapter element
+ * Parser for the &lt;redis:store-outbound-channel-adapter&gt; element.
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Mark Fisher
  * @since 2.2
  */
 public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -42,9 +46,8 @@ public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboun
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (StringUtils.hasText(redisTemplateRef) && StringUtils.hasText(connectionFactory)){
 			parserContext.getReaderContext().error("Only one of 'redis-template' or 'connection-factory'" +
-					" is allowed", element);
+					" is allowed.", element);
 		}
-
 		if (StringUtils.hasText(redisTemplateRef)){
 			builder.addConstructorArgReference(redisTemplateRef);
 		}
@@ -55,15 +58,19 @@ public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboun
 			builder.addConstructorArgReference(connectionFactory);
 		}
 
-		boolean atLeastOneRequired = false;
-		RootBeanDefinition expressionDef =
-				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("key", "key-expression",
-						parserContext, element, atLeastOneRequired);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload-elements");
-
-		if (expressionDef != null){
-			builder.addConstructorArgValue(expressionDef);
+		boolean hasKey = element.hasAttribute("key");
+		boolean hasKeyExpression = element.hasAttribute("key-expression");
+		if (hasKey && hasKeyExpression) {
+			parserContext.getReaderContext().error(
+					"At most one of 'key' or 'key-expression' is allowed.", element);
+		}
+		if (hasKey) {
+			builder.addPropertyValue("key", new TypedStringValue(element.getAttribute("key")));
+		}
+		if (hasKeyExpression) {
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(element.getAttribute("key-expression"));
+			builder.addPropertyValue("keyExpression", expressionDef);
 		}
 
 		String mapKeyExpression = element.getAttribute("map-key-expression");
@@ -73,6 +80,9 @@ public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboun
 			builder.addPropertyValue("mapKeyExpression", mapKeyExpressionDef);
 		}
 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload-elements");
 		return builder.getBeanDefinition();
 	}
+
 }
