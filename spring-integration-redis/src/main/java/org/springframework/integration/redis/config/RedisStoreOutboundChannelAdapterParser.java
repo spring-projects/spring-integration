@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.redis.outbound.RedisCollectionPopulatingMessageHandler;
+import org.springframework.integration.redis.outbound.RedisStoreWritingMessageHandler;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -36,11 +36,11 @@ import org.w3c.dom.Element;
  * @author Mark Fisher
  * @since 2.2
  */
-public class RedisCollectionOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class RedisStoreOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisCollectionPopulatingMessageHandler.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisStoreWritingMessageHandler.class);
 
 		String redisTemplateRef = element.getAttribute("redis-template");
 		String connectionFactory = element.getAttribute("connection-factory");

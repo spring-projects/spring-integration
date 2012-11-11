@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
@@ -22,7 +23,9 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -39,7 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisCollectionInboundChannelAdapterParserTests {
+public class RedisStoreInboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -64,4 +67,10 @@ public class RedisCollectionInboundChannelAdapterParserTests {
 		assertEquals("LIST", ((CollectionType)TestUtils.getPropertyValue(withExternalTemplate, "collectionType")).toString());
 		assertSame(redisTemplate, TestUtils.getPropertyValue(withExternalTemplate, "redisTemplate"));
 	}
+
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void testTemplateAndCfMutualExclusivity(){
+		new ClassPathXmlApplicationContext("inbound-template-cf-fail.xml", this.getClass());
+	}
+
 }

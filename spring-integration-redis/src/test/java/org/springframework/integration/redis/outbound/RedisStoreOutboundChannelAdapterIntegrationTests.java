@@ -14,7 +14,7 @@
  *     limitations under the License.
  */
 
-package org.springframework.integration.redis.config;
+package org.springframework.integration.redis.outbound;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,7 +47,6 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.redis.outbound.RedisCollectionPopulatingMessageHandler;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.support.RedisHeaders;
@@ -59,7 +58,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Mark Fisher
  * @since 2.2
  */
-public class RedisCollectionOutboundChannelAdapterIntegrationTests extends RedisAvailableTests {
+public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
@@ -76,10 +75,29 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		pepboys.add("Manny");
 		pepboys.add("Moe");
 		pepboys.add("Jack");
-		Message<List<String>> message = MessageBuilder.withPayload(pepboys).setHeader("redis_key", "pepboys").build();
+		Message<List<String>> message = MessageBuilder.withPayload(pepboys).setHeader(RedisHeaders.KEY, "pepboys").build();
 		redisChannel.send(message);
 
 		assertEquals(3, redisList.size());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testListWithKeyAsHeaderSimple(){
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		RedisList<String> redisList =
+				new DefaultRedisList<String>("foo", this.initTemplate(jcf, redisTemplate));
+		assertEquals(0, redisList.size());
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
+		MessageChannel redisChannel = context.getBean("listWithKeyAsHeader", MessageChannel.class);
+		Message<String> message = MessageBuilder.withPayload("bar").setHeader("redis_key", "foo").build();
+		redisChannel.send(message);
+
+		assertEquals(1, redisList.size());
+		redisTemplate.delete("foo");
 	}
 
 	@Test
@@ -100,6 +118,116 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		redisChannel.send(message);
 
 		assertEquals(3, redisList.size());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testZsetSimplePayloadIncrement(){
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		RedisZSet<String> redisZSet =
+				new DefaultRedisZSet<String>("foo", this.initTemplate(jcf, redisTemplate));
+		assertEquals(0, redisZSet.size());
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
+		MessageChannel redisChannel = context.getBean("zset", MessageChannel.class);
+		Message<String> message = MessageBuilder.withPayload("bar").setHeader(RedisHeaders.KEY, "foo").build();
+		redisChannel.send(message);
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(1), redisZSet.score("bar"));
+
+		redisChannel.send(message);
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(2), redisZSet.score("bar"));
+		redisTemplate.delete("foo");
+	}
+
+	@Test
+	@RedisAvailable
+	public void testZsetSimplePayloadOverwrite(){
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		RedisZSet<String> redisZSet =
+				new DefaultRedisZSet<String>("foo", this.initTemplate(jcf, redisTemplate));
+		assertEquals(0, redisZSet.size());
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
+		MessageChannel redisChannel = context.getBean("zset", MessageChannel.class);
+		Message<String> message = MessageBuilder.withPayload("bar")
+				.setHeader(RedisHeaders.KEY, "foo")
+				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, false)
+				.build();
+		redisChannel.send(message);
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(1), redisZSet.score("bar"));
+
+		redisChannel.send(message);
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(1), redisZSet.score("bar"));
+		redisTemplate.delete("foo");
+	}
+
+	@Test
+	@RedisAvailable
+	public void testZsetSimplePayloadIncrementBy2(){
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		RedisZSet<String> redisZSet =
+				new DefaultRedisZSet<String>("foo", this.initTemplate(jcf, redisTemplate));
+		assertEquals(0, redisZSet.size());
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
+		MessageChannel redisChannel = context.getBean("zset", MessageChannel.class);
+		Message<String> message = MessageBuilder.withPayload("bar")
+				.setHeader(RedisHeaders.KEY, "foo")
+				.setHeader(RedisHeaders.ZSET_SCORE, 2)
+				.build();
+		redisChannel.send(message);
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(2), redisZSet.score("bar"));
+
+		redisChannel.send(message);
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(4), redisZSet.score("bar"));
+		redisTemplate.delete("foo");
+	}
+
+	@Test
+	@RedisAvailable
+	public void testZsetSimplePayloadOverwriteWithHeaderScore(){
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		RedisZSet<String> redisZSet =
+				new DefaultRedisZSet<String>("foo", this.initTemplate(jcf, redisTemplate));
+		assertEquals(0, redisZSet.size());
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
+		MessageChannel redisChannel = context.getBean("zset", MessageChannel.class);
+		Message<String> message = MessageBuilder.withPayload("bar")
+				.setHeader(RedisHeaders.KEY, "foo")
+				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, false)
+				.setHeader(RedisHeaders.ZSET_SCORE, 2)
+				.build();
+		redisChannel.send(message);
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(2), redisZSet.score("bar"));
+
+		redisChannel.send(MessageBuilder.fromMessage(message).setHeader(RedisHeaders.ZSET_SCORE, 15).build());
+
+		assertEquals(1, redisZSet.size());
+		assertEquals(Double.valueOf(15), redisZSet.score("bar"));
+		redisTemplate.delete("foo");
 	}
 
 	@Test
@@ -126,10 +254,26 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals(5, redisZset.size());
 		assertEquals(1, redisZset.rangeByScore(18, 18).size());
 		assertEquals(4, redisZset.rangeByScore(18, 19).size());
+		assertEquals(1, redisZset.rangeByScore(21, 21).size());
 
-		RedisCollectionPopulatingMessageHandler handler = context.getBean("mapToZset.handler",
-				RedisCollectionPopulatingMessageHandler.class);
+		RedisStoreWritingMessageHandler handler = context.getBean("mapToZset.handler",
+				RedisStoreWritingMessageHandler.class);
 		assertEquals("'presidents'", TestUtils.getPropertyValue(handler, "keyExpression", SpelExpression.class).getExpressionString());
+
+		// test default (increment by score) behavior
+		redisChannel.send(message);
+		assertEquals(5, redisZset.size());
+		assertEquals(1, redisZset.rangeByScore(36, 36).size());
+		assertEquals(4, redisZset.rangeByScore(36, 38).size());
+		assertEquals(1, redisZset.rangeByScore(42, 42).size());
+
+		// test overwrite score behavior
+		presidents.put("Barack Obama", 31);
+		redisChannel.send(MessageBuilder.fromMessage(message).setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, false).build());
+		assertEquals(5, redisZset.size());
+		assertEquals(1, redisZset.rangeByScore(18, 18).size());
+		assertEquals(4, redisZset.rangeByScore(18, 19).size());
+		assertEquals(1, redisZset.rangeByScore(31, 31).size());
 	}
 
 	@Test
@@ -155,8 +299,8 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals("Moe", redisMap.get("2"));
 		assertEquals("Jack", redisMap.get("3"));
 
-		RedisCollectionPopulatingMessageHandler handler = context.getBean("mapToMapA.handler",
-				RedisCollectionPopulatingMessageHandler.class);
+		RedisStoreWritingMessageHandler handler = context.getBean("mapToMapA.handler",
+				RedisStoreWritingMessageHandler.class);
 		assertEquals("pepboys", TestUtils.getPropertyValue(handler, "keyExpression", LiteralExpression.class).getExpressionString());
 		assertEquals("'foo'", TestUtils.getPropertyValue(handler, "mapKeyExpression", SpelExpression.class).getExpressionString());
 	}
@@ -281,6 +425,25 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 
 	@Test
 	@RedisAvailable
+	public void testSetWithKeyAsHeaderSimple(){
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		RedisSet<String> redisSet =
+				new DefaultRedisSet<String>("foo", this.initTemplate(jcf, redisTemplate));
+		assertEquals(0, redisSet.size());
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
+		MessageChannel redisChannel = context.getBean("set", MessageChannel.class);
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader(RedisHeaders.KEY, "foo").build();
+		redisChannel.send(message);
+
+		assertEquals(1, redisSet.size());
+		redisTemplate.delete("foo");
+	}
+
+	@Test
+	@RedisAvailable
 	public void testSetWithKeyAsHeaderNotParsed(){
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
@@ -340,6 +503,28 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals("Manny", redisProperties.get("1"));
 		assertEquals("Moe", redisProperties.get("2"));
 		assertEquals("Jack", redisProperties.get("3"));
+	}
+
+	@Test
+	@RedisAvailable
+	public void testPropertiesSimple(){
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		RedisProperties redisProperties =
+				new RedisProperties("foo", this.initTemplate(jcf, redisTemplate));
+
+		assertEquals(0, redisProperties.size());
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("store-outbound-adapter.xml", this.getClass());
+		MessageChannel redisChannel = context.getBean("simpleProperty", MessageChannel.class);
+		Message<String> message = MessageBuilder.withPayload("bar")
+				.setHeader(RedisHeaders.KEY, "foo")
+				.setHeader("baz", "qux")
+				.build();
+		redisChannel.send(message);
+
+		assertEquals("bar", redisProperties.get("qux"));
+		redisTemplate.delete("foo");
 	}
 
 	private <K,V> RedisTemplate<K,V> initTemplate(RedisConnectionFactory rcf, RedisTemplate<K,V> redisTemplate){

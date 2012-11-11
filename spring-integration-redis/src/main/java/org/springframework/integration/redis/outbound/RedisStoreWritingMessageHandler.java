@@ -56,23 +56,24 @@ import org.springframework.util.NumberUtils;
 /**
  * Implementation of {@link MessageHandler} which writes Message data into a Redis store
  * identified by a key {@link String}.
+ *
  * It supports the collection types identified by {@link CollectionType}.
  *
- * It also supports batch updates and single item entry.
+ * It supports batch updates or single item entry.
  *
  * "Batch updates" means that the payload of the Message may be a Map or Collection.
  * With such a payload, individual items from it are added to the corresponding Redis store.
- * See {@link #handleMessage(Message)} for more details.
+ * See {@link #handleMessageInternal(Message)} for more details.
  *
- * You can also choose to persist such a payload as a single item if the {@link #extractPayloadElements}
- * property is set to false (default is true).
+ * You can instead choose to persist such a payload as a single item if the
+ * {@link #extractPayloadElements} property is set to false (default is true).
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Mark Fisher
  * @since 2.2
  */
-public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHandler {
+public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -108,7 +109,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 *
 	 * @param redisTemplate
 	 */
-	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
+	public RedisStoreWritingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 		this.redisTemplate = redisTemplate;
 		this.redisTemplateExplicitlySet = true;
@@ -124,7 +125,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 * @see #setExtractPayloadElements(boolean)
 	 * @param connectionFactory
 	 */
-	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory) {
+	public RedisStoreWritingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		this.connectionFactory = connectionFactory;
 	}
@@ -158,7 +159,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	/**
-	 * Sets the collection type for this handler as per {@link CollectionType}
+	 * Sets the collection type for this handler as per {@link CollectionType}.
 	 *
 	 * @param collectionType
 	 */
@@ -170,7 +171,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 * Sets the flag signifying that if the payload is a "multivalue" (i.e., Collection or Map),
 	 * it should be saved using addAll/putAll semantics. Default is 'true'.
 	 * If set to 'false' the payload will be saved as a single entry regardless of its type.
-	 * If the payload is not an instance of "multivalue" (i.e., Collection or Map)
+	 * If the payload is not an instance of "multivalue" (i.e., Collection or Map),
 	 * the value of this attribute is meaningless as the payload will always be
 	 * stored as a single entry.
 	 *
@@ -223,29 +224,31 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	/**
-	 * Will extract payload from the Message storing it in the collection identified by the
-	 * {@link #collectionType}. The default CollectinType is LIST.
+	 * Will extract the payload from the Message and store it in the collection identified by the
+	 * key (which may be determined by an expression). The type of collection is specified by the
+	 * {@link #collectionType} property. The default CollectionType is LIST.
 	 * <p/>
-	 * The rules for storing payload are:
+	 * The rules for storing the payload are:
 	 * <p/>
 	 * <b>LIST/SET</b>
-	 * If payload is of type Collection and {@link #extractPayloadElements} is 'true' (default),
-	 * the payload will be added using the addAll() method. If {@link #extractPayloadElements} is set to 'false' then,
-	 * regardless of the payload type, the payload will be added using add();
+	 * If the payload is of type Collection and {@link #extractPayloadElements} is 'true' (default),
+	 * the payload will be added using the addAll() method. If {@link #extractPayloadElements}
+	 * is set to 'false', then regardless of the payload type, the payload will be added using add().
 	 * <p/>
 	 * <b>ZSET</b>
-	 * In addition to rules described for LIST/SET, ZSET allows 'score' information
-	 * to be provided. The score can be provided using the {@link RedisHeaders#ZSET_SCORE} message header,
-	 * when the payload is a Collection, or
-	 * by sending a Map as the payload, where the Map 'key' is the value to be saved and the 'value' is
-	 * the score assigned to this value.
+	 * In addition to the rules described for LIST/SET, ZSET allows 'score' information
+	 * to be provided. The score can be provided using the {@link RedisHeaders#ZSET_SCORE} message header
+	 * when the payload is not a Map, or by sending a Map as the payload where each Map 'key' is a
+	 * value to be saved and each corresponding Map 'value' is the score assigned to it.
 	 * If {@link #extractPayloadElements} is set to 'false' the map will be stored as a single entry.
 	 * If the 'score' can not be determined, the default value (1) will be used.
 	 * <p/>
 	 * <b>MAP/PROPERTIES</b>
-	 * You can also store a payload of type Map or Properties following the same rules as above.
-	 * If payload itself needs to be stored as a value of the map/property then the map key must be
-	 * specified via the mapKeyExpression (default {@link RedisHeaders#MAP_KEY} Message header).
+	 * You can also add items to a Map or Properties based store.
+	 * If the payload itself is of type Map or Properties, it can be stored either as a batch or single
+	 * item following the same rules as described above for other collection types.
+	 * If the payload itself needs to be stored as a value of the map/property then the map key
+	 * must be specified via the mapKeyExpression (default {@link RedisHeaders#MAP_KEY} Message header).
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -259,19 +262,19 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		Assert.state(this.initialized, "handler not initialized - afterPropertiesSet() must be called before the first use");
 		try {
 			if (collectionType == CollectionType.ZSET) {
-				this.handleZset((RedisZSet<Object>) store, message);
+				this.writeToZset((RedisZSet<Object>) store, message);
 			}
 			else if (collectionType == CollectionType.SET) {
-				this.handleSet((RedisSet<Object>) store, message);
+				this.writeToSet((RedisSet<Object>) store, message);
 			}
 			else if (collectionType == CollectionType.LIST) {
-				this.handleList((RedisList<Object>) store, message);
+				this.writeToList((RedisList<Object>) store, message);
 			}
 			else if (collectionType == CollectionType.MAP) {
-				this.handleMap((RedisMap<Object, Object>) store, message);
+				this.writeToMap((RedisMap<Object, Object>) store, message);
 			}
 			else if (collectionType == CollectionType.PROPERTIES) {
-				this.handleProperties((RedisProperties) store, message);
+				this.writeToProperties((RedisProperties) store, message);
 			}
 		}
 		catch (Exception e) {
@@ -280,15 +283,13 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	@SuppressWarnings("unchecked")
-	private void handleZset(RedisZSet<Object> zset, final Message<?> message) throws Exception{
+	private void writeToZset(RedisZSet<Object> zset, final Message<?> message) throws Exception{
 		final Object payload = message.getPayload();
 		final BoundZSetOperations<String, Object> ops =
 				(BoundZSetOperations<String, Object>) this.redisTemplate.boundZSetOps(zset.getKey());
 		final boolean zsetIncrementHeader = this.extractZsetIncrementHeader(message);
-
 		if (this.extractPayloadElements) {
-
-			if ((payload instanceof Map<?, ?> && this.isMapValuesOfTypeNumber((Map<?, ?>) payload))) {
+			if ((payload instanceof Map<?, ?> && this.verifyAllMapValuesOfTypeNumber((Map<?, ?>) payload))) {
 				final Map<Object, Number> payloadAsMap = (Map<Object, Number>) payload;
 				this.processInPipeline(new PipelineCallback() {
 					public void process() {
@@ -328,7 +329,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	@SuppressWarnings("unchecked")
-	private void handleList(RedisList<Object> list, Message<?> message) {
+	private void writeToList(RedisList<Object> list, Message<?> message) {
 		Object payload = message.getPayload();
 		if (this.extractPayloadElements) {
 			if (payload instanceof Collection<?>) {
@@ -344,7 +345,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	@SuppressWarnings("unchecked")
-	private void handleSet(final RedisSet<Object> set, Message<?> message) {
+	private void writeToSet(final RedisSet<Object> set, Message<?> message) {
 		final Object payload = message.getPayload();
 		if (this.extractPayloadElements && payload instanceof Collection<?>) {
 			final BoundSetOperations<String, Object> ops =
@@ -364,7 +365,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	}
 
 	@SuppressWarnings("unchecked")
-	private void handleMap(final RedisMap<Object, Object> map, Message<?> message) {
+	private void writeToMap(final RedisMap<Object, Object> map, Message<?> message) {
 		final Object payload = message.getPayload();
 		if (this.extractPayloadElements && payload instanceof Map<?, ?>) {
 			this.processInPipeline(new PipelineCallback() {
@@ -374,12 +375,12 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 			});
 		}
 		else {
-			Object key = this.assertMapEntry(message, false);
+			Object key = this.determineMapKey(message, false);
 			map.put(key, payload);
 		}
 	}
 
-	private void handleProperties(final RedisProperties properties, Message<?> message) {
+	private void writeToProperties(final RedisProperties properties, Message<?> message) {
 		final Object payload = message.getPayload();
 		if (this.extractPayloadElements && payload instanceof Properties) {
 			this.processInPipeline(new PipelineCallback() {
@@ -389,7 +390,8 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 			});
 		}
 		else {
-			Object key = this.assertMapEntry(message, true);
+			Assert.isInstanceOf(String.class, payload, "For property, payload must be a String.");
+			Object key = this.determineMapKey(message, true);
 			properties.put(key, payload);
 		}
 	}
@@ -407,14 +409,12 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		}
 	}
 
-	private Object assertMapEntry(Message<?> message, boolean property) {
+	private Object determineMapKey(Message<?> message, boolean property) {
 		Object mapKey = this.mapKeyExpression.getValue(this.evaluationContext, message);
 		Assert.notNull(mapKey, "Cannot determine a map key for the entry. The key is determined by evaluating " +
 				"the 'mapKeyExpression' property.");
-		Object payload = message.getPayload();
 		if (property) {
 			Assert.isInstanceOf(String.class, mapKey, "For property, key must be a String");
-			Assert.isInstanceOf(String.class, payload, "For property, payload must be a String");
 		}
 		Assert.isTrue(mapKey != null, "Failed to determine the key for the " +
 				"Redis Map entry. Payload is not a Map and '" + RedisHeaders.MAP_KEY +
@@ -424,7 +424,6 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 
 	private void incrementOrOverwrite(final BoundZSetOperations<String, Object> ops, Object object, Double score,
 			boolean zsetIncrementScore) {
-
 		if (score != null) {
 			this.doIncrementOrOverwrite(ops, object, score, zsetIncrementScore);
 		}
@@ -444,10 +443,13 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 		}
 	}
 
-	private boolean isMapValuesOfTypeNumber(Map<?,?> map) {
+	private boolean verifyAllMapValuesOfTypeNumber(Map<?,?> map) {
 		for (Object value : map.values()) {
 			if (!(value instanceof Number)) {
-				logger.warn("Failed to extract payload elements because one of its values '" + value + "' is not of type Number");
+				if (logger.isWarnEnabled()) {
+					logger.warn("failed to extract payload elements because '" +
+							value + "' is not of type Number");
+				}
 				return false;
 			}
 		}

@@ -53,7 +53,7 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Gunnar Hillert
  * @author Mark Fisher
  */
-public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailableTests{
+public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 
 	@Test
 	@RedisAvailable
@@ -65,8 +65,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		assertEquals(0, redisList.size());
 
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.afterPropertiesSet();
 
@@ -93,8 +93,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		assertEquals(0, redisList.size());
 
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 
 		handler.afterPropertiesSet();
 
@@ -121,8 +121,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		assertEquals(0, redisList.size());
 
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.afterPropertiesSet();
 
 		List<String> list = new ArrayList<String>();
@@ -144,8 +144,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals(0, redisList.size());
 
 		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(template);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setExtractPayloadElements(false);
 		handler.afterPropertiesSet();
@@ -174,8 +174,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		assertEquals(0, redisZset.size());
 
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.afterPropertiesSet();
@@ -212,8 +212,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		assertEquals(0, redisZset.size());
 
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.afterPropertiesSet();
@@ -253,8 +253,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		assertEquals(0, redisZset.size());
 
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.afterPropertiesSet();
@@ -295,8 +295,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals(0, redisZset.size());
 
 		RedisTemplate<String, List<String>> template = this.initTemplate(jcf, new RedisTemplate<String, List<String>>());
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(template);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(template);
 
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
@@ -327,8 +327,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 
 		assertEquals(0, redisZset.size());
 
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.afterPropertiesSet();
@@ -370,8 +370,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals(0, redisZset.size());
 
 		RedisTemplate<String, President> template = this.initTemplate(jcf, new RedisTemplate<String, President>());
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(template);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.afterPropertiesSet();
@@ -413,8 +413,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 		assertEquals(0, redisZset.size());
 
 		RedisTemplate<String, Map<President, Double>> template = this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>());
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(template);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(template);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setExtractPayloadElements(false);
@@ -437,8 +437,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	public void testListWithMapKeyExpression() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setMapKeyExpression(new LiteralExpression(key));
 		handler.afterPropertiesSet();
@@ -449,8 +449,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	public void testSetWithMapKeyExpression() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.SET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
@@ -462,8 +462,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	public void testZsetWithMapKeyExpression() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.ZSET);
 		handler.setMapKeyExpression(new LiteralExpression(key));
@@ -475,8 +475,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	public void testMapWithMapKeyExpression() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.MAP);
 		handler.setMapKeyExpression(new LiteralExpression(key));
@@ -493,8 +493,8 @@ public class RedisCollectionPopulatingMessageHandlerTests extends RedisAvailable
 	public void testPropertiesWithMapKeyExpression() {
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
-		RedisCollectionPopulatingMessageHandler handler =
-				new RedisCollectionPopulatingMessageHandler(jcf);
+		RedisStoreWritingMessageHandler handler =
+				new RedisStoreWritingMessageHandler(jcf);
 		handler.setKey(key);
 		handler.setCollectionType(CollectionType.PROPERTIES);
 		handler.setMapKeyExpression(new LiteralExpression(key));

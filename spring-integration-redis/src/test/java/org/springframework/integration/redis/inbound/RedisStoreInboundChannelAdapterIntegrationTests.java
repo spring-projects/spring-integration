@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.redis.config;
+package org.springframework.integration.redis.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.support.collections.RedisList;
@@ -36,7 +36,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
  * @author Oleg Zhurakousky
  * @since 2.2
  */
-public class RedisCollectionInboundChannelAdapterIntegrationTests extends RedisAvailableTests{
+public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvailableTests{
 
 	@Test
 	@RedisAvailable
@@ -227,8 +227,4 @@ public class RedisCollectionInboundChannelAdapterIntegrationTests extends RedisA
 		context.close();
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void testTemplateAndCfMutualExclusivity(){
-		new ClassPathXmlApplicationContext("inbound-template-cf-fail.xml", this.getClass());
-	}
 }
