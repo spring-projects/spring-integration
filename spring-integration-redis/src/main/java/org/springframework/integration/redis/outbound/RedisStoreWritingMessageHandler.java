@@ -73,7 +73,7 @@ import org.springframework.util.NumberUtils;
  * @author Mark Fisher
  * @since 2.2
  */
-public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHandler {
+public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -109,7 +109,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 *
 	 * @param redisTemplate
 	 */
-	public RedisCollectionPopulatingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
+	public RedisStoreWritingMessageHandler(RedisTemplate<String, ?> redisTemplate) {
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 		this.redisTemplate = redisTemplate;
 		this.redisTemplateExplicitlySet = true;
@@ -125,7 +125,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	 * @see #setExtractPayloadElements(boolean)
 	 * @param connectionFactory
 	 */
-	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory) {
+	public RedisStoreWritingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		this.connectionFactory = connectionFactory;
 	}

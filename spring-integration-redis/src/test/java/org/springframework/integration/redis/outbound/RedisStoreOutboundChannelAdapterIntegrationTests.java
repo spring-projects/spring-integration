@@ -14,7 +14,7 @@
  *     limitations under the License.
  */
 
-package org.springframework.integration.redis.config;
+package org.springframework.integration.redis.outbound;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,7 +47,7 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.redis.outbound.RedisCollectionPopulatingMessageHandler;
+import org.springframework.integration.redis.outbound.RedisStoreWritingMessageHandler;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.support.RedisHeaders;
@@ -59,7 +59,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Mark Fisher
  * @since 2.2
  */
-public class RedisCollectionOutboundChannelAdapterIntegrationTests extends RedisAvailableTests {
+public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
@@ -127,8 +127,8 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals(1, redisZset.rangeByScore(18, 18).size());
 		assertEquals(4, redisZset.rangeByScore(18, 19).size());
 
-		RedisCollectionPopulatingMessageHandler handler = context.getBean("mapToZset.handler",
-				RedisCollectionPopulatingMessageHandler.class);
+		RedisStoreWritingMessageHandler handler = context.getBean("mapToZset.handler",
+				RedisStoreWritingMessageHandler.class);
 		assertEquals("'presidents'", TestUtils.getPropertyValue(handler, "keyExpression", SpelExpression.class).getExpressionString());
 	}
 
@@ -155,8 +155,8 @@ public class RedisCollectionOutboundChannelAdapterIntegrationTests extends Redis
 		assertEquals("Moe", redisMap.get("2"));
 		assertEquals("Jack", redisMap.get("3"));
 
-		RedisCollectionPopulatingMessageHandler handler = context.getBean("mapToMapA.handler",
-				RedisCollectionPopulatingMessageHandler.class);
+		RedisStoreWritingMessageHandler handler = context.getBean("mapToMapA.handler",
+				RedisStoreWritingMessageHandler.class);
 		assertEquals("pepboys", TestUtils.getPropertyValue(handler, "keyExpression", LiteralExpression.class).getExpressionString());
 		assertEquals("'foo'", TestUtils.getPropertyValue(handler, "mapKeyExpression", SpelExpression.class).getExpressionString());
 	}
