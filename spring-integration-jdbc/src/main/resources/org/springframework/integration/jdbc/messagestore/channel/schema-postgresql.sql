@@ -1,0 +1,12 @@
+CREATE TABLE INT_CHANNEL_MESSAGE (
+	MESSAGE_ID character(36) NOT NULL,
+	GROUP_KEY character(36) NOT NULL,
+	CREATED_DATE timestamp without time zone NOT NULL,
+	MESSAGE_BYTES bytea,
+	REGION character varying(100) NOT NULL,
+	constraint INT_CHANNEL_MESSAGE_PK primary key (GROUP_KEY, MESSAGE_ID, REGION)
+);
+
+CREATE INDEX MSG_INDEX_DATE_IDX
+	ON INT_CHANNEL_MESSAGE
+	USING btree (created_date);

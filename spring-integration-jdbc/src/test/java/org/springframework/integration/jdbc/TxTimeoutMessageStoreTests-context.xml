@@ -13,66 +13,39 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
- 	<jdbc:embedded-database id="dataSource" type="DERBY">
-		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-derby.sql" />
-	</jdbc:embedded-database>
+	<import resource="classpath:org/springframework/integration/jdbc/JdbcChannelMessageStoreDataSources-context.xml"/>
 
-<!--
+	<int:transaction-synchronization-factory id="syncFactory">
+		<int:after-commit expression="@store.removeFromIdCache(headers.id.toString())" />
+		<int:after-rollback expression="@store.removeFromIdCache(headers.id.toString())"/>
+	</int:transaction-synchronization-factory>
 
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
-		destroy-method="close">
-		<property name="driverClassName" value="org.postgresql.Driver" />
-		<property name="url"
-			value="jdbc:postgresql:integration" />
-		<property name="username" value="postgres" />
-		<property name="password" value="postgres" />
+	<task:executor id="pool" pool-size="10" queue-capacity="10" rejection-policy="CALLER_RUNS" />
+
+	<bean id="store" class="org.springframework.integration.jdbc.JdbcChannelMessageStore">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="queryProvider" ref="queryProvider"/>
+		<property name="region" value="TX_TIMEOUT"/>
+		<property name="usingIdCache" value="false"/>
 	</bean>
-
-	<jdbc:embedded-database id="dataSource" type="H2">
-		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-h2.sql" />
-	</jdbc:embedded-database>
-
- 	<bean id="dataSource" destroy-method="close"
-		class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost/test" />
-		<property name="username" value="root" />
-		<property name="password" value="root" />
-		<property name="initialSize" value="10" />
-		<property name="defaultAutoCommit" value="false" />
-	</bean> -->
-
-	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-		<property name="dataSource" ref="dataSource" />
-		<!-- <property name="defaultTimeout" value="2000" /> -->
-		<!-- Postgres 9 does not support send timeouts. You may see an exception like:
-		"java.sql.SQLFeatureNotSupportedException: Method org.postgresql.jdbc4.Jdbc4PreparedStatement.setQueryTimeout(int) is not yet implemented."
-		-->
-	</bean>
-
-	<task:executor id="pool" pool-size="10" queue-capacity="4" rejection-policy="CALLER_RUNS" />
-
-	<int-jdbc:message-store id="store" data-source="dataSource" />
-
-	<bean id="store1" class="org.springframework.integration.store.SimpleMessageStore" />
 
 	<int:channel id="inputChannel">
-		<int:queue message-store="store" />
+		<int:queue message-store="store"/>
 	</int:channel>
 
 	<int:bridge input-channel="inputChannel" output-channel="outputChannel">
-		<int:poller fixed-delay="100" receive-timeout="500"
-			max-messages-per-poll="1" task-executor="pool">
-			<int:transactional propagation="REQUIRED"
-				isolation="DEFAULT" timeout="10" transaction-manager="transactionManager" />
+		<int:poller fixed-delay="500" receive-timeout="500"
+			max-messages-per-poll="10"  task-executor="pool">
+			<int:transactional propagation="REQUIRED" synchronization-factory="syncFactory"
+				isolation="READ_COMMITTED" transaction-manager="transactionManager" />
 		</int:poller>
 	</int:bridge>
 
 	<int:channel id="outputChannel" />
 
-	<int:service-activator input-channel="outputChannel">
-		<bean class="org.springframework.integration.jdbc.TxTimeoutMessageStoreTests$ServiceActivator" />
-	</int:service-activator>
+	<bean id="sa" class="org.springframework.integration.jdbc.test.ServiceActivator"/>
+
+	<int:service-activator input-channel="outputChannel" ref="sa"/>
 
 	<int:channel id="errorChannel">
 		<int:queue/>
