@@ -25,8 +25,6 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
-import org.springframework.integration.transaction.TransactionSynchronizationFactory;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
 /**
@@ -46,13 +44,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	private volatile boolean shouldTrack;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
-	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
-
-	public void setTransactionSynchronizationFactory(
-			TransactionSynchronizationFactory transactionSynchronizationFactory) {
-		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
-	}
 
 	/**
 	 * Specify the source to be polled for Messages.
@@ -99,26 +90,12 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	@Override
 	protected boolean doPoll() {
 
-		Message<?> message;
-		IntegrationResourceHolder holder = null;
-
-		if (TransactionSynchronizationManager.isActualTransactionActive()) {
-			if (transactionSynchronizationFactory != null){
-				holder = new IntegrationResourceHolder();
-				holder.addAttribute(IntegrationResourceHolder.MESSAGE_SOURCE, source);
-				TransactionSynchronizationManager.bindResource(source, holder);
-				TransactionSynchronizationManager.registerSynchronization(transactionSynchronizationFactory.create(source));
-			}
-		}
-		message = this.source.receive();
+		Message<?> message = this.syncIfTxAndReceive();
 
 		if (this.logger.isDebugEnabled()){
 			this.logger.debug("Poll resulted in Message: " + message);
 		}
 		if (message != null) {
-			if (holder != null) {
-				holder.setMessage(message);
-			}
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this);
 			}
@@ -140,4 +117,20 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		}
 		return false;
 	}
+
+	@Override
+	protected Message<?> doReceive() {
+		return this.source.receive();
+	}
+
+	@Override
+	protected Object getResourceToBind() {
+		return this.source;
+	}
+
+	@Override
+	protected String getResourceKey() {
+		return IntegrationResourceHolder.MESSAGE_SOURCE;
+	}
+
 }
