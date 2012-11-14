@@ -115,7 +115,9 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 								"as part of '" + expressionType + "' transaction synchronization");
 					}
 					try {
-						spelResultMessage = MessageBuilder.withPayload(value).build();
+						spelResultMessage = MessageBuilder.withPayload(value)
+								.copyHeaders(message.getHeaders())
+								.build();
 						this.sendMessage(messageChannel, spelResultMessage);
 					}
 					catch (Exception e) {

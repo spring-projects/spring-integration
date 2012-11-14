@@ -22,6 +22,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.util.Assert;
 
 /**
@@ -74,9 +75,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 
 	@Override
 	protected boolean doPoll() {
-		Message<?> message = (this.receiveTimeout >= 0)
-				? this.inputChannel.receive(this.receiveTimeout)
-				: this.inputChannel.receive();
+		Message<?> message = this.syncIfTxAndReceive();
 		if (this.logger.isDebugEnabled()){
 			this.logger.debug("Poll resulted in Message: " + message);
 		}
@@ -88,5 +87,23 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		}
 		this.handler.handleMessage(message);
 		return true;
+	}
+
+	@Override
+	protected Message<?> doReceive() {
+		Message<?> message = (this.receiveTimeout >= 0)
+				? this.inputChannel.receive(this.receiveTimeout)
+				: this.inputChannel.receive();
+		return message;
+	}
+
+	@Override
+	protected Object getResourceToBind() {
+		return this.inputChannel;
+	}
+
+	@Override
+	protected String getResourceKey() {
+		return IntegrationResourceHolder.INPUT_CHANNEL;
 	}
 }
