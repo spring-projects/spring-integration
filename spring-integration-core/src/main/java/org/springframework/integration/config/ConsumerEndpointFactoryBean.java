@@ -21,7 +21,6 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
@@ -229,6 +228,7 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer.setErrorHandler(this.pollerMetadata.getErrorHandler());
 
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
+				pollingConsumer.setTransactionSynchronizationFactory(this.pollerMetadata.getTransactionSynchronizationFactory());
 				pollingConsumer.setBeanClassLoader(beanClassLoader);
 				pollingConsumer.setBeanFactory(beanFactory);
 				this.endpoint = pollingConsumer;
