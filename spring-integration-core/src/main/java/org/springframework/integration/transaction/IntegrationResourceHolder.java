@@ -32,6 +32,8 @@ public class IntegrationResourceHolder implements ResourceHolder {
 
 	public static final String MESSAGE_SOURCE = "messageSource";
 
+	public static final String INPUT_CHANNEL = "inputChannel";
+
 	private volatile Message<?> message;
 
 	private final Map<String, Object> attributes = new HashMap<String, Object>();

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int:channel id="queueChannel">
+		<int:queue />
+	</int:channel>
+
+	<int:service-activator input-channel="queueChannel" ref="service" method="handle">
+		<int:poller fixed-delay="5000">
+			<int:transactional synchronization-factory="txSyncFactory"/>
+		</int:poller>
+	</int:service-activator>
+
+	<bean id="service" class="org.springframework.integration.channel.TransactionSynchronizationQueueChannelTests$Service"/>
+
+	<int:transaction-synchronization-factory id="txSyncFactory">
+		<int:after-commit channel="good" />
+		<int:after-rollback expression="'retry:' + payload" channel="queueChannel" />
+	</int:transaction-synchronization-factory>
+
+	<int:channel id="good">
+		<int:queue />
+	</int:channel>
+
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+
+	<int:channel id="queueChannel2">
+		<int:queue />
+	</int:channel>
+
+	<int:service-activator input-channel="queueChannel2" ref="service" method="handle">
+		<int:poller fixed-delay="5000">
+			<int:transactional synchronization-factory="txSyncFactory2"/>
+		</int:poller>
+	</int:service-activator>
+
+	<int:transaction-synchronization-factory id="txSyncFactory2">
+		<int:after-commit expression="payload + ' processed ok from ' + #inputChannel.componentName"
+			channel="good" />
+	</int:transaction-synchronization-factory>
+
+	<int:channel id="good">
+		<int:queue />
+	</int:channel>
+
+</beans>
