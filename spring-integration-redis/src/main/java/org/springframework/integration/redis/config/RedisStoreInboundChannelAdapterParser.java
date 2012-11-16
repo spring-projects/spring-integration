@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.config;
 
 import org.w3c.dom.Element;
@@ -27,6 +28,7 @@ import org.springframework.integration.config.xml.AbstractPollingInboundChannelA
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.inbound.RedisStoreMessageSource;
 import org.springframework.util.StringUtils;
+
 /**
  * Parser for Redis store inbound adapters
  *
@@ -34,7 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @since 2.2
  */
-public class RedisCollectionInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+public class RedisStoreInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
@@ -43,9 +45,8 @@ public class RedisCollectionInboundChannelAdapterParser extends AbstractPollingI
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (StringUtils.hasText(redisTemplate) && StringUtils.hasText(connectionFactory)){
 			parserContext.getReaderContext().error("Only one of '" + redisTemplate + "' or '"
-					+ connectionFactory + "' is allowed", element);
+					+ connectionFactory + "' is allowed.", element);
 		}
-
 		if (StringUtils.hasText(redisTemplate)){
 			builder.addConstructorArgReference(redisTemplate);
 		}
@@ -55,18 +56,15 @@ public class RedisCollectionInboundChannelAdapterParser extends AbstractPollingI
 			}
 			builder.addConstructorArgReference(connectionFactory);
 		}
-
 		boolean atLeastOneRequired = true;
 		RootBeanDefinition expressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("key", "key-expression",
 						parserContext, element, atLeastOneRequired);
-
 		builder.addConstructorArgValue(expressionDef);
-
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
-
 		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());
 		return new RuntimeBeanReference(beanName);
 	}
+
 }
