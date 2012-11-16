@@ -523,17 +523,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		final Message<?> polledMessage = this.doPollForMessage(key);
 
 		if (polledMessage != null){
-
-			final String messageId = polledMessage.getHeaders().getId().toString();
-
-			if (this.usingIdCache) {
-				boolean removed = idCache.remove(messageId);
-
-				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("Polled message with id '%s' removed: '%s'.", messageId, removed));
-				}
-			}
-
 			this.removeMessageFromGroup(groupId, polledMessage);
 		}
 

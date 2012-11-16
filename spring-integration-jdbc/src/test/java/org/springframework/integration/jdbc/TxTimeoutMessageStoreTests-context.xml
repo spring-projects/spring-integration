@@ -26,7 +26,7 @@
 		<property name="dataSource" ref="dataSource"/>
 		<property name="queryProvider" ref="queryProvider"/>
 		<property name="region" value="TX_TIMEOUT"/>
-		<property name="usingIdCache" value="false"/>
+		<property name="usingIdCache" value="true"/>
 	</bean>
 
 	<int:channel id="inputChannel">
