@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.jdbc.test.ServiceActivator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,6 +33,11 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ *
+ * @author Gunnar Hillert
+ *
+ */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TxTimeoutMessageStoreTests {
@@ -47,51 +51,23 @@ public class TxTimeoutMessageStoreTests {
 	private MessageChannel inputChannel;
 
 	@Autowired
-	private PollableChannel errorChannel;
-
-	@Autowired
 	PlatformTransactionManager transactionManager;
 
 	@Autowired
 	ServiceActivator sa;
 
-//	@Before
-//	@Transactional @Rollback(false)
-//	public void populateDb() throws SQLException {
-//		//new JdbcTemplate
-//
-//		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-//
-//		transactionTemplate.setIsolationLevel(Isolation.READ_COMMITTED.value());
-//		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-//
-//		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-//			@Override
-//			protected void doInTransactionWithoutResult(TransactionStatus status) {
-//				ResourceDatabasePopulator p = new ResourceDatabasePopulator();
-//				p.addScript(
-//						new ClassPathResource("org/springframework/integration/jdbc/messagestore/channel/schema-derby.sql"));
-//				try {
-//					p.populate(dataSource.getConnection());
-//				} catch (SQLException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
-
 	@Test
 	public void test() throws InterruptedException {
+
+		int maxMessages = 10;
+		int maxWaitTime = 30000;
 
 		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
 		transactionTemplate.setIsolationLevel(Isolation.READ_COMMITTED.value());
-		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_NEVER);
 
-		int maxMessages = 10;
-
-		for (int i = 0; i < maxMessages; ++i) {
+		for (int i = 1; i <= maxMessages; ++i) {
 			final String message = "TEST MESSAGE " + i;
 			log.info("Sending message: " + message);
 
@@ -102,12 +78,13 @@ public class TxTimeoutMessageStoreTests {
 				}
 			});
 
-			log.info("Done sending message: "  + message);
+			log.info(String.format("Done sending message %s of %s: %s", i, maxMessages, message));
 		}
 
 		log.info("Done sending " + maxMessages + " messages.");
 
-		Assert.assertTrue("Contdown latch did not count down from 10 to 0 in 10000ms.", sa.await(30000));
+		Assert.assertTrue(String.format("Contdown latch did not count down from " +
+				"%s to 0 in %sms.", maxMessages, maxWaitTime), sa.await(maxWaitTime));
 
 	}
 

@@ -35,7 +35,7 @@
 
 	<int:bridge input-channel="inputChannel" output-channel="outputChannel">
 		<int:poller fixed-delay="500" receive-timeout="500"
-			max-messages-per-poll="10"  task-executor="pool">
+			max-messages-per-poll="1" task-executor="pool">
 			<int:transactional propagation="REQUIRED" synchronization-factory="syncFactory"
 				isolation="READ_COMMITTED" transaction-manager="transactionManager" />
 		</int:poller>

@@ -336,6 +336,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		if (this.messageMapper == null) {
 			this.messageMapper = new MessageMapper(this.deserializer, this.lobHandler);
 		}
+
 	}
 
 	/**
@@ -407,11 +408,13 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 		final String query;
 
-		if (this.usingIdCache && !this.idCache.isEmpty()) {
-			query = getQuery(this.queryProvider.getPollFromGroupExcludeIdsQuery());
-			parameters.addValue("message_ids", idCache);
-		} else {
-			query = getQuery(this.queryProvider.getPollFromGroupQuery());
+		synchronized (idCache) {
+			if (this.usingIdCache && !this.idCache.isEmpty()) {
+				query = getQuery(this.queryProvider.getPollFromGroupExcludeIdsQuery());
+				parameters.addValue("message_ids", idCache);
+			} else {
+				query = getQuery(this.queryProvider.getPollFromGroupQuery());
+			}
 		}
 
 		final List<Message<?>> messages = namedParameterJdbcTemplate.query(query, parameters, messageMapper
@@ -509,7 +512,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
-		String key = getKey(groupId);
+		final String key = getKey(groupId);
 		return jdbcTemplate.queryForInt(getQuery(queryProvider.getCountAllMessagesInGroupQuery()), key, this.region);
 	}
 

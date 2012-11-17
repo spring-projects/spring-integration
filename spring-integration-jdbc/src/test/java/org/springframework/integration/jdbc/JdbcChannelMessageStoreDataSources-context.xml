@@ -13,18 +13,35 @@
 		-->
 	</bean>
 
-	<beans profile="default, derby">
+	<beans profile="default, hsql">
 
-<!-- 		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+			<property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
+			<property name="initialSize" value="10"/>
+			<property name="url" value="jdbc:hsqldb:mem:integration;hsqldb.tx=mvcc" />
+			<property name="username" value="sa" />
+			<property name="password" value="" />
+		</bean>
+
+		<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+			<jdbc:script execution="INIT" location="classpath:org/springframework/integration/jdbc/messagestore/channel/schema-drop-hsql.sql"/>
+			<jdbc:script execution="INIT" location="classpath:org/springframework/integration/jdbc/messagestore/channel/schema-hsql.sql"/>
+		</jdbc:initialize-database>
+
+		<bean id="queryProvider" class="org.springframework.integration.jdbc.support.messagestore.channel.query.HsqlQueryProvider"/>
+	</beans>
+
+	<beans profile="derby">
+
+		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 			<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
 			<property name="initialSize" value="10"/>
 			<property name="url" value="jdbc:derby:memory:integration;create=true" />
 			<property name="username" value="int" />
 			<property name="password" value="int" />
-			<property name="defaultAutoCommit" value="true" />
-		</bean> -->
+		</bean>
 
-<!-- 		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+<!--  	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 			<property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
 			<property name="initialSize" value="10"/>
 			<property name="url" value="jdbc:derby://localhost:1527/integration;create=true" />
@@ -32,9 +49,9 @@
 			<property name="password" value="int" />
 		</bean> -->
 
-		<jdbc:embedded-database id="dataSource" type="DERBY">
+		<jdbc:initialize-database data-source="dataSource">
 			<jdbc:script location="classpath:org/springframework/integration/jdbc/messagestore/channel/schema-derby.sql" />
-		</jdbc:embedded-database>
+		</jdbc:initialize-database>
 
 		<bean id="queryProvider" class="org.springframework.integration.jdbc.support.messagestore.channel.query.DerbyQueryProvider"/>
 	</beans>
@@ -45,7 +62,7 @@
 			<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 			<property name="url" value="jdbc:mysql://localhost/test" />
 			<property name="username" value="root" />
-			<property name="password" value="root" />
+			<property name="password" value="" />
 			<property name="initialSize" value="10" />
 			<property name="defaultAutoCommit" value="false" />
 		</bean>

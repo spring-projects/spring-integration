@@ -58,7 +58,7 @@ public class JdbcMessageHandlerIntegrationTests {
 	public void testSimpleStaticInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (1, 0, 'foo')");
 		Message<String> message = new GenericMessage<String>("foo");
-		handler.handleMessage(message);		
+		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
 		assertEquals("Wrong id", "1", map.get("ID"));
 		assertEquals("Wrong status", 0, map.get("STATUS"));
@@ -73,7 +73,7 @@ public class JdbcMessageHandlerIntegrationTests {
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
 		assertEquals("Wrong name", "foo", map.get("NAME"));
 	}
-	
+
 	@Test
 	public void testIdHeaderDynamicInsert() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (:headers[id], 0, :payload)");
