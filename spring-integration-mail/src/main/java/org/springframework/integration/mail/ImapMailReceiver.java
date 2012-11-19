@@ -41,10 +41,11 @@ import com.sun.mail.imap.IMAPMessage;
  * the option of blocking until new messages are available prior to calling
  * {@link #receive()}. That option is only available if the server supports
  * the {@link IMAPFolder#idle() idle} command.
- * 
+ *
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
@@ -94,6 +95,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		IMAPFolder imapFolder = (IMAPFolder) this.getFolder();
 		if (imapFolder.hasNewMessages()) {
 			return;
+		}
+		else if (!imapFolder.getPermanentFlags().contains(Flags.Flag.RECENT)) {
+			if (searchForNewMessages().length > 0) {
+				return;
+			}
 		}
 		imapFolder.addMessageCountListener(this.messageCountListener);
 		try {
@@ -174,7 +180,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 						"USER flags which will be used to prevent duplicates during email fetch.");
 				Flags siFlags = new Flags();
 				siFlags.add(SI_USER_FLAG);
-				notFlagged = new NotTerm(new FlagTerm(siFlags, true));			
+				notFlagged = new NotTerm(new FlagTerm(siFlags, true));
 			}
 			else {
 				logger.debug("This email server does not support RECENT or USER flags. " +
@@ -191,6 +197,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		return searchTerm;
 	}
 
+	@Override
 	protected void setAdditionalFlags(Message message) throws MessagingException {
 		super.setAdditionalFlags(message);
 		if (this.shouldMarkMessagesAsRead) {
@@ -204,6 +211,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 */
 	private static class SimpleMessageCountListener extends MessageCountAdapter {
 
+		@Override
 		public void messagesAdded(MessageCountEvent event) {
 			Message[] messages = event.getMessages();
 			for (Message message : messages) {
