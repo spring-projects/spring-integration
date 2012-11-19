@@ -16,8 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
@@ -33,9 +31,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public class PollingConsumer extends AbstractPollingEndpoint {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
+public class PollingConsumer extends AbstractTransactionSynchronizingPollingEndpoint {
 
 	private final PollableChannel inputChannel;
 
@@ -74,19 +70,8 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 
 
 	@Override
-	protected boolean doPoll() {
-		Message<?> message = this.syncIfTxAndReceive();
-		if (this.logger.isDebugEnabled()){
-			this.logger.debug("Poll resulted in Message: " + message);
-		}
-		if (message == null) {
-			if (this.logger.isDebugEnabled()){
-				this.logger.debug("Received no Message during the poll, returning 'false'");
-			}
-			return false;
-		}
+	protected void handleMessage(Message<?> message) {
 		this.handler.handleMessage(message);
-		return true;
 	}
 
 	@Override

@@ -25,19 +25,15 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.transaction.IntegrationResourceHolder;
-import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -69,8 +65,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile long maxMessagesPerPoll = -1;
 
 	private final Object initializationMonitor = new Object();
-
-	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE);
@@ -110,11 +104,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
-	}
-
-	public void setTransactionSynchronizationFactory(
-			TransactionSynchronizationFactory transactionSynchronizationFactory) {
-		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
 	@Override
@@ -170,20 +159,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		return new Poller(pollingTask);
 	}
 
-	/**
-	 * Synchronize with an existing transaction (if any) and receive
-	 * a message using {@link #doReceive()}.
-	 * @return The message (or null).
-	 */
-	protected final Message<?> syncIfTxAndReceive() {
-		IntegrationResourceHolder holder = bindResourceHolderIfNecessary(
-				this.getResourceKey(), this.getResourceToBind());
-		Message<?> message = this.doReceive();
-		if (holder != null && message != null) {
-			holder.setMessage(message);
-		}
-		return message;
-	}
 	// LifecycleSupport implementation
 
 	@Override // guarded by super#lifecycleLock
@@ -205,29 +180,16 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.initialized = false;
 	}
 
-	private IntegrationResourceHolder bindResourceHolderIfNecessary(String key, Object resource) {
-		IntegrationResourceHolder holder = null;
-
-		if (this.transactionSynchronizationFactory != null) {
-			if (TransactionSynchronizationManager.isActualTransactionActive()) {
-				holder = new IntegrationResourceHolder();
-				if (key != null) {
-					holder.addAttribute(key, resource);
-				}
-				TransactionSynchronizationManager.bindResource(resource, holder);
-				TransactionSynchronizationManager.registerSynchronization(this.transactionSynchronizationFactory.create(resource));
-			}
-		}
-		return holder;
-	}
-
+	/**
+	 * @deprecated Starting with Spring Integration 3.0, subclasses must not
+	 * implement this method. The methods in {@link AbstractTransactionSynchronizingPollingEndpoint}
+	 * will be pulled up here and subclasses must implement doReceive() and handleMessage(Message<?> message)
+	 * instead. Consider refactoring now to subclass {@link AbstractTransactionSynchronizingPollingEndpoint}
+	 * to make 3.0 migration easier.
+	 * @return true if a message was processed.
+	 */
+	@Deprecated
 	protected abstract boolean doPoll();
-
-	protected abstract Message<?> doReceive();
-
-	protected abstract Object getResourceToBind();
-
-	protected abstract String getResourceKey();
 
 	/**
 	 * Default Poller implementation
