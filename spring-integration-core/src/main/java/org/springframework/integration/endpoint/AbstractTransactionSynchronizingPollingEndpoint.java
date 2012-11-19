@@ -24,13 +24,13 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 /**
  * Subclasses support pollers with transaction synchronization.
  * <p/>
- * This class will be deprecated in version 3.0.0 when its methods will be pulled up
+ * This class will be removed in version 3.0.0 when its methods will be pulled up
  * into {@link AbstractPollingEndpoint}.
  * @author Gary Russell
  * @since 2.2
  *
  */
-public abstract class AbstractTransactionSynchronizingPollingEndpoint extends AbstractPollingEndpoint {
+abstract class AbstractTransactionSynchronizingPollingEndpoint extends AbstractPollingEndpoint {
 
 	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
 

@@ -25,6 +25,7 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -182,14 +183,37 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	/**
 	 * @deprecated Starting with Spring Integration 3.0, subclasses must not
-	 * implement this method. The methods in {@link AbstractTransactionSynchronizingPollingEndpoint}
-	 * will be pulled up here and subclasses must implement doReceive() and handleMessage(Message<?> message)
-	 * instead. Consider refactoring now to subclass {@link AbstractTransactionSynchronizingPollingEndpoint}
-	 * to make 3.0 migration easier.
+	 * implement this method. Use {@link #doReceive()} and {@link #handleMessage(Message)} instead,
+	 * to separate the concerns of retrieving and processing a message.
+	 * Consider refactoring now rather than waiting for 3.0.
 	 * @return true if a message was processed.
 	 */
 	@Deprecated
-	protected abstract boolean doPoll();
+	protected boolean doPoll() {
+		Message<?> message = this.doReceive();
+		if (message != null) {
+			this.handleMessage(message);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Obtain the next message (if one is available). MAY return null
+	 * if no message is immediately available.
+	 * @return The message or null.
+	 */
+	protected Message<?> doReceive() {
+		throw new UnsupportedOperationException("Subclass must implement doReceive()");
+	}
+
+	/**
+	 * Handle a message.
+	 * @param message The message.
+	 */
+	protected void handleMessage(Message<?> message) {
+		throw new UnsupportedOperationException("Subclass must implement handleMessage()");
+	}
 
 	/**
 	 * Default Poller implementation
