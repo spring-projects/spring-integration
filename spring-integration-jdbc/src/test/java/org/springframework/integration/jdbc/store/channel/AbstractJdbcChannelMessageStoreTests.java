@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.store.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -22,15 +22,11 @@ import static org.junit.Assert.assertNull;
 
 import javax.sql.DataSource;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
-import org.springframework.integration.jdbc.support.messagestore.channel.QueryProvider;
+import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
+import org.springframework.integration.jdbc.support.store.channel.QueryProvider;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -41,39 +37,34 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Gunnar Hillert
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-public class JdbcChannelMessageStoreTests {
+public class AbstractJdbcChannelMessageStoreTests {
 
-	private static final String TEST_MESSAGE_GROUP = "JdbcChannelMessageStoreTests";
+	protected static final String TEST_MESSAGE_GROUP = "AbstractJdbcChannelMessageStoreTests";
 
 	@Autowired
-	private DataSource dataSource;
+	protected DataSource dataSource;
 
-	private JdbcChannelMessageStore messageStore;
-
-	@Autowired
-	PlatformTransactionManager transactionManager;
+	protected JdbcChannelMessageStore messageStore;
 
 	@Autowired
-	QueryProvider queryProvider;
+	protected PlatformTransactionManager transactionManager;
 
-	@Before
+	@Autowired
+	protected QueryProvider queryProvider;
+
 	public void init() throws Exception {
 		messageStore = new JdbcChannelMessageStore(dataSource);
-		messageStore.setRegion("JdbcChannelMessageStoreTests");
+		messageStore.setRegion("AbstractJdbcChannelMessageStoreTests");
 		messageStore.setQueryProvider(queryProvider);
 		messageStore.afterPropertiesSet();
-		messageStore.removeMessageGroup("JdbcChannelMessageStoreTests");
+		messageStore.removeMessageGroup("AbstractJdbcChannelMessageStoreTests");
 	}
 
-	@Test
 	public void testGetNonExistentMessageFromGroup() throws Exception {
 		Message<?> result = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
 		assertNull(result);
 	}
 
-	@Test
 	public void testAddAndGet() throws Exception {
 		final Message<String> message = MessageBuilder.withPayload("Cartman and Kenny")
 				.setHeader("homeTown", "Southpark")

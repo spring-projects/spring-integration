@@ -13,8 +13,6 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="classpath:org/springframework/integration/jdbc/JdbcChannelMessageStoreDataSources-context.xml"/>
-
 	<int:transaction-synchronization-factory id="syncFactory">
 		<int:after-commit expression="@store.removeFromIdCache(headers.id.toString())" />
 		<int:after-rollback expression="@store.removeFromIdCache(headers.id.toString())"/>
@@ -22,7 +20,7 @@
 
 	<task:executor id="pool" pool-size="10" queue-capacity="10" rejection-policy="CALLER_RUNS" />
 
-	<bean id="store" class="org.springframework.integration.jdbc.JdbcChannelMessageStore">
+	<bean id="store" class="org.springframework.integration.jdbc.store.JdbcChannelMessageStore">
 		<property name="dataSource" ref="dataSource"/>
 		<property name="queryProvider" ref="queryProvider"/>
 		<property name="region" value="TX_TIMEOUT"/>
@@ -43,7 +41,7 @@
 
 	<int:channel id="outputChannel" />
 
-	<bean id="sa" class="org.springframework.integration.jdbc.test.ServiceActivator"/>
+	<bean id="sa" class="org.springframework.integration.jdbc.store.channel.TestService"/>
 
 	<int:service-activator input-channel="outputChannel" ref="sa"/>
 

@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.jdbc.support.messagestore.channel;
+package org.springframework.integration.jdbc.support.store.channel;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,8 +40,7 @@ public class MessageMapper implements RowMapper<Message<?>> {
 	}
 
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-		Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
-		return message;
+		return (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 	}
 
 }

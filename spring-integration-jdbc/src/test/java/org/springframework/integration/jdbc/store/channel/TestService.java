@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.jdbc.test;
+package org.springframework.integration.jdbc.store.channel;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,9 +20,14 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class ServiceActivator {
+/**
+ *
+ * @author Gunnar Hillert
+ *
+ */
+public class TestService {
 
-	private static final Log log = LogFactory.getLog(ServiceActivator.class);
+	private static final Log log = LogFactory.getLog(TestService.class);
 
 	private static Map<String, String> seen = new ConcurrentHashMap<String, String>();
 
@@ -31,14 +36,14 @@ public class ServiceActivator {
 	private int maxNumberOfMessages = 10;
 	private int threadSleep = 10;
 
-	public ServiceActivator(int maxNumberOfMessages, int threadSleep) {
+	public TestService(int maxNumberOfMessages, int threadSleep) {
 		super();
 		this.maxNumberOfMessages = maxNumberOfMessages;
 		latch = new CountDownLatch(maxNumberOfMessages);
 		this.threadSleep = threadSleep;
 	}
 
-	public ServiceActivator() {
+	public TestService() {
 		super();
 		this.maxNumberOfMessages = 10;
 		latch = new CountDownLatch(maxNumberOfMessages);

@@ -99,6 +99,15 @@
 				message as a source of parameters.
 			</para>
 		</section>
+		<section id="2.2-jdbc-message-store-channels">
+			<title>JDBC Adapter - Channel-specific Message Store Implementation</title>
+			<para>
+				A new <emphasis>Message Channel</emphasis>-specific Message Store
+				Implementation has been added, providing a more scalable solution
+				using database-specific SQL queries. For more information please
+				see: <xref linkend="jdbc-message-store-channels"/>.
+			</para>
+		</section>
 		<section id="2.2-file-adapter">
 			<title>File Adapter - Improved File Overwrite/Append Handling</title>
 			<para>

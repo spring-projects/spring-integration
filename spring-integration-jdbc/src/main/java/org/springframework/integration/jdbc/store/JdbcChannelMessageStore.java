@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.store;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -38,12 +38,13 @@ import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.jdbc.support.messagestore.channel.MessageMapper;
-import org.springframework.integration.jdbc.support.messagestore.channel.QueryProvider;
-import org.springframework.integration.jdbc.support.messagestore.channel.query.DerbyQueryProvider;
-import org.springframework.integration.jdbc.support.messagestore.channel.query.MySqlQueryProvider;
-import org.springframework.integration.jdbc.support.messagestore.channel.query.OracleQueryProvider;
-import org.springframework.integration.jdbc.support.messagestore.channel.query.PostgresQueryProvider;
+import org.springframework.integration.jdbc.JdbcMessageStore;
+import org.springframework.integration.jdbc.support.store.channel.MessageMapper;
+import org.springframework.integration.jdbc.support.store.channel.QueryProvider;
+import org.springframework.integration.jdbc.support.store.channel.query.DerbyQueryProvider;
+import org.springframework.integration.jdbc.support.store.channel.query.MySqlQueryProvider;
+import org.springframework.integration.jdbc.support.store.channel.query.OracleQueryProvider;
+import org.springframework.integration.jdbc.support.store.channel.query.PostgresQueryProvider;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -70,7 +71,7 @@ import org.springframework.util.StringUtils;
  *
  * This message store shall be used for message channels only.
  *
- * <strong>NOTICE</strong>: This implementation will change for Spring Integration
+ * <strong>NOTICE</strong>: This implementation may change for Spring Integration
  * 3.0. It is provided for use-cases where the current {@link JdbcMessageStore}
  * is not delivering the desired performance characteristics.
  *
@@ -94,14 +95,13 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * Default value for the table prefix property.
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
-	public static final String DEFAULT_REGION = "DEFAULT";
 
-	public void removeFromIdCache(String id) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Removing Message Id:" + id);
-		}
-		this.idCache.remove(id);
-	}
+	/**
+	 * Default region property, used to partition the message store. For example,
+	 * a separate Spring Integration application with overlapping channel names
+	 * may use the same message store by providing a distinct region name.
+	 */
+	public static final String DEFAULT_REGION = "DEFAULT";
 
 	private QueryProvider queryProvider = new PostgresQueryProvider();
 
@@ -553,6 +553,17 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		}
 
 		return getMessageGroup(groupId);
+	}
+
+	/**
+	 *
+	 * @param messageId
+	 */
+	public void removeFromIdCache(String messageId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Removing Message Id:" + messageId);
+		}
+		this.idCache.remove(messageId);
 	}
 
 	/**
