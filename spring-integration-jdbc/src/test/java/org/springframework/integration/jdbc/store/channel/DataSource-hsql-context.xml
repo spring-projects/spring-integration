@@ -21,5 +21,5 @@
 		<jdbc:script execution="INIT" location="classpath:org/springframework/integration/jdbc/store/channel/schema-hsql.sql"/>
 	</jdbc:initialize-database>
 
-	<bean id="queryProvider" class="org.springframework.integration.jdbc.support.store.channel.query.HsqlQueryProvider"/>
+	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.HsqlQueryProvider"/>
 </beans>

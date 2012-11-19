@@ -39,12 +39,12 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.jdbc.JdbcMessageStore;
-import org.springframework.integration.jdbc.support.store.channel.MessageMapper;
-import org.springframework.integration.jdbc.support.store.channel.QueryProvider;
-import org.springframework.integration.jdbc.support.store.channel.query.DerbyQueryProvider;
-import org.springframework.integration.jdbc.support.store.channel.query.MySqlQueryProvider;
-import org.springframework.integration.jdbc.support.store.channel.query.OracleQueryProvider;
-import org.springframework.integration.jdbc.support.store.channel.query.PostgresQueryProvider;
+import org.springframework.integration.jdbc.store.channel.DerbyQueryProvider;
+import org.springframework.integration.jdbc.store.channel.MessageMapper;
+import org.springframework.integration.jdbc.store.channel.MySqlQueryProvider;
+import org.springframework.integration.jdbc.store.channel.OracleQueryProvider;
+import org.springframework.integration.jdbc.store.channel.PostgresQueryProvider;
+import org.springframework.integration.jdbc.store.channel.QueryProvider;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -61,27 +61,34 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * <p>
  * Channel-specific implementation of {@link MessageGroupStore} using a relational
  * database via JDBC.
  *
  * This message store shall be used for message channels only.
- *
+ * </p>
+ * <p>
  * <strong>NOTICE</strong>: This implementation may change for Spring Integration
  * 3.0. It is provided for use-cases where the current {@link JdbcMessageStore}
  * is not delivering the desired performance characteristics.
+ * </p>
  *
+ * <p>
  * As such, the {@link JdbcChannelMessageStore} uses database specific SQL queries.
- *
+ * </p>
+ * <p>
  * Contrary to the {@link JdbcMessageStore}, this implementation uses one single
  * database table only. The SQL scripts to create the necessary table are packaged
  * under <code>org/springframework/integration/jdbc/messagestore/channel/schema-*.sql</code>,
  * where <code>*</code> denotes the target database type.
- *
+ * </p
+ * >
  * @author Gunnar Hillert
  * @since 2.2
  */
@@ -103,7 +110,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 */
 	public static final String DEFAULT_REGION = "DEFAULT";
 
-	private QueryProvider queryProvider = new PostgresQueryProvider();
+	private QueryProvider queryProvider;
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
@@ -145,24 +152,39 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	}
 
 	/**
-	 * Create a {@link MessageStore} with all mandatory properties.
+	 * Create a {@link MessageStore} with all mandatory properties. The passed-in
+	 * {@link DataSource} is used to instantiate a {@link JdbcTemplate}
+	 *
+	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
+	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
 	 *
 	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcChannelMessageStore(DataSource dataSource) {
 		this();
 		jdbcTemplate = new JdbcTemplate(dataSource);
+
 		this.jdbcTemplate.setFetchSize(1);
+		this.jdbcTemplate.setMaxRows(1);
+
+		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
 	 * The JDBC {@link DataSource} to use when interacting with the database.
+	 * The passed-in {@link DataSource} is used to instantiate a {@link JdbcTemplate}
+	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
+	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
 	 *
 	 * @param dataSource a {@link DataSource}
 	 */
 	public void setDataSource(DataSource dataSource) {
 		jdbcTemplate = new JdbcTemplate(dataSource);
+
 		this.jdbcTemplate.setFetchSize(1);
+		this.jdbcTemplate.setMaxRows(1);
+
+		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
@@ -176,14 +198,18 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	}
 
 	/**
-	 * The {@link JdbcOperations} to use when interacting with the database. Either this property can be set or the
-	 * {@link #setDataSource(DataSource) dataSource}.
+	 * The {@link JdbcOperations} to use when interacting with the database. Either
+	 * this property can be set or the {@link #setDataSource(DataSource) dataSource}.
+	 *
+	 * Please consider passing in a {@link JdbcTemplate} with a fetchSize property
+	 * of 1. This is particularly important for Oracle to ensure First In, First Out (FIFO)
+	 * message retrieval characteristics.
 	 *
 	 * @param jdbcTemplate a {@link JdbcOperations}
 	 */
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		Assert.notNull(jdbcTemplate, "The provided jdbcTemplate must not be null.");
 		this.jdbcTemplate = jdbcTemplate;
-		this.jdbcTemplate.setFetchSize(1);
 	}
 
 	/**
@@ -275,31 +301,31 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	}
 
 	/**
-	 * Consider using this property when polling the database transactionally
+	 * <p>Consider using this property when polling the database transactionally
 	 * using multiple parallel threads, meaning when the configured poller is configured
-	 * using a task executor.
+	 * using a task executor.</p>
 	 *
-	 * The issue is that the {@link #pollMessageFromGroup(Object)} looks for the
+	 * <p>The issue is that the {@link #pollMessageFromGroup(Object)} looks for the
 	 * oldest entry for a giving channel (groupKey) and region ({@link #setRegion(String)}).
+	 * If you do that with multiple threads and you are using transactions, other
+	 * threads may be waiting for that same locked row.</p>
 	 *
-	 * If you do that with multiple threads and you are using transactions other
-	 * threads may be waiting for that same locked row.
+	 * <p>If using the provided {@link OracleQueryProvider}, don't set {@link #usingIdCache}
+	 * to true, as the Oracle query will ignore locked rows.</p>
 	 *
-	 * If using the provided {@link OracleQueryProvider}, don't set {@link #usingIdCache}
-	 * to true, as the Oracle query will ignore locked rows.
-	 *
-	 * Using the id cache, the {@link JdbcChannelMessageStore} will store each
+	 * <p>Using the id cache, the {@link JdbcChannelMessageStore} will store each
 	 * message id in an in-memory collection for the duration of processing. With
-	 * that any polling threads will explicitly exclude those messages from
-	 * being polled.
+	 * that, any polling threads will explicitly exclude those messages from
+	 * being polled.</p>
 	 *
-	 * For this to work, you must setup the corresponding {@link TransactionSynchronizationFactory}:
+	 * <p>For this to work, you must setup the corresponding
+	 * {@link TransactionSynchronizationFactory}:</p>
 	 *
 	 * <pre>
 	 * {@code
 	 * <int:transaction-synchronization-factory id="syncFactory">
-	 *     <int:after-commit   expression="@jdbcChannelMessageStore.removeId" />
-	 *     <int:after-rollback expression="@jdbcChannelMessageStore.removeId" />
+	 *     <int:after-commit   expression="@jdbcChannelMessageStore.removeFromIdCache(headers.id.toString())" />
+	 *     <int:after-rollback expression="@jdbcChannelMessageStore.removeFromIdCache(headers.id.toString())" />
 	 * </int:transaction-synchronization-factory>
 	 * }
 	 * </pre>
@@ -325,7 +351,15 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Check mandatory properties ({@link DataSource} and
-	 * {@link #setQueryProvider(QueryProvider)}).
+	 * {@link #setQueryProvider(QueryProvider)}). If no {@link MessageMapper} was
+	 * explicitly set using {@link #setMessageMapper(MessageMapper)}, the default
+	 * {@link MessageMapper} will be instantiate using the specified {@link #deserializer}
+	 * and {@link #lobHandler}.
+	 *
+	 * Also, if the jdbcTemplate's fetchSize property ({@link JdbcTemplate#getFetchSize()})
+	 * is not 1, a warning will be logged. When using the {@link JdbcChannelMessageStore}
+	 * with Oracle, the fetchSize value of 1 is needed to ensure FIFO characteristics
+	 * of polled messages. Please see the Oracle {@link QueryProvider} for more details.
 	 *
 	 * @throws Exception
 	 */
@@ -335,6 +369,10 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 		if (this.messageMapper == null) {
 			this.messageMapper = new MessageMapper(this.deserializer, this.lobHandler);
+		}
+
+		if (this.jdbcTemplate.getFetchSize() != 1 && logger.isWarnEnabled()) {
+			logger.warn("The jdbcTemplate's fetchsize is not 1 but %s. This may cause FIFO issues with Oracle databases.");
 		}
 
 	}
@@ -399,7 +437,6 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 */
 	protected Message<?> doPollForMessage(String groupIdKey) {
 
-		jdbcTemplate.setMaxRows(1);
 		final NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
 		final MapSqlParameterSource parameters = new MapSqlParameterSource();
 
@@ -417,8 +454,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 			}
 		}
 
-		final List<Message<?>> messages = namedParameterJdbcTemplate.query(query, parameters, messageMapper
-		);
+		final List<Message<?>> messages = namedParameterJdbcTemplate.query(query, parameters, messageMapper);
 
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0){
@@ -469,6 +505,9 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
+	/**
+	 * Not fully used. Only wraps the provided group id.
+	 */
 	public MessageGroup getMessageGroup(Object groupId) {
 		return new SimpleMessageGroup(groupId);
 	}
@@ -510,6 +549,10 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
+	/**
+	 * Returns the number of messages persisted for the specified channel id (groupId)
+	 * and the specified region ({@link #setRegion(String)}).
+	 */
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
@@ -556,6 +599,12 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	}
 
 	/**
+	 * <p>Remove a Message Id from the idCache. Should be used in conjunction
+	 * with the Spring Integration Transaction Synchronization feature to remove
+	 * a message from the Message Id cache once a transaction either succeeded or
+	 * rolled back.</p>
+	 * <p>Only applicable if {@link #setUsingIdCache(boolean)} is set to
+	 * <code>true</code></p>.
 	 *
 	 * @param messageId
 	 */
@@ -564,6 +613,17 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 			logger.debug("Removing Message Id:" + messageId);
 		}
 		this.idCache.remove(messageId);
+	}
+
+	/**
+	 * Returns the size of the Message Id Cache, which caches Message Ids for
+	 * those messages that are currently being processed.
+	 *
+	 * @return The size of the Message Id Cache
+	 */
+	@ManagedMetric
+	public int getSizeOfIdCache() {
+		return this.idCache.size();
 	}
 
 	/**

@@ -10,9 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.jdbc.support.store.channel.query;
+package org.springframework.integration.jdbc.store.channel;
+
+import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
+ * Contains Oracle-specific queries for the {@link JdbcChannelMessageStore}.
+ * Please ensure that the used {@link JdbcTemplate}'s fetchSize property is <code>1</code>.
+ *
+ * Fore more details, please see: http://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
+ *
  * @author Gunnar Hillert
  * @since 2.2
  */

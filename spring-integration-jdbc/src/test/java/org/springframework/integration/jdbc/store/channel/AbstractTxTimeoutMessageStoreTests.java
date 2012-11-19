@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -47,7 +48,10 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 	protected PlatformTransactionManager transactionManager;
 
 	@Autowired
-	protected TestService sa;
+	protected TestService testService;
+
+	@Autowired
+	protected JdbcChannelMessageStore jdbcChannelMessageStore;
 
 	public void test() throws InterruptedException {
 
@@ -76,7 +80,11 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 		log.info("Done sending " + maxMessages + " messages.");
 
 		Assert.assertTrue(String.format("Contdown latch did not count down from " +
-				"%s to 0 in %sms.", maxMessages, maxWaitTime), sa.await(maxWaitTime));
+				"%s to 0 in %sms.", maxMessages, maxWaitTime), testService.await(maxWaitTime));
+
+		Thread.sleep(2000);
+
+		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(jdbcChannelMessageStore.getSizeOfIdCache()));
 
 	}
 

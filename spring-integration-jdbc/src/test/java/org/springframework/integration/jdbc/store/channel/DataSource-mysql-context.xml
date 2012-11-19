@@ -17,6 +17,6 @@
 		<property name="initialSize" value="10" />
 	</bean>
 
-	<bean id="queryProvider" class="org.springframework.integration.jdbc.support.store.channel.query.MySqlQueryProvider"/>
+	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.MySqlQueryProvider"/>
 
 </beans>

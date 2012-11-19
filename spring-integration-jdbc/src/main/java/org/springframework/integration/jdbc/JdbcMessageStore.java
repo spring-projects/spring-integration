@@ -38,7 +38,9 @@ import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
@@ -63,9 +65,17 @@ import org.springframework.util.StringUtils;
  * tables are packaged as <code>org/springframework/integration/jdbc/schema-*.sql</code>, where <code>*</code> is the
  * target database type.
  *
+ * Notice: Starting with Spring Integration 3.0, this class will move to package:
+ * <code>org.springframework.integration.jdbc.store</code>.
+ *
+ * If you intend backing a {@link MessageChannel} using a JDBC-based Message Store,
+ * please consider using the channel-specific {@link JdbcChannelMessageStore} instead.
+ *
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Matt Stine
+ * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 @ManagedResource

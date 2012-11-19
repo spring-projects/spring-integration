@@ -21,6 +21,6 @@
 		 </property>
 	</bean>
 
-	<bean id="queryProvider" class="org.springframework.integration.jdbc.support.store.channel.query.OracleQueryProvider"/>
+	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.OracleQueryProvider"/>
 
 </beans>
