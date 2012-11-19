@@ -28,6 +28,9 @@
 											  collection-type="ZSET"
 											  key-expression="'presidents'"/>
 
+	<int-redis:store-outbound-channel-adapter id="zset"
+											  collection-type="ZSET"/>
+
 	<int-redis:store-outbound-channel-adapter id="mapToMapA"
 											  collection-type="MAP"
 											  map-key-expression="'foo'"
@@ -53,6 +56,10 @@
 	<int-redis:store-outbound-channel-adapter id="property"
 											  collection-type="PROPERTIES"
 											  key="pepboys"/>
+
+	<int-redis:store-outbound-channel-adapter id="simpleProperty"
+											  map-key-expression="headers['baz']"
+											  collection-type="PROPERTIES"/>
 
 	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 		<property name="port" value="7379"/>
