@@ -17,7 +17,9 @@ package org.springframework.integration.mail;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,6 +31,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -407,6 +411,160 @@ public class ImapMailReceiverTests {
 		org.springframework.integration.Message<?> replMessage = errorChannel.receive(10000);
 		assertNotNull(replMessage);
 		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
+	}
+
+	@Test
+	public void testNoInitialIdleDelayWhenRecentNotSupported() throws Exception{
+		ApplicationContext context =
+			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
+		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+
+		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
+		receiver = spy(receiver);
+		receiver.afterPropertiesSet();
+
+		final IMAPFolder folder = mock(IMAPFolder.class);
+		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		when(folder.isOpen()).thenReturn(false).thenReturn(true);
+		when(folder.exists()).thenReturn(true);
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
+
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		when(store.isConnected()).thenReturn(true);
+		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
+		storeField.set(receiver, store);
+
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return folder;
+			}
+		}).when(receiver).getFolder();
+
+		MimeMessage mailMessage = mock(MimeMessage.class);
+		Flags flags = mock(Flags.class);
+		when(mailMessage.getFlags()).thenReturn(flags);
+		final Message[] messages = new Message[]{mailMessage};
+
+		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				/*
+				 * Return the message from first invocation of waitForMessages()
+				 * and in receive(); then return false in the next call to
+				 * waitForMessages() so we enter idle(); counter will be reset
+				 * to 1 in the mocked idle().
+				 */
+				if (shouldFindMessagesCounter.decrementAndGet() >= 0) {
+					return messages;
+				}
+				else {
+					return new Message[0];
+				}
+			}
+		}).when(receiver).searchForNewMessages();
+
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return null;
+			}
+		}).when(receiver).fetchMessages(messages);
+
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Thread.sleep(5000);
+				shouldFindMessagesCounter.set(1);
+				return null;
+			}
+		}).when(folder).idle();
+
+		adapter.start();
+
+		/*
+		 * Idle takes 5 seconds; if all is well, we should receive the first message
+		 * before then.
+		 */
+		assertNotNull(channel.receive(3000));
+		// We should not receive any more until the next idle elapses
+		assertNull(channel.receive(3000));
+		assertNotNull(channel.receive(6000));
+	}
+
+	@Test
+	public void testInitialIdleDelayWhenRecentIsSupported() throws Exception{
+		ApplicationContext context =
+			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
+		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+
+		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
+		receiver = spy(receiver);
+		receiver.afterPropertiesSet();
+
+		final IMAPFolder folder = mock(IMAPFolder.class);
+		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.RECENT));
+		when(folder.isOpen()).thenReturn(false).thenReturn(true);
+		when(folder.exists()).thenReturn(true);
+
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
+
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		when(store.isConnected()).thenReturn(true);
+		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
+		storeField.set(receiver, store);
+
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return folder;
+			}
+		}).when(receiver).getFolder();
+
+		MimeMessage mailMessage = mock(MimeMessage.class);
+		Flags flags = mock(Flags.class);
+		when(mailMessage.getFlags()).thenReturn(flags);
+		final Message[] messages = new Message[]{mailMessage};
+
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return messages;
+			}
+		}).when(receiver).searchForNewMessages();
+
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return null;
+			}
+		}).when(receiver).fetchMessages(messages);
+
+		final CountDownLatch idles = new CountDownLatch(2);
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				idles.countDown();
+				Thread.sleep(5000);
+				return null;
+			}
+		}).when(folder).idle();
+
+		adapter.start();
+
+		/*
+		 * Idle takes 5 seconds; since this server supports RECENT, we should
+		 * not receive any early messages.
+		 */
+		assertNull(channel.receive(3000));
+		assertNotNull(channel.receive(5000));
+		assertTrue(idles.await(5, TimeUnit.SECONDS));
 	}
 
 	@Test // see INT-1801

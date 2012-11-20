@@ -110,6 +110,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		if (imapFolder.hasNewMessages()) {
 			return;
 		}
+		else if (!folder.getPermanentFlags().contains(Flags.Flag.RECENT)) {
+			if (searchForNewMessages().length > 0) {
+				return;
+			}
+		}
 		imapFolder.addMessageCountListener(this.messageCountListener);
 		try {
 			imapFolder.idle();
