@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mail;
 
 import static org.junit.Assert.assertEquals;
@@ -33,6 +34,7 @@ import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -63,6 +65,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
 
 import com.sun.mail.imap.IMAPFolder;
@@ -71,7 +74,6 @@ import com.sun.mail.imap.IMAPMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
- *
  */
 public class ImapMailReceiverTests {
 
@@ -663,4 +665,21 @@ public class ImapMailReceiverTests {
 
 		assertSame(folder, messages[0].getFolder());
 	}
+
+	@Test
+	public void testExecShutdown() {
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(new ImapMailReceiver());
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		ExecutorService exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
+		adapter.stop();
+		assertTrue(exec.isShutdown());
+		adapter.start();
+		exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
+		adapter.stop();
+		assertTrue(exec.isShutdown());
+	}
+
 }
