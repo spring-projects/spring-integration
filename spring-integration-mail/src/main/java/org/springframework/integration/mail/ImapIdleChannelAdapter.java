@@ -58,7 +58,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private final IdleTask idleTask = new IdleTask();
 
-	private volatile Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
+	private volatile Executor sendingTaskExecutor;
 
 	private volatile boolean sendingTaskExecutorSet;
 
@@ -135,7 +135,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		final TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
 		if (this.sendingTaskExecutor == null) {
-			// we must have previously been stopped; create a new executor
 			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
 		}
 		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
@@ -157,7 +156,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		/*
 		 * If we're running with the default executor, shut it down.
 		 */
-		if (!sendingTaskExecutorSet) {
+		if (!this.sendingTaskExecutorSet && this.sendingTaskExecutor != null) {
 			((ExecutorService) sendingTaskExecutor).shutdown();
 			this.sendingTaskExecutor = null;
 		}
@@ -185,6 +184,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		public void run() {
 			final TaskScheduler scheduler =  getTaskScheduler();
 			Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+			/*
+			 * The following shouldn't be necessary because doStart() will have ensured we have
+			 * one. But, just in case...
+			 */
+			Assert.state(sendingTaskExecutor != null, "'sendingTaskExecutor' must not be null");
+
 			try {
 				if (logger.isDebugEnabled()) {
 					logger.debug("waiting for mail");

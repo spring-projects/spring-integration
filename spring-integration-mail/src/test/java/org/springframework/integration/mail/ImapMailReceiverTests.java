@@ -522,5 +522,7 @@ public class ImapMailReceiverTests {
 		adapter.start();
 		exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
 		adapter.stop();
-		assertTrue(exec.isShutdown());	}
+		assertTrue(exec.isShutdown());
+	}
+
 }
