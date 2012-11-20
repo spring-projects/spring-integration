@@ -182,15 +182,15 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	/**
-	 * @deprecated Starting with Spring Integration 3.0, subclasses must not
-	 * implement this method. Use {@link #doReceive()} and {@link #handleMessage(Message)} instead,
+	 * @deprecated Starting with Spring Integration 3.0, subclasses will not be able to
+	 * override this method. Use {@link #receiveMessage()} and {@link #handleMessage(Message)} instead,
 	 * to separate the concerns of retrieving and processing a message.
 	 * Consider refactoring now rather than waiting for 3.0.
 	 * @return true if a message was processed.
 	 */
 	@Deprecated
 	protected boolean doPoll() {
-		Message<?> message = this.doReceive();
+		Message<?> message = this.receiveMessage();
 		if (message != null) {
 			this.handleMessage(message);
 			return true;
@@ -203,7 +203,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * if no message is immediately available.
 	 * @return The message or null.
 	 */
-	protected Message<?> doReceive() {
+	protected Message<?> receiveMessage() {
 		throw new UnsupportedOperationException("Subclass must implement doReceive()");
 	}
 

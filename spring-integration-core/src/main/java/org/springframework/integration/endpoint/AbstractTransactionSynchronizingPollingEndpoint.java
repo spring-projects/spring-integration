@@ -64,7 +64,7 @@ abstract class AbstractTransactionSynchronizingPollingEndpoint extends AbstractP
 	protected final boolean doPoll() {
 		IntegrationResourceHolder holder = bindResourceHolderIfNecessary(
 				this.getResourceKey(), this.getResourceToBind());
-		Message<?> message = this.doReceive();
+		Message<?> message = this.receiveMessage();
 		boolean result;
 		if (message == null) {
 			if (this.logger.isDebugEnabled()){
@@ -106,7 +106,7 @@ abstract class AbstractTransactionSynchronizingPollingEndpoint extends AbstractP
 	 * if no message is immediately available.
 	 * @return The message or null.
 	 */
-	protected abstract Message<?> doReceive();
+	protected abstract Message<?> receiveMessage();
 
 	/**
 	 * Handle a message.

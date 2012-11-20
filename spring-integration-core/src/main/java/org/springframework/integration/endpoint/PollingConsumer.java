@@ -75,7 +75,7 @@ public class PollingConsumer extends AbstractTransactionSynchronizingPollingEndp
 	}
 
 	@Override
-	protected Message<?> doReceive() {
+	protected Message<?> receiveMessage() {
 		Message<?> message = (this.receiveTimeout >= 0)
 				? this.inputChannel.receive(this.receiveTimeout)
 				: this.inputChannel.receive();

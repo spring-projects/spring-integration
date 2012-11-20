@@ -107,7 +107,7 @@ public class SourcePollingChannelAdapter extends AbstractTransactionSynchronizin
 	}
 
 	@Override
-	protected Message<?> doReceive() {
+	protected Message<?> receiveMessage() {
 		return this.source.receive();
 	}
 
