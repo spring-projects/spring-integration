@@ -18,6 +18,7 @@ package org.springframework.integration.mail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,6 +61,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.FileCopyUtils;
 
 import com.sun.mail.imap.IMAPFolder;
@@ -505,4 +508,19 @@ public class ImapMailReceiverTests {
 
 		assertSame(folder, messages[0].getFolder());
 	}
+
+	@Test
+	public void testExecShutdown() {
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(new ImapMailReceiver());
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		ExecutorService exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
+		adapter.stop();
+		assertTrue(exec.isShutdown());
+		adapter.start();
+		exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
+		adapter.stop();
+		assertTrue(exec.isShutdown());	}
 }
