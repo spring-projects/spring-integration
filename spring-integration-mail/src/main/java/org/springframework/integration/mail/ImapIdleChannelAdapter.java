@@ -19,6 +19,7 @@ package org.springframework.integration.mail;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
@@ -57,7 +58,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private final IdleTask idleTask = new IdleTask();
 
-	private volatile Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
+	private volatile Executor sendingTaskExecutor;
+
+	private volatile boolean sendingTaskExecutorSet;
 
 	private volatile boolean shouldReconnectAutomatically = true;
 
@@ -102,6 +105,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	public void setSendingTaskExecutor(Executor sendingTaskExecutor) {
 		Assert.notNull(sendingTaskExecutor, "'sendingTaskExecutor' must not be null");
 		this.sendingTaskExecutor = sendingTaskExecutor;
+		this.sendingTaskExecutorSet = true;
 	}
 
 	/**
@@ -130,6 +134,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	protected void doStart() {
 		final TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+		if (this.sendingTaskExecutor == null) {
+			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
+		}
 		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
 		this.pingTask = scheduler.scheduleAtFixedRate(new PingTask(), this.connectionPingInterval);
 	}
@@ -145,6 +152,13 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		catch (Exception e) {
 			throw new IllegalStateException(
 					"Failure during the destruction of Mail receiver: " + mailReceiver, e);
+		}
+		/*
+		 * If we're running with the default executor, shut it down.
+		 */
+		if (!this.sendingTaskExecutorSet && this.sendingTaskExecutor != null) {
+			((ExecutorService) sendingTaskExecutor).shutdown();
+			this.sendingTaskExecutor = null;
 		}
 	}
 
@@ -170,6 +184,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		public void run() {
 			final TaskScheduler scheduler =  getTaskScheduler();
 			Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+			/*
+			 * The following shouldn't be necessary because doStart() will have ensured we have
+			 * one. But, just in case...
+			 */
+			Assert.state(sendingTaskExecutor != null, "'sendingTaskExecutor' must not be null");
+
 			try {
 				if (logger.isDebugEnabled()) {
 					logger.debug("waiting for mail");
