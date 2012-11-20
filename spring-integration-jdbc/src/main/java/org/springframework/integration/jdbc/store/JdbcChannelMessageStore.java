@@ -109,7 +109,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 */
 	public static final String DEFAULT_REGION = "DEFAULT";
 
-	private ChannelMessageStoreQueryProvider queryProvider;
+	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
@@ -136,7 +136,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	private volatile LobHandler lobHandler = new DefaultLobHandler();
 
-	private volatile MessageRowMapper messageMapper;
+	private volatile MessageRowMapper messageRowMapper;
 
 	private volatile Map<String, String> queryCache = new HashMap<String, String>();
 
@@ -235,11 +235,11 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * is used to convert the selected database row representing the persisted
 	 * message into the actual {@link Message} object.
 	 *
-	 * @param messageMapper Must not be null
+	 * @param messageRowMapper Must not be null
 	 */
-	public void setMessageMapper(MessageRowMapper messageMapper) {
-		Assert.notNull(messageMapper, "The provided MessageRowMapper must not be null.");
-		this.messageMapper = messageMapper;
+	public void setMessageRowMapper(MessageRowMapper messageRowMapper) {
+		Assert.notNull(messageRowMapper, "The provided MessageRowMapper must not be null.");
+		this.messageRowMapper = messageRowMapper;
 	}
 
 	/**
@@ -260,11 +260,11 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * your requirements.
 	 * </p>
 	 *
-	 * @param queryProvider Must not be null.
+	 * @param channelMessageStoreQueryProvider Must not be null.
 	 */
-	public void setQueryProvider(ChannelMessageStoreQueryProvider queryProvider) {
-		Assert.notNull(queryProvider, "The provided queryProvider must not be null.");
-		this.queryProvider = queryProvider;
+	public void setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider) {
+		Assert.notNull(channelMessageStoreQueryProvider, "The provided channelMessageStoreQueryProvider must not be null.");
+		this.channelMessageStoreQueryProvider = channelMessageStoreQueryProvider;
 	}
 
 	/**
@@ -350,8 +350,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Check mandatory properties ({@link DataSource} and
-	 * {@link #setQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper} was
-	 * explicitly set using {@link #setMessageMapper(MessageRowMapper)}, the default
+	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper} was
+	 * explicitly set using {@link #setMessageRowMapper(MessageRowMapper)}, the default
 	 * {@link MessageRowMapper} will be instantiate using the specified {@link #deserializer}
 	 * and {@link #lobHandler}.
 	 *
@@ -364,10 +364,10 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 */
 	public void afterPropertiesSet() throws Exception {
 		Assert.state(jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
-		Assert.notNull(this.queryProvider, "A queryProvider must be provided.");
+		Assert.notNull(this.channelMessageStoreQueryProvider, "A channelMessageStoreQueryProvider must be provided.");
 
-		if (this.messageMapper == null) {
-			this.messageMapper = new MessageRowMapper(this.deserializer, this.lobHandler);
+		if (this.messageRowMapper == null) {
+			this.messageRowMapper = new MessageRowMapper(this.deserializer, this.lobHandler);
 		}
 
 		if (this.jdbcTemplate.getFetchSize() != 1 && logger.isWarnEnabled()) {
@@ -402,7 +402,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		final String messageId = getKey(result.getHeaders().getId());
 		final byte[] messageBytes = serializer.convert(result);
 
-		jdbcTemplate.update(getQuery(queryProvider.getCreateMessageQuery()), new PreparedStatementSetter() {
+		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getCreateMessageQuery()), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()){
 					logger.debug("Inserting message with id key=" + messageId);
@@ -446,14 +446,14 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 		synchronized (idCache) {
 			if (this.usingIdCache && !this.idCache.isEmpty()) {
-				query = getQuery(this.queryProvider.getPollFromGroupExcludeIdsQuery());
+				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
 				parameters.addValue("message_ids", idCache);
 			} else {
-				query = getQuery(this.queryProvider.getPollFromGroupQuery());
+				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
 			}
 		}
 
-		final List<Message<?>> messages = namedParameterJdbcTemplate.query(query, parameters, messageMapper);
+		final List<Message<?>> messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
 
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0){
@@ -555,7 +555,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
-		return jdbcTemplate.queryForInt(getQuery(queryProvider.getCountAllMessagesInGroupQuery()), key, this.region);
+		return jdbcTemplate.queryForInt(getQuery(channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()), key, this.region);
 	}
 
 	/**
@@ -585,7 +585,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 		final UUID id = messageToRemove.getHeaders().getId();
 
-		int updated = jdbcTemplate.update(getQuery(queryProvider.getDeleteMessageQuery()), new Object[] { getKey(id), getKey(groupId), region }, new int[] {
+		int updated = jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageQuery()), new Object[] { getKey(id), getKey(groupId), region }, new int[] {
 					Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
 
 		if (updated != 0) {
@@ -632,7 +632,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 		final String groupKey = getKey(groupId);
 
-		jdbcTemplate.update(getQuery(queryProvider.getDeleteMessageGroupQuery()), new PreparedStatementSetter() {
+		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageGroupQuery()), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
 				if (logger.isDebugEnabled()){
 					logger.debug("Marking messages with group key=" + groupKey);

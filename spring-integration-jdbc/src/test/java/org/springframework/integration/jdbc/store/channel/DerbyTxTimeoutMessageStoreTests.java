@@ -12,6 +12,12 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 
 
 /**
@@ -19,11 +25,12 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Gunnar Hillert
  *
  */
-//@ContextConfiguration
-//@RunWith(SpringJUnit4ClassRunner.class)
+@Ignore
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class DerbyTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
 
-	//@Test
+	@Test
 	@Override
 	public void test() throws InterruptedException {
 		super.test();

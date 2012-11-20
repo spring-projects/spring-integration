@@ -54,7 +54,7 @@ public class AbstractJdbcChannelMessageStoreTests {
 	public void init() throws Exception {
 		messageStore = new JdbcChannelMessageStore(dataSource);
 		messageStore.setRegion("AbstractJdbcChannelMessageStoreTests");
-		messageStore.setQueryProvider(queryProvider);
+		messageStore.setChannelMessageStoreQueryProvider(queryProvider);
 		messageStore.afterPropertiesSet();
 		messageStore.removeMessageGroup("AbstractJdbcChannelMessageStoreTests");
 	}

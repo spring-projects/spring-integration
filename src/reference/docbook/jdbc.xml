@@ -351,8 +351,9 @@
 		<para>
 			The <classname>JdbcChannelMessageStore</classname> uses database specific
 			SQL queries to retrieve messages from the database. Therefore, users must
-			set the <interfacename>QueryProvider</interfacename> property on the
-			<classname>JdbcChannelMessageStore</classname>. This <interfacename>QueryProvider</interfacename>
+			set the <interfacename>ChannelMessageStoreQueryProvider</interfacename> property on the
+			<classname>JdbcChannelMessageStore</classname>. This
+			<interfacename>channelMessageStoreQueryProvider</interfacename>
 			provides the SQL queries and Spring Integration provides support for
 			the following relational databases:
 		</para>
@@ -365,8 +366,8 @@
 		</itemizedlist>
 		<para>
 			If your database is not listed, you can easily extend
-			the <classname>AbstractQueryProvider</classname> class and provide your
-			own custom queries.
+			the <classname>AbstractChannelMessageStoreQueryProvider</classname>
+			class and provide your own custom queries.
 		</para>
 		<important>
 			<para>
@@ -410,7 +411,7 @@
 
 <bean id="store" class="o.s.i.jdbc.store.JdbcChannelMessageStore">
     <property name="dataSource" ref="dataSource"/>
-    <property name="queryProvider" ref="queryProvider"/>
+    <property name="channelMessageStoreQueryProvider" ref="queryProvider"/>
     <property name="region" value="TX_TIMEOUT"/>
     <property name="usingIdCache" value="true"/>
 </bean>
