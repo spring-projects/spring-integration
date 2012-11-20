@@ -210,10 +210,11 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		final Lock storeLock = this.storeLock;
 		storeLock.lockInterruptibly();
 		try {
-			while (capacity != Integer.MAX_VALUE && this.size() == capacity && timeoutInNanos > 0){
-				timeoutInNanos = this.messageStoreNotFull.awaitNanos(timeoutInNanos);
+			if (capacity != Integer.MAX_VALUE) {
+				while (this.size() == capacity && timeoutInNanos > 0){
+					timeoutInNanos = this.messageStoreNotFull.awaitNanos(timeoutInNanos);
+				}
 			}
-
 			if (timeoutInNanos > 0){
 				offered = this.doOffer(message);
 			}
@@ -228,10 +229,11 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		final Lock storeLock = this.storeLock;
 		storeLock.lockInterruptibly();
 		try {
-			while (capacity != Integer.MAX_VALUE && this.size() == capacity){
-				this.messageStoreNotFull.await();
+			if (capacity != Integer.MAX_VALUE) {
+				while (this.size() == capacity){
+					this.messageStoreNotFull.await();
+				}
 			}
-
 			this.doOffer(message);
 		}
 		finally {
