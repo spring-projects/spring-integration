@@ -102,7 +102,7 @@ public class AmqpOutboundGatewayParserTests {
 		 .when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
-		MessageChannel requestChannel = context.getBean("toRabbit", MessageChannel.class);
+		MessageChannel requestChannel = context.getBean("toRabbit1", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").build();
 		requestChannel.send(message);
 
@@ -149,7 +149,7 @@ public class AmqpOutboundGatewayParserTests {
 		 .when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
-		MessageChannel requestChannel = context.getBean("toRabbit", MessageChannel.class);
+		MessageChannel requestChannel = context.getBean("toRabbit2", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").build();
 		requestChannel.send(message);
 
@@ -196,7 +196,7 @@ public class AmqpOutboundGatewayParserTests {
 		 .when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
-		MessageChannel requestChannel = context.getBean("toRabbit", MessageChannel.class);
+		MessageChannel requestChannel = context.getBean("toRabbit3", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").build();
 		requestChannel.send(message);
 
@@ -245,7 +245,7 @@ public class AmqpOutboundGatewayParserTests {
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 
-		MessageChannel requestChannel = context.getBean("toRabbit", MessageChannel.class);
+		MessageChannel requestChannel = context.getBean("toRabbit4", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").build();
 		requestChannel.send(message);
 
