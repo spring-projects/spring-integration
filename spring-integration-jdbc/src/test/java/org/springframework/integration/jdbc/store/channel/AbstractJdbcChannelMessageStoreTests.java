@@ -49,7 +49,7 @@ public class AbstractJdbcChannelMessageStoreTests {
 	protected PlatformTransactionManager transactionManager;
 
 	@Autowired
-	protected QueryProvider queryProvider;
+	protected ChannelMessageStoreQueryProvider queryProvider;
 
 	public void init() throws Exception {
 		messageStore = new JdbcChannelMessageStore(dataSource);

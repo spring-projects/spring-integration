@@ -17,7 +17,7 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Gunnar Hillert
  * @since 2.2
  */
-public abstract class AbstractQueryProvider implements QueryProvider {
+public abstract class AbstractChannelMessageStoreQueryProvider implements ChannelMessageStoreQueryProvider {
 
 	public String getCountAllMessagesInGroupQuery() {
 		return "SELECT COUNT(MESSAGE_ID) from %PREFIX%CHANNEL_MESSAGE where GROUP_KEY=? and REGION=?";

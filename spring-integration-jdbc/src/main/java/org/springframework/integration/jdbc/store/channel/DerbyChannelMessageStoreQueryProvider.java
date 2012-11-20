@@ -18,7 +18,7 @@ package org.springframework.integration.jdbc.store.channel;
  *
  * https://blogs.oracle.com/kah/entry/derby_10_5_preview_fetch
  */
-public class DerbyQueryProvider extends AbstractQueryProvider {
+public class DerbyChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {

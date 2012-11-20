@@ -15,9 +15,8 @@ package org.springframework.integration.jdbc.store.channel;
 /**
  * @author Gunnar Hillert
  * @since 2.2
- *
  */
-public class HsqlQueryProvider extends AbstractQueryProvider {
+public class MySqlChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {

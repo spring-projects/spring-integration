@@ -398,7 +398,7 @@
 		</para>
 		<programlisting language="xml"><![CDATA[…
 <bean id="queryProvider"
-    class="o.s.i.jdbc.support.store.channel.query.PostgresQueryProvider"/>
+    class="o.s.i.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider"/>
 
 <int:transaction-synchronization-factory id="syncFactory">
     <int:after-commit expression="@store.removeFromIdCache(headers.id.toString())" />

@@ -22,7 +22,7 @@ import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
  * @author Gunnar Hillert
  * @since 2.2
  */
-public interface QueryProvider {
+public interface ChannelMessageStoreQueryProvider {
 
 	/**
 	 * Get the query used to retrieve a count of all messages currently persisted

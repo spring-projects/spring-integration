@@ -29,12 +29,12 @@ import org.springframework.jdbc.support.lob.LobHandler;
  * @since 2.2
  *
  */
-public class MessageMapper implements RowMapper<Message<?>> {
+public class MessageRowMapper implements RowMapper<Message<?>> {
 
 	private final DeserializingConverter deserializer;
 	private final LobHandler lobHandler;
 
-	public MessageMapper(DeserializingConverter deserializer, LobHandler lobHandler) {
+	public MessageRowMapper(DeserializingConverter deserializer, LobHandler lobHandler) {
 		this.deserializer = deserializer;
 		this.lobHandler = lobHandler;
 	}

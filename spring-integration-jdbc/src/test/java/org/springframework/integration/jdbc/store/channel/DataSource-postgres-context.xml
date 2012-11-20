@@ -18,6 +18,6 @@
 		<property name="password" value="postgres" />
 	</bean>
 
-	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.PostgresQueryProvider"/>
+	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider"/>
 
 </beans>

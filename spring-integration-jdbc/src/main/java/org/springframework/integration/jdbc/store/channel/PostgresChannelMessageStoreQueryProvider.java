@@ -16,20 +16,20 @@ package org.springframework.integration.jdbc.store.channel;
  * @author Gunnar Hillert
  * @since 2.2
  */
-public class MySqlQueryProvider extends AbstractQueryProvider {
+public class PostgresChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
 		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE ASC LIMIT 1";
+				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE ASC LIMIT 1 FOR UPDATE";
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
 		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"order by CREATED_DATE ASC LIMIT 1";
+				"order by CREATED_DATE ASC LIMIT 1 FOR UPDATE";
 	}
 
 }

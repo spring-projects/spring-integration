@@ -38,12 +38,12 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.jdbc.JdbcMessageStore;
-import org.springframework.integration.jdbc.store.channel.DerbyQueryProvider;
-import org.springframework.integration.jdbc.store.channel.MessageMapper;
-import org.springframework.integration.jdbc.store.channel.MySqlQueryProvider;
-import org.springframework.integration.jdbc.store.channel.OracleQueryProvider;
-import org.springframework.integration.jdbc.store.channel.PostgresQueryProvider;
-import org.springframework.integration.jdbc.store.channel.QueryProvider;
+import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
+import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
+import org.springframework.integration.jdbc.store.channel.MySqlChannelMessageStoreQueryProvider;
+import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
+import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
+import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -109,7 +109,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 */
 	public static final String DEFAULT_REGION = "DEFAULT";
 
-	private QueryProvider queryProvider;
+	private ChannelMessageStoreQueryProvider queryProvider;
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
@@ -136,7 +136,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	private volatile LobHandler lobHandler = new DefaultLobHandler();
 
-	private volatile MessageMapper messageMapper;
+	private volatile MessageRowMapper messageMapper;
 
 	private volatile Map<String, String> queryCache = new HashMap<String, String>();
 
@@ -231,28 +231,28 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	}
 
 	/**
-	 * Allows for passing in a custom {@link MessageMapper}. The {@link MessageMapper}
+	 * Allows for passing in a custom {@link MessageRowMapper}. The {@link MessageRowMapper}
 	 * is used to convert the selected database row representing the persisted
 	 * message into the actual {@link Message} object.
 	 *
 	 * @param messageMapper Must not be null
 	 */
-	public void setMessageMapper(MessageMapper messageMapper) {
-		Assert.notNull(messageMapper, "The provided MessageMapper must not be null.");
+	public void setMessageMapper(MessageRowMapper messageMapper) {
+		Assert.notNull(messageMapper, "The provided MessageRowMapper must not be null.");
 		this.messageMapper = messageMapper;
 	}
 
 	/**
 	 * <p>
-	 * Sets the database specific {@link QueryProvider} to use. The {@link JdbcChannelMessageStore}
+	 * Sets the database specific {@link ChannelMessageStoreQueryProvider} to use. The {@link JdbcChannelMessageStore}
 	 * provides the SQL queries to retrieve messages from the database. The
-	 * following {@link QueryProvider} are provided:
+	 * following {@link ChannelMessageStoreQueryProvider} are provided:
 	 * </p>
 	 * <ul>
-	 *     <li>{@link DerbyQueryProvider}</li>
-	 *     <li>{@link MySqlQueryProvider}</li>
-	 *     <li>{@link OracleQueryProvider}</li>
-	 *     <li>{@link PostgresQueryProvider}</li>
+	 *     <li>{@link DerbyChannelMessageStoreQueryProvider}</li>
+	 *     <li>{@link MySqlChannelMessageStoreQueryProvider}</li>
+	 *     <li>{@link OracleChannelMessageStoreQueryProvider}</li>
+	 *     <li>{@link PostgresChannelMessageStoreQueryProvider}</li>
 	 * </ul>
 	 * <p>
 	 * Beyond, you can provide your own query implementations, in case you need
@@ -262,7 +262,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 *
 	 * @param queryProvider Must not be null.
 	 */
-	public void setQueryProvider(QueryProvider queryProvider) {
+	public void setQueryProvider(ChannelMessageStoreQueryProvider queryProvider) {
 		Assert.notNull(queryProvider, "The provided queryProvider must not be null.");
 		this.queryProvider = queryProvider;
 	}
@@ -309,7 +309,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * If you do that with multiple threads and you are using transactions, other
 	 * threads may be waiting for that same locked row.</p>
 	 *
-	 * <p>If using the provided {@link OracleQueryProvider}, don't set {@link #usingIdCache}
+	 * <p>If using the provided {@link OracleChannelMessageStoreQueryProvider}, don't set {@link #usingIdCache}
 	 * to true, as the Oracle query will ignore locked rows.</p>
 	 *
 	 * <p>Using the id cache, the {@link JdbcChannelMessageStore} will store each
@@ -350,15 +350,15 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 	/**
 	 * Check mandatory properties ({@link DataSource} and
-	 * {@link #setQueryProvider(QueryProvider)}). If no {@link MessageMapper} was
-	 * explicitly set using {@link #setMessageMapper(MessageMapper)}, the default
-	 * {@link MessageMapper} will be instantiate using the specified {@link #deserializer}
+	 * {@link #setQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper} was
+	 * explicitly set using {@link #setMessageMapper(MessageRowMapper)}, the default
+	 * {@link MessageRowMapper} will be instantiate using the specified {@link #deserializer}
 	 * and {@link #lobHandler}.
 	 *
 	 * Also, if the jdbcTemplate's fetchSize property ({@link JdbcTemplate#getFetchSize()})
 	 * is not 1, a warning will be logged. When using the {@link JdbcChannelMessageStore}
 	 * with Oracle, the fetchSize value of 1 is needed to ensure FIFO characteristics
-	 * of polled messages. Please see the Oracle {@link QueryProvider} for more details.
+	 * of polled messages. Please see the Oracle {@link ChannelMessageStoreQueryProvider} for more details.
 	 *
 	 * @throws Exception
 	 */
@@ -367,7 +367,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		Assert.notNull(this.queryProvider, "A queryProvider must be provided.");
 
 		if (this.messageMapper == null) {
-			this.messageMapper = new MessageMapper(this.deserializer, this.lobHandler);
+			this.messageMapper = new MessageRowMapper(this.deserializer, this.lobHandler);
 		}
 
 		if (this.jdbcTemplate.getFetchSize() != 1 && logger.isWarnEnabled()) {

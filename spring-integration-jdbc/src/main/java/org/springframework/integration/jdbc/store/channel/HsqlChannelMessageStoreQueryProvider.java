@@ -12,33 +12,25 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
-import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
-import org.springframework.jdbc.core.JdbcTemplate;
-
 /**
- * Contains Oracle-specific queries for the {@link JdbcChannelMessageStore}.
- * Please ensure that the used {@link JdbcTemplate}'s fetchSize property is <code>1</code>.
- *
- * Fore more details, please see: http://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
- *
  * @author Gunnar Hillert
  * @since 2.2
+ *
  */
-public class OracleQueryProvider extends AbstractQueryProvider {
+public class HsqlChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
-		return
-				"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
+		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE ASC FOR UPDATE SKIP LOCKED";
+				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE ASC LIMIT 1";
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
 		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"order by CREATED_DATE ASC FOR UPDATE SKIP LOCKED";
+				"order by CREATED_DATE ASC LIMIT 1";
 	}
 
 }

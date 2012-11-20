@@ -29,6 +29,6 @@
 	</jdbc:initialize-database>
 
 	<bean id="queryProvider"
-		class="org.springframework.integration.jdbc.store.channel.DerbyQueryProvider" />
+		class="org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider" />
 
 </beans>
