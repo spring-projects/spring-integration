@@ -516,8 +516,11 @@ public class ImapMailReceiverTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		adapter.stop();
 		ExecutorService exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
+		adapter.stop();
 		assertTrue(exec.isShutdown());
-	}
+		adapter.start();
+		exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
+		adapter.stop();
+		assertTrue(exec.isShutdown());	}
 }

@@ -134,6 +134,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	protected void doStart() {
 		final TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+		if (this.sendingTaskExecutor == null) {
+			// we must have previously been stopped; create a new executor
+			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
+		}
 		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
 		this.pingTask = scheduler.scheduleAtFixedRate(new PingTask(), this.connectionPingInterval);
 	}
@@ -155,6 +159,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		 */
 		if (!sendingTaskExecutorSet) {
 			((ExecutorService) sendingTaskExecutor).shutdown();
+			this.sendingTaskExecutor = null;
 		}
 	}
 
