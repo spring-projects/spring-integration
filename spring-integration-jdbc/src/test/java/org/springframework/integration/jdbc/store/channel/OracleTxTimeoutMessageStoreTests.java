@@ -12,14 +12,13 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  *
  * @author Gunnar Hillert
  *
  */
-@ContextConfiguration
+//@ContextConfiguration
 //@RunWith(SpringJUnit4ClassRunner.class)
 public class OracleTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
 

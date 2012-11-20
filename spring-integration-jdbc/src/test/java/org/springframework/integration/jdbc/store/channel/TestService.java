@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +30,9 @@ public class TestService {
 
 	private static final Log log = LogFactory.getLog(TestService.class);
 
-	private static Map<String, String> seen = new ConcurrentHashMap<String, String>();
+	private Map<String, String> seen = new ConcurrentHashMap<String, String>();
+
+	private AtomicInteger duplicateMessagesCount = new AtomicInteger(0);
 
 	private final CountDownLatch latch;
 
@@ -54,6 +57,7 @@ public class TestService {
 
 		if (seen.containsKey(message)) {
 			log.error("Already seen: " + message);
+			duplicateMessagesCount.addAndGet(1);
 		} else {
 			seen.put(message, message);
 			log.info("Pre: " + message);
@@ -73,4 +77,13 @@ public class TestService {
 	public boolean await(int milliseconds) throws InterruptedException {
 		return latch.await(milliseconds, TimeUnit.MILLISECONDS);
 	}
+
+	public Map<String, String> getSeenMessages() {
+		return seen;
+	}
+
+	public int getDuplicateMessagesCount() {
+		return duplicateMessagesCount.get();
+	}
+
 }

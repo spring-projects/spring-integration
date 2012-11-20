@@ -15,7 +15,6 @@ package org.springframework.integration.jdbc.store;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
@@ -411,7 +410,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 				ps.setString(1, messageId);
 				ps.setString(2, groupKey);
 				ps.setString(3, region);
-				ps.setTimestamp(4, new Timestamp(createdDate));
+				ps.setLong(4, createdDate);
 				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
 			}
 		});

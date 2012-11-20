@@ -85,7 +85,8 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 		Thread.sleep(2000);
 
 		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(jdbcChannelMessageStore.getSizeOfIdCache()));
-
+		Assert.assertEquals(Integer.valueOf(maxMessages), Integer.valueOf(testService.getSeenMessages().size()));
+		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(testService.getDuplicateMessagesCount()));
 	}
 
 }

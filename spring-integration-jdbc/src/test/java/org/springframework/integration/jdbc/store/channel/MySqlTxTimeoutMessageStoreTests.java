@@ -20,7 +20,7 @@ package org.springframework.integration.jdbc.store.channel;
  */
 //@ContextConfiguration
 //@RunWith(SpringJUnit4ClassRunner.class)
-public class PostgresTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
+public class MySqlTxTimeoutMessageStoreTests extends AbstractTxTimeoutMessageStoreTests {
 
 	//@Test
 	@Override

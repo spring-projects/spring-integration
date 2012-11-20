@@ -16,17 +16,15 @@
 
 package org.springframework.integration.jdbc.store.channel;
 
-import org.junit.Before;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Gunnar Hillert
  */
-@ContextConfiguration
+//@ContextConfiguration
 //@RunWith(SpringJUnit4ClassRunner.class)
 public class MySqlJdbcChannelMessageStoreTests extends AbstractJdbcChannelMessageStoreTests {
 
-	@Before
+	//@Before
 	@Override
 	public void init() throws Exception {
 		super.init();
@@ -39,6 +37,7 @@ public class MySqlJdbcChannelMessageStoreTests extends AbstractJdbcChannelMessag
 	}
 
 	//@Test
+	//@Rollback(false)
 	@Override
 	public void testAddAndGet() throws Exception {
 		super.testAddAndGet();

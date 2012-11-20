@@ -13,6 +13,7 @@
 package org.springframework.integration.jdbc.store.channel;
 
 
+
 /**
  *
  * @author Gunnar Hillert

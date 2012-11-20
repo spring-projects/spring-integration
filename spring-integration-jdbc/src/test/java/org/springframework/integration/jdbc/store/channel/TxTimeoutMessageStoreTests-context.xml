@@ -41,9 +41,9 @@
 
 	<int:channel id="outputChannel" />
 
-	<bean id="sa" class="org.springframework.integration.jdbc.store.channel.TestService"/>
+	<bean id="testService" class="org.springframework.integration.jdbc.store.channel.TestService"/>
 
-	<int:service-activator input-channel="outputChannel" ref="sa"/>
+	<int:service-activator input-channel="outputChannel" ref="testService" method="process"/>
 
 	<int:channel id="errorChannel">
 		<int:queue/>
