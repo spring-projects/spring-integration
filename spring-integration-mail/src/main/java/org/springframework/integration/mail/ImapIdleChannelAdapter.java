@@ -19,6 +19,7 @@ package org.springframework.integration.mail;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
@@ -58,6 +59,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	private final IdleTask idleTask = new IdleTask();
 
 	private volatile Executor sendingTaskExecutor = Executors.newFixedThreadPool(1);
+
+	private volatile boolean sendingTaskExecutorSet;
 
 	private volatile boolean shouldReconnectAutomatically = true;
 
@@ -102,6 +105,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	public void setSendingTaskExecutor(Executor sendingTaskExecutor) {
 		Assert.notNull(sendingTaskExecutor, "'sendingTaskExecutor' must not be null");
 		this.sendingTaskExecutor = sendingTaskExecutor;
+		this.sendingTaskExecutorSet = true;
 	}
 
 	/**
@@ -145,6 +149,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		catch (Exception e) {
 			throw new IllegalStateException(
 					"Failure during the destruction of Mail receiver: " + mailReceiver, e);
+		}
+		/*
+		 * If we're running with the default executor, shut it down.
+		 */
+		if (!sendingTaskExecutorSet) {
+			((ExecutorService) sendingTaskExecutor).shutdown();
 		}
 	}
 
