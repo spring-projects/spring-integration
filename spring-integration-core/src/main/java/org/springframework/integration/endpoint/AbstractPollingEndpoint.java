@@ -204,7 +204,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * @return The message or null.
 	 */
 	protected Message<?> receiveMessage() {
-		throw new UnsupportedOperationException("Subclass must implement doReceive()");
+		throw new UnsupportedOperationException("Subclass must implement receiveMessage()");
 	}
 
 	/**
