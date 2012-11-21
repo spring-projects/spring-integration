@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
@@ -31,21 +30,6 @@ public class PollingEndpointStub extends AbstractPollingEndpoint {
 	@Override
 	protected boolean doPoll() {
 		throw new RuntimeException("intentional test failure");
-	}
-
-	@Override
-	protected Message<?> doReceive() {
-		return null;
-	}
-
-	@Override
-	protected Object getResourceToBind() {
-		return null;
-	}
-
-	@Override
-	protected String getResourceKey() {
-		return null;
 	}
 
 }

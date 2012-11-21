@@ -35,7 +35,8 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements TrackableComponent {
+public class SourcePollingChannelAdapter extends AbstractTransactionSynchronizingPollingEndpoint
+		implements TrackableComponent {
 
 	private volatile MessageSource<?> source;
 
@@ -88,38 +89,25 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	}
 
 	@Override
-	protected boolean doPoll() {
-
-		Message<?> message = this.syncIfTxAndReceive();
-
-		if (this.logger.isDebugEnabled()){
-			this.logger.debug("Poll resulted in Message: " + message);
+	protected void handleMessage(Message<?> message) {
+		if (this.shouldTrack) {
+			message = MessageHistory.write(message, this);
 		}
-		if (message != null) {
-			if (this.shouldTrack) {
-				message = MessageHistory.write(message, this);
-			}
-			try {
-				this.messagingTemplate.send(this.outputChannel, message);
-			}
-			catch (Exception e) {
-				if (e instanceof MessagingException) {
-					throw (MessagingException) e;
-				}
-				else {
-					throw new MessagingException(message, e);
-				}
-			}
-			return true;
+		try {
+			this.messagingTemplate.send(this.outputChannel, message);
 		}
-		if (this.logger.isDebugEnabled()){
-			this.logger.debug("Received no Message during the poll, returning 'false'");
+		catch (Exception e) {
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
+			else {
+				throw new MessagingException(message, e);
+			}
 		}
-		return false;
 	}
 
 	@Override
-	protected Message<?> doReceive() {
+	protected Message<?> receiveMessage() {
 		return this.source.receive();
 	}
 
