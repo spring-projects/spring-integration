@@ -3,12 +3,12 @@ package org.springframework.integration.jdbc.storedproc.h2;
 import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import org.h2.tools.SimpleResultSet;
-import org.hsqldb.Types;
 
 /**
- * 
+ *
  * @author Gunnar Hillert
  *
  */

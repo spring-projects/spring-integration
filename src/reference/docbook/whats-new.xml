@@ -67,7 +67,7 @@
 			</para>
 		</section>
 		<section id="2.2-jdbc-11">
-			<title>JDBC Adapter - Stored Procedures Components</title>
+			<title>JDBC Support - Stored Procedures Components</title>
 			<para><emphasis>SpEL Support</emphasis></para>
 			<para>
 				When using the Stored Procedure components of the Spring Integration
@@ -92,11 +92,20 @@
 			</itemizedlist>
 		</section>
 		<section id="2.2-jdbc-gateway-update-optional">
-			<title>JDBC Adapter - Outbound Gateway</title>
+			<title>JDBC Support - Outbound Gateway</title>
 			<para>
 				When using the JDBC Outbound Gateway, the update query is no longer
 				mandatory. You can now provide solely a select query using the request
 				message as a source of parameters.
+			</para>
+		</section>
+		<section id="2.2-jdbc-message-store-channels">
+			<title>JDBC Support - Channel-specific Message Store Implementation</title>
+			<para>
+				A new <emphasis>Message Channel</emphasis>-specific Message Store
+				Implementation has been added, providing a more scalable solution
+				using database-specific SQL queries. For more information please
+				see: <xref linkend="jdbc-message-store-channels"/>.
 			</para>
 		</section>
 		<section id="2.2-file-adapter">
