@@ -30,8 +30,6 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioConnectionSupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpNioConnectionSupport;
 import org.springframework.util.Assert;
 
 /**
