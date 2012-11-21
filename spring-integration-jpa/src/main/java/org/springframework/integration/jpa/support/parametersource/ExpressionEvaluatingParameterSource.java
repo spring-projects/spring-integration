@@ -1,3 +1,18 @@
+/*
+ * Copyright 2002-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.integration.jpa.support.parametersource;
 
 import java.util.Collection;
@@ -9,9 +24,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.jpa.support.JpaParameter;
-import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory.ParameterExpressionEvaluator;
+import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceUtils.ParameterExpressionEvaluator;
 import org.springframework.util.Assert;
 
+/**
+*
+* @author Gunnar Hillert
+* @since 2.2
+*
+*/
 class ExpressionEvaluatingParameterSource implements PositionSupportingParameterSource {
 
 	private static final Log logger = LogFactory.getLog(ExpressionEvaluatingParameterSource.class);
@@ -33,8 +54,8 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 		this.input      = input;
 		this.expressionEvaluator = expressionEvaluator;
 		this.parameters = parameters;
-		this.parameterExpressions = ExpressionEvaluatingParameterSourceFactory.convertExpressions(parameters);
-		this.values.putAll(ExpressionEvaluatingParameterSourceFactory.convertStaticParameters(parameters));
+		this.parameterExpressions = ExpressionEvaluatingParameterSourceUtils.convertExpressions(parameters);
+		this.values.putAll(ExpressionEvaluatingParameterSourceUtils.convertStaticParameters(parameters));
 
 	}
 
