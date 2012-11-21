@@ -31,7 +31,11 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-abstract class ExpressionEvaluatingParameterSourceUtils {
+class ExpressionEvaluatingParameterSourceUtils {
+
+	private ExpressionEvaluatingParameterSourceUtils() {
+		throw new AssertionError();
+	}
 
 	/**
 	 * Utility method that converts a Collection of {@link JpaParameter} to
