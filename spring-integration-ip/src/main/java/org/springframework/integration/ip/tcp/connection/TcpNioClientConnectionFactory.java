@@ -30,8 +30,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioConnectionSupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpNioConnectionSupport;
 import org.springframework.util.Assert;
 
 
