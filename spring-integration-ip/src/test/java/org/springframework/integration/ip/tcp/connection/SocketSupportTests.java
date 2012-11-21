@@ -41,7 +41,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;

@@ -16,15 +16,11 @@
 package org.springframework.integration.jpa.support.parametersource;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.jpa.support.JpaParameter;
-import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceUtils.ParameterExpressionEvaluator;
 import org.springframework.util.Assert;
 
 /**
@@ -56,78 +52,13 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 		}
 
 		this.parameters = parameters;
-		expressionEvaluator.getEvaluationContext().setVariable("staticParameters", convertStaticParameters(parameters));
+		expressionEvaluator.getEvaluationContext().setVariable("staticParameters",
+				ExpressionEvaluatingParameterSourceUtils.convertStaticParameters(parameters));
 
 	}
 
 	public PositionSupportingParameterSource createParameterSource(final Object input) {
 		return new ExpressionEvaluatingParameterSource(input, this.parameters, expressionEvaluator);
-	}
-
-	/**
-	 * Utility method that converts a Collection of {@link JpaParameter} to
-	 * a Map containing only expression parameters.
-	 *
-	 * @param jpaParameters Must not be null.
-	 * @return Map containing only the Expression bound parameters. Will never be null.
-	 */
-	public static Map<String, String> convertExpressions(Collection<JpaParameter> jpaParameters) {
-
-		Assert.notNull(jpaParameters, "The Collection of jpaParameters must not be null.");
-
-		for (JpaParameter parameter : jpaParameters) {
-			Assert.notNull(parameter, "'jpaParameters' must not contain null values.");
-		}
-
-		final Map<String, String> staticParameters = new HashMap<String, String>();
-
-		for (JpaParameter parameter : jpaParameters) {
-			if (parameter.getExpression() != null) {
-				staticParameters.put(parameter.getName(), parameter.getExpression());
-			}
-		}
-
-		return staticParameters;
-	}
-
-	/**
-	 * Utility method that converts a Collection of {@link JpaParameter} to
-	 * a Map containing only static parameters.
-	 *
-	 * @param jpaParameters Must not be null.
-	 * @return Map containing only the static parameters. Will never be null.
-	 */
-	public static Map<String, Object> convertStaticParameters(Collection<JpaParameter> jpaParameters) {
-
-		Assert.notNull(jpaParameters, "The Collection of jpaParameters must not be null.");
-
-		for (JpaParameter parameter : jpaParameters) {
-			Assert.notNull(parameter, "'jpaParameters' must not contain null values.");
-		}
-
-		final Map<String, Object> staticParameters = new HashMap<String, Object>();
-
-		for (JpaParameter parameter : jpaParameters) {
-			if (parameter.getValue() != null) {
-				staticParameters.put(parameter.getName(), parameter.getValue());
-			}
-		}
-
-		return staticParameters;
-	}
-
-	public class ParameterExpressionEvaluator extends AbstractExpressionEvaluator {
-
-		@Override
-		public StandardEvaluationContext getEvaluationContext() {
-			return super.getEvaluationContext();
-		}
-
-		@Override
-		public Object evaluateExpression(String expression, Object input) {
-			return super.evaluateExpression(expression, input);
-		}
-
 	}
 
 }

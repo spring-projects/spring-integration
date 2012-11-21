@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp.connection.support;
+package org.springframework.integration.ip.tcp.connection;
 
 import java.nio.channels.SocketChannel;
 
@@ -21,8 +21,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ip.tcp.connection.TcpNioConnection;
-import org.springframework.integration.ip.tcp.connection.TcpNioSSLConnection;
+import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
 import org.springframework.util.Assert;
 
 /**
