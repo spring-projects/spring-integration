@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<amqp:outbound-gateway id="rabbitGateway" request-channel="toRabbit"
+	<amqp:outbound-gateway id="rabbitGateway" request-channel="toRabbit0"
 		reply-channel="fromRabbit"
 		reply-timeout="777"
 		exchange-name="si.test.exchange"
@@ -24,13 +24,17 @@
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>
 
-	<int:channel id="toRabbit"/>
+	<int:channel id="toRabbit0"/>
+	<int:channel id="toRabbit1"/>
+	<int:channel id="toRabbit2"/>
+	<int:channel id="toRabbit3"/>
+	<int:channel id="toRabbit4"/>
 
 	<int:channel id="fromRabbit">
 		<int:queue/>
 	</int:channel>
 
-	<amqp:outbound-gateway id="withHeaderMapperCustomRequestResponse" request-channel="toRabbit"
+	<amqp:outbound-gateway id="withHeaderMapperCustomRequestResponse" request-channel="toRabbit1"
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
@@ -39,7 +43,7 @@
 		mapped-request-headers="foo*"
 		mapped-reply-headers="bar*"/>
 
-	<amqp:outbound-gateway id="withHeaderMapperCustomAndStandardResponse" request-channel="toRabbit"
+	<amqp:outbound-gateway id="withHeaderMapperCustomAndStandardResponse" request-channel="toRabbit2"
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
@@ -48,7 +52,7 @@
 		mapped-request-headers="foo*"
 		mapped-reply-headers="bar*, STANDARD_REPLY_HEADERS"/>
 
-	<amqp:outbound-gateway id="withHeaderMapperNothingToMap" request-channel="toRabbit"
+	<amqp:outbound-gateway id="withHeaderMapperNothingToMap" request-channel="toRabbit3"
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
@@ -65,7 +69,7 @@
 		<int:queue/>
 	</int:channel>
 
-	<int:chain id="chainWithRabbitOutboundGateway" input-channel="toRabbit" output-channel="fromRabbit">
+	<int:chain id="chainWithRabbitOutboundGateway" input-channel="toRabbit4" output-channel="fromRabbit">
 		<amqp:outbound-gateway exchange-name="si.test.exchange"
 							   routing-key="si.test.binding"
 							   amqp-template="amqpTemplate"
