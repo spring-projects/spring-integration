@@ -92,6 +92,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private boolean lockRegistrySet = false;
 
+	private volatile long minimumTimeoutForEmptyGroups;
+
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor);
@@ -172,6 +174,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
 	}
 
+	/**
+	 * By default, when a MessageGroupStoreReaper is configured to expire partial
+	 * groups, empty groups are also removed. Empty groups exist after a group
+	 * is released normally. This is to enable the detection and discarding of
+	 * late-arriving messages. If you wish to run empty group deletion on a longer
+	 * schedule than expiring partial groups, set this property. Empty groups will
+	 * then not be removed from the MessageStore until they have not been modified
+	 * for at least this number of milliseconds.
+	 *
+	 * @param minimumTimeoutForEmptyGroups The minimum timeout.
+	 */
+	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
+		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
+	}
+
 	public void setReleasePartialSequences(boolean releasePartialSequences){
 		Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy,
 				"Release strategy of type [" + this.releaseStrategy.getClass().getSimpleName()
@@ -241,7 +258,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	 */
 	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
 
-	private final boolean forceComplete(MessageGroup group) {
+	private void forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted
@@ -250,41 +267,47 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		try {
 			lock.lockInterruptibly();
 			try {
-				if (group.size() > 0) {
-					try {
-						/*
-						 * Need to verify the group hasn't changed while we were waiting on
-						 * its lock. We have to re-fetch the group for this. A possible
-						 * future improvement would be to add MessageGroupStore.getLastModified(groupId).
-						 */
-						MessageGroup messageGroupNow = this.messageStore.getMessageGroup(
-								group.getGroupId());
-						long lastModifiedNow = messageGroupNow.getLastModified();
-						if (group.getLastModified() == lastModifiedNow) {
-							if (releaseStrategy.canRelease(group)) {
-								this.completeGroup(correlationKey, group);
-							}
-							else {
-								this.expireGroup(correlationKey, group);
-							}
+				/*
+				 * Need to verify the group hasn't changed while we were waiting on
+				 * its lock. We have to re-fetch the group for this. A possible
+				 * future improvement would be to add MessageGroupStore.getLastModified(groupId).
+				 */
+				MessageGroup messageGroupNow = this.messageStore.getMessageGroup(
+						group.getGroupId());
+				long lastModifiedNow = messageGroupNow.getLastModified();
+				if (group.getLastModified() == lastModifiedNow) {
+					if (group.size() > 0) {
+						if (releaseStrategy.canRelease(group)) {
+							this.completeGroup(correlationKey, group);
 						}
 						else {
-							removeGroup = false;
-							if (logger.isDebugEnabled()) {
-								logger.debug("Group expiry candidate (" + group.getGroupId() +
-										") has changed - it may be reconsidered for a future expiration");
-							}
+							this.expireGroup(correlationKey, group);
 						}
 					}
-					finally {
-						if (removeGroup) {
-							this.remove(group);
+					else {
+						/*
+						 * By default empty groups are removed on the same schedule as non-empty
+						 * groups. A longer timeout for empty groups can be enabled by
+						 * setting minimumTimeoutForEmptyGroups.
+						 */
+						removeGroup = lastModifiedNow < (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+						if (removeGroup && logger.isDebugEnabled()) {
+							logger.debug("Removing empty group: " + group.getGroupId());
 						}
 					}
-					return true;
+				}
+				else {
+					removeGroup = false;
+					if (logger.isDebugEnabled()) {
+						logger.debug("Group expiry candidate (" + group.getGroupId() +
+								") has changed - it may be reconsidered for a future expiration");
+					}
 				}
 			}
 			finally  {
+				if (removeGroup) {
+					this.remove(group);
+				}
 				lock.unlock();
 			}
 		}
@@ -292,7 +315,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			Thread.currentThread().interrupt();
 			throw new MessagingException("Thread was interrupted while trying to obtain lock");
 		}
-		return false;
 	}
 
 	void remove(MessageGroup group) {
