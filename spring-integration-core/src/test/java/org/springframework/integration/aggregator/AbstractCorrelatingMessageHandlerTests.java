@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
@@ -148,6 +150,103 @@ public class AbstractCorrelatingMessageHandlerTests {
 		assertEquals(1, ((MessageGroup) outputMessages.get(1).getPayload()).size()); // 'qux'
 
 		assertNull(discards.receive(0));
+	}
+
+	@Test // INT-2833
+	public void testReaperReapsAnEmptyGroup() throws Exception {
+		final MessageGroupStore groupStore = new SimpleMessageStore();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(
+				new MessageGroupProcessor() {
+
+					public Object processMessageGroup(MessageGroup group) {
+						return group;
+					}
+				}, groupStore) {
+		};
+
+		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		handler.setOutputChannel(new MessageChannel() {
+
+			/*
+			 * Executes when group 'bar' completes normally
+			 */
+			public boolean send(Message<?> message, long timeout) {
+				outputMessages.add(message);
+				return true;
+			}
+
+			public boolean send(Message<?> message) {
+				return this.send(message, 0);
+			}
+		});
+		handler.setReleaseStrategy(new ReleaseStrategy() {
+
+			public boolean canRelease(MessageGroup group) {
+				return group.size() == 1;
+			}
+		});
+
+		Message<String>	message = MessageBuilder.withPayload("foo")
+				.setCorrelationId("bar")
+				.build();
+		handler.handleMessage(message);
+
+		assertEquals(1, outputMessages.size());
+
+		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		groupStore.expireMessageGroups(0);
+		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+	}
+
+	@Test // INT-2833
+	public void testReaperReapsAnEmptyGroupAfterConfiguredDelay() throws Exception {
+		final MessageGroupStore groupStore = new SimpleMessageStore();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(
+				new MessageGroupProcessor() {
+
+					public Object processMessageGroup(MessageGroup group) {
+						return group;
+					}
+				}, groupStore) {
+		};
+
+		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		handler.setOutputChannel(new MessageChannel() {
+
+			/*
+			 * Executes when group 'bar' completes normally
+			 */
+			public boolean send(Message<?> message, long timeout) {
+				outputMessages.add(message);
+				return true;
+			}
+
+			public boolean send(Message<?> message) {
+				return this.send(message, 0);
+			}
+		});
+		handler.setReleaseStrategy(new ReleaseStrategy() {
+
+			public boolean canRelease(MessageGroup group) {
+				return group.size() == 1;
+			}
+		});
+
+		handler.setMinimumTimeoutForEmptyGroups(1000);
+
+		Message<String>	message = MessageBuilder.withPayload("foo")
+				.setCorrelationId("bar")
+				.build();
+		handler.handleMessage(message);
+
+		assertEquals(1, outputMessages.size());
+
+		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		groupStore.expireMessageGroups(0);
+		assertEquals(1, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+		Thread.sleep(1010);
+		groupStore.expireMessageGroups(0);
+		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
 }
