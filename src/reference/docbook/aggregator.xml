@@ -31,8 +31,9 @@
     release.</para>
 
     <para>Correlation determines how messages are grouped for aggregation.
-    In Spring Integration correlation is done by default based on the CORRELATION_ID message
-    header. Messages with the same CORRELATION_ID will be grouped
+    In Spring Integration correlation is done by default based on the
+    <code>MessageHeaders.CORRELATION_ID</code> message
+    header. Messages with the same <code>MessageHeaders.CORRELATION_ID</code> will be grouped
     together. However, the correlation strategy may be customized to allow 
     other ways of specifying how the messages should be grouped together by
     implementing a <interfacename>CorrelationStrategy</interfacename> (see below).</para>
@@ -40,7 +41,8 @@
     <para>To determine the point at which a group of messages is ready to be processed, a
     <interfacename>ReleaseStrategy</interfacename> is consulted. 
     The default release strategy for the Aggregator will release a group when all 
-    messages included in a sequence are present, based on the SEQUENCE_SIZE header.
+    messages included in a sequence are present, based on the
+    <code>MessageHeaders.SEQUENCE_SIZE</code> header.
     This default strategy may be overridden by providing a reference to a
     custom <interfacename>ReleaseStrategy</interfacename> implementation.</para>
   </section>
@@ -70,9 +72,10 @@
     </itemizedlist>
 
     <section>
-      <title>CorrelatingMessageHandler</title>
+      <title>AggregatingMessageHandler</title>
 
-      <para>The <classname>CorrelatingMessageHandler</classname> is a
+      <para>The <classname>AggregatingMessageHandler</classname> (subclass of
+      <classname>AbstractCorrelatingMessageHandler</classname>) is a
       <interfacename>MessageHandler</interfacename> implementation, encapsulating the common
       functionalities of an Aggregator (and other correlating use cases),
       which are: <itemizedlist>
@@ -120,9 +123,9 @@
 
        The <interfacename>CorrelationStrategy</interfacename> is owned by the 
 
-      <classname>CorrelatingMessageHandler</classname>
+      <classname>AbstractCorrelatingMessageHandler</classname>
 
-       and it has a default value based on the CORRELATION_ID message header: 
+       and it has a default value based on the <code>MessageHeaders.CORRELATION_ID</code> message header:
 
       <programlisting language="java"><![CDATA[
     public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
@@ -247,22 +250,29 @@
 }]]></programlisting>
 
 <para>
-As you can see based on the above signatures, the POJO-based Release Strategy will be passed a <classname>Collection</classname> of unmarked Messages 
+As you can see based on the above signatures, the POJO-based Release Strategy will be passed a <classname>Collection</classname> of not-yet-released Messages 
 if you need access to the whole <classname>Message</classname> or <classname>Collection</classname> of payload objects if the type parameter is 
 anything other than <classname>Message</classname>. Typically this would satisfy the majority of use cases. However if 
-for some reason you need to access the full <classname>MessageGroup</classname> - which contains <code>unmarked</code> and <code>marked</code> Messages -
+for some reason you need to access the full <classname>MessageGroup</classname>
 then you should simply provide an implementation of the <classname>ReleaseStrategy</classname> interface.
 </para>
 
-      <para>When the group is released for aggregation, all its unmarked
-      messages are processed and then marked so they will not be processed
-      again. If the group is also complete (i.e. if all messages from a
+      <para>When the group is released for aggregation, all its not-yet-released
+      messages are processed and removed from the group.
+      If the group is also complete (i.e. if all messages from a
       sequence have arrived or if there is no sequence defined), then the group
-      is removed from the message store. Partial sequences can be released, in
-      which case the next time the <interfacename>ReleaseStrategy</interfacename> is called it
-      will be presented with a group containing marked messages (already
-      processed) and unmarked messages (potentially a new partial
-      sequence).</para>
+      is marked as complete. Any new messages for this group will be sent to the discard channel
+      (if defined). Setting <code>expire-groups-on-completion</code> to <code>true</code> (default
+      is <code>false</code>) removes the entire group and any new messages in this group will form a new group.
+      Partial sequences can be released by using a <classname>MessageGroupStoreReaper</classname>
+      together with <code>send-partial-group-on-expiry</code> being set to <code>true</code>.</para>
+
+      <important>To facilitate discarding of late-arriving messages, the aggregator must maintain state about
+      the group after it has been released. This can eventually cause out of memory conditions.
+      To avoid such situations, you should consider configuring a <classname>MessageGroupStoreReaper</classname>
+      to remove the group metadata; the expiry parameters should be set to expire groups after it is not
+      expected that late messages will arrive. For information about configuring a reaper, see
+      <xref linkend="reaper"/>.</important>
 
       <para>Spring Integration provides an out-of-the box implementation for
       <interfacename>ReleaseStrategy</interfacename>, the
@@ -338,7 +348,9 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		method="aggregate" ]]><co id="aggxml13" /><![CDATA[
 			
 		release-strategy="releaseStrategyBean" ]]><co id="aggxml14" /><![CDATA[
-		release-strategy-method="release"/> ]]><co id="aggxml15" /><![CDATA[
+		release-strategy-method="release" ]]><co id="aggxml15" /><![CDATA[
+
+		expire-groups-upon-completion="false"/> ]]><co id="aggxml16" /><![CDATA[
 
 
 <int:channel id="outputChannel"/>
@@ -456,6 +468,14 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         completion decision algorithm. <emphasis>Optional, with
         restrictions (requires <code>release-strategy</code> to be
         present).</emphasis></para>
+      </callout>
+
+      <callout arearefs="aggxml16">
+        <para>When set to true (default false), completed groups are
+        removed from the message store, allowing subsequent messages with
+        the same correlation to form a new group. The default behavior
+        is to send messages with the same correlation as a completed
+        group to the <emphasis>discard-channel</emphasis>.</para>
       </callout>
 
     </calloutlist>
@@ -656,7 +676,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		
 	</section>
 
-  <section>
+  <section id="reaper">
     <title id="reaper">Managing State in an Aggregator:
     MessageGroupStore</title>
 

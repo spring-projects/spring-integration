@@ -241,7 +241,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	 */
 	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
 
-	private final boolean forceComplete(MessageGroup group) {
+	private void forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted
@@ -250,41 +250,41 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		try {
 			lock.lockInterruptibly();
 			try {
-				if (group.size() > 0) {
-					try {
-						/*
-						 * Need to verify the group hasn't changed while we were waiting on
-						 * its lock. We have to re-fetch the group for this. A possible
-						 * future improvement would be to add MessageGroupStore.getLastModified(groupId).
-						 */
-						MessageGroup messageGroupNow = this.messageStore.getMessageGroup(
-								group.getGroupId());
-						long lastModifiedNow = messageGroupNow.getLastModified();
-						if (group.getLastModified() == lastModifiedNow) {
-							if (releaseStrategy.canRelease(group)) {
-								this.completeGroup(correlationKey, group);
-							}
-							else {
-								this.expireGroup(correlationKey, group);
-							}
+				/*
+				 * Need to verify the group hasn't changed while we were waiting on
+				 * its lock. We have to re-fetch the group for this. A possible
+				 * future improvement would be to add MessageGroupStore.getLastModified(groupId).
+				 */
+				MessageGroup messageGroupNow = this.messageStore.getMessageGroup(
+						group.getGroupId());
+				long lastModifiedNow = messageGroupNow.getLastModified();
+				if (group.getLastModified() == lastModifiedNow) {
+					if (group.size() > 0) {
+						if (releaseStrategy.canRelease(group)) {
+							this.completeGroup(correlationKey, group);
 						}
 						else {
-							removeGroup = false;
-							if (logger.isDebugEnabled()) {
-								logger.debug("Group expiry candidate (" + group.getGroupId() +
-										") has changed - it may be reconsidered for a future expiration");
-							}
+							this.expireGroup(correlationKey, group);
 						}
 					}
-					finally {
-						if (removeGroup) {
-							this.remove(group);
+					else {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Expiring empty group: " + group.getGroupId());
 						}
 					}
-					return true;
+				}
+				else {
+					removeGroup = false;
+					if (logger.isDebugEnabled()) {
+						logger.debug("Group expiry candidate (" + group.getGroupId() +
+								") has changed - it may be reconsidered for a future expiration");
+					}
 				}
 			}
 			finally  {
+				if (removeGroup) {
+					this.remove(group);
+				}
 				lock.unlock();
 			}
 		}
@@ -292,7 +292,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			Thread.currentThread().interrupt();
 			throw new MessagingException("Thread was interrupted while trying to obtain lock");
 		}
-		return false;
 	}
 
 	void remove(MessageGroup group) {
