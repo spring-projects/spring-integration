@@ -21,9 +21,13 @@ import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -47,14 +51,21 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.MultiValueMap;
@@ -735,6 +746,96 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
 	}
 
+	@Test
+	public void acceptHeaderForSerializableResponse() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		handler.setHttpMethod(HttpMethod.GET);
+		handler.setExpectedResponseType(Foo.class);
+
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new SerializingHttpMessageConverter());
+		handler.setMessageConverters(converters);
+		handler.afterPropertiesSet();
+
+		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);
+
+		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
+
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertTrue(requestHeaders.getAccept() != null);
+		assertTrue(requestHeaders.getAccept().size() > 0);
+		assertEquals("404 null", exception.getCause().getMessage());
+		List<MediaType> accept = requestHeaders.getAccept();
+		assertTrue(accept != null && accept.size() > 0);
+		assertEquals("application", accept.get(0).getType());
+		assertEquals("x-java-serialized-object", accept.get(0).getSubtype());
+	}
+
+	@Test
+	public void acceptHeaderForSerializableResponseMessageExchange() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+
+		handler.setHttpMethod(HttpMethod.GET);
+		handler.setExtractPayload(false);
+		handler.setExpectedResponseType(GenericMessage.class);
+
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new SerializingHttpMessageConverter());
+		handler.setMessageConverters(converters);
+		handler.afterPropertiesSet();
+
+		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);
+
+		HttpHeaders requestHeaders = setUpMocksToCaptureSentHeaders(restTemplate);
+
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertTrue(requestHeaders.getAccept() != null);
+		assertTrue(requestHeaders.getAccept().size() > 0);
+		assertEquals("404 null", exception.getCause().getMessage());
+		List<MediaType> accept = requestHeaders.getAccept();
+		assertTrue(accept != null && accept.size() > 0);
+		assertEquals("application", accept.get(0).getType());
+		assertEquals("x-java-serialized-object", accept.get(0).getSubtype());
+	}
+
+	private HttpHeaders setUpMocksToCaptureSentHeaders(RestTemplate restTemplate) throws IOException {
+
+		HttpHeaders headers = new HttpHeaders();
+
+		ClientHttpRequestFactory requestFactory = mock(ClientHttpRequestFactory.class);
+		ClientHttpRequest clientRequest = mock(ClientHttpRequest.class);
+		when(clientRequest.getHeaders()).thenReturn(headers);
+
+		when(requestFactory.createRequest(any(URI.class), any(HttpMethod.class)))
+			.thenReturn(clientRequest );
+
+		ClientHttpResponse response = mock(ClientHttpResponse.class);
+		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
+
+		HttpHeaders responseHeaders = new HttpHeaders();
+		when(response.getHeaders()).thenReturn(responseHeaders);
+
+		when(clientRequest.execute()).thenReturn(response);
+
+		restTemplate.setRequestFactory(requestFactory);
+
+		return headers;
+	}
+
 	public static class City{
 		private final String name;
 		public City(String name){
@@ -770,4 +871,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 	}
 
+	private static class Foo implements Serializable {
+
+		private static final long serialVersionUID = 1L;
+
+	}
 }

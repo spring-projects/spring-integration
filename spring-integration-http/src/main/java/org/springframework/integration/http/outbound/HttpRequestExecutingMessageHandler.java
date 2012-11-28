@@ -51,7 +51,6 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
@@ -152,7 +151,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestTemplate restTemplate) {
 		Assert.notNull(uriExpression, "URI Expression is required");
 		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
-		this.restTemplate.getMessageConverters().add(0, new SerializingHttpMessageConverter());
 		this.uriExpression = uriExpression;
 		StandardEvaluationContext sec = new StandardEvaluationContext();
 		sec.addPropertyAccessor(new MapAccessor());

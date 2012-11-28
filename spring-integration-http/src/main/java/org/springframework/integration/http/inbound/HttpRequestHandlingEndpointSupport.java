@@ -54,7 +54,6 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
-import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
@@ -147,7 +146,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		this.expectReply = expectReply;
 		this.messageConverters.add(new MultipartAwareFormHttpMessageConverter());
-		this.messageConverters.add(new SerializingHttpMessageConverter());
 		this.messageConverters.add(new ByteArrayHttpMessageConverter());
 		this.messageConverters.add(new StringHttpMessageConverter());
 		this.messageConverters.add(new ResourceHttpMessageConverter());

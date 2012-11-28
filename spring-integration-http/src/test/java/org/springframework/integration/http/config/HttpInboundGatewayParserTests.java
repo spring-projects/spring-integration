@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 import static org.springframework.integration.test.util.TestUtils.handlerExpecting;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,17 +41,20 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -103,7 +107,7 @@ public class HttpInboundGatewayParserTests {
 		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 	}
 
-	@Test(timeout=1000)
+	@Test(timeout=1000) @DirtiesContext
 	public void checkFlow() throws Exception {
 		requests.subscribe(handlerExpecting(any(Message.class)));
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -112,6 +116,10 @@ public class HttpInboundGatewayParserTests {
 		request.setParameter("foo", "bar");
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new SerializingHttpMessageConverter());
+		gateway.setMessageConverters(converters);
+
 		gateway.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
 
