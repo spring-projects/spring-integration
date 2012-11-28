@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -55,6 +56,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.MultiValueMap;
@@ -733,6 +735,106 @@ public class HttpRequestExecutingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		assertEquals(2, converterCount.get());
 		assertSame(mockConversionService, TestUtils.getPropertyValue(handler, "conversionService"));
+	}
+
+	@Test
+	public void acceptHeaderForSerializableResponse() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		handler.setExpectedResponseType(new Serializable() {
+			private static final long serialVersionUID = 1L;
+		}.getClass());
+
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
+		List<MediaType> accept = request.getHeaders().getAccept();
+		assertTrue(accept != null && accept.size() > 0);
+		assertEquals("application", accept.get(0).getType());
+		assertEquals("x-java-serialized-object", accept.get(0).getSubtype());
+	}
+
+	@Test
+	public void acceptHeaderForSerializableResponseMessageExchange() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		handler.setExtractPayload(false);
+		handler.setExpectedResponseType(GenericMessage.class);
+
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
+		List<MediaType> accept = request.getHeaders().getAccept();
+		assertTrue(accept != null && accept.size() > 0);
+		assertEquals("application", accept.get(0).getType());
+		assertEquals("x-java-serialized-object", accept.get(0).getSubtype());
+	}
+
+	@Test
+	public void acceptHeaderForStringResponse() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		handler.setExpectedResponseType(String.class);
+
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
+		List<MediaType> accept = request.getHeaders().getAccept();
+		// The message converter in the real RestTemplate sets the accept header for String responses.
+		assertTrue(accept == null || accept.size() == 0);
+	}
+
+	@Test
+	public void acceptHeaderForSerializableResponseOverrideToPreviousBehavior() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		handler.setExpectedResponseType(new Serializable() {
+			private static final long serialVersionUID = 1L;
+		}.getClass());
+
+		handler.setSerializableResponseMediaTypes(null);
+
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
+		List<MediaType> accept = request.getHeaders().getAccept();
+		assertTrue(accept == null || accept.size() == 0);
 	}
 
 	public static class City{

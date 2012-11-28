@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.outbound;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -83,6 +84,10 @@ import org.springframework.web.client.RestTemplate;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
+	private static final List<MediaType> DEFAULT_ACCEPT_SERIALIZED = Arrays.asList(
+			new MediaType("application", "x-java-serialized-object"),
+			MediaType.ALL);
+
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
 	private final RestTemplate restTemplate;
@@ -106,6 +111,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private volatile boolean transferCookies = false;
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
+
+	private volatile List<MediaType> serializableResponseMediaTypes = DEFAULT_ACCEPT_SERIALIZED;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -280,6 +287,21 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		this.transferCookies = transferCookies;
 	}
 
+	/**
+	 * Override the default behavior when using an expectedResponseType that is
+	 * {@link Serializable}. The default behavior is to add an Accept header:
+	 * <pre>application/x-java-serializable-object, * / *'</pre> which overrides
+	 * any Accept header set by the HttpMessageConverter(s). You can supply your
+	 * own Accept header here, or set it to null, which will cause the header to
+	 * be set (if possible) by the HttpMessageConverter(s). The RestTemplate, by
+	 * default, does not set the Accept header for Serializable response objects.
+	 *
+	 * @param serializableResponseMediaTypes the serializableResponseMediaTypes to set
+	 */
+	public void setSerializableResponseMediaTypes(List<MediaType> serializableResponseMediaTypes) {
+		this.serializableResponseMediaTypes = serializableResponseMediaTypes;
+	}
+
 	@Override
 	public void onInit() {
 		super.onInit();
@@ -349,7 +371,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 			Class<?> expectedResponseType = this.determineExpectedResponseType(requestMessage);
 
-			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
+			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod, expectedResponseType);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
@@ -401,19 +423,22 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
-	private HttpEntity<?> generateHttpRequest(Message<?> message, HttpMethod httpMethod) throws Exception {
+	private HttpEntity<?> generateHttpRequest(Message<?> message, HttpMethod httpMethod, Class<?> expectedResponseType)
+			throws Exception {
 		Assert.notNull(message, "message must not be null");
-		return (this.extractPayload) ? this.createHttpEntityFromPayload(message, httpMethod)
-				: this.createHttpEntityFromMessage(message, httpMethod);
+		return (this.extractPayload) ? this.createHttpEntityFromPayload(message, httpMethod, expectedResponseType)
+				: this.createHttpEntityFromMessage(message, httpMethod, expectedResponseType);
 	}
 
-	private HttpEntity<?> createHttpEntityFromPayload(Message<?> message, HttpMethod httpMethod) {
+	private HttpEntity<?> createHttpEntityFromPayload(Message<?> message, HttpMethod httpMethod,
+			Class<?> expectedResponseType) {
 		Object payload = message.getPayload();
 		if (payload instanceof HttpEntity<?>) {
 			// payload is already an HttpEntity, just return it as-is
 			return (HttpEntity<?>) payload;
 		}
 		HttpHeaders httpHeaders = this.mapHeaders(message);
+		addAcceptHeaderIfNeeded(expectedResponseType, httpHeaders);
 		if (!shouldIncludeRequestBody(httpMethod)) {
 			return new HttpEntity<Object>(httpHeaders);
 		}
@@ -432,13 +457,34 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return new HttpEntity<Object>(payload, httpHeaders);
 	}
 
-	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message, HttpMethod httpMethod) {
+	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message, HttpMethod httpMethod,
+			Class<?> expectedResponseType) {
 		HttpHeaders httpHeaders = mapHeaders(message);
+		addAcceptHeaderIfNeeded(expectedResponseType, httpHeaders);
 		if (shouldIncludeRequestBody(httpMethod)) {
 			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
 			return new HttpEntity<Object>(message, httpHeaders);
 		}
 		return new HttpEntity<Object>(httpHeaders);
+	}
+
+	private void addAcceptHeaderIfNeeded(Class<?> expectedResponseType, HttpHeaders httpHeaders) {
+		/*
+		 * The RestTemplate does not automatically set the Accept header to x-java-serialized-object
+		 * for Serializable. This is because null is passed in as the mediaType to messageConverter.canRead()
+		 * in the AcceptHeaderRequestCallback. The SerializingHttpMessageConverter returns false in this case.
+		 *
+		 * However, String response types (which are also Serializable) are handled properly by
+		 * the StringHttpMessageConverter.
+		 *
+		 * Can revert to 2.1 behavior by setting this.serializableResponseMediaTypes to null.
+		 */
+		List<MediaType> accept = httpHeaders.getAccept();
+		if (this.serializableResponseMediaTypes != null &&
+				expectedResponseType != null && expectedResponseType != String.class &&
+				(accept == null || accept.size() == 0) && Serializable.class.isAssignableFrom(expectedResponseType)) {
+			httpHeaders.setAccept(this.serializableResponseMediaTypes);
+		}
 	}
 
 	protected HttpHeaders mapHeaders(Message<?> message) {
