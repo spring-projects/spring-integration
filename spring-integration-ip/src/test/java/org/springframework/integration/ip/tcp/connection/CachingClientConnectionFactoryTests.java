@@ -25,7 +25,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +43,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -60,6 +65,15 @@ public class CachingClientConnectionFactoryTests {
 
 	@Autowired
 	AbstractServerConnectionFactory serverCf;
+
+	@Autowired
+	SubscribableChannel toGateway;
+
+	@Autowired
+	SubscribableChannel replies;
+
+	@Autowired
+	PollableChannel fromGateway;
 
 	@Test
 	public void testReuse() throws Exception {
@@ -275,10 +289,46 @@ public class CachingClientConnectionFactoryTests {
 		Message<?> m = inbound.receive(1000);
 		assertNotNull(m);
 		String connectionId = m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
+
+		// assert we use the same connection from the pool
 		outbound.send(new GenericMessage<String>("Hello, world!"));
 		m = inbound.receive(1000);
 		assertNotNull(m);
 		assertEquals(connectionId, m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class));
+	}
 
+	@Test
+	public void gatewayIntegrationTest() throws Exception {
+		final List<String> connectionIds = new ArrayList<String>();
+		final AtomicBoolean okToRun = new AtomicBoolean(true);
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				while (okToRun.get()) {
+					Message<?> m = inbound.receive(1000);
+					if (m != null) {
+						connectionIds.add((String) m.getHeaders().get(IpHeaders.CONNECTION_ID));
+						replies.send(MessageBuilder.withPayload("foo:" + new String((byte[]) m.getPayload()))
+								.copyHeaders(m.getHeaders())
+								.build());
+					}
+				}
+			}
+		});
+		TestingUtilities.waitListening(serverCf, null);
+		toGateway.send(new GenericMessage<String>("Hello, world!"));
+		Message<?> m = fromGateway.receive(1000);
+		assertNotNull(m);
+		assertEquals("foo:" + "Hello, world!", new String((byte[]) m.getPayload()));
+
+		// assert we use the same connection from the pool
+		toGateway.send(new GenericMessage<String>("Hello, world2!"));
+		m = fromGateway.receive(1000);
+		assertNotNull(m);
+		assertEquals("foo:" + "Hello, world2!", new String((byte[]) m.getPayload()));
+
+		assertEquals(2, connectionIds.size());
+		assertEquals(connectionIds.get(0), connectionIds.get(1));
+
+		okToRun.set(false);
 	}
 }
