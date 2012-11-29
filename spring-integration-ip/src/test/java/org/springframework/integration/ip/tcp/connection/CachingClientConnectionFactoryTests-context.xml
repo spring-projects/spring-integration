@@ -22,6 +22,12 @@
 		<int:queue/>
 	</int:channel>
 
+	<int-ip:tcp-outbound-channel-adapter
+		connection-factory="scf"
+		channel="replies" />
+
+	<int:channel id="replies" />
+
 	<int-ip:tcp-connection-factory
 		id="ccf"
 		type="client"
@@ -43,4 +49,29 @@
 
 	<int:channel id="outbound" />
 
+	<int-ip:tcp-connection-factory
+		id="gateway.ccf"
+		type="client"
+		host="localhost"
+		port="9876"
+		so-timeout="60000"
+	/>
+
+	<bean id="gateway.caching.ccf" class="org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory">
+		<constructor-arg ref="gateway.ccf" />
+		<constructor-arg value="10" />
+		<property name="connectionWaitTimeout" value="10000"/>
+	</bean>
+
+	<int-ip:tcp-outbound-gateway
+		id="ob.gw"
+		connection-factory="gateway.caching.ccf"
+		request-channel="toGateway"
+		reply-channel="fromGateway" />
+
+	<int:channel id="toGateway" />
+
+	<int:channel id="fromGateway">
+		<int:queue/>
+	</int:channel>
 </beans>
