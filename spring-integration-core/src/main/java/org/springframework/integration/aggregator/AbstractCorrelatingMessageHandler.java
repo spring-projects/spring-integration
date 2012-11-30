@@ -92,6 +92,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private boolean lockRegistrySet = false;
 
+	private volatile long minimumTimeoutForEmptyGroups;
+
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor);
@@ -170,6 +172,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
 		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
+	}
+
+	/**
+	 * By default, when a MessageGroupStoreReaper is configured to expire partial
+	 * groups, empty groups are also removed. Empty groups exist after a group
+	 * is released normally. This is to enable the detection and discarding of
+	 * late-arriving messages. If you wish to run empty group deletion on a longer
+	 * schedule than expiring partial groups, set this property. Empty groups will
+	 * then not be removed from the MessageStore until they have not been modified
+	 * for at least this number of milliseconds.
+	 *
+	 * @param minimumTimeoutForEmptyGroups The minimum timeout.
+	 */
+	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
+		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
 	}
 
 	public void setReleasePartialSequences(boolean releasePartialSequences){
@@ -268,7 +285,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						}
 					}
 					else {
-						if (logger.isDebugEnabled()) {
+						/*
+						 * By default empty groups are removed on the same schedule as non-empty
+						 * groups. A longer timeout for empty groups can be enabled by
+						 * setting minimumTimeoutForEmptyGroups.
+						 */
+						removeGroup = lastModifiedNow < (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+						if (removeGroup && logger.isDebugEnabled()) {
 							logger.debug("Removing empty group: " + group.getGroupId());
 						}
 					}
