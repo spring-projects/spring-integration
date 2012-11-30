@@ -269,7 +269,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 					}
 					else {
 						if (logger.isDebugEnabled()) {
-							logger.debug("Expiring empty group: " + group.getGroupId());
+							logger.debug("Removing empty group: " + group.getGroupId());
 						}
 					}
 				}

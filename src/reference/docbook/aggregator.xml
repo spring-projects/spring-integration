@@ -250,10 +250,12 @@
 }]]></programlisting>
 
 <para>
-As you can see based on the above signatures, the POJO-based Release Strategy will be passed a <classname>Collection</classname> of not-yet-released Messages 
-if you need access to the whole <classname>Message</classname> or <classname>Collection</classname> of payload objects if the type parameter is 
-anything other than <classname>Message</classname>. Typically this would satisfy the majority of use cases. However if 
-for some reason you need to access the full <classname>MessageGroup</classname>
+As you can see based on the above signatures, the POJO-based Release Strategy will be passed a
+<classname>Collection</classname> of not-yet-released Messages
+(if you need access to the whole <classname>Message</classname>) or a <classname>Collection</classname> of payload objects
+(if the type parameter is
+anything other than <classname>Message</classname>). Typically this would satisfy the majority of use cases. However if,
+for some reason, you need to access the full <classname>MessageGroup</classname>
 then you should simply provide an implementation of the <classname>ReleaseStrategy</classname> interface.
 </para>
 
@@ -262,10 +264,11 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       If the group is also complete (i.e. if all messages from a
       sequence have arrived or if there is no sequence defined), then the group
       is marked as complete. Any new messages for this group will be sent to the discard channel
-      (if defined). Setting <code>expire-groups-on-completion</code> to <code>true</code> (default
-      is <code>false</code>) removes the entire group and any new messages in this group will form a new group.
+      (if defined). Setting <code>expire-groups-upon-completion</code> to <code>true</code> (default
+      is <code>false</code>) removes the entire group and any new messages, with the same correlation id
+      as the removed group, will form a new group.
       Partial sequences can be released by using a <classname>MessageGroupStoreReaper</classname>
-      together with <code>send-partial-group-on-expiry</code> being set to <code>true</code>.</para>
+      together with <code>send-partial-result-on-expiry</code> being set to <code>true</code>.</para>
 
       <important>To facilitate discarding of late-arriving messages, the aggregator must maintain state about
       the group after it has been released. This can eventually cause out of memory conditions.
