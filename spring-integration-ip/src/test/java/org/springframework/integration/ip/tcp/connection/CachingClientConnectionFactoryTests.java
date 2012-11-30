@@ -320,6 +320,9 @@ public class CachingClientConnectionFactoryTests {
 		assertNotNull(m);
 		assertEquals("foo:" + "Hello, world!", new String((byte[]) m.getPayload()));
 
+		// wait a short time to allow the connection to be returned to the pool
+		Thread.sleep(1000);
+
 		// assert we use the same connection from the pool
 		toGateway.send(new GenericMessage<String>("Hello, world2!"));
 		m = fromGateway.receive(1000);
