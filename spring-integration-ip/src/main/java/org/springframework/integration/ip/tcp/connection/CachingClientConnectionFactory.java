@@ -21,7 +21,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.SimplePool;
 
 /**
@@ -36,6 +39,8 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	private final AbstractClientConnectionFactory targetConnectionFactory;
 
 	private final SimplePool<TcpConnection> pool;
+
+	private volatile TcpListener listener;
 
 	public CachingClientConnectionFactory(AbstractClientConnectionFactory target, int poolSize) {
 		super("", 0);
@@ -138,6 +143,27 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		@Override
 		public String toString() {
 			return this.getConnectionId();
+		}
+
+		@Override
+		public TcpListener getListener() {
+			return CachingClientConnectionFactory.this.listener;
+		}
+
+		/**
+		 * We have to intercept the message to replace the connectionId header with
+		 * ours so the listener can correlate a response with a request. We supply
+		 * the actual connectionId in another header for convenience and tracing
+		 * purposes.
+		 */
+		@Override
+		public boolean onMessage(Message<?> message) {
+			CachingClientConnectionFactory.this.listener.onMessage(MessageBuilder.fromMessage(message)
+					.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId())
+					.setHeader(IpHeaders.ACTUAL_CONNECTION_ID, message.getHeaders().get(IpHeaders.CONNECTION_ID))
+					.build());
+			close(); // return to pool after response is received
+			return true; // true so the single-use connection doesn't close itself
 		}
 
 	}
@@ -281,6 +307,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public void registerListener(TcpListener listener) {
+		this.listener = listener;
 		targetConnectionFactory.registerListener(listener);
 	}
 
