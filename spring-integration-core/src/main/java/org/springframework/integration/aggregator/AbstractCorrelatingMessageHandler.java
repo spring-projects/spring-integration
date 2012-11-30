@@ -290,7 +290,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						 * groups. A longer timeout for empty groups can be enabled by
 						 * setting minimumTimeoutForEmptyGroups.
 						 */
-						removeGroup = lastModifiedNow < (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+						removeGroup = lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
 						if (removeGroup && logger.isDebugEnabled()) {
 							logger.debug("Removing empty group: " + group.getGroupId());
 						}
