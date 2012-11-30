@@ -110,14 +110,20 @@
 
   <para>
     To configure the <classname>HttpRequestExecutingMessageHandler</classname> write a bean definition like this:
+	</para>
+
     <programlisting language="xml"><![CDATA[<bean id="httpOutbound"
   class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
 </bean>]]></programlisting>
+
+	<para>
     This bean definition will execute HTTP requests by delegating to a <classname>RestTemplate</classname>. That template in turn delegates
     to a list of HttpMessageConverters to generate the HTTP request body from the Message payload. You can configure those converters as well
     as the ClientHttpRequestFactory instance to use:
+	</para>
+
     <programlisting language="xml"><![CDATA[<bean id="httpOutbound"
   class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
   <constructor-arg value="http://localhost:8080/example" />
@@ -125,6 +131,8 @@
   <property name="messageConverters" ref="messageConverterList" />
   <property name="requestFactory" ref="customRequestFactory" />
 </bean>]]></programlisting>
+
+	<para>
 By default the HTTP request will be generated using an instance of <classname>SimpleClientHttpRequestFactory</classname> which uses the JDK
   <classname>HttpURLConnection</classname>.  Use of the Apache Commons HTTP Client is also supported through the provided
   <classname>CommonsClientHttpRequestFactory</classname> which can be injected as shown above.
@@ -281,9 +289,14 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
     default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would
-    contain the ResponseEntity as long as it's http status is a success (non-successful status codes will throw Exceptions). If you are expecting a different
-    type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
+    contain the ResponseEntity as long as it's http status is a success (non-successful status codes will throw Exceptions).
+	If you are expecting a different type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
     </para>
+  <important>
+    Beginning with Spring Integration 2.1 the <emphasis>request-timeout</emphasis> attribute
+    of the HTTP Outbound Gateway was renamed to <emphasis>reply-timeout</emphasis>
+    to better reflect the intent.
+  </important>
     <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
     request-channel="requests"
     url="http://localhost/test"
@@ -294,11 +307,28 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     request-factory="requestFactory"
     reply-timeout="1234"
     reply-channel="replies"/>]]></programlisting>
-  <important>
-    Beginning with Spring Integration 2.1 the <emphasis>request-timeout</emphasis> attribute
-    of the HTTP Outbound Gateway was renamed to <emphasis>reply-timeout</emphasis>
-    to better reflect the intent.
-  </important>
+	<important>
+		<para>
+			Since <emphasis>Spring Integration 2.2</emphasis>, Java serialization
+			over HTTP is no longer enabled by default. Previously, when setting
+			the <code>expected-response-type</code>
+			attribute to a <code>Serializable</code> object, the <code>Accept</code>
+			header was not properly set up. Since <emphasis>Spring Integration 2.2</emphasis>,
+			the <classname>SerializingHttpMessageConverter</classname> has now been
+			updated to set the <code>Accept</code> header to
+			<code>application/x-java-serialized-object</code>.
+		</para>
+		<para>
+			However, because this could cause incompatibility with existing applications,
+			it was decided to no longer automatically add this converter to the HTTP endpoints.
+			If you wish to use Java serialization, you will need to add the
+			<classname>SerializingHttpMessageConverter</classname> to the appropriate
+			endpoints, using the <code>message-converters</code> attribute, when using
+			XML configuration, or using the <code>setMessageConverters()</code> method.
+			Alternatively, you may wish to consider using JSON instead which is enabled
+			by simply having <code>Jackson</code> on the classpath.
+		</para>
+	</important>
   <para>
     Beginning with Spring Integration 2.2 you can also determine the HTTP Method dynamically using SpEL and  the <emphasis>http-method-expression</emphasis> attribute.
     Note that this attribute is obviously murually exclusive with <emphasis>http-method</emphasis>
