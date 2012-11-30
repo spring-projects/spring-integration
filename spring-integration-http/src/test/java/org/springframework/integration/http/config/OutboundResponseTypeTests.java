@@ -26,11 +26,9 @@ import java.net.InetSocketAddress;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.http.MediaType;
@@ -39,6 +37,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -48,6 +47,7 @@ import com.sun.net.httpserver.HttpServer;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.2
  *
  *         <p/>
@@ -75,6 +75,9 @@ public class OutboundResponseTypeTests {
 
 	@Autowired
 	private MessageChannel resTypeExpressionSetChannel;
+
+	@Autowired
+	private MessageChannel resTypeExpressionSetSerializationChannel;
 
 	@BeforeClass
 	public static void createServer() throws Exception {
@@ -115,7 +118,7 @@ public class OutboundResponseTypeTests {
 
 	@Test
 	public void testWithResponseTypeExpressionSetAsClass() throws Exception {
-		this.resTypeExpressionSetChannel.send(new GenericMessage<Class<?>>(String.class));
+		this.resTypeExpressionSetSerializationChannel.send(new GenericMessage<Class<?>>(String.class));
 		Message<?> message = this.replyChannel.receive(5000);
 		assertNotNull(message);
 		assertTrue(message.getPayload() instanceof String);

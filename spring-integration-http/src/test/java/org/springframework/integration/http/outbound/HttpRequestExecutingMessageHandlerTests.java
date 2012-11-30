@@ -59,10 +59,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -749,6 +751,10 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		handler.setHttpMethod(HttpMethod.GET);
 		handler.setExpectedResponseType(Foo.class);
+
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new SerializingHttpMessageConverter());
+		handler.setMessageConverters(converters);
 		handler.afterPropertiesSet();
 
 		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);
@@ -779,6 +785,10 @@ public class HttpRequestExecutingMessageHandlerTests {
 		handler.setHttpMethod(HttpMethod.GET);
 		handler.setExtractPayload(false);
 		handler.setExpectedResponseType(GenericMessage.class);
+
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new SerializingHttpMessageConverter());
+		handler.setMessageConverters(converters);
 		handler.afterPropertiesSet();
 
 		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);

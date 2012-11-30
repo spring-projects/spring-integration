@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -40,16 +41,19 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
@@ -60,6 +64,7 @@ import org.springframework.util.MultiValueMap;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -239,7 +244,7 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("test", message.getPayload());
 	}
 
-	@Test
+	@Test @DirtiesContext
 	public void postRequestWithSerializedObjectContentOk() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
@@ -253,6 +258,11 @@ public class HttpInboundChannelAdapterParserTests {
 		request.addHeader("Content-Type", "application/x-java-serialized-object");
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
+
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new SerializingHttpMessageConverter());
+		postOnlyAdapter.setMessageConverters(converters);
+
 		postOnlyAdapter.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
 		Message<?> message = requests.receive(0);
