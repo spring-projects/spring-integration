@@ -10,16 +10,121 @@
 		were resolved as part of the 2.2 development process:
 	</para>
 
-	<section id="2.2-general">
-		<title>General</title>
-		<section id="2.2-spring-31">
-			<title>Spring 3.1</title>
+	<section id="2.2-new-components">
+		<title>New Components</title>
+		<section id="2.2-redis-store-adapters">
+			<title>RedisStore Inbound and Outbound Channel Adapters</title>
 			<para>
-			  Spring Integration now uses Spring 3.1.
+				Spring Integration now has RedisStore Inbound and Outbound Channel Adapters
+				allowing you to write and read Message payloads to/from Redis collection(s).
+				For more information please see
+				<xref linkend="redis-store-outbound-channel-adapter"/> and
+				<xref linkend="redis-store-inbound-channel-adapter"/>.
+			</para>
+		</section>
+		<section id="2.2-mongo-adapters">
+			<title>MongoDB Inbound and Outbound Channel Adapters</title>
+			<para>
+				Spring Integration now has MongoDB Inbound and Outbound Channel Adapters
+				allowing you to write and read Message payloads to/from a MongoDB document store.
+				For more information please see
+				<xref linkend="mongodb-outbound-channel-adapter"/> and
+				<xref linkend="mongodb-inbound-channel-adapter"/>.
+			</para>
+		</section>
+		<section id="2.2-jpa">
+			<title>JPA Endpoints</title>
+			<para>
+				Spring Integration now includes components for the Java Persistence
+				API (JPA) for retrieving and persisting JPA entity objects. The
+				JPA Adapter includes the following components:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para><emphasis><link linkend='jpa-inbound-channel-adapter'>Inbound Channel Adapter</link></emphasis></para>
+				</listitem>
+				<listitem>
+					<para><emphasis><link linkend='jpa-outbound-channel-adapter'>Outbound Channel Adapter</link></emphasis></para>
+				</listitem>
+				<listitem>
+					<para><emphasis><link linkend='jpa-updating-outbound-gateway'>Updating Outbound Gateway</link></emphasis></para>
+				</listitem>
+				<listitem>
+					<para><emphasis><link linkend='jpa-retrieving-outbound-gateway'>Retrieving Outbound Gateway</link></emphasis></para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				For more information please see <xref linkend="jpa"/>
+			</para>
+		</section>
+	</section>
+
+	<section id="2.2-general">
+		<title>General Changes</title>
+		<section id="2.2-spring-31">
+			<title>Spring 3.1 Used by Default</title>
+			<para>
+				Spring Integration now uses Spring 3.1.
+			</para>
+		</section>
+		<section id="2.2-handler-advice">
+			<title>Adding Behavior to Endpoints</title>
+			<para>
+				The ability to add an &lt;advice-chain/&gt; to a poller has been available for some time.
+				However, the behavior added by this affects the entire integration flow.
+				It did not address the ability to add, say, retry, to an individual
+				endpoint. The 2.2. release introduces the &lt;request-handler-advice-chain/&gt;
+				to many endpoints.
+			</para>
+			<para>
+				In addition, 3 standard Advice classes have been provided for this purpose:
+			</para>
+			<itemizedlist>
+				<listitem>MessageHandlerRetryAdvice</listitem>
+				<listitem>MessageHandlerCircuitBreakerAdvice</listitem>
+				<listitem>ExpressionEvaluatingMessageHandlerAdvice</listitem>
+			</itemizedlist>
+			<para>
+				For more information, see <xref linkend="message-handler-advice-chain"/>.
+			</para>
+		</section>
+		<section id="2.2-transaction-sync">
+			<title>Transaction Synchronization and Pseudo Transactions</title>
+			<para>
+				Pollers can now participate in Spring's <emphasis>Transaction Synchronization</emphasis>
+				feature. This allows for synchronizing such operations as renaming files by an inbound channel
+				adapter depending on whether the transaction commits, or rolls back.
+			</para>
+			<para>
+				In addition, these features can be enabled when there is not a 'real' transaction present,
+				by means of a <classname>PseudoTransactionManager</classname>.
+			</para>
+			<para>
+				For more information see <xref linkend="transaction-synchronization"/>.
+			</para>
+		</section>
+		<section id="2.2-file-adapter">
+			<title>File Adapter - Improved File Overwrite/Append Handling</title>
+			<para>
+				When using the <emphasis>File Oubound Channel Adapter</emphasis>
+				or the <emphasis>File Outbound Gateway</emphasis>, a new
+				<emphasis>mode</emphasis> property was added. Prior to
+				<emphasis>Spring Integration 2.2</emphasis>, target files were
+				replaced when they existed. Now you can specify
+				the following options:
+			</para>
+			<itemizedlist>
+				<listitem>REPLACE (Default)</listitem>
+				<listitem>APPEND</listitem>
+				<listitem>FAIL</listitem>
+				<listitem>IGNORE</listitem>
+			</itemizedlist>
+			<para>
+				For more information please see <xref linkend="file-writing-destination-exists"/>.
 			</para>
 		</section>
 		<section id="2.2-outbound-gateways">
-			<title>Outbound Gateways</title>
+			<title>Reply-Timeout added to more Outbound Gateways</title>
 			<para>
 				The XML Namespace support adds the <emphasis>reply-timeout</emphasis>
 				attribute to the following <emphasis>Outbound Gateways</emphasis>:
@@ -45,26 +150,6 @@
 				<listitem>Returned Messages</listitem>
 				<listitem>Support for Dead Letter Exchanges/Dead Letter Queues</listitem>
 			</itemizedlist>
-		</section>
-		<section id="2.2-redis-store-adapters">
-			<title>RedisStore Inbound and Outbound Channel Adapters</title>
-			<para>
-			  Spring Integration now has RedisStore Inbound and Outbound Channel Adapters
-			  allowing you to write and read Message payloads to/from Redis collection(s).
-			  For more information please see
-			  <xref linkend="redis-store-outbound-channel-adapter"/> and
-			  <xref linkend="redis-store-inbound-channel-adapter"/>.
-			</para>
-		</section>
-		<section id="2.2-mongo-adapters">
-			<title>MongoDB Inbound and Outbound Channel Adapters</title>
-			<para>
-			  Spring Integration now has MongoDB Inbound and Outbound Channel Adapters
-			  allowing you to write and read Message payloads to/from a MongoDB document store.
-			  For more information please see
-		      <xref linkend="mongodb-outbound-channel-adapter"/> and
-			  <xref linkend="mongodb-inbound-channel-adapter"/>.
-			</para>
 		</section>
 		<section id="2.2-jdbc-11">
 			<title>JDBC Support - Stored Procedures Components</title>
@@ -108,26 +193,6 @@
 				see: <xref linkend="jdbc-message-store-channels"/>.
 			</para>
 		</section>
-		<section id="2.2-file-adapter">
-			<title>File Adapter - Improved File Overwrite/Append Handling</title>
-			<para>
-				When using the <emphasis>File Oubound Channel Adapter</emphasis>
-				or the <emphasis>File Outbound Gateway</emphasis>, a new
-				<emphasis>mode</emphasis> property was added. Prior to
-				<emphasis>Spring Integration 2.2</emphasis>, target files were
-				replaced when they existed. Now you can specify
-				the following options:
-			</para>
-			<itemizedlist>
-				<listitem>REPLACE (Default)</listitem>
-				<listitem>APPEND</listitem>
-				<listitem>FAIL</listitem>
-				<listitem>IGNORE</listitem>
-			</itemizedlist>
-			<para>
-				For more information please see <xref linkend="file-writing-destination-exists"/>.
-			</para>
-		</section>
 		<section id="2.2-shutdown">
 			<title>Orderly Shutdown</title>
 			<para>
@@ -136,42 +201,6 @@
 				application to be shut down in an orderly manner, disallowing new inbound
 				messages to certain adapters and waiting for some time to allow in-flight
 				messages to complete.
-			</para>
-		</section>
-		<section id="2.2-handler-advice">
-			<title>Adding Behavior to Endpoints</title>
-			<para>
-				The ability to add an &lt;advice-chain/&gt; to a poller has been available for some time.
-				However, the behavior added by this affects the entire integration flow.
-				It did not address the ability to add, say, retry, to an individual
-				endpoint. The 2.2. release introduces the &lt;request-handler-advice-chain/&gt;
-				to many endpoints.
-			</para>
-			<para>
-				In addition, 3 standard Advice classes have been provided for this purpose:
-			</para>
-			<itemizedlist>
-				<listitem>MessageHandlerRetryAdvice</listitem>
-				<listitem>MessageHandlerCircuitBreakerAdvice</listitem>
-				<listitem>ExpressionEvaluatingMessageHandlerAdvice</listitem>
-			</itemizedlist>
-			<para>
-				For more information, see <xref linkend="message-handler-advice-chain"/>.
-			</para>
-		</section>
-		<section id="2.2-transaction-sync">
-			<title>Transaction Synchronization and Pseudo Transactions</title>
-			<para>
-				Pollers can now participate in Spring's <emphasis>Transaction Synchronization</emphasis>
-				feature. This allows for synchronizing such operations as renaming files by an inbound channel
-				adapter depending on whether the transaction commits, or rolls back.
-			</para>
-			<para>
-				In addition, these features can be enabled when there is not a 'real' transaction present,
-				by means of a <classname>PseudoTransactionManager</classname>.
-			</para>
-			<para>
-				For more information see <xref linkend="transaction-synchronization"/>.
 			</para>
 		</section>
 		<section id="2.2-jms-og">
@@ -191,15 +220,15 @@
 			</para>
 		</section>
 		<section id="httpChanges">
-			<title>Http Support</title>
+			<title>HTTP Support</title>
 			<para>
-			   Java serialization over http is no longer enabled by default. Previously, when
+			   Java serialization over HTTP is no longer enabled by default. Previously, when
 			   setting a <code>expected-response-type</code> to a <code>Serializable</code>
 			   object, the <code>Accept</code> header was not properly set up. The
 			   <classname>SerializingHttpMessageConverter</classname> has now been updated
 			   to set the Accept header to <code>application/x-java-serialized-object</code>.
 			   However, because this could cause incompatibility with existing applications,
-			   it was decided to no longer automatically add this converter to the http endpoints.
+			   it was decided to no longer automatically add this converter to the HTTP endpoints.
 			</para>
 			<para>
 			   If you wish to use Java serialization, you will need to add the
@@ -212,38 +241,5 @@
 			   by simply having <code>Jackson</code> on the classpath.
 			</para>
 		</section>
-	</section>
-
-	<section id="2.2-new-components">
-		<title>New Components</title>
-		<section id="2.2-jpa">
-			<title>JPA Endpoints</title>
-			<para>
-				Spring Integration now includes components for the Java Persistence
-				API (JPA) for retrieving and persisting JPA entity objects. The
-				JPA Adapter includes the following components:
-			</para>
-			<itemizedlist>
-				<listitem>
-					<para><emphasis><link linkend='jpa-inbound-channel-adapter'>Inbound Channel Adapter</link></emphasis></para>
-				</listitem>
-				<listitem>
-					<para><emphasis><link linkend='jpa-outbound-channel-adapter'>Outbound Channel Adapter</link></emphasis></para>
-				</listitem>
-				<listitem>
-					<para><emphasis><link linkend='jpa-updating-outbound-gateway'>Updating Outbound Gateway</link></emphasis></para>
-				</listitem>
-				<listitem>
-					<para><emphasis><link linkend='jpa-retrieving-outbound-gateway'>Retrieving Outbound Gateway</link></emphasis></para>
-				</listitem>
-			</itemizedlist>
-			<para>
-				For more information please see <xref linkend="jpa"/>
-			</para>
-		</section>
-	</section>
-	<section id="2.2-framework-refactorings">
-		<title>Framework Refactoring</title>
-
 	</section>
 </chapter>
