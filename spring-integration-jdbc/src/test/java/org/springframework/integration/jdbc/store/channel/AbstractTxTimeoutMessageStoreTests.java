@@ -61,7 +61,7 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
 		transactionTemplate.setIsolationLevel(Isolation.READ_COMMITTED.value());
-		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_NEVER);
+		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
 		for (int i = 1; i <= maxMessages; ++i) {
 			final String message = "TEST MESSAGE " + i;

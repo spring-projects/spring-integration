@@ -17,8 +17,8 @@
 	</bean>
 
 	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
-		<jdbc:script execution="INIT" location="classpath:org/springframework/integration/jdbc/store/channel/schema-drop-hsql.sql"/>
-		<jdbc:script execution="INIT" location="classpath:org/springframework/integration/jdbc/store/channel/schema-hsql.sql"/>
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/store/channel/schema-drop-hsql.sql"/>
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/store/channel/schema-hsql.sql"/>
 	</jdbc:initialize-database>
 
 	<bean id="queryProvider" class="org.springframework.integration.jdbc.store.channel.HsqlChannelMessageStoreQueryProvider"/>
