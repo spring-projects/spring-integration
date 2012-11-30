@@ -48,7 +48,7 @@
     a generic mapper that just returns a <classname>Map</classname> for each
     row in the query result. Optionally, this can be changed by adding a reference to
     a <classname>RowMapper</classname> instance (see the
-    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jdbc.html">Spring
+    <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html">Spring
     JDBC</ulink> documentation for more detailed information about row mapping).
 	</para>
 	<note>
@@ -442,7 +442,7 @@
 		package: there is a create and a drop script example for a range of common
       database platforms. A common way to use these scripts is to reference
       them in a <ulink
-      url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jdbc.html#d0e24182">Spring
+      url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource">Spring
       JDBC data source initializer</ulink>. Note that the scripts are provided
       as samples or specifications of the the required table and column names.
       You may find that you need to enhance them for production use (e.g. with

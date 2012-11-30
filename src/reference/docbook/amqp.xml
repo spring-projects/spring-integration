@@ -548,7 +548,7 @@ this list can also be simple patterns to be matched against the header names (e.
 		</para>
 		<para>
 			Any user-defined headers within the AMQP
-			<classname><ulink url="http://static.springsource.org/spring-amqp/docs/latest-ga/apidocs/org/springframework/amqp/core/MessageProperties.html">MessageProperties</ulink></classname>
+			<classname><ulink url="http://static.springsource.org/spring-amqp/api/org/springframework/amqp/core/MessageProperties.html">MessageProperties</ulink></classname>
 			will NOT be copied to or from an AMQP Message, unless explicitly specified
 			by the <emphasis>requestHeaderNames</emphasis> and/or
 			<emphasis>replyHeaderNames</emphasis> properties of the

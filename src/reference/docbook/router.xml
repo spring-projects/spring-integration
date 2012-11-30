@@ -686,14 +686,15 @@
             You may also find <emphasis>Collection Projection</emphasis> and <emphasis>Collection Selection</emphasis>
             expressions useful to select multiple channels. For further information,
             please see:
-
-            <itemizedlist>
-                <listitem>
-                    <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#d0e12084"/>
-                </listitem>
-            </itemizedlist>
-        </para>
-
+		</para>
+		<itemizedlist>
+			<listitem>
+				<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-projection">Collection Projection</ulink>
+			</listitem>
+			<listitem>
+				<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#expressions-collection-selection">Collection Selection</ulink>
+			</listitem>
+		</itemizedlist>
         </section>
 
         <section id="router-annotation">
