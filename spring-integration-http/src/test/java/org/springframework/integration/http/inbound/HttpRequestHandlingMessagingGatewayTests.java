@@ -39,6 +39,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -198,6 +199,11 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setRequestPayloadType(TestBean.class);
 		gateway.setRequestChannel(channel);
+
+		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
+		converters.add(new SerializingHttpMessageConverter());
+		gateway.setMessageConverters(converters);
+
 		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/test");
 
 		//request.setContentType("application/x-java-serialized-object"); //Works in Spring 3.1.2.RELEASE but NOT in 3.0.7.RELEASE

@@ -3,9 +3,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-http="http://www.springframework.org/schema/integration/http"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 
 	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
@@ -26,6 +28,17 @@
 							   request-channel="resTypeExpressionSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type-expression="payload"/>
+
+	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+							   request-channel="resTypeExpressionSetSerializationChannel"
+							   reply-channel="replyChannel"
+							   message-converters="stringAndSerializingConverters"
+							   expected-response-type-expression="payload"/>
+
+	<util:list id="stringAndSerializingConverters">
+		<bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter" />
+		<bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+	</util:list>
 
 	<int:channel id="replyChannel">
 		<int:queue/>
