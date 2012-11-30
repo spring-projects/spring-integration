@@ -29,7 +29,7 @@
 		    <title>GemFire Support</title>
 		    <para>
 		        Spring Integration provides support for
-		        <ulink url="http://www.vmware.com/products/vfabric-gemfire/overview.html">GemFire</ulink> by providing
+		        <ulink url="http://www.vmware.com/products/application-platform/vfabric-gemfire/overview.html">GemFire</ulink> by providing
 		        inbound adapters for entry and continuous query events, an outbound
 		        adapter to write entries to the cache, and
 		        <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageStore.html">
