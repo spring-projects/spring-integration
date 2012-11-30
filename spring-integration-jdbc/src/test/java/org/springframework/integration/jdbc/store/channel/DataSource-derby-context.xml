@@ -24,8 +24,7 @@
 		/> </bean> -->
 
 	<jdbc:initialize-database data-source="dataSource">
-		<jdbc:script
-			location="classpath:org/springframework/integration/jdbc/store/channel/schema-derby.sql" />
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/store/channel/schema-derby.sql" />
 	</jdbc:initialize-database>
 
 	<bean id="queryProvider"
