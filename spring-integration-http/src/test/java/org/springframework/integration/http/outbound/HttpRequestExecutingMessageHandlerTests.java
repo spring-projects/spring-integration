@@ -25,6 +25,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
@@ -771,7 +772,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		assertTrue(requestHeaders.getAccept() != null);
 		assertTrue(requestHeaders.getAccept().size() > 0);
-		assertEquals("404 null", exception.getCause().getMessage());
+		assertEquals("404 Not Found", exception.getCause().getMessage());
 		List<MediaType> accept = requestHeaders.getAccept();
 		assertTrue(accept != null && accept.size() > 0);
 		assertEquals("application", accept.get(0).getType());
@@ -805,7 +806,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		assertTrue(requestHeaders.getAccept() != null);
 		assertTrue(requestHeaders.getAccept().size() > 0);
-		assertEquals("404 null", exception.getCause().getMessage());
+		assertEquals("404 Not Found", exception.getCause().getMessage());
 		List<MediaType> accept = requestHeaders.getAccept();
 		assertTrue(accept != null && accept.size() > 0);
 		assertEquals("application", accept.get(0).getType());
@@ -825,6 +826,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 
 		ClientHttpResponse response = mock(ClientHttpResponse.class);
 		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
+		when(response.getStatusText()).thenReturn("Not Found");
+		when(response.getBody()).thenReturn(new ByteArrayInputStream(new byte[0]));
 
 		HttpHeaders responseHeaders = new HttpHeaders();
 		when(response.getHeaders()).thenReturn(responseHeaders);
