@@ -5,7 +5,7 @@
 	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd">
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
 	<int-redis:store-inbound-channel-adapter id="withStringTemplate"
 											connection-factory="redisConnectionFactory"
@@ -21,7 +21,7 @@
 		<property name="keySerializer" ref="keySerializer"/>
 		<property name="valueSerializer" ref="valueSerializer"/>
 		<property name="hashKeySerializer" ref="hashKeySerializer"/>
-		<property name="hashValueSerializer" ref="hashValueSerializer"/>						
+		<property name="hashValueSerializer" ref="hashValueSerializer"/>
 	</bean>
 
 	<int-redis:store-inbound-channel-adapter id="withExternalTemplate"
@@ -34,12 +34,12 @@
 	</int-redis:store-inbound-channel-adapter>
 
 	<int:channel id="redisChannel"/>
-		
+
 	<bean id="keySerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 	<bean id="valueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
 	<bean id="hashKeySerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 	<bean id="hashValueSerializer" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
-	
+
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
 	</bean>

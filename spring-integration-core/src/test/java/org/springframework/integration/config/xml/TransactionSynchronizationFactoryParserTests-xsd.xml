@@ -3,30 +3,30 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd">
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:transaction-synchronization-factory id="a">
 		<int:before-commit channel="nullChannel"/>
 	</int:transaction-synchronization-factory>
-	
+
 	<int:transaction-synchronization-factory id="b">
 		<int:after-commit expression="'foo'"/>
 	</int:transaction-synchronization-factory>
-	
+
 	<int:transaction-synchronization-factory id="c">
 		<int:after-rollback expression="'f'"/>
 	</int:transaction-synchronization-factory>
-	
+
 	<int:transaction-synchronization-factory id="d">
 		<int:before-commit channel="nullChannel" expression="''"/>
 		<int:after-commit channel="nullChannel" expression="''"/>
 	</int:transaction-synchronization-factory>
-	
+
 	<int:transaction-synchronization-factory id="e">
 		<int:before-commit channel="nullChannel" expression="''"/>
 		<int:after-rollback channel="nullChannel" expression="''"/>
 	</int:transaction-synchronization-factory>
-	
+
 	<int:transaction-synchronization-factory id="f">
 		<int:after-commit expression="'f'"/>
 		<int:after-rollback channel="nullChannel"/>
@@ -37,5 +37,5 @@
 		<int:after-commit expression="'f'"/>
 		<int:after-rollback channel="nullChannel" expression="''"/>
 	</int:transaction-synchronization-factory>
-	
+
 </beans>
