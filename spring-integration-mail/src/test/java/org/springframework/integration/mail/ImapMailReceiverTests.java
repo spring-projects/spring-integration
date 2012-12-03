@@ -74,6 +74,7 @@ import com.sun.mail.imap.IMAPMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ImapMailReceiverTests {
 
@@ -622,13 +623,7 @@ public class ImapMailReceiverTests {
 		Folder folder = mock(Folder.class);
 		when(folder.exists()).thenReturn(true);
 		when(folder.isOpen()).thenReturn(true);
-		final AtomicBoolean closed = new AtomicBoolean();
-		doAnswer(new Answer<Object> (){
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				closed.set(true);
-				return null;
-			}
-		}).when(folder).close(Mockito.anyBoolean());
+
 		IMAPMessage message = mock(IMAPMessage.class);
 		when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[]{message});
 		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
@@ -637,20 +632,6 @@ public class ImapMailReceiverTests {
 		df.setPropertyValue("store", store);
 		receiver.afterPropertiesSet();
 
-		Multipart multiPart = mock(Multipart.class);
-		when(multiPart.getCount()).thenReturn(1);
-		when(message.getContent()).thenReturn(multiPart);
-		final BodyPart bodyPart = mock(BodyPart.class);
-		doAnswer(new Answer<Object>(){
-
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				if (closed.get()) {
-					throw new IOException("Folder is closed");
-				}
-				return bodyPart;
-			}
-		}).when(multiPart).getBodyPart(Mockito.anyInt());
-		when(bodyPart.getContent()).thenReturn("bar");
 		doAnswer(new Answer<Object> () {
 
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -661,7 +642,7 @@ public class ImapMailReceiverTests {
 		}).when(message).writeTo(Mockito.any(OutputStream.class));
 		Message[] messages = receiver.receive();
 		Object content = messages[0].getContent();
-		assertEquals("bar\n", ((Multipart) content).getBodyPart(0).getContent());
+		assertEquals("bar", ((Multipart) content).getBodyPart(0).getContent().toString().trim());
 
 		assertSame(folder, messages[0].getFolder());
 	}
