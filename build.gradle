@@ -127,6 +127,26 @@ subprojects { subproject ->
 		from javadoc
 	}
 
+	task checkTestConfigs << {
+		def configFiles = []
+		sourceSets.test.java.srcDirs.each {
+			fileTree(it).include('**/*.xml').exclude('**/log4j.xml').each { configFile ->
+				def configXml = new XmlParser(false, false).parse(configFile)
+
+				if (configXml.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/) {
+					configFiles << configFile
+				}
+			}
+		}
+		if (configFiles) {
+			throw new InvalidUserDataException('Hardcoded XSD version in the config files:\n' +
+												configFiles.collect {relativePath(it)}.join('\n') +
+			'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds on different versions of dependencies.')
+		}
+	}
+
+	test.dependsOn checkTestConfigs
+
 	artifacts {
 		archives sourcesJar
 		archives javadocJar

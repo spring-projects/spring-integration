@@ -3,18 +3,14 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd
 		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int:gateway default-request-channel="pipeline02" default-request-timeout="10000" default-reply-timeout="10000"/>
 
 	<int-jms:outbound-gateway request-channel="pipeline02"
-	    connection-factory="connectionFactory" 
+	    connection-factory="connectionFactory"
 	    reply-destination-name="pipeline02a-01"
 	    correlation-key="corr02a"
 		request-destination-name="siOutQueue02a">
@@ -35,9 +31,9 @@
 		<int:delayer id="foo" default-delay="0" delay-header-name="delay"/>
 		<int:transformer expression="payload"/>
 	</int:chain>
-	
+
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
-	    connection-factory="connectionFactory" 
+	    connection-factory="connectionFactory"
 	    reply-destination-name="pipeline02a-01"
 	   	correlation-key="corr02a"
 		request-destination-name="anotherGatewayQueue02a">
@@ -50,11 +46,11 @@
 		connection-factory="connectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
-		
+
 	<int:transformer input-channel="anotherIn" expression="payload" output-channel="toThird" />
 
 	<int-jms:outbound-gateway request-channel="toThird"
-	    connection-factory="connectionFactory" 
+	    connection-factory="connectionFactory"
 	    reply-destination-name="pipeline02a-01"
 		correlation-key="corr02a"
 		request-destination-name="thirdGatewayQueue02a">
