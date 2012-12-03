@@ -3,18 +3,14 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.1.xsd
 		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int:gateway default-request-channel="pipeline05" default-request-timeout="10000" default-reply-timeout="10000"/>
 
 	<int-jms:outbound-gateway request-channel="pipeline05"
-	    connection-factory="connectionFactory" 
+	    connection-factory="connectionFactory"
 	    reply-destination-name="pipeline05-01"
 	    correlation-key="foo"
 		request-destination-name="siOutQueue05">
@@ -35,9 +31,9 @@
 		<int:delayer id="foo" default-delay="0" delay-header-name="delay"/>
 		<int:transformer expression="payload"/>
 	</int:chain>
-	
+
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
-	    connection-factory="connectionFactory" 
+	    connection-factory="connectionFactory"
 	    reply-destination-name="pipeline05-02"
 		request-destination-name="anotherGatewayQueue05"
 		correlation-key="JMSCorrelationID">
@@ -49,7 +45,7 @@
 		connection-factory="connectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
-		
+
 	<int:transformer input-channel="anotherIn" expression="payload"/>
 
 	<bean id="connectionFactory"
