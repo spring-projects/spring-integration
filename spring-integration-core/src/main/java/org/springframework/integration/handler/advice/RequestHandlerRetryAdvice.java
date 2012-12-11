@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,13 @@ import org.springframework.util.Assert;
  * exception is thrown but state is maintained to support
  * the retry policies. Stateful retry requires a
  * {@link RetryStateGenerator}.
- * @author Gary Russell
- * @since 2.2
  *
+ * @author Gary Russell
+ * @author Artem Bilan
+ * @since 2.2
  */
 public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
-	implements RetryListener {
+		implements RetryListener {
 
 	private volatile RetryTemplate retryTemplate = new RetryTemplate();
 
@@ -80,10 +81,10 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		messageHolder.set(message);
 
 		try {
-			return retryTemplate.execute(new RetryCallback<Object>(){
+			return retryTemplate.execute(new RetryCallback<Object>() {
 				public Object doWithRetry(RetryContext context) throws Exception {
 					try {
-						return callback.execute();
+						return callback.cloneAndExecute();
 					}
 					catch (MessagingException e) {
 						if (e.getFailedMessage() == null) {

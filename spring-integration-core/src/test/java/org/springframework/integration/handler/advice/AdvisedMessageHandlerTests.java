@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -47,8 +49,8 @@ import org.springframework.retry.support.RetryTemplate;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
- *
  */
 public class AdvisedMessageHandlerTests {
 
@@ -359,7 +361,7 @@ public class AdvisedMessageHandlerTests {
 	}
 
 	@Test
-	public void defaultRetrySucceedonThirdTry() {
+	public void defaultRetrySucceedOnThirdTry() {
 		final AtomicInteger counter = new AtomicInteger(2);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
@@ -390,7 +392,7 @@ public class AdvisedMessageHandlerTests {
 	}
 
 	@Test
-	public void defaultStatefulRetrySucceedonThirdTry() {
+	public void defaultStatefulRetrySucceedOnThirdTry() {
 		final AtomicInteger counter = new AtomicInteger(2);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
@@ -484,7 +486,7 @@ public class AdvisedMessageHandlerTests {
 	}
 
 	private void defaultStatefulRetryRecoverAfterThirdTryGuts(final AtomicInteger counter,
-			AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
+															  AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
 		advice.setRecoveryCallback(new RecoveryCallback<Object>() {
 
 			public Object recover(RetryContext context) throws Exception {
@@ -574,6 +576,137 @@ public class AdvisedMessageHandlerTests {
 		assertTrue(error.getPayload() instanceof ErrorMessageSendingRecoverer.RetryExceptionNotAvailableException);
 		assertNotNull(((MessagingException) error.getPayload()).getFailedMessage());
 		assertSame(message, ((MessagingException) error.getPayload()).getFailedMessage());
+	}
+
+	@Test
+	public void testINT2858RetryAdviceAsFirstInAdviceChain() {
+		final AtomicInteger counter = new AtomicInteger(3);
+
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return "foo";
+			}
+		};
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+
+		adviceChain.add(new RequestHandlerRetryAdvice());
+		adviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				counter.getAndDecrement();
+				throw new RuntimeException("intentional");
+			}
+		});
+
+		handler.setAdviceChain(adviceChain);
+		handler.afterPropertiesSet();
+
+		try {
+			handler.handleMessage(new GenericMessage<String>("test"));
+		}
+		catch (Exception e) {
+			Throwable cause = e.getCause();
+			assertEquals("ThrowableHolderException", cause.getClass().getSimpleName());
+			assertEquals("intentional", cause.getCause().getMessage());
+		}
+
+		assertTrue(counter.get() == 0);
+	}
+
+	@Test
+	public void testINT2858RetryAdviceAsNestedInAdviceChain() {
+		final AtomicInteger counter = new AtomicInteger(0);
+
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return "foo";
+			}
+		};
+
+		QueueChannel replies = new QueueChannel();
+		handler.setOutputChannel(replies);
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+
+		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
+//		ThrowableHolderException / MessagingException / ThrowableHolderException / RuntimeException
+		expressionAdvice.setOnFailureExpression("#exception.cause.cause.cause.message");
+		expressionAdvice.setReturnFailureExpressionResult(true);
+		final AtomicInteger outerCounter = new AtomicInteger();
+		adviceChain.add(new AbstractRequestHandlerAdvice() {
+
+			@Override
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+				outerCounter.incrementAndGet();
+				return callback.execute();
+			}
+		});
+		adviceChain.add(expressionAdvice);
+		adviceChain.add(new RequestHandlerRetryAdvice());
+		adviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				throw new RuntimeException("intentional: " + counter.incrementAndGet());
+			}
+		});
+
+		handler.setAdviceChain(adviceChain);
+		handler.afterPropertiesSet();
+
+		handler.handleMessage(new GenericMessage<String>("test"));
+		Message<?> receive = replies.receive(1000);
+		assertNotNull(receive);
+		assertEquals("intentional: 3", receive.getPayload());
+		assertEquals(1, outerCounter.get());
+	}
+
+
+	@Test
+	public void testINT2858ExpressionAdviceWithSendFailureOnEachRetry() {
+		final AtomicInteger counter = new AtomicInteger(0);
+
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return "foo";
+			}
+		};
+
+		QueueChannel errors = new QueueChannel();
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+
+		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
+		expressionAdvice.setOnFailureExpression("#exception.cause.message");
+		expressionAdvice.setFailureChannel(errors);
+
+		adviceChain.add(new RequestHandlerRetryAdvice());
+		adviceChain.add(expressionAdvice);
+		adviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				throw new RuntimeException("intentional: " + counter.incrementAndGet());
+			}
+		});
+
+		handler.setAdviceChain(adviceChain);
+		handler.afterPropertiesSet();
+
+		try {
+			handler.handleMessage(new GenericMessage<String>("test"));
+		}
+		catch (Exception e) {
+			assertEquals("intentional: 3", e.getCause().getCause().getMessage());
+		}
+
+		for (int i = 1; i <= 3; i++) {
+			Message<?> receive = errors.receive(1000);
+			assertNotNull(receive);
+			assertEquals("intentional: " + i, ((MessageHandlingExpressionEvaluatingAdviceException) receive.getPayload()).getEvaluationResult());
+		}
+
+		assertNull(errors.receive(1));
+
 	}
 
 

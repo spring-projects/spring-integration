@@ -66,9 +66,9 @@
 			standard Advices are provided:
 		</para>
 		<itemizedlist>
-			<listitem>MessageHandlerRetryAdvice</listitem>
-			<listitem>MessageHandlerCircuitBreakerAdvice</listitem>
-			<listitem>ExpressionEvaluatingMessageHandlerAdvice</listitem>
+			<listitem>RequestHandlerRetryAdvice</listitem>
+			<listitem>RequestHandlerCircuitBreakerAdvice</listitem>
+			<listitem>ExpressionEvaluatingRequestHandlerAdvice</listitem>
 		</itemizedlist>
 		<para>
 			These are each described in detail in the following sections.
@@ -148,7 +148,7 @@ DEBUG [task-scheduler-2]Retry failed last attempt: count=3]]></programlisting></
 				<para><emphasis>Simple Stateless Retry with Recovery</emphasis></para>
 				<para>
 					This example adds a <classname>RecoveryCallback</classname> to the
-					above example; it uses a <classname></classname>
+					above example; it uses a <classname>ErrorMessageSendingRecoverer</classname>
 					to send an <emphasis>ErrorMessage</emphasis> to a channel.
 				</para>
 				<para><programlisting><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
@@ -448,5 +448,20 @@ Caused by: java.lang.RuntimeException: foo
 		return result;
 	}
 }]]></programlisting></para>
+		<note>
+			<para>
+				In addition to the <code>execute()</code> method, the <interfacename>ExecutionCallback</interfacename> provides
+				an additional method <code>cloneAndExecute()</code>. This method must be used in cases where the invocation
+				might be called multiple times within a single execution of <code>doInvoke()</code>, such as in the
+				<classname>RequestHandlerRetryAdvice</classname>. This is required because the Spring AOP
+				<classname>org.springframework.aop.framework.ReflectiveMethodInvocation</classname> object maintains state of which
+				advice in a chain was last invoked; this state must be reset for each call.
+			</para>
+			<para>
+				For more information, see the
+				<ulink url="http://static.springsource.org/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
+				ReflectiveMethodInvocation</ulink> JavaDocs.
+			</para>
+		</note>
 	</section>
 </section>
