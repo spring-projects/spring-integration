@@ -21,6 +21,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
@@ -33,11 +34,11 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
  * {@link MessageHandler#handleMessage(Message)} for other message handlers.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
- *
  */
 public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupport
-	implements MethodInterceptor {
+		implements MethodInterceptor {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -54,11 +55,23 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		else {
 			Message<?> message = (Message<?>) arguments[0];
 			try {
-				return doInvoke(new ExecutionCallback(){
+				return doInvoke(new ExecutionCallback() {
 
 					public Object execute() throws Exception {
 						try {
-							return invocation.proceed();
+							/*
+				 			* If we don't copy the invocation carefully it won't keep a reference to the other
+				 			* interceptors in the chain. We don't have a choice here but to specialise to
+				 			* ReflectiveMethodInvocation (but how often would another implementation come along?).
+				 			*/
+							if (invocation instanceof ProxyMethodInvocation) {
+								return ((ProxyMethodInvocation) invocation).invocableClone().proceed();
+							}
+							else {
+								throw new IllegalStateException(
+										"MethodInvocation of the wrong type detected - this should not happen with Spring AOP," +
+												" so please raise an issue if you see this exception");
+							}
 						}
 						catch (Throwable e) {
 							throw new ThrowableHolderException(e);
@@ -80,9 +93,10 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	/**
 	 * Subclasses implement this method to apply behavior to the {@link MessageHandler}.<p/> callback.execute()
 	 * invokes the handler method and returns its result, or null.
+	 *
 	 * @param callback Subclasses invoke the execute() method on this interface to invoke the handler method.
-	 * @param target The target handler.
-	 * @param message The message that will be sent to the handler.
+	 * @param target   The target handler.
+	 * @param message  The message that will be sent to the handler.
 	 * @return the result after invoking the {@link MessageHandler}.
 	 * @throws Exception
 	 */
@@ -91,6 +105,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	protected interface ExecutionCallback {
 
 		Object execute() throws Exception;
+
 	}
 
 	@SuppressWarnings("serial")
@@ -99,5 +114,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		public ThrowableHolderException(Throwable cause) {
 			super(cause);
 		}
+
 	}
+
 }
