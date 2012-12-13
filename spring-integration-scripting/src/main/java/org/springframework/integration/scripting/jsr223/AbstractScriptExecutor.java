@@ -64,11 +64,6 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Object result = null;
-		
-
-		if (scriptEngine == null) {
-			throw new ScriptingException(invlalidLanguageMessage(this.language));
-		}
 
 		try {
 			if (variables != null) {
