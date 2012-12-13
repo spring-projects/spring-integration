@@ -96,4 +96,16 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		return theConnection;
 	}
 
+	/**
+	 * Force close the connection and null the field if it's
+	 * a shared connection.
+	 * @param connection
+	 */
+	public void forceClose(TcpConnection connection) {
+		if (this.theConnection == connection) {
+			this.theConnection = null;
+		}
+		connection.close();
+	}
+
 }
