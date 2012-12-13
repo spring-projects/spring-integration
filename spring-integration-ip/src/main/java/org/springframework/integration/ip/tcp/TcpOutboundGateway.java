@@ -51,11 +51,11 @@ import org.springframework.util.Assert;
  */
 public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler implements TcpSender, TcpListener, SmartLifecycle {
 
-	private volatile AbstractConnectionFactory connectionFactory;
+	private volatile AbstractClientConnectionFactory connectionFactory;
 
-	private Map<String, AsyncReply> pendingReplies = new ConcurrentHashMap<String, AsyncReply>();
+	private final Map<String, AsyncReply> pendingReplies = new ConcurrentHashMap<String, AsyncReply>();
 
-	private Semaphore semaphore = new Semaphore(1, true);
+	private final Semaphore semaphore = new Semaphore(1, true);
 
 	private volatile long replyTimeout = 10000;
 
@@ -84,6 +84,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		Assert.notNull(connectionFactory, this.getClass().getName() +
 				" requires a client connection factory");
 		boolean haveSemaphore = false;
+		String connectionId = null;
 		try {
 			boolean singleUseConnection = this.connectionFactory.isSingleUse();
 			if (!singleUseConnection) {
@@ -98,13 +99,19 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			TcpConnection connection = this.connectionFactory.getConnection();
 			AsyncReply reply = new AsyncReply();
-			pendingReplies.put(connection.getConnectionId(), reply);
+			connectionId = connection.getConnectionId();
+			pendingReplies.put(connectionId, reply);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Added " + connection.getConnectionId());
 			}
 			connection.send(requestMessage);
 			Message<?> replyMessage = reply.getReply();
 			if (replyMessage == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Remote Timeout on " + connection.getConnectionId());
+				}
+				// The connection is dirty - force it closed.
+				this.connectionFactory.forceClose(connection);
 				throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
 			}
 			if (logger.isDebugEnabled()) {
@@ -120,6 +127,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			throw new MessagingException("Failed to send or receive", e);
 		}
 		finally {
+			if (connectionId != null) {
+				pendingReplies.remove(connectionId);
+			}
 			if (haveSemaphore) {
 				this.semaphore.release();
 				if (logger.isDebugEnabled()) {
@@ -145,9 +155,10 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
+		// TODO: In 3.0 Change parameter type to AbstractClientConnectionFactory
 		Assert.isTrue(connectionFactory instanceof AbstractClientConnectionFactory,
 				this.getClass().getName() + " requires a client connection factory");
-		this.connectionFactory = connectionFactory;
+		this.connectionFactory = (AbstractClientConnectionFactory) connectionFactory;
 		connectionFactory.registerListener(this);
 		connectionFactory.registerSender(this);
 	}
