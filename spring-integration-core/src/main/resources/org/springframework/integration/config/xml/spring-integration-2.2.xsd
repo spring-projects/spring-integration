@@ -3146,38 +3146,6 @@ is provided, the return value is expected to match a channel name exactly.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="release-strategy" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="java.lang.Object" />
-							</tool:annotation>
-						</xsd:appinfo>
-						<xsd:documentation>
-							A reference to a bean that implements the release strategy.
-							The bean can be an implementation of the
-							ReleaseStrategy interface or a POJO
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="release-strategy-method" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation>
-								<tool:expected-method type-ref="@release-strategy" />
-							</tool:annotation>
-						</xsd:appinfo>
-						<xsd:documentation>
-							A method defined on the bean referenced by release-strategy, that implements the completion
-							decision algorithm.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="release-strategy-expression" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>A SpEL expression to evaluate against a root object that is the Collection of messages within the message group (e.g, size() > 6)</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -3219,6 +3187,38 @@ is provided, the return value is expected to match a channel name exactly.
 						 based on the 'id' of the 'person' attribute of the message payload object)</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+                <xsd:attribute name="release-strategy" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <tool:annotation kind="ref">
+                                <tool:expected-type type="java.lang.Object" />
+                            </tool:annotation>
+                        </xsd:appinfo>
+                        <xsd:documentation>
+                            A reference to a bean that implements the release strategy.
+                            The bean can be an implementation of the
+                            ReleaseStrategy interface or a POJO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="release-strategy-method" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <tool:annotation>
+                                <tool:expected-method type-ref="@release-strategy" />
+                            </tool:annotation>
+                        </xsd:appinfo>
+                        <xsd:documentation>
+                            A method defined on the bean referenced by release-strategy, that implements the completion
+                            decision algorithm.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="release-strategy-expression" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>A SpEL expression to evaluate against a root object that is the Collection of messages within the message group (e.g, size() > 6)</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
 				<xsd:attribute name="discard-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>

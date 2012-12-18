@@ -18,6 +18,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,9 +29,13 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
+import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
+import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -93,6 +99,34 @@ public class ResequencerParserTests {
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate CorrelationStrategy", context
 				.getBean("testCorrelationStrategy"), getPropertyValue(resequencer, "correlationStrategy"));
 	}
+	
+	@Test
+	public void testReleaseStrategyRefOnly() throws Exception {
+	  EventDrivenConsumer endpoint = (EventDrivenConsumer) context
+	      .getBean("resequencerWithReleaseStrategyRefOnly");
+	  ResequencingMessageHandler resequencer = getPropertyValue(endpoint, "handler", ResequencingMessageHandler.class);
+	  assertEquals("The ResequencerEndpoint is not configured with the appropriate ReleaseStrategy", context
+	      .getBean("testReleaseStrategy"), getPropertyValue(resequencer, "releaseStrategy"));
+	}
+	
+	@Test
+	public void testReleaseStrategyRefAndMethod() throws Exception {
+	  EventDrivenConsumer endpoint = (EventDrivenConsumer) context
+	      .getBean("resequencerWithReleaseStrategyRefAndMethod");
+	  ResequencingMessageHandler resequencer = getPropertyValue(endpoint, "handler", ResequencingMessageHandler.class);
+	  
+	  Object releaseStrategyBean = context.getBean("testReleaseStrategyPojo");
+	  assertTrue("Release strategy is not of the expected type", releaseStrategyBean instanceof TestReleaseStrategyPojo);
+	  TestReleaseStrategyPojo expectedReleaseStrategy = (TestReleaseStrategyPojo) releaseStrategyBean;
+	  
+	  int currentInvocationCount = expectedReleaseStrategy.invocationCount;
+	  ReleaseStrategy effectiveReleaseStrategy = (ReleaseStrategy) getPropertyValue(resequencer, "releaseStrategy");
+	  assertTrue("The release strategy is expected to be a MethodInvokingReleaseStrategy",
+	      effectiveReleaseStrategy instanceof MethodInvokingReleaseStrategy);
+	  effectiveReleaseStrategy.canRelease(new SimpleMessageGroup("test"));
+	  assertEquals("The ResequencerEndpoint is not configured with the appropriate ReleaseStrategy",
+	      currentInvocationCount + 1, expectedReleaseStrategy.invocationCount);
+	}
 
 	@Test
 	public void shouldSetReleasePartialSequencesFlag(){
@@ -135,6 +169,20 @@ public class ResequencerParserTests {
 		public Object foo(Object o) {
 			return "foo";
 		}
+	}
+
+	static class TestReleaseStrategy implements ReleaseStrategy {
+    public boolean canRelease(MessageGroup group) {
+      return true;
+    }
+	}
+
+	static class TestReleaseStrategyPojo {
+	  private int invocationCount = 0;
+	  public boolean bar(List<Message<?>> messages) {
+	    invocationCount++;
+	    return true;
+	  }
 	}
 
 }
