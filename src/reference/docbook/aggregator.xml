@@ -323,7 +323,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
   </section>
 
   <section id="aggregator-config">
-    <title>Configuring Aggregator</title>
+    <title>Configuring an Aggregator</title>
 	<section id="aggregator-xml">
       <title>Configuring an Aggregator with XML</title>
 
@@ -343,17 +343,19 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		order="1" ]]><co id="aggxml07" /><![CDATA[
 		send-partial-result-on-expiry="false" ]]><co id="aggxml08" /><![CDATA[
 		send-timeout="1000" ]]><co id="aggxml09" /><![CDATA[
-		
+
 		correlation-strategy="correlationStrategyBean" ]]><co id="aggxml10" /><![CDATA[
 		correlation-strategy-method="correlate" ]]><co id="aggxml11" /><![CDATA[
-		
-		ref="aggregatorBean" ]]><co id="aggxml12" /><![CDATA[
-		method="aggregate" ]]><co id="aggxml13" /><![CDATA[
-			
-		release-strategy="releaseStrategyBean" ]]><co id="aggxml14" /><![CDATA[
-		release-strategy-method="release" ]]><co id="aggxml15" /><![CDATA[
+		correlation-strategy-expression="headers['foo']" ]]><co id="aggxml12" /><![CDATA[
 
-		expire-groups-upon-completion="false"/> ]]><co id="aggxml16" /><![CDATA[
+		ref="aggregatorBean" ]]><co id="aggxml13" /><![CDATA[
+		method="aggregate" ]]><co id="aggxml14" /><![CDATA[
+
+		release-strategy="releaseStrategyBean" ]]><co id="aggxml15" /><![CDATA[
+		release-strategy-method="release" ]]><co id="aggxml16" /><![CDATA[
+		release-strategy-expression="size() == 5" ]]><co id="aggxml17" /><![CDATA[
+
+		expire-groups-upon-completion="false"/> ]]><co id="aggxml18" /><![CDATA[
 
 
 <int:channel id="outputChannel"/>
@@ -435,7 +437,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename> 
         interface or a POJO. In the latter case the correlation-strategy-method attribute must be defined
         as well. <emphasis>Optional (by default, the aggregator will use
-        the CORRELATION_ID header) </emphasis>.</para>
+        the <code>MessageHeaders.CORRELATION_ID</code> header) </emphasis>.</para>
       </callout>
       
       <callout arearefs="aggxml11">
@@ -445,27 +447,34 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         restrictions (requires <code>correlation-strategy</code> to be
         present).</emphasis></para>
       </callout>
-    
+
       <callout arearefs="aggxml12">
+        <para>A SpEL expression representing the correlation strategy.
+        Example: <code>"headers['foo']"</code>. Only one of
+        <code>correlation-strategy</code>
+        or <code>correlation-strategy-expression</code> is allowed.</para>
+      </callout>
+
+      <callout arearefs="aggxml13">
         <para>A reference to a bean defined in the application context. The bean must implement the aggregation logic
     as described above. <emphasis>Optional (by default the list of aggregated Messages will become a 
     payload of the output message).</emphasis></para>
       </callout>
-      <callout arearefs="aggxml13">
+      <callout arearefs="aggxml14">
         <para>A method defined on the bean referenced by <code>ref</code>,
         that implements the message aggregation
         algorithm. <emphasis>Optional, depends on <code>ref</code> attribute being defined.</emphasis></para>
       </callout>
       
-      <callout arearefs="aggxml14">
+      <callout arearefs="aggxml15">
         <para>A reference to a bean that implements the release strategy.
         The bean can be an implementation of the <interfacename>ReleaseStrategy</interfacename> interface
         or a POJO. In the latter case the release-strategy-method
         attribute must be defined as well. <emphasis>Optional (by default, the
-        aggregator will use the SEQUENCE_SIZE header attribute)</emphasis>.</para>
+        aggregator will use the <code>MessageHeaders.SEQUENCE_SIZE</code> header attribute)</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml15">
+      <callout arearefs="aggxml16">
         <para>A method defined on the bean referenced by
         <code>release-strategy</code>, that implements the
         completion decision algorithm. <emphasis>Optional, with
@@ -473,7 +482,15 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         present).</emphasis></para>
       </callout>
 
-      <callout arearefs="aggxml16">
+      <callout arearefs="aggxml17">
+        <para>A SpEL expression representing the release strategy; the root object for the
+        expression is a <code>Collection</code> of <code>Message</code>s.
+        Example: <code>"size() == 5"</code>. Only one of
+        <code>release-strategy</code>
+        or <code>release-strategy-expression</code> is allowed.</para>
+      </callout>
+
+      <callout arearefs="aggxml18">
         <para>When set to true (default false), completed groups are
         removed from the message store, allowing subsequent messages with
         the same correlation to form a new group. The default behavior

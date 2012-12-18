@@ -45,7 +45,14 @@
   message-store="messageStore" ]]><co id="resxml6-co" linkends="resxml6" /><![CDATA[
   send-partial-result-on-expiry="true" ]]><co id="resxml7-co"
         linkends="resxml7" /><![CDATA[
-  send-timeout="86420000" ]]><co id="resxml10-co" linkends="resxml10" /><![CDATA[ /> ]]></programlisting>
+  send-timeout="86420000" ]]><co id="resxml10-co" linkends="resxml10" /><![CDATA[
+  correlation-strategy="correlationStrategyBean" ]]><co id="resxml11-co" linkends="resxml11" /><![CDATA[
+  correlation-strategy-method="correlate" ]]><co id="resxml12-co" linkends="resxml12" /><![CDATA[
+  correlation-strategy-expression="headers['foo']" ]]><co id="resxml13-co" linkends="resxml13" /><![CDATA[
+
+  release-strategy="releaseStrategyBean" ]]><co id="resxml14-co" linkends="resxml14" /><![CDATA[
+  release-strategy-method="release" ]]><co id="resxml15-co" linkends="resxml15" /><![CDATA[
+  release-strategy-expression="size() == 10" />]]><co id="resxml16-co" linkends="resxml16" /></programlisting>
 
     <para><calloutlist>
         <callout arearefs="resxml1-co" id="resxml1">
@@ -116,6 +123,52 @@
         <callout arearefs="resxml10-co" id="resxml10">
           <para>The timeout for sending out messages.
           <emphasis>Optional</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="resxml11-co" id="resxml11">
+          <para>A reference to a bean that implements the message correlation (grouping)
+          algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename>
+          interface or a POJO. In the latter case the correlation-strategy-method attribute must be defined
+          as well. <emphasis>Optional (by default, the aggregator will use
+          the <code>MessageHeaders.CORRELATION_ID</code> header) </emphasis>.</para>
+        </callout>
+
+        <callout arearefs="resxml12-co" id="resxml12">
+          <para>A method defined on the bean referenced by
+          <code>correlation-strategy</code>, that implements the
+          correlation decision algorithm. <emphasis>Optional, with
+          restrictions (requires <code>correlation-strategy</code> to be
+          present).</emphasis></para>
+        </callout>
+
+        <callout arearefs="resxml13-co" id="resxml13">
+          <para>A SpEL expression representing the correlation strategy.
+          Example: <code>"headers['foo']"</code>. Only one of <code>correlation-strategy</code>
+          or <code>correlation-strategy-expression</code> is allowed.</para>
+        </callout>
+
+        <callout arearefs="resxml14-co" id="resxml14">
+          <para>A reference to a bean that implements the release strategy.
+          The bean can be an implementation of the <interfacename>ReleaseStrategy</interfacename> interface
+          or a POJO. In the latter case the release-strategy-method
+          attribute must be defined as well. <emphasis>Optional (by default, the
+          aggregator will use the <code>MessageHeaders.SEQUENCE_SIZE</code> header attribute)</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="resxml15-co" id="resxml15">
+          <para>A method defined on the bean referenced by
+          <code>release-strategy</code>, that implements the
+          completion decision algorithm. <emphasis>Optional, with
+          restrictions (requires <code>release-strategy</code> to be
+          present).</emphasis></para>
+        </callout>
+
+        <callout arearefs="resxml16-co" id="resxml16">
+          <para>A SpEL expression representing the release strategy; the root object for the
+          expression is a <code>Collection</code> of <code>Message</code>s.
+          Example: <code>"size() == 5"</code>. Only one of
+          <code>release-strategy</code>
+          or <code>release-strategy-expression</code> is allowed.</para>
         </callout>
       </calloutlist></para>
 
