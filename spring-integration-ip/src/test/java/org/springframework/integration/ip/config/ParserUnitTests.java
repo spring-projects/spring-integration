@@ -33,6 +33,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.task.TaskExecutor;
@@ -54,6 +56,8 @@ import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
@@ -248,6 +252,9 @@ public class ParserUnitTests {
 	@Autowired
 	TcpSocketSupport socketSupport;
 
+	@Autowired
+	TcpSSLContextSupport contextSupport;
+
 	private static volatile int adviceCalled;
 
 	@Test
@@ -302,6 +309,15 @@ public class ParserUnitTests {
 		Object socketSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport");
 		assertTrue(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport);
 		assertNotNull(TestUtils.getPropertyValue(socketSupport, "sslContext"));
+
+		TcpSSLContextSupport contextSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport.sslContextSupport", TcpSSLContextSupport.class);
+		assertSame(contextSupport, this.contextSupport);
+		assertTrue(TestUtils.getPropertyValue(contextSupport, "keyStore") instanceof ClassPathResource);
+		assertTrue(TestUtils.getPropertyValue(contextSupport, "trustStore") instanceof ClassPathResource);
+
+		contextSupport = new DefaultTcpSSLContextSupport("http:foo", "file:bar", "", "");
+		assertTrue(TestUtils.getPropertyValue(contextSupport, "keyStore") instanceof UrlResource);
+		assertTrue(TestUtils.getPropertyValue(contextSupport, "trustStore") instanceof UrlResource);
 	}
 
 	@Test
