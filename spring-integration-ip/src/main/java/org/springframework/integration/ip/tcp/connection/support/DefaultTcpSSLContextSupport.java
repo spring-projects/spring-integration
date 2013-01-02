@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.ip.tcp.connection.support;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -24,8 +23,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -38,9 +37,9 @@ import org.springframework.util.Assert;
  */
 public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 
-	private final String keyStore;
+	private final Resource keyStore;
 
-	private final String trustStore;
+	private final Resource trustStore;
 
 	private final char[] keyStorePassword;
 
@@ -51,15 +50,20 @@ public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 	/**
 	 * Prepares for the creation of an SSLContext using the supplied
 	 * key/trust stores and passwords.
-	 * @param keyStore A {@link Resource} pointing to the keyStore.
-	 * @param trustStore A {@link Resource} pointing to the trustStore.
+	 * @param keyStore A {@link Resource} pattern pointing to the keyStore.
+	 * @param trustStore A {@link Resource} pattern pointing to the trustStore.
 	 * @param keyStorePassword The passowrd for the keyStore.
 	 * @param trustStorePassword The password for the trustStore.
 	 */
 	public DefaultTcpSSLContextSupport(String keyStore, String trustStore,
 			String keyStorePassword, String trustStorePassword) {
-		this.keyStore = keyStore;
-		this.trustStore = trustStore;
+		Assert.notNull(keyStore, "keyStore cannot be null");
+		Assert.notNull(trustStore, "trustStore cannot be null");
+		Assert.notNull(keyStorePassword, "keyStorePassword cannot be null");
+		Assert.notNull(trustStorePassword, "trustStorePassword cannot be null");
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+		this.keyStore = resolver.getResource(keyStore);
+		this.trustStore = resolver.getResource(trustStore);
 		this.keyStorePassword = keyStorePassword.toCharArray();
 		this.trustStorePassword = trustStorePassword.toCharArray();
 	}
@@ -68,8 +72,8 @@ public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 		KeyStore ks = KeyStore.getInstance("JKS");
 		KeyStore ts = KeyStore.getInstance("JKS");
 
-		ks.load(new FileInputStream(new ClassPathResource(keyStore).getFile()), keyStorePassword);
-		ts.load(new FileInputStream(new ClassPathResource(trustStore).getFile()), trustStorePassword);
+		ks.load(keyStore.getInputStream(), keyStorePassword);
+		ts.load(trustStore.getInputStream(), trustStorePassword);
 
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 		kmf.init(ks, keyStorePassword);

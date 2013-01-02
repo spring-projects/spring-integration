@@ -71,7 +71,7 @@
 		/>
 
 	<bean id="sslContextSupport" class="org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
-		<constructor-arg value="test.ks"/>
+		<constructor-arg value="classpath:test.ks"/>
 		<constructor-arg value="test.truststore.ks"/>
 		<constructor-arg value="secret"/>
 		<constructor-arg value="secret"/>
