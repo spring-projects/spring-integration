@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Jonas Partner
+ * @author Gary Russell
  */
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
@@ -28,7 +30,11 @@ public class PollingEndpointStub extends AbstractPollingEndpoint {
 	}
 
 	@Override
-	protected boolean doPoll() {
+	protected void handleMessage(Message<?> message) {
+	}
+
+	@Override
+	protected Message<?> receiveMessage() {
 		throw new RuntimeException("intentional test failure");
 	}
 

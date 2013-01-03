@@ -64,7 +64,7 @@
 	<bean id="rowMapper" class="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
 
 	<bean id="storedProcedureEndpoint"
-				class="org.springframework.integration.endpoint.SourcePollingChannelAdapter">
+				class="org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean">
 		<property name="source" ref="source"/>
 		<property name="outputChannel" ref="outputChannel"/>
 		<property name="pollerMetadata" ref="defaultPoller"/>
