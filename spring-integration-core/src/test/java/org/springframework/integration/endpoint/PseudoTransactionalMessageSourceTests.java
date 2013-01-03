@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@ package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
@@ -31,8 +32,8 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
-import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.integration.transaction.PseudoTransactionManager;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -81,7 +82,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.doPoll();
+		doPoll(adapter);
 		TransactionSynchronizationUtils.triggerBeforeCommit(false);
 		TransactionSynchronizationUtils.triggerAfterCommit();
 		Message<?> beforeCommitMessage = queueChannel.receive(1000);
@@ -122,7 +123,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.doPoll();
+		doPoll(adapter);
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
 		Message<?> rollbackMessage = queueChannel.receive(1000);
 		assertNotNull(rollbackMessage);
@@ -163,7 +164,7 @@ public class PseudoTransactionalMessageSourceTests {
 					}
 				});
 
-				adapter.doPoll();
+				doPoll(adapter);
 				return null;
 			}
 		});
@@ -206,7 +207,7 @@ public class PseudoTransactionalMessageSourceTests {
 						}
 					});
 
-					adapter.doPoll();
+					doPoll(adapter);
 					throw new RuntimeException("Force rollback");
 				}
 			});
@@ -249,7 +250,7 @@ public class PseudoTransactionalMessageSourceTests {
 					}
 				});
 
-				adapter.doPoll();
+				doPoll(adapter);
 				status.setRollbackOnly();
 				return null;
 			}
@@ -271,12 +272,12 @@ public class PseudoTransactionalMessageSourceTests {
 		});
 
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.doPoll();
+		doPoll(adapter);
 		TransactionSynchronizationManager.setActualTransactionActive(false);
 
 		// Before INT-2777 this test was failed here
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.doPoll();
+		doPoll(adapter);
 		TransactionSynchronizationManager.setActualTransactionActive(false);
 	}
 
@@ -309,7 +310,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.doPoll();
+		doPoll(adapter);
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
@@ -321,11 +322,22 @@ public class PseudoTransactionalMessageSourceTests {
 		//TODO: Need new JIRA issue to fix it
 		TransactionSynchronizationManager.initSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(true);
-		adapter.doPoll();
+		doPoll(adapter);
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_COMMITTED);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
 		assertEquals(2, txSyncCounter.get());
+	}
+
+	protected void doPoll(SourcePollingChannelAdapter adapter) {
+		try {
+			Method method = AbstractPollingEndpoint.class.getDeclaredMethod("doPoll");
+			method.setAccessible(true);
+			method.invoke(adapter);
+		}
+		catch (Exception e) {
+			fail("Failed to invoke doPoll(): " + e.toString());
+		}
 	}
 
 	public class Bar {

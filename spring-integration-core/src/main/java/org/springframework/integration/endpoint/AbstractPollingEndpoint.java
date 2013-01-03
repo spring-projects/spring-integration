@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,13 @@ import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
+import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -66,6 +70,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile long maxMessagesPerPoll = -1;
 
 	private final Object initializationMonitor = new Object();
+
+	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE);
@@ -105,6 +111,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = classLoader;
+	}
+
+	public void setTransactionSynchronizationFactory(TransactionSynchronizationFactory transactionSynchronizationFactory) {
+		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
 	@Override
@@ -181,21 +191,28 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.initialized = false;
 	}
 
-	/**
-	 * @deprecated Starting with Spring Integration 3.0, subclasses will not be able to
-	 * override this method. Use {@link #receiveMessage()} and {@link #handleMessage(Message)} instead,
-	 * to separate the concerns of retrieving and processing a message.
-	 * Consider refactoring now rather than waiting for 3.0.
-	 * @return true if a message was processed.
-	 */
-	@Deprecated
-	protected boolean doPoll() {
+	private boolean doPoll() {
+		IntegrationResourceHolder holder = this.bindResourceHolderIfNecessary(
+				this.getResourceKey(), this.getResourceToBind());
 		Message<?> message = this.receiveMessage();
-		if (message != null) {
-			this.handleMessage(message);
-			return true;
+		boolean result;
+		if (message == null) {
+			if (this.logger.isDebugEnabled()){
+				this.logger.debug("Received no Message during the poll, returning 'false'");
+			}
+			result = false;
 		}
-		return false;
+		else {
+			if (this.logger.isDebugEnabled()){
+				this.logger.debug("Poll resulted in Message: " + message);
+			}
+			if (holder != null) {
+				holder.setMessage(message);
+			}
+			this.handleMessage(message);
+			result = true;
+		}
+		return result;
 	}
 
 	/**
@@ -203,16 +220,49 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 * if no message is immediately available.
 	 * @return The message or null.
 	 */
-	protected Message<?> receiveMessage() {
-		throw new UnsupportedOperationException("Subclass must implement receiveMessage()");
-	}
+	protected abstract Message<?> receiveMessage();
 
 	/**
 	 * Handle a message.
 	 * @param message The message.
 	 */
-	protected void handleMessage(Message<?> message) {
-		throw new UnsupportedOperationException("Subclass must implement handleMessage()");
+	protected abstract void handleMessage(Message<?> message);
+
+	/**
+	 * Return a resource (MessageSource etc) to bind when using transaction
+	 * synchronization.
+	 * @return The resource, or null if transaction synchronization is not required.
+	 */
+	protected Object getResourceToBind() {
+		return null;
+	}
+
+	/**
+	 * Return the key under which the resource will be made available as an
+	 * attribute on the {@link IntegrationResourceHolder}. The default
+	 * {@link ExpressionEvaluatingTransactionSynchronizationProcessor}
+	 * makes this attribute available as a variable in SpEL expressions.
+	 * @return The key, or null (default) if the resource shouldn't be
+	 * made available as a attribute.
+	 */
+	protected String getResourceKey() {
+		return null;
+	}
+
+	private IntegrationResourceHolder bindResourceHolderIfNecessary(String key, Object resource) {
+		IntegrationResourceHolder holder = null;
+
+		if (this.transactionSynchronizationFactory != null && resource != null) {
+			if (TransactionSynchronizationManager.isActualTransactionActive()) {
+				holder = new IntegrationResourceHolder();
+				if (key != null) {
+					holder.addAttribute(key, resource);
+				}
+				TransactionSynchronizationManager.bindResource(resource, holder);
+				TransactionSynchronizationManager.registerSynchronization(this.transactionSynchronizationFactory.create(resource));
+			}
+		}
+		return holder;
 	}
 
 	/**
