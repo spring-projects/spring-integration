@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,21 @@ import org.springframework.integration.Message;
 /**
  * Base class for TcpConnectionIntercepters; passes all method calls through
  * to the underlying {@link TcpConnection}.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
-public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionInterceptor {
+public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSupport implements TcpConnectionInterceptor {
 
-	private TcpConnection theConnection;
-	
+	private TcpConnectionSupport theConnection;
+
 	private TcpListener tcpListener;
 
 	private TcpSender tcpSender;
-	
+
 	private Boolean realSender;
 
+	@Override
 	public void close() {
 		this.theConnection.close();
 	}
@@ -49,10 +50,12 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		return this.theConnection.getPayload();
 	}
 
+	@Override
 	public String getHostName() {
 		return this.theConnection.getHostName();
 	}
 
+	@Override
 	public String getHostAddress() {
 		return this.theConnection.getHostAddress();
 	}
@@ -61,20 +64,24 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		return this.theConnection.getPort();
 	}
 
+	@Override
 	public void registerListener(TcpListener listener) {
 		this.tcpListener = listener;
 		this.theConnection.registerListener(this);
 	}
 
+	@Override
 	public void registerSender(TcpSender sender) {
 		this.tcpSender = sender;
 		this.theConnection.registerSender(this);
 	}
 
+	@Override
 	public String getConnectionId() {
 		return this.theConnection.getConnectionId();
 	}
 
+	@Override
 	public boolean isSingleUse() {
 		return this.theConnection.isSingleUse();
 	}
@@ -83,30 +90,37 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		this.theConnection.run();
 	}
 
+	@Override
 	public void setSingleUse(boolean singleUse) {
 		this.theConnection.setSingleUse(singleUse);
 	}
 
+	@Override
 	public void setMapper(TcpMessageMapper mapper) {
 		this.theConnection.setMapper(mapper);
 	}
 
+	@Override
 	public Deserializer<?> getDeserializer() {
 		return this.theConnection.getDeserializer();
 	}
 
+	@Override
 	public void setDeserializer(Deserializer<?> deserializer) {
 		this.theConnection.setDeserializer(deserializer);
 	}
 
+	@Override
 	public Serializer<?> getSerializer() {
 		return this.theConnection.getSerializer();
 	}
 
+	@Override
 	public void setSerializer(Serializer<?> serializer) {
 		this.theConnection.setSerializer(serializer);
 	}
 
+	@Override
 	public boolean isServer() {
 		return this.theConnection.isServer();
 	}
@@ -126,7 +140,7 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 	 * Returns the underlying connection (or next interceptor)
 	 * @return the connection
 	 */
-	public TcpConnection getTheConnection() {
+	public TcpConnectionSupport getTheConnection() {
 		return this.theConnection;
 	}
 
@@ -134,13 +148,14 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 	 * Sets the underlying connection (or next interceptor)
 	 * @param theConnection the connection
 	 */
-	public void setTheConnection(TcpConnection theConnection) {
+	public void setTheConnection(TcpConnectionSupport theConnection) {
 		this.theConnection = theConnection;
 	}
 
 	/**
 	 * @return the listener
 	 */
+	@Override
 	public TcpListener getListener() {
 		return tcpListener;
 	}
@@ -157,21 +172,23 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		}
 	}
 
+	@Override
 	public long incrementAndGetConnectionSequence() {
 		return this.theConnection.incrementAndGetConnectionSequence();
 	}
-	
-	TcpSender getSender() {
+
+	@Override
+	public TcpSender getSender() {
 		return this.tcpSender;
 	}
-	
+
 	protected boolean hasRealSender() {
 		if (this.realSender != null) {
 			return this.realSender;
 		}
 		TcpSender sender = this.getSender();
-		while (sender instanceof AbstractTcpConnectionInterceptor) {
-			sender = ((AbstractTcpConnectionInterceptor) sender).getSender();
+		while (sender instanceof TcpConnectionInterceptorSupport) {
+			sender = ((TcpConnectionInterceptorSupport) sender).getSender();
 		}
 		this.realSender = sender != null;
 		return this.realSender;

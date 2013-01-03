@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,46 +76,21 @@ public interface TcpConnection extends Runnable {
 	int getPort();
 
 	/**
-	 * Sets the listener that will receive incoming Messages.
-	 * @param listener The listener
-	 */
-	void registerListener(TcpListener listener);
-
-	/**
-	 * Registers a sender. Used on server side sockets so a
-	 * sender can determine which connection to send a reply
-	 * to.
-	 * @param sender the sender
-	 */
-	void registerSender(TcpSender sender);
-	
-	/**
 	 * @return a string uniquely representing a connection.
 	 */
 	String getConnectionId();
-	
-	/**
-	 * When true, the socket is used once and discarded.
-	 * @param singleUse the singleUse
-	 */
-	void setSingleUse(boolean singleUse);
 
 	/**
 	 *
 	 * @return True if connection is used once.
 	 */
 	boolean isSingleUse();
-	
+
 	/**
 	 *
 	 * @return True if connection is used once.
 	 */
 	boolean isServer();
-	
-	/**
-	 * @param mapper the mapper
-	 */
-	void setMapper(TcpMessageMapper mapper);
 
 	/**
 	 *
@@ -124,21 +99,11 @@ public interface TcpConnection extends Runnable {
 	Deserializer<?> getDeserializer();
 
 	/**
-	 * @param deserializer the deserializer to set
-	 */
-	void setDeserializer(Deserializer<?> deserializer);
-
-	/**
 	 *
 	 * @return the serializer
 	 */
 	Serializer<?> getSerializer();
-	
-	/**
-	 * @param serializer the serializer to set
-	 */
-	void setSerializer(Serializer<?> serializer);
-	
+
 	/**
 	 * @return this connection's listener
 	 */
@@ -148,5 +113,5 @@ public interface TcpConnection extends Runnable {
 	 * @return the next sequence number for a message received on this socket
 	 */
 	long incrementAndGetConnectionSequence();
-	
+
 }

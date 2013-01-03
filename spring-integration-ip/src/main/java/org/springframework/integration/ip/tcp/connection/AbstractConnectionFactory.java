@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -482,7 +482,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	protected TcpConnection wrapConnection(TcpConnection connection) throws Exception {
+	protected TcpConnectionSupport wrapConnection(TcpConnectionSupport connection) throws Exception {
 		try {
 			if (this.interceptorFactoryChain == null) {
 				return connection;
@@ -493,7 +493,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 				return connection;
 			}
 			for (TcpConnectionInterceptorFactory factory : interceptorFactories) {
-				TcpConnectionInterceptor wrapper = factory.getInterceptor();
+				TcpConnectionInterceptorSupport wrapper = factory.getInterceptor();
 				wrapper.setTheConnection(connection);
 				// if no ultimate listener or sender, register each wrapper in turn
 				if (this.listener == null) {

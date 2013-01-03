@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	/**
 	 * If no listener registers, exits.
 	 * Accepts incoming connections and creates TcpConnections for each new connection.
-	 * Invokes {{@link #initializeConnection(TcpConnection, Socket)} and executes the
+	 * Invokes {{@link #initializeConnection(TcpConnectionSupport, Socket)} and executes the
 	 * connection {@link TcpConnection#run()} using the task executor.
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
@@ -100,7 +100,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
 					}
 					setSocketAttributes(socket);
-					TcpConnection connection = new TcpNetConnection(socket, true, this.isLookupHost());
+					TcpConnectionSupport connection = new TcpNetConnection(socket, true, this.isLookupHost());
 					connection = wrapConnection(connection);
 					this.initializeConnection(connection, socket);
 					this.getTaskExecutor().execute(connection);

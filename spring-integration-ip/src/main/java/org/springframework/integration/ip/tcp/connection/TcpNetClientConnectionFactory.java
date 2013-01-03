@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,8 @@ public class TcpNetClientConnectionFactory extends
 	 * @throws Exception
 	 */
 	@Override
-	protected TcpConnection obtainConnection() throws Exception {
-		TcpConnection theConnection = this.getTheConnection();
+	protected TcpConnectionSupport obtainConnection() throws Exception {
+		TcpConnectionSupport theConnection = this.getTheConnection();
 		if (theConnection != null && theConnection.isOpen()) {
 			return theConnection;
 		}
@@ -62,7 +62,7 @@ public class TcpNetClientConnectionFactory extends
 		}
 		Socket socket = createSocket(this.getHost(), this.getPort());
 		setSocketAttributes(socket);
-		TcpConnection connection = new TcpNetConnection(socket, false, this.isLookupHost());
+		TcpConnectionSupport connection = new TcpNetConnection(socket, false, this.isLookupHost());
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
