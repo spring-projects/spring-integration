@@ -21,7 +21,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
 import org.springframework.util.Assert;
 
 /**

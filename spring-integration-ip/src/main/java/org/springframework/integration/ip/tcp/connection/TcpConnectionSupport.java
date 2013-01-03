@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  *
  */
-public abstract class AbstractTcpConnection implements TcpConnection {
+public abstract class TcpConnectionSupport implements TcpConnection {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -71,7 +71,11 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	private volatile String hostAddress = "unknown";
 
-	public AbstractTcpConnection(Socket socket, boolean server, boolean lookupHost) {
+	public TcpConnectionSupport() {
+		server = false;
+	}
+
+	public TcpConnectionSupport(Socket socket, boolean server, boolean lookupHost) {
 		this.server = server;
 		InetAddress inetAddress = socket.getInetAddress();
 		if (inetAddress != null) {
@@ -182,7 +186,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * @param listener the listener to set
+	 * Sets the listener that will receive incoming Messages.
+	 * @param listener The listener.
 	 */
 	public void registerListener(TcpListener listener) {
 		this.listener = listener;
@@ -199,7 +204,10 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * @param sender the sender to set
+	 * Registers a sender. Used on server side connections so a
+	 * sender can determine which connection to send a reply
+	 * to.
+	 * @param sender the sender.
 	 */
 	public void registerSender(TcpSender sender) {
 		this.sender = sender;

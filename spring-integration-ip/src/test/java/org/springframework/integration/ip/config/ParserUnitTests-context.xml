@@ -70,7 +70,7 @@
 		ssl-context-support="sslContextSupport"
 		/>
 
-	<bean id="sslContextSupport" class="org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
+	<bean id="sslContextSupport" class="org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport">
 		<constructor-arg value="classpath:test.ks"/>
 		<constructor-arg value="test.truststore.ks"/>
 		<constructor-arg value="secret"/>
@@ -87,11 +87,11 @@
 		socket-factory-support="socketFactorySupport" />
 
 	<bean id="socketSupport" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport" />
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.TcpSocketSupport" />
 	</bean>
 
 	<bean id="socketFactorySupport" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport" />
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport" />
 	</bean>
 
 	<ip:tcp-inbound-channel-adapter id="testInTcp"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class TcpNioClientConnectionFactory extends
 	 * @throws SocketException
 	 */
 	@Override
-	protected TcpConnection obtainConnection() throws Exception {
+	protected TcpConnectionSupport obtainConnection() throws Exception {
 		int n = 0;
 		while (this.selector == null) {
 			try {
@@ -79,7 +79,7 @@ public class TcpNioClientConnectionFactory extends
 				throw new Exception("Factory failed to start");
 			}
 		}
-		TcpConnection theConnection = this.getTheConnection();
+		TcpConnectionSupport theConnection = this.getTheConnection();
 		if (theConnection != null && theConnection.isOpen()) {
 			return theConnection;
 		}
@@ -92,7 +92,7 @@ public class TcpNioClientConnectionFactory extends
 				socketChannel, false, this.isLookupHost());
 		connection.setUsingDirectBuffers(this.usingDirectBuffers);
 		connection.setTaskExecutor(this.getTaskExecutor());
-		TcpConnection wrappedConnection = wrapConnection(connection);
+		TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 		initializeConnection(wrappedConnection, socketChannel.socket());
 		socketChannel.configureBlocking(false);
 		if (this.getSoTimeout() > 0) {

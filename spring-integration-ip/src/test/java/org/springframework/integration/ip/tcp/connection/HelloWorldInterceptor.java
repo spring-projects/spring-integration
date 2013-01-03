@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.integration.support.MessageBuilder;
  * @since 2.0
  *
  */
-public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
+public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 
 	Log logger = LogFactory.getLog(this.getClass());
 
@@ -47,9 +47,9 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 
 	private volatile boolean pendingSend;
 
-	public HelloWorldInterceptor() { 
+	public HelloWorldInterceptor() {
 	}
-	
+
 	/**
 	 * @param hello
 	 * @param world
@@ -75,7 +75,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 						throw new MessagingException("Negotiation error", e);
 					}
 				} else {
-					throw new MessagingException("Negotiation error, expected '" + hello + 
+					throw new MessagingException("Negotiation error, expected '" + hello +
 							     "' received '" + payload + "'");
 				}
 			} else {
@@ -84,7 +84,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 					this.negotiated = true;
 					this.negotiationSemaphore.release();
 				} else {
-					throw new MessagingException("Negotiation error - expected '" + world + 
+					throw new MessagingException("Negotiation error - expected '" + world +
 								"' received " + payload);
 				}
 				return true;
@@ -93,7 +93,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 		try {
 			return super.onMessage(message);
 		} finally {
-			// on the server side, we don't want to close if we are expecting a response 
+			// on the server side, we don't want to close if we are expecting a response
 			if (!(this.isServer() && this.hasRealSender()) && !this.pendingSend) {
 				this.checkDeferredClose();
 			}
@@ -144,6 +144,6 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 		}
 	}
 
-	
+
 
 }

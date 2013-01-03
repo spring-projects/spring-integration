@@ -13,35 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp.connection.support;
+package org.springframework.integration.ip.tcp.connection;
 
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
+
 /**
- * Strategy interface for modifying sockets.
+ * Strategy interface for supplying Socket Factories.
  * @author Gary Russell
  * @since 2.2
  *
  */
-public interface TcpSocketSupport {
+public interface TcpSocketFactorySupport {
 
 	/**
-	 * Performs any further modifications to the server socket
-	 * after the connection factory has created the socket and
-	 * set any configured attributes, before invoking
-	 * {@link ServerSocket#accept()}.
-	 * @param serverSocket The ServerSocket
+	 * Supplies the {@link ServerSocketFactory} to be used to
+	 * create new {@link ServerSocket}s.
+	 * @return the ServerSocketFacory
 	 */
-    void postProcessServerSocket(ServerSocket serverSocket);
+    ServerSocketFactory getServerSocketFactory();
 
     /**
-     * Performs any further modifications to the {@link Socket} after
-     * the socket has been created by a client, or accepted by
-     * a server, and after any configured atributes have been
-     * set.
-     * @param socket The Socket
+     * Supplies the {@link SocketFactory} to be used to
+     * create new {@link Socket}s.
+     * @return the SocketFactory
      */
-    void postProcessSocket(Socket socket);
+    SocketFactory getSocketFactory();
 
 }
