@@ -131,6 +131,7 @@ public class TcpSendingMessageHandlerTests {
 		assertNotNull(mOut);
 		assertEquals("Reply2", new String((byte[]) mOut.getPayload()));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -244,6 +245,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(results.remove("Reply1"));
 		assertTrue(results.remove("Reply2"));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -293,6 +295,7 @@ public class TcpSendingMessageHandlerTests {
 		assertNotNull(mOut);
 		assertEquals("Reply2", new String((byte[]) mOut.getPayload()));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -345,6 +348,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(results.remove("Reply1"));
 		assertTrue(results.remove("Reply2"));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -397,6 +401,7 @@ public class TcpSendingMessageHandlerTests {
 		assertNotNull(mOut);
 		assertEquals("Reply2", new String((byte[]) mOut.getPayload()));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -452,6 +457,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(results.remove("Reply1"));
 		assertTrue(results.remove("Reply2"));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -500,6 +506,7 @@ public class TcpSendingMessageHandlerTests {
 		assertNotNull(mOut);
 		assertEquals("Reply2", mOut.getPayload());
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -551,6 +558,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(results.remove("Reply1"));
 		assertTrue(results.remove("Reply2"));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -888,6 +896,7 @@ public class TcpSendingMessageHandlerTests {
 		assertNotNull(mOut);
 		assertEquals("Reply2", mOut.getPayload());
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -953,6 +962,7 @@ public class TcpSendingMessageHandlerTests {
 			assertTrue("Missing Reply" + i, results.remove("Reply" + i));
 		}
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -1010,6 +1020,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -1066,6 +1077,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
