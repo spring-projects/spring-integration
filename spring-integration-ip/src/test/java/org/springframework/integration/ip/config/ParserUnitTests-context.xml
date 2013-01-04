@@ -59,7 +59,10 @@
 		lookup-host="false"
 		apply-sequence="true"
 		ssl-context-support="sslContextSupport"
+		mapper="mapper"
 		/>
+
+	<bean id="mapper" class="org.springframework.integration.ip.tcp.connection.TcpMessageMapper" />
 
 	<ip:tcp-connection-factory id="cfS1Nio"
 		type="server"
@@ -282,13 +285,6 @@
 	/>
 
 	<ip:tcp-connection-factory
-		id="serverBackwardsCompatible"
-		type="server"
-		port="#{client1.port}"
-		pool-size="123"
-	/>
-
-	<ip:tcp-connection-factory
 		id="client2"
 		type="client"
 		host="localhost"
@@ -422,5 +418,8 @@
 			</list>
 		</constructor-arg>
 	</bean>
+
+	<ip:tcp-connection-event-inbound-channel-adapter id="eventAdapter" channel="nullChannel"
+		event-types="org.springframework.integration.ip.config.ParserUnitTests$EventSubclass1, org.springframework.integration.ip.config.ParserUnitTests$EventSubclass2"/>
 
 </beans>

@@ -16,10 +16,13 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.Socket;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.net.SocketFactory;
 
@@ -30,13 +33,11 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class TcpMessageMapperTests {
 
-	/**
-	 *
-	 */
 	private static final String TEST_PAYLOAD = "abcdefghijkl";
 
 	@Test
@@ -63,7 +64,7 @@ public class TcpMessageMapperTests {
 
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
-		TcpConnection connection = new TcpConnectionSupport(socket, false, false) {
+		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {
@@ -88,6 +89,9 @@ public class TcpMessageMapperTests {
 			@Override
 			public String getConnectionId() {
 				return "anId";
+			}
+			public Object getDeserializerStateKey() {
+				return null;
 			}
 		};
 		Message<Object> message = mapper.toMessage(connection);
@@ -111,11 +115,18 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	public void testToMessageSequenceNew() throws Exception {
-		TcpMessageMapper mapper = new TcpMessageMapper();
+	public void testToMessageSequenceNewWithCustomHeader() throws Exception {
+		TcpMessageMapper mapper = new TcpMessageMapper() {
+
+			@Override
+			protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
+				return Collections.singletonMap("foo", "bar");
+			}
+
+		};
 		mapper.setApplySequence(true);
 		Socket socket = SocketFactory.getDefault().createSocket();
-		TcpConnection connection = new TcpConnectionSupport(socket, false, false) {
+		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {
@@ -140,6 +151,9 @@ public class TcpMessageMapperTests {
 			@Override
 			public String getConnectionId() {
 				return "anId";
+			}
+			public Object getDeserializerStateKey() {
+				return null;
 			}
 		};
 		Message<Object> message = mapper.toMessage(connection);
@@ -166,6 +180,8 @@ public class TcpMessageMapperTests {
 				.getHeaders().getSequenceNumber());
 		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), message
 				.getHeaders().getCorrelationId());
+		assertNotNull(message.getHeaders().get("foo"));
+		assertEquals("bar", message.getHeaders().get("foo"));
 
 	}
 
@@ -190,6 +206,5 @@ public class TcpMessageMapperTests {
 		assertEquals(s, out);
 
 	}
-
 
 }

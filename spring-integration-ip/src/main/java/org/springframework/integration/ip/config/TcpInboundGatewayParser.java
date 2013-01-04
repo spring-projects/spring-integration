@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class TcpInboundGatewayParser extends AbstractInboundGatewayParser {
-	
+
 	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
 
 	@Override
@@ -46,7 +46,7 @@ public class TcpInboundGatewayParser extends AbstractInboundGatewayParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-				IpAdapterParserUtils.SCHEDULER);
+				IpAdapterParserUtils.SCHEDULER, "taskScheduler");
 	}
 
 }

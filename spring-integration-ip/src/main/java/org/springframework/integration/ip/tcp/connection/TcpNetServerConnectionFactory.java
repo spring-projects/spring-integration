@@ -98,7 +98,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
 					}
 					setSocketAttributes(socket);
-					TcpConnectionSupport connection = new TcpNetConnection(socket, true, this.isLookupHost());
+					TcpConnectionSupport connection = new TcpNetConnection(socket, true, this.isLookupHost(),
+							this.getApplicationEventPublisher(), this.getComponentName());
 					connection = wrapConnection(connection);
 					this.initializeConnection(connection, socket);
 					this.getTaskExecutor().execute(connection);

@@ -69,25 +69,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private volatile boolean active;
 
-	/**
-	 * @deprecated Use {@link #obtainConnection(Message)}.
-	 * TODO: remove in 3.0
-	 */
-	@Deprecated
-	protected TcpConnection getConnection() {
-		TcpConnection connection = null;
-		if (this.clientConnectionFactory == null) {
-			return null;
-		}
-		try {
-			connection = this.clientConnectionFactory.getConnection();
-		}
-		catch (Exception e) {
-			logger.error("Error creating connection", e);
-		}
-		return connection;
-	}
-
 	protected TcpConnection obtainConnection(Message<?> message) {
 		TcpConnection connection = null;
 		Assert.notNull(this.clientConnectionFactory, "'clientConnectionFactory' cannot be null");
@@ -332,15 +313,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	 */
 	public void setClientMode(boolean isClientMode) {
 		this.isClientMode = isClientMode;
-	}
-
-	/**
-	 * @param scheduler the scheduler to set
-	 * @deprecated Use {@link #setTaskScheduler(TaskScheduler)}
-	 */
-	@Deprecated
-	public void setScheduler(TaskScheduler scheduler) {
-		this.setTaskScheduler(scheduler);
 	}
 
 	@Override // super class is protected

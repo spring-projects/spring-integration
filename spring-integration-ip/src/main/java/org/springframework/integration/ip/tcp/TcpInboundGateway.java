@@ -32,7 +32,6 @@ import org.springframework.integration.ip.tcp.connection.ClientModeConnectionMan
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -216,15 +215,6 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 	 */
 	public void setClientMode(boolean isClientMode) {
 		this.isClientMode = isClientMode;
-	}
-
-	/**
-	 * @param scheduler the scheduler to set
-	 * @deprecated Use {@link TcpInboundGateway#setTaskScheduler(TaskScheduler)}
-	 */
-	@Deprecated
-	public void setScheduler(TaskScheduler scheduler) {
-		this.setTaskScheduler(scheduler);
 	}
 
 	/**

@@ -64,6 +64,10 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 		return this.theConnection.getPort();
 	}
 
+	public Object getDeserializerStateKey() {
+		return this.theConnection.getDeserializerStateKey();
+	}
+
 	@Override
 	public void registerListener(TcpListener listener) {
 		this.tcpListener = listener;

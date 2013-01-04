@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.concurrent.Executor;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -50,7 +52,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0.5
  */
-public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> implements SmartLifecycle, BeanNameAware {
+public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> implements SmartLifecycle, BeanNameAware,
+	ApplicationEventPublisherAware {
 
 	private volatile AbstractConnectionFactory connectionFactory;
 
@@ -107,6 +110,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	private volatile TcpNioConnectionSupport nioConnectionSupport;
 
 	private volatile TcpSocketFactorySupport socketFactorySupport;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	@Override
 	public Class<?> getObjectType() {
@@ -168,6 +173,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setTaskExecutor(this.taskExecutor);
 		factory.setBeanName(this.beanName);
 		factory.setTcpSocketSupport(this.socketSupport);
+		factory.setApplicationEventPublisher(this.applicationEventPublisher);
 	}
 
 	private void setServerAttributes(AbstractServerConnectionFactory factory) {
@@ -361,17 +367,6 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * @param poolSize
-	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#setPoolSize(int)
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setPoolSize(int poolSize) {
-		logger.warn("poolSize is deprecated; use backlog instead");
-		this.backlog = poolSize;
-	}
-
-	/**
 	 * @param backlog
 	 * @see AbstractServerConnectionFactory#setBacklog(int)
 	 */
@@ -475,6 +470,10 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 			TcpSocketFactorySupport tcpSocketFactorySupport) {
 		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
 		this.socketFactorySupport = tcpSocketFactorySupport;
+	}
+
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 }

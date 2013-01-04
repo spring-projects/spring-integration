@@ -165,17 +165,6 @@ public abstract class AbstractServerConnectionFactory
 		this.backlog = backlog;
 	}
 
-	/**
-	 * @deprecated Default task executor is now a cached rather
-	 * than a fixed pool executor.
-	 * Use {@link #setBacklog(int)} to set the connection backlog.
-	 */
-	@Override
-	@Deprecated
-	public void setPoolSize(int poolSize) {
-		this.setBacklog(poolSize);
-	}
-
 	public int beforeShutdown() {
 		this.shuttingDown = true;
 		return 0;
