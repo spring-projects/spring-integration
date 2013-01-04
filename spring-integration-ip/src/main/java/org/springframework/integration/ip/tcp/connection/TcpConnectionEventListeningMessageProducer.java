@@ -15,23 +15,23 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
-import java.nio.channels.SocketChannel;
-
-import org.springframework.context.ApplicationEventPublisher;
-
+import org.springframework.context.ApplicationListener;
+import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
- * Implementation of {@link TcpNioConnectionSupport} for non-SSL
- * NIO connections.
+ * {@link MessageProducer} that produces Messages with @link {@link TcpConnectionEvent}
+ * payloads.
  * @author Gary Russell
- * @since 2.2
+ * @since 3.0
  *
  */
-public class DefaultTcpNioConnectionSupport implements TcpNioConnectionSupport {
+public class TcpConnectionEventListeningMessageProducer extends MessageProducerSupport
+	implements ApplicationListener<TcpConnectionEvent> {
 
-	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
-		return new TcpNioConnection(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
+	public void onApplicationEvent(TcpConnectionEvent event) {
+		this.sendMessage(MessageBuilder.withPayload(event).build());
 	}
 
 }

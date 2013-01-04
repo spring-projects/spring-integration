@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's <em>ip</em> namespace.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -34,6 +34,7 @@ public class IpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("tcp-connection-factory", new TcpConnectionParser());
 		this.registerBeanDefinitionParser("tcp-inbound-channel-adapter", new TcpInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("tcp-outbound-channel-adapter", new TcpOutboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("tcp-event-inbound-channel-adapter", new TcpConnectionEventInboundChannelAdapterParser());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.nio.channels.SocketChannel;
 
+import org.springframework.context.ApplicationEventPublisher;
+
 
 /**
  * Used by NIO connection factories to instantiate a {@link TcpNioConnection} object.
@@ -27,7 +29,21 @@ import java.nio.channels.SocketChannel;
  */
 public interface TcpNioConnectionSupport {
 
+	/**
+	 * Create a new {@link TcpNioConnection} object wrapping the {@link SocketChannel}
+	 * @param socketChannel the SocketChannel.
+	 * @param server true if this connection is a server connection.
+	 * @param lookupHost true if hostname lookup should be performed, otherwise the connection will
+	 * be identified using the ip address.
+	 * @param applicationEventPublisher the publisher to which OPEN, CLOSE and EXCEPTION events will
+	 * be sent; may be null if event publishing is not required.
+	 * @param connectionFactoryName the name of the connection factory creating this connection; used
+	 * during event publishing, may be null, in which case "unknown" will be used.
+	 * @return the TcpNioConnection
+	 * @throws Exception
+	 */
 	TcpNioConnection createNewConnection(SocketChannel socketChannel,
-			boolean server, boolean lookupHost) throws Exception;
-
+			boolean server, boolean lookupHost,
+			ApplicationEventPublisher applicationEventPublisher,
+			String connectionFactoryName) throws Exception;
 }

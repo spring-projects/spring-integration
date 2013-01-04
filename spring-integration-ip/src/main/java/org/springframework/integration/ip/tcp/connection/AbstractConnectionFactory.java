@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -35,6 +36,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -51,7 +54,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
-		implements ConnectionFactory, SmartLifecycle {
+		implements ConnectionFactory, SmartLifecycle, ApplicationEventPublisherAware {
 
 	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
@@ -105,6 +108,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile int nioHarvestInterval = DEFAULT_NIO_HARVEST_INTERVAL;
 
+	private volatile ApplicationEventPublisher applicationEventPublisher;
+
 	private static final int DEFAULT_NIO_HARVEST_INTERVAL = 2000;
 
 	public AbstractConnectionFactory(int port) {
@@ -115,6 +120,14 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		Assert.notNull(host, "host must not be null");
 		this.host = host;
 		this.port = port;
+	}
+
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return applicationEventPublisher;
 	}
 
 	/**
@@ -554,6 +567,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 											this.port + " : " +
 										    connection.getConnectionId());
 							}
+							connection.publishConnectionExceptionEvent(new SocketTimeoutException("Timing out connection"));
 							connection.timeout();
 						}
 					}

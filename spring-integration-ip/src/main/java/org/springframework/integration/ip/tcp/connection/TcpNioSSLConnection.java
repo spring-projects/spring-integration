@@ -27,6 +27,7 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.MessagingException;
 import org.springframework.util.Assert;
 
@@ -66,11 +67,23 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	private boolean needMoreNetworkData;
 
+	/**
+	 * @deprecated Use {@link #TcpNioSSLConnection(SocketChannel, boolean, boolean, ApplicationEventPublisher, String, SSLEngine)}
+	 */
+	@Deprecated
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server,
 			boolean lookupHost, SSLEngine sslEngine) throws Exception {
-		super(socketChannel, server, lookupHost);
+		super(socketChannel, server, lookupHost, null, null);
 		this.sslEngine = sslEngine;
 	}
+
+	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
+			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
+			SSLEngine sslEngine) throws Exception {
+		super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
+		this.sslEngine = sslEngine;
+	}
+
 
 	/**
 	 * Overrides super class method to perform decryption and/or participate

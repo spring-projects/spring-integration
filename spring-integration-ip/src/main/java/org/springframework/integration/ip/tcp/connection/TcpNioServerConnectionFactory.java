@@ -174,7 +174,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			TcpNioConnection connection = this.tcpNioConnectionSupport
 					.createNewConnection(socketChannel, true,
-							this.isLookupHost());
+							this.isLookupHost(), this.getApplicationEventPublisher(), this.getComponentName());
 			connection.setUsingDirectBuffers(this.usingDirectBuffers);
 			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 			this.initializeConnection(wrappedConnection, socketChannel.socket());

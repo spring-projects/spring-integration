@@ -33,6 +33,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -79,9 +80,23 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @param socketChannel the socketChannel
 	 * @param server if true this connection was created as
 	 * a result of an incoming request.
+	 * @deprecated Use {@link #TcpNioConnection(SocketChannel, boolean, boolean, ApplicationEventPublisher, String)}
 	 */
+	@Deprecated
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost) throws Exception {
-		super(socketChannel.socket(), server, lookupHost);
+		this(socketChannel, server, lookupHost, null, null);
+	}
+
+	/**
+	 * Constructs a TcpNetConnection for the SocketChannel.
+	 * @param socketChannel the socketChannel
+	 * @param server if true this connection was created as
+	 * a result of an incoming request.
+	 */
+	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
+			ApplicationEventPublisher applicationEventPublisher,
+			String connectionFactoryName) throws Exception {
+			super(socketChannel.socket(), server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socketChannel = socketChannel;
 		int receiveBufferSize = socketChannel.socket().getReceiveBufferSize();
 		if (receiveBufferSize <= 0) {
@@ -118,7 +133,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		synchronized(this.getMapper()) {
 			Object object = this.getMapper().fromMessage(message);
 			this.lastSend = System.currentTimeMillis();
-			((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
+			try {
+				((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
+			}
+			catch (Exception e) {
+				this.publishConnectionExceptionEvent(e);
+				throw e;
+			}
 			this.afterSend(message);
 		}
 	}
@@ -326,7 +347,12 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				throw new MessagingException("Timed out writing to ChannelInputStream, probably due to insufficient threads in " +
 						"a fixed thread pool; consider increasing this task executor pool size");
 			}
-		} finally {
+		}
+		catch (Exception e) {
+			this.publishConnectionExceptionEvent(e);
+			throw e;
+		}
+		finally {
 			this.writingToPipe = false;
 		}
 	}

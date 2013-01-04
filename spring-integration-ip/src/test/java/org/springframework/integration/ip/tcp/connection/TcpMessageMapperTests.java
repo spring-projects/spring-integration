@@ -63,7 +63,7 @@ public class TcpMessageMapperTests {
 
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
-		TcpConnection connection = new TcpConnectionSupport(socket, false, false) {
+		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {
@@ -115,7 +115,7 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setApplySequence(true);
 		Socket socket = SocketFactory.getDefault().createSocket();
-		TcpConnection connection = new TcpConnectionSupport(socket, false, false) {
+		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {

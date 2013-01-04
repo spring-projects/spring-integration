@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
@@ -47,9 +48,30 @@ public class TcpNetConnection extends TcpConnectionSupport {
 	 * @param socket the socket
 	 * @param server if true this connection was created as
 	 * a result of an incoming request.
+	 * @param lookupHost true if hostname lookup should be performed, otherwise the connection will
+	 * be identified using the ip address.
+	 * @deprecated Use {@link #TcpNetConnection(Socket, boolean, boolean, ApplicationEventPublisher, String)}
 	 */
+	@Deprecated
 	public TcpNetConnection(Socket socket, boolean server, boolean lookupHost) {
-		super(socket, server, lookupHost);
+		this(socket, server, lookupHost, null, null);
+	}
+
+	/**
+	 * Constructs a TcpNetConnection for the socket.
+	 * @param socket the socket
+	 * @param server if true this connection was created as
+	 * a result of an incoming request.
+	 * @param lookupHost true if hostname lookup should be performed, otherwise the connection will
+	 * be identified using the ip address.
+	 * @param applicationEventPublisher the publisher to which OPEN, CLOSE and EXCEPTION events will
+	 * be sent; may be null if event publishing is not required.
+	 * @param connectionFactoryName the name of the connection factory creating this connection; used
+	 * during event publishing, may be null, in which case "unknown" will be used.
+	 */
+	public TcpNetConnection(Socket socket, boolean server, boolean lookupHost,
+			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) {
+		super(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socket = socket;
 	}
 
@@ -73,7 +95,13 @@ public class TcpNetConnection extends TcpConnectionSupport {
 	public synchronized void send(Message<?> message) throws Exception {
 		Object object = this.getMapper().fromMessage(message);
 		this.lastSend = System.currentTimeMillis();
-		((Serializer<Object>) this.getSerializer()).serialize(object, this.socket.getOutputStream());
+		try {
+			((Serializer<Object>) this.getSerializer()).serialize(object, this.socket.getOutputStream());
+		}
+		catch (Exception e) {
+			this.publishConnectionExceptionEvent(e);
+			throw e;
+		}
 		this.afterSend(message);
 	}
 
@@ -103,7 +131,9 @@ public class TcpNetConnection extends TcpConnectionSupport {
 			return;
 		}
 		boolean okToRun = true;
-		logger.debug("Reading...");
+		if (logger.isDebugEnabled()) {
+			logger.debug(this.getConnectionId() + " Reading...");
+		}
 		boolean intercepted = false;
 		while (okToRun) {
 			Message<?> message = null;
@@ -112,6 +142,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 				this.lastRead = System.currentTimeMillis();
 			}
 			catch (Exception e) {
+				this.publishConnectionExceptionEvent(e);
 				if (handleReadException(e)) {
 					okToRun = false;
 				}
