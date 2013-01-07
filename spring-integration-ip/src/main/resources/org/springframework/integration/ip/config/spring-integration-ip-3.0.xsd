@@ -517,16 +517,6 @@ cached thread pool task executor is used.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="pool-size" type="xsd:string" >
-				<xsd:annotation>
-					<xsd:documentation>
-Deprecated since 2.2; previously it specified the thread pool size if
-an external task executor was not provided; it was also used to set
-the connection backlog for server factories. That setting is now
-specified by the backlog attribute.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="backlog" type="xsd:string" >
 				<xsd:annotation>
 					<xsd:documentation>

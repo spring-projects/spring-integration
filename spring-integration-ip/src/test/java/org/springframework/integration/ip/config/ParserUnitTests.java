@@ -170,9 +170,6 @@ public class ParserUnitTests {
 	AbstractConnectionFactory server1;
 
 	@Autowired
-	AbstractConnectionFactory serverBackwardsCompatible;
-
-	@Autowired
 	AbstractConnectionFactory server2;
 
 	@Autowired
@@ -510,13 +507,6 @@ public class ParserUnitTests {
 		assertEquals(123, dfa.getPropertyValue("backlog"));
 		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
 		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
-	}
-
-	@Test
-	public void testConnDeprecatedPoolSize() {
-		assertTrue(serverBackwardsCompatible instanceof TcpNetServerConnectionFactory);
-		DirectFieldAccessor dfa = new DirectFieldAccessor(serverBackwardsCompatible);
-		assertEquals(123, dfa.getPropertyValue("backlog"));
 	}
 
 	@Test

@@ -81,6 +81,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @param server if true this connection was created as
 	 * a result of an incoming request.
 	 * @deprecated Use {@link #TcpNioConnection(SocketChannel, boolean, boolean, ApplicationEventPublisher, String)}
+	 * TODO: Remove in 3.1/4.0
 	 */
 	@Deprecated
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost) throws Exception {

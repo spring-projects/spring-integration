@@ -306,17 +306,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 * @deprecated This property is no longer used. If you wish
-	 * to use a fixed thread pool, provide your own Executor
-	 * in {@link #setTaskExecutor(Executor)}.
-	 * @return the poolSize
-	 */
-	@Deprecated
-	public int getPoolSize() {
-		return 0;
-	}
-
-	/**
 	 * Registers a TcpListener to receive messages after
 	 * the payload has been converted from the input data.
 	 * @param listener the TcpListener.
@@ -385,16 +374,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.singleUse = singleUse;
 	}
 
-
-	/**
-	 * @deprecated Default task executor is now a cached rather
-	 * than a fixed pool executor. To use a pool, supply an
-	 * appropriate Executor in {@link AbstractConnectionFactory#setTaskExecutor(Executor)}.
-	 * Use {@link AbstractServerConnectionFactory#setBacklog(int)} to set the connection backlog.
-	 */
-	@Deprecated
-	public void setPoolSize(int poolSize) {
-	}
 
 	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
 		this.interceptorFactoryChain = interceptorFactoryChain;

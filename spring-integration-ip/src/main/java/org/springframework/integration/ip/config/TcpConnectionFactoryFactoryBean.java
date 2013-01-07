@@ -367,17 +367,6 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * @param poolSize
-	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#setPoolSize(int)
-	 * @deprecated
-	 */
-	@Deprecated
-	public void setPoolSize(int poolSize) {
-		logger.warn("poolSize is deprecated; use backlog instead");
-		this.backlog = poolSize;
-	}
-
-	/**
 	 * @param backlog
 	 * @see AbstractServerConnectionFactory#setBacklog(int)
 	 */

@@ -69,6 +69,7 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 
 	/**
 	 * @deprecated Use {@link #TcpNioSSLConnection(SocketChannel, boolean, boolean, ApplicationEventPublisher, String, SSLEngine)}
+	 * TODO: Remove in 3.1/4.0
 	 */
 	@Deprecated
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server,

@@ -285,13 +285,6 @@
 	/>
 
 	<ip:tcp-connection-factory
-		id="serverBackwardsCompatible"
-		type="server"
-		port="#{client1.port}"
-		pool-size="123"
-	/>
-
-	<ip:tcp-connection-factory
 		id="client2"
 		type="client"
 		host="localhost"

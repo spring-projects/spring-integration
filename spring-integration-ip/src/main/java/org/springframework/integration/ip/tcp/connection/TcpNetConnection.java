@@ -51,6 +51,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 	 * @param lookupHost true if hostname lookup should be performed, otherwise the connection will
 	 * be identified using the ip address.
 	 * @deprecated Use {@link #TcpNetConnection(Socket, boolean, boolean, ApplicationEventPublisher, String)}
+	 * TODO: Remove in 3.1/4.0
 	 */
 	@Deprecated
 	public TcpNetConnection(Socket socket, boolean server, boolean lookupHost) {
