@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,29 +44,12 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.class);
 		builder.addPropertyReference("connectionFactory", element.getAttribute("connection-factory"));
-		String requestDestination = element.getAttribute("request-destination");
-		String requestDestinationName = element.getAttribute("request-destination-name");
-		String requestDestinationExpression = element.getAttribute("request-destination-expression");
-		boolean hasRequestDestination = StringUtils.hasText(requestDestination);
-		boolean hasRequestDestinationName = StringUtils.hasText(requestDestinationName);
-		boolean hasRequestDestinationExpression = StringUtils.hasText(requestDestinationExpression);
-		if (!(hasRequestDestination ^ hasRequestDestinationName ^ hasRequestDestinationExpression)) {
-			parserContext.getReaderContext().error("Exactly one of the 'request-destination', " +
-					"'request-destination-name', or 'request-destination-expression' attributes is required.", element);
-		}
-		if (hasRequestDestination) {
-			builder.addPropertyReference("requestDestination", requestDestination);
-		}
-		else if (hasRequestDestinationName) {
-			builder.addPropertyValue("requestDestinationName", requestDestinationName);
-		}
-		else if (hasRequestDestinationExpression) {
-			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-			expressionBuilder.addConstructorArgValue(requestDestinationExpression);
-			builder.addPropertyValue("requestDestinationExpression", expressionBuilder.getBeanDefinition());
-		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-destination");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-destination-name");
+		parseDestination(element, parserContext, builder, "request-destination", "request-destination-name",
+				"request-destination-expression", "requestDestination", "requestDestinationName",
+				"requestDestinationExpression", true);
+		parseDestination(element, parserContext, builder, "reply-destination", "reply-destination-name",
+				"reply-destination-expression", "replyDestination", "replyDestinationName",
+				"replyDestinationExpression", false);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "correlation-key");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
@@ -102,6 +85,44 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			this.parseReplyContainer(builder, parserContext, container);
 		}
 		return builder;
+	}
+
+	private void parseDestination(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
+			String destinationAttributeName, String destinationNameAttributeName, String destinationExpressionAttributeName,
+			String destinationProperty, String destinationNameProperty, String destinationExpressionProperty,
+			boolean oneRequired) {
+		String destinationAttribute = element.getAttribute(destinationAttributeName);
+		String destinationNameAttribute = element.getAttribute(destinationNameAttributeName);
+		String destinationExpressionAttribute = element.getAttribute(destinationExpressionAttributeName);
+		boolean hasDestination = StringUtils.hasText(destinationAttribute);
+		boolean hasDestinationName = StringUtils.hasText(destinationNameAttribute);
+		boolean hasDestinationExpression = StringUtils.hasText(destinationExpressionAttribute);
+		int destCount = (hasDestination ? 1 : 0) +
+						(hasDestinationName ? 1 : 0) +
+						(hasDestinationExpression ? 1 : 0);
+		if (oneRequired) {
+			if (destCount != 1) {
+				parserContext.getReaderContext().error("Exactly one of the '" + destinationAttribute + "', " +
+						"'" + destinationNameAttributeName + "', or '" + destinationExpressionAttributeName + "' attributes is required.", element);
+			}
+		}
+		else {
+			if (destCount > 1) {
+				parserContext.getReaderContext().error("Only one of the '" + destinationAttribute + "', " +
+						"'" + destinationNameAttributeName + "', or '" + destinationExpressionAttributeName + "' attributes is allowed.", element);
+			}
+		}
+		if (hasDestination) {
+			builder.addPropertyReference(destinationProperty, destinationAttribute);
+		}
+		else if (hasDestinationName) {
+			builder.addPropertyValue(destinationNameProperty, destinationNameAttribute);
+		}
+		else if (hasDestinationExpression) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(destinationExpressionAttribute);
+			builder.addPropertyValue(destinationExpressionProperty, expressionBuilder.getBeanDefinition());
+		}
 	}
 
 	private void parseReplyContainer(BeanDefinitionBuilder gatewayBuilder, ParserContext parserContext, Element element) {

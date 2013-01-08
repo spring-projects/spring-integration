@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private volatile Destination replyDestination;
 
 	private volatile String replyDestinationName;
+
+	private volatile ExpressionEvaluatingMessageProcessor<?> replyDestinationExpressionProcessor;
 
 	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
@@ -184,6 +186,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * 'requestDestinationName' is required.
 	 */
 	public void setRequestDestinationExpression(Expression requestDestinationExpression) {
+		Assert.notNull(requestDestinationExpression, "'requestDestinationExpression' must not be null");
 		this.requestDestinationExpressionProcessor = new ExpressionEvaluatingMessageProcessor<Object>(requestDestinationExpression);
 	}
 
@@ -204,6 +207,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 */
 	public void setReplyDestinationName(String replyDestinationName) {
 		this.replyDestinationName = replyDestinationName;
+	}
+
+	/**
+	 * Set the SpEL Expression to be used for determining the reply Destination instance
+	 * or reply destination name. Either this or one of 'replyDestination' or
+	 * 'replyDestinationName' is required.
+	 */
+	public void setReplyDestinationExpression(Expression replyDestinationExpression) {
+		Assert.notNull(replyDestinationExpression, "'replyDestinationExpression' must not be null");
+		this.replyDestinationExpressionProcessor = new ExpressionEvaluatingMessageProcessor<Object>(replyDestinationExpression);
 	}
 
 	/**
@@ -398,17 +411,32 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				session, requestDestinationName, this.requestPubSubDomain);
 	}
 
-	private Destination determineReplyDestination(Session session) throws JMSException {
+	private Destination determineReplyDestination(Message<?> message, Session session) throws JMSException {
 		if (this.replyDestination != null) {
 			return this.replyDestination;
 		}
 		if (this.replyDestinationName != null) {
-			Assert.notNull(this.destinationResolver,
-					"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
-			return this.destinationResolver.resolveDestinationName(
-					session, this.replyDestinationName, this.replyPubSubDomain);
+			return this.resolveReplyDestination(this.replyDestinationName, session);
+		}
+		if (this.replyDestinationExpressionProcessor != null) {
+			Object result = this.replyDestinationExpressionProcessor.processMessage(message);
+			if (result instanceof Destination) {
+				return (Destination) result;
+			}
+			if (result instanceof String) {
+				return this.resolveReplyDestination((String) result, session);
+			}
+			throw new MessageDeliveryException(message,
+					"Evaluation of replyDestinationExpression failed to produce a Destination or destination name. Result was: " + result);
 		}
 		return session.createTemporaryQueue();
+	}
+
+	private Destination resolveReplyDestination(String replyDestinationName, Session session) throws JMSException {
+		Assert.notNull(this.destinationResolver,
+				"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
+		return this.destinationResolver.resolveDestinationName(
+				session, replyDestinationName, this.replyPubSubDomain);
 	}
 
 	public int getPhase() {
@@ -438,6 +466,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.requestDestinationExpressionProcessor != null) {
 				this.requestDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
 				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());
+			}
+			if (this.replyDestinationExpressionProcessor != null) {
+				this.replyDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
+				this.replyDestinationExpressionProcessor.setConversionService(getConversionService());
 			}
 			/*
 			 *  This is needed because there is no way to detect 2 or more gateways using the same reply queue
@@ -667,8 +699,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			// map headers
 			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
 
-			// TODO: support a JmsReplyTo header in the SI Message?
-			replyTo = this.determineReplyDestination(session);
+			replyTo = this.determineReplyDestination(requestMessage, session);
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
 
