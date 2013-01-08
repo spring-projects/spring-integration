@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -40,12 +42,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ObjectToJsonTransformerParserTests {
-	
+
 	@Autowired
 	private volatile ApplicationContext context;
 
@@ -56,10 +59,14 @@ public class ObjectToJsonTransformerParserTests {
 	private volatile MessageChannel customObjectMapperInput;
 
 	@Test
-	public void testContextType(){
-		ObjectToJsonTransformer transformer = 
+	public void testContentType(){
+		ObjectToJsonTransformer transformer =
 				TestUtils.getPropertyValue(context.getBean("defaultTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
 		assertEquals("application/json", TestUtils.getPropertyValue(transformer, "contentType"));
+
+		Message<?> transformed = transformer.transform(MessageBuilder.withPayload("foo").build());
+		assertTrue(transformed.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE));
+		assertEquals("application/json", transformed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 
 		transformer =
 				TestUtils.getPropertyValue(context.getBean("customTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
@@ -68,6 +75,13 @@ public class ObjectToJsonTransformerParserTests {
 		transformer =
 				TestUtils.getPropertyValue(context.getBean("emptyContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
 		assertEquals("", TestUtils.getPropertyValue(transformer, "contentType"));
+
+		transformed = transformer.transform(MessageBuilder.withPayload("foo").build());
+		assertFalse(transformed.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE));
+
+		transformed = transformer.transform(MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo").build());
+		assertNotNull(transformed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals("foo", transformed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 
 		transformer =
 				TestUtils.getPropertyValue(context.getBean("overridenContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
