@@ -1,4 +1,5 @@
 http\://www.springframework.org/schema/integration/event/spring-integration-event-2.0.xsd=org/springframework/integration/event/config/spring-integration-event-2.0.xsd
 http\://www.springframework.org/schema/integration/event/spring-integration-event-2.1.xsd=org/springframework/integration/event/config/spring-integration-event-2.1.xsd
 http\://www.springframework.org/schema/integration/event/spring-integration-event-2.2.xsd=org/springframework/integration/event/config/spring-integration-event-2.2.xsd
-http\://www.springframework.org/schema/integration/event/spring-integration-event.xsd=org/springframework/integration/event/config/spring-integration-event-2.2.xsd
+http\://www.springframework.org/schema/integration/event/spring-integration-event-3.0.xsd=org/springframework/integration/event/config/spring-integration-event-3.0.xsd
+http\://www.springframework.org/schema/integration/event/spring-integration-event.xsd=org/springframework/integration/event/config/spring-integration-event-3.0.xsd

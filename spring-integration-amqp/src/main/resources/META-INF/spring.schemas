@@ -1,3 +1,4 @@
 http\://www.springframework.org/schema/integration/amqp/spring-integration-amqp-2.1.xsd=org/springframework/integration/amqp/config/spring-integration-amqp-2.1.xsd
 http\://www.springframework.org/schema/integration/amqp/spring-integration-amqp-2.2.xsd=org/springframework/integration/amqp/config/spring-integration-amqp-2.2.xsd
-http\://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd=org/springframework/integration/amqp/config/spring-integration-amqp-2.2.xsd
+http\://www.springframework.org/schema/integration/amqp/spring-integration-amqp-3.0.xsd=org/springframework/integration/amqp/config/spring-integration-amqp-3.0.xsd
+http\://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd=org/springframework/integration/amqp/config/spring-integration-amqp-3.0.xsd

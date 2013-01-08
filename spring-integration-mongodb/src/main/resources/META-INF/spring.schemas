@@ -1,2 +1,3 @@
 http\://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb-2.2.xsd=org/springframework/integration/mongodb/config/spring-integration-mongodb-2.2.xsd
-http\://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd=org/springframework/integration/mongodb/config/spring-integration-mongodb-2.2.xsd
+http\://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb-3.0.xsd=org/springframework/integration/mongodb/config/spring-integration-mongodb-3.0.xsd
+http\://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd=org/springframework/integration/mongodb/config/spring-integration-mongodb-3.0.xsd

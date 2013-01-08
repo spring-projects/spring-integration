@@ -2,4 +2,5 @@ http\://www.springframework.org/schema/integration/stream/spring-integration-str
 http\://www.springframework.org/schema/integration/stream/spring-integration-stream-2.0.xsd=org/springframework/integration/stream/config/spring-integration-stream-2.0.xsd
 http\://www.springframework.org/schema/integration/stream/spring-integration-stream-2.1.xsd=org/springframework/integration/stream/config/spring-integration-stream-2.1.xsd
 http\://www.springframework.org/schema/integration/stream/spring-integration-stream-2.2.xsd=org/springframework/integration/stream/config/spring-integration-stream-2.2.xsd
-http\://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd=org/springframework/integration/stream/config/spring-integration-stream-2.2.xsd
+http\://www.springframework.org/schema/integration/stream/spring-integration-stream-3.0.xsd=org/springframework/integration/stream/config/spring-integration-stream-3.0.xsd
+http\://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd=org/springframework/integration/stream/config/spring-integration-stream-3.0.xsd
