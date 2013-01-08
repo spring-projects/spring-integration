@@ -19,9 +19,12 @@
     Whereas the JMS Channel Adapters are intended for unidirectional Messaging (send-only or receive-only), Spring
     Integration also provides inbound and outbound JMS Gateways for request/reply operations. The inbound gateway
     relies on one of Spring's MessageListener container implementations for Message-driven reception that is also
-    capable of sending a return value to the "reply-to" Destination as provided by the received Message. The outbound
-    Gateway sends a JMS Message to a "request-destination" and then receives a reply Message. The "reply-destination"
-    reference (or "reply-destination-name") can be configured explicitly or else the outbound gateway will use a
+    capable of sending a return value to the <code>reply-to</code> Destination as provided by the received Message. The outbound
+    Gateway sends a JMS Message to a <code>request-destination</code> (or <code>request-destination-name</code> or
+    <code>request-destination-expression</code>)
+    and then receives a reply Message. The <code>reply-destination</code>
+    reference (or <code>reply-destination-name</code> or <code>reply-destination-expression</code>) can be configured
+    explicitly or else the outbound gateway will use a
     JMS <ulink url="http://docs.oracle.com/javaee/6/api/javax/jms/TemporaryQueue.html">TemporaryQueue</ulink>.
   </para>
   <para>
@@ -279,6 +282,224 @@
       <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>
       for their meanings.
     </para>
+    <section>
+      <title>Attribute Reference</title>
+      <programlisting><![CDATA[
+<int-jms:outbound-gateway
+    connection-factory="connectionFactory"]]><co id="jog010" /><![CDATA[
+    correlation-key=""]]><co id="jog020" /><![CDATA[
+    delivery-persistent=""]]><co id="jog030" /><![CDATA[
+    destination-resolver=""]]><co id="jog040" /><![CDATA[
+    explicit-qos-enabled=""]]><co id="jog050" /><![CDATA[
+    extract-reply-payload="true"]]><co id="jog060" /><![CDATA[
+    extract-request-payload="true"]]><co id="jog070" /><![CDATA[
+    header-mapper=""]]><co id="jog080" /><![CDATA[
+    message-converter=""]]><co id="jog090" /><![CDATA[
+    priority=""]]><co id="jog100" /><![CDATA[
+    receive-timeout=""]]><co id="jog110" /><![CDATA[
+    reply-channel=""]]><co id="jog120" /><![CDATA[
+    reply-destination=""]]><co id="jog130" /><![CDATA[
+    reply-destination-expression=""]]><co id="jog140" /><![CDATA[
+    reply-destination-name=""]]><co id="jog150" /><![CDATA[
+    reply-pub-sub-domain=""]]><co id="jog160" /><![CDATA[
+    reply-timeout=""]]><co id="jog170" /><![CDATA[
+    request-channel=""]]><co id="jog180" /><![CDATA[
+    request-destination=""]]><co id="jog190" /><![CDATA[
+    request-destination-expression=""]]><co id="jog200" /><![CDATA[
+    request-destination-name=""]]><co id="jog210" /><![CDATA[
+    request-pub-sub-domain=""]]><co id="jog220" /><![CDATA[
+    time-to-live="">]]><co id="jog230" /><![CDATA[
+    <int-jms:reply-listener />]]><co id="jog240" /><![CDATA[
+</int-jms:outbound-gateway>
+      ]]></programlisting>
+     <calloutlist>
+       <callout arearefs="jog010">
+        <para>
+         Reference to a <interfacename>javax.jms.ConnectionFactory</interfacename>;
+         default <code>connectionFactory</code>.
+        </para>
+       </callout>
+       <callout arearefs="jog020">
+        <para>
+         The name of a property that will contain correlation data to correlate responses with
+         replies. If omitted, the gateway will expect the responding system to return the
+         value of the outbound JMSMessageID header in the JMSCorrelationID header. If specified,
+         the gateway will generate a correlation id and populate the specified property with
+         it; the responding system must echo back that value in the same property. Can be set
+         to <code>JMSCorrelationID</code>, in which case the standard header is used instead
+         of a simple String property to hold the correlation data. When a <code>&lt;reply-container/&gt;
+         </code> is used, the correlation-key MUST be specified if an explicit <code>reply-destination</code>
+         is provided.
+        </para>
+       </callout>
+       <callout arearefs="jog030">
+        <para>
+         A boolean value indicating whether the delivery mode should be
+         DeliveryMode.PERSISTENT (true) or DeliveryMode.NON_PERSISTENT (false).
+         This setting will only take effect if <code>explicit-qos-enabled</code> is <code>true</code>.
+        </para>
+       </callout>
+       <callout arearefs="jog040">
+        <para>
+         A <interfacename>DestinationResolver</interfacename>; default is a
+         <classname>DynamicDestinationResolver</classname> which simply maps the
+         destination name to a queue or topic of that name.
+        </para>
+       </callout>
+       <callout arearefs="jog050">
+        <para>
+         When set to <code>true</code>, enables the use of quality of service attributes -
+         <code>priority</code>, <code>delivery-mode</code>, <code>time-to-live</code>.
+        </para>
+       </callout>
+       <callout arearefs="jog060">
+        <para>
+         When set to <code>true</code> (default), the payload of the Spring Integration reply Message will be
+         created from the JMS Reply Message's body (using the <interfacename>MessageConverter</interfacename>).
+         When set to <code>false</code>, the entire JMS Message will become the payload of the
+         Spring Integration Message.
+        </para>
+       </callout>
+       <callout arearefs="jog070">
+        <para>
+         When set to <code>true</code> (default), the payload of the Spring Integration Message will
+         be converted to a JMSMessage (using the <interfacename>MessageConverter</interfacename>).
+         When set to <code>false</code>, the entire Spring Integration Message will be converted
+         to the the JMSMessage. In both cases, the Spring Integration Message Headers are
+         mapped to JMS headers and properties using the HeaderMapper.
+        </para>
+       </callout>
+       <callout arearefs="jog080">
+        <para>
+         A <interfacename>HeaderMapper</interfacename> used to map Spring Integration Message
+         Headers to/from JMS Message Headers/Properties.
+        </para>
+       </callout>
+       <callout arearefs="jog090">
+        <para>
+         A reference to a <interfacename>MessageConverter</interfacename> for converting between JMS Messages
+         and the Spring Integration Message payloads (or messages if <code>extract-request-payload</code>
+         is <code>false</code>). Default is a <classname>SimpleMessageConverter</classname>.
+        </para>
+       </callout>
+       <callout arearefs="jog100">
+        <para>
+         The default priority of request messages. Overridden by the message priority
+         header, if present; range 0-9.
+         This setting will only take effect if <code>explicit-qos-enabled</code> is
+         <code>true</code>.
+        </para>
+       </callout>
+       <callout arearefs="jog110">
+        <para>
+         The time (in millseconds) to wait for a reply. Default 5 seconds.
+        </para>
+       </callout>
+       <callout arearefs="jog120">
+        <para>
+         The channel to which the reply message will be sent.
+        </para>
+       </callout>
+       <callout arearefs="jog130">
+        <para>
+         A reference to a <interfacename>Destination</interfacename> which will be set as
+         the JMSReplyTo header. At most, only one of <code>reply-destination</code>,
+         <code>reply-destination-expression</code>, or <code>reply-destination-name</code>
+         is allowed. If none is provided, a <classname>TemporaryQueue</classname> is used
+         for replies to this gateway.
+        </para>
+       </callout>
+       <callout arearefs="jog140">
+        <para>
+         A SpEL expression evaluating to a <interfacename>Destination</interfacename>  which will be set as
+         the JMSReplyTo header. The expression can result in a <interfacename>Destination
+         </interfacename> object, or a <classname>String</classname>, which will be used by the
+         <interfacename>DestinationResolver</interfacename> to resolve the actual
+         <interfacename>Destination</interfacename>. At most, only one of <code>reply-destination</code>,
+         <code>reply-destination-expression</code>, or <code>reply-destination-name</code>
+         is allowed. If none is provided, a <classname>TemporaryQueue</classname> is used
+         for replies to this gateway.
+        </para>
+       </callout>
+       <callout arearefs="jog150">
+        <para>
+         The name of the destination  which will be set as the JMSReplyTo header; used by the
+         <interfacename>DestinationResolver</interfacename> to resolve the actual
+         <interfacename>Destination</interfacename>. At most, only one of <code>reply-destination</code>,
+         <code>reply-destination-expression</code>, or <code>reply-destination-name</code>
+         is allowed. If none is provided, a <classname>TemporaryQueue</classname> is used
+         for replies to this gateway.
+        </para>
+       </callout>
+       <callout arearefs="jog160">
+        <para>
+         When set to <code>true</code>, indicates that any reply <interfacename>Destination</interfacename>
+         resolved by the <interfacename>DestinationResolver</interfacename> should be a
+         <interfacename>Topic</interfacename> rather then a <interfacename>Queue</interfacename>.
+        </para>
+       </callout>
+       <callout arearefs="jog170">
+        <para>
+         The time the gateway will wait when sending the reply message to the <code>reply-channel</code>.
+         This only has an effect if the <code>reply-channel</code> can block - such as a
+         <classname>QueueChannel</classname> with a capacity limit that is currently full. Default: infinity.
+        </para>
+       </callout>
+       <callout arearefs="jog180">
+        <para>
+         The channel on which this gateway receives request messages.
+        </para>
+       </callout>
+       <callout arearefs="jog190">
+        <para>
+         A reference to a <interfacename>Destination</interfacename> to which request messages
+         will be sent. One, and only one, of <code>reply-destination</code>,
+         <code>reply-destination-expression</code>, or <code>reply-destination-name</code>
+         is required.
+        </para>
+       </callout>
+       <callout arearefs="jog200">
+        <para>
+         A SpEL expression evaluating to a <interfacename>Destination</interfacename> to which
+         request messages will be sent. The expression can result in a <interfacename>Destination
+         </interfacename> object, or a <classname>String</classname>, which will be used by the
+         <interfacename>DestinationResolver</interfacename> to resolve the actual
+         <interfacename>Destination</interfacename>. One, and only one, of <code>reply-destination</code>,
+         <code>reply-destination-expression</code>, or <code>reply-destination-name</code>
+         is required.
+        </para>
+       </callout>
+       <callout arearefs="jog210">
+        <para>
+         The name of the destination to which request messages will be sent; used by the
+         <interfacename>DestinationResolver</interfacename> to resolve the actual
+         <interfacename>Destination</interfacename>. One, and only one, of <code>reply-destination</code>,
+         <code>reply-destination-expression</code>, or <code>reply-destination-name</code>
+         is required.
+        </para>
+       </callout>
+       <callout arearefs="jog220">
+        <para>
+         When set to <code>true</code>, indicates that any request <interfacename>Destination</interfacename>
+         resolved by the <interfacename>DestinationResolver</interfacename> should be a
+         <interfacename>Topic</interfacename> rather then a <interfacename>Queue</interfacename>.
+        </para>
+       </callout>
+       <callout arearefs="jog230">
+        <para>
+         Specify the message time to live.
+         This setting will only take effect if <code>explicit-qos-enabled</code> is <code>true</code>.
+        </para>
+       </callout>
+       <callout arearefs="jog240">
+        <para>
+         When this element is included, replies are received by a <interfacename>MessageListenerContainer
+         </interfacename> rather than creating a consumer for each reply. This can be more efficient in
+         many cases.
+        </para>
+       </callout>
+     </calloutlist>
+    </section>
   </section>
 
   <section id="jms-header-mapping">
