@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package org.springframework.integration.json;
 import java.io.StringWriter;
 
 import org.codehaus.jackson.map.ObjectMapper;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedCaseInsensitiveMap;
+import org.springframework.util.StringUtils;
 
 /**
  * Transformer implementation that converts a payload instance into a JSON string representation.
@@ -32,6 +32,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * @author Mark Fisher
  * @author James Carr
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class ObjectToJsonTransformer extends AbstractTransformer {
@@ -61,7 +62,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		// only null assertion is needed since "" is a valid value
 		Assert.notNull(contentType, "'contentType' must not be null");
 		this.contentTypeExplicitlySet = true;
-		this.contentType = contentType;
+		this.contentType = contentType.trim();
 	}
 
 	private String transformPayload(Object payload) throws Exception {
@@ -81,10 +82,15 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		if (headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
 			if (this.contentTypeExplicitlySet){
 				// override
-				headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
+				if (StringUtils.hasLength(this.contentType)) {
+					headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
+				}
+				else {
+					headers.remove(MessageHeaders.CONTENT_TYPE);
+				}
 			}
 		}
-		else {
+		else if (StringUtils.hasLength(this.contentType)) {
 			headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 		}
 		messageBuilder.copyHeaders(headers);

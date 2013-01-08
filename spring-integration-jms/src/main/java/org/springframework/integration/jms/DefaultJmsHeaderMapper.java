@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import javax.jms.JMSException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -47,13 +46,16 @@ import org.springframework.util.StringUtils;
  * Note that the JMSMessageID and JMSRedelivered flag are only copied
  * <em>from</em> a JMS Message. Those values will <em>not</em> be passed
  * along from a Spring Integration Message to an outbound JMS Message.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 
 	private static List<Class<?>> SUPPORTED_PROPERTY_TYPES = Arrays.asList(new Class<?>[] {
 			Boolean.class, Byte.class, Double.class, Float.class, Integer.class, Long.class, Short.class, String.class });
+
+	private static final String JMS_COMPATIBLE_CONTENT_TYPE_PROPERTY = "content_type";
 
 
 	private final Log logger = LogFactory.getLog(this.getClass());
@@ -68,9 +70,9 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	 * for any JMS property that is being mapped into the MessageHeaders.
 	 * The Default is an empty string (no prefix).
 	 * <p/>
-	 * This does not affect the JMS properties covered by the specification/API, 
+	 * This does not affect the JMS properties covered by the specification/API,
 	 * such as JMSCorrelationID, etc. The header names used for mapping such
-	 * properties are all defined in our {@link JmsHeaders}.   
+	 * properties are all defined in our {@link JmsHeaders}.
 	 */
 	public void setInboundPrefix(String inboundPrefix) {
 		this.inboundPrefix = (inboundPrefix != null) ? inboundPrefix : "";
@@ -81,9 +83,9 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	 * integration message header that is being mapped into the JMS Message.
 	 * The Default is an empty string (no prefix).
 	 * <p/>
-	 * This does not affect the JMS properties covered by the specification/API, 
+	 * This does not affect the JMS properties covered by the specification/API,
 	 * such as JMSCorrelationID, etc. The header names used for mapping such
-	 * properties are all defined in our {@link JmsHeaders}.   
+	 * properties are all defined in our {@link JmsHeaders}.
 	 */
 	public void setOutboundPrefix(String outboundPrefix) {
 		this.outboundPrefix = (outboundPrefix != null) ? outboundPrefix : "";
@@ -228,22 +230,30 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 
 	/**
 	 * Adds the outbound prefix if necessary.
+	 * Converts {@link MessageHeaders#CONTENT_TYPE} to content_type for JMS compliance.
 	 */
 	private String fromHeaderName(String headerName) {
 		String propertyName = headerName;
 		if (StringUtils.hasText(this.outboundPrefix) && !propertyName.startsWith(this.outboundPrefix)) {
 			propertyName = this.outboundPrefix + headerName;
 		}
+		else if (MessageHeaders.CONTENT_TYPE.equals(headerName)) {
+			propertyName = JMS_COMPATIBLE_CONTENT_TYPE_PROPERTY;
+		}
 		return propertyName;
 	}
 
 	/**
 	 * Adds the inbound prefix if necessary.
+	 * Converts content_type to {@link MessageHeaders#CONTENT_TYPE}.
 	 */
 	private String toHeaderName(String propertyName) {
 		String headerName = propertyName;
 		if (StringUtils.hasText(this.inboundPrefix) && !headerName.startsWith(this.inboundPrefix)) {
 			headerName = this.inboundPrefix + propertyName;
+		}
+		else if (JMS_COMPATIBLE_CONTENT_TYPE_PROPERTY.equals(propertyName)) {
+			headerName = MessageHeaders.CONTENT_TYPE;
 		}
 		return headerName;
 	}
