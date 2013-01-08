@@ -25,6 +25,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -98,7 +100,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile boolean lookupHost = true;
 
-	private volatile List<TcpConnection> connections = new LinkedList<TcpConnection>();
+	private volatile List<TcpConnectionSupport> connections = new LinkedList<TcpConnectionSupport>();
 
 	private volatile TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
 
@@ -460,7 +462,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.active = false;
 		this.close();
 		synchronized (this.connections) {
-			Iterator<TcpConnection> iterator = this.connections.iterator();
+			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
 			while (iterator.hasNext()) {
 				TcpConnection connection = iterator.next();
 				connection.close();
@@ -664,7 +666,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		callback.run();
 	}
 
-	protected void addConnection(TcpConnection connection) {
+	protected void addConnection(TcpConnectionSupport connection) {
 		synchronized (this.connections) {
 			if (!this.active) {
 				connection.close();
@@ -674,15 +676,20 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	protected void harvestClosedConnections() {
+	protected List<String> harvestClosedConnections() {
 		synchronized (this.connections) {
-			Iterator<TcpConnection> iterator = this.connections.iterator();
+			List<String> openConnectionIds = new ArrayList<String>();
+			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
 			while (iterator.hasNext()) {
 				TcpConnection connection = iterator.next();
 				if (!connection.isOpen()) {
 					iterator.remove();
 				}
+				else {
+					openConnectionIds.add(connection.getConnectionId());
+				}
 			}
+			return openConnectionIds;
 		}
 	}
 
@@ -719,4 +726,40 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.tcpSocketSupport = tcpSocketSupport;
 	}
 
+	/**
+	 * Returns a list of (currently) open {@link TcpConnection} connection ids; allows,
+	 * for example, broadcast operations to all open connections.
+	 * @return the list of connection ids.
+	 */
+	public List<String> getOpenConnectionIds() {
+		return Collections.unmodifiableList(this.harvestClosedConnections());
+	}
+
+	/**
+	 * Close a connection with the specified connection id.
+	 * @param connectionId the connection id.
+	 * @return true if the connection was closed.
+	 */
+	public boolean closeConnection(String connectionId) {
+		Assert.notNull(connectionId, "'connectionId' to close must not be null");
+		synchronized(this.connections) {
+			boolean closed = false;
+			for (TcpConnectionSupport connection : connections) {
+				if (connectionId.equals(connection.getConnectionId())) {
+					try {
+						connection.close();
+						closed = true;
+						break;
+					}
+					catch (Exception e) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Failed to close connection " + connectionId, e);
+						}
+						connection.publishConnectionExceptionEvent(e);
+					}
+				}
+			}
+			return closed;
+		}
+	}
 }
