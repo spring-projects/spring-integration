@@ -86,6 +86,7 @@ public class ConnectionToConnectionTests {
 			TcpConnection connection = client.getConnection();
 			connection.send(MessageBuilder.withPayload("Test").build());
 			Message<?> message = serverSideChannel.receive(10000);
+			assertNotNull(message);
 			MessageHistory history = MessageHistory.read(message);
 			//org.springframework.integration.test.util.TestUtils
 			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
@@ -105,6 +106,7 @@ public class ConnectionToConnectionTests {
 		TcpConnection connection = client.getConnection();
 		connection.send(MessageBuilder.withPayload("Test").build());
 		Message<?> message = serverSideChannel.receive(10000);
+		assertNotNull(message);
 		MessageHistory history = MessageHistory.read(message);
 		//org.springframework.integration.test.util.TestUtils
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
