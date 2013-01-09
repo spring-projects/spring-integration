@@ -76,4 +76,24 @@
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
 	</bean>
+
+	<int-ftp:outbound-channel-adapter id="withBeanExpressions"
+		channel="ftpChannel"
+		remote-directory-expression="@fooBean"
+		temporary-remote-directory-expression="@barBean"
+		remote-filename-generator-expression="@bazBean"
+		session-factory="cachingSessionFactory" />
+
+	<bean id="fooBean" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
+
+	<bean id="barBean" class="java.lang.String">
+		<constructor-arg value="bar" />
+	</bean>
+
+	<bean id="bazBean" class="java.lang.String">
+		<constructor-arg value="baz" />
+	</bean>
+
 </beans>

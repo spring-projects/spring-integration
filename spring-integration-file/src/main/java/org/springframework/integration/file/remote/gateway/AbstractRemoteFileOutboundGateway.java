@@ -192,6 +192,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						"Failure during initialization of: " + this.getComponentType(), e);
 			}
 		}
+		if (this.getBeanFactory() != null) {
+			this.processor.setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override

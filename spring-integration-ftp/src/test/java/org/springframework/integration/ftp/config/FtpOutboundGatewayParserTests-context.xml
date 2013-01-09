@@ -47,6 +47,25 @@
 		</int-ftp:request-handler-advice-chain>
 	</int-ftp:outbound-gateway>
 
+	<int-ftp:outbound-gateway id="withBeanExpression"
+		local-directory="local-test-dir"
+		session-factory="sf"
+		request-channel="inbound3"
+		reply-channel="outbound"
+		auto-startup="false"
+		cache-sessions="false"
+		filename-pattern="*"
+		remote-file-separator="X"
+		command="ls"
+		command-options="-1 -f"
+		expression="@fooBean"
+		order="1"
+		/>
+
 	<int:channel id="outbound"/>
+
+	<bean id="fooBean" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
 
 </beans>

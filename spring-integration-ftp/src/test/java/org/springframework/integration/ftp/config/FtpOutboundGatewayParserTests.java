@@ -30,8 +30,10 @@ import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,6 +55,9 @@ public class FtpOutboundGatewayParserTests {
 
 	@Autowired
 	AbstractEndpoint gateway2;
+
+	@Autowired
+	AbstractEndpoint withBeanExpression;
 
 	private static volatile int adviceCalled;
 
@@ -92,6 +97,16 @@ public class FtpOutboundGatewayParserTests {
 		assertTrue(options.contains("-P"));
 		gateway.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, adviceCalled);
+	}
+
+	@Test
+	public void testWithBeanExpression() {
+		FtpOutboundGateway gateway = TestUtils.getPropertyValue(withBeanExpression,
+				"handler", FtpOutboundGateway.class);
+		ExpressionEvaluatingMessageProcessor<?> processor = TestUtils.getPropertyValue(gateway, "processor",
+				ExpressionEvaluatingMessageProcessor.class);
+		assertNotNull(processor);
+		assertEquals("foo", processor.processMessage(MessageBuilder.withPayload("bar").build()));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
