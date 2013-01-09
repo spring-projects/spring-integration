@@ -13,9 +13,10 @@
 	<si:channel id="requestChannel"/>
 		
 	<jms:outbound-gateway id="jmsGateway"
-	                      request-destination-name="requestQueue"
-	                      request-channel="requestChannel"
-	                      delivery-persistent="true">
+						  request-destination-name="requestQueue"
+						  request-channel="requestChannel"
+						  delivery-persistent="true"
+						  auto-startup="false">
 		<jms:reply-listener
 			acknowledge="transacted"
 			concurrent-consumers="4"
@@ -39,7 +40,8 @@
 	<jms:outbound-gateway id="advised"
 		request-destination-name="requestQueue"
 		request-channel="requestChannel"
-		delivery-persistent="true">
+		delivery-persistent="true"
+		auto-startup="false">
 		<jms:request-handler-advice-chain>
 			<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$FooAdvice" />
 		</jms:request-handler-advice-chain>
