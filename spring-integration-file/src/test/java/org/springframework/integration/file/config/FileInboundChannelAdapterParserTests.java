@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -41,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -87,8 +87,16 @@ public class FileInboundChannelAdapterParserTests {
         Object priorityQueue = accessor.getPropertyValue("toBeReceived");
         assertEquals(PriorityBlockingQueue.class, priorityQueue.getClass());
         Object expected = context.getBean("testComparator");
-        Object innerQueue = new DirectFieldAccessor(priorityQueue).getPropertyValue("q");
-        Object actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
+        DirectFieldAccessor queueAccessor = new DirectFieldAccessor(priorityQueue);
+        Object innerQueue = queueAccessor.getPropertyValue("q");
+        Object actual;
+        if (innerQueue != null) {
+            actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
+        }
+        else {
+            // probably running under JDK 7
+            actual = queueAccessor.getPropertyValue("comparator");
+        }
         assertSame("comparator reference not set, ", expected, actual);
     }
 
