@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -62,8 +61,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
-import org.springframework.util.ReflectionUtils.MethodCallback;
-import org.springframework.util.ReflectionUtils.MethodFilter;
 
 
 /**
@@ -260,29 +257,26 @@ public class TcpNioConnectionTests {
 				doAnswer(new Answer<Integer>() {
 					public Integer answer(InvocationOnMock invocation) throws Throwable {
 						ByteBuffer buffer = (ByteBuffer) invocation.getArguments()[0];
-						buffer.position(1025);
-						return 1025;
+						buffer.position(1);
+						return 1;
 					}
 				}).when(channel).read(Mockito.any(ByteBuffer.class));
 				when(socket.getReceiveBufferSize()).thenReturn(1024);
 				final TcpNioConnection connection = new TcpNioConnection(channel, false, false);
 				connection.setTaskExecutor(exec);
 				connection.setPipeTimeout(200);
-				ReflectionUtils.doWithMethods(TcpNioConnection.class, new MethodCallback() {
-					public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-						method.setAccessible(true);
-						try {
-							method.invoke(connection, (Object[]) null);
-						}
-						catch (InvocationTargetException e) {
-							throw (RuntimeException) e.getCause();
-						}
+				Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
+				method.setAccessible(true);
+				// Nobody reading, should timeout on 6th write.
+				try {
+					for (int i = 0; i < 6; i++) {
+						method.invoke(connection);
 					}
-				}, new MethodFilter() {
-					public boolean matches(Method method) {
-						return method.getName().equals("doRead");
-					}
-				});
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+					throw (Exception) e.getCause();
+				}
 				return null;
 			}
 		});
@@ -291,7 +285,7 @@ public class TcpNioConnectionTests {
 			fail("Expected exception, got " + o);
 		}
 		catch (ExecutionException e) {
-			assertEquals("Timed out writing to pipe, probably due to insufficient threads in " +
+			assertEquals("Timed out writing to ChannelInputStream, probably due to insufficient threads in " +
 					"a fixed thread pool; consider increasing this task executor pool size", e.getCause()
 					.getMessage());
 		}
@@ -319,28 +313,23 @@ public class TcpNioConnectionTests {
 				connection.setTaskExecutor(exec);
 				connection.registerListener(new TcpListener(){
 					public boolean onMessage(Message<?> message) {
-						System.out.println(message);
 						messageLatch.countDown();
 						return false;
 					}
 				});
 				connection.setMapper(new TcpMessageMapper());
 				connection.setDeserializer(new ByteArrayCrLfSerializer());
-				ReflectionUtils.doWithMethods(TcpNioConnection.class, new MethodCallback() {
-					public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-						method.setAccessible(true);
-						try {
-							method.invoke(connection, (Object[]) null);
-						}
-						catch (InvocationTargetException e) {
-							throw (RuntimeException) e.getCause();
-						}
+				Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
+				method.setAccessible(true);
+				try {
+					for (int i = 0; i < 20; i++) {
+						method.invoke(connection);
 					}
-				}, new MethodFilter() {
-					public boolean matches(Method method) {
-						return method.getName().equals("doRead");
-					}
-				});
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+					throw (Exception) e.getCause();
+				}
 				return null;
 			}
 		});
