@@ -114,4 +114,12 @@ public interface TcpConnection extends Runnable {
 	 */
 	long incrementAndGetConnectionSequence();
 
+	/**
+	 * @return a key that can be used to reference state in a {@link Deserializer} that
+	 * maintains state for this connection. Currently, this would be the InputStream
+	 * associated with the connection, but the object should be treated as opaque
+	 * and ONLY used as a key.
+	 */
+	Object getDeserializerStateKey();
+
 }

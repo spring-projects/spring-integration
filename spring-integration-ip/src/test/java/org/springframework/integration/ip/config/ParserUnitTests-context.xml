@@ -59,7 +59,10 @@
 		lookup-host="false"
 		apply-sequence="true"
 		ssl-context-support="sslContextSupport"
+		mapper="mapper"
 		/>
+
+	<bean id="mapper" class="org.springframework.integration.ip.tcp.connection.TcpMessageMapper" />
 
 	<ip:tcp-connection-factory id="cfS1Nio"
 		type="server"

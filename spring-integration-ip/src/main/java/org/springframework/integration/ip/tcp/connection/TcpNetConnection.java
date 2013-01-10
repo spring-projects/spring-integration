@@ -113,6 +113,15 @@ public class TcpNetConnection extends TcpConnectionSupport {
 		return this.socket.getPort();
 	}
 
+	public Object getDeserializerStateKey() {
+		try {
+			return this.socket.getInputStream();
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
 	/**
 	 * If there is no listener, and this connection is not for single use,
 	 * this method exits. When there is a listener, the method runs in a

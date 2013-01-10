@@ -152,6 +152,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		return this.socketChannel.socket().getPort();
 	}
 
+	public Object getDeserializerStateKey() {
+		return this.channelInputStream;
+	}
+
 	/**
 	 * Allocates a ByteBuffer of the requested length using normal or
 	 * direct buffers, depending on the usingDirectBuffers field.

@@ -53,6 +53,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
+import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
@@ -255,6 +256,9 @@ public class ParserUnitTests {
 	@Autowired
 	TcpSSLContextSupport contextSupport;
 
+	@Autowired
+	TcpMessageMapper mapper;
+
 	private static volatile int adviceCalled;
 
 	@Test
@@ -304,8 +308,9 @@ public class ParserUnitTests {
 		assertFalse(cfS1.isLookupHost());
 		assertFalse(tcpIn.isAutoStartup());
 		assertEquals(124, tcpIn.getPhase());
-		assertTrue((Boolean) TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(cfS1, "mapper"), "applySequence"));
+		TcpMessageMapper cfS1Mapper = TestUtils.getPropertyValue(cfS1, "mapper", TcpMessageMapper.class);
+		assertSame(mapper, cfS1Mapper);
+		assertTrue((Boolean) TestUtils.getPropertyValue(cfS1Mapper, "applySequence"));
 		Object socketSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport");
 		assertTrue(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport);
 		assertNotNull(TestUtils.getPropertyValue(socketSupport, "sslContext"));

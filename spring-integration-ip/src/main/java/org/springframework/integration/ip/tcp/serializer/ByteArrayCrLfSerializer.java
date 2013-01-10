@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,13 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 	 */
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[this.maxMessageSize];
+		int n = this.fillToCrLf(inputStream, buffer);
+		byte[] assembledData = this.copyToSizedArray(buffer, n);
+		return assembledData;
+	}
+
+	public int fillToCrLf(InputStream inputStream, byte[] buffer)
+			throws IOException, SoftEndOfStreamException {
 		int n = 0;
 		int bite;
 		if (logger.isDebugEnabled()) {
@@ -61,9 +68,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 						+ this.maxMessageSize);
 			}
 		};
-		byte[] assembledData = new byte[n-1];
-		System.arraycopy(buffer, 0, assembledData, 0, n-1);
-		return assembledData;
+		return n-1; // trim \r
 	}
 
 	/**

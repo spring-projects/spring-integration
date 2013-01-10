@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,13 +31,11 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class TcpMessageMapperTests {
 
-	/**
-	 *
-	 */
 	private static final String TEST_PAYLOAD = "abcdefghijkl";
 
 	@Test
@@ -89,6 +88,9 @@ public class TcpMessageMapperTests {
 			public String getConnectionId() {
 				return "anId";
 			}
+			public Object getDeserializerStateKey() {
+				return null;
+			}
 		};
 		Message<Object> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
@@ -111,8 +113,15 @@ public class TcpMessageMapperTests {
 	}
 
 	@Test
-	public void testToMessageSequenceNew() throws Exception {
-		TcpMessageMapper mapper = new TcpMessageMapper();
+	public void testToMessageSequenceNewWithCustomHeader() throws Exception {
+		TcpMessageMapper mapper = new TcpMessageMapper() {
+
+			@Override
+			protected void setCustomHeaders(TcpConnection connection, MessageBuilder<Object> messageBuilder) {
+				messageBuilder.setHeader("foo", "bar");
+			}
+
+		};
 		mapper.setApplySequence(true);
 		Socket socket = SocketFactory.getDefault().createSocket();
 		TcpConnection connection = new TcpConnectionSupport(socket, false, false, null, null) {
@@ -141,6 +150,9 @@ public class TcpMessageMapperTests {
 			public String getConnectionId() {
 				return "anId";
 			}
+			public Object getDeserializerStateKey() {
+				return null;
+			}
 		};
 		Message<Object> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
@@ -166,6 +178,8 @@ public class TcpMessageMapperTests {
 				.getHeaders().getSequenceNumber());
 		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), message
 				.getHeaders().getCorrelationId());
+		assertNotNull(message.getHeaders().get("foo"));
+		assertEquals("bar", message.getHeaders().get("foo"));
 
 	}
 
@@ -190,6 +204,5 @@ public class TcpMessageMapperTests {
 		assertEquals(s, out);
 
 	}
-
 
 }
