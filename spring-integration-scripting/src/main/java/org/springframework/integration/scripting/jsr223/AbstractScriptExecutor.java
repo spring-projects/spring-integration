@@ -37,15 +37,18 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+	protected final ScriptEngine scriptEngine;
 
 	protected final String language;
 
 	public AbstractScriptExecutor(String language) {
 		Assert.hasText(language, "language must not be empty");
 		this.language = language;
+	
+		scriptEngine = new ScriptEngineManager().getEngineByName(this.language);
+		
 		if (logger.isDebugEnabled()) {
-			ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(this.language);
+
 			if (scriptEngine == null) {
 				logger.error(invlalidLanguageMessage(this.language));
 			}
@@ -61,11 +64,6 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 
 	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Object result = null;
-		ScriptEngine scriptEngine = this.scriptEngineManager.getEngineByName(this.language);
-
-		if (scriptEngine == null) {
-			throw new ScriptingException(invlalidLanguageMessage(this.language));
-		}
 
 		try {
 			if (variables != null) {
