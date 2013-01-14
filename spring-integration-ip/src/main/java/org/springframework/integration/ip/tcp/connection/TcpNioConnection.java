@@ -258,8 +258,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 					}
 					this.closeConnection();
 				}
-			} else {
-				logger.error("Exception sending meeeage: " + message, e);
+			}
+			else {
+				logger.error("Exception sending message: " + message, e);
 			}
 		}
 		/*

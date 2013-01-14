@@ -125,7 +125,8 @@ public class TcpNetConnection extends AbstractTcpConnection {
 						continue;
 					}
 					intercepted = this.getListener().onMessage(message);
-				} catch (NoListenerException nle) {
+				}
+				catch (NoListenerException nle) {
 					if (singleUse) {
 						logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
 						this.closeConnection();
@@ -133,8 +134,9 @@ public class TcpNetConnection extends AbstractTcpConnection {
 					} else {
 						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
 					}
-				} catch (Exception e2) {
-					logger.error("Exception sending meeeage: " + message, e2);
+				}
+				catch (Exception e2) {
+					logger.error("Exception sending message: " + message, e2);
 				}
 				/*
 				 * For single use sockets, we close after receipt if we are on the client
