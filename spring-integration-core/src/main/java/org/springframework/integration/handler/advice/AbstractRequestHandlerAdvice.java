@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,10 +59,18 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 					public Object execute() throws Exception {
 						try {
+							return invocation.proceed();
+						}
+						catch (Throwable e) {
+							throw new ThrowableHolderException(e);
+						}
+					}
+
+					public Object cloneAndExecute() throws Exception {
+						try {
 							/*
 				 			* If we don't copy the invocation carefully it won't keep a reference to the other
-				 			* interceptors in the chain. We don't have a choice here but to specialise to
-				 			* ReflectiveMethodInvocation (but how often would another implementation come along?).
+				 			* interceptors in the chain.
 				 			*/
 							if (invocation instanceof ProxyMethodInvocation) {
 								return ((ProxyMethodInvocation) invocation).invocableClone().proceed();
@@ -105,6 +113,8 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	protected interface ExecutionCallback {
 
 		Object execute() throws Exception;
+
+		Object cloneAndExecute() throws Exception;
 
 	}
 
