@@ -100,7 +100,7 @@
 		<outbound-channel-adapter ref="testConsumer"/>
 	</chain>
 
-	<chain input-channel="loggingChannelAdapterChannel">
+	<chain id="logChain" input-channel="loggingChannelAdapterChannel">
 		<transformer expression="payload.toUpperCase()"/>
 		<logging-channel-adapter level="WARN"/>
 	</chain>
