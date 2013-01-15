@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,19 +12,19 @@
  */
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Base class for parsers that create an instance of {@link AbstractCorrelatingMessageHandler}
  *
  * @author Oleg Zhurakousky
+ * @author Stefan Ferstl
  * @since 2.1
  *
  */
@@ -38,6 +38,14 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private static final String CORRELATION_STRATEGY_PROPERTY = "correlationStrategy";
 
+	private static final String RELEASE_STRATEGY_REF_ATTRIBUTE = "release-strategy";
+
+	private static final String RELEASE_STRATEGY_METHOD_ATTRIBUTE = "release-strategy-method";
+
+	private static final String RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE = "release-strategy-expression";
+
+	private static final String RELEASE_STRATEGY_PROPERTY = "releaseStrategy";
+
 	private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
 
 	private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
@@ -50,6 +58,10 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
 				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
 				element, builder, processor, parserContext);
+		this.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
+				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy",
+				element, builder, processor, parserContext);
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, MESSAGE_STORE_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
