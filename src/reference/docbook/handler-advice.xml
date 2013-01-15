@@ -148,7 +148,7 @@ DEBUG [task-scheduler-2]Retry failed last attempt: count=3]]></programlisting></
 				<para><emphasis>Simple Stateless Retry with Recovery</emphasis></para>
 				<para>
 					This example adds a <classname>RecoveryCallback</classname> to the
-					above example; it uses a <classname></classname>
+					above example; it uses a <classname>ErrorMessageSendingRecoverer</classname>
 					to send an <emphasis>ErrorMessage</emphasis> to a channel.
 				</para>
 				<para><programlisting><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
@@ -448,5 +448,20 @@ Caused by: java.lang.RuntimeException: foo
 		return result;
 	}
 }]]></programlisting></para>
+		<para>
+			Custom <classname>AbstractRequestHandlerAdvice</classname> may have a repeatable logic
+			in the <classname>doInvoke()</classname> method, when its implementation invokes <classname>callback</classname>
+			several times or provides it to other cyclic contexts. In this case the state of current
+			<classname>org.aopalliance.intercept.MethodInvocation</classname> will be kept. From other side typical provided Spring AOP
+			implementation <classname>org.springframework.aop.framework.ReflectiveMethodInvocation</classname> has its own state
+			in the <classname>currentInterceptorIndex</classname>, which is increased in the recursive <classname>proceed()</classname> method
+			to move to other nested <classname>org.aopalliance.intercept.MethodInterceptor</classname>s. To avoid the loss of
+			<classname>currentInterceptorIndex</classname> in the repeatable context <classname>ExecutionCallback</classname>
+			provides <classname>cloneAndExecute()</classname> method, which try to do <classname>invocableClone()</classname> of
+			<classname>MethodInvocation</classname>. See the JavaDocs of:
+			<ulink url="http://static.springsource.org/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html">
+				ReflectiveMethodInvocation</ulink>. By the way <classname>RequestHandlerRetryAdvice</classname> uses this method,
+			because it provides <classname>ExecutionCallback</classname> to the <classname>RetryTemplate</classname>.
+		</para>
 	</section>
 </section>
