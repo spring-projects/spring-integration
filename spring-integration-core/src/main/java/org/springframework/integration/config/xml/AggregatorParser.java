@@ -31,22 +31,14 @@ import org.w3c.dom.Element;
 /**
  * Parser for the <em>aggregator</em> element of the integration namespace. Registers the annotation-driven
  * post-processors.
- * 
+ *
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Dave Syer
  */
 public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
-	
-	private static final String RELEASE_STRATEGY_REF_ATTRIBUTE = "release-strategy";
 
-	private static final String RELEASE_STRATEGY_METHOD_ATTRIBUTE = "release-strategy-method";
-
-	private static final String RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE = "release-strategy-expression";
-	
-	private static final String RELEASE_STRATEGY_PROPERTY = "releaseStrategy";
-	
 	private static final String EXPIRE_GROUPS_UPON_COMPLETION = "expire-groups-upon-completion";
 
 	@Override
@@ -89,14 +81,10 @@ public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
 			processorBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method,
 					"java.lang.String");
 		}
-		
+
 		this.doParse(builder, element, processor, parserContext);
-		
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_COMPLETION);
-		
-		this.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
-				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy", element, builder,
-				processor, parserContext);
 
 		return builder;
 	}
