@@ -30,13 +30,13 @@
 		Spring Integration 2.2 adds the ability to add behavior to individual endpoints. This is achieved
 		by the addition of the &lt;request-handler-advice-chain /&gt; element to many endpoints. For example:
 	</para>
-	<para><programlisting><![CDATA[<int-http:outbound-gateway id="withAdvice"
-		url-expression="'http://localhost/test1'"
-		request-channel="requests"
-		reply-channel="nextChannel">
-	<int:request-handler-advice-chain>
-		<ref bean="myRetryAdvice" />
-	</request-handler-advice-chain>
+	<para><programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="withAdvice"
+    url-expression="'http://localhost/test1'"
+    request-channel="requests"
+    reply-channel="nextChannel">
+    <int:request-handler-advice-chain>
+        <ref bean="myRetryAdvice" />
+    </request-handler-advice-chain>
 </int-http:outbound-gateway>]]></programlisting></para>
 	<para>
 		In this case, <emphasis>myRetryAdvice</emphasis> will only be applied locally to this gateway and
@@ -76,7 +76,7 @@
 		<section id="retry-advice">
 			<title>Retry Advice</title>
 			<para>
-				The retry advice (<classname>org.springframework.integration.handler.advice.RequestHandlerRetryAdvice</classname>)
+				The retry advice (<classname>o.s.i.handler.advice.RequestHandlerRetryAdvice</classname>)
 				leverages the rich retry mechanisms provided by the
 				<ulink url="https://github.com/SpringSource/spring-retry">spring-retry</ulink> project. The core component
 				of <emphasis>spring-retry</emphasis> is the <classname>RetryTemplate</classname>, which allows configuration
@@ -113,11 +113,11 @@
 				<title>Configuring the Retry Advice</title>
 				<para>
 					The following examples use a simple &lt;service-activator />&gt; that always throws an exception:
-					<programlisting><![CDATA[public class FailingService {
+					<programlisting language="java"><![CDATA[public class FailingService {
 
-	public void service(String message) {
-		throw new RuntimeException("foo");
-	}
+    public void service(String message) {
+        throw new RuntimeException("foo");
+    }
 }]]></programlisting>
 				</para>
 				<para><emphasis>Simple Stateless Retry</emphasis></para>
@@ -130,12 +130,11 @@
 					environment, this final exception might be handled using an <emphasis>error-channel</emphasis> on
 					the inbound endpoint.
 				</para>
-				<para><programlisting><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
-	<int:request-handler-advice-chain>
-		<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice" />
-	</request-handler-advice-chain>
+				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice"/>
+    </request-handler-advice-chain>
 </int:service-activator>
-
 
 DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
 DEBUG [task-scheduler-2]Retry: count=0
@@ -151,18 +150,17 @@ DEBUG [task-scheduler-2]Retry failed last attempt: count=3]]></programlisting></
 					above example; it uses a <classname>ErrorMessageSendingRecoverer</classname>
 					to send an <emphasis>ErrorMessage</emphasis> to a channel.
 				</para>
-				<para><programlisting><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
-	<int:request-handler-advice-chain>
-		<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice">
-			<property name="recoveryCallback">
-				<bean class="org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer">
-					<constructor-arg ref="myErrorChannel" />
-				</bean>
-			</property>
-		</bean>
-	</request-handler-advice-chain>
+				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice">
+            <property name="recoveryCallback">
+                <bean class="o.s.i.handler.advice.ErrorMessageSendingRecoverer">
+                    <constructor-arg ref="myErrorChannel" />
+                </bean>
+            </property>
+        </bean>
+    </request-handler-advice-chain>
 </int:int:service-activator>
-
 
 DEBUG [task-scheduler-2]preSend on channel 'input', message: [Payload=...]
 DEBUG [task-scheduler-2]Retry: count=0
@@ -181,17 +179,17 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></pr
 					where the first retry waits 1 second, the second waits 5 seconds and the third waits 25 (for 4
 					attempts in all).
 				</para>
-				<para><programlisting><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
-	<int:request-handler-advice-chain>
-		<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice">
-			<property name="recoveryCallback">
-				<bean class="org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer">
-					<constructor-arg ref="myErrorChannel" />
-				</bean>
-			</property>
-			<property name="retryTemplate" ref="retryTemplate" />
-		</bean>
-	</request-handler-advice-chain>
+				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice">
+            <property name="recoveryCallback">
+                <bean class="o.s.i.handler.advice.ErrorMessageSendingRecoverer">
+                    <constructor-arg ref="myErrorChannel" />
+                </bean>
+            </property>
+            <property name="retryTemplate" ref="retryTemplate" />
+        </bean>
+    </request-handler-advice-chain>
 </int:service-activator>
 
 <bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
@@ -207,7 +205,6 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></pr
 		</bean>
 	</property>
 </bean>
-
 
 27.058 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=...]
 27.071 DEBUG [task-scheduler-1]Retry: count=0
@@ -233,24 +230,22 @@ DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]]]></pr
 					This is shown below; this example again uses the default policies (3 attempts with no back off); of
 					course, as with stateless retry, these policies can be customized.
 				</para>
-				<para><programlisting><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
-	<int:request-handler-advice-chain>
-		<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice">
-			<property name="retryStateGenerator">
-				<bean class="org.springframework.integration.handler.advice.SpelExpressionRetryStateGenerator">
-					<constructor-arg value="headers['jms_messageId']" />
-				</bean>
-			</property>
-			<property name="recoveryCallback">
-				<bean class="org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer">
-					<constructor-arg ref="myErrorChannel" />
-				</bean>
-			</property>
-		</bean>
-	</int:request-handler-advice-chain>
+				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+        <bean class="o.s.i.handler.advice.RequestHandlerRetryAdvice">
+            <property name="retryStateGenerator">
+                <bean class="o.s.i.handler.advice.SpelExpressionRetryStateGenerator">
+                    <constructor-arg value="headers['jms_messageId']" />
+                </bean>
+            </property>
+            <property name="recoveryCallback">
+                <bean class="o.s.i.handler.advice.ErrorMessageSendingRecoverer">
+                    <constructor-arg ref="myErrorChannel" />
+                </bean>
+            </property>
+        </bean>
+    </int:request-handler-advice-chain>
 </int:service-activator>
-
-
 
 24.351 DEBUG [Container#0-1]preSend on channel 'input', message: [Payload=...]
 24.368 DEBUG [Container#0-1]Retry: count=0
@@ -299,7 +294,7 @@ Caused by: java.lang.RuntimeException: foo
 			<para>
 				The general idea of the Circuit Breaker Pattern is that, if a service is not currently available, then
 				don't waste time (and resources) trying to use it. The
-				<classname>org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice</classname>
+				<classname>o.s.i.handler.advice.RequestHandlerCircuitBreakerAdvice</classname>
 				implements this pattern. When the circuit breaker is in the <emphasis>closed</emphasis> state,
 				the endpoint will attempt to invoke the
 				service. The circuit breaker goes to the <emphasis>open</emphasis> state
@@ -327,15 +322,14 @@ Caused by: java.lang.RuntimeException: foo
 				1000 milliseconds.
 			</para>
 			<para>Example:</para>
-				<para><programlisting><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
-	<int:request-handler-advice-chain>
-		<bean class="org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice">
-			<property name="threshold" value="2" />
-			<property name="halfOpenAfter" value="12000" />
-		</bean>
-	</int:request-handler-advice-chain>
+				<para><programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+        <bean class="o.s.i.handler.advice.RequestHandlerCircuitBreakerAdvice">
+            <property name="threshold" value="2" />
+            <property name="halfOpenAfter" value="12000" />
+        </bean>
+    </int:request-handler-advice-chain>
 </int:service-activator>
-
 
 05.617 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=...]
 05.638 ERROR [task-scheduler-1]org.springframework.integration.MessageHandlingException: java.lang.RuntimeException: foo
@@ -366,7 +360,7 @@ Caused by: java.lang.RuntimeException: foo
 			<title>Expression Evaluating Advice</title>
 			<para>
 				The final supplied advice class is the
-				<classname>org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice</classname>.
+				<classname>o.s.i.handler.advice.ExpressionEvaluatingRequestHandlerAdvice</classname>.
 				This advice is more general than the other two advices. It provides a mechanism to evaluate an expression on the
 				original inbound message sent to the endpoint. Separate expressions are available to be evaluated, either after
 				success, or failure. Optionally, a message containing the evaluation result, together with the input message,
@@ -395,23 +389,23 @@ Caused by: java.lang.RuntimeException: foo
 		<para>
 			In addition to the provided Advice classes above, you can implement your own Adivce classes. While you can
 			provide any implementation of <classname>org.aopalliance.aop.Advice</classname>, it is generally recommended
-			that you subclass <classname>org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice</classname>.
+			that you subclass <classname>o.s.i.handler.advice.AbstractRequestHandlerAdvice</classname>.
 			This has the benefit of avoiding writing low-level <emphasis>Aspect Oriented Programming</emphasis> code as well
 			as providing a starting point that is specifically tailored for use in this environment.
 		</para>
 		<para>
 			Subclasses need to implement the doInvoke() method:
 		</para>
-		<para><programlisting><![CDATA[	/**
-	 * Subclasses implement this method to apply behavior to the {@link MessageHandler} callback.execute()
-	 * invokes the handler method and returns its result, or null).
-	 * @param callback Subclasses invoke the execute() method on this interface to invoke the handler method.
-	 * @param target The target handler.
-	 * @param message The message that will be sent to the handler.
-	 * @return the result after invoking the {@link MessageHandler}.
-	 * @throws Exception
-	 */
-	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;]]></programlisting>
+		<para><programlisting language="java"><![CDATA[/**
+ * Subclasses implement this method to apply behavior to the {@link MessageHandler} callback.execute()
+ * invokes the handler method and returns its result, or null).
+ * @param callback Subclasses invoke the execute() method on this interface to invoke the handler method.
+ * @param target The target handler.
+ * @param message The message that will be sent to the handler.
+ * @return the result after invoking the {@link MessageHandler}.
+ * @throws Exception
+ */
+protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;]]></programlisting>
 		</para>
 		<para>
 			The <emphasis>callback</emphasis> parameter is simply a convenience to avoid subclasses dealing with AOP directly; invoking the
@@ -438,15 +432,15 @@ Caused by: java.lang.RuntimeException: foo
 			ability to modify the return value. Note that only <classname>AbstractReplyProducingMessageHandler</classname>s
 			return a value.
 		</para>
-		<para><programlisting><![CDATA[public class MyAdvice extends AbstractRequestHandlerAdvice {
+		<para><programlisting language="java"><![CDATA[public class MyAdvice extends AbstractRequestHandlerAdvice {
 
-	@Override
-	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
-		// add code before the invocation
-		Object result = callback.execute();
-		// add code after the invocation
-		return result;
-	}
+    @Override
+    protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+        // add code before the invocation
+        Object result = callback.execute();
+        // add code after the invocation
+        return result;
+    }
 }]]></programlisting></para>
 		<note>
 			<para>

@@ -51,8 +51,7 @@
       Integration's own <interfacename>MailReceiver</interfacename> interface, and there are two implementations:
       <classname>Pop3MailReceiver</classname> and <classname>ImapMailReceiver</classname>. The easiest way to
       instantiate either of these is by passing the 'uri' for a Mail store to the receiver's constructor. For example:
-      <programlisting language="java"><![CDATA[ MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");
-]]></programlisting>
+      <programlisting language="java"><![CDATA[MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");]]></programlisting>
     </para>
     <para>
       Another option for receiving mail is the IMAP "idle" command (if supported by the mail server you are using).
@@ -69,20 +68,20 @@
       Spring Integration provides a namespace for mail-related configuration. To use it, configure the following schema
       locations.<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans.xsd
-            http://www.springframework.org/schema/integration/mail
-            http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">]]></programlisting>
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration/mail
+    http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">]]></programlisting>
     </para>
     <para>
       To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:
       <programlisting language="xml"><![CDATA[<int-mail:outbound-channel-adapter channel="outboundMail"
-                              mail-sender="mailSender"/>]]></programlisting>
+    mail-sender="mailSender"/>]]></programlisting>
       Alternatively, provide the host, username, and password:
       <programlisting language="xml"><![CDATA[<int-mail:outbound-channel-adapter channel="outboundMail"
-                              host="somehost" username="someuser" password="somepassword"/>]]></programlisting>
+    host="somehost" username="someuser" password="somepassword"/>]]></programlisting>
       <note>
         Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a PollableChannel, a
         &lt;poller&gt; sub-element should be provided with either an interval-trigger or cron-trigger.
@@ -124,14 +123,14 @@
   <prop key="mail.debug">false</prop>
 </util:properties>]]></programlisting>
     </para>
-    
+
     <para>
-    By default, the <classname>ImapMailReceiver</classname> will search for Messages based on the default <classname>SearchTerm</classname> 
-    which is <emphasis>All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not 
-    been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)</emphasis>. 
-    Since version 2.2, the <classname>SearchTerm</classname> used by the  <classname>ImapMailReceiver</classname> is fully configurable 
+    By default, the <classname>ImapMailReceiver</classname> will search for Messages based on the default <classname>SearchTerm</classname>
+    which is <emphasis>All mails that are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not
+    been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)</emphasis>.
+    Since version 2.2, the <classname>SearchTerm</classname> used by the  <classname>ImapMailReceiver</classname> is fully configurable
     via the <code>SearchTermStrategy</code> which you can inject via the <code>search-term-strategy</code> attribute.
-    <classname>SearchTermStrategy</classname> is a simple strategy interface with a single method that allows you to create an 
+    <classname>SearchTermStrategy</classname> is a simple strategy interface with a single method that allows you to create an
     instance of the <classname>SearchTerm</classname> that will be used by the <classname>ImapMailReceiver</classname>.
     </para>
     <programlisting language="java"><![CDATA[public interface SearchTermStrategy {
@@ -144,46 +143,47 @@ For example:
     </para>
 <programlisting language="xml"><![CDATA[<mail:imap-idle-channel-adapter id="customAdapter"
 			store-uri="imap:foo"
-			. . .	
+			…
 			search-term-strategy="searchTermStrategy"/>
-			
-<bean id="searchTermStrategy" class="org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests.TestSearchTermStrategy"/>]]></programlisting>
+
+<bean id="searchTermStrategy"
+  class="o.s.i.mail.config.ImapIdleChannelAdapterParserTests.TestSearchTermStrategy"/>]]></programlisting>
     <para>
-In the above example instead of relying on the default <classname>SearchTermStrategy</classname> the 
+In the above example instead of relying on the default <classname>SearchTermStrategy</classname> the
 <classname>TestSearchTermStrategy</classname> will be used instead
     </para>
-    
+
     <para><emphasis>IMAP IDLE and lost connection</emphasis></para>
-    
+
     <para>
-    When using IMAP IDLE channel adapter there might be situations where connection to the server may be lost 
-    (e.g., network failure) and since Java Mail documentation explicitly states that the actual IMAP API is EXPERIMENTAL it is 
+    When using IMAP IDLE channel adapter there might be situations where connection to the server may be lost
+    (e.g., network failure) and since Java Mail documentation explicitly states that the actual IMAP API is EXPERIMENTAL it is
     important to understand the differences in the API and how to deal with them when configuring IMAP IDLE adapters.
-    Currently Spring Integration Mail adapters was tested with Java Mail 1.4.1 and Java Mail 1.4.3 and depending on which one 
+    Currently Spring Integration Mail adapters was tested with Java Mail 1.4.1 and Java Mail 1.4.3 and depending on which one
     is used special attention must be payed to some of the java mail properties that needs to be set with regard to auto-reconnect.
 	</para>
 	<para>
     <emphasis>
-    The following behavior was observed with GMAIL but should provide you with some tips on how to solve re-connect 
+    The following behavior was observed with GMAIL but should provide you with some tips on how to solve re-connect
     issue with other providers, however feedback is always welcome. Again, below notes are based on GMAIL.
     </emphasis>
     </para>
     <para>
-    With Java Mail 1.4.1 if <code>mail.imaps.timeout</code> property is set for a relatively short period of time (e.g., ~ 5 min) 
-    then <code>IMAPFolder.idle()</code> will throw <classname>FolderClosedException</classname> after this timeout. 
-    However if this property is not set (should be indefinite) the behavior that was observed is that <code>IMAPFolder.idle()</code> 
-    method never returns nor it throws an exception. It will however reconnect automatically if connection was lost for a short 
-    period of time (e.g., under 10 min), but  if connection was lost for a long period of time (e.g., over 10 min), then 
-    <code>IMAPFolder.idle()</code> will not throw <classname>FolderClosedException</classname> nor it will re-establish connection 
-    and will remain in the blocked state indefinitely, thus leaving you no possibility to reconnect without restarting the adapter. 
-    So the only way to make re-connect to work with Java Mail 1.4.1 is to set <code>mail.imaps.timeout</code> property explicitly 
-    to some value, but it also means that such value shoudl be relatively short (under 10 min) and the connection should be 
+    With Java Mail 1.4.1 if <code>mail.imaps.timeout</code> property is set for a relatively short period of time (e.g., ~ 5 min)
+    then <code>IMAPFolder.idle()</code> will throw <classname>FolderClosedException</classname> after this timeout.
+    However if this property is not set (should be indefinite) the behavior that was observed is that <code>IMAPFolder.idle()</code>
+    method never returns nor it throws an exception. It will however reconnect automatically if connection was lost for a short
+    period of time (e.g., under 10 min), but  if connection was lost for a long period of time (e.g., over 10 min), then
+    <code>IMAPFolder.idle()</code> will not throw <classname>FolderClosedException</classname> nor it will re-establish connection
+    and will remain in the blocked state indefinitely, thus leaving you no possibility to reconnect without restarting the adapter.
+    So the only way to make re-connect to work with Java Mail 1.4.1 is to set <code>mail.imaps.timeout</code> property explicitly
+    to some value, but it also means that such value shoudl be relatively short (under 10 min) and the connection should be
     re-estabished relatively quickly. Again, it may be different with other providers.
 
-	With Java Mail 1.4.3 there was significant improvements to the API ensuring that there will always be a condition which 
-	will force <code>IMAPFolder.idle()</code> method to return via <classname>StoreClosedException</classname> or 
+	With Java Mail 1.4.3 there was significant improvements to the API ensuring that there will always be a condition which
+	will force <code>IMAPFolder.idle()</code> method to return via <classname>StoreClosedException</classname> or
 	<classname>FolderClosedException</classname> or simply return, thus allowing us to proceed with auto-reconnect.
-    Currently auto-reconnect will run infinitely making attempts to reconnect every 10 sec. 
+    Currently auto-reconnect will run infinitely making attempts to reconnect every 10 sec.
     </para>
 
     <important>
@@ -230,57 +230,57 @@ In the above example instead of relying on the default <classname>SearchTermStra
                      overwrite="false"/>]]></programlisting>
     </para>
     <para>
-      Finally, the &lt;imap-idle-channel-adapter/&gt; also accepts the 'error-channel' attribute. 
-      If a downstream exception is thrown and an 'error-channel' is specified, 
-      a MessagingException message containing the failed message and original exception, will be sent to this channel. 
-      Otherwise, if the downstream channels are synchronous, any such exception will simply be logged as a 
+      Finally, the &lt;imap-idle-channel-adapter/&gt; also accepts the 'error-channel' attribute.
+      If a downstream exception is thrown and an 'error-channel' is specified,
+      a MessagingException message containing the failed message and original exception, will be sent to this channel.
+      Otherwise, if the downstream channels are synchronous, any such exception will simply be logged as a
       warning by the channel adapter.
     </para>
   </section>
-  
+
   <section id="mail-filtering">
   	<title>Email Message Filtering</title>
   	<para>
-  	Very often you may encounter a requirement to filter incoming messages 
-  	(e.g., You want to only read emails that have 'Spring Integration' in the <emphasis>Subject</emphasis> line). This 
-  	could be easily accomplished by connecting Inbound Mail adapter with an expression-based <emphasis>Filter</emphasis>. Although it would work, there is a 
-  	downside to this approach. Since messages would be filtered after going through inbound mail adapter all such messages would be marked as read (SEEN) or 
-  	Un-read (depending on the value of <code>should-mark-messages-as-read</code> attribute). However in reality what would be more useful is to mark messages 
-  	as SEEN only if they passed the filtering criteria. This is very similar to looking at your email client while scrolling through all the 
+  	Very often you may encounter a requirement to filter incoming messages
+  	(e.g., You want to only read emails that have 'Spring Integration' in the <emphasis>Subject</emphasis> line). This
+  	could be easily accomplished by connecting Inbound Mail adapter with an expression-based <emphasis>Filter</emphasis>. Although it would work, there is a
+  	downside to this approach. Since messages would be filtered after going through inbound mail adapter all such messages would be marked as read (SEEN) or
+  	Un-read (depending on the value of <code>should-mark-messages-as-read</code> attribute). However in reality what would be more useful is to mark messages
+  	as SEEN only if they passed the filtering criteria. This is very similar to looking at your email client while scrolling through all the
   	messages in the preview pane, but only flagging messages as SEEN that were actually opened and read.
   	</para>
   	<para>
-  	In Spring Integration 2.0.4 we've introduced <code>mail-filter-expression</code> attribute on <code>inbound-channel-adapter</code> and 
-  	<code>imap-idle-channel-adapter</code>. This attribute allows you to provide an expression which is a combination of SpEL and Regular Expression. 
+  	In Spring Integration 2.0.4 we've introduced <code>mail-filter-expression</code> attribute on <code>inbound-channel-adapter</code> and
+  	<code>imap-idle-channel-adapter</code>. This attribute allows you to provide an expression which is a combination of SpEL and Regular Expression.
   	For example if you would like to read only emails that contain 'Spring Integration' in the Subject line, you would configure <code>mail-filter-expression</code> attribute
   	like this this: <code>mail-filter-expression="subject matches '(?i).*Spring Integration.*"</code>
   	</para>
   	<para>
-  	Since <classname>javax.mail.internet.MimeMessage</classname> is the root context of SpEL Evaluation Context, you can filter on any value available 
-  	through MimeMessage including the actual body of the message. This one is particularly important since reading the body of the message would 
-  	typically result in such message to be marked as SEEN by default, but since we now setting PEAK flag of every incomming message to 'true', only 
+  	Since <classname>javax.mail.internet.MimeMessage</classname> is the root context of SpEL Evaluation Context, you can filter on any value available
+  	through MimeMessage including the actual body of the message. This one is particularly important since reading the body of the message would
+  	typically result in such message to be marked as SEEN by default, but since we now setting PEAK flag of every incomming message to 'true', only
   	messages that were explicitly marked as SEEN will be seen as read.
   	</para>
-  	
+
   	<para>
-  	So in the below example only messages that match the filter expression will be output by this adapter and only those messages will be marked as SEEN. 
-  	In this case based on the <code>mail-filter-expression</code> only messages that contain 'Spring Integration' in the subject line will be 
+  	So in the below example only messages that match the filter expression will be output by this adapter and only those messages will be marked as SEEN.
+  	In this case based on the <code>mail-filter-expression</code> only messages that contain 'Spring Integration' in the subject line will be
   	produced by this adapter.
-  	
+
   	<programlisting language="xml"><![CDATA[<int-mail:imap-idle-channel-adapter id="customAdapter"
 	store-uri="imaps://some_google_address:${password}@imap.gmail.com/INBOX"
-	channel="receiveChannel"	
+	channel="receiveChannel"
 	should-mark-messages-as-read="true"
 	java-mail-properties="javaMailProperties"
 	mail-filter-expression="subject matches '(?i).*Spring Integration.*'"/>]]></programlisting>
   	</para>
   	<para>
-  	Another reasonable question is what happens on the next poll, or idle event, or what happens when such adapter is restarted. 
-  	Will there be a potential duplication of massages to be filtered? In other words if on the last retrieval where you had 5 new messages and only 1 passed 
-  	the filter what would happen with the other 4. Would they go through the filtering logic again on the next poll or idle? After all they were not marked 
-  	as SEEN. The actual answer is no. They would not be subject of duplicate processing due to another flag (RECENT) that is set by the Email server and 
-  	is used by Spring Integration mail search filter. Folder implementations set this flag to indicate that this message is new to this folder, that is, 
-  	it has arrived since the last time this folder was opened. In other while our adapter may peek at the email it also lets the email server know that 
+  	Another reasonable question is what happens on the next poll, or idle event, or what happens when such adapter is restarted.
+  	Will there be a potential duplication of massages to be filtered? In other words if on the last retrieval where you had 5 new messages and only 1 passed
+  	the filter what would happen with the other 4. Would they go through the filtering logic again on the next poll or idle? After all they were not marked
+  	as SEEN. The actual answer is no. They would not be subject of duplicate processing due to another flag (RECENT) that is set by the Email server and
+  	is used by Spring Integration mail search filter. Folder implementations set this flag to indicate that this message is new to this folder, that is,
+  	it has arrived since the last time this folder was opened. In other while our adapter may peek at the email it also lets the email server know that
   	such email was touched and therefore will be marked as RECENT by the email server.
   	</para>
   </section>
@@ -301,47 +301,47 @@ In the above example instead of relying on the default <classname>SearchTermStra
         Integration components, or invoke a custom bean to perform some action. For example, to move an IMAP message
         to a different folder after the transaction commits, you might use something similar to the following:
       </para>
-      <programlisting><![CDATA[<int-mail:imap-idle-channel-adapter id="customAdapter"
-			store-uri="imaps://foo.com:password@imap.foo.com/INBOX"
-			channel="receiveChannel"
-			auto-startup="true"
-			should-delete-messages="false"		
-			java-mail-properties="javaMailProperties">
-	<int:transactional synchronization-factory="syncFactory"/>
+      <programlisting language="xml"><![CDATA[<int-mail:imap-idle-channel-adapter id="customAdapter"
+    store-uri="imaps://foo.com:password@imap.foo.com/INBOX"
+    channel="receiveChannel"
+    auto-startup="true"
+    should-delete-messages="false"
+    java-mail-properties="javaMailProperties">
+    <int:transactional synchronization-factory="syncFactory"/>
 </int-mail:imap-idle-channel-adapter>
 
 <int:transaction-synchronization-factory id="syncFactory">
-	<int:after-commit expression="@syncProcessor.process(payload)"/>
+    <int:after-commit expression="@syncProcessor.process(payload)"/>
 </int:transaction-synchronization-factory>
 
-<bean id="syncProcessor" class="foo.bar.Mover"/>
+<bean id="syncProcessor" class="foo.bar.Mover"/>]]></programlisting>
 
-public class Mover {
+      <programlisting language="java"><![CDATA[public class Mover {
 
-	public void process(MimeMessage message) throws Exception{
-		Folder folder = message.getFolder();
-		folder.open(Folder.READ_WRITE);
-		String messageId = message.getMessageID();
-		Message[] messages = folder.getMessages();
-		FetchProfile contentsProfile = new FetchProfile();
-		contentsProfile.add(FetchProfile.Item.ENVELOPE);
-		contentsProfile.add(FetchProfile.Item.CONTENT_INFO);
-		contentsProfile.add(FetchProfile.Item.FLAGS);
-		folder.fetch(messages, contentsProfile);
-		// find this message and mark for deletion
-		for (int i = 0; i < messages.length; i++) {
-			if (((MimeMessage) messages[i]).getMessageID().equals(messageId)) {
-				messages[i].setFlag(Flags.Flag.DELETED, true);
-				break;
-			}
-		}
+    public void process(MimeMessage message) throws Exception{
+        Folder folder = message.getFolder();
+        folder.open(Folder.READ_WRITE);
+        String messageId = message.getMessageID();
+        Message[] messages = folder.getMessages();
+        FetchProfile contentsProfile = new FetchProfile();
+        contentsProfile.add(FetchProfile.Item.ENVELOPE);
+        contentsProfile.add(FetchProfile.Item.CONTENT_INFO);
+        contentsProfile.add(FetchProfile.Item.FLAGS);
+        folder.fetch(messages, contentsProfile);
+        // find this message and mark for deletion
+        for (int i = 0; i < messages.length; i++) {
+            if (((MimeMessage) messages[i]).getMessageID().equals(messageId)) {
+                messages[i].setFlag(Flags.Flag.DELETED, true);
+                break;
+            }
+        }
 
-		Folder fooFolder = store.getFolder("FOO"));
-		fooFolder.appendMessages(new MimeMessage[]{message});
-		folder.expunge();
-		folder.close(true);
-		fooFolder.close(false);
-	}
+        Folder fooFolder = store.getFolder("FOO"));
+        fooFolder.appendMessages(new MimeMessage[]{message});
+        folder.expunge();
+        folder.close(true);
+        fooFolder.close(false);
+    }
 }]]></programlisting>
     <important>
       For the message to be still available for manipulation after the transaction, <emphasis>should-delete-messages</emphasis>

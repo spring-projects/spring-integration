@@ -136,9 +136,9 @@ as per standard Spring Web Services configuration.
       For URIs with an <emphasis>http:</emphasis> (or <emphasis>https:</emphasis>) scheme,
       &lt;uri-variable/&gt; substitution is supported:
     </para>
-    <programlisting><![CDATA[<ws:outbound-gateway id="gateway" request-channel="input" uri="http://springsource.org/{foo}-{bar}">
-	<ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
-	<ws:uri-variable name="bar" expression="headers.x"/>
+    <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="gateway" request-channel="input" uri="http://springsource.org/{foo}-{bar}">
+    <ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
+    <ws:uri-variable name="bar" expression="headers.x"/>
 </ws:outbound-gateway>]]></programlisting>
 	<para>
 	  For other schemes, such as <emphasis>jms:</emphasis>, or if a <classname>DestinationProvider</classname>

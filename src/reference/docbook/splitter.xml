@@ -16,7 +16,7 @@
     <title>Programming model</title>
 
     <para>The API for performing splitting consists of one base class,
-    <classname>AbstractMessageSplitter</classname>, which is a 
+    <classname>AbstractMessageSplitter</classname>, which is a
     <interfacename>MessageHandler</interfacename> implementation,
     encapsulating features which are common to splitters, such as filling in
     the appropriate message headers CORRELATION_ID, SEQUENCE_SIZE, and
@@ -24,28 +24,28 @@
     down the messages and the results of their processing (in a typical
     scenario, these headers would be copied over to the messages that are
     produced by the various transforming endpoints), and use them, for
-    example, in a 
+    example, in a
     <ulink url="http://www.eaipatterns.com/DistributionAggregate.html">
     Composed Message Processor</ulink> scenario.</para>
 
     <para>An excerpt from <classname>AbstractMessageSplitter</classname> can be seen below:</para>
 
-    <programlisting lang="java">public abstract class AbstractMessageSplitter
-                extends AbstractReplyProducingMessageConsumer {
-  ...
-  protected abstract Object splitMessage(Message&lt;?&gt; message);
+	<programlisting language="java"><![CDATA[public abstract class AbstractMessageSplitter
+    extends AbstractReplyProducingMessageConsumer {
+    ...
+    protected abstract Object splitMessage(Message<?> message);
 
-}</programlisting>
+}]]></programlisting>
 
-    <para>To implement a specific Splitter in an application, 
+    <para>To implement a specific Splitter in an application,
     extend <classname>AbstractMessageSplitter</classname> and implement the <code>splitMessage</code> method,
     which contains logic for splitting the messages. The return
     value may be one of the following:</para>
 
     <itemizedlist>
       <listitem>
-        <para>a <interfacename>Collection</interfacename> (or subclass thereof) or an array of 
-        <interfacename>Message</interfacename> objects - 
+        <para>a <interfacename>Collection</interfacename> (or subclass thereof) or an array of
+        <interfacename>Message</interfacename> objects -
         in this case the messages will be sent as such (after the
         CORRELATION_ID, SEQUENCE_SIZE and SEQUENCE_NUMBER are populated).
         Using this approach gives more control to the developer, for example
@@ -106,7 +106,7 @@
           above .<emphasis>Optional</emphasis>.
           If reference to a bean is not provided, then it is assumed that the <emphasis>payload</emphasis>
           of the Message that arrived on the <code>input-channel</code> is
-          an implementation of <interfacename>java.util.Collection</interfacename> 
+          an implementation of <interfacename>java.util.Collection</interfacename>
           and the default splitting logic will be applied to the Collection,
           incorporating each individual element into a Message and sending it to the <code>output-channel</code>.
           </para>
@@ -152,7 +152,7 @@
     <para>The <interfacename>@Splitter</interfacename> annotation is
     applicable to methods that expect either the
     <interfacename>Message</interfacename> type or the message payload type,
-    and the return values of the method should be a <interfacename>Collection</interfacename> of any type. 
+    and the return values of the method should be a <interfacename>Collection</interfacename> of any type.
     If the returned values are not actual <interfacename>Message</interfacename>
     objects, then each item will be wrapped in a Message as its payload. Each
     message will be sent to the designated output channel for the endpoint

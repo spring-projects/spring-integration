@@ -200,7 +200,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
         <emphasis>inbound-gateway</emphasis>:
     </para>
 
-    <programlisting language="xml"><![CDATA[ <int-http:inbound-gateway id="inboundGateway"
+    <programlisting language="xml"><![CDATA[<int-http:inbound-gateway id="inboundGateway"
     request-channel="requests"
     reply-channel="responses"/>]]></programlisting>
 
@@ -267,10 +267,10 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     </para>
 
     <programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="inboundAdapterWithExpressions"
-                                  path="/first-name/{firstName}/last-name/{lastName}"
-                                  channel="requests"
-                                  payload-expression="#pathVariables.firstName">
-        <int-http:header name="lname" expression="#pathVariables.lastName"/>
+    path="/first-name/{firstName}/last-name/{lastName}"
+    channel="requests"
+    payload-expression="#pathVariables.firstName">
+    <int-http:header name="lname" expression="#pathVariables.lastName"/>
 </int-http:inbound-channel-adapter>]]></programlisting>
 
     <para>
@@ -349,15 +349,15 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     a successful response will simply execute without sending any Messages to a reply channel. In the case of any non-successful response
     status code, it will throw an exception. The configuration looks very similar to the gateway:
     <programlisting language="xml"><![CDATA[<int-http:outbound-channel-adapter id="example"
-      url="http://localhost/example"
-      http-method="GET"
-      channel="requests"
-      charset="UTF-8"
-      extract-payload="false"
-      expected-response-type="java.lang.String"
-      request-factory="someRequestFactory"
-      order="3"
-      auto-startup="false"/>]]></programlisting>
+    url="http://localhost/example"
+    http-method="GET"
+    channel="requests"
+    charset="UTF-8"
+    extract-payload="false"
+    expected-response-type="java.lang.String"
+    request-factory="someRequestFactory"
+    order="3"
+    auto-startup="false"/>]]></programlisting>
   </para>
   <note>
     <para>
@@ -386,10 +386,10 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
   <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="trafficGateway"
     url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}"
-		              request-channel="trafficChannel"
-		              http-method="GET"
-		              expected-response-type="java.lang.String">
-		<int-http:uri-variable name="zipCode" expression="payload.getZip()"/>
+    request-channel="trafficChannel"
+    http-method="GET"
+    expected-response-type="java.lang.String">
+    <int-http:uri-variable name="zipCode" expression="payload.getZip()"/>
 </int-http:outbound-gateway>]]></programlisting>
   <para>
       The <code>uri-variable</code> sub-element defines two attributes:
@@ -632,20 +632,20 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     If for any reason, you need more explicit control over the proxy configuration, you can use Spring's
     <classname>SimpleClientHttpRequestFactory</classname> and configure its 'proxy' property as such:
     <programlisting language="xml"><![CDATA[<bean id="requestFactory"
-    			class="org.springframework.http.client.SimpleClientHttpRequestFactory">
-	<property name="proxy">
-		<bean id="proxy" class="java.net.Proxy">
-			<constructor-arg>
-				<util:constant static-field="java.net.Proxy.Type.HTTP"/>
-			</constructor-arg>
-			<constructor-arg>
-				<bean class="java.net.InetSocketAddress">
-					<constructor-arg value="123.0.0.1"/>
-					<constructor-arg value="8080"/>
-				</bean>
-			</constructor-arg>
-		</bean>
-	</property>
+    class="org.springframework.http.client.SimpleClientHttpRequestFactory">
+    <property name="proxy">
+        <bean id="proxy" class="java.net.Proxy">
+            <constructor-arg>
+                <util:constant static-field="java.net.Proxy.Type.HTTP"/>
+            </constructor-arg>
+            <constructor-arg>
+                <bean class="java.net.InetSocketAddress">
+                    <constructor-arg value="123.0.0.1"/>
+                    <constructor-arg value="8080"/>
+                </bean>
+            </constructor-arg>
+        </bean>
+    </property>
 </bean>]]></programlisting>
     </para>
 
@@ -668,15 +668,15 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     HTTP_RESPONSE_HEADERS. Here are some examples:
 
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
-			url="http://localhost/test2"
-			mapped-request-headers="foo, bar"
-			mapped-response-headers="X-*, HTTP_RESPONSE_HEADERS"
-			channel="someChannel"/>
+    url="http://localhost/test2"
+    mapped-request-headers="foo, bar"
+    mapped-response-headers="X-*, HTTP_RESPONSE_HEADERS"
+    channel="someChannel"/>
 
 <int-http:outbound-channel-adapter id="httpAdapter"
-			url="http://localhost/test2"
-			mapped-request-headers="foo, bar, HTTP_REQUEST_HEADERS"
-			channel="someChannel"/>]]></programlisting>
+    url="http://localhost/test2"
+    mapped-request-headers="foo, bar, HTTP_REQUEST_HEADERS"
+    channel="someChannel"/>]]></programlisting>
 
 	The adapters and gateways will use the <classname>DefaultHttpHeaderMapper</classname> which now provides
 	two static factory methods for "inbound" and "outbound" adapters so that the proper direction can be
@@ -687,13 +687,13 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
   	and inject it into the adapter via the <code>header-mapper</code> attribute.
 
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
-			url="http://localhost/test2"
-			header-mapper="headerMapper"
-			channel="someChannel"/>
+    url="http://localhost/test2"
+    header-mapper="headerMapper"
+    channel="someChannel"/>
 
-<bean id="headerMapper" class="org.springframework.integration.http.support.DefaultHttpHeaderMapper">
-		<property name="inboundHeaderNames" value="foo*, *bar, baz"/>
-		<property name="outboundHeaderNames" value="a*b, d"/>
+<bean id="headerMapper" class="o.s.i.http.support.DefaultHttpHeaderMapper">
+    <property name="inboundHeaderNames" value="foo*, *bar, baz"/>
+    <property name="outboundHeaderNames" value="a*b, d"/>
 </bean>]]></programlisting>
   	</para>
     <para>Of course, you can even implement the HeaderMapper strategy interface directly and provide a reference to that
@@ -728,36 +728,35 @@ That is all for the client.
 <para>
 On the server side we have the following configuration:
 <programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="httpInboundAdapter"
-  channel="receiveChannel"
-  name="/inboundAdapter.htm"
-  supported-methods="GET, POST" />
+    channel="receiveChannel"
+    name="/inboundAdapter.htm"
+    supported-methods="GET, POST"/>
 
 <int:channel id="receiveChannel"/>
 
 <int:service-activator input-channel="receiveChannel">
-  <bean class="org.springframework.integration.samples.multipart.MultipartReceiver"/>
+    <bean class="org.springframework.integration.samples.multipart.MultipartReceiver"/>
 </int:service-activator>
 
 <bean id="multipartResolver"
-    class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
-]]></programlisting>
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>]]></programlisting>
 </para>
 <para>
 The 'httpInboundAdapter' will receive the request, convert it to a <classname>Message</classname> with a payload
 that is a <classname>LinkedMultiValueMap</classname>. We then are parsing that in the 'multipartReceiver' service-activator;
 <programlisting language="java"><![CDATA[public void receive(LinkedMultiValueMap<String, Object> multipartRequest){
-  System.out.println("### Successfully received multipart request ###");
-  for (String elementName : multipartRequest.keySet()) {
-    if (elementName.equals("company")){
-      System.out.println("\t" + elementName + " - " +
-        ((String[]) multipartRequest.getFirst("company"))[0]);
+    System.out.println("### Successfully received multipart request ###");
+    for (String elementName : multipartRequest.keySet()) {
+        if (elementName.equals("company")){
+            System.out.println("\t" + elementName + " - " +
+                ((String[]) multipartRequest.getFirst("company"))[0]);
+        }
+        else if (elementName.equals("company-logo")){
+            System.out.println("\t" + elementName + " - as UploadedMultipartFile: " +
+                ((UploadedMultipartFile) multipartRequest
+                    .getFirst("company-logo")).getOriginalFilename());
+        }
     }
-    else if (elementName.equals("company-logo")){
-      System.out.println("\t" + elementName + " - as UploadedMultipartFile: " +
-        ((UploadedMultipartFile) multipartRequest.getFirst("company-logo")).
-        											getOriginalFilename());
-    }
-  }
 }
 
 ]]></programlisting>

@@ -37,18 +37,18 @@
      or I/O error occurs.
     </para>
     <para>
-     The TCP and UDP inbound channel adapters, and the TCP inbound gateway, support the "error-channel" attribute. 
+     The TCP and UDP inbound channel adapters, and the TCP inbound gateway, support the "error-channel" attribute.
      This provides the same basic functionality as described in <xref linkend="gateway-proxy"/>.
     </para>
   </section>
   <section id="udp-adapters">
     <title>UDP Adapters</title>
     <para>
-      <programlisting language="xml"><![CDATA[ <int-ip:udp-outbound-channel-adapter id="udpOut"
+      <programlisting language="xml"><![CDATA[<int-ip:udp-outbound-channel-adapter id="udpOut"
     host="somehost"
     port="11111"
     multicast="false"
-    channel="exampleChannel" />]]></programlisting>
+    channel="exampleChannel"/>]]></programlisting>
       A simple UDP outbound channel adapter.
       <tip>
         When setting multicast to true, provide the multicast address in the host
@@ -62,12 +62,12 @@
       short the contain the packet, the packet can be truncated. The length header provides a mechanism to detect this.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[  <int-ip:udp-outbound-channel-adapter id="udpOut"
+      <programlisting language="xml"><![CDATA[<int-ip:udp-outbound-channel-adapter id="udpOut"
     host="somehost"
     port="11111"
     multicast="false"
     check-length="true"
-    channel="exampleChannel" />]]></programlisting>
+    channel="exampleChannel"/>]]></programlisting>
       An outbound channel adapter that adds length checking to the datagram packets.
       <tip>
         The recipient of the packet must also be configured to expect a length to precede the
@@ -80,7 +80,7 @@
       must send an acknowledgment to the sender within a specified time.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[  <int-ip:udp-outbound-channel-adapter id="udpOut"
+      <programlisting language="xml"><![CDATA[<int-ip:udp-outbound-channel-adapter id="udpOut"
     host="somehost"
     port="11111"
     multicast="false"
@@ -89,7 +89,7 @@
     ack-host="thishost"
     ack-port="22222"
     ack-timeout="10000"
-    channel="exampleChannel" />]]></programlisting>
+    channel="exampleChannel"/>]]></programlisting>
       An outbound channel adapter that adds length checking to the datagram packets and waits for an acknowledgment.
       <tip>
         Setting acknowledge to true implies the recipient of the packet can interpret the header added to the packet
@@ -105,26 +105,26 @@
       For even more reliable networking, TCP can be used.
     </para>
     <para>
-    <programlisting language="xml"><![CDATA[  <int-ip:udp-inbound-channel-adapter id="udpReceiver"
+    <programlisting language="xml"><![CDATA[<int-ip:udp-inbound-channel-adapter id="udpReceiver"
     channel="udpOutChannel"
     port="11111"
     receive-buffer-size="500"
     multicast="false"
-    check-length="true" />]]></programlisting>
+    check-length="true"/>]]></programlisting>
       A basic unicast inbound udp channel adapter.
     </para>
     <para>
-    <programlisting language="xml"><![CDATA[  <int-ip:udp-inbound-channel-adapter id="udpReceiver"
+    <programlisting language="xml"><![CDATA[<int-ip:udp-inbound-channel-adapter id="udpReceiver"
     channel="udpOutChannel"
     port="11111"
     receive-buffer-size="500"
     multicast="true"
     multicast-address="225.6.7.8"
-    check-length="true" />]]></programlisting>
+    check-length="true"/>]]></programlisting>
       A basic multicast inbound udp channel adapter.
     </para>
     <para>
-      By default, reverse DNS lookups are done on inbound packets to convert IP addresses to 
+      By default, reverse DNS lookups are done on inbound packets to convert IP addresses to
       hostnames for use in message headers.
       In environments where DNS is not configured, this can cause delays.
       This default behavior can be overridden by setting the <literal>lookup-host</literal>
@@ -175,46 +175,38 @@
       <classname>java.nio.channel.SocketChannel</classname> are provided.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[
-  <int-ip:tcp-connection-factory id="server"
+      <programlisting language="xml"><![CDATA[<int-ip:tcp-connection-factory id="server"
     type="server"
-    port="1234"
-  />]]></programlisting>
+    port="1234"/>]]></programlisting>
       A simple server connection factory that uses <classname>java.net.Socket</classname>
       connections.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[
-  <int-ip:tcp-connection-factory id="server"
+      <programlisting language="xml"><![CDATA[<int-ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
-    using-nio="true"
-  />]]></programlisting>
+    using-nio="true"/>]]></programlisting>
       A simple server connection factory that uses <classname>java.nio.channel.SocketChannel</classname>
       connections.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[
-  <int-ip:tcp-connection-factory id="client"
+      <programlisting language="xml"><![CDATA[<int-ip:tcp-connection-factory id="client"
     type="client"
     host="localhost"
     port="1234"
     single-use="true"
-    so-timeout="10000"
-  />]]></programlisting>
+    so-timeout="10000"/>]]></programlisting>
       A client connection factory that uses <classname>java.net.Socket</classname>
       connections and creates a new connection for each message.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[
-  <int-ip:tcp-connection-factory id="client"
+    <programlisting language="xml"><![CDATA[<int-ip:tcp-connection-factory id="client"
     type="client"
     host="localhost"
     port="1234"
     single-use="true"
     so-timeout="10000"
-    using-nio=true
-  />]]></programlisting>
+    using-nio=true/>]]></programlisting>
       A client connection factory that uses <classname>java.nio.channel.Socket</classname>
       connections and creates a new connection for each message.
     </para>
@@ -226,24 +218,24 @@
       deserializer and serializer for inbound and outbound messages respectively.
       A number of standard (de)serializers are provided.
      </para>
-     <para> 
+     <para>
       The <classname>ByteArrayCrlfSerializer</classname>,
       converts a byte array to a stream of bytes followed by carriage
       return and linefeed characters (\r\n). This is the default (de)serializer and can be used with
-      telnet as a client, for example. 
+      telnet as a client, for example.
      </para>
-     <para> 
+     <para>
       The <classname>ByteArrayStxEtxSerializer</classname>,
       converts a byte array to a stream of bytes preceded by an STX (0x02) and
-      followed by an ETX (0x03). 
+      followed by an ETX (0x03).
      </para>
-     <para> 
+     <para>
       The <classname>ByteArrayLengthHeaderSerializer</classname>,
       converts a byte array to a stream of bytes preceded by a binary
-      length in network byte order (big endian). This a very efficient deserializer 
+      length in network byte order (big endian). This a very efficient deserializer
       because it does not have to parse every byte looking for a termination
       character sequence. It can also be used for payloads containing binary data;
-      the above serializers only support text in the payload. The default size of 
+      the above serializers only support text in the payload. The default size of
       the length header is 4 bytes (Integer), allowing for messages up to 2**31-1
       bytes. However, the length header can be a single byte (unsigned) for
       messages up to 255 bytes, or an unsigned short (2 bytes) for messages up to
@@ -251,12 +243,12 @@
       this class and provide implementations for the readHeader and writeHeader
       methods. The absolute maximum data size supported is 2**31-1 bytes.
      </para>
-     <para> 
+     <para>
       The <classname>ByteArrayRawSerializer</classname>,
       converts a byte array to a stream of bytes and adds no additional message
       demarcation data; with this (de)serializer, the end of a message is indicated
-      by the client closing the socket in an orderly fashion. When using this serializer, 
-      message reception will hang until the client closes the socket, or a timeout occurs; 
+      by the client closing the socket in an orderly fashion. When using this serializer,
+      message reception will hang until the client closes the socket, or a timeout occurs;
       a timeout will NOT result in a message. When this serializer is being used, and the client
       is a Spring Integration application, the client must use a connection factory that is
       configured with single-use=true - this causes the adapter to close the socket after sending
@@ -273,7 +265,7 @@
       <classname>AbstractByteArraySerializer</classname> for serialization
       will also accept a String which will be converted to a byte array first.
       Each of these (de)serializers converts an input stream containing the
-      corresponding format to a byte array payload. 
+      corresponding format to a byte array payload.
      </para>
      <para>
       To avoid memory exhaustion due to a badly behaved client (one that does not adhere to
@@ -294,27 +286,25 @@
      <para>
       To implement a custom (de)serializer pair, implement the
       <classname>org.springframework.core.serializer.Deserializer</classname> and
-      <classname>org.springframework.core.serializer.Serializer</classname> interfaces. 
+      <classname>org.springframework.core.serializer.Serializer</classname> interfaces.
      </para>
-     <para> 
+     <para>
       If you do not wish to use
       the default (de)serializer (<classname>ByteArrayCrLfSerializer</classname>), you must supply
       <classname>serializer</classname> and
       <classname>deserializer</classname> attributes on the connection factory (example below).
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[
-  <bean id="javaSerializer"
-        class="org.springframework.core.serializer.DefaultSerializer" />
-  <bean id="javaDeserializer"
-        class="org.springframework.core.serializer.DefaultDeserializer" />
+      <programlisting language="xml"><![CDATA[<bean id="javaSerializer"
+      class="org.springframework.core.serializer.DefaultSerializer" />
+<bean id="javaDeserializer"
+      class="org.springframework.core.serializer.DefaultDeserializer" />
 
-  <int-ip:tcp-connection-factory id="server"
+<int-ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
     deserializer="javaDeserializer"
-    serializer="javaSerializer"
-  />]]></programlisting>
+    serializer="javaSerializer"/>]]></programlisting>
       A server connection factory that uses <classname>java.net.Socket</classname>
       connections and uses Java serialization on the wire.
     </para>
@@ -323,7 +313,7 @@
       reference at the end of this section.
     </para>
     <para>
-      By default, reverse DNS lookups are done on inbound packets to convert IP addresses to 
+      By default, reverse DNS lookups are done on inbound packets to convert IP addresses to
       hostnames for use in message headers.
       In environments where DNS is not configured, this can cause connection delays.
       This default behavior can be overridden by setting the <literal>lookup-host</literal>
@@ -365,7 +355,7 @@
               factories until either the message can be sent, or no connection
               can be found. Initially, the first factory in the configured
               list is used; if a connection subsequently fails the next
-              factory will become the current factory. 
+              factory will become the current factory.
             </para>
             <para>
               <programlisting language="xml"><![CDATA[<bean id="failCF" class="o.s.i.ip.tcp.connection.FailoverClientConnectionFactory">
@@ -375,15 +365,14 @@
             <ref bean="clientFactory2"/>
         </list>
     </constructor-arg>
-</bean>              
-              ]]></programlisting>
+</bean>]]></programlisting>
             </para>
             <para>
               <note>When using the failover connection factory, the singleUse property must be consistent between
                 the factory itself and the list of factories it is configured to use.
               </note>
             </para>
-    </section>    
+    </section>
   </section>
   <section id="ip-interceptors">
     <title>TCP Connection Interceptors</title>
@@ -426,31 +415,29 @@
     </para>
     <para>
     <programlisting language="xml"><![CDATA[<bean id="helloWorldInterceptorFactory"
-   class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain">
-  <property name="interceptors">
-    <array>
-      <bean class="org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory"/>
-    </array>
-  </property>
+    class="o.s.i.ip.tcp.connection.TcpConnectionInterceptorFactoryChain">
+    <property name="interceptors">
+        <array>
+            <bean class="o.s.i.ip.tcp.connection.HelloWorldInterceptorFactory"/>
+        </array>
+    </property>
 </bean>
 
 <int-ip:tcp-connection-factory id="server"
-  type="server"
-  port="12345"
-  using-nio="true"
-  single-use="true"
-  interceptor-factory-chain="helloWorldInterceptorFactory"
-/>
+    type="server"
+    port="12345"
+    using-nio="true"
+    single-use="true"
+    interceptor-factory-chain="helloWorldInterceptorFactory"/>
 
 <int-ip:tcp-connection-factory id="client"
-  type="client"
-  host="localhost"
-  port="12345"
-  single-use="true"
-  so-timeout="100000"
-  using-nio="true"
-  interceptor-factory-chain="helloWorldInterceptorFactory"
-/>]]></programlisting>
+    type="client"
+    host="localhost"
+    port="12345"
+    single-use="true"
+    so-timeout="100000"
+    using-nio="true"
+    interceptor-factory-chain="helloWorldInterceptorFactory"/>]]></programlisting>
         Configuring a connection interceptor factory chain.
     </para>
   </section>
@@ -470,54 +457,51 @@
       to a connection factory.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[
-  <bean id="javaSerializer"
-              class="org.springframework.core.serializer.DefaultSerializer" />
-  <bean id="javaDeserializer"
-              class="org.springframework.core.serializer.DefaultDeserializer" />
+      <programlisting language="xml"><![CDATA[<bean id="javaSerializer"
+      class="org.springframework.core.serializer.DefaultSerializer"/>
+<bean id="javaDeserializer"
+      class="org.springframework.core.serializer.DefaultDeserializer"/>
 
-  <int-ip:tcp-connection-factory id="server"
+<int-ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
     deserializer="javaDeserializer"
     serializer="javaSerializer"
     using-nio="true"
-    single-use="true"
-  />
+    single-use="true"/>
 
-  <int-ip:tcp-connection-factory id="client"
+<int-ip:tcp-connection-factory id="client"
     type="client"
     host="localhost"
     port="#{server.port}"
     single-use="true"
     so-timeout="10000"
     deserializer="javaDeserializer"
-    serializer="javaSerializer"
-  />
+    serializer="javaSerializer"/>
 
-  <int:channel id="input" />
+<int:channel id="input" />
 
-  <int:channel id="replies">
+<int:channel id="replies">
     <int:queue/>
-  </int:channel>
+</int:channel>
 
-  <int-ip:tcp-outbound-channel-adapter id="outboundClient"
+<int-ip:tcp-outbound-channel-adapter id="outboundClient"
     channel="input"
     connection-factory="client"/>
 
-  <int-ip:tcp-inbound-channel-adapter id="inboundClient"
+<int-ip:tcp-inbound-channel-adapter id="inboundClient"
     channel="replies"
     connection-factory="client"/>
 
-  <int-ip:tcp-inbound-channel-adapter id="inboundServer"
+<int-ip:tcp-inbound-channel-adapter id="inboundServer"
     channel="loop"
     connection-factory="server"/>
 
-  <int-ip:tcp-outbound-channel-adapter id="outboundServer"
+<int-ip:tcp-outbound-channel-adapter id="outboundServer"
     channel="loop"
     connection-factory="server"/>
 
-  <int:channel id="loop" />]]></programlisting>
+<int:channel id="loop"/>]]></programlisting>
       In this configuration, messages arriving in channel 'input'
       are serialized over connections created by 'client' received
       at the server and placed on channel 'loop'. Since 'loop' is
@@ -543,7 +527,7 @@
     <para>
       Two additional attributes are used to support this mechanism:
       <emphasis>retry-interval</emphasis> specifies (in milliseconds)
-      how often the framework will attempt to reconnect after a 
+      how often the framework will attempt to reconnect after a
       connection failure. <emphasis>scheduler</emphasis> is used to
       supply a <classname>TaskScheduler</classname> used to
       schedule the connection attempts, and to test that the connection is
@@ -556,7 +540,7 @@
       when the adapter is started. Adapters are automatically started
       by default.  Again, the connection factory must be of type client
       and have <emphasis>single-use</emphasis> set to false and
-      <emphasis>retry-interval</emphasis> and 
+      <emphasis>retry-interval</emphasis> and
       <emphasis>scheduler</emphasis> are also supported. If a connection
       fails, it will be re-established either by the scheduler or
       when the next message is sent.
@@ -588,19 +572,19 @@
        For the inbound gateway, care must be taken to retain, or populate, the
        <emphasis>ip_connnection_id</emphasis> header because it is used to
        correlate the message to a connection. Messages that originate at the
-       gateway will automatically have the header set. If the reply is 
+       gateway will automatically have the header set. If the reply is
        constructed as a new message, you will need to set the header. The
        header value can be captured from the incoming message.
       </para>
      </note>
     </para>
     <para>
-      As with inbound adapters, inbound gateways normally use a 
+      As with inbound adapters, inbound gateways normally use a
       type="server" connection
       factory, which listens for incoming connection requests.
       In some cases, it is desireable to establish the connection
       in reverse, whereby the inbound gateway connects to an
-      external server and then waits for, and replies to, inbound 
+      external server and then waits for, and replies to, inbound
       messages on that connection.
     </para>
     <para>
@@ -612,7 +596,7 @@
     <para>
       Two additional attributes are used to support this mechanism:
       <emphasis>retry-interval</emphasis> specifies (in milliseconds)
-      how often the framework will attempt to reconnect after a 
+      how often the framework will attempt to reconnect after a
       connection failure. <emphasis>scheduler</emphasis> is used to
       supply a <classname>TaskScheduler</classname> used to
       schedule the connection attempts, and to test that the connection is
@@ -636,25 +620,23 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <int-ip:tcp-inbound-gateway id="inGateway"
+<int-ip:tcp-inbound-gateway id="inGateway"
     request-channel="tcpChannel"
     reply-channel="replyChannel"
     connection-factory="cfServer"
-    reply-timeout="10000"
-        />]]></programlisting>
+    reply-timeout="10000"/>]]></programlisting>
         A simple inbound TCP gateway; if a connection factory configured with the default
         (de)serializer is used, messages will be \r\n delimited data and the gateway can be
         used by a simple client such as telnet.
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <int-ip:tcp-outbound-gateway id="outGateway"
+<int-ip:tcp-outbound-gateway id="outGateway"
     request-channel="tcpChannel"
     reply-channel="replyChannel"
     connection-factory="cfClient"
     request-timeout="10000"
-    remote-timeout="10000"
-    />]]></programlisting>
+    remote-timeout="10000"/>]]></programlisting>
         A simple outbound TCP gateway.
   </para>
   </section>
@@ -664,11 +646,11 @@
     <title>Overview</title>
     <para>
      One goal of the IP Endpoints is to provide communication with systems other
-     than another Spring Integration application. For this reason, only 
+     than another Spring Integration application. For this reason, only
      message payloads are sent
      and received. No message correlation is provided by the framework,
-     except when using the gateways, or collaborating channel adapters on the 
-     server side. In the paragraphs below we discuss the various 
+     except when using the gateways, or collaborating channel adapters on the
+     server side. In the paragraphs below we discuss the various
      correlation techniques available to applications. In most cases, this
      requires specific application-level correlation of messages, even when
      message payloads contain some natural correlation data (such as an order
@@ -679,17 +661,17 @@
     <title>Gateways</title>
     <para>
      The gateways will automatically correlate messages. However, an outbound
-     gateway should only be used for relatively low-volume use. 
+     gateway should only be used for relatively low-volume use.
      When the connection factory is configured for a single shared connection
-     to be used for all message pairs ('single-use="false"'), 
+     to be used for all message pairs ('single-use="false"'),
      only one message can be processed at a time.
      A new message will have to wait until the reply to the previous message has
-     been received. 
-     When a connection factory is configured for each new message to use a new connection 
+     been received.
+     When a connection factory is configured for each new message to use a new connection
      ('single-use="true"'), the above restriction does not apply.
      While this may give higher throughput
      than a shared connection environment, it comes with the overhead of opening
-     and closing a new connection for each message pair. 
+     and closing a new connection for each message pair.
     </para>
     <para>
      Therefore, for high-volume messages, consider using a collaborating pair of
@@ -732,39 +714,39 @@
      This can be done in a number of ways.
     </para>
     <para>
-     If the message payload has some natural correlation data, such as a 
+     If the message payload has some natural correlation data, such as a
      transaction id or an order number, AND there is no need to retain any
      information (such as a reply channel header) from the original outbound message,
-     the correlation is simple and would done at the application level in any case. 
+     the correlation is simple and would done at the application level in any case.
     </para>
     <para>
-     If the message payload has some natural correlation data, such as a 
+     If the message payload has some natural correlation data, such as a
      transaction id or an order number, but there is a need to retain some
-     information (such as a reply channel header) from the original outbound message, 
+     information (such as a reply channel header) from the original outbound message,
      you may need to retain a copy of the original outbound message (perhaps
      by using a publish-subscribe channel) and use an aggregator to recombine
      the necessary data.
     </para>
     <para>
-     For either of the previous two paragraphs, if the payload has no natural 
+     For either of the previous two paragraphs, if the payload has no natural
      correlation data, you may need to provide a transformer upstream of the
-     outbound channel adapter to enhance the payload with such data. Such a 
+     outbound channel adapter to enhance the payload with such data. Such a
      transformer may transform the original payload to a new object containing
      both the original payload and some subset of the message headers. Of course,
-     live objects (such as reply channels) from the headers can not be 
+     live objects (such as reply channels) from the headers can not be
      included in the transformed payload.
     </para>
     <para>
      If such a strategy is chosen you will need to ensure the connection factory
      has an appropriate serializer/deserializer pair to handle such a payload,
-     such as the <classname>DefaultSerializer/Deserializer</classname> which use java 
-     serialization, or a custom serializer and deserializer. 
+     such as the <classname>DefaultSerializer/Deserializer</classname> which use java
+     serialization, or a custom serializer and deserializer.
      The <classname>ByteArray*Serializer</classname> options
      mentioned in <xref linkend="connection-factories" />,
-     including the default <classname>ByteArrayCrLfSerializer</classname>, 
+     including the default <classname>ByteArrayCrLfSerializer</classname>,
      do not support such payloads,
-     unless the transformed payload is a <classname>String</classname> or 
-     <classname>byte[]</classname>, 
+     unless the transformed payload is a <classname>String</classname> or
+     <classname>byte[]</classname>,
     </para>
     <para>
         <note>
@@ -791,11 +773,11 @@
   <section id="note_nio">
    <title>A Note About NIO</title>
    <para>
-    Using NIO (see <classname>using-nio</classname> in 
+    Using NIO (see <classname>using-nio</classname> in
     <xref linkend="ip-endpoint-reference" />)
     avoids dedicating a thread to read from each socket. For a small number
-    of sockets, you will likely find that <emphasis>not</emphasis> using NIO, 
-    together with an async handoff (e.g. to a <classname>QueueChannel</classname>), 
+    of sockets, you will likely find that <emphasis>not</emphasis> using NIO,
+    together with an async handoff (e.g. to a <classname>QueueChannel</classname>),
     will perform  as well as, or better than, using NIO.
    </para>
    <para>
@@ -807,7 +789,7 @@
     messages arriving on the <emphasis>same</emphasis> socket <emphasis>might</emphasis>
     be processed by different threads. This means that the order in which the messages are
     sent to the channel is indeterminate; the strict ordering of the messages arriving on the
-    socket is not maintained.     
+    socket is not maintained.
    </para>
    <para>
     For some applications, this is not an issue; for others it is. If strict ordering
@@ -898,19 +880,19 @@
        <classname>TcpSSLContextSupport</classname> bean, and provide a reference to that bean
        to the connection factory.
       </para>
-      <para><programlisting language="xml"><![CDATA[    <bean id="sslContextSupport"
-        class="o.sf.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
-        <constructor-arg value="client.ks"/>
-        <constructor-arg value="client.truststore.ks"/>
-        <constructor-arg value="secret"/>
-        <constructor-arg value="secret"/>
-    </bean>
+      <para><programlisting language="xml"><![CDATA[<bean id="sslContextSupport"
+    class="o.sf.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
+    <constructor-arg value="client.ks"/>
+    <constructor-arg value="client.truststore.ks"/>
+    <constructor-arg value="secret"/>
+    <constructor-arg value="secret"/>
+</bean>
 
-    <ip:tcp-connection-factory id="clientFactory"
-        type="client"
-        host="localhost"
-        port="1234"
-        ssl-context-support="sslContextSupport"]]></programlisting>
+<ip:tcp-connection-factory id="clientFactory"
+    type="client"
+    host="localhost"
+    port="1234"
+    ssl-context-support="sslContextSupport"]]></programlisting>
       </para>
       <para>
        The <classname>DefaulTcpSSLContextSupport</classname> class also has an optional
@@ -1096,7 +1078,7 @@
               <entry>Y</entry>
               <entry></entry>
               <entry>Defaults to 0 (infinity), except for
-                     server connection factories with single-use="true". 
+                     server connection factories with single-use="true".
                      In that case, it
                      defaults to the default reply timeout (10 seconds).
                      </entry>
@@ -1320,8 +1302,8 @@
             <row>
               <entry>error-channel</entry>
               <entry></entry>
-              <entry>If an Exception is thrown by a downstream 
-                     component, the MessagingException message containing the exception 
+              <entry>If an Exception is thrown by a downstream
+                     component, the MessagingException message containing the exception
                      and failed message is sent to this channel.</entry>
             </row>
             <row>
@@ -1475,17 +1457,17 @@
             <row>
               <entry>connection-factory</entry>
               <entry></entry>
-              <entry>If the connection factory has a type 'server', the factory is 'owned' 
-                     by this adapter. If it has a type 'client', it is 'owned' by an 
-                     outbound channel adapter and this adapter will receive any 
-                     incoming messages on the connection created by the 
+              <entry>If the connection factory has a type 'server', the factory is 'owned'
+                     by this adapter. If it has a type 'client', it is 'owned' by an
+                     outbound channel adapter and this adapter will receive any
+                     incoming messages on the connection created by the
                      outbound adapter.</entry>
             </row>
             <row>
               <entry>error-channel</entry>
               <entry></entry>
-              <entry>If an Exception is thrown by a downstream 
-                     component, the MessagingException message containing the exception 
+              <entry>If an Exception is thrown by a downstream
+                     component, the MessagingException message containing the exception
                      and failed message is sent to this channel.</entry>
             </row>
             <row>
@@ -1512,7 +1494,7 @@
               <entry>scheduler</entry>
               <entry>true, false</entry>
               <entry>
-                Specifies a <classname>TaskScheduler</classname> to use for managing the 
+                Specifies a <classname>TaskScheduler</classname> to use for managing the
                 <emphasis>client-mode</emphasis> connection. Defaults to a
                 <classname>ThreadPoolTaskScheduler</classname> with a pool size of `.
               </entry>
@@ -1543,10 +1525,10 @@
             <row>
               <entry>connection-factory</entry>
               <entry></entry>
-              <entry>If the connection factory has a type 'client', the factory is 
-                     'owned' by this adapter. If it has a type 'server', it is 'owned' 
-                     by an inbound channel adapter and this adapter will attempt 
-                     to correlate messages to the connection on which an 
+              <entry>If the connection factory has a type 'client', the factory is
+                     'owned' by this adapter. If it has a type 'server', it is 'owned'
+                     by an inbound channel adapter and this adapter will attempt
+                     to correlate messages to the connection on which an
                      original inbound message was received.  </entry>
             </row>
             <row>
@@ -1574,7 +1556,7 @@
               <entry>scheduler</entry>
               <entry>true, false</entry>
               <entry>
-                Specifies a <classname>TaskScheduler</classname> to use for managing the 
+                Specifies a <classname>TaskScheduler</classname> to use for managing the
                 <emphasis>client-mode</emphasis> connection. Defaults to a
                 <classname>ThreadPoolTaskScheduler</classname> with a pool size of `.
               </entry>
@@ -1623,8 +1605,8 @@
             <row>
               <entry>error-channel</entry>
               <entry></entry>
-              <entry>If an Exception is thrown by a downstream 
-                     component, the MessagingException message containing the exception 
+              <entry>If an Exception is thrown by a downstream
+                     component, the MessagingException message containing the exception
                      and failed message is sent to this channel;
                      any reply from that flow will then be returned as a response by
                      the gateway.</entry>
@@ -1634,7 +1616,7 @@
               <entry>true, false</entry>
               <entry>
                 When true, the inbound gateway will act as a client, with respect to establishing
-                the connection and then receive (and reply to) incoming messages on that connection. 
+                the connection and then receive (and reply to) incoming messages on that connection.
                 Default = false.
                 Also see <emphasis>retry-interval</emphasis> and <emphasis>scheduler</emphasis>.
                 The connection factory must be of type 'client' and have <emphasis>single-use</emphasis>
@@ -1654,7 +1636,7 @@
               <entry>scheduler</entry>
               <entry>true, false</entry>
               <entry>
-                Specifies a <classname>TaskScheduler</classname> to use for managing the 
+                Specifies a <classname>TaskScheduler</classname> to use for managing the
                 <emphasis>client-mode</emphasis> connection. Defaults to a
                 <classname>ThreadPoolTaskScheduler</classname> with a pool size of `.
               </entry>
@@ -1704,7 +1686,7 @@
             <row>
               <entry>request-timeout</entry>
               <entry></entry>
-              <entry>If a single-use connection factory is not being used, The time in milliseconds 
+              <entry>If a single-use connection factory is not being used, The time in milliseconds
                      for which the gateway will wait to get access to the shared connection.</entry>
             </row>
             <row>

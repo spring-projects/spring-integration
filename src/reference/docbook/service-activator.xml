@@ -32,7 +32,7 @@
       message to an appropriate reply channel. To determine the reply channel, it will first check if an
       "output-channel" was provided in the endpoint configuration:
       <programlisting language="xml">&lt;int:service-activator input-channel="exampleChannel" output-channel="replyChannel"
-                   ref="somePojo" method="someMethod"/&gt;</programlisting>
+                       ref="somePojo" method="someMethod"/&gt;</programlisting>
       If no "output-channel" is available, it will then check the Message's <literal>replyChannel</literal> header
       value. If that value is available, it will then check its type. If it is a
       <interfacename>MessageChannel</interfacename>, the reply message will be sent to that channel. If it is a
@@ -68,35 +68,35 @@
     configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
     </para>
     </note>
-    
+
     <para>
     	<emphasis>Service Activators and the Spring Expression Language (SpEL)</emphasis>
     </para>
-    
+
     <para>
-    Since Spring Integration 2.0, Service Activators can also benefit from SpEL   
+    Since Spring Integration 2.0, Service Activators can also benefit from SpEL
     (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html).
 	</para>
 	<para>
-	For example, you may now invoke any bean method without pointing to the bean via a <code>ref</code> attribute or including it as an 
+	For example, you may now invoke any bean method without pointing to the bean via a <code>ref</code> attribute or including it as an
 	inner bean definition. For example:
-	
-	<programlisting language="xml"><![CDATA[<int:service-activator input-channel="in" output-channel="out" 
+
+	<programlisting language="xml"><![CDATA[<int:service-activator input-channel="in" output-channel="out"
 	expression="@accountService.processAccount(payload, headers.accountId)"/>
-	
+
 	<bean id="accountService" class="foo.bar.Account"/>]]></programlisting>
-	
+
 	In the above configuration instead of injecting 'accountService' using a <code>ref</code> or as an inner bean,
 	we are simply using SpEL's <code>@beanId</code> notation and invoking a method which takes a type compatible with Message payload. We
 	are also passing a header value. As you can see, any valid SpEL expression can be evaluated against any content in the Message.
-    For simple scenarios your <emphasis>Service Activators</emphasis> do not even have to reference a bean if all logic can be encapsulated 
+    For simple scenarios your <emphasis>Service Activators</emphasis> do not even have to reference a bean if all logic can be encapsulated
     by such an expression.
-    
+
     <programlisting language="xml"><![CDATA[<int:service-activator input-channel="in" output-channel="out" expression="payload * 2"/>]]></programlisting>
     In the above configuration our service logic is to simply multiply the payload value by 2, and SpEL lets us handle it relatively easy.
-    
+
     </para>
-    
+
   </section>
 
 </section>

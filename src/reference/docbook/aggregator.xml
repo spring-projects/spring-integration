@@ -117,7 +117,7 @@
         // default implementation exists
     }
 
-  	protected abstract Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders);
+    protected abstract Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders);
 
 }]]></programlisting>
 
@@ -127,16 +127,14 @@
 
        and it has a default value based on the <code>MessageHeaders.CORRELATION_ID</code> message header:
 
-      <programlisting language="java"><![CDATA[
-    public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
-                   CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
-     ...
-      this.correlationStrategy = correlationStrategy == null ?
+      <programlisting language="java"><![CDATA[public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
+        CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
+    ...
+    this.correlationStrategy = correlationStrategy == null ?
         new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID) : correlationStrategy;
-      this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
-      ...
-  }
-]]></programlisting>
+    this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
+    ...
+}]]></programlisting>
 
       <para>As for actual processing of the message group, the default implementation is the
       <classname>DefaultAggregatingMessageGroupProcessor</classname>. It creates a
@@ -331,8 +329,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       XML through the <code>&lt;aggregator/&gt;</code> element. Below you can see an example
       of an aggregator.</para>
 
-    <programlisting lang="xml"><![CDATA[<channel id="inputChannel"/>
-
+    <programlisting language="xml"><![CDATA[<channel id="inputChannel"/>
 
 <int:aggregator id="myAggregator" ]]><co id="aggxml01" /><![CDATA[
 		auto-startup="true" ]]><co id="aggxml02" /><![CDATA[
@@ -357,7 +354,6 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
 		expire-groups-upon-completion="false" ]]><co id="aggxml18" /><![CDATA[
 		empty-group-min-timeout="60000" /> ]]><co id="aggxml19" /><![CDATA[
-
 
 <int:channel id="outputChannel"/>
 
@@ -598,22 +594,22 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     strategy will assemble all aggregated messages in the List. So now we have two problems. First we need to extract
     individual messages from the list, and then we need to extract the payload of each message and assemble
     the array of objects (see code below).
-
+	</para>
 	<programlisting language="java"><![CDATA[public String[] processRelease(List<Message<String>> messages){
-		List<String> stringList = new ArrayList<String>();
-		for (Message<String> message : messages) {
-			stringList.add(message.getPayload());
-		}
-		return stringList.toArray(new String[]{});
+    List<String> stringList = new ArrayList<String>();
+    for (Message<String> message : messages) {
+        stringList.add(message.getPayload());
+    }
+    return stringList.toArray(new String[]{});
 }]]></programlisting>
-
+	<para>
 	However, with SpEL such a requirement could actually be handled relatively easily with a
 	one-line expression, thus sparing you from writing a custom class and configuring it as a bean.
-
+	</para>
 	<programlisting language="xml"><![CDATA[<int:aggregator input-channel="aggChannel"
-	output-channel="replyChannel"
-	expression="#this.![payload].toArray()"/>]]></programlisting>
-
+    output-channel="replyChannel"
+    expression="#this.![payload].toArray()"/>]]></programlisting>
+	<para>
 	In the above configuration we are using a <ulink
 	url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113">Collection Projection</ulink> expression
 	to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus
@@ -726,28 +722,28 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     <interfacename>MessageGroupStore</interfacename>.
 
 
-    <programlisting><![CDATA[public interface MessageGroupStore {
-   int getMessageCountForAllMessageGroups();
+    <programlisting language="java"><![CDATA[public interface MessageGroupStore {
+    int getMessageCountForAllMessageGroups();
 
-   int getMarkedMessageCountForAllMessageGroups();
+    int getMarkedMessageCountForAllMessageGroups();
 
-   int getMessageGroupCount();
+    int getMessageGroupCount();
 
-   MessageGroup getMessageGroup(Object groupId);
+    MessageGroup getMessageGroup(Object groupId);
 
-   MessageGroup addMessageToGroup(Object groupId, Message<?> message);
+    MessageGroup addMessageToGroup(Object groupId, Message<?> message);
 
-   MessageGroup markMessageGroup(MessageGroup group);
+    MessageGroup markMessageGroup(MessageGroup group);
 
-   MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
+    MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
 
-   MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark);
+    MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark);
 
-   void removeMessageGroup(Object groupId);
+    void removeMessageGroup(Object groupId);
 
-   void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
+    void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
 
-   int expireMessageGroups(long timeout);
+    int expireMessageGroups(long timeout);
 }]]></programlisting>
 
     For more information please refer to the
@@ -763,9 +759,9 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     callbacks to apply to its <interfacename>MessageGroups</interfacename> when they
     expire. The interface is very straightforward:</para>
 
-    <programlisting><![CDATA[public interface MessageGroupCallback {
+    <programlisting language="java"><![CDATA[public interface MessageGroupCallback {
 
-  void execute(MessageGroupStore messageGroupStore, MessageGroup group);
+    void execute(MessageGroupStore messageGroupStore, MessageGroup group);
 
 }]]></programlisting>
 
@@ -787,13 +783,13 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     for the message expiry in the form of a
     <classname>MessageGroupStoreReaper</classname>:</para>
 
-    <programlisting><![CDATA[<bean id="reaper" class="org...MessageGroupStoreReaper">
-  <property name="messageGroupStore" ref="messageStore"/>
-  <property name="timeout" value="30000"/>
+    <programlisting language="xml"><![CDATA[<bean id="reaper" class="org...MessageGroupStoreReaper">
+    <property name="messageGroupStore" ref="messageStore"/>
+    <property name="timeout" value="30000"/>
 </bean>
 
 <task:scheduled-tasks scheduler="scheduler">
-  <task:scheduled ref="reaper" method="run" fixed-rate="10000"/>
+    <task:scheduled ref="reaper" method="run" fixed-rate="10000"/>
 </task:scheduled-tasks>]]></programlisting>
 
     <para>The reaper is a <interfacename>Runnable</interfacename>, and all that is happening
