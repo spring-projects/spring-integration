@@ -61,13 +61,13 @@
 			ObjectName pattern (e.g. "org.foo:type=Bar,name=*") and the adapter will receive notifications
 			from all MBeans with ObjectNames that match the pattern. In addition, the <emphasis>object-name</emphasis>
 			attribute can contain a SpEL reference to a &lt;util:list/&gt; of ObjectName patterns:
-			<programlisting><![CDATA[<jmx:notification-listening-channel-adapter id="manyNotificationsAdapter"
-		channel="manyNotificationsChannel"
-		object-name="#{patterns}"/>
+			<programlisting language="xml"><![CDATA[<jmx:notification-listening-channel-adapter id="manyNotificationsAdapter"
+    channel="manyNotificationsChannel"
+    object-name="#{patterns}"/>
 
 <util:list id="patterns">
-	<value>org.foo:type=Foo,name=*</value>
-	<value>org.foo:type=Bar,name=*</value>
+    <value>org.foo:type=Foo,name=*</value>
+    <value>org.foo:type=Bar,name=*</value>
 </util:list>]]></programlisting>
 			The names of the located MBean(s) will be logged when DEBUG level logging is enabled.
 		</note>

@@ -9,22 +9,22 @@
   <section id="gemfire-intro">
     <title>Introduction</title>
     <para>
-      VMWare vFabric GemFire (GemFire) is a distributed data management platform providing a key-value data grid along with advanced distributed system features such as event processing, continuous querying, and 
+      VMWare vFabric GemFire (GemFire) is a distributed data management platform providing a key-value data grid along with advanced distributed system features such as event processing, continuous querying, and
       remote function execution. This guide assumes
       some familiarity with <ulink url="http://www.vmware.com/support/pubs/vfabric-gemfire.html">GemFire</ulink>
        and its <ulink url="http://www.vmware.com/support/developer/vfabric-gemfire/662-api/index.html">API</ulink>.
     </para>
     <para>
-    Spring integration provides support for GemFire by providing inbound adapters for entry and continuous query events, 
-    an outbound adapter to write entries to the cache, and <classname>MessageStore</classname> and <classname>MessageGroupStore</classname> implementations. 
-    Spring integration leverages the 
+    Spring integration provides support for GemFire by providing inbound adapters for entry and continuous query events,
+    an outbound adapter to write entries to the cache, and <classname>MessageStore</classname> and <classname>MessageGroupStore</classname> implementations.
+    Spring integration leverages the
     <ulink url="http://www.springsource.org/spring-gemfire">Spring Gemfire</ulink> project, providing a thin wrapper over its components.
     </para>
     <para>
     To configure the 'int-gfe' namespace, include the following elements within the headers of your XML configuration file:
-	
+
 	<programlisting language="xml"><![CDATA[xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire 
+xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd"]]></programlisting>
     </para>
   </section>
@@ -32,106 +32,97 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
   	<title>Inbound Channel Adapter</title>
   	<para>
   	The <emphasis>inbound-channel-adapter</emphasis> produces messages on a channel triggered by a GemFire <classname>EntryEvent</classname>. GemFire
-  	generates events whenever an entry is CREATED, UPDATED, DESTROYED, or INVALIDATED in the associated region. The inbound channel adapter allows you to filter on a subset of these 
-  	events. For example, you may want to only produce messages in response to an entry being CREATED. In addition, the inbound channel adapter can evaluate a SpEL 
-  	expression if, for example, you want your message payload to contain an event property such as the new entry value.  
-  	
-  	<programlisting language="xml">
-  	<![CDATA[<gfe:cache/>
-	<gfe:replicated-region id="region"/>
-	<int-gfe:inbound-channel-adapter id="inputChannel" region="region" 
-		cache-events="CREATED" expression="newValue"/>]]>
-	</programlisting>
+  	generates events whenever an entry is CREATED, UPDATED, DESTROYED, or INVALIDATED in the associated region. The inbound channel adapter allows you to filter on a subset of these
+  	events. For example, you may want to only produce messages in response to an entry being CREATED. In addition, the inbound channel adapter can evaluate a SpEL
+  	expression if, for example, you want your message payload to contain an event property such as the new entry value.
 
-	In the above configuration, we are creating a GemFire <classname>Cache</classname> and <classname>Region</classname> using Spring GemFire's 'gfe' namespace. 
-	The inbound-channel-adapter requires a reference to the GemFire region for which the adapter will be listening for events. Optional attributes include <code>cache-events</code> 
+    <programlisting language="xml"><![CDATA[<gfe:cache/>
+<gfe:replicated-region id="region"/>
+<int-gfe:inbound-channel-adapter id="inputChannel" region="region"
+    cache-events="CREATED" expression="newValue"/>]]></programlisting>
+
+	In the above configuration, we are creating a GemFire <classname>Cache</classname> and <classname>Region</classname> using Spring GemFire's 'gfe' namespace.
+	The inbound-channel-adapter requires a reference to the GemFire region for which the adapter will be listening for events. Optional attributes include <code>cache-events</code>
 	which can contain a comma separated list of event types for which a message will be produced on the input channel. By default CREATED and UPDATED are enabled.
 	Note that this adapter conforms to Spring integration conventions.
 	If no <code>channel</code> attribute is provided, the channel will be created from the <code>id</code> attribute. This adapter also supports an <code>error-channel</code>.
-	If <code>expression</code> is not provided the message payload will be a GemFire <classname>EntryEvent</classname> 
+	If <code>expression</code> is not provided the message payload will be a GemFire <classname>EntryEvent</classname>
   	</para>
   </section>
    <section>
   	<title>Continuous Query Inbound Channel Adapter</title>
   	<para>
   	The <emphasis>cq-inbound-channel-adapter</emphasis> produces messages a channel triggered by a GemFire continuous query or <classname>CqEvent</classname> event. Spring GemFire introduced
-  	continuous query support in release 1.1, including a <classname>ContinuousQueryListenerContainer</classname> which provides a nice abstraction over the GemFire native API. This adapter requires a 
-  	reference to a ContinuousQueryListenerContainer, and creates a listener for a given <code>query</code> and executes the query. The continuous query acts as an event source that will fire whenever its 
-  	result set changes state. 
+  	continuous query support in release 1.1, including a <classname>ContinuousQueryListenerContainer</classname> which provides a nice abstraction over the GemFire native API. This adapter requires a
+  	reference to a ContinuousQueryListenerContainer, and creates a listener for a given <code>query</code> and executes the query. The continuous query acts as an event source that will fire whenever its
+  	result set changes state.
   	<note>
-  	GemFire queries are written in OQL and are scoped to the entire cache (not just one region). Additionally, continuous queries require a remote (i.e., running in a separate process or remote host) 
-  	cache server. Please consult the <ulink url="http://www.gemstone.com/docs/6.6.RC/product/docs/html/user_guide/UserGuide_GemFire.html#Continuous%20Querying">GemFire documentation</ulink> for more information on 
+  	GemFire queries are written in OQL and are scoped to the entire cache (not just one region). Additionally, continuous queries require a remote (i.e., running in a separate process or remote host)
+  	cache server. Please consult the <ulink url="http://www.gemstone.com/docs/6.6.RC/product/docs/html/user_guide/UserGuide_GemFire.html#Continuous%20Querying">GemFire documentation</ulink> for more information on
   	implementing continuous queries.
-  	</note> 
-  
-  	
-  <programlisting language="xml"><![CDATA[<gfe:client-cache id="client-cache" pool-name="client-pool"/>
-	
-	<gfe:pool id="client-pool" subscription-enabled="true" >
-		<!--configure server or locator here required to address the cache server -->
-	</gfe:pool>
-	
-	<gfe:client-region id="test" cache-ref="client-cache" pool-name="client-pool"/>
-	
-	<gfe:cq-listener-container id="queryListenerContainer" cache="client-cache" 
-		pool-name="client-pool"/>
-	 
-	<int-gfe:cq-inbound-channel-adapter id="inputChannel" 
-		cq-listener-container="queryListenerContainer" 
-		query="select * from /test"/>
-	]]>
-	</programlisting>
+  	</note>
 
-	In the above configuration, we are creating a GemFire client cache 
+
+  <programlisting language="xml"><![CDATA[<gfe:client-cache id="client-cache" pool-name="client-pool"/>
+
+<gfe:pool id="client-pool" subscription-enabled="true" >
+    <!--configure server or locator here required to address the cache server -->
+</gfe:pool>
+
+<gfe:client-region id="test" cache-ref="client-cache" pool-name="client-pool"/>
+
+<gfe:cq-listener-container id="queryListenerContainer" cache="client-cache"
+    pool-name="client-pool"/>
+
+<int-gfe:cq-inbound-channel-adapter id="inputChannel"
+    cq-listener-container="queryListenerContainer"
+    query="select * from /test"/>]]></programlisting>
+
+	In the above configuration, we are creating a GemFire client cache
 	(recall a remote cache server is required for this implementation and its address is configured as a sub-element of the pool), a client region and a <classname>ContinuousQueryListenerContainer</classname>
 	using Spring GemFire. 	The continuous query inbound channel adapter requires a <code>cq-listener-container</code> attribute which contains a reference to the <classname>ContinuousQueryListenerContainer</classname>. Optionally,
   	it accepts an <code>expression</code> attribute which uses SpEL to transform the <code>CqEvent</code> or extract an individual property as needed. The cq-inbound-channel-adapter provides a
   	<code>query-events</code> attribute, containing a comma separated list of event types for which a message will be produced on the input channel. Available event types are CREATED, UPDATED, DESTROYED,
-  	REGION_DESTROYED, REGION_INVALIDATED. CREATED and UPDATED are enabled by default. Additional optional attributes include, <code>query-name</code> which provides an optional query name, and 
+  	REGION_DESTROYED, REGION_INVALIDATED. CREATED and UPDATED are enabled by default. Additional optional attributes include, <code>query-name</code> which provides an optional query name, and
 	<code>expression</code> which works as described in the above section, and <code>durable</code> - a boolean value indicating if the query is durable (false by default).
 	Note that this adapter conforms to Spring integration conventions.
-	If no <code>channel</code> attribute is provided, the channel will be created from the <code>id</code> attribute. This adapter also supports an <code>error-channel</code> 
+	If no <code>channel</code> attribute is provided, the channel will be created from the <code>id</code> attribute. This adapter also supports an <code>error-channel</code>
   	</para>
   </section>
-  
+
    <section>
   	<title>Outbound Channel Adapter</title>
   	<para>
-  	The <emphasis>outbound-channel-adapter</emphasis> writes cache entries mapped from the message payload. In its simplest form, it expects a 
-  	payload of type <classname>java.util.Map</classname> and puts the map entries into its configured region. 
-  
-<programlisting language="xml"><![CDATA[
-<int-gfe:outbound-channel-adapter id="cacheChannel" region="region"/>]]>
-</programlisting>
-	
-	Given the above configuration, an exception will be thrown if the payload is not a Map. Additionally, the outbound channel adapter can be configured to create a 
-	map of cache entries using SpEL of course. 
-	
-		<programlisting language="xml"><![CDATA[
-<int-gfe:outbound-channel-adapter id="cacheChannel" region="region">
-<int-gfe:cache-entries>
+  	The <emphasis>outbound-channel-adapter</emphasis> writes cache entries mapped from the message payload. In its simplest form, it expects a
+  	payload of type <classname>java.util.Map</classname> and puts the map entries into its configured region.
+
+<programlisting language="xml"><![CDATA[<int-gfe:outbound-channel-adapter id="cacheChannel" region="region"/>]]></programlisting>
+
+	Given the above configuration, an exception will be thrown if the payload is not a Map. Additionally, the outbound channel adapter can be configured to create a
+	map of cache entries using SpEL of course.
+
+	<programlisting language="xml"><![CDATA[<int-gfe:outbound-channel-adapter id="cacheChannel" region="region">
+    <int-gfe:cache-entries>
         <entry key="payload.toUpperCase()" value="payload.toLowerCase()"/>
         <entry key="'foo'" value="'bar'"/>
-</int-gfe:cache-entries>
-</int-gfe:outbound-channel-adapter>
-]]>
-</programlisting>
-	In the above configuration, the inner element <code>cache-entries</code> is semantically equivalent to Spring 'map' element. The adapter interprets the <code>key</code> and 
-	<code>value</code> attributes as SpEL expressions with the message as the evaluation context. Note that this contain  
-	arbitrary cache entries (not only those derived from the message) and that literal values must be enclosed in single quotes. In the above example, if the message sent to 
-	<code>cacheChannel</code> has a String payload with a value "Hello", two entries <code>[HELLO:hello, foo:bar]</code> will be written (created or updated) in the cache region.   
-	This adapter also supports the <code>order</code> attribute which may be useful if it is bound to a PublishSubscribeChannel.  
+    </int-gfe:cache-entries>
+</int-gfe:outbound-channel-adapter>]]></programlisting>
+	In the above configuration, the inner element <code>cache-entries</code> is semantically equivalent to Spring 'map' element. The adapter interprets the <code>key</code> and
+	<code>value</code> attributes as SpEL expressions with the message as the evaluation context. Note that this contain
+	arbitrary cache entries (not only those derived from the message) and that literal values must be enclosed in single quotes. In the above example, if the message sent to
+	<code>cacheChannel</code> has a String payload with a value "Hello", two entries <code>[HELLO:hello, foo:bar]</code> will be written (created or updated) in the cache region.
+	This adapter also supports the <code>order</code> attribute which may be useful if it is bound to a PublishSubscribeChannel.
 	</para>
   </section>
-  
+
   <section id="gemfire-message-store">
     <title>Gemfire Message Store</title>
-	
+
 	<para>
     As described in EIP, a <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink> allows you to persist Messages.
     This can be very useful when dealing with components that have a capability to buffer messages
     (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>, etc.) if reliability is a concern.
-    In Spring Integration, the MessageStore strategy also provides the foundation for the 
+    In Spring Integration, the MessageStore strategy also provides the foundation for the
 	<ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
 	</para>
 
@@ -140,11 +131,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
     the <classname>MessageStore</classname> strategy (mainly used by the <emphasis>QueueChannel</emphasis> and <emphasis>ClaimCheck</emphasis>
     patterns) and the <classname>MessageGroupStore</classname> strategy (mainly used by the <emphasis>Aggregator</emphasis> and
     <emphasis>Resequencer</emphasis> patterns).
-<programlisting language="xml"><![CDATA[
-<bean id="gemfireMessageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
-        <constructor-arg ref="myCache"/>
+<programlisting language="xml"><![CDATA[<bean id="gemfireMessageStore" class="o.s.i.gemfire.store.GemfireMessageStore">
+    <constructor-arg ref="myCache"/>
 </bean>
-	
+
 <bean id="myCache" class="org.springframework.data.gemfire.CacheFactoryBean"/>
 
 <int:channel id="somePersistentQueueChannel">
@@ -152,32 +142,28 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 <int:channel>
 
 <int:aggregator input-channel="inputChannel" output-channel="outputChannel"
-         message-store="gemfireMessageStore"/>
-]]></programlisting>
+    message-store="gemfireMessageStore"/>]]></programlisting>
 </para>
 
 <para>
 Above is a sample <classname>GemfireMessageStore</classname> configuration that shows its usage by a <emphasis>QueueChannel</emphasis> and an <emphasis>Aggregator</emphasis>. As you can see it is a normal Spring bean configuration. The simplest configuration requires a reference to a <classname>GemFireCache</classname> (created by <classname>CacheFactoryBean</classname>) as a constructor argument. If the cache is standalone, i.e., embedded in the same JVM, the MessageStore will create a message store region named "messageStoreRegion". If your application requires customization of the messageStore region, for example, multiple Gemfire message stores each with its own region, you can configure a region for each message store instance and use the <classname>Region</classname> as the constructor argument:
 
-<programlisting language="xml"><![CDATA[
-<bean id="gemfireMessageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
-        <constructor-arg ref="myRegion"/>
+<programlisting language="xml"><![CDATA[<bean id="gemfireMessageStore" class="o.s.i.gemfire.store.GemfireMessageStore">
+    <constructor-arg ref="myRegion"/>
 </bean>
 
 <gfe:cache/>
 
-<gfe:replicated-region id="myRegion"/>
-]]></programlisting>
+<gfe:replicated-region id="myRegion"/>]]></programlisting>
 </para>
 
 <para>
 In the above examle, the cache and region are configured using the spring-gemfire namespace (not to be confused with the spring-integration-gemfire namespace). Often it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the
 <ulink url="http://www.vmware.com/support/pubs/vfabric-gemfire.html">GemFire product documentation</ulink> for more details). In this case, you configure a client cache, client region, and client pool and inject the region into the MessageStore. Here is an example:
 
-<programlisting language="xml"><![CDATA[
-<bean id="gemfireMessageStore"
-      class="org.springframework.integration.gemfire.store.GemfireMessageStore">
-        <constructor-arg ref="myRegion"/>
+<programlisting language="xml"><![CDATA[<bean id="gemfireMessageStore"
+    class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+    <constructor-arg ref="myRegion"/>
 </bean>
 
 <gfe:client-cache/>
@@ -185,9 +171,8 @@ In the above examle, the cache and region are configured using the spring-gemfir
 <gfe:client-region id="myRegion" shortcut="PROXY" pool-name="messageStorePool"/>
 
 <gfe:pool id="messageStorePool">
-        <gfe:server host="localhost" port="40404" />
-</gfe:pool>
-]]></programlisting>
+    <gfe:server host="localhost" port="40404" />
+</gfe:pool>]]></programlisting>
 </para>
 <para>
 Note the <emphasis>pool</emphasis> element is configured with the address of a cache server (a locator may be substituted here). The region is configured as a 'PROXY' so that no data will be stored locally. The region's id corresponds to a region with the same name configured in the cache server.

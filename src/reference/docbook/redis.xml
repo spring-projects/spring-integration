@@ -20,19 +20,19 @@
 
   <section id="redis-connection">
     <title>Connecting to Redis</title>
-    
+
     <para>To begin interacting with Redis you first need to connect to it. Spring Integration uses support provided by another Spring project,
     <ulink url="https://github.com/SpringSource/spring-data-redis">Spring Data Redis</ulink>, which provides typical Spring constructs:
     <classname>ConnectionFactory</classname> and <classname>Template</classname>. Those abstractions
-    simplify integration with several Redis-client Java APIs. Currently Spring-Data-Redis supports 
+    simplify integration with several Redis-client Java APIs. Currently Spring-Data-Redis supports
     <ulink url="https://github.com/xetorthio/jedis">jedis</ulink>, <ulink url="http://code.google.com/p/jredis/">jredis</ulink> and <ulink url="https://github.com/e-mzungu/rjc">rjc</ulink></para>
-  
+
     <para><emphasis>RedisConnectionFactory</emphasis> </para>
 
     <para>
     To connect to Redis you would use one of the implementations of the <classname>RedisConnectionFactory</classname> interface:
 
-      <programlisting lang="java"><![CDATA[public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
+      <programlisting language="java"><![CDATA[public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
 	/**
 	 * Provides a suitable connection for interacting with Redis.
@@ -42,27 +42,28 @@
 	RedisConnection getConnection();
 }]]></programlisting>
     </para>
-    
+
     <para>The example below shows how to create a <classname>JedisConnectionFactory</classname>.</para>
-    
+
     <para>In Java:
-    <programlisting lang="java"><![CDATA[JedisConnectionFactory jcf = new JedisConnectionFactory();
+    <programlisting language="java"><![CDATA[JedisConnectionFactory jcf = new JedisConnectionFactory();
 jcf.afterPropertiesSet();]]></programlisting>
     </para>
-    
+
     <para>Or in Spring's XML configuration:
-    <programlisting lang="xml"><![CDATA[<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-	<property name="port" value="7379" />
+    <programlisting language="xml"><![CDATA[<bean id="redisConnectionFactory"
+    class="o.s.data.redis.connection.jedis.JedisConnectionFactory">
+    <property name="port" value="7379" />
 </bean>]]></programlisting>
     </para>
-    
+
     <para>
     The implementations of RedisConnectionFactory provide a set of properties such as port and host that can be set if needed.
     Once an instance of RedisConnectionFactory is created, you can create an instance of RedisTemplate and inject it with the RedisConnectionFactory.
     </para>
 
     <para><emphasis>RedisTemplate</emphasis> </para>
-     
+
     <para>
     As with other template classes in Spring (e.g., <classname>JdbcTemplate</classname>, <classname>JmsTemplate</classname>)
     <classname>RedisTemplate</classname> is a helper class that simplifies Redis data access code.
@@ -73,12 +74,12 @@ jcf.afterPropertiesSet();]]></programlisting>
     <para>The code below shows how to create an instance of <classname>RedisTemplate</classname>:</para>
 
     <para>In Java:
-    <programlisting lang="java"><![CDATA[RedisTemplate rt = new RedisTemplate<String, Object>();
+    <programlisting language="java"><![CDATA[RedisTemplate rt = new RedisTemplate<String, Object>();
 rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     </para>
-    
+
     <para>Or in Spring's XML configuration::
-    <programlisting lang="xml"><![CDATA[<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+    <programlisting language="xml"><![CDATA[<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
 	<property name="connectionFactory" ref="redisConnectionFactory"/>
 </bean>]]></programlisting>
     </para>
@@ -88,7 +89,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     <title>Messaging with Redis</title>
 
     <para>
-    As mentioned in the introduction Redis provides support for Publish-Subscribe messaging via its PUBLISH, SUBSCRIBE and UNSUBSCRIBE 
+    As mentioned in the introduction Redis provides support for Publish-Subscribe messaging via its PUBLISH, SUBSCRIBE and UNSUBSCRIBE
     commands. As with JMS and AMQP, Spring Integration provides Message Channels and adapters for sending and receiving messages via Redis.
     </para>
 
@@ -96,14 +97,14 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       <title>Redis Publish/Subscribe channel</title>
 
       <para>
-      Similar to the JMS there are cases where both the producer and consumer are intended to be part of the same application, running 
-      within the same process. This could be accomplished by using a pair of inbound and outbound Channel Adapters, 
+      Similar to the JMS there are cases where both the producer and consumer are intended to be part of the same application, running
+      within the same process. This could be accomplished by using a pair of inbound and outbound Channel Adapters,
       however just like with Spring Integration's JMS support, there is a simpler approach to address this use case.
-      <programlisting lang="xml"><![CDATA[<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic"/>]]></programlisting>
       </para>
 
       <para>
-      The publish-subscribe-channel (above) will behave much like a normal <code>&lt;publish-subscribe-channel/&gt;</code> element from the 
+      The publish-subscribe-channel (above) will behave much like a normal <code>&lt;publish-subscribe-channel/&gt;</code> element from the
       main Spring Integration namespace. It can be referenced by both <code>input-channel</code> and <code>output-channel</code> attributes of
       any endpoint. The difference is that this channel is backed by a Redis topic name - a String value specified by the <code>topic-name</code>
       attribute. However unlike JMS this topic doesn't have to be created in advance or even auto-created by Redis. In Redis topics are simple
@@ -120,16 +121,17 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       <title>Redis Inbound Channel Adapter</title>
       <para>
       The Redis-based Inbound Channel Adapter adapts incoming Redis messages into Spring Integration Messages in the same way as other
-      inbound adapters. It receives platform-specific messages (Redis in this case) and converts them to Spring Integration Messages using  
+      inbound adapters. It receives platform-specific messages (Redis in this case) and converts them to Spring Integration Messages using
       a <classname>MessageConverter</classname> strategy.
 
-      <programlisting lang="xml"><![CDATA[<int-redis:inbound-channel-adapter id="redisAdapter"
+      <programlisting language="xml"><![CDATA[<int-redis:inbound-channel-adapter id="redisAdapter"
        topics="foo, bar"
        channel="receiveChannel"
        error-channel="testErrorChannel"
        message-converter="testConverter" />
 
-<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+<bean id="redisConnectionFactory"
+    class="o.s.data.redis.connection.jedis.JedisConnectionFactory">
     <property name="port" value="7379" />
 </bean>
 
@@ -137,35 +139,36 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       </para>
 
       <para>
-      Above is a simple but complete configuration of a Redis Inbound Channel Adapter. Note that the above configuration relies on the 
+      Above is a simple but complete configuration of a Redis Inbound Channel Adapter. Note that the above configuration relies on the
       familiar Spring paradigm of auto-discovering certain beans. In this case the <code>redisConnectionFactory</code> is implicitly
       injected into the adapter. You can of course specify it explicitly using the <code>connection-factory</code> attribute instead.
       </para>
 
       <para>
       Also, note that the above configuration injects the adapter with a custom <code>MessageConverter</code>.
-      The approach is similar to JMS where <code>MessageConverters</code> are used to convert between 
+      The approach is similar to JMS where <code>MessageConverters</code> are used to convert between
       Redis Messages and the Spring Integration Message payloads. The default is a <code>SimpleMessageConverter</code>.
       </para>
 
       <para>Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the
       <code>topics</code> attribute.</para>
     </section>
- 
+
     <section id="redis-outbound-channel-adapter">
       <title>Redis Outbound Channel Adapter</title>
       <para>
-      The Redis-based Outbound Channel Adapter adapts outgoing Spring Integration messages into Redis messages in the same way as 
+      The Redis-based Outbound Channel Adapter adapts outgoing Spring Integration messages into Redis messages in the same way as
       other outbound adapters. It receives Spring Integration messages and converts them to platform-specific messages (Redis in this case)
       using a <classname>MessageConverter</classname> strategy.
 
-     <programlisting lang="xml"><![CDATA[<int-redis:outbound-channel-adapter id="outboundAdapter"
-			channel="sendChannel"
-			topic="foo"
-			message-converter="testConverter"/>
+     <programlisting language="xml"><![CDATA[<int-redis:outbound-channel-adapter id="outboundAdapter"
+    channel="sendChannel"
+    topic="foo"
+    message-converter="testConverter"/>
 
-<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-	<property name="port" value="7379"/>
+<bean id="redisConnectionFactory"
+    class="o.s.data.redis.connection.jedis.JedisConnectionFactory">
+    <property name="port" value="7379"/>
 </bean>
 
 <bean id="testConverter" class="foo.bar.SampleMessageConverter" />]]></programlisting>
@@ -173,19 +176,19 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       <para>
       As you can see the configuration is similar to the Redis Inbound Channel Adapter. The adapter is implicitly injected with
       a <classname>RedisConnectionFactory</classname> which was defined with '<code>redisConnectionFactory</code>' as its bean name.
-      This example also includes the optional, custom <classname>MessageConverter</classname> (the '<code>testConverter</code>' bean). 
+      This example also includes the optional, custom <classname>MessageConverter</classname> (the '<code>testConverter</code>' bean).
       </para>
     </section>
   </section>
 
   <section id="redis-message-store">
     <title>Redis Message Store</title>
-	
+
 	<para>
     As described in EIP, a <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink> allows you to persist Messages.
     This can be very useful when dealing with components that have a capability to buffer messages
     (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>, etc.) if reliability is a concern.
-    In Spring Integration, the MessageStore strategy also provides the foundation for the 
+    In Spring Integration, the MessageStore strategy also provides the foundation for the
 	<ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
 	</para>
 
@@ -197,7 +200,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     </para>
 
 	<para>
-	<programlisting lang="xml"><![CDATA[<bean id="redisMessageStore" class="org.springframework.integration.redis.store.RedisMessageStore">
+	<programlisting language="xml"><![CDATA[<bean id="redisMessageStore" class="o.s.i.redis.store.RedisMessageStore">
     <constructor-arg ref="redisConnectionFactory"/>
 </bean>
 
@@ -220,7 +223,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     the <code>valueSerializer</code> property of the <classname>RedisMessageStore</classname>.
     </para>
   </section>
-  
+
   <section id="redis-store-inbound-channel-adapter">
         <title>RedisStore Inbound Channel Adapter</title>
 
@@ -229,35 +232,26 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
         from a Redis collection and sends it as a Message payload.
         </para>
 
-        <programlisting lang="xml"><![CDATA[<int-redis:store-inbound-channel-adapter id="listAdapter"
-		connection-factory="redisConnectionFactory"
-		key="myCollection"
-		channel="redisChannel"
-		collection-type="LIST" >
-			<int:poller fixed-rate="2000" max-messages-per-poll="10"/>
-</int-redis:store-inbound-channel-adapter>]]></programlisting>	
+        <programlisting language="xml"><![CDATA[<int-redis:store-inbound-channel-adapter id="listAdapter"
+    connection-factory="redisConnectionFactory"
+    key="myCollection"
+    channel="redisChannel"
+    collection-type="LIST" >
+    <int:poller fixed-rate="2000" max-messages-per-poll="10"/>
+</int-redis:store-inbound-channel-adapter>]]></programlisting>
 
         <para>
         As you can see from the configuration above you configure a <emphasis>Redis Store Inbound Channel Adapter</emphasis> using
-        the <code>store-inbound-channel-adapter</code> element, providing values for various attributes such as: 
-        <itemizedlist>
-          <listitem>
-            <para><code>key</code> or <code>key-expression</code> - The name of the key for the collection being used. </para>
-          </listitem>
-          <listitem>
-            <para><code>collection-type</code> - enumeration of the Collection types supported by this adapter. Supported Collections are:     LIST, SET, ZSET, PROPERTIES, MAP  </para>
-          </listitem>
-          <listitem>
-            <para><code>connection-factory</code>  - 
-            reference to an instance of <classname>org.springframework.data.redis.connection.RedisConnectionFactory</classname>  </para>
-          </listitem>
-          <listitem>
-            <para><code>redis-template</code>  - 
-             reference to an instance of <classname>org.springframework.data.redis.core.RedisTemplate</classname>
-             </para>
-          </listitem>
+        the <code>store-inbound-channel-adapter</code> element, providing values for various attributes such as:
+		</para>
+		<itemizedlist>
+          <listitem><code>key</code> or <code>key-expression</code> - The name of the key for the collection being used.</listitem>
+          <listitem><code>collection-type</code> - enumeration of the Collection types supported by this adapter. Supported Collections are: LIST, SET, ZSET, PROPERTIES, MAP</listitem>
+          <listitem><code>connection-factory</code> - reference to an instance of <classname>o.s.data.redis.connection.RedisConnectionFactory</classname></listitem>
+          <listitem><code>redis-template</code> - reference to an instance of <classname>o.s.data.redis.core.RedisTemplate</classname></listitem>
         </itemizedlist>
-        and other attributes that are common across all other inbound adapters (e.g., 'channel').  
+        <para>
+        and other attributes that are common across all other inbound adapters (e.g., 'channel').
         </para>
         <note>
           You cannot set both <code>redis-template</code> and <code>connection-factory</code>.
@@ -270,14 +264,14 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
           For example, if the store is written to using a RedisStore Outbound Adapter that has its
           <code>extract-payload-elements</code> set to false, you must provide a
           <classname>RedisTemplate</classname> configured thus:
-          <programlisting><![CDATA[<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
-	<property name="connectionFactory" ref="redisConnectionFactory"/>
-	<property name="keySerializer">
-		<bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
-	</property>
-	<property name="hashKeySerializer">
-		<bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
-	</property>
+          <programlisting language="xml"><![CDATA[<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+    <property name="connectionFactory" ref="redisConnectionFactory"/>
+    <property name="keySerializer">
+        <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+    </property>
+    <property name="hashKeySerializer">
+        <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+    </property>
 </bean>]]></programlisting>
         <para>
           This uses String serializers for keys and hash keys and the default JDK Serialization serializers for
@@ -292,9 +286,9 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
         <para>
         Also, you may wish to perform some post-processing to the successfully processed data that was read from the Redis collection.
         For example; you may want to move or remove the value after its been processed.
-        You can do this using the Transaction Synchronization feature that was added with Spring Integration 2.2. 
+        You can do this using the Transaction Synchronization feature that was added with Spring Integration 2.2.
         </para>
-        <programlisting lang="xml"><![CDATA[<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
+        <programlisting language="xml"><![CDATA[<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
         connection-factory="redisConnectionFactory"
         key-expression="'presidents'"
         channel="otherRedisChannel"
@@ -309,14 +303,14 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 	<int:after-commit expression="payload.removeByScore(18, 18)"/>
 </int:transaction-synchronization-factory>
 
-<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>]]></programlisting>
+<bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager"/>]]></programlisting>
 
 
        <para>
        As you can see from the above all, you need to do is declare your poller to be transactional with a <code>transactional</code> element.
        This element can reference a real transaction manager (for example if some other part of your flow invokes JDBC).
        If you don't have a 'real' transaction, you can use a
-       <classname>org.springframework.integration.transaction.PseudoTransactionManager</classname> which is an implementation
+       <classname>o.s.i.transaction.PseudoTransactionManager</classname> which is an implementation
        of Spring's <classname>PlatformTransactionManager</classname> and enables the use of the transaction synchronization
        features of the redis adapter when there is no actual transaction.
        </para>
@@ -326,7 +320,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
        </important>
        <para>
        Once your poller is transactional all you need to do is set an instance of the
-       <classname>org.springframework.integration.transaction.TransactionSynchronizationFactory</classname> on the <code>transactional</code> element. 
+       <classname>org.springframework.integration.transaction.TransactionSynchronizationFactory</classname> on the <code>transactional</code> element.
        <classname>TransactionSynchronizationFactory</classname> will create an instance of the <classname>TransactionSynchronization</classname>.
        For your convenience we've exposed a default SpEL-based <classname>TransactionSynchronizationFactory</classname> which allows
        you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
@@ -342,7 +336,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
        For more information about transaction synchronization, see <xref linkend="transaction-synchronization"/>.
        </para>
   </section>
-  
+
   <section id="redis-store-outbound-channel-adapter">
         <title>RedisStore Outbound Channel Adapter</title>
 
@@ -350,48 +344,37 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
         The <emphasis>RedisStore Outbound Channel Adapter</emphasis> allows you to write a Message payload to a Redis collection
         </para>
 
-        <programlisting lang="xml"><![CDATA[<int-redis:store-outbound-channel-adapter id="redisListAdapter"
+        <programlisting language="xml"><![CDATA[<int-redis:store-outbound-channel-adapter id="redisListAdapter"
           collection-type="LIST"
           channel="requestChannel"
-          key="myCollection" />]]></programlisting>    
+          key="myCollection" />]]></programlisting>
 
         <para>
         As you can see from the configuration above, you configure a <emphasis>Redis Store Outbound Channel Adapter</emphasis> using
-        the <code>store-inbound-channel-adapter</code> element, providing values for various attributes such as: 
+        the <code>store-inbound-channel-adapter</code> element, providing values for various attributes such as:
+        </para>
         <itemizedlist>
-          <listitem>
-            <para><code>key</code> or <code>key-expression</code> - The name of the key for the collection being used. </para>
-          </listitem>
-          <listitem>
-            <para><code>extract-payload-elements</code>  - If set to <code>true</code> (Default) and the payload is an instance of a "multi-
+          <listitem><code>key</code> or <code>key-expression</code> - The name of the key for the collection being used.</listitem>
+          <listitem><code>extract-payload-elements</code> - If set to <code>true</code> (Default) and the payload is an instance of a "multi-
      value" object (i.e., Collection or Map) it will be stored using addAll/
-     putAll semantics. Otherwise, if set to <code>false</code> the payload will be stored 
-     as a single entry regardless of its type. If the payload is not an instance 
-     of a "multi-value" object, the value of this attribute is ignored and the 
-     payload will always be stored as a single entry.</para>
-          </listitem>
-          <listitem>
-            <para><code>collection-type</code> - enumeration of the Collection types supported by this adapter. Supported Collections are: LIST, SET, ZSET, PROPERTIES, MAP  </para>
-          </listitem>
-          <listitem>
-            <para><code>map-key-expression</code>  - SpEL expression that returns the name of the key for entry being
+     putAll semantics. Otherwise, if set to <code>false</code> the payload will be stored
+     as a single entry regardless of its type. If the payload is not an instance
+     of a "multi-value" object, the value of this attribute is ignored and the
+     payload will always be stored as a single entry.</listitem>
+          <listitem><code>collection-type</code> - enumeration of the Collection types supported by this adapter. Supported Collections are: LIST, SET, ZSET, PROPERTIES, MAP</listitem>
+          <listitem><code>map-key-expression</code> - SpEL expression that returns the name of the key for entry being
      stored. Only applies if the <code>collection-type</code> is MAP or PROPERTIES and
-     'extract-payload-elements' is false. </para>
-          </listitem>
-          <listitem>
-            <para><code>connection-factory</code>  -
-            reference to an instance of <classname>org.springframework.data.redis.connection.RedisConnectionFactory</classname>  </para>
-          </listitem>
-          <listitem>
-            <para><code>redis-template</code>  -
-             reference to an instance of <classname>org.springframework.data.redis.core.RedisTemplate</classname></para>
-          </listitem>
+     'extract-payload-elements' is false.</listitem>
+          <listitem><code>connection-factory</code> - reference to an instance of <classname>o.s.data.redis.connection.RedisConnectionFactory</classname></listitem>
+          <listitem><code>redis-template</code> - reference to an instance of <classname>o.s.data.redis.core.RedisTemplate</classname></listitem>
         </itemizedlist>
+        <para>
         and other attributes that are common across all other inbound adapters (e.g., 'channel').
+        </para>
         <note>
           You cannot set both <code>redis-template</code> and <code>connection-factory</code>.
         </note>
-        </para>
+
         <important>
           By default, the adapter uses a <classname>StringRedisTemplate</classname>; this uses
           <classname>StringRedisSerializer</classname>s for keys, values, hash keys and hash values. However, if

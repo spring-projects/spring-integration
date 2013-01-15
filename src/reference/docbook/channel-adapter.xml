@@ -92,8 +92,7 @@
 
       If the channel being adapted is a <interfacename>PollableChannel</interfacename>, provide a poller sub-element:
         <programlisting language="xml"><![CDATA[<int:outbound-channel-adapter channel="channel2" ref="target" method="handle">
-    ]]><emphasis><![CDATA[<int:poller fixed-rate="3000"/>
-]]></emphasis><![CDATA[
+    ]]><emphasis><![CDATA[<int:poller fixed-rate="3000"/>]]></emphasis><![CDATA[
 </int:outbound-channel-adapter>
 
 <beans:bean id="target" class="org.Foo"/>
@@ -105,8 +104,7 @@
       is only referenced by a single definition of the <code>&lt;outbound-channel-adapter&gt;</code>, you
       can define it as inner bean:
         <programlisting language="xml"><![CDATA[<int:outbound-channel-adapter channel="channel" method="handle">
-        <beans:bean class="org.Foo"/>
-    ]]><![CDATA[
+    <beans:bean class="org.Foo"/>
 </int:outbound-channel-adapter>
 ]]></programlisting>
     </para>

@@ -61,31 +61,33 @@
       File, etc.) that provides namespace support defines its elements within a separate schema. In order to use these
       elements, simply add the necessary namespaces with an "xmlns" entry and the corresponding "schemaLocation" mapping.
       For example, the following root element shows several of these namespace declarations:
+    </para>
       <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:int="http://www.springframework.org/schema/integration"
-    xmlns:int-file="http://www.springframework.org/schema/integration/file"
-    xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
-    xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-    xmlns:int-rmi="http://www.springframework.org/schema/integration/rmi"
-    xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans.xsd
-            http://www.springframework.org/schema/integration
-            http://www.springframework.org/schema/integration/spring-integration.xsd
-            http://www.springframework.org/schema/integration/file
-            http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
-            http://www.springframework.org/schema/integration/jms
-            http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
-            http://www.springframework.org/schema/integration/mail
-            http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
-            http://www.springframework.org/schema/integration/rmi
-            http://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd
-            http://www.springframework.org/schema/integration/ws
-            http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-file="http://www.springframework.org/schema/integration/file"
+  xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+  xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+  xmlns:int-rmi="http://www.springframework.org/schema/integration/rmi"
+  xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/file
+    http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+    http://www.springframework.org/schema/integration/jms
+    http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+    http://www.springframework.org/schema/integration/mail
+    http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
+    http://www.springframework.org/schema/integration/rmi
+    http://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd
+    http://www.springframework.org/schema/integration/ws
+    http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
  ...
 </beans>]]></programlisting>
+  <para>
       The reference manual provides specific examples of the various elements in their corresponding chapters. Here, the
       main thing to recognize is the consistency of the naming for each namespace URI and schema location.
     </para>
@@ -94,11 +96,11 @@
   <section id="namespace-taskscheduler">
     <title>Configuring the Task Scheduler</title>
     <para>
-   
+
       In Spring Integration, the ApplicationContext plays the central role of a Message Bus, and there are only a
       couple configuration options to consider. First, you may want to control the central TaskScheduler instance.
       You can do so by providing a single bean with the name "taskScheduler". This is also defined as a constant:
-      <programlisting><![CDATA[ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME ]]></programlisting>
+      <programlisting language="java"><![CDATA[IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME ]]></programlisting>
       By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the <ulink url="http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html">Task Execution and Scheduling</ulink>
       section of the Spring Framework reference manual. That default TaskScheduler will startup automatically with a
       pool of 10 threads. If you provide your own TaskScheduler instance instead, you can set the 'autoStartup' property
@@ -120,9 +122,9 @@
          as described <ulink url="http://static.springsource.org/spring/docs/3.1.x/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations">
          here</ulink>, instead of the default <emphasis>taskScheduler</emphasis>. To do that, simply define a bean
          with the appropriate JNDI name for your environment, for example:
-         <programlisting><![CDATA[<bean id="taskScheduler" class="org.springframework.scheduling.commonj.TimerManagerTaskScheduler">
-  <property name="timerManagerName" value="tm/MyTimerManager" />
-  <property name="resourceRef" value="true" />
+         <programlisting language="xml"><![CDATA[<bean id="taskScheduler" class="o.s.scheduling.commonj.TimerManagerTaskScheduler">
+    <property name="timerManagerName" value="tm/MyTimerManager" />
+    <property name="resourceRef" value="true" />
 </bean>]]></programlisting>
       </important>
       <para>
@@ -169,9 +171,9 @@
       Whenever relying on Spring Integration's XML namespace support, a default "errorChannel" bean will be
       created behind the scenes. However, you can just as easily define your own if you want to control the
       settings.
-      <programlisting language="xml"><![CDATA[ <int:channel id="errorChannel">
-     <int:queue capacity="500"/>
- </int:channel>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:channel id="errorChannel">
+    <int:queue capacity="500"/>
+</int:channel>]]></programlisting>
       <note>
         The default "errorChannel" is a PublishSubscribeChannel.
       </note>
@@ -197,17 +199,17 @@
   <section id="annotations">
     <title>Annotation Support</title>
     <para>
-      In addition to the XML namespace support for configuring Message Endpoints, 
-      it is also possible to use annotations. First, Spring Integration provides 
-      the class-level <interfacename>@MessageEndpoint</interfacename> as a 
-      <emphasis>stereotype</emphasis> annotation, meaning that it is itself 
-      annotated with Spring's <interfacename>@Component</interfacename> annotation 
-      and is therefore recognized automatically as a bean definition when using 
+      In addition to the XML namespace support for configuring Message Endpoints,
+      it is also possible to use annotations. First, Spring Integration provides
+      the class-level <interfacename>@MessageEndpoint</interfacename> as a
+      <emphasis>stereotype</emphasis> annotation, meaning that it is itself
+      annotated with Spring's <interfacename>@Component</interfacename> annotation
+      and is therefore recognized automatically as a bean definition when using
       Spring component-scanning.
     </para>
     <para>
-      Even more important are the various method-level annotations that indicate 
-      the annotated method is capable of handling a message. The following example 
+      Even more important are the various method-level annotations that indicate
+      the annotated method is capable of handling a message. The following example
       demonstrates both:
       <programlisting language="java">@MessageEndpoint
 public class FooService {
@@ -219,7 +221,7 @@ public class FooService {
 }</programlisting>
     </para>
     <para>
-      Exactly what it means for the method to "handle" the Message depends on the 
+      Exactly what it means for the method to "handle" the Message depends on the
       particular annotation. Annotations available in Spring Integration include:
       <itemizedlist>
         <listitem>@Aggregator</listitem>
@@ -233,16 +235,16 @@ public class FooService {
     <para>The behavior of each is described in its own chapter or section within
       this reference.</para>
     <note>
-      If you are using XML configuration in combination with annotations, the 
-      <interfacename>@MessageEndpoint</interfacename> annotation is not required. 
-      If you want to configure a POJO reference from  the "ref" attribute of a 
-      &lt;service-activator/&gt; element, it is  sufficient to provide the 
-      method-level annotations. In that case, the annotation prevents ambiguity 
+      If you are using XML configuration in combination with annotations, the
+      <interfacename>@MessageEndpoint</interfacename> annotation is not required.
+      If you want to configure a POJO reference from  the "ref" attribute of a
+      &lt;service-activator/&gt; element, it is  sufficient to provide the
+      method-level annotations. In that case, the annotation prevents ambiguity
       even when no "method" attribute exists on the &lt;service-activator/&gt; element.
     </note>
     <para>
-      In most cases, the annotated handler method should not require the 
-      <classname>Message</classname> type as its parameter. Instead, the method 
+      In most cases, the annotated handler method should not require the
+      <classname>Message</classname> type as its parameter. Instead, the method
       parameter type can match the message's payload type.
       <programlisting language="java">public class FooService {
 
@@ -311,7 +313,7 @@ public class FooService {
       to use XML for the endpoints, since it is easier to keep track of the overall configuration in a single, external
       location (and besides the namespace-based XML configuration is not very verbose). If you do prefer to provide
       channels with the annotations however, you just need to enable a SI Annotations BeanPostProcessor. The following element should
-      be added: <programlisting language="xml"><![CDATA[ <int:annotation-config/> ]]></programlisting>
+      be added: <programlisting language="xml"><![CDATA[<int:annotation-config/>]]></programlisting>
       <note>
         When configuring the "inputChannel" and "outputChannel" with annotations, the "inputChannel"
         <emphasis>must</emphasis> be a reference to a <interfacename>SubscribableChannel</interfacename> instance.

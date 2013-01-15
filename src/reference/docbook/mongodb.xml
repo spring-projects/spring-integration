@@ -21,7 +21,7 @@
     <title>Connecting to MongoDb</title>
 
     <para>To begin interacting with MongoDB you first need to connect to it. Spring Integration builds on the support provided by another
-    Spring project, <ulink url="http://www.springsource.org/spring-data/mongodb">Spring Data MongoDB</ulink>, which provides a factory 
+    Spring project, <ulink url="http://www.springsource.org/spring-data/mongodb">Spring Data MongoDB</ulink>, which provides a factory
     class called <classname>MongoDbFactory</classname> that simplifies integration with the MongoDB Client API.</para>
 
     <para><emphasis>MongoDbFactory</emphasis> </para>
@@ -29,19 +29,19 @@
     <para>
     To connect to MongoDB you can use an implementation of the <classname>MongoDbFactory</classname> interface:
 
-      <programlisting lang="java"><![CDATA[public interface MongoDbFactory {
+      <programlisting language="java"><![CDATA[public interface MongoDbFactory {
 
 	/**
 	 * Creates a default {@link DB} instance.
-	 * 
+	 *
 	 * @return the DB instance
 	 * @throws DataAccessException
 	 */
 	DB getDb() throws DataAccessException;
-	
+
 	/**
 	 * Creates a {@link DB} instance to access the database with the given name.
-	 * 
+	 *
 	 * @param dbName must not be {@literal null} or empty.
 	 *
 	 * @return the DB instance
@@ -54,11 +54,11 @@
     <para>The example below shows <classname>SimpleMongoDbFactory</classname>, the out-of-the-box implementation:</para>
 
     <para>In Java:
-    <programlisting lang="java"><![CDATA[MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");]]></programlisting>
+    <programlisting language="java"><![CDATA[MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");]]></programlisting>
     </para>
 
     <para>Or in Spring's XML configuration:
-    <programlisting lang="xml"><![CDATA[<bean id="mongoDbFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
+    <programlisting language="xml"><![CDATA[<bean id="mongoDbFactory" class="o.s.data.mongodb.core.SimpleMongoDbFactory">
     <constructor-arg>
         <bean class="com.mongodb.Mongo"/>
     </constructor-arg>
@@ -69,7 +69,7 @@
     <para>
     As you can see <classname>SimpleMongoDbFactory</classname> takes two arguments: 1) a <classname>Mongo</classname> instance and
     2) a String specifying the name of the database. If you need to configure properties such as <code>host</code>, <code>port</code>, etc,
-    you can pass those using one of the constructors provided by the underlying <classname>Mongo</classname> class. 
+    you can pass those using one of the constructors provided by the underlying <classname>Mongo</classname> class.
     For more information on how to configure MongoDB, please refer to the
 <ulink url="http://static.springsource.org/spring-data/data-document/docs/current/reference/html/">Spring-Data-Document</ulink> reference.
     </para>
@@ -82,10 +82,10 @@
     As described in EIP, a <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink>  allows you to persist Messages.
     This can be very useful when dealing with components that have a capability to buffer messages
     (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>, etc.) if reliability is a concern.
-    In Spring Integration, the MessageStore strategy also provides the foundation for the 
+    In Spring Integration, the MessageStore strategy also provides the foundation for the
     <ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
     </para>
-	
+
     <para>
     Spring Integration's MongoDB module provides the <classname>MongoDbMessageStore</classname> which is an implementation of both
     the <classname>MessageStore</classname> strategy (mainly used by the <emphasis>QueueChannel</emphasis> and <emphasis>ClaimCheck</emphasis>
@@ -94,7 +94,7 @@
 	</para>
 
     <para>
-    <programlisting lang="xml"><![CDATA[<bean id="mongoDbMessageStore" class="org.springframework.integration.mongodb.store.MongoDbMessageStore">
+    <programlisting language="xml"><![CDATA[<bean id="mongoDbMessageStore" class="o.s.i.mongodb.store.MongoDbMessageStore">
     <constructor-arg ref="mongoDbFactory"/>
 </bean>
 
@@ -112,7 +112,7 @@
     <classname>MongoDbFactory</classname> as a constructor argument.
     </para>
   </section>
-  
+
   <section id="mongodb-inbound-channel-adapter">
     <title>MongoDB Inbound Channel Adapter</title>
 
@@ -120,8 +120,8 @@
     The <emphasis>MongoDb Inbound Channel Adapter</emphasis> is a polling consumer that reads data
     from MongoDb and sends it as a Message payload.
     </para>
-    
-    <programlisting lang="xml"><![CDATA[<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
+
+    <programlisting language="xml"><![CDATA[<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
        channel="replyChannel"
        query="{'name' : 'Bob'}"
        entity-class="java.lang.Object"
@@ -131,10 +131,10 @@
 
     <para>
     As you can see from the configuration above, you configure a <emphasis>MongoDb Inbound Channel Adapter</emphasis> using
-    the <code>inbound-channel-adapter</code> element, providing values for various attributes such as: 
+    the <code>inbound-channel-adapter</code> element, providing values for various attributes such as:
     <itemizedlist>
       <listitem>
-        <para><code>query</code> or <code>query-expression</code> - a 
+        <para><code>query</code> or <code>query-expression</code> - a
         JSON query (see <ulink url="http://www.mongodb.org/display/DOCS/Querying">MongoDb Querying</ulink>) </para>
       </listitem>
       <listitem>
@@ -147,11 +147,11 @@
       </listitem>
       <listitem>
         <para><code>mongodb-factory</code>  -
-        reference to an instance of <classname>org.springframework.data.mongodb.MongoDbFactory</classname>  </para>
+        reference to an instance of <classname>o.s.data.mongodb.MongoDbFactory</classname>  </para>
       </listitem>
       <listitem>
         <para><code>mongo-template</code>  -
-         reference to an instance of <classname>org.springframework.data.mongodb.core.MongoTemplate</classname>
+         reference to an instance of <classname>o.s.data.mongodb.core.MongoTemplate</classname>
          </para>
       </listitem>
     </itemizedlist>
@@ -171,7 +171,7 @@
 	For example; you may want to move or remove a document after its been processed.
 	You can do this using Transaction Synchronization feature that was added with Spring Integration 2.2.
 	</para>
-	<programlisting lang="xml"><![CDATA[<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
+	<programlisting language="xml"><![CDATA[<int-mongodb:inbound-channel-adapter id="mongoInboundAdapter"
 	   channel="replyChannel"
 	   query="{'name' : 'Bob'}"
 	   entity-class="java.lang.Object"
@@ -184,12 +184,12 @@
 <int:transaction-synchronization-factory id="syncFactory">
 	<int:after-commit expression="@documentCleaner.remove(#mongoTemplate, payload, headers.mongo_collectionName)" channe="someChannel"/>
 </int:transaction-synchronization-factory>
-	
+
 <bean id="documentCleaner" class="foo.bar.DocumentCleaner"/>
 
-<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>]]></programlisting>
+<bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager"/>]]></programlisting>
 
-<programlisting lang="java"><![CDATA[public class DocumentCleaner {
+<programlisting language="java"><![CDATA[public class DocumentCleaner {
 		public void remove(MongoOperations mongoOperations, Object target, String collectionName) {
 			if (target instanceof List<?>){
 				List<?> documents = (List<?>) target;
@@ -198,12 +198,12 @@
 				}
 			}
 		}
-}]]></programlisting>	
+}]]></programlisting>
    <para>
    As you can see from the above, all you need to do is declare your poller to be transactional with a <code>transactional</code> element.
    This element can reference a real transaction manager (for example if some other part of your flow invokes JDBC).
    If you don't have a 'real' transaction, you can use a
-   <classname>org.springframework.integration.transaction.PseudoTransactionManager</classname> which is an implementation 
+   <classname>org.springframework.integration.transaction.PseudoTransactionManager</classname> which is an implementation
    of Spring's <classname>PlatformTransactionManager</classname> and enables the use of the transaction synchronization
    features of the mongo adapter when there is no actual transaction.
    </para>
@@ -212,8 +212,8 @@
      or after failure (rollback).
    </important>
    <para>
-   Once your poller is transactional all you need to do is set an instance of the 
-   <classname>org.springframework.integration.transaction.TransactionSynchronizationFactory</classname> on the <code>transactional</code> element. 
+   Once your poller is transactional all you need to do is set an instance of the
+   <classname>org.springframework.integration.transaction.TransactionSynchronizationFactory</classname> on the <code>transactional</code> element.
    <classname>TransactionSynchronizationFactory</classname> will create an instance of the <classname>TransactioinSynchronization</classname>.
    For your convenience, we've exposed a default SpEL-based <classname>TransactionSynchronizationFactory</classname> which allows
    you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
@@ -222,25 +222,25 @@
    attributes. If only the <code>channel</code> attribute is present the received Message will be sent there as part of the particular
    synchronization scenario. If only the <code>expression</code> attribute is present and the result of an expression is a non-Null
    value, a Message with the result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the
-   logs (DEBUG). If you want the evaluation result to go to a specific channel add a <code>channel</code> attribute. If the result of an 
+   logs (DEBUG). If you want the evaluation result to go to a specific channel add a <code>channel</code> attribute. If the result of an
    expression is null or void, no Message will be generated.
    </para>
    <para>
    For more information about transaction synchronization, see <xref linkend="transaction-synchronization"/>.
    </para>
   </section>
-  
+
    <section id="mongodb-outbound-channel-adapter">
     <title>MongoDB Outbound Channel Adapter</title>
 
     <para>
     The <emphasis>MongoDb Outbound Channel Adapter</emphasis> allows you to write the Message payload to a MongoDb document store
     </para>
-    
-    <programlisting lang="xml"><![CDATA[<int-mongodb:outbound-channel-adapter id="fullConfigWithCollectionExpression"
+
+    <programlisting language="xml"><![CDATA[<int-mongodb:outbound-channel-adapter id="fullConfigWithCollectionExpression"
 	collection-name="myCollection"
 	mongo-converter="mongoConverter"
-	mongodb-factory="mongoDbFactory" />]]></programlisting>	
+	mongodb-factory="mongoDbFactory" />]]></programlisting>
 
     <para>
     As you can see from the configuration above, you configure a <emphasis>MongoDb Outbound Channel Adapter</emphasis> using
@@ -252,16 +252,16 @@
       </listitem>
       <listitem>
         <para><code>mongo-converter</code>  -
-        reference to an instance of <classname>org.springframework.data.mongodb.core.convert.MongoConverter</classname> to assist with
+        reference to an instance of <classname>o.s.data.mongodb.core.convert.MongoConverter</classname> to assist with
         converting a raw java object to a JSON document representation  </para>
       </listitem>
       <listitem>
         <para><code>mongodb-factory</code>  -
-        reference to an instance of <classname>org.springframework.data.mongodb.MongoDbFactory</classname>  </para>
+        reference to an instance of <classname>o.s.data.mongodb.MongoDbFactory</classname>  </para>
       </listitem>
       <listitem>
         <para><code>mongo-template</code>  -
-         reference to an instance of <classname>org.springframework.data.mongodb.core.MongoTemplate</classname>
+         reference to an instance of <classname>o.s.data.mongodb.core.MongoTemplate</classname>
          (NOTE: you can not have both mongo-template and mongodb-factory set)</para>
       </listitem>
     </itemizedlist>

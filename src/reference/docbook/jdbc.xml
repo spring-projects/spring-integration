@@ -782,9 +782,9 @@
             </para>
 
             <programlisting language="xml"><![CDATA[<int-jdbc:sql-parameter-definition name=""         ]]><co id="sp-parameter-definition-xml01-co" linkends="sp-parameter-definition-xml01" /><![CDATA[
-                                    direction="IN"  ]]><co id="sp-parameter-definition-xml02-co" linkends="sp-parameter-definition-xml02" /><![CDATA[
-                                    type="STRING"   ]]><co id="sp-parameter-definition-xml03-co" linkends="sp-parameter-definition-xml03" /><![CDATA[
-                                    scale=""/>      ]]><co id="sp-parameter-definition-xml04-co" linkends="sp-parameter-definition-xml04" /></programlisting>
+                                   direction="IN"  ]]><co id="sp-parameter-definition-xml02-co" linkends="sp-parameter-definition-xml02" /><![CDATA[
+                                   type="STRING"   ]]><co id="sp-parameter-definition-xml03-co" linkends="sp-parameter-definition-xml03" /><![CDATA[
+                                   scale=""/>      ]]><co id="sp-parameter-definition-xml04-co" linkends="sp-parameter-definition-xml04" /></programlisting>
             <para>
 	            <calloutlist>
                     <callout arearefs="sp-parameter-definition-xml01-co" id="sp-parameter-definition-xml01">
@@ -873,9 +873,9 @@
                 database. In that case the following configuration for a Stored
                 Procedure Oubound Adapter will be sufficient:
             </para>
-            <programlisting><![CDATA[<int-jdbc:stored-proc-outbound-channel-adapter data-source="dataSource"
-                                        channel="insertCoffeeProcedureRequestChannel"
-                                        stored-procedure-name="INSERT_COFFEE"/>]]></programlisting>
+            <programlisting language="xml"><![CDATA[<int-jdbc:stored-proc-outbound-channel-adapter data-source="dataSource"
+    channel="insertCoffeeProcedureRequestChannel"
+    stored-procedure-name="INSERT_COFFEE"/>]]></programlisting>
             <para>
                 For more sophisticated options consider passing in one or more
                 <classname>ProcedureParameter</classname>.
@@ -1150,9 +1150,9 @@ EXTERNAL NAME 'org.springframework.integration.jdbc.storedproc.derby.DerbyStored
                                        request-channel="findAllProcedureRequestChannel"
                                        expect-single-result="true"
                                        stored-procedure-name="FIND_ALL_COFFEE_BEVERAGES">
-    <int-jdbc:returning-resultset name="coffeeBeverages"
-        row-mapper="org.springframework.integration.support.CoffeBeverageMapper"/>
-    </int-jdbc:stored-proc-outbound-gateway>]]></programlisting>
+<int-jdbc:returning-resultset name="coffeeBeverages"
+    row-mapper="org.springframework.integration.support.CoffeBeverageMapper"/>
+</int-jdbc:stored-proc-outbound-gateway>]]></programlisting>
 
             <para>
                 In the second example, we call a Stored Procedure named
@@ -1165,7 +1165,7 @@ EXTERNAL NAME 'org.springframework.integration.jdbc.storedproc.derby.DerbyStored
     ...
 }]]></programlisting>
 
-		<programlisting><![CDATA[CREATE PROCEDURE FIND_COFFEE(IN ID INTEGER, OUT COFFEE_DESCRIPTION VARCHAR(200)) \
+		<programlisting language="sql"><![CDATA[CREATE PROCEDURE FIND_COFFEE(IN ID INTEGER, OUT COFFEE_DESCRIPTION VARCHAR(200)) \
 PARAMETER STYLE JAVA LANGUAGE JAVA EXTERNAL NAME \
 'org.springframework.integration.jdbc.storedproc.derby.DerbyStoredProcedures.findCoffee';]]></programlisting>
 

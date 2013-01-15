@@ -26,11 +26,11 @@
       </note>
     </para>
   </section>
-  
+
   <section id="transformer-config">
   	<title>Configuring Transformer</title>
-  	
-  	
+
+
   	 <section id="transformer-namespace">
     <title>Configuring Transformer with XML</title>
     <para>
@@ -69,29 +69,29 @@
     Returning <code>null</code> will result in an exception since a Message Transformer should always be expected to
     transform each source Message into a valid target Message. In other words, a Message Transformer should not be used
     as a Message Filter since there is a dedicated &lt;filter&gt; option for that. However, if you do need this type of
-    behavior (where a component might return NULL and that should not be considered an error), a 
+    behavior (where a component might return NULL and that should not be considered an error), a
     <emphasis>service-activator</emphasis> could be used. Its <code>requires-reply</code> value is FALSE by default,
     but that can be set to TRUE in order to have Exceptions thrown for NULL return values as with the transformer.
     </para>
-    
+
     <para>
     	<emphasis>Transformers and Spring Expression Language (SpEL)</emphasis>
     </para>
-    
+
     <para>
     Just like Routers, Aggregators and other components, as of Spring Integration 2.0 Transformers can also benefit from SpEL support
     (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html)
     whenever transformation logic is relatively simple.
-    
-    <programlisting language="xml"><![CDATA[<int:transformer input-channel="inChannel" 
-	output-channel="outChannel" 
+
+    <programlisting language="xml"><![CDATA[<int:transformer input-channel="inChannel"
+	output-channel="outChannel"
 	expression="payload.toUpperCase() + '- [' + T(java.lang.System).currentTimeMillis() + ']'"/>]]></programlisting>
-	
-	In the above configuration we are achieving a simple transformation of the <emphasis>payload</emphasis> with a simple SpEL 
-	expression and without writing a custom transformer. Our <emphasis>payload</emphasis> (assuming String) will be 
+
+	In the above configuration we are achieving a simple transformation of the <emphasis>payload</emphasis> with a simple SpEL
+	expression and without writing a custom transformer. Our <emphasis>payload</emphasis> (assuming String) will be
 	upper-cased and concatenated with the current timestamp with some simple formatting.
     </para>
-    
+
     <para>
     	<emphasis>Common Transformers</emphasis>
     </para>
@@ -101,7 +101,7 @@
     <classname>ObjectToStringTransformer</classname> whose output is a Message with a String payload. That String
     is the result of invoking the toString() operation on the inbound Message's payload.
 
-    <programlisting language="xml"><![CDATA[ <int:object-to-string-transformer input-channel="in" output-channel="out"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int:object-to-string-transformer input-channel="in" output-channel="out"/>]]></programlisting>
 
     A potential example for this would be sending some arbitrary object to the 'outbound-channel-adapter' in the
     <emphasis>file</emphasis> namespace. Whereas that Channel Adapter only supports String, byte-array, or
@@ -136,9 +136,9 @@
     by default, but you can provide an implementation of Spring 3.0's Serializer or Deserializer strategies via the
     'serializer' and 'deserializer' attributes, respectively.
 
-      <programlisting language="xml"><![CDATA[ <int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
+      <programlisting language="xml"><![CDATA[<int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
- <int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
+<int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
   </para>
     <para>
     <emphasis>Object-to-Map Transformer</emphasis>
@@ -209,7 +209,7 @@ public class Kid {
         <emphasis>JSON Transformers</emphasis>
     </para>
     <para>
-        <emphasis>Object to JSON</emphasis> and <emphasis>JSON to Object</emphasis> transformers are provided. 
+        <emphasis>Object to JSON</emphasis> and <emphasis>JSON to Object</emphasis> transformers are provided.
     </para>
     <para>
         <programlisting language="xml"><![CDATA[<int:object-to-json-transformer input-channel="objectMapperInput"/>]]></programlisting>
@@ -231,7 +231,7 @@ public class Kid {
     </para>
     <para>
         <programlisting language="java"><![CDATA[public class ObjectMapperFactory {
-    
+
     public static ObjectMapper getMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
@@ -280,7 +280,7 @@ public class Kid {
       String. This solution requires a change to just the outbound application.
      </para>
      <para>
-         <programlisting><![CDATA[<object-to-json-transformer ... content-type="text/x-json"/>]]></programlisting>
+         <programlisting language="xml"><![CDATA[<object-to-json-transformer ... content-type="text/x-json"/>]]></programlisting>
      </para>
      <para>
       The second solution is to eliminate the json transformers altogether and use an
@@ -304,7 +304,8 @@ public class Kid {
       how to configure the message converter; it requires <code>spring-amqp</code> 1.1.3 or
       above.
      </para>
-      <programlisting language="xml"><![CDATA[<bean id="jsonConverterWithPOType" class="org.springframework.amqp.support.converter.JsonMessageConverter">
+      <programlisting language="xml"><![CDATA[<bean id="jsonConverterWithPOType"
+    class="org.springframework.amqp.support.converter.JsonMessageConverter">
     <property name="classMapper">
         <bean class="org.springframework.amqp.support.converter.DefaultClassMapper">
             <property name="defaultType"
@@ -336,22 +337,22 @@ Order generateOrder(String productId, @Header("customerName") String customer) {
 }</programlisting>
     </para>
   </section>
-  	
+
   </section>
- 
-  
+
+
   <section id="header-filter">
   	<title>Header Filter</title>
-  
+
   	Some times your transformation use case might be as simple as removing a few headers.
   	For such a use case, Spring Integration provides a <emphasis>Header Filter</emphasis> which allows you to specify certain header names
     that should be removed from the output Message (e.g. for security reasons or a value that was only needed temporarily).
-  	Basically the <emphasis>Header Filter</emphasis> is the opposite  of the <emphasis>Header Enricher</emphasis>. 
+  	Basically the <emphasis>Header Filter</emphasis> is the opposite  of the <emphasis>Header Enricher</emphasis>.
   	The latter is discussed in <xref linkend="header-enricher"/>
-  	
-	    <programlisting language="xml"><![CDATA[<int:header-filter input-channel="inputChannel" 
+
+	    <programlisting language="xml"><![CDATA[<int:header-filter input-channel="inputChannel"
 		output-channel="outputChannel" header-names="lastName, state"/>]]></programlisting>
-	 
+
 	As you can see, configuration of a <emphasis>Header Filter</emphasis> is quite simple. It is a typical endpoint with input/output channels
 	and a <code>header-names</code> attribute. That attribute accepts the names of the header(s) (delimited by commas if there are multiple)
 	that need to be removed. So, in the above example the headers named 'lastName' and 'state' will not be present on the outbound Message.

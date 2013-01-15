@@ -27,46 +27,44 @@
       </ulink>
     </para>
     <para>
-    Spring integration provides support for XMPP via XMPP adapters which support sending and receiving both XMPP chat messages and 
+    Spring integration provides support for XMPP via XMPP adapters which support sending and receiving both XMPP chat messages and
     presence changes from other entries in your roster. As with other adapters, the XMPP adapters come with support for a
-    convenient namespace-based configuration. 
+    convenient namespace-based configuration.
     To configure the XMPP namespace, include the following elements in the headers of your XML configuration file:
-    
+
     <programlisting language="xml"><![CDATA[xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp 
+xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 	http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"]]></programlisting>
-	
+
     </para>
   </section>
- 
+
   <section id="xmpp-connection">
     <title>XMPP Connection</title>
     <para>
     Before using inbound or outbound XMPP adapters to participate in the XMPP network, an actor must establish its XMPP connection. This
-	connection object could be shared by all XMPP adapters connected to a particular account. Typically this requires - at a minimum - 
+	connection object could be shared by all XMPP adapters connected to a particular account. Typically this requires - at a minimum -
       <code>user</code>, <code>password</code>, and <code>host</code>.
 
       To create a basic XMPP connection, you can utilize the convenience of the namespace.
+	</para>
+    <programlisting language="xml"><![CDATA[<int-xmpp:xmpp-connection
+    id="myConnection"
+    user="user"
+    password="password"
+    host="host"
+    port="port"
+    resource="theNameOfTheResource"
+    subscription-mode="accept_all"/>]]></programlisting>
 
-      <programlisting lang="xml"><![CDATA[<int-xmpp:xmpp-connection
-  id="myConnection"
-  user="user"
-  password="password"
-  host="host"
-  port="port"
-  resource="theNameOfTheResource"
-  subscription-mode="accept_all"/>
-      ]]></programlisting>
-    </para>
-    
     <para>
     	<note>
-    	For added convenience you can rely on the default naming convention and omit the <code>id</code> attribute. 
+    	For added convenience you can rely on the default naming convention and omit the <code>id</code> attribute.
     	The default name <emphasis>xmppConnection</emphasis> will be used for this connection bean.
     	</note>
     </para>
     <para>
-    If the XMPP Connection goes stale, reconnection attempts will be made with an automatic login as long as the previous connection 
+    If the XMPP Connection goes stale, reconnection attempts will be made with an automatic login as long as the previous connection
     state was logged (authenticated). We also register a <classname>ConnectionListener</classname> which will log connection events
     if the DEBUG logging level is enabled.
     </para>
@@ -84,55 +82,55 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
         <classname>java.lang.String</classname> if you set the <code>extract-payload</code> attribute's value to 'true'
         when configuring an adapter.
         Configuration support for the XMPP <emphasis>Inbound Message Channel Adapter</emphasis> is provided via the <code>inbound-channel-adapter</code> element.
-        
-        <programlisting language="xml"><![CDATA[<int-xmpp:inbound-channel-adapter id="xmppInboundAdapter" 
-	channel="xmppInbound" 
-	xmpp-connection="testConnection" 
-	extract-payload="false" 
-	auto-startup="true"/>]]></programlisting> 
-	
-	As you can see amongst the usual attributes this adapter also requires a reference to an XMPP Connection. 
+
+        <programlisting language="xml"><![CDATA[<int-xmpp:inbound-channel-adapter id="xmppInboundAdapter"
+	channel="xmppInbound"
+	xmpp-connection="testConnection"
+	extract-payload="false"
+	auto-startup="true"/>]]></programlisting>
+
+	As you can see amongst the usual attributes this adapter also requires a reference to an XMPP Connection.
       </para>
       <para>
        It is also important to mention that the XMPP inbound adapter is an <emphasis>event driven adapter</emphasis>
-       and a <classname>Lifecycle</classname> implementation. 
+       and a <classname>Lifecycle</classname> implementation.
        When started it will register a <classname>PacketListener</classname> that will listen for incoming XMPP Chat Messages.
        It forwards any received messages to the underlying adapter which will convert them to Spring Integration Messages and
        send them to the specified <classname>channel</classname>. It will unregister the <classname>PacketListener</classname>
        when it is stopped.
       </para>
     </section>
-    
+
 
     <section id="xmpp-message-outbound-channel-adapter">
       <title>Outbound Message Channel Adapter</title>
-     
+
      <para>
-     	You may also send chat messages to other users on XMPP using the <emphasis>Outbound Message Channel Adapter</emphasis>. 
+     	You may also send chat messages to other users on XMPP using the <emphasis>Outbound Message Channel Adapter</emphasis>.
      	Configuration support for the XMPP <emphasis>Outbound Message Channel Adapter</emphasis> is provided via the <code>outbound-channel-adapter</code> element.
-     	
-     	<programlisting language="xml"><![CDATA[<int-xmpp:outbound-channel-adapter id="outboundEventAdapter" 
-						channel="outboundEventChannel" 
-						xmpp-connection="testConnection"/>]]></programlisting> 
-	
+
+     	<programlisting language="xml"><![CDATA[<int-xmpp:outbound-channel-adapter id="outboundEventAdapter"
+						channel="outboundEventChannel"
+						xmpp-connection="testConnection"/>]]></programlisting>
+
 		The adapter expects as its input - at a minimum - a payload of type <classname>java.lang.String</classname>, and a header value
 		for <classname>XmppHeaders.CHAT_TO</classname> that specifies to which user the Message should be sent.
 		To create a message you might use the following Java code:
-						
+
 		<programlisting language="java"><![CDATA[Message<String> xmppOutboundMsg = MessageBuilder.withPayload("Hello, XMPP!" )
 						.setHeader(XmppHeaders.CHAT_TO, "userhandle")
-						.build();]]></programlisting> 
-		
-		Another mechanism of setting the header is by using the XMPP header-enricher support. Here is an example. 	
-		
+						.build();]]></programlisting>
+
+		Another mechanism of setting the header is by using the XMPP header-enricher support. Here is an example.
+
 		<programlisting language="xml"><![CDATA[<int-xmpp:header-enricher input-channel="input" output-channel="output">
 	<int-xmpp:chat-to value="test1@example.org"/>
-</int-xmpp:header-enricher>]]></programlisting> 		
+</int-xmpp:header-enricher>]]></programlisting>
      </para>
     </section>
   </section>
-  
-  
+
+
   <section id="xmpp-presence">
     <title>XMPP Presence</title>
 
@@ -142,52 +140,52 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
         change your away status, and then set an away message, and everybody who has you on their roster sees your icon or username
         change to reflect this new state, and additionally might see your new "away" message.
         If you would like to receive notification, or notify others, of state changes, you can use Spring Integration's "presence" adapters.
-       </para>                 
-      
+       </para>
+
     <section id="xmpp-roster-inbound-channel-adapter">
       <title>Inbound Presence Message Channel Adapter</title>
     <para>
-      Spring Integration provides an <emphasis>Inbound Presence Message Channel Adapter</emphasis> which supports receiving Presence 
-      events from other users in the system who happen to be on your Roster. To do this, the adapter "logs in" as a user 
-      on your behalf, registers a <classname>RosterListener</classname> and forwards received Presence update events as Messages to the channel 
+      Spring Integration provides an <emphasis>Inbound Presence Message Channel Adapter</emphasis> which supports receiving Presence
+      events from other users in the system who happen to be on your Roster. To do this, the adapter "logs in" as a user
+      on your behalf, registers a <classname>RosterListener</classname> and forwards received Presence update events as Messages to the channel
       identified by the <code>channel</code> attribute. The payload of the Message will be a <classname>org.jivesoftware.smack.packet.Presence</classname>
 	  object (see http://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html).
     </para>
     <para>
-    Configuration support for the XMPP <emphasis>Inbound Presence Message Channel Adapter</emphasis> is provided via 
+    Configuration support for the XMPP <emphasis>Inbound Presence Message Channel Adapter</emphasis> is provided via
     the <code>presence-inbound-channel-adapter</code> element.
- <programlisting language="xml"><![CDATA[<int-xmpp:presence-inbound-channel-adapter channel="outChannel" 
-		xmpp-connection="testConnection" auto-startup="false"/>]]></programlisting> 
-		
+ <programlisting language="xml"><![CDATA[<int-xmpp:presence-inbound-channel-adapter channel="outChannel"
+		xmpp-connection="testConnection" auto-startup="false"/>]]></programlisting>
+
 	  As you can see amongst the usual attributes this adapter also requires a reference to an XMPP Connection.
-	  It is also important to mention that this adapter is an event driven adapter and a <classname>Lifecycle</classname> implementation. 
-	  It will register a <classname>RosterListener</classname> when started and will unregister that <classname>RosterListener</classname> 
+	  It is also important to mention that this adapter is an event driven adapter and a <classname>Lifecycle</classname> implementation.
+	  It will register a <classname>RosterListener</classname> when started and will unregister that <classname>RosterListener</classname>
 	  when stopped.
     </para>
     </section>
-    
+
     <section id="xmpp-roster-outbound-channel-adapter">
       <title>Outbound Presence Message Channel Adapter</title>
-      
+
       <para>
       Spring Integration also supports sending Presence events to be seen by other users in the network who happen to have you on their
       Roster. When you send a Message to the <emphasis>Outbound Presence Message Channel Adapter</emphasis> it extracts the payload,
       which is expected to be of type <classname>org.jivesoftware.smack.packet.Presence</classname>
-	  (see http://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html) and sends it to 
+	  (see http://www.igniterealtime.org/builds/smack/docs/3.1.0/javadoc/org/jivesoftware/smack/packet/Presence.html) and sends it to
 	  the XMPP Connection, thus advertising your presence events to the rest of the network.
       </para>
       <para>
-      Configuration support for the XMPP <emphasis>Outbound Presence Message Channel Adapter</emphasis> is provided via 
+      Configuration support for the XMPP <emphasis>Outbound Presence Message Channel Adapter</emphasis> is provided via
       the <code>presence-outbound-channel-adapter</code> element.
-      
-      <programlisting language="xml"><![CDATA[<int-xmpp:presence-outbound-channel-adapter id="eventOutboundPresenceChannel" 
-	xmpp-connection="testConnection"/>]]></programlisting> 
-	
-	  It can also be a <emphasis>Polling Consumer</emphasis> (if it receives Messages from a Pollable Channel) in which case you would 
+
+      <programlisting language="xml"><![CDATA[<int-xmpp:presence-outbound-channel-adapter id="eventOutboundPresenceChannel"
+	xmpp-connection="testConnection"/>]]></programlisting>
+
+	  It can also be a <emphasis>Polling Consumer</emphasis> (if it receives Messages from a Pollable Channel) in which case you would
 	  need to register a Poller.
-	  	
-	  <programlisting language="xml"><![CDATA[<int-xmpp:presence-outbound-channel-adapter id="pollingOutboundPresenceAdapter" 
-		xmpp-connection="testConnection" 
+
+	  <programlisting language="xml"><![CDATA[<int-xmpp:presence-outbound-channel-adapter id="pollingOutboundPresenceAdapter"
+		xmpp-connection="testConnection"
 		channel="pollingChannel">
 	<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
 </int-xmpp:presence-outbound-channel-adapter>]]></programlisting>
@@ -197,7 +195,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     </section>
     <para>
     	<note>
-		If you are relying on the default naming convention for an XMPP Connection bean (described earlier), and you have only one 
+		If you are relying on the default naming convention for an XMPP Connection bean (described earlier), and you have only one
 		XMPP Connection bean configured in your Application Context, you may omit the <code>xmpp-connection</code> attribute.
 		In that case, the bean with the name <emphasis>xmppConnection</emphasis> will be located and injected into the adapter.
     	</note>
@@ -205,48 +203,48 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
   </section>
   <section id="xmpp-appendices">
     	<title>Appendices</title>
-    	
+
     	<para>
-    	Since Spring Integration XMPP support is based on the Smack 3.1 API (http://www.igniterealtime.org/downloads/index.jsp), it is important 
+    	Since Spring Integration XMPP support is based on the Smack 3.1 API (http://www.igniterealtime.org/downloads/index.jsp), it is important
     	to know a few details related to more complex configuration of the XMPP Connection object.
     	</para>
     	<para>
-    	As stated earlier the <code>xmpp-connection</code> namespace support is designed to simplify basic connection configuration and 
+    	As stated earlier the <code>xmpp-connection</code> namespace support is designed to simplify basic connection configuration and
     	only supports a few common configuration attributes. However, the <classname>org.jivesoftware.smack.ConnectionConfiguration</classname>
         object defines about 20 attributes, and there is no real value of adding namespace support for all of them. So, for more complex connection
         configurations, simply configure an instance of our <classname>XmppConnectionFactoryBean</classname> as a regular bean, and inject a
-    	<classname>org.jivesoftware.smack.ConnectionConfiguration</classname> as a constructor argument to that FactoryBean. Every property 
+    	<classname>org.jivesoftware.smack.ConnectionConfiguration</classname> as a constructor argument to that FactoryBean. Every property
     	you need, can be specified directly on that ConnectionConfiguration instance (a bean definition with the 'p' namespace would work well).
         This way SSL, or any other attributes, could be set directly. Here's an example:
-    	
-    	<programlisting language="xml"><![CDATA[<bean id="xmppConnection" class="org.springframework.integration.xmpp.XmppConnectionFactoryBean">
-	<constructor-arg>
-		<bean class="org.jivesoftware.smack.ConnectionConfiguration">
-			<constructor-arg value="myServiceName"/>
-			<property name="truststorePath" value="..."/>
-			<property name="socketFactory" ref="..."/>
-		</bean>
-	</constructor-arg>
+
+        <programlisting language="xml"><![CDATA[<bean id="xmppConnection" class="o.s.i.xmpp.XmppConnectionFactoryBean">
+    <constructor-arg>
+        <bean class="org.jivesoftware.smack.ConnectionConfiguration">
+            <constructor-arg value="myServiceName"/>
+            <property name="truststorePath" value="..."/>
+            <property name="socketFactory" ref="..."/>
+        </bean>
+    </constructor-arg>
 </bean>
 <int:channel id="outboundEventChannel"/>
-	
-<int-xmpp:outbound-channel-adapter id="outboundEventAdapter" 					     
-	channel="outboundEventChannel" 
-	xmpp-connection="xmppConnection"/>]]></programlisting>
+
+<int-xmpp:outbound-channel-adapter id="outboundEventAdapter"
+    channel="outboundEventChannel"
+    xmpp-connection="xmppConnection"/>]]></programlisting>
     	</para>
     <para>
-    Another important aspect of the Smack API is static initializers. For more complex cases (e.g., registering a SASL Mechanism), you may need 
-    to execute certain static initializers. One of those static initializers is <classname>SASLAuthentication</classname>, which allows 
-    you to register supported SASL mechanisms. For that level of complexity, we would recommend Spring JavaConfig-style of the XMPP Connection 
-    configuration. Then, you can configure the entire component through Java code and execute all other necessary Java code including 
+    Another important aspect of the Smack API is static initializers. For more complex cases (e.g., registering a SASL Mechanism), you may need
+    to execute certain static initializers. One of those static initializers is <classname>SASLAuthentication</classname>, which allows
+    you to register supported SASL mechanisms. For that level of complexity, we would recommend Spring JavaConfig-style of the XMPP Connection
+    configuration. Then, you can configure the entire component through Java code and execute all other necessary Java code including
     static initializers at the appropriate time.
-    
+
     <programlisting language="java"><![CDATA[@Configuration
 public class CustomConnectionConfiguration {
   @Bean
   public XMPPConnection xmppConnection() {
 	SASLAuthentication.supportSASLMechanism("EXTERNAL", 0); // static initializer
-	                   
+
 	ConnectionConfiguration config = new ConnectionConfiguration("localhost", 5223);
 	config.setTrustorePath("path_to_truststore.jks");
 	config.setSecurityEnabled(true);
