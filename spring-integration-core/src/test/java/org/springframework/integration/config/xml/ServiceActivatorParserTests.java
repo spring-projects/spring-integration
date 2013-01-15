@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,15 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
@@ -110,6 +114,89 @@ public class ServiceActivatorParserTests {
 	public void advised() {
 		Object result = this.sendAndReceive(advisedInput, "hello");
 		assertEquals("bar", result);
+	}
+
+	@Test
+	public void failRefAndExpression() {
+		try {
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-ref-and-expression-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: Only one of 'ref' or 'expression' is permitted, not both, " +
+					"on element 'service-activator' with id='test'."));
+		}
+	}
+
+	@Test
+	public void failRefAndBean() {
+		try {
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-ref-and-bean-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: Ambiguous definition. " +
+					"Inner bean org.springframework.integration.config.xml.ServiceActivatorParserTests$TestBean " +
+					"declaration and \"ref\" testBean are not allowed together on element " +
+					"'service-activator' with id='test'."));
+		}
+	}
+
+	@Test
+	public void failExpressionAndBean() {
+		try {
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-expression-and-bean-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: Neither 'ref' nor 'expression' " +
+					"are permitted when an inner bean (<bean/>) is configured on element " +
+					"'service-activator' with id='test'."));
+		}
+	}
+
+	@Test
+	public void failNoService() {
+		try {
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-no-service-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: Exactly one of the 'ref' " +
+					"attribute, 'expression' attribute, or inner bean (<bean/>) definition " +
+					"is required for element 'service-activator' with id='test'."));
+		}
+	}
+
+	@Test
+	public void failExpressionAndExpression() {
+		try {
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-expression-and-expression-element-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: Neither 'ref' nor 'expression' are permitted when " +
+					"an inner 'expression' element is configured on element " +
+					"'service-activator' with id='test'."));
+		}
+	}
+
+	@Test
+	public void failMethodAndExpressionElement() {
+		try {
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-method-and-expression-element-context.xml",
+					this.getClass());
+			fail("Expected exception");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: A 'method' attribute is not permitted when configuring " +
+					"an 'expression' on element 'service-activator' with id='test'."));
+		}
 	}
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {

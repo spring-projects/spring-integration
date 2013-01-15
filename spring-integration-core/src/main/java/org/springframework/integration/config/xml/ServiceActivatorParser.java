@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,20 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.integration.config.ServiceActivatorFactoryBean;
+
 /**
  * Parser for the &lt;service-activator&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class ServiceActivatorParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
 	String getFactoryBeanClassName() {
-		return "org.springframework.integration.config.ServiceActivatorFactoryBean";
+		return ServiceActivatorFactoryBean.class.getName();
 	}
 
 	@Override

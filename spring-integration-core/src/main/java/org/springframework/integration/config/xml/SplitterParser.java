@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,21 @@ package org.springframework.integration.config.xml;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.SplitterFactoryBean;
 import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;splitter/&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class SplitterParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
 	String getFactoryBeanClassName() {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean";
+		return SplitterFactoryBean.class.getName();
 	}
 
 	@Override
