@@ -96,7 +96,7 @@ public class MessageStoreReaperTests {
 		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
 		reaper2.run();
 		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
-		reaper2.destroy();
+		reaper2.stop();
 		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
 		reaper2.start();
 		reaper2.run();

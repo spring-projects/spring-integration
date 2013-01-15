@@ -91,9 +91,14 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	}
 
 	public void destroy() throws Exception {
-		if (this.expireOnDestroy && this.isRunning()) {
-			logger.info("Expiring all messages from message group store: " + this.messageGroupStore);
-			this.messageGroupStore.expireMessageGroups(0);
+		if (this.expireOnDestroy) {
+			if (this.isRunning()) {
+				logger.info("Expiring all messages from message group store: " + this.messageGroupStore);
+				this.messageGroupStore.expireMessageGroups(0);
+			}
+			else {
+				logger.debug("'expireOnDestroy' is set to 'true' but the reaper is not currently running");
+			}
 		}
 	}
 
