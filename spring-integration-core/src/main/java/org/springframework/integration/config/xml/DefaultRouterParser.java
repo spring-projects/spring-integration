@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,26 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.RouterFactoryBean;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;router/&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
 	String getFactoryBeanClassName() {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean";
+		return RouterFactoryBean.class.getName();
 	}
 
 	@Override
