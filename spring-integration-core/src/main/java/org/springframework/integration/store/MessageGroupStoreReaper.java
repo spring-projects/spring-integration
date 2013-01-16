@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2010 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -27,10 +27,10 @@ import org.springframework.util.Assert;
  * Convenient configurable component to allow explicit timed expiry of {@link MessageGroup} instances in a
  * {@link MessageGroupStore}. This component provides a no-args {@link #run()} method that is useful for remote or timed
  * execution and a {@link #destroy()} method that can optionally be called on shutdown.
- * 
+ *
  * @author Dave Syer
  * @author Dave Turanski
- * 
+ * @author Artem Bilan
  */
 public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean, SmartLifecycle {
 
@@ -58,9 +58,9 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	}
 
 	/**
-	 * Flag to indicate that the stores should be expired when this component is destroyed (i.e. usuually when its
+	 * Flag to indicate that the stores should be expired when this component is destroyed (i.e. usually when its
 	 * enclosing {@link ApplicationContext} is closed).
-	 * 
+	 *
 	 * @param expireOnDestroy the flag value to set
 	 */
 	public void setExpireOnDestroy(boolean expireOnDestroy) {
@@ -70,7 +70,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	/**
 	 * Timeout in milliseconds (default -1). If negative then no groups ever time out. If greater than zero then all
 	 * groups older than that value are expired when this component is {@link #run()}.
-	 * 
+	 *
 	 * @param timeout the timeout to set
 	 */
 	public void setTimeout(long timeout) {
@@ -78,8 +78,8 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	}
 
 	/**
-	 * A message group store to expire according the the other configurations.
-	 * 
+	 * A message group store to expire according the other configurations.
+	 *
 	 * @param messageGroupStore the {@link MessageGroupStore} to set
 	 */
 	public void setMessageGroupStore(MessageGroupStore messageGroupStore) {
@@ -87,13 +87,18 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		Assert.state(messageGroupStore != null, "A MessageGroupStore must be provided");
+		Assert.state(this.messageGroupStore != null, "A MessageGroupStore must be provided");
 	}
 
 	public void destroy() throws Exception {
-		if (expireOnDestroy) {
-			logger.info("Expiring all messages from message group store: " + messageGroupStore);
-			messageGroupStore.expireMessageGroups(0);
+		if (this.expireOnDestroy) {
+			if (this.isRunning()) {
+				logger.info("Expiring all messages from message group store: " + this.messageGroupStore);
+				this.messageGroupStore.expireMessageGroups(0);
+			}
+			else {
+				logger.debug("'expireOnDestroy' is set to 'true' but the reaper is not currently running");
+			}
 		}
 	}
 
@@ -102,12 +107,12 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	 * be executed by a scheduled task.
 	 */
 	public void run() {
-		if (timeout >= 0) {
+		if (this.timeout >= 0 && this.isRunning()) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Expiring all messages older than timeout=" + timeout + " from message group store: "
-						+ messageGroupStore);
+				logger.debug("Expiring all messages older than timeout=" + this.timeout + " from message group store: "
+						+ this.messageGroupStore);
 			}
-			messageGroupStore.expireMessageGroups(timeout);
+			this.messageGroupStore.expireMessageGroups(this.timeout);
 		}
 	}
 
@@ -129,15 +134,17 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	public void stop() {
 		this.lifecycleLock.lock();
 		try {
-			destroy();
-			if (logger.isInfoEnabled()){
-				  logger.info("stopped " + this);
+			if (this.running) {
+				this.destroy();
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
+				}
 			}
-			running = false;
-		} 
+			this.running = false;
+		}
 		catch (Exception e) {
-			logger.error("failed to stop bean",e);
-		} 
+			logger.error("failed to stop bean", e);
+		}
 		finally {
 			this.lifecycleLock.unlock();
 		}
@@ -147,26 +154,26 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		this.lifecycleLock.lock();
 		try {
 			return this.running;
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
 
 	public int getPhase() {
-		return phase;
+		return this.phase;
 	}
 
 	public void setPhase(int phase) {
 		this.phase = phase;
 	}
 
-	
 	public boolean isAutoStartup() {
-		return autoStartup;
+		return this.autoStartup;
 	}
-	
-	public void setAutoStartup(boolean autostartup) {
-		this.autoStartup = autostartup;
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	public void stop(Runnable callback) {
@@ -179,4 +186,5 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 			this.lifecycleLock.unlock();
 		}
 	}
+
 }
