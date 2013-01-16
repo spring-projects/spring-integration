@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,27 @@
 
 package org.springframework.integration.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.matchers.JUnitMatchers.both;
+import static org.junit.matchers.JUnitMatchers.containsString;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.apache.commons.logging.Log;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
@@ -29,8 +46,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
@@ -39,14 +58,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.junit.matchers.JUnitMatchers.both;
-import static org.junit.matchers.JUnitMatchers.containsString;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Mark Fisher
@@ -102,11 +115,18 @@ public class ChainParserTests {
 	@Autowired
 	private MessageChannel loggingChannelAdapterChannel;
 
+	@Autowired @Qualifier("logChain.handler")
+	private MessageHandlerChain logChain;
+
 	@Autowired
 	private MessageChannel outboundChannelAdapterChannel;
 
 	@Autowired
 	private TestConsumer testConsumer;
+
+	@Autowired
+	@Qualifier("chainWithSendTimeout.handler")
+	private MessageHandlerChain chainWithSendTimeout;
 
 	@Autowired
 	@Qualifier("claimCheckInput")
@@ -121,9 +141,6 @@ public class ChainParserTests {
 
 	@Autowired
 	private PollableChannel numbers;
-
-	@Autowired
-	private ApplicationContext context;
 
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
@@ -242,9 +259,7 @@ public class ChainParserTests {
 
 	@Test // INT-1165
 	public void chainWithSendTimeout() {
-		Object endpoint = this.context.getBean("chainWithSendTimeout");
-		MessageHandlerChain chain = (MessageHandlerChain) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		long sendTimeout = ((Long) new DirectFieldAccessor(chain).getPropertyValue("sendTimeout")).longValue();
+		long sendTimeout = TestUtils.getPropertyValue(this.chainWithSendTimeout, "sendTimeout", Long.class);
 		assertEquals(9876, sendTimeout);
 	}
 
@@ -264,17 +279,26 @@ public class ChainParserTests {
 
 	@Test //INT-2275
 	public void chainWithLoggingChannelAdapter() {
-		Message<?> message = MessageBuilder.withPayload("test").build();
-		PrintStream realOut = System.out;
-		try {
-			OutputStream out = new ByteArrayOutputStream();
-			System.setOut(new PrintStream(out));
-			this.loggingChannelAdapterChannel.send(message);
-			assertEquals("LoggingHandler: TEST", out.toString().trim());
-		}
-		finally {
-			System.setOut(realOut);
-		}
+		Log logger = mock(Log.class);
+		final AtomicReference<String> log = new AtomicReference<String>();
+		when(logger.isWarnEnabled()).thenReturn(true);
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				log.set((String) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(logger).warn(any());
+
+		@SuppressWarnings("unchecked")
+		List<MessageHandler> handlers = TestUtils.getPropertyValue(this.logChain, "handlers", List.class);
+		MessageHandler handler = handlers.get(1);
+		assertTrue(handler instanceof LoggingHandler);
+		DirectFieldAccessor dfa = new DirectFieldAccessor(handler);
+		dfa.setPropertyValue("messageLogger", logger);
+
+		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload("test").build());
+		assertNotNull(log.get());
+		assertEquals("TEST", log.get());
 	}
 
 	@Test(expected = BeanCreationException.class) //INT-2275
@@ -301,6 +325,7 @@ public class ChainParserTests {
 	}
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
+
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			return successMessage;
@@ -309,6 +334,7 @@ public class ChainParserTests {
 	}
 
 	public static class StubAggregator {
+
 		public String aggregate(List<String> strings) {
 			return StringUtils.collectionToCommaDelimitedString(strings);
 		}
