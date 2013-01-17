@@ -32,7 +32,6 @@ import org.springframework.integration.ip.tcp.connection.ClientModeConnectionMan
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
-import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
@@ -70,6 +69,11 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private volatile boolean active;
 
+	/**
+	 * @deprecated Use {@link #obtainConnection(Message)}.
+	 * TODO: remove in 3.0
+	 */
+	@Deprecated
 	protected TcpConnection getConnection() {
 		TcpConnection connection = null;
 		if (this.clientConnectionFactory == null) {
@@ -77,8 +81,22 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 		try {
 			connection = this.clientConnectionFactory.getConnection();
-		} catch (Exception e) {
-			logger.error("Error creating SocketWriter", e);
+		}
+		catch (Exception e) {
+			logger.error("Error creating connection", e);
+		}
+		return connection;
+	}
+
+	protected TcpConnection obtainConnection(Message<?> message) {
+		TcpConnection connection = null;
+		Assert.notNull(this.clientConnectionFactory, "'clientConnectionFactory' cannot be null");
+		try {
+			connection = this.clientConnectionFactory.getConnection();
+		}
+		catch (Exception e) {
+			logger.error("Error creating connection", e);
+			throw new MessageHandlingException(message, "Failed to obtain a connection", e);
 		}
 		return connection;
 	}
@@ -101,7 +119,8 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 			if (connection != null) {
 				try {
 					connection.send(message);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					logger.error("Error sending message", e);
 					connection.close();
 					if (e instanceof MessageHandlingException) {
@@ -111,23 +130,29 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 						throw new MessageHandlingException(message, "Error sending message", e);
 					}
 				}
-			} else {
+			}
+			else {
 				logger.error("Unable to find outbound socket for " + message);
 				throw new MessageHandlingException(message, "Unable to find outbound socket");
 			}
 			return;
 		}
-
-		// we own the connection
-		try {
-			doWrite(message);
-		} catch (MessageMappingException e) {
-			// retry - socket may have closed
-			if (e.getCause() instanceof IOException) {
-				logger.debug("Fail on first write attempt", e);
+		else {
+			// we own the connection
+			try {
 				doWrite(message);
-			} else {
-				throw e;
+			}
+			catch (MessageHandlingException e) {
+				// retry - socket may have closed
+				if (e.getCause() instanceof IOException) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Fail on first write attempt", e);
+					}
+					doWrite(message);
+				}
+				else {
+					throw e;
+				}
 			}
 		}
 	}
@@ -139,23 +164,21 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	protected void doWrite(Message<?> message) {
 		TcpConnection connection = null;
 		try {
-			connection = getConnection();
-			if (connection == null) {
-				throw new MessageMappingException(message, "Failed to create connection");
-			}
+			connection = obtainConnection(message);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Got Connection " + connection.getConnectionId());
 			}
 			connection.send(message);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			String connectionId = null;
 			if (connection != null) {
 				connectionId = connection.getConnectionId();
 			}
-			if (e instanceof MessageMappingException) {
-				throw (MessageMappingException) e;
+			if (e instanceof MessageHandlingException) {
+				throw (MessageHandlingException) e;
 			}
-			throw new MessageMappingException(message, "Failed to map message using " + connectionId, e);
+			throw new MessageHandlingException(message, "Failed to handle message using " + connectionId, e);
 		}
 	}
 
