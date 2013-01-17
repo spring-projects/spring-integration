@@ -28,7 +28,7 @@ public class ObjectToStringTransformer extends AbstractPayloadTransformer<Object
 	@Override
 	protected String transformPayload(Object payload) throws Exception {
 		if(payload instanceof byte[]) {
-			return new String((byte[]) payload,"UTF-8");
+			return new String((byte[]) payload);
 		}
 		return payload.toString();
 	}
