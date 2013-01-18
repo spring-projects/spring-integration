@@ -586,7 +586,8 @@ any transaction configuration essentially allowing you to enhance the behavior o
       be mapped to a Message payload or part of the payload or header (when using the Spring Expression Language). However there
       are times when the type of input parameter of the endpoint method does not match the type of the payload or its part.
       In this scenario we need to perform type conversion. Spring Integration provides a convenient way for registering type
-      converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named <emphasis>integrationConversionService</emphasis>.
+      converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named
+      <emphasis>integrationConversionService</emphasis>.
       That bean is automatically created as soon as the first converter is defined using the Spring Integration namespace support.
 
       To register a Converter all you need is to implement
@@ -594,13 +595,38 @@ any transaction configuration essentially allowing you to enhance the behavior o
       convenient namespace support:
       <programlisting language="xml"><![CDATA[ <int:converter ref="sampleConverter"/>
 
-	<bean id="sampleConverter" class="foo.bar.TestConverter"/>]]></programlisting>
+<bean id="sampleConverter" class="foo.bar.TestConverter"/>]]></programlisting>
 
       or as an inner bean:
       <programlisting language="xml"><![CDATA[ <int:converter>
-		<bean class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter3"/>
-	</int:converter>]]></programlisting>
+	<bean class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter3"/>
+</int:converter>]]></programlisting>
      </para>
+     <important>
+         <para>
+             When configuring an <emphasis>Application Context</emphasis>, the
+             Spring Framework allows you to add a <emphasis>conversionService</emphasis> bean
+             (see <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-Spring-config">
+             Configuring a ConversionService</ulink> chapter). This service is used, when needed,
+             to perform appropriate conversions during bean creation and configuration.
+         </para>
+         <para>
+             In contrast, the <emphasis>integrationConversionService</emphasis> is used for runtime conversions.
+             These uses are quite different; converters that are intended for use when wiring bean
+             constructor-args and properties may produce unintended results if used at runtime
+             for Spring Integration expression evaluation against
+             Messages within Datatype Channels, Payload Type transformers etc.
+         </para>
+         <para>
+             However, if you do want to use the Spring <emphasis>conversionService</emphasis> as
+             the Spring Integration <emphasis>integrationConversionService</emphasis>,
+             you can configure an <emphasis>alias</emphasis> in the Application Context:
+             <programlisting language="xml"><![CDATA[<alias name="conversionService" alias="integrationConversionService"/>]]></programlisting>
+             In this case the <emphasis>conversionService</emphasis>'s Converters will be available for Spring Integration
+             runtime conversion.
+         </para>
+	  </important>
+
   </section>
 
   <section id="async-polling">
@@ -620,7 +646,7 @@ any transaction configuration essentially allowing you to enhance the behavior o
      forum (http://forum.springsource.org/showthread.php?t=94519):
 
       <programlisting language="xml"><![CDATA[<int:service-activator input-channel="publishChannel" ref="myService">
-		<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50"/>
+	<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50"/>
 </int:service-activator>
 
 <task:executor id="taskExecutor" pool-size="20" queue-capacity="20"/>]]></programlisting>

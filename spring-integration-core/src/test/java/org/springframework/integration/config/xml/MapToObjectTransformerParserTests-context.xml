@@ -9,27 +9,27 @@
 	<int:channel id="output">
 		<int:queue/>
 	</int:channel>
-	
-	<int:map-to-object-transformer input-channel="input" 
-	                               output-channel="output" 
+
+	<int:map-to-object-transformer input-channel="input"
+	                               output-channel="output"
 	                               type="org.springframework.integration.config.xml.MapToObjectTransformerParserTests$Person"/>
-	                               
+
 	<int:channel id="inputA"/>
 	<int:channel id="outputA">
 		<int:queue/>
 	</int:channel>
-	
-	<int:map-to-object-transformer input-channel="inputA" 
-	                               output-channel="outputA" 
+
+	<int:map-to-object-transformer input-channel="inputA"
+	                               output-channel="outputA"
 	                               ref="person"/>
-	                               
-	<bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+
+	<bean id="conversionService" name="integrationConversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
 		<property name="converters">
 			<list>
 				<bean class="org.springframework.integration.config.xml.MapToObjectTransformerParserTests$StringToAddressConverter" />
 			</list>
 		</property>
 	</bean>
-	                               
+
 	<bean id="person" class="org.springframework.integration.config.xml.MapToObjectTransformerParserTests$Person" scope="prototype"/>
 </beans>
