@@ -21,11 +21,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -34,9 +38,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
@@ -54,6 +61,8 @@ import org.springframework.integration.test.util.TestUtils;
  * @since 2.0
  */
 public class TcpOutboundGatewayTests {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Test
 	public void testGoodNetSingle() throws Exception {
@@ -248,5 +257,118 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 	}
 
+	/**
+	 * Sends 2 concurrent messages on a shared connection. The GW single threads
+	 * these requests. The first will timeout; the second should receive its
+	 * own response, not that for the first.
+	 * @throws Exception
+	 */
+	@Test
+	public void testGoodNetGWTimeout() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		/*
+		 * The payload of the last message received by the remote side;
+		 * used to verify the correct response is received.
+		 */
+		final AtomicReference<String> lastReceived = new AtomicReference<String>();
+		final CountDownLatch serverLatch = new CountDownLatch(2);
+
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					int i = 0;
+					while (!done.get()) {
+						Socket socket = server.accept();
+						i++;
+						while (!socket.isClosed()) {
+							try {
+								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+								String request = (String) ois.readObject();
+								logger.debug("Read " + request);
+								ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+								if (i < 2) {
+									Thread.sleep(1000);
+								}
+								oos.writeObject(request.replace("Test", "Reply"));
+								logger.debug("Replied to " + request);
+								lastReceived.set(request);
+								serverLatch.countDown();
+							}
+							catch (IOException e) {
+								socket.close();
+							}
+						}
+					}
+				} catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
+		ccf.setSoTimeout(10000);
+		ccf.setSingleUse(false);
+		ccf.start();
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		final TcpOutboundGateway gateway = new TcpOutboundGateway();
+		gateway.setConnectionFactory(ccf);
+		gateway.setRequestTimeout(Integer.MAX_VALUE);
+		QueueChannel replyChannel = new QueueChannel();
+		gateway.setRequiresReply(true);
+		gateway.setOutputChannel(replyChannel);
+		gateway.setRemoteTimeout(500);
+		@SuppressWarnings("unchecked")
+		Future<Integer>[] results = new Future[2];
+		for (int i = 0; i < 2; i++) {
+			final int j = i;
+			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>() {
+				public Integer call() throws Exception {
+					// increase the timeout after the first send
+					if (j > 0) {
+						gateway.setRemoteTimeout(5000);
+					}
+					gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
+					return j;
+				}
+			}));
+			Thread.sleep(50);
+		}
+		// wait until the server side has processed both requests
+		assertTrue(serverLatch.await(10, TimeUnit.SECONDS));
+		List<String> replies = new ArrayList<String>();
+		int timeouts = 0;
+		for (int i = 0; i < 2; i++) {
+			try {
+				int result = results[i].get();
+				String reply = (String) replyChannel.receive(1000).getPayload();
+				logger.debug(i + " got " + result + " " + reply);
+				replies.add(reply);
+			} catch (InterruptedException e) {
+
+			} catch (ExecutionException e) {
+				if (timeouts >= 2) {
+					fail("Unexpected " + e.getMessage());
+				} else {
+					assertNotNull(e.getCause());
+					assertTrue(e.getCause() instanceof MessageTimeoutException);
+				}
+				timeouts++;
+				continue;
+			}
+		}
+		assertEquals("Expected exactly one ExecutionException", 1, timeouts);
+		assertEquals(1, replies.size());
+		assertEquals(lastReceived.get().replace("Test", "Reply"), replies.get(0));
+		done.set(true);
+		assertEquals(0, TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size());
+	}
 
 }
