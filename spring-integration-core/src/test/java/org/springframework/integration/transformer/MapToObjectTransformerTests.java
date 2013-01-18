@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,43 @@
 
 package org.springframework.integration.transformer;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+
+import java.lang.reflect.Constructor;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
-import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.util.ClassUtils;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
- *
+ * @author Artem Bilan
  * @since 2.0
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
 public class MapToObjectTransformerTests {
 
-
 	@Test
-	public void testMapToObjectTransformation(){
-		Map map = new HashMap();
+	public void testMapToObjectTransformation() {
+		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		Address address = new Address();
@@ -68,8 +74,8 @@ public class MapToObjectTransformerTests {
 	}
 
 	@Test
-	public void testMapToObjectTransformationWithPrototype(){
-		Map map = new HashMap();
+	public void testMapToObjectTransformationWithPrototype() {
+		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		Address address = new Address();
@@ -92,8 +98,8 @@ public class MapToObjectTransformerTests {
 	}
 
 	@Test
-	public void testMapToObjectTransformationWithConversionService(){
-		Map map = new HashMap();
+	public void testMapToObjectTransformationWithConversionService() {
+		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		map.put("address", "1123 Main st");
@@ -101,8 +107,10 @@ public class MapToObjectTransformerTests {
 		Message message = MessageBuilder.withPayload(map).build();
 
 		MapToObjectTransformer transformer = new MapToObjectTransformer(Person.class);
-		ConfigurableBeanFactory beanFactory = this.getBeanFactory();
-		((GenericConversionService)beanFactory.getConversionService()).addConverter(new StringToAddressConverter());
+		BeanFactory beanFactory = this.getBeanFactory();
+		ConverterRegistry conversionService =
+				beanFactory.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConverterRegistry.class);
+		conversionService.addConverter(new StringToAddressConverter());
 		transformer.setBeanFactory(beanFactory);
 
 		Message newMessage = transformer.transform(message);
@@ -114,46 +122,72 @@ public class MapToObjectTransformerTests {
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 
-	@SuppressWarnings("deprecation")
-	private ConfigurableBeanFactory getBeanFactory(){
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
-		beanFactory.setConversionService(conversionService);
-		return beanFactory;
+	private BeanFactory getBeanFactory() {
+		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
+		Constructor<?> constructorToUse = null;
+		try {
+			final Class<?> conversionServiceCreatorClass = ClassUtils.forName("org.springframework.integration.context.ConversionServiceCreator",
+					ClassUtils.getDefaultClassLoader());
+			constructorToUse = AccessController.doPrivileged(new PrivilegedExceptionAction<Constructor>() {
+				public Constructor run() throws Exception {
+					return conversionServiceCreatorClass.getDeclaredConstructor((Class[]) null);
+				}
+			});
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Unexpected Privilege Exception: ", e);
+		}
+
+		ctx.addBeanFactoryPostProcessor((BeanFactoryPostProcessor) BeanUtils.instantiateClass(constructorToUse));
+		ctx.refresh();
+		return ctx;
 	}
 
-	public static class Person{
+	public static class Person {
+
 		private String fname;
+
 		private String lname;
+
 		private String ssn;
+
 		private Address address;
+
 		public String getSsn() {
 			return ssn;
 		}
+
 		public void setSsn(String ssn) {
 			this.ssn = ssn;
 		}
+
 		public String getFname() {
 			return fname;
 		}
+
 		public void setFname(String fname) {
 			this.fname = fname;
 		}
+
 		public String getLname() {
 			return lname;
 		}
+
 		public void setLname(String lname) {
 			this.lname = lname;
 		}
+
 		public Address getAddress() {
 			return address;
 		}
+
 		public void setAddress(Address address) {
 			this.address = address;
 		}
 	}
 
 	public static class Address {
+
 		private String street;
 
 		public String getStreet() {
@@ -165,7 +199,8 @@ public class MapToObjectTransformerTests {
 		}
 	}
 
-	public class StringToAddressConverter implements Converter<String, Address>{
+	public class StringToAddressConverter implements Converter<String, Address> {
+
 		public Address convert(String source) {
 			Address address = new Address();
 			address.setStreet(source);

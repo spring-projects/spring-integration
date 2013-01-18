@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,8 @@ import java.util.Map;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
@@ -36,13 +35,15 @@ import org.springframework.validation.DataBinder;
  * to types that represent the properties of the Object.
  *
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
-public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>, Object>{
+public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?, ?>, Object> {
 
 	private final Class<?> targetClass;
 
 	private final String targetBeanName;
+
 	/**
 	 * @param targetClass
 	 */
@@ -51,6 +52,7 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 		this.targetClass = targetClass;
 		this.targetBeanName = null;
 	}
+
 	/**
 	 * @param beanName
 	 */
@@ -59,32 +61,32 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 		this.targetBeanName = beanName;
 		this.targetClass = null;
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)
 	 */
-	@SuppressWarnings("deprecation")
-	protected Object transformPayload(Map<?,?> payload) throws Exception {
+	protected Object transformPayload(Map<?, ?> payload) throws Exception {
 		Object target = (this.targetClass != null)
 				? BeanUtils.instantiate(this.targetClass)
 				: this.getBeanFactory().getBean(this.targetBeanName);
+
 		DataBinder binder = new DataBinder(target);
-		ConversionService conversionService = null;
-		if (this.getBeanFactory() instanceof ConfigurableBeanFactory){
-			conversionService = ((ConfigurableBeanFactory)this.getBeanFactory()).getConversionService();
-		}
-		if (conversionService == null){
-			conversionService = ConversionServiceFactory.createDefaultConversionService();
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService == null) {
+			conversionService = new DefaultConversionService();
 		}
 		binder.setConversionService(conversionService);
 		binder.bind(new MutablePropertyValues(payload));
+
 		return target;
 	}
 
-	protected void onInit(){
+	protected void onInit() {
 		if (StringUtils.hasText(this.targetBeanName)) {
 			Assert.isTrue(this.getBeanFactory().isPrototype(this.targetBeanName),
 					"target bean [" + targetBeanName + "] must have 'prototype' scope");
 		}
 	}
+
 }
