@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,8 +117,11 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 				editor = delegate.getDefaultEditor(sourceType.getType());
 			}
 			if (editor != null) { // INT-1441
-				editor.setValue(value);
-				String text = editor.getAsText();
+				String text = null;
+				synchronized (editor) {
+					editor.setValue(value);
+					text = editor.getAsText();
+				}
 				if (String.class.isAssignableFrom(targetType.getClass())) {
 					return text;
 				}
