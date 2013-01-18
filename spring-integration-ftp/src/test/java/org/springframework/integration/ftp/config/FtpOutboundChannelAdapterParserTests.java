@@ -33,11 +33,14 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -118,6 +121,27 @@ public class FtpOutboundChannelAdapterParserTests {
 			FileTransferringMessageHandler<?> handler =
 					(FileTransferringMessageHandler<?>)TestUtils.getPropertyValue(ac.getBean("ftpOutbound3"), "handler");
 			assertFalse((Boolean)TestUtils.getPropertyValue(handler,"useTemporaryFileName"));
+	}
+
+	@Test
+	public void testBeanExpressions() throws Exception{
+		ApplicationContext ac =
+			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
+		Object consumer = ac.getBean("withBeanExpressions");
+		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
+		ExpressionEvaluatingMessageProcessor<?> dirExpProc = TestUtils.getPropertyValue(handler,
+				"directoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
+		assertNotNull(dirExpProc);
+		Message<String> message = MessageBuilder.withPayload("qux").build();
+		assertEquals("foo", dirExpProc.processMessage(message));
+		ExpressionEvaluatingMessageProcessor<?> tempDirExpProc = TestUtils.getPropertyValue(handler,
+				"temporaryDirectoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
+		assertNotNull(tempDirExpProc);
+		assertEquals("bar", tempDirExpProc.processMessage(message));
+		DefaultFileNameGenerator generator = TestUtils.getPropertyValue(handler,
+				"fileNameGenerator", DefaultFileNameGenerator.class);
+		assertNotNull(generator);
+		assertEquals("baz", generator.generateFileName(message));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
@@ -63,6 +65,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	private volatile ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+
+	private volatile boolean fileNameGeneratorSet;
 
 	private volatile File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
 
@@ -119,6 +123,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		this.fileNameGenerator = (fileNameGenerator != null) ? fileNameGenerator : new DefaultFileNameGenerator();
+		this.fileNameGeneratorSet = fileNameGenerator != null;
 	}
 
 	public void setCharset(String charset) {
@@ -134,6 +139,16 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	@Override
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			this.directoryExpressionProcessor.setBeanFactory(beanFactory);
+			if (this.temporaryDirectoryExpressionProcessor != null) {
+				this.temporaryDirectoryExpressionProcessor.setBeanFactory(beanFactory);
+			}
+			if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
+				((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(beanFactory);
+			}
+		}
 		if (this.autoCreateDirectory){
 			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
