@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,24 @@
 
 package org.springframework.integration.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.integration.Message;
@@ -28,17 +46,11 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.junit.Assert.*;
-
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodInvokingMessageProcessorAnnotationTests {
@@ -47,6 +59,26 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 
 	private final Employee employee = new Employee("oleg", "zhurakousky");
 
+	private static volatile int concurrencyFailures = 0;
+
+	@Test
+	public void multiThreadsUUIDToStringConversion() throws Exception {
+		Method method = TestService.class.getMethod("headerId", String.class, String.class);
+		final MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
+		ExecutorService exec = Executors.newFixedThreadPool(100);
+		processor.processMessage(new GenericMessage<String>("foo"));
+		for (int i = 0; i < 100; i++) {
+			exec.execute(new Runnable() {
+				public void run() {
+					Object result = processor.processMessage(new GenericMessage<String>("foo"));
+					assertNotNull(result);
+				}
+			});
+		}
+		exec.shutdown();
+		assertTrue(exec.awaitTermination(10, TimeUnit.SECONDS));
+		assertEquals(0, concurrencyFailures);
+	}
 
 	@Test
 	public void optionalHeader() throws Exception {
@@ -70,16 +102,16 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				Message<String> messageWithHeader = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build();
 		GenericMessage<String> messageWithoutHeader = new GenericMessage<String>("foo");
-		
+
 		processor.processMessage(messageWithHeader);
 		processor.processMessage(messageWithoutHeader);
 	}
 
-	@Test 
+	@Test
 	public void fromMessageWithRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		Message<String> message = MessageBuilder.withPayload("foo")
-				.setHeader("num", new Integer(123)).build(); 
+				.setHeader("num", new Integer(123)).build();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Object result = processor.processMessage(message);
 		assertEquals(new Integer(123), result);
@@ -147,7 +179,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
-		Map<?, ?> result = (Map<?, ?>) processor.processMessage(message); 
+		Map<?, ?> result = (Map<?, ?>) processor.processMessage(message);
 		assertEquals(5, result.size());
 		assertTrue(result.containsKey(MessageHeaders.ID));
 		assertTrue(result.containsKey(MessageHeaders.TIMESTAMP));
@@ -220,7 +252,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	@Test
 	public void multipleAnnotatedArgs() throws Exception {
 		Message<?> message = this.getMessage();
-		Method method = TestService.class.getMethod("multipleAnnotatedArguments", 
+		Method method = TestService.class.getMethod("multipleAnnotatedArguments",
 													String.class,
 													String.class,
 													Employee.class,
@@ -235,7 +267,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Assert.assertTrue(parameters[2].equals(employee));
 		Assert.assertTrue(parameters[3].equals("oleg"));
 		Assert.assertTrue(parameters[4] instanceof Map);
-	}	    
+	}
 
 	@Test
 	public void fromMessageToPayload() throws Exception {
@@ -252,7 +284,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Method method = TestService.class.getMethod("payloadAnnotationFirstName", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
-		Object result = processor.processMessage(message); 
+		Object result = processor.processMessage(message);
 		Assert.assertTrue(result instanceof String);
 		Assert.assertEquals("oleg", result);
 	}
@@ -312,6 +344,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 
 	@SuppressWarnings("unused")
 	private static class TestService {
+
+		private final Log logger = LogFactory.getLog(this.getClass());
 
 		public Map<?,?> mapOnly(Map<?,?> map) {
 			return map;
@@ -395,6 +429,17 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 
 		public String headerNameWithHyphen(@Header("foo-bar") String foobar) {
 			return foobar.toUpperCase();
+		}
+
+		Set<String> ids = Collections.synchronizedSet(new HashSet<String>());
+
+		public String headerId(String payload, @Header("id") String id) {
+			logger.debug(id);
+			if (ids.contains(id)) {
+				concurrencyFailures++;
+			}
+			ids.add(id);
+			return "foo";
 		}
 	}
 
