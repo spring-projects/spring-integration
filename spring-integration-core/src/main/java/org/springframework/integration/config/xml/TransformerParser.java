@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.integration.config.TransformerFactoryBean;
+
 /**
  * Parser for the &lt;transformer/&gt; element.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class TransformerParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
 	String getFactoryBeanClassName() {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".config.TransformerFactoryBean";
+		return TransformerFactoryBean.class.getName();
 	}
 
 	@Override
