@@ -9,27 +9,28 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
+	<bean id="portBean" class="org.springframework.integration.http.config.OutboundResponseTypeTests$Port" />
 
-	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
 							   request-channel="requestChannel"
 							   reply-channel="replyChannel"/>
 
-	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
 							   request-channel="resTypeSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="java.lang.String"/>
 
-	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
 							   request-channel="resPrimitiveStringPresentationChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="[B"/>
 
-	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
 							   request-channel="resTypeExpressionSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type-expression="payload"/>
 
-	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
 							   request-channel="resTypeExpressionSetSerializationChannel"
 							   reply-channel="replyChannel"
 							   message-converters="stringAndSerializingConverters"
