@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.transformer.MapToObjectTransformer;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class MapToObjectTransformerParser extends AbstractTransformerParser {
@@ -38,17 +38,13 @@ public class MapToObjectTransformerParser extends AbstractTransformerParser {
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String ref = element.getAttribute("ref");
 		String type = element.getAttribute("type");
-		Assert.isTrue(!(StringUtils.hasText(ref) && StringUtils.hasText(type)), 
-				"'type' and 'ref' attributes are mutually-exclusive, but both have valid values; type: " + type + "; ref:");
+		Assert.isTrue(!(StringUtils.hasText(ref) && StringUtils.hasText(type)),
+				"'type' and 'ref' attributes are mutually-exclusive, but both have valid values; type: " + type + "; ref: " + ref);
 		if (StringUtils.hasText(ref)){
 			builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(ref, "java.lang.String");
 		} else if (StringUtils.hasText(type)){
-			ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
-			if (classLoader == null) {
-				classLoader = this.getClass().getClassLoader();
-			}
-			Class<?> clazz = ClassUtils.resolveClassName(type, classLoader);
-			builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(clazz, "java.lang.Class");
+			builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(type, "java.lang.Class");
 		}
 	}
+
 }
