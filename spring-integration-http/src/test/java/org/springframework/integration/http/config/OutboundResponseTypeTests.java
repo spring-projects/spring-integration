@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -79,10 +80,12 @@ public class OutboundResponseTypeTests {
 	@Autowired
 	private MessageChannel resTypeExpressionSetSerializationChannel;
 
+	private static int port = SocketUtils.findAvailableServerSocket();
+
 	@BeforeClass
 	public static void createServer() throws Exception {
 		httpHandler = new MyHandler();
-		server = HttpServer.create(new InetSocketAddress(51235), 0);
+		server = HttpServer.create(new InetSocketAddress(port), 0);
 		server.createContext("/testApps/outboundResponse", httpHandler);
 		server.start();
 	}
@@ -178,4 +181,13 @@ public class OutboundResponseTypeTests {
 			os.close();
 		}
 	}
+
+	public static class Port {
+
+		public String getPort() {
+			return Integer.toString(port);
+		}
+
+	}
+
 }

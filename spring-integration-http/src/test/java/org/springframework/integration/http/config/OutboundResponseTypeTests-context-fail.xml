@@ -7,8 +7,9 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
+	<bean id="portBean" class="org.springframework.integration.http.config.OutboundResponseTypeTests$Port" />
 
-	<int-http:outbound-gateway url="http://localhost:51235/testApps/outboundResponse"
+	<int-http:outbound-gateway url="http://localhost:#{portBean.port}/testApps/outboundResponse"
 							   request-channel="resTypeSetChannel"
 							   reply-channel="replyChannel"
 							   expected-response-type="java.lang.String"
