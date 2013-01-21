@@ -28,10 +28,10 @@ import org.springframework.integration.handler.MethodInvokingMessageProcessor;
  * is a Collection or Array. If the return value is not a Collection or
  * Array, then the single Object will be returned as the payload of a
  * single reply Message.
- * 
+ *
  * @author Mark Fisher
  */
-public class MethodInvokingSplitter extends AbstractMessageProcessingSplitter {
+public class MethodInvokingSplitter extends MessageProcessingSplitter {
 
 	public MethodInvokingSplitter(Object object, Method method) {
 		super(new MethodInvokingMessageProcessor<Collection<?>>(object, method));

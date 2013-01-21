@@ -26,11 +26,11 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 /**
  * A {@link MessageSelector} implementation that evaluates a SpEL expression.
  * The evaluation result of the expression must be a boolean value.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {
+public class ExpressionEvaluatingSelector extends MessageProcessingSelector {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 

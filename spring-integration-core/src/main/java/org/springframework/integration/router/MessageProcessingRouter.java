@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,18 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.util.Assert;
 
 /**
- * A base class for Router implementations that delegate to a
- * {@link MessageProcessor} instance.
- * 
+ * {@link AbstractMappingMessageRouter} implementation that delegate to a {@link MessageProcessor} instance.
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
-class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter {
+public class MessageProcessingRouter extends AbstractMappingMessageRouter {
 
-	private final MessageProcessor<Object> messageProcessor;
+	private final MessageProcessor<?> messageProcessor;
 
 
-	AbstractMessageProcessingRouter(MessageProcessor<Object> messageProcessor) {
+	public MessageProcessingRouter(MessageProcessor<?> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
@@ -47,7 +47,7 @@ class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter {
 	public final void onInit() {
 		super.onInit();
 		if (this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor<Object>) this.messageProcessor).setConversionService(this.getConversionService());
+			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(this.getConversionService());
 		}
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());

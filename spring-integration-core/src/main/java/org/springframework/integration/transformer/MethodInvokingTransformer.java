@@ -26,10 +26,10 @@ import org.springframework.integration.handler.MethodInvokingMessageProcessor;
  * on the given object. The method's return value will be considered as
  * the payload of a new Message unless the return value is itself already
  * a Message.
- * 
+ *
  * @author Mark Fisher
  */
-public class MethodInvokingTransformer extends AbstractMessageProcessingTransformer {
+public class MethodInvokingTransformer extends MessageProcessingTransformer {
 
 	public MethodInvokingTransformer(Object object, Method method) {
 		super(new MethodInvokingMessageProcessor<Object>(object, method));

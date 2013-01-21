@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.splitter;
 
-import java.util.Collection;
-
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
@@ -28,26 +26,25 @@ import org.springframework.util.Assert;
 /**
  * Base class for Message Splitter implementations that delegate to a
  * {@link MessageProcessor} instance.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
-abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter {
+public class MessageProcessingSplitter extends AbstractMessageSplitter {
 
-	private final MessageProcessor<Collection<?>> messageProcessor;
+	private final MessageProcessor<?> messageProcessor;
 
-
-	protected AbstractMessageProcessingSplitter(MessageProcessor<Collection<?>> expressionEvaluatingMessageProcessor) {
-		Assert.notNull(expressionEvaluatingMessageProcessor, "messageProcessor must not be null");
-		this.messageProcessor = expressionEvaluatingMessageProcessor;
+	public MessageProcessingSplitter(MessageProcessor<?> messageProcessor) {
+		Assert.notNull(messageProcessor, "messageProcessor must not be null");
+		this.messageProcessor = messageProcessor;
 	}
 
 	@Override
 	public void onInit() {
 		super.onInit();
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
+		if (this.messageProcessor instanceof AbstractMessageProcessor) {
+			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(this.getConversionService());
 		}
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());

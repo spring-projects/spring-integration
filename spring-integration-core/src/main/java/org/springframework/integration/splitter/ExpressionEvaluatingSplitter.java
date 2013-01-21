@@ -26,11 +26,11 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  * expression. The result of evaluation will typically be a Collection or
  * Array. If the result is not a Collection or Array, then the single Object
  * will be returned as the payload of a single reply Message.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionEvaluatingSplitter extends AbstractMessageProcessingSplitter {
+public class ExpressionEvaluatingSplitter extends MessageProcessingSplitter {
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public ExpressionEvaluatingSplitter(Expression expression) {

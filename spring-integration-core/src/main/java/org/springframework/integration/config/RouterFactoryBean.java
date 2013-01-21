@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -21,9 +21,11 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
+import org.springframework.integration.router.MessageProcessingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
@@ -31,14 +33,15 @@ import org.springframework.util.StringUtils;
 
 /**
  * Factory bean for creating a Message Router.
- * 
+ *
  * @author Mark Fisher
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @author Artem Bilan
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
-	
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile Map<String, String> channelMappings;
@@ -52,7 +55,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	private volatile Boolean applySequence;
 
 	private volatile Boolean ignoreSendFailures;
-	
+
 	private volatile ChannelResolver channelResolver;
 
 
@@ -79,7 +82,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	public void setIgnoreSendFailures(Boolean ignoreSendFailures) {
 		this.ignoreSendFailures = ignoreSendFailures;
 	}
-	
+
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		this.channelMappings = channelMappings;
 	}
@@ -108,11 +111,15 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
+	@Override
+	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
+		return this.configureRouter(new MessageProcessingRouter(processor));
+	}
+
 	private AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
-		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName)) 
+		return  (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
-		return router;
 	}
 
 	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
@@ -120,7 +127,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
 		}
 		if (this.timeout != null) {
-			router.setTimeout(timeout.longValue());
+			router.setTimeout(this.timeout);
 		}
 		if (this.applySequence != null) {
 			router.setApplySequence(this.applySequence);

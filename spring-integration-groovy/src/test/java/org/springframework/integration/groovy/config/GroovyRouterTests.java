@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,28 @@ package org.springframework.integration.groovy.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.router.MessageProcessingRouter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -49,6 +57,11 @@ public class GroovyRouterTests {
 
 	@Autowired
 	private PollableChannel shortStrings;
+
+	@Autowired
+	@Qualifier("groovyRouter.handler")
+	private MessageHandler groovyRouterMessageHandler;
+
 
 
 	@Test
@@ -91,6 +104,14 @@ public class GroovyRouterTests {
 		assertEquals("elephant", longStrings.receive(0).getPayload());
 		assertNull(shortStrings.receive(0));
 		assertNull(longStrings.receive(0));
+	}
+
+	@Test
+	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
+		assertTrue(this.groovyRouterMessageHandler instanceof MessageProcessingRouter);
+		MessageProcessor messageProcessor = TestUtils.getPropertyValue(this.groovyRouterMessageHandler, "messageProcessor", MessageProcessor.class);
+		//before it was MethodInvokingMessageProcessor
+		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);
 	}
 
 }

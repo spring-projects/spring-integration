@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,52 +14,56 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.filter;
+package org.springframework.integration.transformer;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
- * A base class for {@link MessageSelector} implementations that delegate to
- * a {@link MessageProcessor}.
- * 
+ * {@link Transformer) implementation that delegate to a {@link MessageProcessor}.
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-abstract class AbstractMessageProcessingSelector implements MessageSelector, BeanFactoryAware {
+public class MessageProcessingTransformer implements Transformer, BeanFactoryAware {
 
-	private final MessageProcessor<Boolean> messageProcessor;
+	private final MessageProcessor<?> messageProcessor;
 
 
-	public AbstractMessageProcessingSelector(MessageProcessor<Boolean> messageProcessor) {
+	public MessageProcessingTransformer(MessageProcessor<?> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
 
 
-	protected void setConversionService(ConversionService conversionService) {
-		if (this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor<Boolean>) this.messageProcessor).setConversionService(conversionService);
-		}
-	}
-
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+	public void setBeanFactory(BeanFactory beanFactory) {
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
 		}
+		if (this.messageProcessor instanceof AbstractMessageProcessor) {
+			ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+			if (conversionService != null) {
+				((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
+			}
+		}
 	}
 
-	public final boolean accept(Message<?> message) {
+	public final Message<?> transform(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
-		Assert.notNull(result, "result must not be null");
-		Assert.isAssignable(Boolean.class, result.getClass(), "a boolean result is required");
-		return (Boolean) result;
+		if (result == null) {
+			return null;
+		}
+		if (result instanceof Message<?>) {
+			return (Message<?>) result;
+		}
+		return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
 	}
 
 }

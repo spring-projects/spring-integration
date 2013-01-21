@@ -28,10 +28,10 @@ import org.springframework.integration.support.channel.ChannelResolver;
  * String to be interpreted as a channel name, or a Collection (or Array) of
  * either type. If the method returns channel names, then a
  * {@link ChannelResolver} is required.
- * 
+ *
  * @author Mark Fisher
  */
-public class MethodInvokingRouter extends AbstractMessageProcessingRouter {
+public class MethodInvokingRouter extends MessageProcessingRouter {
 
 	public MethodInvokingRouter(Object object, Method method) {
 		super(new MethodInvokingMessageProcessor<Object>(object, method));

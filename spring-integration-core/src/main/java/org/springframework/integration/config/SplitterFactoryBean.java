@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,21 @@ package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
+import org.springframework.integration.splitter.MessageProcessingSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Factory bean for creating a Message Splitter.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -81,15 +84,20 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		return splitter;
 	}
 
+	@Override
+	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+		return this.configureSplitter(new ExpressionEvaluatingSplitter(expression));
+	}
+
+	@Override
+	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
+		return this.configureSplitter(new MessageProcessingSplitter(processor));
+	}
+
 	private AbstractMessageSplitter createMethodInvokingSplitter(Object targetObject, String targetMethodName) {
 		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingSplitter(targetObject, targetMethodName)
 				: new MethodInvokingSplitter(targetObject);
-	}
-
-	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
-		return this.configureSplitter(new ExpressionEvaluatingSplitter(expression));
 	}
 
 	@Override

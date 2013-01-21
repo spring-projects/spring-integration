@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * {@link MessageRejectedException} depending on the value of its
  * {@link #throwExceptionOnRejection} property. If a discard channel is
  * provided, the rejected Messages will be sent to that channel.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -56,7 +56,7 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 
 
 	/**
-	 * Specify whether this filter should throw a 
+	 * Specify whether this filter should throw a
 	 * {@link MessageRejectedException} when its selector does not accept a
 	 * Message. The default value is <code>false</code> meaning that rejected
 	 * Messages will be quietly dropped or sent to the discard channel if
@@ -90,9 +90,6 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	@Override
 	public final void onInit() {
 		super.onInit();
-		if (this.selector instanceof AbstractMessageProcessingSelector) {
-			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
-		}
 		if (this.selector instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.selector).setBeanFactory(this.getBeanFactory());
 		}
