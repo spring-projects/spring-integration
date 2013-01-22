@@ -167,6 +167,7 @@ public class TcpInboundGatewayTests {
 		latch2.countDown();
 		assertTrue(latch3.await(10, TimeUnit.SECONDS));
 		assertTrue(done.get());
+		gateway.stop();
 	}
 
 	@Test

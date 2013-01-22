@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import org.springframework.core.serializer.Deserializer;
@@ -36,6 +37,10 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	private final Socket socket;
 
 	private boolean noReadErrorOnClose;
+
+	private volatile long lastRead = System.currentTimeMillis();
+
+	private volatile long lastSend;
 
 	/**
 	 * Constructs a TcpNetConnection for the socket.
@@ -67,6 +72,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	@SuppressWarnings("unchecked")
 	public synchronized void send(Message<?> message) throws Exception {
 		Object object = this.getMapper().fromMessage(message);
+		this.lastSend = System.currentTimeMillis();
 		((Serializer<Object>) this.getSerializer()).serialize(object, this.socket.getOutputStream());
 		this.afterSend(message);
 	}
@@ -96,54 +102,31 @@ public class TcpNetConnection extends AbstractTcpConnection {
 			logger.debug("TcpListener exiting - no listener and not single use");
 			return;
 		}
-		Message<?> message = null;
 		boolean okToRun = true;
 		logger.debug("Reading...");
 		boolean intercepted = false;
 		while (okToRun) {
+			Message<?> message = null;
 			try {
 				message = this.getMapper().toMessage(this);
+				this.lastRead = System.currentTimeMillis();
 			} catch (Exception e) {
-				this.closeConnection();
-				if (!(e instanceof SoftEndOfStreamException)) {
-					if (e instanceof SocketTimeoutException && singleUse) {
-						logger.debug("Closing single use socket after timeout");
-					} else {
-						if (this.noReadErrorOnClose) {
-							if (logger.isTraceEnabled()) {
-								logger.trace("Read exception " +
-										 this.getConnectionId(), e);
-							}
-							else if (logger.isDebugEnabled()) {
-								logger.debug("Read exception " +
-										 this.getConnectionId() + " " +
-										 e.getClass().getSimpleName() +
-									     ":" + e.getCause() + ":" + e.getMessage());
-							}
-						} else if (logger.isTraceEnabled()) {
-							logger.error("Read exception " +
-									 this.getConnectionId(), e);
-						} else {
-							logger.error("Read exception " +
-										 this.getConnectionId() + " " +
-										 e.getClass().getSimpleName() +
-									     ":" + e.getCause() + ":" + e.getMessage());
-						}
+				if (handleReadException(e)) {
+					okToRun = false;
+				}
+			}
+			if (okToRun && message != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Message received " + message);
+				}
+				try {
+					if (listener == null) {
+						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
+						continue;
 					}
+					intercepted = this.getListener().onMessage(message);
 				}
-				break;
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("Message received " + message);
-			}
-			try {
-				if (listener == null) {
-					logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
-					continue;
-				}
-				intercepted = this.getListener().onMessage(message);
-			} catch (Exception e) {
-				if (e instanceof NoListenerException) {
+				catch (NoListenerException nle) {
 					if (singleUse) {
 						logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
 						this.closeConnection();
@@ -151,21 +134,76 @@ public class TcpNetConnection extends AbstractTcpConnection {
 					} else {
 						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
 					}
-				} else {
-					logger.error("Exception sending meeeage: " + message, e);
+				}
+				catch (Exception e2) {
+					logger.error("Exception sending message: " + message, e2);
+				}
+				/*
+				 * For single use sockets, we close after receipt if we are on the client
+				 * side, and the data was not intercepted,
+				 * or the server side has no outbound adapter registered
+				 */
+				if (singleUse && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
+					logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
+					this.closeConnection();
+					okToRun = false;
 				}
 			}
-			/*
-			 * For single use sockets, we close after receipt if we are on the client
-			 * side, and the data was not intercepted,
-			 * or the server side has no outbound adapter registered
-			 */
-			if (singleUse && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
-				logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
-				this.closeConnection();
-				okToRun = false;
+		}
+	}
+
+	protected boolean handleReadException(Exception e) {
+		boolean doClose = true;
+		/*
+		 * For client connections, we have to wait for 2 timeouts if the last
+		 * send was within the current timeout.
+		 */
+		if (!this.isServer() && e instanceof SocketTimeoutException) {
+			long now = System.currentTimeMillis();
+			try {
+				int soTimeout = this.socket.getSoTimeout();
+				if (now - this.lastSend < soTimeout && now - this.lastRead < soTimeout * 2) {
+					doClose = false;
+				}
+				if (!doClose && logger.isDebugEnabled()) {
+					logger.debug("Skipping a socket timeout because we have a recent send " + this.getConnectionId());
+				}
+			}
+			catch (SocketException e1) {
+				logger.error("Error accessing soTimeout", e1);
+				doClose = true;
 			}
 		}
+		if (doClose) {
+			this.closeConnection();
+			if (!(e instanceof SoftEndOfStreamException)) {
+				if (e instanceof SocketTimeoutException && this.isSingleUse()) {
+					logger.debug("Closing single use socket after timeout");
+				} else {
+					if (this.noReadErrorOnClose) {
+						if (logger.isTraceEnabled()) {
+							logger.trace("Read exception " +
+									 this.getConnectionId(), e);
+						}
+						else if (logger.isDebugEnabled()) {
+							logger.debug("Read exception " +
+									 this.getConnectionId() + " " +
+									 e.getClass().getSimpleName() +
+								     ":" + e.getCause() + ":" + e.getMessage());
+						}
+					} else if (logger.isTraceEnabled()) {
+						logger.error("Read exception " +
+								 this.getConnectionId(), e);
+					} else {
+						logger.error("Read exception " +
+									 this.getConnectionId() + " " +
+									 e.getClass().getSimpleName() +
+								     ":" + e.getCause() + ":" + e.getMessage());
+					}
+				}
+			}
+		}
+		return doClose;
 	}
 
 }

@@ -67,6 +67,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private volatile long lastRead;
 
+	private volatile long lastSend;
+
 	private AtomicInteger executionControl = new AtomicInteger();
 
 	private volatile boolean writingToPipe;
@@ -120,6 +122,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	public void send(Message<?> message) throws Exception {
 		synchronized(this.getMapper()) {
 			Object object = this.getMapper().fromMessage(message);
+			this.lastSend = System.currentTimeMillis();
 			((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
 			this.afterSend(message);
 		}
@@ -255,8 +258,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 					}
 					this.closeConnection();
 				}
-			} else {
-				logger.error("Exception sending meeeage: " + message, e);
+			}
+			else {
+				logger.error("Exception sending message: " + message, e);
 			}
 		}
 		/*
@@ -419,6 +423,13 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 */
 	public void setLastRead(long lastRead) {
 		this.lastRead = lastRead;
+	}
+
+	/**
+	 * @return the time of the last send
+	 */
+	public long getLastSend() {
+		return lastSend;
 	}
 
 	/**
