@@ -20,7 +20,7 @@
 
 	<stdout-channel-adapter id="newlineAdapter" append-newline="true" channel="testChannel"/>
 
-	<integration:chain input-channel="stdoutInsideNestedChain">
+	<integration:chain id="stdoutChain" input-channel="stdoutInsideNestedChain">
 		<integration:transformer expression="payload + 'bar'"/>
 		<integration:chain>
 			<stdout-channel-adapter/>
