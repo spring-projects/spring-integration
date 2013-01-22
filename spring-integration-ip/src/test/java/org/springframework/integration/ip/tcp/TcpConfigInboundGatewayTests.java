@@ -45,84 +45,84 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TcpConfigInboundGatewayTests {
-	
+
 	static AbstractApplicationContext staticContext;
-	
+
 	@Autowired
 	AbstractApplicationContext ctx;
-	
+
 	@Autowired
 	@Qualifier(value="crLfServer")
 	AbstractServerConnectionFactory crLfServer;
-	
+
 	@Autowired
 	@Qualifier(value="stxEtxServer")
 	AbstractServerConnectionFactory stxEtxServer;
-	
+
 	@Autowired
 	@Qualifier(value="lengthHeaderServer")
 	AbstractServerConnectionFactory lengthHeaderServer;
-	
+
 	@Autowired
 	@Qualifier(value="javaSerialServer")
 	AbstractServerConnectionFactory javaSerialServer;
-	
+
 	@Autowired
 	@Qualifier(value="crLfClient")
 	AbstractClientConnectionFactory crLfClient;
-	
+
 	@Autowired
 	@Qualifier(value="stxEtxClient")
 	AbstractClientConnectionFactory stxEtxClient;
-	
+
 	@Autowired
 	@Qualifier(value="lengthHeaderClient")
 	AbstractClientConnectionFactory lengthHeaderClient;
-	
+
 	@Autowired
 	@Qualifier(value="javaSerialClient")
 	AbstractClientConnectionFactory javaSerialClient;
-	
+
 	@Autowired
 	@Qualifier(value="crLfServerNio")
 	AbstractServerConnectionFactory crLfServerNio;
-	
+
 	@Autowired
 	@Qualifier(value="stxEtxServerNio")
 	AbstractServerConnectionFactory stxEtxServerNio;
-	
+
 	@Autowired
 	@Qualifier(value="lengthHeaderServerNio")
 	AbstractServerConnectionFactory lengthHeaderServerNio;
-	
+
 	@Autowired
 	@Qualifier(value="javaSerialServerNio")
 	AbstractServerConnectionFactory javaSerialServerNio;
-	
+
 	@Autowired
 	@Qualifier(value="crLfClientNio")
 	AbstractClientConnectionFactory crLfClientNio;
-	
+
 	@Autowired
 	@Qualifier(value="stxEtxClientNio")
 	AbstractClientConnectionFactory stxEtxClientNio;
-	
+
 	@Autowired
 	@Qualifier(value="lengthHeaderClientNio")
 	AbstractClientConnectionFactory lengthHeaderClientNio;
-	
+
 	@Autowired
 	@Qualifier(value="javaSerialClientNio")
 	AbstractClientConnectionFactory javaSerialClientNio;
-	
+
 	@Autowired
 	@Qualifier(value="gatewayCrLf")
 	TcpInboundGateway gatewayCrLf;
-	
+
 	@Autowired
 	@Qualifier(value="gatewayStxEtx")
 	TcpInboundGateway gatewayStxEtx;
-	
+
 	@Autowired
 	@Qualifier(value="gatewayLength")
 	TcpInboundGateway gatewayLength;
@@ -134,11 +134,11 @@ public class TcpConfigInboundGatewayTests {
 	@Autowired
 	@Qualifier(value="gatewayCrLfNio")
 	TcpInboundGateway gatewayCrLfNio;
-	
+
 	@Autowired
 	@Qualifier(value="gatewayStxEtxNio")
 	TcpInboundGateway gatewayStxEtxNio;
-	
+
 	@Autowired
 	@Qualifier(value="gatewayLengthNio")
 	TcpInboundGateway gatewayLengthNio;
@@ -156,8 +156,8 @@ public class TcpConfigInboundGatewayTests {
 
 	@Test
 	public void testCrLfNio() throws Exception {
-		waitListening(gatewayCrLf);
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", crLfServer.getPort());
+		waitListening(gatewayCrLfNio);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", crLfServerNio.getPort());
 		crLfGuts(socket);
 	}
 
@@ -285,7 +285,7 @@ public class TcpConfigInboundGatewayTests {
 				throw new Exception("Gateway failed to listen");
 			}
 		}
-		
+
 	}
 
 	@Before
@@ -294,7 +294,7 @@ public class TcpConfigInboundGatewayTests {
 			staticContext = ctx;
 		}
 	}
-	
+
 	@AfterClass
 	public static void shutDown() {
 		staticContext.close();

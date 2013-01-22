@@ -17,18 +17,19 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -53,9 +54,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private final ChannelOutputStream channelOutputStream;
 
-	private volatile PipedOutputStream pipedOutputStream;
-
-	private volatile PipedInputStream pipedInputStream;
+	private final ChannelInputStream channelInputStream = new ChannelInputStream();
 
 	private volatile boolean usingDirectBuffers;
 
@@ -88,8 +87,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		if (receiveBufferSize <= 0) {
 			receiveBufferSize = this.maxMessageSize;
 		}
-		this.pipedInputStream = new PipedInputStream(receiveBufferSize);
-		this.pipedOutputStream = new PipedOutputStream(this.pipedInputStream);
 		this.channelOutputStream = new ChannelOutputStream();
 	}
 
@@ -103,11 +100,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	private void doClose() {
-		if (pipedOutputStream != null) {
-			try {
-				pipedOutputStream.close();
-			} catch (IOException e) {}
-		}
+		try {
+			channelInputStream.close();
+		} catch (IOException e) {}
 		try {
 			this.socketChannel.close();
 		} catch (Exception e) {}
@@ -129,7 +124,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	public Object getPayload() throws Exception {
-		return this.getDeserializer().deserialize(pipedInputStream);
+		return this.getDeserializer().deserialize(this.channelInputStream);
 	}
 
 	public int getPort() {
@@ -197,7 +192,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				return;
 			}
 		} finally {
-			logger.trace("Nio message assembler exiting...");
+			if (logger.isTraceEnabled()) {
+				logger.trace(this.getConnectionId() + " Nio message assembler exiting...");
+			}
 			// Final check in case new data came in and the
 			// timing was such that we were the last assembler and
 			// a new one wasn't run
@@ -212,7 +209,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	private boolean dataAvailable() throws IOException {
-		return this.pipedInputStream.available() > 0 || writingToPipe;
+		return this.channelInputStream.available() > 0 || writingToPipe;
 	}
 
 	/**
@@ -325,7 +322,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				}
 			});
 			if (!latch.await(this.pipeTimeout , TimeUnit.MILLISECONDS)) {
-				throw new MessagingException("Timed out writing to pipe, probably due to insufficient threads in " +
+				this.close();
+				throw new MessagingException("Timed out writing to ChannelInputStream, probably due to insufficient threads in " +
 						"a fixed thread pool; consider increasing this task executor pool size");
 			}
 		} finally {
@@ -336,10 +334,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	protected void sendToPipe(ByteBuffer rawBuffer) throws IOException {
 		Assert.notNull(rawBuffer, "rawBuffer cannot be null");
 		if (logger.isTraceEnabled()) {
-			logger.trace("Sending " + rawBuffer.limit() + " to pipe");
+			logger.trace(this.getConnectionId() + " Sending " + rawBuffer.limit() + " to pipe");
 		}
-		this.pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
-		this.pipedOutputStream.flush();
+		this.channelInputStream.write(rawBuffer.array(), rawBuffer.limit());
 		rawBuffer.clear();
 	}
 
@@ -498,4 +495,98 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	}
 
+	/**
+	 * Provides an InputStream to receive data from {@link SocketChannel#read(ByteBuffer)}
+	 * operations. Each new buffer is added to a BlockingQueue; when the reading thread
+	 * exhausts the current buffer, it retrieves the next from the queue.
+	 * Writes block for up to the pipeTimeout if 5 buffers are queued to be read.
+	 *
+	 */
+	class ChannelInputStream extends InputStream {
+
+		private static final int BUFFER_LIMIT = 5;
+
+		private final BlockingQueue<byte[]> buffers = new LinkedBlockingQueue<byte[]>(BUFFER_LIMIT);
+
+		private volatile byte[] currentBuffer;
+
+		private volatile int currentOffset;
+
+		private final AtomicInteger available = new AtomicInteger();
+
+		private volatile boolean isClosed;
+
+		@Override
+		public synchronized int read() throws IOException {
+			if (this.isClosed && available.get() == 0) {
+				return -1;
+			}
+			if (this.currentBuffer == null) {
+				this.currentBuffer = getNextBuffer();
+				this.currentOffset = 0;
+				if (this.currentBuffer == null) {
+					return -1;
+				}
+			}
+			int bite;
+			bite = this.currentBuffer[this.currentOffset++];
+			this.available.decrementAndGet();
+			if (this.currentOffset >= this.currentBuffer.length) {
+				this.currentBuffer = null;
+			}
+			return bite;
+		}
+
+		private byte[] getNextBuffer() throws IOException {
+			byte[] buffer = null;
+			while (buffer == null) {
+				try {
+					buffer = buffers.poll(1, TimeUnit.SECONDS);
+					if (buffer == null && this.isClosed) {
+						return null;
+					}
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new IOException("Interrupted while waiting for data", e);
+				}
+			}
+			return buffer;
+		}
+
+		/**
+		 * Blocks if the blocking queue already contains 5 buffers.
+		 * @param array
+		 * @param bytesToWrite
+		 * @throws IOException
+		 */
+		public void write(byte[] array, int bytesToWrite) throws IOException {
+			if (bytesToWrite > 0) {
+				byte[] buffer = new byte[bytesToWrite];
+				System.arraycopy(array, 0, buffer, 0, bytesToWrite);
+				this.available.addAndGet(bytesToWrite);
+				try {
+					if (!this.buffers.offer(buffer, pipeTimeout, TimeUnit.MILLISECONDS)) {
+						throw new IOException("Timed out waiting for buffer space");
+					}
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new IOException("Interrupted while waiting for buffer space", e);
+				}
+			}
+		}
+
+		@Override
+		public void close() throws IOException {
+			super.close();
+			this.isClosed = true;
+		}
+
+		@Override
+		public int available() throws IOException {
+			return this.available.get();
+		}
+
+	}
 }
