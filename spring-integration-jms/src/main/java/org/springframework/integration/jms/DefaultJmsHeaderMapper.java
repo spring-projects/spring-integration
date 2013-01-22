@@ -55,8 +55,6 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	private static List<Class<?>> SUPPORTED_PROPERTY_TYPES = Arrays.asList(new Class<?>[] {
 			Boolean.class, Byte.class, Double.class, Float.class, Integer.class, Long.class, Short.class, String.class });
 
-	private static final String JMS_COMPATIBLE_CONTENT_TYPE_PROPERTY = "content_type";
-
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -238,7 +236,7 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			propertyName = this.outboundPrefix + headerName;
 		}
 		else if (MessageHeaders.CONTENT_TYPE.equals(headerName)) {
-			propertyName = JMS_COMPATIBLE_CONTENT_TYPE_PROPERTY;
+			propertyName = CONTENT_TYPE_PROPERTY;
 		}
 		return propertyName;
 	}
@@ -252,7 +250,7 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 		if (StringUtils.hasText(this.inboundPrefix) && !headerName.startsWith(this.inboundPrefix)) {
 			headerName = this.inboundPrefix + propertyName;
 		}
-		else if (JMS_COMPATIBLE_CONTENT_TYPE_PROPERTY.equals(propertyName)) {
+		else if (CONTENT_TYPE_PROPERTY.equals(propertyName)) {
 			headerName = MessageHeaders.CONTENT_TYPE;
 		}
 		return headerName;
