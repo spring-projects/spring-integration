@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +28,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,14 +45,19 @@ import javax.net.ServerSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
@@ -66,6 +73,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
 
 /**
  * @author Gary Russell
@@ -1095,4 +1103,26 @@ public class TcpSendingMessageHandlerTests {
 		assertEquals(testPayload, new String((byte[]) m.getPayload()));
 	}
 
+	@Test
+	public void testConnectionException() throws Exception {
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		AbstractConnectionFactory mockCcf = mock(AbstractClientConnectionFactory.class);
+		Mockito.doAnswer(new Answer<Object>() {
+
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				throw new SocketException("Failed to connect");
+			}
+		}).when(mockCcf).getConnection();
+		handler.setConnectionFactory(mockCcf);
+		try {
+			handler.handleMessage(new GenericMessage<String>("foo"));
+			fail("Expected exception");
+		}
+		catch (Exception e) {
+			assertTrue(e instanceof MessagingException);
+			assertTrue(e.getCause() != null);
+			assertTrue(e.getCause() instanceof SocketException);
+			assertEquals("Failed to connect", e.getCause().getMessage());
+		}
+	}
 }
