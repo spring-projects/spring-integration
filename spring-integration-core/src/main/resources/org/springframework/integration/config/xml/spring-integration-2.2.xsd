@@ -2106,11 +2106,17 @@
 		</xsd:choice>
 		<xsd:attribute name="content-type" use="optional">
 			<xsd:annotation>
-				<xsd:documentation>
-					Allows you to set 'content-type' Message header. In the case that a content-type header is already present,
-					we will only override that value IF this attribute is explicitely set with
-					content-type value (e.g., content-type="text/xml")
-				</xsd:documentation>
+				<xsd:documentation><![CDATA[
+					Allows you to set the 'content-type' Message header. When a 'content-type' header is already present
+					on the input message, the transformer will only override that value IF this attribute is explicitly set
+					(e.g., content-type="text/x-json").
+					If this attribute is omitted, the transformer will set the 'content-type' header to "application/json",
+					when there is no existing 'content-type' header on the input message.
+					Setting the attribute to an empty string ("")
+					will suppress setting the header to the default value,
+					but will not remove the header, if present on the input message. If you wish to remove an existing
+					header, use a <header-filter/> before or after the transformer.
+				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="object-mapper" use="optional">
