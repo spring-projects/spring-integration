@@ -93,7 +93,8 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 						throw e;
 					}
 					catch (Exception e) {
-						throw new MessagingException(message, "Failed to invoke handler", e);
+						throw new MessagingException(message, "Failed to invoke handler",
+								unwrapExceptionIfNecessary(e));
 					}
 				}
 			}, this.recoveryCallback, retryState);

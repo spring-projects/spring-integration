@@ -21,7 +21,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +35,9 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
@@ -39,6 +46,7 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
@@ -82,7 +90,7 @@ public class AdvisedMessageHandlerTests {
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpression("'foo'");
-		advice.setOnFailureExpression("'bar:' + #exception.cause.message");
+		advice.setOnFailureExpression("'bar:' + #exception.message");
 
 		List<Advice> adviceChain = new ArrayList<Advice>();
 		adviceChain.add(advice);
@@ -243,7 +251,7 @@ public class AdvisedMessageHandlerTests {
 		assertNotNull(failure);
 		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
 		assertEquals(MessageHandlingExpressionEvaluatingAdviceException.class, failure.getPayload().getClass());
-		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getCause().getMessage());
+		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getMessage());
 
 		// propagate failing advice with failure; expect original exception
 		advice.setPropagateEvaluationFailures(true);
@@ -261,7 +269,7 @@ public class AdvisedMessageHandlerTests {
 		assertNotNull(failure);
 		assertEquals("Hello, world!", ((MessagingException) failure.getPayload()).getFailedMessage().getPayload());
 		assertEquals(MessageHandlingExpressionEvaluatingAdviceException.class, failure.getPayload().getClass());
-		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getCause().getMessage());
+		assertEquals("qux", ((Exception) failure.getPayload()).getCause().getMessage());
 
 	}
 
@@ -536,7 +544,7 @@ public class AdvisedMessageHandlerTests {
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(1000);
 		assertNotNull(error);
-		assertEquals("fooException", ((Exception) error.getPayload()).getCause().getCause().getMessage());
+		assertEquals("fooException", ((Exception) error.getPayload()).getCause().getMessage());
 
 	}
 
@@ -607,8 +615,8 @@ public class AdvisedMessageHandlerTests {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
-			assertEquals("ThrowableHolderException", cause.getClass().getSimpleName());
-			assertEquals("intentional", cause.getCause().getMessage());
+			assertEquals(RuntimeException.class, cause.getClass());
+			assertEquals("intentional", cause.getMessage());
 		}
 
 		assertTrue(counter.get() == 0);
@@ -631,8 +639,8 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-//		ThrowableHolderException / MessagingException / ThrowableHolderException / RuntimeException
-		expressionAdvice.setOnFailureExpression("#exception.cause.cause.cause.message");
+//		MessagingException / RuntimeException
+		expressionAdvice.setOnFailureExpression("#exception.cause.message");
 		expressionAdvice.setReturnFailureExpressionResult(true);
 		final AtomicInteger outerCounter = new AtomicInteger();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
@@ -678,7 +686,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
-		expressionAdvice.setOnFailureExpression("#exception.cause.message");
+		expressionAdvice.setOnFailureExpression("#exception.message");
 		expressionAdvice.setFailureChannel(errors);
 
 		adviceChain.add(new RequestHandlerRetryAdvice());
@@ -696,7 +704,7 @@ public class AdvisedMessageHandlerTests {
 			handler.handleMessage(new GenericMessage<String>("test"));
 		}
 		catch (Exception e) {
-			assertEquals("intentional: 3", e.getCause().getCause().getMessage());
+			assertEquals("intentional: 3", e.getCause().getMessage());
 		}
 
 		for (int i = 1; i <= 3; i++) {
@@ -709,5 +717,90 @@ public class AdvisedMessageHandlerTests {
 
 	}
 
+	/**
+	 * Verify that Errors such as OOM are properly propagated.
+	 */
+	@Test
+	public void throwableProperlyPropagated() throws Exception {
+		AbstractRequestHandlerAdvice advice = new AbstractRequestHandlerAdvice() {
 
+			@Override
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+				Object result;
+				try {
+					result = callback.execute();
+				}
+				catch (Exception e) {
+					// should not be unwrapped because the cause is a Throwable
+					throw this.unwrapExceptionIfNecessary(e);
+				}
+				return result;
+			}
+		};
+		final Throwable theThrowable = new Throwable("foo");
+		MethodInvocation methodInvocation = mock(MethodInvocation.class);
+
+		Method method = AbstractReplyProducingMessageHandler.class.getDeclaredMethod("handleRequestMessage", Message.class);
+		when(methodInvocation.getMethod()).thenReturn(method);
+		when(methodInvocation.getArguments()).thenReturn(new Object[] {new GenericMessage<String>("foo")});
+		try {
+			doAnswer(new Answer<Object>() {
+				public Object answer(InvocationOnMock invocation) throws Throwable {
+					throw theThrowable;
+				}
+			}).when(methodInvocation).proceed();
+			advice.invoke(methodInvocation);
+			fail("Expected throwable");
+		}
+		catch (Throwable t) {
+			assertSame(theThrowable, t);
+		}
+	}
+
+	/**
+	 * Verify that Errors such as OOM are properly propagated and we suppress the
+	 * ThrowableHolderException from the output message.
+	 */
+	@Test
+	public void throwableProperlyPropagatedAndReported() throws Exception {
+		QueueChannel errors = new QueueChannel();
+
+		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
+		expressionAdvice.setOnFailureExpression("'foo'");
+		expressionAdvice.setFailureChannel(errors);
+
+		Throwable theThrowable = new Throwable("foo");
+		ProxyFactory proxyFactory = new ProxyFactory(new Foo(theThrowable));
+		proxyFactory.addAdvice(expressionAdvice);
+
+		Bar fooHandler = (Bar) proxyFactory.getProxy();
+
+		try {
+			fooHandler.handleRequestMessage(new GenericMessage<String>("foo"));
+			fail("Expected throwable");
+		}
+		catch (Throwable t) {
+			assertSame(theThrowable, t);
+			ErrorMessage error = (ErrorMessage) errors.receive(1000);
+			assertNotNull(error);
+			assertSame(theThrowable, error.getPayload().getCause());
+		}
+	}
+
+	private interface Bar {
+		Object handleRequestMessage(Message<?> message) throws Throwable;
+	}
+
+	private class Foo implements Bar {
+
+		public final Throwable throwable;
+
+		public Foo(Throwable throwable) {
+			this.throwable = throwable;
+		}
+
+		public Object handleRequestMessage(Message<?> message) throws Throwable {
+			throw this.throwable;
+		}
+	}
 }
