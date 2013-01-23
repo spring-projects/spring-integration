@@ -120,14 +120,15 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 			return result;
 		}
 		catch (Exception e) {
+			Exception actualException = this.unwrapExceptionIfNecessary(e);
 			if (this.onFailureExpression != null) {
-				Object evalResult = this.evaluateFailureExpression(message, e);
+				Object evalResult = this.evaluateFailureExpression(message, actualException);
 				if (this.returnFailureExpressionResult) {
 					return evalResult;
 				}
 			}
 			if (!this.trapException) {
-				throw e;
+				throw actualException;
 			}
 			return null;
 		}
@@ -163,7 +164,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 		}
 		if (evalResult != null && this.failureChannel != null) {
 			MessagingException messagingException = new MessageHandlingExpressionEvaluatingAdviceException(message,
-					"Handler Failed", exception, evalResult);
+					"Handler Failed", this.unwrapThrowableIfNecessary(exception), evalResult);
 			ErrorMessage resultMessage = new ErrorMessage(messagingException);
 			this.messagingTemplate.send(this.failureChannel, resultMessage);
 		}

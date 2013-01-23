@@ -111,8 +111,38 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
 
 	/**
-	 * Called by subclasses in doInvoke() to proceed() the invocation.
-	 *
+	 * Unwrap the cause of a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}.
+	 * @param e The exception.
+	 * @return The cause, or e, if not a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}
+	 */
+	protected Exception unwrapExceptionIfNecessary(Exception e) {
+		Exception actualException = e;
+		if (e instanceof ThrowableHolderException) {
+			if (e.getCause() instanceof Exception) {
+				actualException = (Exception) e.getCause();
+			}
+		}
+		return actualException;
+	}
+
+	/**
+	 * Unwrap the cause of a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}.
+	 * @param e The exception.
+	 * @return The cause, or e, if not a {@link AbstractRequestHandlerAdvice.ThrowableHolderException}
+	 */
+	protected Throwable unwrapThrowableIfNecessary(Exception e) {
+		Throwable actualThrowable = e;
+		if (e instanceof ThrowableHolderException) {
+			actualThrowable = e.getCause();
+		}
+		return actualThrowable;
+	}
+
+	/**
+	 * Called by subclasses in doInvoke() to proceed() the invocation. Callers
+	 * unwrap {@link AbstractRequestHandlerAdvice.ThrowableHolderException}s and use
+	 * the cause for evaluation and re-throwing purposes.
+	 * See {@link AbstractRequestHandlerAdvice#unwrapExceptionIfNecessary(Exception)}.
 	 */
 	protected interface ExecutionCallback {
 
