@@ -80,7 +80,8 @@ public class ObjectToJsonTransformerParserTests {
 		assertFalse(transformed.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE));
 
 		transformed = transformer.transform(MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo").build());
-		assertFalse(transformed.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE));
+		assertNotNull(transformed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals("foo", transformed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 
 		transformer =
 				TestUtils.getPropertyValue(context.getBean("overridenContentTypeTransformer"), "handler.transformer", ObjectToJsonTransformer.class);

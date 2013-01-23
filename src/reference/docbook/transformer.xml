@@ -236,9 +236,9 @@ public class Kid {
      <para>
       It you wish to set the <emphasis>content type</emphasis> header to some other value, or explicitly overwrite any existing header
       with some value (including <code>application/json</code>), use the <code>content-type</code>
-      attribute. If you wish to completely suppress the setting of the header, set the <code>content-type</code>
+      attribute. If you wish to suppress the setting of the header, set the <code>content-type</code>
       attribute to an empty string (<code>""</code>). This will result in a message with no <code>content-type</code>
-      header, even if such a header was present on the input message.
+      header, unless such a header was present on the input message.
      </para>
      <para>
       The behavior of adding the default header has a side affect - causing applications with the following

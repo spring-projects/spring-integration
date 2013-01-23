@@ -17,7 +17,6 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.regex.Matcher;
@@ -76,7 +75,7 @@ public class ObjectToJsonTransformerTests {
 		transformer.setContentType("");
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
 		Message<?> result = transformer.transform(message);
-		assertNull(result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test(expected=IllegalArgumentException.class)
