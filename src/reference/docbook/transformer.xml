@@ -230,8 +230,18 @@ public class Kid {
     <important>
      <para>
       Beginning with version 2.2, the <code>object-to-json-transformer</code> sets the <emphasis>content-type</emphasis>
-      header to <emphasis>application/json</emphasis>, by default. It can be overridden using the <code>content-type</code>
-      attribute. The default behavior has a side affect - causing applications with the following
+      header to <code>application/json</code>, by default, if the input message does not already have that header
+      present.
+     </para>
+     <para>
+      It you wish to set the <emphasis>content type</emphasis> header to some other value, or explicitly overwrite any existing header
+      with some value (including <code>application/json</code>), use the <code>content-type</code>
+      attribute. If you wish to completely suppress the setting of the header, set the <code>content-type</code>
+      attribute to an empty string (<code>""</code>). This will result in a message with no <code>content-type</code>
+      header, even if such a header was present on the input message.
+     </para>
+     <para>
+      The behavior of adding the default header has a side affect - causing applications with the following
       sequence to fail:
      </para>
      <para>
