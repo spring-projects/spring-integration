@@ -23,10 +23,21 @@
 
 	<router input-channel="inlineScriptInput">
 		<int-script:script lang="javascript"><![CDATA[
-		      (function(){ 
-				 return payload.length > 5 ? "longStrings" : "shortStrings";
-			  })(); 
+			(function(){
+				return payload.length > 5 ? "longStrings" : "shortStrings";
+			})();
 		]]></int-script:script>
 	</router>
+
+	<chain input-channel="scriptRouterWithinChainInput">
+		<router>
+			<int-script:script lang="javascript"><![CDATA[
+			(function(){
+				return payload.length > 5 ? "longStrings" : "shortStrings";
+			})();
+		]]></int-script:script>
+		</router>
+	</chain>
+
 
 </beans:beans>
