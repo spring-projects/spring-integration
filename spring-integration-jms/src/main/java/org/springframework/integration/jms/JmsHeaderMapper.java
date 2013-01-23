@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,14 @@ import org.springframework.integration.mapping.HeaderMapper;
  * Strategy interface for mapping integration Message headers to an outbound
  * JMS Message (e.g. to configure JMS properties) or extracting integration
  * header values from an inbound JMS Message.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
-public interface JmsHeaderMapper extends HeaderMapper<Message> {}
+public interface JmsHeaderMapper extends HeaderMapper<Message> {
+
+	static final String CONTENT_TYPE_PROPERTY = "content_type";
+
+}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,13 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
-import org.springframework.integration.jms.DefaultJmsHeaderMapper;
-import org.springframework.integration.jms.JmsHeaders;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class DefaultJmsHeaderMapperTests {
 
@@ -113,6 +112,19 @@ public class DefaultJmsHeaderMapperTests {
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
 		assertNull(jmsMessage.getJMSType());
+	}
+
+	@Test
+	public void testContentTypePropertyMappedFromHeader() throws JMSException {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(MessageHeaders.CONTENT_TYPE, "foo")
+				.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		Object value = jmsMessage.getObjectProperty("content_type");
+		assertNotNull(value);
+		assertEquals("foo", value);
 	}
 
 	@Test
@@ -215,6 +227,17 @@ public class DefaultJmsHeaderMapperTests {
 		Object attrib = headers.get(JmsHeaders.TIMESTAMP);
 		assertNotNull(attrib);
 		assertEquals(timestamp, attrib);
+	}
+
+	@Test
+	public void testContentTypePropertyMappedToHeader() throws JMSException {
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		jmsMessage.setStringProperty("content_type", "foo");
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
+		Object attrib = headers.get(MessageHeaders.CONTENT_TYPE);
+		assertNotNull(attrib);
+		assertEquals("foo", attrib);
 	}
 
 	@Test

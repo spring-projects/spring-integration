@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,25 @@
 
 package org.springframework.integration.json;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class ObjectToJsonTransformerTests {
@@ -73,11 +74,20 @@ public class ObjectToJsonTransformerTests {
 	public void withProvidedContentTypeAsEmptyString() throws Exception {
 		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
 		transformer.setContentType("");
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Message<?> result = transformer.transform(message);
+		assertFalse(result.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void withProvidedContentTypeAsEmptyStringDoesNotOverride() throws Exception {
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
+		transformer.setContentType("");
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
 		Message<?> result = transformer.transform(message);
-		assertEquals("", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
-	
+
 	@Test(expected=IllegalArgumentException.class)
 	public void withProvidedContentTypeAsNull() throws Exception {
 		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer();
