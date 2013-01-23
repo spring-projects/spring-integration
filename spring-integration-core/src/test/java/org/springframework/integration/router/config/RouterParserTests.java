@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.router.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,9 +28,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -43,118 +47,149 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Jonas Partner
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RouterParserTests {
+
+	@Autowired
+	private PollableChannel output1;
+
+	@Autowired
+	private PollableChannel output2;
+	@Autowired
+	private MessageChannel input;
+
+	@Autowired
+	private MessageChannel inputForRouterWithDefaultOutput;
+
+	@Autowired
+	private PollableChannel defaultOutput;
+
+	@Autowired
+	private MessageChannel inputForAbstractMessageRouterImplementation;
+
+	@Autowired
+	private PollableChannel output3;
+
+	@Autowired
+	private MessageChannel inputForAnnotatedRouter;
+
+	@Autowired
+	private PollableChannel output4;
+
+	@Autowired
+	private MessageChannel inputForRouterRequiringResolution;
+
+	@Autowired
+	private MessageChannel resolutionRequiredIsFalseInput;
+
+	@Autowired
+	@Qualifier("routerWithTimeout.handler")
+	private MessageHandler routerWithTimeout;
+
+	@Autowired
+	private MessageChannel sequenceRouter;
+
+	@Autowired
+	private PollableChannel sequenceOut1;
+
+	@Autowired
+	private PollableChannel sequenceOut2;
+
+	@Autowired
+	private PollableChannel sequenceOut3;
+
+	@Autowired
+	private MessageChannel routerNestedBeanChannel;
+
+	@Autowired
+	private MessageChannel chainRouterNestedBeanChannel;
+
+	@Autowired
+	private MessageChannel routerAndErrorChannelInputChannel;
+
+	@Autowired
+	private SubscribableChannel errorChannel;
 
 	@Test
 	public void testRouter() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("input");
-		PollableChannel output1 = (PollableChannel) context.getBean("output1");
-		PollableChannel output2 = (PollableChannel) context.getBean("output2");
-		input.send(new GenericMessage<String>("1"));
-		Message<?> result1 = output1.receive(1000);
+		this.input.send(new GenericMessage<String>("1"));
+		Message<?> result1 = this.output1.receive(1000);
 		assertEquals("1", result1.getPayload());
 		assertNull(output2.receive(0));
 		input.send(new GenericMessage<String>("2"));
-		Message<?> result2 = output2.receive(1000);
+		Message<?> result2 = this.output2.receive(1000);
 		assertEquals("2", result2.getPayload());
 		assertNull(output1.receive(0));
 	}
 
 	@Test
 	public void testRouterWithDefaultOutputChannel() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("inputForRouterWithDefaultOutput");
-		PollableChannel output1 = (PollableChannel) context.getBean("output1");
-		PollableChannel output2 = (PollableChannel) context.getBean("output2");
-		PollableChannel defaultOutput = (PollableChannel) context.getBean("defaultOutput");
-		input.send(new GenericMessage<String>("99"));
-		assertNull(output1.receive(0));
-		assertNull(output2.receive(0));
-		Message<?> result = defaultOutput.receive(0);
+		this.inputForRouterWithDefaultOutput.send(new GenericMessage<String>("99"));
+		assertNull(this.output1.receive(0));
+		assertNull(this.output2.receive(0));
+		Message<?> result = this.defaultOutput.receive(0);
 		assertEquals("99", result.getPayload());
 	}
 
 	@Test
 	public void refOnlyForAbstractMessageRouterImplementation() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("inputForAbstractMessageRouterImplementation");
-		PollableChannel output = (PollableChannel) context.getBean("output3");
-		input.send(new GenericMessage<String>("test-implementation"));
-		Message<?> result = output.receive(0);
+		this.inputForAbstractMessageRouterImplementation.send(new GenericMessage<String>("test-implementation"));
+		Message<?> result = this.output3.receive(1000);
 		assertNotNull(result);
-		assertEquals("test-implementation", result.getPayload());		
+		assertEquals("test-implementation", result.getPayload());
 	}
 
 	@Test
 	public void refOnlyForAnnotatedObject() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("inputForAnnotatedRouter");
-		PollableChannel output = (PollableChannel) context.getBean("output4");
-		input.send(new GenericMessage<String>("test-annotation"));
-		Message<?> result = output.receive(0);
+		this.inputForAnnotatedRouter.send(new GenericMessage<String>("test-annotation"));
+		Message<?> result = this.output4.receive(1000);
 		assertNotNull(result);
-		assertEquals("test-annotation", result.getPayload());	
-	}
-	
-	@Test(expected=MessageDeliveryException.class)
-	public void testResolutionRequired() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("inputForRouterRequiringResolution");
-		input.send(new GenericMessage<Integer>(3));
+		assertEquals("test-annotation", result.getPayload());
 	}
 
-	public void testResolutionRequiredIsTrue() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("resolutionRequiredIsTrueInput");
-		input.send(new GenericMessage<String>("channelThatDoesNotExist"));
+	@Test
+	public void testResolutionRequired() {
+		try {
+			this.inputForRouterRequiringResolution.send(new GenericMessage<Integer>(3));
+		}
+		catch (Exception e) {
+			assertTrue(e.getCause() instanceof ChannelResolutionException);
+		}
+	}
+
+	@Test(expected=MessageDeliveryException.class)
+	public void testResolutionRequiredIsFalse() {
+		this.resolutionRequiredIsFalseInput.send(new GenericMessage<String>("channelThatDoesNotExist"));
 	}
 
 	@Test
 	public void timeoutValueConfigured() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		Object endpoint = context.getBean("routerWithTimeout");
-		MethodInvokingRouter router = TestUtils.getPropertyValue(endpoint, "handler", MethodInvokingRouter.class);
-		MessagingTemplate template = (MessagingTemplate)
-				new DirectFieldAccessor(router).getPropertyValue("messagingTemplate");
-		Long timeout = (Long) new DirectFieldAccessor(template).getPropertyValue("sendTimeout");
+		assertTrue(this.routerWithTimeout instanceof MethodInvokingRouter);
+		MessagingTemplate template = TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", MessagingTemplate.class);
+		Long timeout = TestUtils.getPropertyValue(template, "sendTimeout", Long.class);
 		assertEquals(new Long(1234), timeout);
 	}
 
 	@Test
 	public void sequence() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		MessageChannel input = context.getBean("sequenceRouter", MessageChannel.class);
-		PollableChannel out1 = context.getBean("sequenceOut1", PollableChannel.class);
-		PollableChannel out2 = context.getBean("sequenceOut2", PollableChannel.class);
-		PollableChannel out3 = context.getBean("sequenceOut3", PollableChannel.class);
 		Message<?> originalMessage = new GenericMessage<String>("test");
-		input.send(originalMessage);
-		Message<?> message1 = out1.receive(0);
-		Message<?> message2 = out2.receive(0);
-		Message<?> message3 = out3.receive(0);
+		this.sequenceRouter.send(originalMessage);
+		Message<?> message1 = this.sequenceOut1.receive(1000);
+		Message<?> message2 = this.sequenceOut2.receive(1000);
+		Message<?> message3 = this.sequenceOut3.receive(1000);
 		assertEquals(originalMessage.getHeaders().getId(), message1.getHeaders().getCorrelationId());
 		assertEquals(originalMessage.getHeaders().getId(), message2.getHeaders().getCorrelationId());
 		assertEquals(originalMessage.getHeaders().getId(), message3.getHeaders().getCorrelationId());
@@ -167,22 +202,43 @@ public class RouterParserTests {
 	}
 
 	@Test
+	public void testInt2893RouterNestedBean() {
+		this.routerNestedBeanChannel.send(new GenericMessage<String>("1"));
+		Message<?> result1 = this.output1.receive(1000);
+		assertEquals("1", result1.getPayload());
+		assertNull(this.output2.receive(0));
+		this.routerNestedBeanChannel.send(new GenericMessage<String>("2"));
+		Message<?> result2 = this.output2.receive(1000);
+		assertEquals("2", result2.getPayload());
+		assertNull(this.output1.receive(0));
+	}
+
+	@Test
+	public void testInt2893RouterNestedBeanWithinChain() {
+		this.chainRouterNestedBeanChannel.send(new GenericMessage<String>("1"));
+		Message<?> result1 = this.output1.receive(1000);
+		assertEquals("1", result1.getPayload());
+		assertNull(this.output2.receive(0));
+		this.chainRouterNestedBeanChannel.send(new GenericMessage<String>("2"));
+		Message<?> result2 = this.output2.receive(1000);
+		assertEquals("2", result2.getPayload());
+		assertNull(this.output1.receive(0));
+	}
+
+	@Test
 	public void testErrorChannel(){
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"ErrorChannelRoutingTests-context.xml", this.getClass());
 		MessageHandler handler = mock(MessageHandler.class);
-		DirectChannel inputChannel = context.getBean("inputChannel", DirectChannel.class);
-		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
-		errorChannel.subscribe(handler);
-		inputChannel.send(new GenericMessage<String>("fail"));
+		this.errorChannel.subscribe(handler);
+		this.routerAndErrorChannelInputChannel.send(new GenericMessage<String>("fail"));
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test // should not fail
 	public void routerFactoryBeanTest(){
 		new ClassPathXmlApplicationContext("rfb-fix-config.xml", this.getClass());
 	}
-	
+
+
 	public static class NonExistingChannelRouter{
 		public String route(String payload){
 			return "foo";
@@ -218,7 +274,7 @@ public class RouterParserTests {
 			return this.channel;
 		}
 	}
-	
+
 	public static class ReturnStringPassedInAsChannelNameRouter {
 
 		@Router
@@ -226,7 +282,7 @@ public class RouterParserTests {
 			return (String)message.getPayload();
 		}
 
-		
+
 	}
 
 

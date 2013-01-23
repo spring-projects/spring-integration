@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  */
 @ContextConfiguration
@@ -44,6 +45,9 @@ public class Jsr223RouterTests {
 
 	@Autowired
 	private MessageChannel inlineScriptInput;
+
+	@Autowired
+	private MessageChannel chainScriptRouterWithinChainInput;
 
 	@Autowired
 	private PollableChannel longStrings;
@@ -85,6 +89,27 @@ public class Jsr223RouterTests {
 		this.inlineScriptInput.send(message3);
 		this.inlineScriptInput.send(message4);
 		this.inlineScriptInput.send(message5);
+		assertEquals("bear", shortStrings.receive(0).getPayload());
+		assertEquals("cat", shortStrings.receive(0).getPayload());
+		assertEquals("dog", shortStrings.receive(0).getPayload());
+		assertEquals("aardvark", longStrings.receive(0).getPayload());
+		assertEquals("elephant", longStrings.receive(0).getPayload());
+		assertNull(shortStrings.receive(0));
+		assertNull(longStrings.receive(0));
+	}
+
+	@Test
+	public void testInt2893ScriptRouterWithinChain() {
+		Message<?> message1 = new GenericMessage<String>("aardvark");
+		Message<?> message2 = new GenericMessage<String>("bear");
+		Message<?> message3 = new GenericMessage<String>("cat");
+		Message<?> message4 = new GenericMessage<String>("dog");
+		Message<?> message5 = new GenericMessage<String>("elephant");
+		this.chainScriptRouterWithinChainInput.send(message1);
+		this.chainScriptRouterWithinChainInput.send(message2);
+		this.chainScriptRouterWithinChainInput.send(message3);
+		this.chainScriptRouterWithinChainInput.send(message4);
+		this.chainScriptRouterWithinChainInput.send(message5);
 		assertEquals("bear", shortStrings.receive(0).getPayload());
 		assertEquals("cat", shortStrings.receive(0).getPayload());
 		assertEquals("dog", shortStrings.receive(0).getPayload());

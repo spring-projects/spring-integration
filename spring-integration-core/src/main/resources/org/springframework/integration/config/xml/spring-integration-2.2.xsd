@@ -34,24 +34,24 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="transaction-synchronization-factory">
 		<xsd:annotation>
 			<xsd:documentation>
 				Allows you to configure org.springframework.integration.transaction.DefaultTransactionSynchronizationFactory
 				This implementation of org.springframework.integration.transaction.TransactionSynchronizationFactory
-				allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a 
-				transaction - see {TransactionSynchronization}. Expressions for before-commit, after.-commit, and after-rollback 
+				allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a
+				transaction - see {TransactionSynchronization}. Expressions for before-commit, after.-commit, and after-rollback
 				are supported, together with a channel for each where the evaluation result  (if any) will be sent.
 				For each sub-element you can specify 'expression' and/or 'channel' attributes.
 				If only the 'channel' attribute is present the received Message will be sent there as part of a particular synchronization scenario.
-				If only the 'expression' attribute is present and the result of an expression is a non-Null value, a Message with the 
-				result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the logs. 
-				If you want the evaluation result to go to a specific channel add a 'channel' attribute. If the result of an expression is null 
+				If only the 'expression' attribute is present and the result of an expression is a non-Null value, a Message with the
+				result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the logs.
+				If you want the evaluation result to go to a specific channel add a 'channel' attribute. If the result of an expression is null
 				or void, no Message will be generated.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>	
+		<xsd:complexType>
 			<xsd:sequence>
 					<xsd:element name="before-commit" minOccurs="0" maxOccurs="1">
 						<xsd:complexType>
@@ -72,7 +72,7 @@
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:attributeGroup name="synchronizationAttributeGroup">
 		<xsd:attribute name="expression" type="xsd:string">
 			<xsd:annotation>
@@ -2603,6 +2603,7 @@
                             ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -3459,7 +3460,7 @@ is provided, the return value is expected to match a channel name exactly.
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Reference to an instance of org.springframework.integration.transaction.TransactionSynchronizationFactory
-	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
+	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -3497,7 +3498,7 @@ is provided, the return value is expected to match a channel name exactly.
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Reference to an instance of org.springframework.integration.transaction.TransactionSynchronizationFactory
-	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method. 
+	which will return an instance of org.springframework.transaction.support.TransactionSynchronization via its create(..) method.
 	Setting of this attribute will only have an affect if a Transaction advice is present in the chain.
 				]]></xsd:documentation>
 				<xsd:appinfo>

@@ -28,6 +28,9 @@ public class TestRouter {
 		if (input == 2) {
 			return "output2";
 		}
+		if (input == 3) {
+			return "channelDoesNotExist";
+		}
 		return null;
 	}
 
