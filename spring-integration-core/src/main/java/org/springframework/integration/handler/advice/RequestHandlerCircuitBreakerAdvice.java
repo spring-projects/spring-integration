@@ -68,7 +68,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		catch (Exception e) {
 			metadata.getFailures().incrementAndGet();
 			metadata.setLastFailure(System.currentTimeMillis());
-			throw e;
+			throw this.unwrapExceptionIfNecessary(e);
 		}
 	}
 
