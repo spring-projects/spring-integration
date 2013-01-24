@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 package org.springframework.integration.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
@@ -27,23 +32,22 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.springframework.integration.util.MessagingMethodInvokerHelper;
 
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @author Gary Russell
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodInvokingMessageProcessorTests {
@@ -84,6 +88,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class B extends A {
+			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
 			}
@@ -107,12 +112,14 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class B extends A {
+			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
 			}
 		}
 
 		class C extends B {
+			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
 			}
@@ -135,6 +142,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class C extends B {
+			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
 			}
@@ -320,6 +328,20 @@ public class MethodInvokingMessageProcessorTests {
 		assertNotNull(bean.lastArg);
 		assertEquals(String.class, bean.lastArg.getClass());
 		assertEquals("true", bean.lastArg);
+	}
+
+	@Test
+	public void gatewayTest() throws Exception {
+		GatewayProxyFactoryBean gwFactoryBean = new GatewayProxyFactoryBean();
+		gwFactoryBean.afterPropertiesSet();
+		Object target = gwFactoryBean.getObject();
+		// just instantiate a helper with a simple target; we're going to invoke getTargetClass with reflection
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(new TestErrorService(), "error", true);
+
+		Method method = MessagingMethodInvokerHelper.class.getDeclaredMethod("getTargetClass", Object.class);
+		method.setAccessible(true);
+		Object result = method.invoke(helper, target);
+		assertSame(RequestReplyExchanger.class, result);
 	}
 
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
