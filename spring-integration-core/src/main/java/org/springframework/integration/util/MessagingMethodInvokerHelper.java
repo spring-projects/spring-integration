@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
@@ -74,6 +74,7 @@ import org.springframework.util.StringUtils;
  * @author Dave Syer
  * @author Gunnar Hillert
  * @author Soby Chacko
+ * @author Gary Russell
  *
  * @since 2.0
  */
@@ -133,6 +134,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		return processInternal(parameters);
 	}
 
+	@Override
 	public String toString() {
 		return this.displayString;
 	}
@@ -361,6 +363,20 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		Class<?> targetClass = targetObject.getClass();
 		if (AopUtils.isAopProxy(targetObject)) {
 			targetClass = AopUtils.getTargetClass(targetObject);
+			if (targetClass == targetObject.getClass()) {
+				try {
+					// Maybe a proxy with no target - e.g. gateway
+					Class<?>[] interfaces = ((Advised) targetObject).getProxiedInterfaces();
+					if (interfaces != null && interfaces.length == 1) {
+						targetClass = interfaces[0];
+					}
+				}
+				catch (Exception e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Exception trying to extract interface", e);
+					}
+				}
+			}
 		}
 		else if (org.springframework.util.ClassUtils.isCglibProxyClass(targetClass)) {
 			Class<?> superClass = targetObject.getClass().getSuperclass();
@@ -449,6 +465,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			return this.targetParameterType;
 		}
 
+		@Override
 		public String toString() {
 			return this.method.toString();
 		}
