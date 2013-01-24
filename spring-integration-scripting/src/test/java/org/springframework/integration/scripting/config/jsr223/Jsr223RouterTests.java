@@ -47,7 +47,7 @@ public class Jsr223RouterTests {
 	private MessageChannel inlineScriptInput;
 
 	@Autowired
-	private MessageChannel chainScriptRouterWithinChainInput;
+	private MessageChannel scriptRouterWithinChainInput;
 
 	@Autowired
 	private PollableChannel longStrings;
@@ -105,11 +105,11 @@ public class Jsr223RouterTests {
 		Message<?> message3 = new GenericMessage<String>("cat");
 		Message<?> message4 = new GenericMessage<String>("dog");
 		Message<?> message5 = new GenericMessage<String>("elephant");
-		this.chainScriptRouterWithinChainInput.send(message1);
-		this.chainScriptRouterWithinChainInput.send(message2);
-		this.chainScriptRouterWithinChainInput.send(message3);
-		this.chainScriptRouterWithinChainInput.send(message4);
-		this.chainScriptRouterWithinChainInput.send(message5);
+		this.scriptRouterWithinChainInput.send(message1);
+		this.scriptRouterWithinChainInput.send(message2);
+		this.scriptRouterWithinChainInput.send(message3);
+		this.scriptRouterWithinChainInput.send(message4);
+		this.scriptRouterWithinChainInput.send(message5);
 		assertEquals("bear", shortStrings.receive(0).getPayload());
 		assertEquals("cat", shortStrings.receive(0).getPayload());
 		assertEquals("dog", shortStrings.receive(0).getPayload());

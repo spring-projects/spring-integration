@@ -29,7 +29,7 @@
 		]]></int-script:script>
 	</router>
 
-	<chain input-channel="chainScriptRouterWithinChainInput">
+	<chain input-channel="scriptRouterWithinChainInput">
 		<router>
 			<int-script:script lang="javascript"><![CDATA[
 		      (function(){
