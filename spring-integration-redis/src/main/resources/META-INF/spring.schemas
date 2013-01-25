@@ -1,3 +1,4 @@
 http\://www.springframework.org/schema/integration/redis/spring-integration-redis-2.1.xsd=org/springframework/integration/redis/config/spring-integration-redis-2.1.xsd
 http\://www.springframework.org/schema/integration/redis/spring-integration-redis-2.2.xsd=org/springframework/integration/redis/config/spring-integration-redis-2.2.xsd
-http\://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd=org/springframework/integration/redis/config/spring-integration-redis-2.2.xsd
+http\://www.springframework.org/schema/integration/redis/spring-integration-redis-3.0.xsd=org/springframework/integration/redis/config/spring-integration-redis-3.0.xsd
+http\://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd=org/springframework/integration/redis/config/spring-integration-redis-3.0.xsd
