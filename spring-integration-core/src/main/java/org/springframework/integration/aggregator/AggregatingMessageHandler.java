@@ -23,7 +23,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.util.StopWatch;
 
 /**
  * Aggregator specific implementation of {@link AbstractCorrelatingMessageHandler}.
