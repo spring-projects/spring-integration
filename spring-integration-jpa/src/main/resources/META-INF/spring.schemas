@@ -1,2 +1,3 @@
 http\://www.springframework.org/schema/integration/jpa/spring-integration-jpa-2.2.xsd=org/springframework/integration/jpa/config/xml/spring-integration-jpa-2.2.xsd
-http\://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd=org/springframework/integration/jpa/config/xml/spring-integration-jpa-2.2.xsd
+http\://www.springframework.org/schema/integration/jpa/spring-integration-jpa-3.0.xsd=org/springframework/integration/jpa/config/xml/spring-integration-jpa-3.0.xsd
+http\://www.springframework.org/schema/integration/jpa/spring-integration-jpa.xsd=org/springframework/integration/jpa/config/xml/spring-integration-jpa-3.0.xsd
