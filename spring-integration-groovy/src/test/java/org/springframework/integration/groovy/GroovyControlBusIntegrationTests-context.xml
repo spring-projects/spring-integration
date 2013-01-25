@@ -22,7 +22,7 @@
 	<task:scheduler id="scheduler"/>
 
 	<delayer id="testDelayer" input-channel="delayerInput" output-channel="output"
-			 default-delay="100"
+			 default-delay="1000"
 			 scheduler="scheduler"/>
 
 </beans:beans>

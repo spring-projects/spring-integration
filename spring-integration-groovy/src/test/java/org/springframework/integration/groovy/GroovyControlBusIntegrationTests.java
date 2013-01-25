@@ -63,7 +63,8 @@ public class GroovyControlBusIntegrationTests {
 		this.delayerInput.send(testMessage);
 
 		this.scheduler.destroy();
-		assertNull(this.output.receive(100));
+		// ensure the delayer did not release any messages
+		assertNull(this.output.receive(500));
 		this.scheduler.afterPropertiesSet();
 
 		Resource scriptResource = new ClassPathResource("GroovyControlBusDelayerManagementTest.groovy", this.getClass());
@@ -71,7 +72,7 @@ public class GroovyControlBusIntegrationTests {
 		Message<?> message = MessageBuilder.withPayload(scriptSource.getScriptAsString()).build();
 		this.controlBus.send(message);
 
-		assertNotNull(this.output.receive(100));
-		assertNotNull(this.output.receive(100));
+		assertNotNull(this.output.receive(1000));
+		assertNotNull(this.output.receive(1000));
 	}
 }
