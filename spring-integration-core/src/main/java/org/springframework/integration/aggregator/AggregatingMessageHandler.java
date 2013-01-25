@@ -16,12 +16,14 @@ package org.springframework.integration.aggregator;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.concurrent.CountDownLatch;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.util.StopWatch;
 
 /**
  * Aggregator specific implementation of {@link AbstractCorrelatingMessageHandler}.
@@ -35,6 +37,8 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 		implements ApplicationListener<ContextRefreshedEvent> {
 
 	private volatile boolean initialized = false;
+
+	private volatile CountDownLatch removeCompleteMessageGroupsLatch;
 
 	private volatile boolean expireGroupsUponCompletion = false;
 
@@ -73,6 +77,23 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 		this.initialized = true;
 	}
 
+	/**
+	 * Waits {@linkplain #removeCompleteMessageGroupsLatch} until
+	 * {@linkplain #removeCompleteMessageGroups} task will be completed or executes immediately otherwise.
+	 *
+	 * @param message
+	 * @throws Exception
+	 *
+	 * @see #removeCompleteMessageGroups
+	 */
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		if (this.removeCompleteMessageGroupsLatch != null) {
+			this.removeCompleteMessageGroupsLatch.await();
+		}
+		super.handleMessageInternal(message);
+	}
+
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
 		this.messageStore.completeGroup(messageGroup.getGroupId());
@@ -87,25 +108,40 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 		}
 	}
 
+	/**
+	 * Schedules a task to remove all 'complete' {@link MessageGroup}s.
+	 * This behavior is dictated by the avoidance of invocation thread overload,
+	 * especially when the provided {@link MessageGroupStore} is persistent.
+	 * Initializes {@linkplain #removeCompleteMessageGroupsLatch} to lock
+	 * {@linkplain #handleMessageInternal} until remove task will be completed.
+	 *
+	 * @see MessageGroupStore#iterator
+	 * @see #remove
+	 * @see #handleMessageInternal
+	 */
 	private void removeCompleteMessageGroups() {
-		Iterator<MessageGroup> messageGroups = this.messageStore.iterator();
-		while (messageGroups.hasNext()) {
-			MessageGroup messageGroup = messageGroups.next();
-			if (messageGroup.isComplete()) {
-				this.remove(messageGroup);
+		this.removeCompleteMessageGroupsLatch = new CountDownLatch(1);
+		this.getTaskScheduler().schedule(new Runnable() {
+			public void run() {
+				Iterator<MessageGroup> messageGroups = AggregatingMessageHandler.this.messageStore.iterator();
+				while (messageGroups.hasNext()) {
+					MessageGroup messageGroup = messageGroups.next();
+					if (messageGroup.isComplete()) {
+						AggregatingMessageHandler.this.remove(messageGroup);
+					}
+				}
+				AggregatingMessageHandler.this.removeCompleteMessageGroupsLatch.countDown();
 			}
-		}
+		}, new Date());
 
 	}
 
 	/**
-	 * Handles {@link ContextRefreshedEvent} to schedules the task for {@linkplain #removeCompleteMessageGroups}
+	 * Handles {@link ContextRefreshedEvent} to invoke {@link #removeCompleteMessageGroups}
 	 * as late as possible after application context startup.
 	 * Also it checks equality of event's <code>applicationContext</code> and
 	 * provided <code>beanFactory</code> to ignore other {@link ContextRefreshedEvent}s
 	 * which may be published in the 'parent-child' contexts, e.g. in the Spring-MVC applications.
-	 * This behavior is dictated by the avoidance of invocation thread overload,
-	 * especially when the provided {@link MessageGroupStore} is persistent.
 	 *
 	 * @param event - {@link ContextRefreshedEvent} which occurs
 	 *              after Application context is completely initialized.
@@ -115,11 +151,7 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		if (event.getApplicationContext().equals(this.getBeanFactory())) {
 			if (this.expireGroupsUponCompletion) {
-				this.getTaskScheduler().schedule(new Runnable() {
-					public void run() {
-						AggregatingMessageHandler.this.removeCompleteMessageGroups();
-					}
-				}, new Date());
+				this.removeCompleteMessageGroups();
 			}
 		}
 	}
