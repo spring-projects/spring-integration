@@ -30,7 +30,6 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -75,18 +74,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE);
-	}
-
-	/**
-	 * @deprecated  As of release 2.0.2, use individual setters
-	 */
-	@Deprecated
-	public void setPollerMetadata(PollerMetadata pollerMetadata){
-		Assert.notNull(pollerMetadata, "'pollerMetadata' must not be null.");
-		this.setAdviceChain(pollerMetadata.getAdviceChain());
-		this.setMaxMessagesPerPoll(pollerMetadata.getMaxMessagesPerPoll());
-		this.setTaskExecutor(pollerMetadata.getTaskExecutor());
-		this.setTrigger(pollerMetadata.getTrigger());
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
