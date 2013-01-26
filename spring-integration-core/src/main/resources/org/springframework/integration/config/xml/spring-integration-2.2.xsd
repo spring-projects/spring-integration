@@ -2603,7 +2603,6 @@
                             ]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
