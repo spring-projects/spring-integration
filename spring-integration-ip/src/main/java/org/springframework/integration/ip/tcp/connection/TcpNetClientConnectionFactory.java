@@ -22,8 +22,6 @@ import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSocketFactorySupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
 import org.springframework.util.Assert;
 
 /**

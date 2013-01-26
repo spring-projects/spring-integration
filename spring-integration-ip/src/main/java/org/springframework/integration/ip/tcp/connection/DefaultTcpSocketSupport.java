@@ -13,27 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp.connection.support;
+package org.springframework.integration.ip.tcp.connection;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
-import javax.net.ssl.SSLContext;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
- * Strategy interface for the creation of an {@link SSLContext} object
- * for use with SSL/TLS sockets.
+ * Default implementation of {@link TcpSocketSupport}; makes no
+ * changes to sockets.
  * @author Gary Russell
  * @since 2.2
  *
  */
-public interface TcpSSLContextSupport {
+public class DefaultTcpSocketSupport implements TcpSocketSupport {
 
 	/**
-	 * Gets an SSLContext.
-	 * @return the SSLContext.
-	 * @throws Exception
+	 * No-Op.
 	 */
-	SSLContext getSSLContext() throws GeneralSecurityException, IOException;
+	public void postProcessServerSocket(ServerSocket serverSocket) {
+	}
+
+	/**
+	 * No-Op.
+	 */
+	public void postProcessSocket(Socket socket) {
+	}
 
 }

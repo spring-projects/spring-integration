@@ -25,8 +25,6 @@ import java.net.SocketTimeoutException;
 
 import javax.net.ServerSocketFactory;
 
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSocketFactorySupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
 import org.springframework.util.Assert;
 
 /**
