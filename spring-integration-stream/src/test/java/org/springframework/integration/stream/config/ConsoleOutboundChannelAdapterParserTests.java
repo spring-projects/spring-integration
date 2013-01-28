@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,89 +17,111 @@
 package org.springframework.integration.stream.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
 import java.nio.charset.Charset;
+import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
  */
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class ConsoleOutboundChannelAdapterParserTests {
 
-	private final ByteArrayOutputStream err = new ByteArrayOutputStream();
+	@Autowired
+	@Qualifier("stdoutAdapterWithDefaultCharset.handler")
+	private MessageHandler stdoutAdapterWithDefaultCharsetHandler;
 
-	private final ByteArrayOutputStream out = new ByteArrayOutputStream();
+	@Autowired
+	@Qualifier("stdoutAdapterWithProvidedCharset.handler")
+	private MessageHandler stdoutAdapterWithProvidedCharsetHandler;
 
+	@Autowired
+	@Qualifier("stderrAdapter.handler")
+	private MessageHandler stderrAdapterHandler;
 
-	@Before
-	public void setupStreams() {
-		System.setErr(new PrintStream(this.err));
-		System.setOut(new PrintStream(this.out));
-	}
+	@Autowired
+	@Qualifier("newlineAdapter.handler")
+	private MessageHandler newlineAdapterHandler;
 
-	private void resetStreams() {
-		this.err.reset();
-		this.out.reset();
-	}
+	@Autowired
+	@Qualifier("stdoutChain.handler")
+	private MessageHandler stdoutChainHandler;
+
+	@Autowired
+	private MessageChannel stdoutInsideNestedChain;
 
 	@Test
-	public void stdoutAdapterWithDefaultCharset() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		Object adapter = context.getBean("stdoutAdapterWithDefaultCharset");
-		CharacterStreamWritingMessageHandler handler = (CharacterStreamWritingMessageHandler)
-				new DirectFieldAccessor(adapter).getPropertyValue("handler");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
-		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
-		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
-		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
-		Writer writer = (Writer) bufferedWriterAccessor.getPropertyValue("out");
+	public void stdoutAdapterWithDefaultCharset() throws IOException {
+		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "writer", BufferedWriter.class);
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertEquals(OutputStreamWriter.class, writer.getClass());
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
-		this.resetStreams();
-		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals("foo", out.toString());
-		assertEquals("", err.toString());
-		assertEquals(23, accessor.getPropertyValue("order"));
+
+		Object lock = TestUtils.getPropertyValue(writer, "lock");
+		assertEquals(System.out, lock);
+
+		bufferedWriter = Mockito.spy(bufferedWriter);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(this.stdoutAdapterWithDefaultCharsetHandler);
+		dfa.setPropertyValue("writer", bufferedWriter);
+
+		this.stdoutAdapterWithDefaultCharsetHandler.handleMessage(new GenericMessage<String>("foo"));
+
+		verify(bufferedWriter, times(1)).write(eq("foo"));
+		assertEquals(23, TestUtils.getPropertyValue(this.stdoutAdapterWithDefaultCharsetHandler, "order"));
 	}
 
 	@Test
-	public void stdoutAdapterWithProvidedCharset() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		Object adapter = context.getBean("stdoutAdapterWithProvidedCharset");
-		CharacterStreamWritingMessageHandler handler = (CharacterStreamWritingMessageHandler)
-				new DirectFieldAccessor(adapter).getPropertyValue("handler");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
-		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
-		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
-		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
-		Writer writer = (Writer) bufferedWriterAccessor.getPropertyValue("out");
+	public void stdoutAdapterWithProvidedCharset() throws IOException {
+		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stdoutAdapterWithProvidedCharsetHandler, "writer", BufferedWriter.class);
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertEquals(OutputStreamWriter.class, writer.getClass());
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.forName("UTF-8"), writerCharset);
-		this.resetStreams();
-		handler.handleMessage(new GenericMessage<String>("bar"));
-		assertEquals("bar", out.toString());
-		assertEquals("", err.toString());
+
+		Object lock = TestUtils.getPropertyValue(writer, "lock");
+		assertEquals(System.out, lock);
+
+		bufferedWriter = Mockito.spy(bufferedWriter);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(this.stdoutAdapterWithProvidedCharsetHandler);
+		dfa.setPropertyValue("writer", bufferedWriter);
+
+		this.stdoutAdapterWithProvidedCharsetHandler.handleMessage(new GenericMessage<String>("bar"));
+
+		verify(bufferedWriter, times(1)).write(eq("bar"));
 	}
 
 	@Test
@@ -117,54 +139,78 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void stderrAdapter() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		Object adapter = context.getBean("stderrAdapter");
-		CharacterStreamWritingMessageHandler handler = (CharacterStreamWritingMessageHandler)
-				new DirectFieldAccessor(adapter).getPropertyValue("handler");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
-		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
-		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
-		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
-		Writer writer = (Writer) bufferedWriterAccessor.getPropertyValue("out");
+	public void stderrAdapter() throws IOException {
+		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.stderrAdapterHandler, "writer", BufferedWriter.class);
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertEquals(OutputStreamWriter.class, writer.getClass());
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
-		this.resetStreams();
-		handler.handleMessage(new GenericMessage<String>("bad"));
-		assertEquals("", out.toString());
-		assertEquals("bad", err.toString());
-		assertEquals(34, accessor.getPropertyValue("order"));		
+
+		Object lock = TestUtils.getPropertyValue(writer, "lock");
+		assertEquals(System.err, lock);
+
+		bufferedWriter = Mockito.spy(bufferedWriter);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(this.stderrAdapterHandler);
+		dfa.setPropertyValue("writer", bufferedWriter);
+
+
+		this.stderrAdapterHandler.handleMessage(new GenericMessage<String>("bar"));
+
+		verify(bufferedWriter, times(1)).write(eq("bar"));
+
+		assertEquals(34, TestUtils.getPropertyValue(this.stderrAdapterHandler, "order"));
 	}
 
     @Test
-	public void stdoutAdatperWithAppendNewLine() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		Object adapter = context.getBean("newlineAdapter");
-		CharacterStreamWritingMessageHandler handler = (CharacterStreamWritingMessageHandler)
-				new DirectFieldAccessor(adapter).getPropertyValue("handler");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
-		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
-		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
-		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
-		Writer writer = (Writer) bufferedWriterAccessor.getPropertyValue("out");
+	public void stdoutAdatperWithAppendNewLine() throws IOException {
+		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(this.newlineAdapterHandler, "writer", BufferedWriter.class);
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
 		assertEquals(OutputStreamWriter.class, writer.getClass());
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
-		this.resetStreams();
-		handler.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals("foo" + System.getProperty("line.separator"), out.toString());
+
+		Object lock = TestUtils.getPropertyValue(writer, "lock");
+		assertEquals(System.out, lock);
+
+		bufferedWriter = Mockito.spy(bufferedWriter);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(this.newlineAdapterHandler);
+		dfa.setPropertyValue("writer", bufferedWriter);
+
+		this.newlineAdapterHandler.handleMessage(new GenericMessage<String>("bar"));
+
+		verify(bufferedWriter, times(1)).write(eq("bar"));
+		verify(bufferedWriter, times(1)).newLine();
+
 	}
 
 	@Test //INT-2275
-	public void stdoutInsideNestedChain() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		DirectChannel channel = context.getBean("stdoutInsideNestedChain", DirectChannel.class);
-		this.resetStreams();
-		channel.send(new GenericMessage<String>("foo"));
-		assertEquals("foobar", out.toString());
+	public void stdoutInsideNestedChain() throws IOException {
+		List handlers = TestUtils.getPropertyValue(this.stdoutChainHandler, "handlers", List.class);
+		assertEquals(2, handlers.size());
+		Object chainHandler = handlers.get(1);
+		assertTrue(chainHandler instanceof MessageHandlerChain);
+		List nestedChainHandlers = TestUtils.getPropertyValue(chainHandler, "handlers", List.class);
+		assertEquals(1, nestedChainHandlers.size());
+		Object stdoutHandler = nestedChainHandlers.get(0);
+		assertTrue(stdoutHandler instanceof CharacterStreamWritingMessageHandler);
+
+		BufferedWriter bufferedWriter = TestUtils.getPropertyValue(stdoutHandler, "writer", BufferedWriter.class);
+		Writer writer = TestUtils.getPropertyValue(bufferedWriter, "out", Writer.class);
+		assertEquals(OutputStreamWriter.class, writer.getClass());
+		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
+		assertEquals(Charset.defaultCharset(), writerCharset);
+
+		Object lock = TestUtils.getPropertyValue(writer, "lock");
+		assertEquals(System.out, lock);
+
+		bufferedWriter = Mockito.spy(bufferedWriter);
+
+		DirectFieldAccessor dfa = new DirectFieldAccessor(stdoutHandler);
+		dfa.setPropertyValue("writer", bufferedWriter);
+
+		this.stdoutInsideNestedChain.send(new GenericMessage<String>("foo"));
+		verify(bufferedWriter, times(1)).write(eq("foobar"));
 	}
 }
