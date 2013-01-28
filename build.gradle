@@ -177,7 +177,7 @@ project('spring-integration-amqp') {
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.apache.commons.lang.*;version="[2.5.0, 3.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -228,7 +228,7 @@ project('spring-integration-event') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.event'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.expression.*;version="[3.0.7, 4.0.0)"',
@@ -255,7 +255,7 @@ project('spring-integration-feed') {
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.apache.commons.lang.*;version="[2.5.0, 3.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.scheduling.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
@@ -279,7 +279,7 @@ project('spring-integration-file') {
 		bundleSymbolicName = 'org.springframework.integration.file'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.expression.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context.expression.*;version="[3.0.7, 4.0.0)"',
@@ -309,7 +309,7 @@ project('spring-integration-ftp') {
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.apache.commons.net.*;version="[2.0.0, 3.1.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -342,7 +342,7 @@ project('spring-integration-gemfire') {
 		bundleSymbolicName = 'org.springframework.integration.gemfire'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -370,7 +370,7 @@ project('spring-integration-groovy') {
 		bundleSymbolicName = 'org.springframework.integration.groovy'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.*;version="[3.0.7, 4.0.0)"',
 			'groovy.*;version="[1.7.3, 2.0.0)"',
 			'org.w3c.dom.*;version="0"'
@@ -404,7 +404,7 @@ project('spring-integration-http') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.http'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -434,7 +434,7 @@ project('spring-integration-ip') {
 		bundleSymbolicName = 'org.springframework.integration.ip'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -475,7 +475,7 @@ project('spring-integration-jdbc') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.jdbc'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.*;version="[3.0.7, 4.0.0)"',
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.aopalliance.*;version="[1.0.0, 2.0.0)"',
@@ -506,7 +506,7 @@ project('spring-integration-jms') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.jms'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.expression.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
@@ -534,7 +534,7 @@ project('spring-integration-jmx') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.jmx'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.*;version="[3.0.7, 4.0.0)"',
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.aopalliance.*;version="[1.0.0, 2.0.0)"',
@@ -574,7 +574,7 @@ project('spring-integration-jpa') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.jpa'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.*;version="[3.0.7, 4.0.0)"',
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.aopalliance.*;version="[1.0.0, 2.0.0)"',
@@ -604,7 +604,7 @@ project('spring-integration-mail') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.mail'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.aop.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.expression.*;version="[3.0.7, 4.0.0)"',
@@ -646,7 +646,7 @@ project('spring-integration-mongodb') {
 		bundleSymbolicName = 'org.springframework.integration.mongodb'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -684,7 +684,7 @@ project('spring-integration-redis') {
 		bundleSymbolicName = 'org.springframework.integration.redis'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -709,7 +709,7 @@ project('spring-integration-rmi') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.rmi'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -737,7 +737,7 @@ project('spring-integration-scripting') {
 		bundleSymbolicName = 'org.springframework.integration.scripting'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.*;version="[3.0.7, 4.0.0)"',
 			'org.w3c.dom.*;version="0"',
 			'javax.script.*;version="0"'
@@ -767,7 +767,7 @@ project('spring-integration-security') {
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core;version="[3.0.7, 4.0.0)"',
 			'org.springframework.util.*;version="[3.0.7, 4.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.security.*;version="[3.0.3, 4.0.0)"',
 			'org.w3c.dom.*;version="0"'
 		]
@@ -789,7 +789,7 @@ project('spring-integration-sftp') {
 		bundleSymbolicName = 'org.springframework.integration.sftp'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
@@ -814,7 +814,7 @@ project('spring-integration-stream') {
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.util;version="[3.0.7, 4.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.w3c.dom.*;version="0"'
 		]
 	}
@@ -834,7 +834,7 @@ project('spring-integration-test') {
 		importTemplate += [
 			'org.apache.tools.ant.*;version="[1.7.0, 2.0.0)"',
 			'org.springframework.*;version="[3.0.7, 4.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'javax.net.*;version="0"',
 			'junit.framework.*;version="[4.6.0, 4.7.0)"',
 			'org.junit.*;version="[4.6.0, 4.7.0)"',
@@ -867,7 +867,7 @@ project('spring-integration-twitter') {
 		importTemplate += [
 			'org.aopalliance.*;version="[1.0.0, 2.0.0)"',
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.scheduling.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.aop.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
@@ -908,7 +908,7 @@ project('spring-integration-ws') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.ws'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.core.convert;version="[3.0.7, 4.0.0)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context.*;version="[3.0.7, 4.0.0)"',
@@ -946,7 +946,7 @@ project('spring-integration-xml') {
 	bundlor {
 		bundleSymbolicName = 'org.springframework.integration.xml'
 		importTemplate += [
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context.expression.*;version="[3.0.7, 4.0.0)"',
@@ -977,7 +977,7 @@ project('spring-integration-xmpp') {
 		bundleSymbolicName = 'org.springframework.integration.xmpp'
 		importTemplate += [
 			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
-			'org.springframework.integration.*;version="[2.2.1, 2.2.2)"',
+			'org.springframework.integration.*;version="[2.2.2, 2.2.3)"',
 			'org.springframework.beans.*;version="[3.0.7, 4.0.0)"',
 			'org.springframework.context;version="[3.0.7, 4.0.0)"',
 			'org.springframework.core.*;version="[3.0.7, 4.0.0)"',
