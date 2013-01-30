@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,13 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PipelineNamedReplyQueuesJmsTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
 
 	int requests = 50;
-
-	int timeouts;
 
 	/**
 	 * jms:out(reply-destination-name="pipeline01-01") -> jms:in -> randomTimeoutProcess ->
@@ -70,8 +69,8 @@ public class PipelineNamedReplyQueuesJmsTests {
 	 */
 	@Test
 	public void testPipeline2a() throws Exception{
-		this.test("pipeline-named-queue-02a.xml");
-		assertEquals(0, this.timeouts);
+		int timeouts = this.test("pipeline-named-queue-02a.xml");
+		assertEquals(0, timeouts);
 	}
 
 	/**
@@ -94,8 +93,8 @@ public class PipelineNamedReplyQueuesJmsTests {
 	 */
 	@Test
 	public void testPipeline3a() throws Exception{
-		this.test("pipeline-named-queue-03a.xml", 20000);
-		assertEquals(0, this.timeouts);
+		int timeouts = this.test("pipeline-named-queue-03a.xml", 20000);
+		assertEquals(0, timeouts);
 	}
 
 	/**
@@ -134,12 +133,11 @@ public class PipelineNamedReplyQueuesJmsTests {
 		this.test("pipeline-named-queue-07.xml");
 	}
 
-	public void test(String contextConfig) throws Exception {
-		test(contextConfig, 0);
+	public int test(String contextConfig) throws Exception {
+		return test(contextConfig, 0);
 	}
 
-	public void test(String contextConfig, final int offset) throws Exception {
-		this.timeouts = 0;
+	public int test(String contextConfig, final int offset) throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(contextConfig, this.getClass());
 		final AtomicInteger successCounter = new AtomicInteger();
@@ -173,7 +171,7 @@ public class PipelineNamedReplyQueuesJmsTests {
 			assertTrue(successCounter.get() > 10);
 			assertEquals(0, failureCounter.get());
 			assertEquals(requests, successCounter.get() + timeoutCounter.get());
-			this.timeouts = timeoutCounter.get();
+			return timeoutCounter.get();
 		}
 		finally {
 			System.out.println(contextConfig);
