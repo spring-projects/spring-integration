@@ -29,12 +29,13 @@
 
 	<channel id="inputChannel6"/>
 
-	<resequencer id="completelyDefinedResequencer" 
+	<resequencer id="completelyDefinedResequencer"
 		input-channel="inputChannel2"
-		output-channel="outputChannel" 
+		output-channel="outputChannel"
 		discard-channel="discardChannel"
-		send-timeout="86420000" 
+		send-timeout="86420000"
 		send-partial-result-on-expiry="true"
+		empty-group-min-timeout="60000"
 		release-partial-sequences="true"/>
 
 	<resequencer id="resequencerWithCorrelationStrategyRefOnly"

@@ -25,7 +25,7 @@
     Aggregator will create a single message by processing the whole group, and
     will send the aggregated message as output.</para>
 
-    <para>Implementing an Aggregator requires providing the logic 
+    <para>Implementing an Aggregator requires providing the logic
     to perform the aggregation (i.e., the creation of a single message
     from many). Two related concepts are correlation and
     release.</para>
@@ -34,13 +34,13 @@
     In Spring Integration correlation is done by default based on the
     <code>MessageHeaders.CORRELATION_ID</code> message
     header. Messages with the same <code>MessageHeaders.CORRELATION_ID</code> will be grouped
-    together. However, the correlation strategy may be customized to allow 
+    together. However, the correlation strategy may be customized to allow
     other ways of specifying how the messages should be grouped together by
     implementing a <interfacename>CorrelationStrategy</interfacename> (see below).</para>
 
     <para>To determine the point at which a group of messages is ready to be processed, a
-    <interfacename>ReleaseStrategy</interfacename> is consulted. 
-    The default release strategy for the Aggregator will release a group when all 
+    <interfacename>ReleaseStrategy</interfacename> is consulted.
+    The default release strategy for the Aggregator will release a group when all
     messages included in a sequence are present, based on the
     <code>MessageHeaders.SEQUENCE_SIZE</code> header.
     This default strategy may be overridden by providing a reference to a
@@ -121,14 +121,14 @@
 
 }]]></programlisting>
 
-       The <interfacename>CorrelationStrategy</interfacename> is owned by the 
+       The <interfacename>CorrelationStrategy</interfacename> is owned by the
 
       <classname>AbstractCorrelatingMessageHandler</classname>
 
        and it has a default value based on the <code>MessageHeaders.CORRELATION_ID</code> message header:
 
       <programlisting language="java"><![CDATA[
-    public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
+    public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
                    CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
      ...
       this.correlationStrategy = correlationStrategy == null ?
@@ -158,13 +158,13 @@
       <para>When implementing a specific aggregator strategy for an application,
       a developer can extend
       <classname>AbstractAggregatingMessageGroupProcessor</classname> and implement the
-      <code>aggregatePayloads</code> method. However, there are better solutions, less 
+      <code>aggregatePayloads</code> method. However, there are better solutions, less
       coupled to the API, for implementing the aggregation logic which can be configured easily
       either through XML or through annotations.</para>
- 
+
       <para>In general, any POJO can implement the
       aggregation algorithm if it provides a method that
-      accepts a single <interfacename>java.util.List</interfacename> as an argument 
+      accepts a single <interfacename>java.util.List</interfacename> as an argument
       (parameterized lists are supported as well). This method will be invoked for aggregating
       messages as follows:</para>
 
@@ -194,7 +194,7 @@
         implementing the aggregation logic is through a POJO, and using the
         XML or annotation support for configuring it in the application.</para>
       </note>
-       
+
     </section>
 
     <section>
@@ -234,18 +234,18 @@
           aggregation, and false otherwise.</para>
         </listitem>
       </itemizedlist>
-      
+
       For example:
-      
+
       <programlisting language="java"><![CDATA[public class MyReleaseStrategy {
 
-    @ReleaseStrategy 
+    @ReleaseStrategy
     public boolean canMessagesBeReleased(List<Message<?>>) {...}
 }]]></programlisting>
 
 <programlisting language="java"><![CDATA[public class MyReleaseStrategy {
 
-    @ReleaseStrategy 
+    @ReleaseStrategy
     public boolean canMessagesBeReleased(List<String>) {...}
 }]]></programlisting>
 
@@ -328,7 +328,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       <title>Configuring an Aggregator with XML</title>
 
       <para>Spring Integration supports the configuration of an aggregator via
-      XML through the &lt;aggregator/&gt; element. Below you can see an example
+      XML through the <code>&lt;aggregator/&gt;</code> element. Below you can see an example
       of an aggregator.</para>
 
     <programlisting lang="xml"><![CDATA[<channel id="inputChannel"/>
@@ -355,7 +355,8 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 		release-strategy-method="release" ]]><co id="aggxml16" /><![CDATA[
 		release-strategy-expression="size() == 5" ]]><co id="aggxml17" /><![CDATA[
 
-		expire-groups-upon-completion="false"/> ]]><co id="aggxml18" /><![CDATA[
+		expire-groups-upon-completion="false" ]]><co id="aggxml18" /><![CDATA[
+		empty-group-min-timeout="60000" /> ]]><co id="aggxml19" /><![CDATA[
 
 
 <int:channel id="outputChannel"/>
@@ -382,7 +383,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         <para>Lifecycle attribute signaling if aggregator should be started during Application Context startup.
         <emphasis>Optional (default is 'true')</emphasis>.</para>
       </callout>
-      
+
       <callout arearefs="aggxml03">
         <para>The channel from which where aggregator will receive messages.
         <emphasis>Required</emphasis>.</para>
@@ -406,16 +407,16 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         complete. <emphasis>Optional</emphasis>, by default a volatile
         in-memory store.</para>
       </callout>
-      
+
        <callout arearefs="aggxml07">
         <para>Order of this aggregator when more than one handle is subscribed to the same DirectChannel
-        (use for load balancing purposes). 
+        (use for load balancing purposes).
         <emphasis>Optional</emphasis>.</para>
       </callout>
-      
+
       <callout arearefs="aggxml08">
         <para>
-        Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel' 
+        Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel'
 		once their containing <classname>MessageGroup</classname> is expired (see <code>MessageGroupStore.expireMessageGroups(long)</code>).
 		One way of expiring <classname>MessageGroup</classname>s is by configuring a <classname>MessageGroupStoreReaper</classname>.
 		However <classname>MessageGroup</classname>s can alternatively be expired by simply calling
@@ -426,20 +427,20 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         <emphasis>Optional</emphasis>.</para>
         <para><emphasis>Default - 'false'</emphasis>.</para>
       </callout>
-      
+
        <callout arearefs="aggxml09">
         <para>The timeout interval for sending the aggregated messages to the output or
         reply channel. <emphasis>Optional</emphasis>.</para>
       </callout>
-     
+
        <callout arearefs="aggxml10">
-        <para>A reference to a bean that implements the message correlation (grouping) 
-        algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename> 
+        <para>A reference to a bean that implements the message correlation (grouping)
+        algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename>
         interface or a POJO. In the latter case the correlation-strategy-method attribute must be defined
         as well. <emphasis>Optional (by default, the aggregator will use
         the <code>MessageHeaders.CORRELATION_ID</code> header) </emphasis>.</para>
       </callout>
-      
+
       <callout arearefs="aggxml11">
         <para>A method defined on the bean referenced by
         <code>correlation-strategy</code>, that implements the
@@ -457,7 +458,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
       <callout arearefs="aggxml13">
         <para>A reference to a bean defined in the application context. The bean must implement the aggregation logic
-    as described above. <emphasis>Optional (by default the list of aggregated Messages will become a 
+    as described above. <emphasis>Optional (by default the list of aggregated Messages will become a
     payload of the output message).</emphasis></para>
       </callout>
       <callout arearefs="aggxml14">
@@ -465,7 +466,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         that implements the message aggregation
         algorithm. <emphasis>Optional, depends on <code>ref</code> attribute being defined.</emphasis></para>
       </callout>
-      
+
       <callout arearefs="aggxml15">
         <para>A reference to a bean that implements the release strategy.
         The bean can be an implementation of the <interfacename>ReleaseStrategy</interfacename> interface
@@ -496,6 +497,20 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
         the same correlation to form a new group. The default behavior
         is to send messages with the same correlation as a completed
         group to the <emphasis>discard-channel</emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml19">
+        <para>Only applies if a <classname>MessageGroupStoreReaper</classname> is configured
+        for the <code>&lt;aggregator&gt;</code>'s <classname>MessageStore</classname>.
+        By default, when a <classname>MessageGroupStoreReaper</classname> is configured to expire partial
+        groups, empty groups are also removed. Empty groups exist after a group
+        is released normally. This is to enable the detection and discarding of
+        late-arriving messages. If you wish to expire empty groups on a longer
+        schedule than expiring partial groups, set this property. Empty groups will
+        then not be removed from the <classname>MessageStore</classname> until they have not been modified
+        for at least this number of milliseconds. Note that the actual time to expire an
+        empty group will also be affected by the reaper's <emphasis>timeout</emphasis>
+        property and it could be as much as this value plus the timeout.</para>
       </callout>
 
     </calloutlist>
@@ -570,16 +585,16 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       strategy method and the aggregator method can be combined in a single
       bean (all of them or any two).</para>
     </note>
-    
+
     <para>
     	<emphasis>Aggregators and Spring Expression Language (SpEL)</emphasis>
     </para>
-    
+
     <para>
-    Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with 
-    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">SpEL</ulink> 
+    Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with
+    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">SpEL</ulink>
     which is recommended if the logic behind such <emphasis>release strategy</emphasis> is relatively simple.
-    Let's say you have a legacy component that was designed to receive an array of objects. We know that the default release 
+    Let's say you have a legacy component that was designed to receive an array of objects. We know that the default release
     strategy will assemble all aggregated messages in the List. So now we have two problems. First we need to extract
     individual messages from the list, and then we need to extract the payload of each message and assemble
     the array of objects (see code below).
@@ -595,22 +610,22 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 	However, with SpEL such a requirement could actually be handled relatively easily with a
 	one-line expression, thus sparing you from writing a custom class and configuring it as a bean.
 
-	<programlisting language="xml"><![CDATA[<int:aggregator input-channel="aggChannel" 
-	output-channel="replyChannel" 
+	<programlisting language="xml"><![CDATA[<int:aggregator input-channel="aggChannel"
+	output-channel="replyChannel"
 	expression="#this.![payload].toArray()"/>]]></programlisting>
 
-	In the above configuration we are using a <ulink 
-	url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113">Collection Projection</ulink> expression 
-	to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus 
+	In the above configuration we are using a <ulink
+	url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113">Collection Projection</ulink> expression
+	to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus
 	achieving the same result as the java code above.
     </para>
-    
+
     <para>
-    The same expression-based approach can be applied when dealing with custom <emphasis>Release</emphasis> and 
+    The same expression-based approach can be applied when dealing with custom <emphasis>Release</emphasis> and
     <emphasis>Correlation</emphasis> strategies.
     </para>
     <para>
-	Instead of defining a bean for a custom <classname>CorrelationStrategy</classname> via 
+	Instead of defining a bean for a custom <classname>CorrelationStrategy</classname> via
     the <code>correlation-strategy</code> attribute, you can implement your simple correlation logic
     via a SpEL expression and configure it via the <code>correlation-strategy-expression</code> attribute.
 	</para>
@@ -618,13 +633,13 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 	For example:
 
 	<programlisting language="xml"><![CDATA[correlation-strategy-expression="payload.person.id"]]></programlisting>
-	
-	In the above example it is assumed that the payload has an attribute <code>person</code> with an <code>id</code> 
+
+	In the above example it is assumed that the payload has an attribute <code>person</code> with an <code>id</code>
 	which is going to be used to correlate messages.
 	</para>
 	<para>
-    Likewise, for the <interfacename>ReleaseStrategy</interfacename> you can implement your release logic as 
-    a SpEL expression and configure it via the <code>release-strategy-expression</code> attribute. 
+    Likewise, for the <interfacename>ReleaseStrategy</interfacename> you can implement your release logic as
+    a SpEL expression and configure it via the <code>release-strategy-expression</code> attribute.
     The only difference is that since ReleaseStrategy is passed the List of Messages, the root object in the SpEL
     evaluation context is the List itself. That List can be referenced as <code>#this</code> within the expression.
 	</para>
@@ -632,9 +647,9 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 	For example:
 
 	<programlisting language="xml"><![CDATA[release-strategy-expression="#this.size() gt 5"]]></programlisting>
-	
+
 	In this example the root object of the SpEL Evaluation Context is the
-    <interfacename>MessageGroup</interfacename> itself, and you are simply stating 
+    <interfacename>MessageGroup</interfacename> itself, and you are simply stating
     that as soon as there are more than 5 messages in this group, it should be released.
     </para>
   </section>
@@ -645,9 +660,9 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     <para>An aggregator configured using annotations would look like this.</para>
 
     <programlisting language="java"><![CDATA[public class Waiter {
-  ... 
+  ...
 
-  @Aggregator ]]><co id="aggann" /><![CDATA[ 
+  @Aggregator ]]><co id="aggann" /><![CDATA[
   public Delivery aggregatingMethod(List<OrderItem> items) {
     ...
   }
@@ -693,7 +708,7 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     the @MessageEndpoint is defined on the class, detected automatically
     through classpath scanning.</para>
   </section>
-		
+
 	</section>
 
   <section id="reaper">
@@ -709,8 +724,8 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     All state is carried by the <interfacename>MessageGroup</interfacename> and its
     management is delegated to the
     <interfacename>MessageGroupStore</interfacename>.
-    
-    
+
+
     <programlisting><![CDATA[public interface MessageGroupStore {
    int getMessageCountForAllMessageGroups();
 
@@ -734,11 +749,11 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
 
    int expireMessageGroups(long timeout);
 }]]></programlisting>
-    
+
     For more information please refer to the
     <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html">JavaDoc</ulink>.
     </para>
-    
+
     <para>The <interfacename>MessageGroupStore</interfacename> accumulates state
     information in <interfacename>MessageGroups</interfacename> while waiting for
     a release strategy to be triggered, and that event might not ever happen.
@@ -777,32 +792,44 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
   <property name="timeout" value="30000"/>
 </bean>
 
-<task:scheduled-tasks scheduler="scheduler">	
+<task:scheduled-tasks scheduler="scheduler">
   <task:scheduled ref="reaper" method="run" fixed-rate="10000"/>
 </task:scheduled-tasks>]]></programlisting>
 
     <para>The reaper is a <interfacename>Runnable</interfacename>, and all that is happening
     in the example above is that the message group store's expire method is being called
     once every 10 seconds. The timeout itself is 30 seconds.</para>
-    
+
     <note>
-    It is important to understand that the 'timeout' property of the <classname>MessageGroupStoreReaper</classname> is an 
-    approximate value and is impacted by the  the rate of the task scheduler since this property will 
-    only be checked on the next scheduled execution of the <classname>MessageGroupStoreReaper</classname> task. For example if 
-    the timeout is set for 10 min, but the <classname>MessageGroupStoreReaper</classname> task is scheduled to run every 60 min 
-    and the last execution of the <classname>MessageGroupStoreReaper</classname> task happened 1 min before the timeout, the 
+    It is important to understand that the 'timeout' property of the <classname>MessageGroupStoreReaper</classname> is an
+    approximate value and is impacted by the  the rate of the task scheduler since this property will
+    only be checked on the next scheduled execution of the <classname>MessageGroupStoreReaper</classname> task. For example if
+    the timeout is set for 10 min, but the <classname>MessageGroupStoreReaper</classname> task is scheduled to run every 60 min
+    and the last execution of the <classname>MessageGroupStoreReaper</classname> task happened 1 min before the timeout, the
     <classname>MessageGroup</classname>  will not expire for the next 59 min. So it is recommended to set the rate at least equal to the value of the timeout or shorter.
     </note>
 
     <para>In addition to the reaper, the expiry callbacks are invoked when the application
-    shuts down via a lifecycle callback in the <classname>CorrelatingMessageHandler</classname>.
+    shuts down via a lifecycle callback in the <classname>AbstractCorrelatingMessageHandler</classname>.
     </para>
 
-    <para>The <classname>CorrelatingMessageHandler</classname> registers its
+    <para>The <classname>AbstractCorrelatingMessageHandler</classname> registers its
     own expiry callback, and this is the link with the boolean flag
     <code>send-partial-result-on-expiry</code> in the XML configuration of the
     aggregator. If the flag is set to true, then when the expiry callback is
     invoked, any unmarked messages in groups that are not yet released can
     be sent on to the output channel.</para>
+
+    <important>
+      <para>When using a <classname>MessageGroupStoreReaper</classname>, it is generally recommended to use a
+      separate <classname>MessageStore</classname> for each correlating endpoint. Otherwise,
+      unexpected results may occur because one endpoint may remove another endpoint's groups.</para>
+      <para>Some <interfacename>MessageStore</interfacename> implementations allow using the same physical
+      resources, by partitioning the data; for example, the <classname>JdbcMessageStore</classname>
+      has a <code>region</code> property;
+      the <classname>MongoDbMessageStore</classname> has a <code>collectionName</code> property.</para>
+      <para>For more information about <interfacename>MessageStore</interfacename> interface
+      and its implementations, please read <xref linkend="message-store"/>.</para>
+    </important>
   </section>
 </section>

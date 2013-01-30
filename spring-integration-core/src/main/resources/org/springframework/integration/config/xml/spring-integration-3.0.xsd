@@ -3262,6 +3262,24 @@ is provided, the return value is expected to match a channel name exactly.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="empty-group-min-timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Only applies if a MessageGroupStoreReaper is configured for this Correlation
+							Endpoint's MessageStore.
+							By default, when a MessageGroupStoreReaper is configured to expire partial
+							groups, empty groups are also removed. Empty groups exist after a group
+							is released normally. This is to enable the detection and discarding of
+							late-arriving messages. If you wish to run empty group deletion on a longer
+							schedule than expiring partial groups, set this property. Empty groups will
+							then not be removed from the MessageStore until they have not been modified
+							for at least this number of milliseconds.
+							Note that the actual time to expire an
+							empty group will also be affected by the reaper's 'timeout'
+							property and it could be as much as this value plus the timeout.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

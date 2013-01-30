@@ -44,6 +44,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Stefan Ferstl
+ * @author Artem Bilan
  */
 public class ResequencerParserTests {
 
@@ -88,6 +89,7 @@ public class ResequencerParserTests {
 				true, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
 				true, getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"));
+		assertEquals(60000L, getPropertyValue(resequencer, "minimumTimeoutForEmptyGroups", Long.class).longValue());
 	}
 
 	@Test

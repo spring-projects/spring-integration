@@ -16,7 +16,7 @@
 
 	<channel id="aggregatorWithReferenceInput"/>
 	<aggregator id="aggregatorWithReference" ref="aggregatorBean"
-              input-channel="aggregatorWithReferenceInput" output-channel="outputChannel"/>
+				input-channel="aggregatorWithReferenceInput" output-channel="outputChannel"/>
 
 	<channel id="completelyDefinedAggregatorInput"/>
 	<aggregator id="completelyDefinedAggregator"
@@ -25,7 +25,7 @@
 		discard-channel="discardChannel"
 		ref="aggregatorBean"
 		release-strategy="releaseStrategy"
-        correlation-strategy="correlationStrategy"
+		correlation-strategy="correlationStrategy"
 		send-timeout="86420000"
 		send-partial-result-on-expiry="true"/>
 
@@ -36,7 +36,7 @@
 		output-channel="aggregatorWithExpressionsOutput"
 		expression="?[payload.startsWith('1')].![payload]"
 		release-strategy-expression="#root.size()>2"
-        correlation-strategy-expression="headers['foo']"/>
+		correlation-strategy-expression="headers['foo']"/>
 
 	<channel id="aggregatorWithReferenceAndMethodInput"/>
 	<aggregator id="aggregatorWithReferenceAndMethod"
@@ -68,7 +68,8 @@
 		input-channel="aggregatorWithExpressionsAndPojoAggregatorInput"
 		ref="aggregatorBean"
 		release-strategy-expression="size() == 2"
-        correlation-strategy-expression="headers['foo']"/>
+		correlation-strategy-expression="headers['foo']"
+		empty-group-min-timeout="60000"/>
 
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
@@ -79,7 +80,7 @@
 	<beans:bean id="releaseStrategy"
 		class="org.springframework.integration.config.TestReleaseStrategy" />
 
-    <beans:bean id="correlationStrategy" class="org.springframework.integration.config.TestCorrelationStrategy"/>
+	<beans:bean id="correlationStrategy" class="org.springframework.integration.config.TestCorrelationStrategy"/>
 
 	<beans:bean id="pojoReleaseStrategy"
 		class="org.springframework.integration.config.MaxValueReleaseStrategy">
