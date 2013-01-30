@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
  *
  * @author Oleg Zhurakousky
  * @author Stefan Ferstl
+ * @author Artem Bilan
  * @since 2.1
  *
  */
@@ -66,6 +67,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "empty-group-time-to-live-on-expiry", "minimumTimeoutForEmptyGroups");
 	}
 
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
@@ -86,7 +88,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 		BeanMetadataElement adapter = null;
 		if (hasBeanRef) {
-			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass, parserContext);
+			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass);
 		}
 		else if (hasExpression) {
 			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
@@ -96,16 +98,15 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 			adapter = adapterBuilder.getBeanDefinition();
 		}
 		else if (processor != null) {
-			adapter = this.createAdapter(processor, beanMethod, adapterClass, parserContext);
+			adapter = this.createAdapter(processor, beanMethod, adapterClass);
 		}
 		else {
-			adapter = this.createAdapter(null, beanMethod, adapterClass, parserContext);
+			adapter = this.createAdapter(null, beanMethod, adapterClass);
 		}
 		builder.addPropertyValue(beanProperty, adapter);
 	}
 
-	private BeanMetadataElement createAdapter(BeanMetadataElement ref, String method, String unqualifiedClassName,
-			ParserContext parserContext) {
+	private BeanMetadataElement createAdapter(BeanMetadataElement ref, String method, String unqualifiedClassName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
 						+ "FactoryBean");

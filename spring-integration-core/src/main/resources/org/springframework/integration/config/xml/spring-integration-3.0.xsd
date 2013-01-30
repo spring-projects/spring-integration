@@ -3262,6 +3262,19 @@ is provided, the return value is expected to match a channel name exactly.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="empty-group-time-to-live-on-expiry" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							By default, when a MessageGroupStoreReaper is configured to expire partial
+							groups, empty groups are also removed. Empty groups exist after a group
+							is released normally. This is to enable the detection and discarding of
+							late-arriving messages. If you wish to run empty group deletion on a longer
+							schedule than expiring partial groups, set this property. Empty groups will
+							then not be removed from the MessageStore until they have not been modified
+							for at least this number of milliseconds.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
