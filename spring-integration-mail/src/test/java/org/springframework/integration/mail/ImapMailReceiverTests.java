@@ -28,17 +28,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
@@ -345,6 +342,7 @@ public class ImapMailReceiverTests {
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "simpleAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("mail:imap-idle-channel-adapter", componentHistoryRecord.get("type"));
+		adapter.stop();
 	}
 
 	@Test
@@ -414,6 +412,7 @@ public class ImapMailReceiverTests {
 		org.springframework.integration.Message<?> replMessage = errorChannel.receive(10000);
 		assertNotNull(replMessage);
 		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
+		adapter.stop();
 	}
 
 	@Test
@@ -497,6 +496,7 @@ public class ImapMailReceiverTests {
 		// We should not receive any more until the next idle elapses
 		assertNull(channel.receive(3000));
 		assertNotNull(channel.receive(6000));
+		adapter.stop();
 	}
 
 	@Test
@@ -568,6 +568,7 @@ public class ImapMailReceiverTests {
 		assertNull(channel.receive(3000));
 		assertNotNull(channel.receive(5000));
 		assertTrue(idles.await(5, TimeUnit.SECONDS));
+		adapter.stop();
 	}
 
 	@Test // see INT-1801
