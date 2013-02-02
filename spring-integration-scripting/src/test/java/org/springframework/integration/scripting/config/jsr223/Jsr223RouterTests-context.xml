@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:int-script="http://www.springframework.org/schema/integration/scripting"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:int-script="http://www.springframework.org/schema/integration/scripting"
+			 xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/scripting http://www.springframework.org/schema/integration/scripting/spring-integration-scripting.xsd">
 
@@ -16,28 +16,28 @@
 	</channel>
 
 	<router input-channel="referencedScriptInput">
-		<int-script:script lang="javascript" location="org/springframework/integration/scripting/config/jsr223/Jsr223RouterTests.js">
+		<int-script:script lang="javascript"
+						   location="org/springframework/integration/scripting/config/jsr223/Jsr223RouterTests.js">
 			<variable name="maxLen" value="3"/>
 		</int-script:script>
 	</router>
 
 	<router input-channel="inlineScriptInput">
 		<int-script:script lang="javascript"><![CDATA[
-		      (function(){
-				 return payload.length > 5 ? "longStrings" : "shortStrings";
-			  })();
+			(function(){
+				return payload.length > 5 ? "longStrings" : "shortStrings";
+			})();
 		]]></int-script:script>
 	</router>
 
 	<chain input-channel="scriptRouterWithinChainInput">
 		<router>
 			<int-script:script lang="javascript"><![CDATA[
-		      (function(){
-				 return payload.length > 5 ? "longStrings" : "shortStrings";
-			  })();
+				(function(){
+					return payload.length > 5 ? "longStrings" : "shortStrings";
+				})();
 		]]></int-script:script>
 		</router>
 	</chain>
-
 
 </beans:beans>
