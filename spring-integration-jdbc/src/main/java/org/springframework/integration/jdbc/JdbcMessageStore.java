@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -89,7 +89,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
 	private enum Query {
-		GROUP_EXISTS("SELECT COUNT(GROUP_KEY) FROM %PREFIX%MESSAGE_GROUP where GROUP_KEY = ?"),
+		GROUP_EXISTS("SELECT COUNT(GROUP_KEY) FROM %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?"),
 
 		CREATE_MESSAGE_GROUP("INSERT into %PREFIX%MESSAGE_GROUP" +
 			"(GROUP_KEY, REGION, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE)"
@@ -97,13 +97,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		UPDATE_MESSAGE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?"),
 
-		REMOVE_MESSAGE_FROM_GROUP("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and MESSAGE_ID=?"),
+		REMOVE_MESSAGE_FROM_GROUP("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and MESSAGE_ID=? and REGION=?"),
 
-		REMOVE_GROUP_TO_MESSAGE_JOIN("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=?"),
+		REMOVE_GROUP_TO_MESSAGE_JOIN("DELETE from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and REGION=?"),
 
-		COUNT_ALL_MESSAGES_IN_GROUPS("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE"),
+		COUNT_ALL_MESSAGES_IN_GROUPS("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE where REGION=?"),
 
-		COUNT_ALL_MESSAGES_IN_GROUP("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=?"),
+		COUNT_ALL_MESSAGES_IN_GROUP("SELECT COUNT(MESSAGE_ID) from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY=? and REGION=?"),
 
 		LIST_MESSAGEIDS_BY_GROUP_KEY("select MESSAGE_ID, CREATED_DATE " +
 				"from %PREFIX%MESSAGE where MESSAGE_ID in (select MESSAGE_ID from %PREFIX%GROUP_TO_MESSAGE where GROUP_KEY = ?) and REGION=? " +
@@ -122,7 +122,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 						"and %PREFIX%MESSAGE.REGION = ?))"),
 
 		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE" +
-				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY = ?"),
+				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY = ? and REGION=?"),
 
 		GET_MESSAGE("SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=? and REGION=?"),
 
@@ -144,8 +144,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		DELETE_MESSAGE_GROUP("DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?"),
 
 		CREATE_GROUP_TO_MESSAGE("INSERT into %PREFIX%GROUP_TO_MESSAGE" +
-				"(GROUP_KEY, MESSAGE_ID)"
-				+ " values (?, ?)"),
+				"(GROUP_KEY, MESSAGE_ID, REGION)"
+				+ " values (?, ?, ?)"),
 
 		UPDATE_GROUP("UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?"),
 
@@ -226,6 +226,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @param region the region name to set
 	 */
 	public void setRegion(String region) {
+		Assert.hasText(region, "Region must not be null or empty.");
 		this.region = region;
 	}
 
@@ -353,7 +354,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(message.getHeaders().getId());
-		boolean groupNotExist = jdbcTemplate.queryForInt(this.getQuery(Query.GROUP_EXISTS), groupKey) < 1;
+		boolean groupNotExist = jdbcTemplate.queryForInt(this.getQuery(Query.GROUP_EXISTS), groupKey, region) < 1;
 
 		final Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
 
@@ -382,6 +383,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				}
 				ps.setString(1, groupKey);
 				ps.setString(2, messageId);
+				ps.setString(3, region);
 			}
 		});
 		return getMessageGroup(groupId);
@@ -397,13 +399,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS));
+		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), region);
 	}
 
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		String key = getKey(groupId);
-		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), key);
+		return jdbcTemplate.queryForInt(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), key, region);
 	}
 
 	public MessageGroup getMessageGroup(Object groupId) {
@@ -419,7 +421,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			return new SimpleMessageGroup(groupId);
 		}
 
-		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key},
+		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key, region},
 				new RowCallbackHandler() {
 					public void processRow(ResultSet rs) throws SQLException {
 						updateDate.set(rs.getTimestamp("UPDATED_DATE"));
@@ -464,6 +466,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				}
 				ps.setString(1, groupKey);
 				ps.setString(2, messageId);
+				ps.setString(3, region);
 			}
 		});
 		this.removeMessage(messageToRemove.getHeaders().getId());
@@ -485,6 +488,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					logger.debug("Removing relationships for the group with group key=" + groupKey);
 				}
 				ps.setString(1, groupKey);
+				ps.setString(2, region);
 			}
 		});
 
