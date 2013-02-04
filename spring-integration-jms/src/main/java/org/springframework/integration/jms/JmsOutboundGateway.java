@@ -382,7 +382,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		this.useReplyContainer = useReplyContainer;
 	}
 
-	private Destination getRequestDestination(Message<?> message, Session session) throws JMSException {
+	private Destination determineRequestDestination(Message<?> message, Session session) throws JMSException {
 		if (this.requestDestination != null) {
 			return this.requestDestination;
 		}
@@ -476,9 +476,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			 *  with no correlation key.
 			 */
 			if (this.useReplyContainer && (this.correlationKey == null &&
-					(this.replyDestination != null || this.replyDestinationName != null))) {
+					(this.replyDestination != null || this.replyDestinationName != null) ||
+					 this.replyDestinationExpressionProcessor != null)) {
 				if (logger.isWarnEnabled()) {
-					logger.warn("The gateway cannot use a reply listener container with a specified destination(Name) " +
+					logger.warn("The gateway cannot use a reply listener container with a specified destination(Name/Expression) " +
 							"without a 'correlation-key'; " +
 							"a container will NOT be used; " +
 							"to avoid this problem, set the 'correlation-key' attribute; " +
@@ -653,7 +654,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (priority == null) {
 				priority = this.priority;
 			}
-			Destination requestDestination = this.getRequestDestination(requestMessage, session);
+			Destination requestDestination = this.determineRequestDestination(requestMessage, session);
 
 			/*
 			 * Remove any existing correlation id that was mapped from the inbound message
@@ -708,7 +709,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				priority = this.priority;
 			}
 			javax.jms.Message replyMessage = null;
-			Destination requestDestination = this.getRequestDestination(requestMessage, session);
+			Destination requestDestination = this.determineRequestDestination(requestMessage, session);
 			if (this.correlationKey != null) {
 				replyMessage = this.doSendAndReceiveWithGeneratedCorrelationId(requestDestination, jmsRequest, replyTo, session, priority);
 			}

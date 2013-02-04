@@ -915,6 +915,10 @@
 						of the request. If you want to store the outbound correlation UUID value in the
 						actual "JMSCorrelationID" property, then set this value to "JMSCorrelationID".
 						However, any other value will be treated as a JMS String Property.
+						Note: when using a <reply-container/> the correlation data includes a UUID
+						representing the gateway as well as a message identifier. For this reason, the use of a
+						<reply-container/> requires the specification of a 'correlation-key' if an
+						explicit reply-destination is provided.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
