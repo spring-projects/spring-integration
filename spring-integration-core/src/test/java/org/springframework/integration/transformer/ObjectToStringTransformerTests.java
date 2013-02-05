@@ -41,6 +41,13 @@ public class ObjectToStringTransformerTests {
 		Message<?> result = transformer.transform(new GenericMessage<TestBean>(new TestBean()));
 		assertEquals("test", result.getPayload());
 	}
+	
+	@Test
+	public void byteArrayPayload() {
+		Transformer transformer = new ObjectToStringTransformer();
+		Message<?> result = transformer.transform(new GenericMessage<byte[]>("foo".getBytes()));
+		assertEquals("foo", result.getPayload());
+	}
 
 
 	private static class TestBean {
