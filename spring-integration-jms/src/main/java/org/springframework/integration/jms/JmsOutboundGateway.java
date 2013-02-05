@@ -145,7 +145,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * specified as a boolean value ("true" or "false"). This will set the delivery
 	 * mode accordingly to either "PERSISTENT" (1) or "NON_PERSISTENT" (2).
 	 * <p>The default is "true", i.e. delivery mode "PERSISTENT".
-	 * @see #setDeliveryMode(int)
 	 * @see javax.jms.DeliveryMode#PERSISTENT
 	 * @see javax.jms.DeliveryMode#NON_PERSISTENT
 	 */
@@ -260,7 +259,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	/**
 	 * Specify the JMS DeliveryMode to use when sending request Messages.
+	 * @deprecated use {@link #setDeliveryPersistent(boolean)}
+	 * This should have been deprecated in 2.0 when the attribute was
+	 * deprecated in the schema. As of 3.0, the attribute has been
+	 * removed but this remains to allow users of the API to migrate.
+	 * TODO: Remove in 3.1/4.0
 	 */
+	@Deprecated
 	public void setDeliveryMode(int deliveryMode) {
 		this.deliveryMode = deliveryMode;
 	}
