@@ -68,17 +68,32 @@
 	<beans:bean id="annotated" class="org.springframework.integration.router.config.RouterParserTests$AnnotatedTestRouterBean">
 		<beans:constructor-arg ref="output4"/>
 	</beans:bean>
-	
+
 	<channel id="inputForRouterRequiringResolution"/>
-	
+
 	<router id="resolutionRequiredRouter" ref="pojo" method="route" input-channel="inputForRouterRequiringResolution" resolution-required="true" />
-	
-	<channel id="resolutionRequiredIsTrueInput"/>
+
 	<beans:bean id="payloadAsChannelNameRouter" class="org.springframework.integration.router.config.RouterParserTests$ReturnStringPassedInAsChannelNameRouter" />
-	<router id="resolutionRequiredFalseRouter" ref="payloadAsChannelNameRouter" input-channel="resolutionRequiredIsTrueInput" resolution-required="false" />  
+
+	<router id="resolutionRequiredFalseRouter" ref="payloadAsChannelNameRouter" input-channel="resolutionRequiredIsFalseInput" resolution-required="false" />
 
 	<channel id="timeoutRouterChannel"/>
+
 	<router id="routerWithTimeout" ref="payloadAsChannelNameRouter" timeout="1234" input-channel="timeoutRouterChannel"/>
+
+	<router input-channel="routerNestedBeanChannel" method="route">
+		<beans:bean class="org.springframework.integration.router.config.TestRouter"/>
+	</router>
+
+	<chain input-channel="chainRouterNestedBeanChannel">
+		<router method="route">
+			<beans:bean class="org.springframework.integration.router.config.TestRouter"/>
+		</router>
+	</chain>
+
+	<router input-channel="routerAndErrorChannelInputChannel" default-output-channel="errorChannel" resolution-required="false">
+		<beans:bean class="org.springframework.integration.router.config.RouterParserTests.NonExistingChannelRouter"/>
+	</router>
 
 	<beans:bean id="testChannelResolver"
 		class="org.springframework.integration.router.config.RouterParserTests$TestChannelResover"/>

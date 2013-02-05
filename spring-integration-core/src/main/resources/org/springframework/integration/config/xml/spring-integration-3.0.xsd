@@ -2554,35 +2554,8 @@
         <xsd:complexContent>
             <xsd:extension base="commonRouterType">
                 <xsd:sequence>
-                    <xsd:element ref="poller"                                        minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="expression" type="innerExpressionType"        minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            <![CDATA[
-                           You can use SpEL Expressions to implement simple
-                           computations. Generally a SpEL expression is evaluated
-                           and the result is either a channel name or
-                           alternatively the result can be mapped to a channel using the
-                           'mapping' sub-element.
-
-                           The SpEL expression can return a Collection,
-                           effectively making this Router a Dynamic Recipient List
-                           Router. Whenever the expression returns multiple
-                           channel values the Message will be forwarded to
-                           each channel.
-                            ]]></xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="mapping"    type="mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            <![CDATA[
-                            Defines mapping rules for this router
-                            (e.g., mapping value='foo' channel='myChannel')
-                            ]]></xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:any namespace="##other" processContents="strict"            minOccurs="0" maxOccurs="1" />
+                    <xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+                    <xsd:group ref="routerCommonGroup" />
                 </xsd:sequence>
                 <xsd:attributeGroup ref="topLevelRouterAttributeGroup"/>
             </xsd:extension>
@@ -2593,20 +2566,44 @@
         <xsd:complexContent>
             <xsd:extension base="commonRouterType">
                 <xsd:sequence>
-                    <xsd:element name="expression" type="innerExpressionType"        minOccurs="0" maxOccurs="1" />
-                    <xsd:element name="mapping" type="mappingValueChannelType"    minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            <![CDATA[
-                            Defines mapping rules for this router
-                            (e.g., mapping value='foo' channel='myChannel')
-                            ]]></xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                    <xsd:group ref="routerCommonGroup" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:group name="routerCommonGroup">
+        <xsd:sequence>
+            <xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    <![CDATA[
+                   You can use SpEL Expressions to implement simple
+                   computations. Generally a SpEL expression is evaluated
+                   and the result is either a channel name or
+                   alternatively the result can be mapped to a channel using the
+                   'mapping' sub-element.
+
+                   The SpEL expression can return a Collection,
+                   effectively making this Router a Dynamic Recipient List
+                   Router. Whenever the expression returns multiple
+                   channel values the Message will be forwarded to
+                   each channel.
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mapping" type="mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    <![CDATA[
+                    Defines mapping rules for this router
+                    (e.g., mapping value='foo' channel='myChannel')
+                    ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
+        </xsd:sequence>
+    </xsd:group>
 
     <!-- Type definitions used by the Header Value Router -->
 
