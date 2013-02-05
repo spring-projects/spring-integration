@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,29 @@ package org.springframework.integration.jms.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Method;
 import java.util.Properties;
 
 import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+import javax.jms.Queue;
+import javax.jms.Session;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
@@ -40,11 +50,13 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -114,6 +126,81 @@ public class JmsOutboundGatewayParserTests {
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		Object order = accessor.getPropertyValue("order");
 		assertEquals(99, order);
+	}
+
+	@Test
+	public void gatewayWithDest() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayReplyDestOptions.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGatewayDest");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(gateway);
+		assertSame(context.getBean("replyQueue"), accessor.getPropertyValue("replyDestination"));
+	}
+
+	@Test
+	public void gatewayWithDestName() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayReplyDestOptions.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGatewayDestName");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(gateway);
+		assertEquals("replyQueueName", accessor.getPropertyValue("replyDestinationName"));
+	}
+
+	@Test
+	public void gatewayWithDestExpression() throws Exception {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayReplyDestOptions.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGatewayDestExpression");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
+		ExpressionEvaluatingMessageProcessor<?> processor = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor",
+				ExpressionEvaluatingMessageProcessor.class);
+		Expression expression = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor.expression",
+				Expression.class);
+		assertEquals("payload", expression.getExpressionString());
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		assertEquals("foo", processor.processMessage(message));
+
+		Method method = JmsOutboundGateway.class.getDeclaredMethod("determineReplyDestination", Message.class, Session.class);
+		method.setAccessible(true);
+
+		Session session = mock(Session.class);
+		Queue queue = mock(Queue.class);
+		when(session.createQueue("foo")).thenReturn(queue);
+		Destination replyQ = (Destination) method.invoke(gateway, message, session);
+		assertSame(queue, replyQ);
+	}
+
+	@Test
+	public void gatewayWithDestBeanRefExpression() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayReplyDestOptions.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGatewayDestExpressionBeanRef");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
+		ExpressionEvaluatingMessageProcessor<?> processor = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor",
+				ExpressionEvaluatingMessageProcessor.class);
+		Expression expression = TestUtils.getPropertyValue(gateway, "replyDestinationExpressionProcessor.expression",
+				Expression.class);
+		assertEquals("@replyQueue", expression.getExpressionString());
+		assertSame(context.getBean("replyQueue"), processor.processMessage(null));
+	}
+
+	@Test
+	public void gatewayWithDestAndDestExpression() {
+		try {
+			new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayReplyDestOptions-fail.xml", this.getClass());
+			fail("Exception expected");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: Only one of the " +
+					"'replyQueue', 'reply-destination-name', or 'reply-destination-expression' attributes is allowed."));
+		}
 	}
 
 	@Test
