@@ -23,4 +23,7 @@
 		<poller fixed-delay="10000"/>
 	</object-to-string-transformer>
 
+	<object-to-string-transformer id="withCharset" charset="FOO"
+		input-channel="charsetChannel" output-channel="nullChannel"/>
+
 </beans:beans>

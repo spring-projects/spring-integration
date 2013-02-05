@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,16 @@ package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import java.nio.charset.Charset;
 
+import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Andrew Cowlin
+ * @author Gary Russell
  */
 public class ObjectToStringTransformerTests {
 
@@ -42,9 +45,31 @@ public class ObjectToStringTransformerTests {
 		assertEquals("test", result.getPayload());
 	}
 
+	@Test
+	public void byteArrayPayload() throws Exception {
+		Transformer transformer = new ObjectToStringTransformer();
+		Message<?> result = transformer.transform(new GenericMessage<byte[]>(("foo" + '\u0fff').getBytes("UTF-8")));
+		assertEquals("foo" + '\u0fff', result.getPayload());
+	}
+
+	@Test
+	public void byteArrayPayloadCharset() throws Exception {
+		String defaultCharsetName = Charset.defaultCharset().toString();
+		Transformer transformer = new ObjectToStringTransformer(defaultCharsetName);
+		Message<?> result = transformer.transform(new GenericMessage<byte[]>("foo".getBytes(defaultCharsetName)));
+		assertEquals("foo", result.getPayload());
+	}
+
+	@Test
+	public void charArrayPayload() {
+		Transformer transformer = new ObjectToStringTransformer();
+		Message<?> result = transformer.transform(new GenericMessage<char[]>("foo".toCharArray()));
+		assertEquals("foo", result.getPayload());
+	}
 
 	private static class TestBean {
 
+		@Override
 		public String toString() {
 			return "test";
 		}
