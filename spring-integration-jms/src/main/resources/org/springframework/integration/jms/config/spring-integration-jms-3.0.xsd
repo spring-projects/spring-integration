@@ -924,6 +924,11 @@
 			</xsd:attribute>
 			<xsd:attribute name="destination-resolver" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A reference to the DestinationResolver strategy for resolving Destination names
+	to Destination objects. Used when a reqest/reply destination name is provided, or
+	an expression that resolves to a name. Default is a DynamicDestinationResolver.
+				]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.jms.support.destination.DestinationResolver"/>
@@ -933,6 +938,9 @@
 			</xsd:attribute>
 			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory">
 				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	The name of a ConnectionFactory bean. Default is 'connectionFactory'.
+				]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="javax.jms.ConnectionFactory"/>
@@ -960,20 +968,31 @@
 							<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
 						</tool:annotation>
 						<xsd:documentation>
-						Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message.
+	A reference to an implementation of JmsHeaderMapper to map Message Headers to JMS Message. Default
+	is a 'DefaultJmsHeaderMapper'.
 						</xsd:documentation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="delivery-mode" type="xsd:string">
+			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	[DEPRECATED - use delivery-persistent attribute instead]
-	A reference to the MessageConverter strategy for converting between JMS Messages
-	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
-					]]></xsd:documentation>
+					<xsd:documentation>
+	When 'true' (default), this attribute indicates that the JMS Message body will be created
+	(by the MessageConverter) from the Spring Integration Message's payload.
+	When 'false', the entire Spring Integration Message will be converted to the JMS Message body.
+	In both cases, the message headers will be mapped to JMS headers/properties by the HeaderMapper.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+	When 'true' (default), this attribute indicates that the payload of the Spring Integration
+	reply message will be created from the 'JMS Message' body (by the MessageConverter).
+	When 'false', the Spring Integration Message payload will be the entire JMS Message.
+	In both cases, the JMS Message headers/properties will be mapped to message headers
+	by the HeaderMapper.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="delivery-persistent" type="xsd:string">
