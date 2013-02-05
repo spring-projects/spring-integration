@@ -21,13 +21,14 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -50,6 +51,8 @@ public class ObjectToStringTransformerParserTests {
 	@Qualifier("output")
 	private PollableChannel output;
 
+	@Autowired
+	private AbstractEndpoint withCharset;
 
 	@Test
 	public void directChannelWithStringMessage() {
@@ -83,9 +86,14 @@ public class ObjectToStringTransformerParserTests {
 		assertEquals("test", result.getPayload());
 	}
 
+	@Test
+	public void charset() {
+		assertEquals("FOO", TestUtils.getPropertyValue(this.withCharset, "handler.transformer.charset"));
+	}
 
 	private static class TestBean {
 
+		@Override
 		public String toString() {
 			return "test";
 		}
