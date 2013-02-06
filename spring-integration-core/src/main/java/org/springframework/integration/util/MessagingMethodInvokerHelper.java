@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  * @author Gunnar Hillert
+ * @author Soby Chacko
  *
  * @since 2.0
  */
@@ -356,13 +357,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		return fallbackMethods;
 	}
 
-	@SuppressWarnings("deprecation")
 	private Class<?> getTargetClass(Object targetObject) {
 		Class<?> targetClass = targetObject.getClass();
 		if (AopUtils.isAopProxy(targetObject)) {
 			targetClass = AopUtils.getTargetClass(targetObject);
 		}
-		else if (AopUtils.isCglibProxyClass(targetClass)) {
+		else if (org.springframework.util.ClassUtils.isCglibProxyClass(targetClass)) {
 			Class<?> superClass = targetObject.getClass().getSuperclass();
 			if (!Object.class.equals(superClass)) {
 				targetClass = superClass;

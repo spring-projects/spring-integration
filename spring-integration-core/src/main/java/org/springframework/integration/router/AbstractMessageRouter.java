@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.router;
 import java.util.Collection;
 
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -36,6 +36,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Soby Chacko
  */
 @ManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
@@ -100,10 +101,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		return this.messagingTemplate;
 	}
 
-	@SuppressWarnings("deprecation")
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
-			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
+			this.setConversionService(new DefaultConversionService());
 		}
 		return this.getConversionService();
 	}
