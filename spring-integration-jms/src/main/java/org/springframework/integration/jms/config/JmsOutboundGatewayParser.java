@@ -65,19 +65,8 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
 
-		String deliveryMode = element.getAttribute("delivery-mode");
 		String deliveryPersistent = element.getAttribute("delivery-persistent");
-		if (StringUtils.hasText(deliveryMode) && StringUtils.hasText(deliveryPersistent)) {
-			parserContext.getReaderContext().error(
-					"The 'delivery-mode' and 'delivery-persistent' attributes are mutually exclusive.", element);
-			return null;
-		}
-		if (StringUtils.hasText(deliveryMode)) {
-			parserContext.getReaderContext().warning(
-					"The 'delivery-mode' attribute is deprecated. Use 'delivery-persistent' instead.", element);
-			builder.addPropertyValue("deliveryMode", deliveryMode);
-		}
-		else if (StringUtils.hasText(deliveryPersistent)) {
+		if (StringUtils.hasText(deliveryPersistent)) {
 			builder.addPropertyValue("deliveryPersistent", deliveryPersistent);
 		}
 		Element container = DomUtils.getChildElementByTagName(element, "reply-listener");
