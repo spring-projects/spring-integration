@@ -68,7 +68,7 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 			retrievedMessage = this.messageStore.getMessage(id);
 		}
 		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
-				+ " within MessageStore [" + this.messageStore + "]")
+				+ " within MessageStore [" + this.messageStore + "]");
 		MessageBuilder<?> responseBuilder = MessageBuilder.fromMessage(retrievedMessage);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
