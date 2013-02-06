@@ -56,15 +56,18 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		Assert.notNull(message, "message must not be null");
 		Assert.isTrue(message.getPayload() instanceof UUID, "payload must be a UUID");
 		UUID id = (UUID) message.getPayload();
-		Message<?> retrievedMessage = this.messageStore.getMessage(id);
-		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
-				+ " within MessageStore [" + this.messageStore + "]");
+		Message<?> retrievedMessage;
 		if (this.removeMessage) {
-			this.messageStore.removeMessage(id);
+			retrievedMessage = this.messageStore.removeMessage(id);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Removed Message with claim-check '" + id + "' from the MessageStore.");
 			}
 		}
+		else {
+			retrievedMessage = this.messageStore.getMessage(id);
+		}
+		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
+				+ " within MessageStore [" + this.messageStore + "]")
 		MessageBuilder<?> responseBuilder = MessageBuilder.fromMessage(retrievedMessage);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
