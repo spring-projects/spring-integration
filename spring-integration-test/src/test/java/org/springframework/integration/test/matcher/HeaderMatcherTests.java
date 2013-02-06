@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.springframework.integration.test.matcher;
 
-import static org.hamcrest.CoreMatchers.anything;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.any;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.HeaderMatcher.hasAllHeaders;
@@ -47,7 +49,8 @@ import org.springframework.integration.support.MessageBuilder;
 /**
  * @author Alex Peters
  * @author Iwein Fuld
- * 
+ * @author Gunnar Hillert
+ *
  */
 public class HeaderMatcherTests {
 
@@ -84,14 +87,14 @@ public class HeaderMatcherTests {
 
 	@Test
 	public void hasEntry_withValidKeyAndMatcherValue_matches() throws Exception {
-		assertThat(message, hasHeader(ANY_HEADER_KEY, is(String.class)));
+		assertThat(message, hasHeader(ANY_HEADER_KEY, is(instanceOf(String.class))));
 		assertThat(message, hasHeader(ANY_HEADER_KEY, notNullValue()));
 		assertThat(message, hasHeader(ANY_HEADER_KEY, is(ANY_HEADER_VALUE)));
 	}
 
 	@Test
 	public void hasEntry_withValidKeyAndMatcherValue_notMatching() throws Exception {
-		assertThat(message, not(hasHeader(ANY_HEADER_KEY, is(Integer.class))));
+		assertThat(message, not(hasHeader(ANY_HEADER_KEY, is(instanceOf(Integer.class)))));
 	}
 
 	@Test
@@ -186,11 +189,13 @@ public class HeaderMatcherTests {
 
 	@Test
 	public void hasExpirationDate_() throws Exception {
-		Matcher<Long> anyMatcher = anything();
+		Matcher<Long> anyMatcher = any(Long.class);
+
 		assertThat(message, not(hasExpirationDate(anyMatcher)));
 		Date expirationDate = new Date(System.currentTimeMillis() + 10000);
 		message = MessageBuilder.fromMessage(message).setExpirationDate(expirationDate).build();
 		assertThat(message, hasExpirationDate(expirationDate));
 		assertThat(message, hasExpirationDate(not(is((System.currentTimeMillis())))));
 	}
+
 }

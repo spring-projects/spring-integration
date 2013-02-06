@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,11 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpATTRS;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -46,12 +46,13 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	private static com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
-	
+
 	@After
 	public void cleanup(){
 		File file = new File("test");
@@ -69,19 +70,19 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		this.cleanup();
 		File localDirectoy = new File("test");
 		assertFalse(localDirectoy.exists());
-		
+
 		TestSftpSessionFactory ftpSessionFactory = new TestSftpSessionFactory();
 		ftpSessionFactory.setUser("kermit");
 		ftpSessionFactory.setPassword("frog");
 		ftpSessionFactory.setHost("foo.com");
 
-		
+
 		SftpInboundFileSynchronizer synchronizer = spy(new SftpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new SftpRegexPatternFileListFilter(".*\\.test$"));
 
-		SftpInboundFileSynchronizingMessageSource ms = 
+		SftpInboundFileSynchronizingMessageSource ms =
 				new SftpInboundFileSynchronizingMessageSource(synchronizer);
 		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectoy);
@@ -94,22 +95,22 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		assertEquals("b.test", btestFile.getPayload().getName());
 		Message<File> nothing =  ms.receive();
 		assertNull(nothing);
-		
+
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
 		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy);
 
 		assertTrue(new File("test/a.test").exists());
 		assertTrue(new File("test/b.test").exists());
 	}
-	
+
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
-		
+
 
 		@Override
 		public Session<LsEntry> getSession() {
 			try {
 				ChannelSftp channel = mock(ChannelSftp.class);
-		
+
 				String[] files = new File("remote-test-dir").list();
 				Vector<LsEntry> sftpEntries = new Vector<LsEntry>();
 				for (String fileName : files) {
@@ -121,7 +122,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 					when(channel.get("remote-test-dir/"+fileName)).thenReturn(new FileInputStream("remote-test-dir/" + fileName));
 				}
 				when(channel.ls("remote-test-dir")).thenReturn(sftpEntries);
-				
+
 				when(jschSession.openChannel("sftp")).thenReturn(channel);
 				return SftpTestSessionFactory.createSftpSession(jschSession);
 			} catch (Exception e) {

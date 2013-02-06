@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,12 +44,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
 
-import static junit.framework.Assert.assertEquals;
-
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
+ *
  * @since 2.1
  */
 @ContextConfiguration
@@ -77,12 +78,12 @@ public class AmqpInboundGatewayParserTests {
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(gateway, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(gateway, "phase"));
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void verifyUsageWithHeaderMapper() throws Exception{
 		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);
-		requestChannel.subscribe(new MessageHandler() {		
+		requestChannel.subscribe(new MessageHandler() {
 			public void handleMessage(org.springframework.integration.Message<?> siMessage)
 					throws MessagingException {
 				org.springframework.integration.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage).setHeader("bar", "bar").build();
@@ -90,14 +91,14 @@ public class AmqpInboundGatewayParserTests {
 				replyChannel.send(replyMessage);
 			}
 		});
-		
+
 		final AmqpInboundGateway gateway = context.getBean("withHeaderMapper", AmqpInboundGateway.class);
-		
+
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpInboundGateway.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
-			
+
 		Mockito.doAnswer(new Answer() {
 		      public Object answer(InvocationOnMock invocation) {
 		          Object[] args = invocation.getArguments();
@@ -109,8 +110,8 @@ public class AmqpInboundGatewayParserTests {
 		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
 				 Mockito.any(Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);
-		
-		AbstractMessageListenerContainer mlc = 
+
+		AbstractMessageListenerContainer mlc =
 				TestUtils.getPropertyValue(gateway, "messageListenerContainer", AbstractMessageListenerContainer.class);
 		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
 		MessageProperties amqpProperties = new MessageProperties();
@@ -124,7 +125,7 @@ public class AmqpInboundGatewayParserTests {
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
 		listener.onMessage(amqpMessage);
-		
+
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
 	}

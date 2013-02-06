@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.test.mockito;
 
+import static org.mockito.Mockito.verify;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,67 +30,66 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.mockito.Mockito.verify;
-
 /**
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ServiceActivatorOnMockitoMockTests {
 
-    @Autowired
-    @Qualifier("in")
-    MessageChannel in;
+	@Autowired
+	@Qualifier("in")
+	MessageChannel in;
 
-    @Autowired
-    @Qualifier("out")
-    PollableChannel out;
+	@Autowired
+	@Qualifier("out")
+	PollableChannel out;
 
-    public static class SingleAnnotatedMethodOnClass {
-        @ServiceActivator
-        public String move(String s) {
-            return s;
-        }
-    }
+	public static class SingleAnnotatedMethodOnClass {
+		@ServiceActivator
+		public String move(String s) {
+			return s;
+		}
+	}
 
-    @Autowired
-    SingleAnnotatedMethodOnClass singleAnnotatedMethodOnClass;
+	@Autowired
+	SingleAnnotatedMethodOnClass singleAnnotatedMethodOnClass;
 
-    @Test
-    public void shouldInvokeMockedSingleAnnotatedMethodOnClass() {
-        in.send(MessageBuilder.withPayload("singleAnnotatedMethodOnClass").build());
-        verify(singleAnnotatedMethodOnClass).move("singleAnnotatedMethodOnClass");
-    }
+	@Test
+	public void shouldInvokeMockedSingleAnnotatedMethodOnClass() {
+		in.send(MessageBuilder.withPayload("singleAnnotatedMethodOnClass").build());
+		verify(singleAnnotatedMethodOnClass).move("singleAnnotatedMethodOnClass");
+	}
 
-    public static class SingleMethodOnClass {
-        public String move(String s) {
-            return s;
-        }
-    }
+	public static class SingleMethodOnClass {
+		public String move(String s) {
+			return s;
+		}
+	}
 
-    @Autowired
-    SingleMethodOnClass singleMethodOnClass;
+	@Autowired
+	SingleMethodOnClass singleMethodOnClass;
 
-    @Test
-    public void shouldInvokeMockedSingleMethodOnClass() {
-        in.send(MessageBuilder.withPayload("SingleMethodOnClass").build());
-        verify(singleMethodOnClass).move("SingleMethodOnClass");
-    }
+	@Test
+	public void shouldInvokeMockedSingleMethodOnClass() {
+		in.send(MessageBuilder.withPayload("SingleMethodOnClass").build());
+		verify(singleMethodOnClass).move("SingleMethodOnClass");
+	}
 
-    public static class SingleMethodAcceptingHeaderOnClass {
-        public String move(@Header("s") String s) {
-            return s;
-        }
-    }
+	public static class SingleMethodAcceptingHeaderOnClass {
+		public String move(@Header("s") String s) {
+			return s;
+		}
+	}
 
-    @Autowired
-    SingleMethodAcceptingHeaderOnClass singleMethodAcceptingHeaderOnClass;
+	@Autowired
+	SingleMethodAcceptingHeaderOnClass singleMethodAcceptingHeaderOnClass;
 
-    @Test
-    public void shouldInvokeMockedSingleMethodAcceptingHeaderOnClass() {
-        in.send(MessageBuilder.withPayload("SingleMethodAcceptingHeaderOnClass").setHeader("s", "SingleMethodAcceptingHeaderOnClass").build());
-        verify(singleMethodAcceptingHeaderOnClass).move("SingleMethodAcceptingHeaderOnClass");
-    }
+	@Test
+	public void shouldInvokeMockedSingleMethodAcceptingHeaderOnClass() {
+		in.send(MessageBuilder.withPayload("SingleMethodAcceptingHeaderOnClass").setHeader("s", "SingleMethodAcceptingHeaderOnClass").build());
+		verify(singleMethodAcceptingHeaderOnClass).move("SingleMethodAcceptingHeaderOnClass");
+	}
 
 }

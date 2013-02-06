@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.config.xml;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +51,7 @@ public class MapToObjectTransformerParserTests {
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
-	
+
 	@Autowired
 	@Qualifier("inputA")
 	private MessageChannel inputA;
@@ -68,12 +68,12 @@ public class MapToObjectTransformerParserTests {
 		Address address = new Address();
 		address.setStreet("1123 Main st");
 		map.put("address", address);
-		
+
 		Message message = MessageBuilder.withPayload(map).build();
 		input.send(message);
-		
+
 		Message outMessage = output.receive();
-		
+
 		Person person = (Person) outMessage.getPayload();
 		assertNotNull(person);
 		assertEquals("Justin", person.getFname());
@@ -92,7 +92,7 @@ public class MapToObjectTransformerParserTests {
 		Address address = new Address();
 		address.setStreet("1123 Main st");
 		map.put("address", address);
-		
+
 		Message message = MessageBuilder.withPayload(map).build();
 		inputA.send(message);
 		Message<?> newMessage =  outputA.receive();
@@ -113,10 +113,10 @@ public class MapToObjectTransformerParserTests {
 		map.put("fname", "Justin");
 		map.put("lname", "Case");
 		map.put("address", "1123 Main st");
-		
+
 		Message message = MessageBuilder.withPayload(map).build();
 		inputA.send(message);
-		
+
 		Message newMessage = outputA.receive();
 		Person person = (Person) newMessage.getPayload();
 		assertNotNull(person);
@@ -140,7 +140,7 @@ public class MapToObjectTransformerParserTests {
 		}
 		public void setSsn(String ssn) {
 			this.ssn = ssn;
-		}	
+		}
 		public String getFname() {
 			return fname;
 		}
@@ -160,7 +160,7 @@ public class MapToObjectTransformerParserTests {
 			this.address = address;
 		}
 	}
-	
+
 	public static class Address {
 		private String street;
 
@@ -172,7 +172,7 @@ public class MapToObjectTransformerParserTests {
 			this.street = street;
 		}
 	}
-	
+
 	public static class StringToAddressConverter implements Converter<String, Address>{
 		public StringToAddressConverter(){}
 		public Address convert(String source) {

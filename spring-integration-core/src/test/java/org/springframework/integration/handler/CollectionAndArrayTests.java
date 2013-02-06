@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -38,6 +39,7 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class CollectionAndArrayTests {
@@ -76,7 +78,7 @@ public class CollectionAndArrayTests {
 		Message<?> reply2 = channel.receive(0);
 		assertNotNull(reply1);
 		assertNull(reply2);
-		assertThat(reply1.getPayload(), is(Set.class));
+		assertThat(reply1.getPayload(), is(instanceOf(Set.class)));
 		assertEquals(2, ((Set<?>) reply1.getPayload()).size());
 	}
 

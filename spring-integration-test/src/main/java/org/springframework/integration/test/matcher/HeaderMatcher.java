@@ -30,12 +30,12 @@ import static org.hamcrest.CoreMatchers.is;
 /**
  * <h2>Are the {@link MessageHeaders} of a {@link Message} containing any entry
  * or multiple that match?</h2>
- * 
- * 
+ *
+ *
  * <h3>
  * For example using {@link Assert#assertThat(Object, Matcher)} for a single
  * entry:</h3>
- * 
+ *
  * <pre>
  * ANY_HEADER_KEY = &quot;foo&quot;;
  * ANY_HEADER_VALUE = &quot;bar&quot;;
@@ -44,28 +44,28 @@ import static org.hamcrest.CoreMatchers.is;
  * assertThat(message, hasEntry(ANY_HEADER_KEY, notNullValue()));
  * assertThat(message, hasEntry(ANY_HEADER_KEY, is(ANY_HEADER_VALUE)));
  * </pre>
- * 
+ *
  * <h3>For multiple entries to match all:</h3>
- * 
+ *
  * <pre>
  * Map&lt;String, Object&gt; expectedInHeaderMap = new HashMap&lt;String, Object&gt;();
  * expectedInHeaderMap.put(ANY_HEADER_KEY, ANY_HEADER_VALUE);
  * expectedInHeaderMap.put(OTHER_HEADER_KEY, is(OTHER_HEADER_VALUE));
  * assertThat(message, HeaderMatcher.hasAllEntries(expectedInHeaderMap));
  * </pre>
- * 
+ *
  * <h3>
  * For a single key:</h3>
- * 
+ *
  * <pre>
  * ANY_HEADER_KEY = &quot;foo&quot;;
  * assertThat(message, HeaderMatcher.hasKey(ANY_HEADER_KEY));
  * </pre>
- * 
- * 
+ *
+ *
  * @author Alex Peters
  * @author Iwein Fuld
- * 
+ *
  */
 public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 

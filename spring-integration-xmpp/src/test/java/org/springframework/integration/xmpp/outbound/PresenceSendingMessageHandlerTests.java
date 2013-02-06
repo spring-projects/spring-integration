@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xmpp.outbound;
 
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import org.jivesoftware.smack.XMPPConnection;
@@ -31,10 +31,11 @@ import org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandl
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  *
  */
 public class PresenceSendingMessageHandlerTests {
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testPresencePayload(){
@@ -42,7 +43,7 @@ public class PresenceSendingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage(mock(Presence.class)));
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected=MessageHandlingException.class)
 	public void testWrongPayload(){
@@ -50,7 +51,7 @@ public class PresenceSendingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage(new Object()));
 	}
-	
+
 	@Test
 	public void testWithImplicitXmppConnection(){
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
@@ -60,7 +61,7 @@ public class PresenceSendingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(handler,"xmppConnection"));
 	}
-	
+
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
 		PresenceSendingMessageHandler handler = new PresenceSendingMessageHandler();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.aggregator.scenarios;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Tests courtesy of Sean Crotty (INT-1093)
  *
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -56,7 +57,7 @@ public class AggregationResendTests {
 	 * We expect to get back only one Message from the aggregator. We set an
 	 * explicit timeout value of 1 second on the aggregator. What we'll see is
 	 * that we get one aggregate Message back immediately.
-	 * 
+	 *
 	 * <p>We should <emphasis>not</emphasis> get another 3 after the 1 second.
 	 */
 	@Test
@@ -70,7 +71,7 @@ public class AggregationResendTests {
 	 * explicit timeout value on the aggregator, but it automatically times out
 	 * after 60 seconds. What we'll see is that we get one aggregate Message back
 	 * immediately.
-	 * 
+	 *
 	 * <p>We should <emphasis>not</emphasis> get another 3 after the 60 seconds.
 	 */
 	@Test

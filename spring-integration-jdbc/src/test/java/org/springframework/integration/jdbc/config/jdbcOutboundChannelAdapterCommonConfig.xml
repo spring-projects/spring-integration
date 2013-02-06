@@ -9,14 +9,16 @@
 
 	<si:channel id="target"/>
 
-	<jdbc:embedded-database type="H2" id="dataSource">
-		<jdbc:script location="org/springframework/integration/jdbc/config/outboundSchema.sql" />
-	</jdbc:embedded-database>
-	
+	<jdbc:embedded-database type="H2" id="dataSource"/>
+
+	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/config/outboundSchema.sql"/>
+	</jdbc:initialize-database>
+
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"/>
 	</bean>
-	
+
 	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 		<constructor-arg ref="dataSource" />
 	</bean>

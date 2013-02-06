@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package org.springframework.integration.sftp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.concurrent.PriorityBlockingQueue;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,6 +45,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 public class InboundChannelAdapterParserTests {
 
@@ -61,7 +63,6 @@ public class InboundChannelAdapterParserTests {
 		assertFalse(adapter.isRunning());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testWithLocalFiles() throws Exception{
 		ApplicationContext context =
@@ -73,7 +74,10 @@ public class InboundChannelAdapterParserTests {
 		SftpInboundFileSynchronizingMessageSource source =
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
-		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
+
+		PriorityBlockingQueue<?> blockingQueue = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+		Comparator<?> comparator = blockingQueue.comparator();
+
 		assertNotNull(comparator);
 		SftpInboundFileSynchronizer synchronizer =  (SftpInboundFileSynchronizer) TestUtils.getPropertyValue(source, "synchronizer");
 		assertNotNull(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression"));

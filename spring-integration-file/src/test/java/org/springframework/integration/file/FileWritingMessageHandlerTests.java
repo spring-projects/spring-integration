@@ -221,7 +221,7 @@ public class FileWritingMessageHandlerTests {
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException, UnsupportedEncodingException {
 		assertThat(result, is(notNullValue()));
-		assertThat(result.getPayload(), is(File.class));
+		assertThat(result.getPayload(), instanceOf(File.class));
 		File destFile = (File) result.getPayload();
 		assertNotSame(destFile, sourceFile);
 		assertThat(destFile.exists(), is(true));

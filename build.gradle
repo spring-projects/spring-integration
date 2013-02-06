@@ -28,9 +28,8 @@ subprojects { subproject ->
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
 
-	// ensure JDK 5 compatibility (GRADLE-18; INT-1578)
-	sourceCompatibility=1.5
-	targetCompatibility=1.5
+	sourceCompatibility=1.6
+	targetCompatibility=1.6
 
 	ext {
 		aspectjVersion = '1.6.8'
@@ -38,9 +37,10 @@ subprojects { subproject ->
 		commonsNetVersion = '3.0.1'
 		easymockVersion = '2.3'
 		groovyVersion = '2.1.0'
+		hamcrestVersion = '1.3'
 		jacksonVersion = '1.9.2'
 		javaxActivationVersion = '1.1.1'
-		junitVersion = '4.8.2'
+		junitVersion = '4.11'
 		log4jVersion = '1.2.12'
 		mockitoVersion = '1.9.0'
 
@@ -82,11 +82,13 @@ subprojects { subproject ->
 	// dependencies that are common across all java projects
 	dependencies {
 		testCompile "cglib:cglib-nodep:$cglibVersion"
-		testCompile "junit:junit-dep:$junitVersion"
+		testCompile("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
 		testCompile "log4j:log4j:$log4jVersion"
 		testCompile "org.easymock:easymock:$easymockVersion"
 		testCompile "org.easymock:easymockclassextension:$easymockVersion"
-		testCompile "org.hamcrest:hamcrest-all:1.1"
+		testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
 		testCompile "org.mockito:mockito-all:$mockitoVersion"
 		testCompile "org.springframework:spring-test:$springVersion"
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.5.6.201201232323", classifier: "runtime"
@@ -232,6 +234,7 @@ project('spring-integration-gemfire') {
 		compile "org.springframework:spring-tx:$springVersion"
 		testCompile project(":spring-integration-stream")
 		testCompile project(":spring-integration-test")
+
 	}
 }
 
@@ -482,7 +485,10 @@ project('spring-integration-test') {
 	description = 'Spring Integration Test Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "junit:junit-dep:$junitVersion"
+		compile("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
+		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
 		compile "org.mockito:mockito-all:$mockitoVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"

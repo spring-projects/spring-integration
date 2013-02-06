@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.xml.config;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
 import org.w3c.dom.Document;
@@ -49,25 +49,26 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 public class XPathRouterParserTests {
 
 	String channelConfig = "<si:channel id='test-input'/> <si:channel id='outputOne'><si:queue capacity='10'/></si:channel>" +
 		"<si:channel id='defaultOutput'><si:queue capacity='10'/></si:channel>";
-	
+
 	@Autowired @Qualifier("test-input")
 	MessageChannel inputChannel;
-	
+
 	@Autowired @Qualifier("outputOne")
 	QueueChannel outputChannel;
-	
+
 	@Autowired @Qualifier("defaultOutput")
 	QueueChannel defaultOutput;
-	
-	
+
+
 	ConfigurableApplicationContext appContext;
-	
+
 	public EventDrivenConsumer buildContext(String routerDef){
 		appContext = TestXmlApplicationContextHelper.getTestAppContext( channelConfig + routerDef);
 		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
@@ -75,15 +76,15 @@ public class XPathRouterParserTests {
 		consumer.start();
 		return consumer;
 	}
-	
-	
+
+
 	@After
 	public void tearDown(){
 		if(appContext != null){
 			appContext.close();
 		}
 	}
-	
+
 	@Test
 	public void testSimpleStringExpression() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
@@ -125,41 +126,41 @@ public class XPathRouterParserTests {
 				"<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns1:name/ns2:type' namespace-map='nsMap'/>");
 		buffer.append("</si-xml:xpath-router>");
 		buffer.append("<util:map id='nsMap'><entry key='ns1' value='www.example.org' /><entry key='ns2' value='www.example.org2' /></util:map>");
-		
+
 		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
 	}
-	
+
 	@Test
 	public void testSetResolutionRequiredFalse() throws Exception {
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='false' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
-		
+
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
 		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
 		assertEquals("Resolution required not set to false ", false, resolutionRequired);
 	}
-	
+
 	@Test
 	public void testSetResolutionRequiredTrue() throws Exception {
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='true' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
-		
+
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
 		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
 		assertEquals("Resolution required not set to true ", true, resolutionRequired);
 	}
-	
+
 	@Test
 	public void testSetDefaultOutputChannel() throws Exception {
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' default-output-channel='defaultOutput' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
-		
+
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
@@ -171,7 +172,7 @@ public class XPathRouterParserTests {
 	@Test
 	public void testWithDynamicChanges() throws Exception {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
-		
+
 		MessageChannel inputChannel = ac.getBean("xpathRouterEmptyChannel", MessageChannel.class);
 		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
 		PollableChannel channelB = ac.getBean("channelB", PollableChannel.class);
@@ -180,7 +181,7 @@ public class XPathRouterParserTests {
 		inputChannel.send(docMessage);
 		assertNotNull(channelA.receive(10));
 		assertNull(channelB.receive(10));
-		
+
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterEmpty", EventDrivenConsumer.class);
 		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.setChannelMapping("channelA", "channelB");
@@ -191,7 +192,7 @@ public class XPathRouterParserTests {
 	@Test
 	public void testWithDynamicChangesWithExistingMappings() throws Exception {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
-		
+
 		MessageChannel inputChannel = ac.getBean("xpathRouterWithMappingChannel", MessageChannel.class);
 		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
 		PollableChannel channelB = ac.getBean("channelB", PollableChannel.class);
@@ -200,7 +201,7 @@ public class XPathRouterParserTests {
 		inputChannel.send(docMessage);
 		assertNull(channelA.receive(10));
 		assertNotNull(channelB.receive(10));
-		
+
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMapping", EventDrivenConsumer.class);
 		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
@@ -208,11 +209,11 @@ public class XPathRouterParserTests {
 		assertNotNull(channelA.receive(10));
 		assertNull(channelB.receive(10));
 	}
-	
+
 	@Test
 	public void testWithDynamicChangesWithExistingMappingsAndMultiChannel() throws Exception {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
-		
+
 		MessageChannel inputChannel = ac.getBean("multiChannelRouterChannel", MessageChannel.class);
 		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
 		PollableChannel channelB = ac.getBean("channelB", PollableChannel.class);
@@ -222,7 +223,7 @@ public class XPathRouterParserTests {
 		assertNotNull(channelA.receive(10));
 		assertNotNull(channelA.receive(10));
 		assertNull(channelB.receive(10));
-		
+
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMappingMultiChannel", EventDrivenConsumer.class);
 		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
@@ -233,7 +234,7 @@ public class XPathRouterParserTests {
 	}
 	@Test
 	public void testWithStringEvaluationType() throws Exception {
-		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());	
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
 		MessageChannel inputChannel = ac.getBean("xpathStringChannel", MessageChannel.class);
 		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
 		Document doc = XmlTestUtil.getDocumentForString("<channelA/>");
@@ -266,7 +267,7 @@ public class XPathRouterParserTests {
 			return super.convertToDocument(object);
 		}
 	}
-	
+
 	public static class MyChannelResolver extends BeanFactoryChannelResolver{}
 
 }

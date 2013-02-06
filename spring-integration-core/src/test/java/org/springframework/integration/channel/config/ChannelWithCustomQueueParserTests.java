@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * Testcases for detailed namespace support for &lt;queue/> element under
  * &lt;channel/>
- * 
+ *
  * @author Iwein Fuld
- * 
+ * @author Gunnar Hillert
+ *
  * @see ChannelWithCustomQueueParserTests
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -52,13 +53,13 @@ public class ChannelWithCustomQueueParserTests {
 	public void parseConfig() throws Exception {
 		assertNotNull(customQueueChannel);
 	}
-	
+
 	@Test
 	public void queueTypeSet() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(customQueueChannel);
 		Object queue = accessor.getPropertyValue("queue");
 		assertNotNull(queue);
-		assertThat(queue, is(ArrayBlockingQueue.class));
+		assertThat(queue, instanceOf(ArrayBlockingQueue.class));
 		assertThat(((BlockingQueue<?>)queue).remainingCapacity(), is(2));
 	}
 

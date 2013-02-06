@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.file.locking;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
@@ -36,61 +37,62 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileLockingNamespaceTests {
 
-    @Autowired
-    @Qualifier("nioLockingAdapter.adapter")
-    SourcePollingChannelAdapter nioAdapter;
+	@Autowired
+	@Qualifier("nioLockingAdapter.adapter")
+	SourcePollingChannelAdapter nioAdapter;
 
-    FileReadingMessageSource nioLockingSource;
+	FileReadingMessageSource nioLockingSource;
 
-    @Autowired
-    @Qualifier("customLockingAdapter.adapter")
-    SourcePollingChannelAdapter customAdapter;
+	@Autowired
+	@Qualifier("customLockingAdapter.adapter")
+	SourcePollingChannelAdapter customAdapter;
 
-    FileReadingMessageSource customLockingSource;
+	FileReadingMessageSource customLockingSource;
 
-    @Before
-    public void extractSources() {
-        nioLockingSource = (FileReadingMessageSource) new DirectFieldAccessor(nioAdapter).getPropertyValue("source");
-        customLockingSource = (FileReadingMessageSource) new DirectFieldAccessor(customAdapter).getPropertyValue("source");
-    }
+	@Before
+	public void extractSources() {
+		nioLockingSource = (FileReadingMessageSource) new DirectFieldAccessor(nioAdapter).getPropertyValue("source");
+		customLockingSource = (FileReadingMessageSource) new DirectFieldAccessor(customAdapter).getPropertyValue("source");
+	}
 
-    @Test
-    public void shouldLoadConfig() {
-        //verify Spring can load the configuration
-    }
+	@Test
+	public void shouldLoadConfig() {
+		//verify Spring can load the configuration
+	}
 
-    @Test
-    public void shouldSetCustomLockerProperly() {
-        assertThat(extractFromScanner("locker", customLockingSource), is(StubLocker.class));
-        assertThat(extractFromScanner("filter", customLockingSource), is(CompositeFileListFilter.class));
-    }
+	@Test
+	public void shouldSetCustomLockerProperly() {
+		assertThat(extractFromScanner("locker", customLockingSource), is(instanceOf(StubLocker.class)));
+		assertThat(extractFromScanner("filter", customLockingSource), is(instanceOf(CompositeFileListFilter.class)));
+	}
 
-    private Object extractFromScanner(String propertyName, FileReadingMessageSource source) {
-        return new DirectFieldAccessor(new DirectFieldAccessor(source).getPropertyValue("scanner")).getPropertyValue(propertyName);
-    }
+	private Object extractFromScanner(String propertyName, FileReadingMessageSource source) {
+		return new DirectFieldAccessor(new DirectFieldAccessor(source).getPropertyValue("scanner")).getPropertyValue(propertyName);
+	}
 
-    @Test
-    public void shouldSetNioLockerProperly() {
-        assertThat(extractFromScanner("locker", nioLockingSource), is(NioFileLocker.class));
-        assertThat(extractFromScanner("filter", nioLockingSource), is(CompositeFileListFilter.class));
-    }
+	@Test
+	public void shouldSetNioLockerProperly() {
+		assertThat(extractFromScanner("locker", nioLockingSource), is(instanceOf(NioFileLocker.class)));
+		assertThat(extractFromScanner("filter", nioLockingSource), is(instanceOf(CompositeFileListFilter.class)));
+	}
 
-    public static class StubLocker extends AbstractFileLockerFilter {
-        public boolean lock(File fileToLock) {
-            return true;
-        }
+	public static class StubLocker extends AbstractFileLockerFilter {
+		public boolean lock(File fileToLock) {
+			return true;
+		}
 
-        public boolean isLockable(File file) {
-            return true;
-        }
+		public boolean isLockable(File file) {
+			return true;
+		}
 
-        public void unlock(File fileToUnlock) {
-            //
-        }
-    }
+		public void unlock(File fileToUnlock) {
+			//
+		}
+	}
 }

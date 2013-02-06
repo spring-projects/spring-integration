@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -27,6 +27,7 @@ import org.springframework.integration.xmpp.config.XmppConnectionFactoryBean;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class XmppConnectionFactoryBeanTests {
 

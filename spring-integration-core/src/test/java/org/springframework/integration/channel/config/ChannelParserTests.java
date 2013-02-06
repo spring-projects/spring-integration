@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel.config;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -28,7 +29,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.Executor;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
@@ -50,7 +50,8 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
- * 
+ * @author Gunnar Hillert
+ *
  * @see ChannelWithCustomQueueParserTests
  */
 public class ChannelParserTests {
@@ -80,9 +81,9 @@ public class ChannelParserTests {
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
-		assertThat(dispatcher, is(UnicastingDispatcher.class));
+		assertThat(dispatcher, instanceOf(UnicastingDispatcher.class));
 		assertThat(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"),
-				is(RoundRobinLoadBalancingStrategy.class));
+				instanceOf(RoundRobinLoadBalancingStrategy.class));
 	}
 
 	@Test
@@ -93,7 +94,7 @@ public class ChannelParserTests {
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
-		assertThat(dispatcher, is(UnicastingDispatcher.class));
+		assertThat(dispatcher, is(instanceOf(UnicastingDispatcher.class)));
 		assertNull(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"));
 	}
 

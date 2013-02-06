@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  * @since 2.0
  */
 @ContextConfiguration
@@ -54,7 +55,7 @@ public class ClaimCheckParserTests {
 
 	@Autowired
 	private MessageChannel checkinChannel;
-	
+
 	@Autowired
 	private MessageChannel checkinChannelA;
 
@@ -66,7 +67,7 @@ public class ClaimCheckParserTests {
 
 	@Autowired
 	private EventDrivenConsumer checkout;
-	
+
 	@Autowired
 	private MessageStore sampleMessageStore;
 
@@ -86,7 +87,7 @@ public class ClaimCheckParserTests {
 				new DirectFieldAccessor(checkout).getPropertyValue("handler")).getPropertyValue("transformer");
 		MessageStore messageStore = (MessageStore)
 				new DirectFieldAccessor(transformer).getPropertyValue("messageStore");
-		assertEquals(context.getBean("testMessageStore"), messageStore);		
+		assertEquals(context.getBean("testMessageStore"), messageStore);
 	}
 
 	@Test
@@ -103,9 +104,9 @@ public class ClaimCheckParserTests {
 		assertEquals("test", resultMessage.getPayload());
 		assertNotNull(this.sampleMessageStore.getMessage(payload));
 	}
-	
+
 	@Test
-	public void integrationTestWithRemoval() {	
+	public void integrationTestWithRemoval() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		checkinChannelA.send(message);

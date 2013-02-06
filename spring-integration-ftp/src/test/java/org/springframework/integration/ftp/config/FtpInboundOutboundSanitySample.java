@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ftp.config;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -30,9 +30,10 @@ import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class FtpInboundOutboundSanitySample {
-	
+
 
 	@Test
 	@Ignore
@@ -53,20 +54,20 @@ public class FtpInboundOutboundSanitySample {
 		if (fileB.exists()){
 			fileB.delete();
 		}
-		
+
 		new ClassPathXmlApplicationContext("FtpInboundChannelAdapterSample-context.xml", this.getClass());
 		Thread.sleep(3000);
 		fileA = new File("local-test-dir/b.test");
-		fileB = new File("local-test-dir/b.test");	
+		fileB = new File("local-test-dir/b.test");
 		assertTrue(fileA.exists());
 		assertTrue(fileB.exists());
 	}
-	
+
 	@Test
 	@Ignore
 	public void testFtpOutboundChannelAdapter() throws Exception{
-		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterSample-context.xml", this.getClass());	
+		ApplicationContext ac =
+			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterSample-context.xml", this.getClass());
 		File fileA = new File("local-test-dir/a.test");
 		File fileB = new File("local-test-dir/b.test");
 		MessageChannel ftpChannel = ac.getBean("ftpChannel", MessageChannel.class);

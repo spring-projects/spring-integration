@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.support.MessageBuilder;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
@@ -39,7 +40,8 @@ import static org.springframework.integration.test.matcher.MockitoMessageMatcher
 /**
  * @author Alex Peters
  * @author Iwein Fuld
- * 
+ * @author Gunnar Hillert
+ *
  */
 @RunWith(MockitoJUnitRunner.class)
 public class MockitoMessageMatchersTests {
@@ -70,7 +72,7 @@ public class MockitoMessageMatchersTests {
 	public void anyMatcher_withVerifyArgumentMatcherAndEqualPayload_matching() throws Exception {
 		handler.handleMessage(message);
 		verify(handler).handleMessage(messageWithPayload(SOME_PAYLOAD));
-		verify(handler).handleMessage(messageWithPayload(is(Date.class)));
+		verify(handler).handleMessage(messageWithPayload(is(instanceOf(Date.class))));
 	}
 
 	@Test(expected = ArgumentsAreDifferent.class)
@@ -87,7 +89,7 @@ public class MockitoMessageMatchersTests {
 
 	@Test
 	public void anyMatcher_withWhenAndDifferentPayload_notMatching() throws Exception {
-		when(channel.send(messageWithHeaderEntry(SOME_HEADER_KEY, is(Short.class)))).thenReturn(true);
+		when(channel.send(messageWithHeaderEntry(SOME_HEADER_KEY, is(instanceOf(Short.class))))).thenReturn(true);
 		assertThat(channel.send(message), is(false));
 	}
 

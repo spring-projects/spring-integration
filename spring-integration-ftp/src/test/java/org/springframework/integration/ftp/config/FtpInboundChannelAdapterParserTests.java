@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package org.springframework.integration.ftp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.concurrent.PriorityBlockingQueue;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -47,17 +46,18 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 public class FtpInboundChannelAdapterParserTests {
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception{
 		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
 		assertFalse(TestUtils.getPropertyValue(adapter, "autoStartup", Boolean.class));
-		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
+		PriorityBlockingQueue<?> blockingQueue = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+		Comparator<?> comparator = blockingQueue.comparator();
 		assertNotNull(comparator);
 		assertEquals("ftpInbound", adapter.getComponentName());
 		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.springframework.integration.router.config;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -29,6 +29,7 @@ import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  *
  */
 public class ExceptionTypeRouterParserTests {
@@ -38,19 +39,19 @@ public class ExceptionTypeRouterParserTests {
 	public void testExceptionTypeRouterConfig(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ExceptionTypeRouterParserTests-context.xml", this.getClass());
 		MessageChannel inputChannel = context.getBean("inChannel", MessageChannel.class);
-		
+
 		inputChannel.send(new GenericMessage<Throwable>(new NullPointerException()));
 		QueueChannel nullPointerChannel = context.getBean("nullPointerChannel", QueueChannel.class);
 		Message<Throwable> npeMessage = (Message<Throwable>) nullPointerChannel.receive(1000);
 		assertNotNull(npeMessage);
 		assertTrue(npeMessage.getPayload() instanceof NullPointerException);
-		
+
 		inputChannel.send(new GenericMessage<Throwable>(new IllegalArgumentException()));
 		QueueChannel illegalArgumentChannel = context.getBean("illegalArgumentChannel", QueueChannel.class);
 		Message<Throwable> iaMessage = (Message<Throwable>) illegalArgumentChannel.receive(1000);
 		assertNotNull(iaMessage);
 		assertTrue(iaMessage.getPayload() instanceof IllegalArgumentException);
-		
+
 		inputChannel.send(new GenericMessage<String>("Hello"));
 		QueueChannel outputChannel = context.getBean("outputChannel", QueueChannel.class);
 		assertNotNull(outputChannel.receive(1000));
