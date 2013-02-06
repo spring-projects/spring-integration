@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.mail.config;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -58,24 +58,24 @@ public class MessageWithContentTypeTests {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("MessageWithContentTypeTests-context.xml", this.getClass());
 		MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
 		StringWriter writer = new StringWriter();
-		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html"); 
+		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html");
 		FileCopyUtils.copy(reader, writer);
 		inputChannel.send(new GenericMessage<String>(writer.getBuffer().toString()));
 	}
-	
+
 	@Test
 	public void testMessageConversionWithHtmlAndContentType() throws Exception{
 		JavaMailSender sender = mock(JavaMailSender.class);
 		MailSendingMessageHandler handler = new MailSendingMessageHandler(sender);
 		StringWriter writer = new StringWriter();
-		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html"); 
+		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html");
 		FileCopyUtils.copy(reader, writer);
 		Message<String> message = MessageBuilder.withPayload(writer.getBuffer().toString())
 								.setHeader(MailHeaders.TO, "to")
 								.setHeader(MailHeaders.FROM, "from")
 								.setHeader(MailHeaders.CONTENT_TYPE, "text/html")
 								.build();
-		MimeMessage mMessage = new TestMimeMessage(); 
+		MimeMessage mMessage = new TestMimeMessage();
 		// MOCKS
 		when(sender.createMimeMessage()).thenReturn(mMessage);
 		doAnswer(new Answer<Object>() {
@@ -85,16 +85,16 @@ public class MessageWithContentTypeTests {
 				return null;
 			}
 		}).when(sender).send(Mockito.any(MimeMessage.class));
-			
+
 		// handle message
 		handler.handleMessage(message);
-			
+
 		verify(sender, times(1)).send(Mockito.any(MimeMessage.class));
 	}
-	
+
 	private static class TestMimeMessage extends MimeMessage{
 		public TestMimeMessage() {
 			super(Session.getDefaultInstance(new Properties()));
-		}	
+		}
 	}
 }

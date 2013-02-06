@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.feed.inbound;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -99,16 +99,16 @@ public class FeedEntryMessageSourceTests {
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
 		SyndEntry entry3 = feedEntrySource.receive().getPayload();
 		assertNull(feedEntrySource.receive()); // only 3 entries in the test feed
-		
+
 		assertEquals("Spring Integration download", entry1.getTitle().trim());
 		assertEquals(1266088337000L, entry1.getPublishedDate().getTime());
-		
+
 		assertEquals("Check out Spring Integration forums", entry2.getTitle().trim());
 		assertEquals(1268469501000L, entry2.getPublishedDate().getTime());
-		
+
 		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
 		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
-		
+
 		metadataStore.destroy();
 		metadataStore.afterPropertiesSet();
 
@@ -136,16 +136,16 @@ public class FeedEntryMessageSourceTests {
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
 		SyndEntry entry3 = feedEntrySource.receive().getPayload();
 		assertNull(feedEntrySource.receive()); // only 3 entries in the test feed
-		
+
 		assertEquals("Spring Integration download", entry1.getTitle().trim());
 		assertEquals(1266088337000L, entry1.getPublishedDate().getTime());
-		
+
 		assertEquals("Check out Spring Integration forums", entry2.getTitle().trim());
 		assertEquals(1268469501000L, entry2.getPublishedDate().getTime());
-		
+
 		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
 		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
-		
+
 		// UNLIKE the previous test
 		// now test that what's been read is read AGAIN
 		feedEntrySource = new FeedEntryMessageSource(url, this.feedFetcher);
@@ -155,13 +155,13 @@ public class FeedEntryMessageSourceTests {
 		entry2 = feedEntrySource.receive().getPayload();
 		entry3 = feedEntrySource.receive().getPayload();
 		assertNull(feedEntrySource.receive()); // only 3 entries in the test feed
-		
+
 		assertEquals("Spring Integration download", entry1.getTitle().trim());
 		assertEquals(1266088337000L, entry1.getPublishedDate().getTime());
-		
+
 		assertEquals("Check out Spring Integration forums", entry2.getTitle().trim());
 		assertEquals(1268469501000L, entry2.getPublishedDate().getTime());
-		
+
 		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
 		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
 	}

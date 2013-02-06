@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.scripting.config.jsr223;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,18 +31,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author David Turanski
+ * @author Gunnar Hillert
  * @since 2.1
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class Jsr223HeaderEnricherTests {
-	
+
 	@Autowired
 	private MessageChannel inputA;
 
 	@Autowired
 	private QueueChannel outputA;
-	
+
 	@Autowired
 	private MessageChannel inputB;
 
@@ -54,7 +55,7 @@ public class Jsr223HeaderEnricherTests {
 		inputA.send(new GenericMessage<String>("Hello"));
 		assertEquals("jruby", outputA.receive(1000).getHeaders().get("TEST_HEADER"));
 	}
-	
+
 	@Test
 	public void inlineScript() throws Exception{
 		inputB.send(new GenericMessage<String>("Hello"));

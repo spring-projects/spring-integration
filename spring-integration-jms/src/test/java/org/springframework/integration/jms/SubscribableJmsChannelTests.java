@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.commons.logging.Log;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -53,32 +54,38 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class SubscribableJmsChannelTests {
 
 	private static final int TIMEOUT = 30000;
 
-
-	private ActiveMQConnectionFactory connectionFactory;
+	private CachingConnectionFactory connectionFactory;
 
 	private Destination topic;
 
 	private Destination queue;
 
-
 	@Before
 	public void setup() throws Exception {
-		this.connectionFactory = new ActiveMQConnectionFactory();
-		this.connectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
+		ActiveMQConnectionFactory targetConnectionFactory = new ActiveMQConnectionFactory();
+		this.connectionFactory = new CachingConnectionFactory(targetConnectionFactory);
+		targetConnectionFactory.setBrokerURL("vm://localhost?broker.persistent=false");
 		this.topic = new ActiveMQTopic("testTopic");
 		this.queue = new ActiveMQQueue("testQueue");
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		this.connectionFactory.resetConnection();
 	}
 
 	@Test
@@ -143,12 +150,12 @@ public class SubscribableJmsChannelTests {
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.subscribe(handler1);
-        channel.subscribe(handler2);
-        channel.start();
-        if (!waitUntilRegisteredWithDestination(channel, 10000)) {
-        	fail("Listener failed to subscribe to topic");
-        }
-        channel.send(new GenericMessage<String>("foo"));
+		channel.subscribe(handler2);
+		channel.start();
+		if (!waitUntilRegisteredWithDestination(channel, 10000)) {
+			fail("Listener failed to subscribe to topic");
+		}
+		channel.send(new GenericMessage<String>("foo"));
 		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(2, receivedList1.size());
@@ -165,6 +172,7 @@ public class SubscribableJmsChannelTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
+
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
@@ -172,6 +180,7 @@ public class SubscribableJmsChannelTests {
 		};
 		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
+
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
 				latch.countDown();
@@ -182,6 +191,7 @@ public class SubscribableJmsChannelTests {
 		factoryBean.setDestinationName("dynamicQueue");
 		factoryBean.setPubSubDomain(false);
 		factoryBean.afterPropertiesSet();
+
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.start();
@@ -189,7 +199,10 @@ public class SubscribableJmsChannelTests {
 		channel.subscribe(handler2);
 		channel.send(new GenericMessage<String>("foo"));
 		channel.send(new GenericMessage<String>("bar"));
-		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
+
+		assertTrue("Countdown latch should have counted down to 0 but was "
+				+ latch.getCount(), latch.await(TIMEOUT, TimeUnit.MILLISECONDS));
+
 		assertEquals(1, receivedList1.size());
 		assertNotNull(receivedList1.get(0));
 		assertEquals("foo", receivedList1.get(0).getPayload());
@@ -216,7 +229,7 @@ public class SubscribableJmsChannelTests {
 				latch.countDown();
 			}
 		};
-		
+
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
 		factoryBean.setConnectionFactory(this.connectionFactory);
 		factoryBean.setDestinationName("dynamicTopic");
@@ -225,9 +238,9 @@ public class SubscribableJmsChannelTests {
 		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.start();
-        if (!waitUntilRegisteredWithDestination(channel, 10000)) {
-        	fail("Listener failed to subscribe to topic");
-        }
+		if (!waitUntilRegisteredWithDestination(channel, 10000)) {
+			fail("Listener failed to subscribe to topic");
+		}
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.send(new GenericMessage<String>("foo"));
@@ -242,7 +255,7 @@ public class SubscribableJmsChannelTests {
 		channel.stop();
 	}
 
-	@Test //@Ignore
+	@Test
 	public void contextManagesLifecycle() {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsChannelFactoryBean.class);
 		builder.addConstructorArgValue(true);
@@ -257,6 +270,7 @@ public class SubscribableJmsChannelTests {
 		assertTrue(channel.isRunning());
 		context.stop();
 		assertFalse(channel.isRunning());
+		context.close();
 	}
 
 	@Test
@@ -346,14 +360,14 @@ public class SubscribableJmsChannelTests {
 	 * @see DefaultMessageListenerContainer#isRegisteredWithDestination()
 	 * @param timeout Timeout in milliseconds.
 	 * @return True if a subscriber has connected or the container/attributes does not support
-	 * the test. False if a valid container does not have a registered consumer within 
+	 * the test. False if a valid container does not have a registered consumer within
 	 * timeout milliseconds.
 	 */
 	private static boolean waitUntilRegisteredWithDestination(SubscribableJmsChannel channel, long timeout) {
 		AbstractMessageListenerContainer container =
 				(AbstractMessageListenerContainer) new DirectFieldAccessor(channel).getPropertyValue("container");
 		if (container instanceof DefaultMessageListenerContainer) {
-			DefaultMessageListenerContainer listenerContainer = 
+			DefaultMessageListenerContainer listenerContainer =
 				(DefaultMessageListenerContainer) container;
 			if (listenerContainer.getCacheLevel() != DefaultMessageListenerContainer.CACHE_CONSUMER) {
 				return true;

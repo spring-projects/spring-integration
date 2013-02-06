@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gunnar Hillert
  * @since 1.0.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -104,7 +105,7 @@ public class DelayerParserTests {
 	public void transactionalSubElement() {
 		Object endpoint = context.getBean("delayerWithTransactional");
 		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler", DelayHandler.class);
-		List adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
+		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
 		assertEquals(1, adviceChain.size());
 		Object advice = adviceChain.get(0);
 		assertTrue(advice instanceof TransactionInterceptor);
@@ -121,7 +122,7 @@ public class DelayerParserTests {
 	public void adviceChainSubElement() {
 		Object endpoint = context.getBean("delayerWithAdviceChain");
 		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler", DelayHandler.class);
-		List adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
+		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
 		assertEquals(2, adviceChain.size());
 		assertSame(context.getBean("testAdviceBean"), adviceChain.get(0));
 
@@ -129,7 +130,7 @@ public class DelayerParserTests {
 		assertEquals(TransactionInterceptor.class, txAdvice.getClass());
 		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
 		assertEquals(NameMatchTransactionAttributeSource.class, transactionAttributeSource.getClass());
-		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
+		HashMap<?, ?> nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
 		assertEquals("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}", nameMap.toString());
 	}
 

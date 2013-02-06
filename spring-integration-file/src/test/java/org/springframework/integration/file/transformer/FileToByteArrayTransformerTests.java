@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.transformer;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -27,6 +28,7 @@ import org.springframework.integration.Message;
 
 /**
  * @author Alex Peters
+ * @author Gunnar Hillert
  */
 public class FileToByteArrayTransformerTests extends
 		AbstractFilePayloadTransformerTests<FileToByteArrayTransformer> {
@@ -41,7 +43,7 @@ public class FileToByteArrayTransformerTests extends
 		Message<?> result = transformer.transform(message);
 		assertThat(result, is(notNullValue()));
 		// TODO: refactor to payload matcher
-		assertThat(result.getPayload(), is(byte[].class));
+		assertThat(result.getPayload(), is(instanceOf(byte[].class)));
 		assertThat((byte[]) result.getPayload(), is(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)));
 	}
 

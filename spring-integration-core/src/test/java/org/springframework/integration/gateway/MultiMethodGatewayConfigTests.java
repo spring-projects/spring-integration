@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +28,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  * @since 2.0.M1
  */
 @ContextConfiguration
@@ -41,12 +42,12 @@ public class MultiMethodGatewayConfigTests {
 	@Test
 	public void validateGatewayMethods() {
 		TestGateway gateway = (TestGateway) applicationContext.getBean("myGateway");
-		String parentClassName = "org.springframework.integration.gateway.MultiMethodGatewayConfigTests"; 
+		String parentClassName = "org.springframework.integration.gateway.MultiMethodGatewayConfigTests";
 		Assert.assertEquals(gateway.echo("oleg"),
 				parentClassName + "$TestBeanA:oleg");
-		Assert.assertEquals(gateway.echoUpperCase("oleg"), 
+		Assert.assertEquals(gateway.echoUpperCase("oleg"),
 				parentClassName + "$TestBeanB:oleg");
-		Assert.assertEquals(gateway.echoViaDefault("oleg"), 
+		Assert.assertEquals(gateway.echoViaDefault("oleg"),
 				parentClassName + "$TestBeanC:oleg");
 	}
 

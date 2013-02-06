@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.feed.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
@@ -55,6 +55,7 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class FeedInboundChannelAdapterParserTests {
@@ -105,7 +106,7 @@ public class FeedInboundChannelAdapterParserTests {
 		//Test file samples.rss has 3 news items
 		latch = spy(new CountDownLatch(3));
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
@@ -114,7 +115,7 @@ public class FeedInboundChannelAdapterParserTests {
 		// in this iteration no new feeds will be received and the latch will timeout
 		latch = spy(new CountDownLatch(3));
 		context = new ClassPathXmlApplicationContext(
-				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(0)).countDown();
 		context.destroy();
@@ -125,7 +126,7 @@ public class FeedInboundChannelAdapterParserTests {
 		//Test file samples.rss has 3 news items
 		latch = spy(new CountDownLatch(3));
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
@@ -134,7 +135,7 @@ public class FeedInboundChannelAdapterParserTests {
 		// in this iteration no new feeds will be received and the latch will timeout
 		latch = spy(new CountDownLatch(3));
 		context = new ClassPathXmlApplicationContext(
-				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
@@ -144,14 +145,14 @@ public class FeedInboundChannelAdapterParserTests {
 	@Ignore // goes against the real feed
 	public void validateSuccessfulNewsRetrievalWithHttpUrl() throws Exception{
 		final CountDownLatch latch = new CountDownLatch(3);
-		MessageHandler handler = spy(new MessageHandler() {		
+		MessageHandler handler = spy(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				latch.countDown();
 			}
 		});
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
-		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);	
+		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);
 		feedChannel.subscribe(handler);
 		latch.await(5, TimeUnit.SECONDS);
 		verify(handler, atLeast(3)).handleMessage(Mockito.any(Message.class));
@@ -175,11 +176,11 @@ public class FeedInboundChannelAdapterParserTests {
 			Properties historyItem = history.get(0);
 			assertEquals("feedAdapterUsage", historyItem.get("name"));
 			assertEquals("feed:inbound-channel-adapter", historyItem.get("type"));
-			
+
 			historyItem = history.get(1);
 			assertEquals("feedChannelUsage", historyItem.get("name"));
 			assertEquals("channel", historyItem.get("type"));
-			
+
 			historyItem = history.get(2);
 			assertEquals("sampleActivator", historyItem.get("name"));
 			assertEquals("service-activator", historyItem.get("type"));

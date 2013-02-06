@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertNotNull;
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -39,6 +39,7 @@ import org.springframework.integration.test.util.SocketUtils;
  * ability to handle multiple requests from multiple clients.
  *
  * @author Gary Russell
+ * @author Gunnar Hillert
  *
  */
 public class MultiClientTests {

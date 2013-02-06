@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,12 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -64,10 +65,10 @@ public class ObjectToMapTransformerParserTests {
 		StandardEvaluationContext context = new StandardEvaluationContext(employee);
 		context.addPropertyAccessor(new MapAccessor());
 		ExpressionParser parser = new SpelExpressionParser();
-		
+
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
 		directInput.send(message);
-		
+
 		Message<Map<String, Object>> outputMessage = (Message<Map<String, Object>>) output.receive();
 		Map<String, Object> transformedMap = outputMessage.getPayload();
 		assertNotNull(outputMessage.getPayload());
@@ -76,12 +77,12 @@ public class ObjectToMapTransformerParserTests {
 			Object valueFromTheMap = transformedMap.get(key);
 			Object valueFromExpression = expression.getValue(context);
 			assertEquals(valueFromTheMap, valueFromExpression);
-		}		
+		}
 	}
 	@Test(expected=MessageTransformationException.class)
 	public void testObjectToSpelMapTransformerWithCycle(){
 		Employee employee = this.buildEmployee();
-		Child child = new Child();	
+		Child child = new Child();
 		Person parent = employee.getPerson();
 		parent.setChild(child);
 		child.setParent(parent);
@@ -95,12 +96,12 @@ public class ObjectToMapTransformerParserTests {
 		companyAddress.setCity("Philadelphia");
 		companyAddress.setStreet("1123 Main");
 		companyAddress.setZip("12345");
-		
+
 		Map<String, Integer[]> coordinates = new HashMap<String, Integer[]>();
 		coordinates.put("latitude", new Integer[]{1, 5, 13});
 		coordinates.put("longitude", new Integer[]{156});
 		companyAddress.setCoordinates(coordinates);
-		
+
 		Employee employee = new Employee();
 		employee.setCompanyName("ABC Inc.");
 		employee.setCompanyAddress(companyAddress);
@@ -108,7 +109,7 @@ public class ObjectToMapTransformerParserTests {
 		departments.add("HR");
 		departments.add("IT");
 		employee.setDepartments(departments);
-		
+
 		Person person = new Person();
 		person.setFname("Justin");
 		person.setLname("Case");
@@ -123,7 +124,7 @@ public class ObjectToMapTransformerParserTests {
 		mapWithListTestData.put("mapWithListTestData", listTestData);
 		personAddress.setMapWithListData(mapWithListTestData);
 		person.setAddress(personAddress);
-		
+
 		Map<String, Object> remarksA = new HashMap<String, Object>();
 		Map<String, Object> remarksB = new HashMap<String, Object>();
 		remarksA.put("foo", "foo");
@@ -134,22 +135,22 @@ public class ObjectToMapTransformerParserTests {
 		remarks.add(remarksB);
 		person.setRemarks(remarks);
 		employee.setPerson(person);
-		
+
 		Map<String, Map<String, Object>> testMapData = new HashMap<String, Map<String, Object>>();
-		
+
 		Map<String, Object> internalMapA = new HashMap<String, Object>();
 		internalMapA.put("foo", "foo");
 		internalMapA.put("bar", "bar");
 		Map<String, Object> internalMapB = new HashMap<String, Object>();
 		internalMapB.put("baz", "baz");
-		
+
 		testMapData.put("internalMapA", internalMapA);
 		testMapData.put("internalMapB", internalMapB);
-		
+
 		employee.setTestMapInMapData(testMapData);
 		return employee;
 	}
-	
+
 	public static class Employee{
 		private List<String> departments;
 		private String companyName;
@@ -188,7 +189,7 @@ public class ObjectToMapTransformerParserTests {
 			this.departments = departments;
 		}
 	}
-	
+
 	public static class Person{
 		private String fname;
 		private String lname;
@@ -233,7 +234,7 @@ public class ObjectToMapTransformerParserTests {
 			this.address = address;
 		}
 	}
-	
+
 	public static class Address{
 		private String street;
 		private String city;
@@ -271,7 +272,7 @@ public class ObjectToMapTransformerParserTests {
 			this.coordinates = coordinates;
 		}
 	}
-	
+
 	public static class Child {
 		private Person parent;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,9 +119,6 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	/**
 	 * Prefix raw byte[] from message with 'acknowledge to' and 'message id' "headers".
-	 * @param message
-	 * @return
-	 * @throws Exception
 	 */
 	private DatagramPacket fromMessageWithAck(Message<?> message) throws Exception {
 		Assert.hasLength(this.ackAddress);
@@ -231,9 +228,6 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	/**
 	 * Peeks at data in the buffer to see if starts with the prefix.
-	 * @param buffer
-	 * @param prefix
-	 * @return
 	 */
 	private boolean startsWith(ByteBuffer buffer, String prefix) {
 		int pos = buffer.position();

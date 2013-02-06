@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.remote.handler;
 
-import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -43,6 +43,7 @@ import org.springframework.integration.support.MessageBuilder;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 public class FileTransferringMessageHandlerTests {
 

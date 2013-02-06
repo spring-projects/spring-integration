@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -314,8 +314,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Required since Content-Type can be represented as org.springframework.http.MediaType
 	 * see INT-2713 for more details
 	 *
-	 * @param headers
-	 * @return
 	 */
 	private String extractContentTypeAsString(Map<String, Object> headers){
 		String contentTypeStringValue = null;

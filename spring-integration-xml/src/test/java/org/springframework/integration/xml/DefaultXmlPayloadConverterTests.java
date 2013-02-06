@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Before;
@@ -37,8 +37,9 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
- * 
+ *
  * @author Jonas Partner
+ * @author Gunnar Hillert
  *
  */
 public class DefaultXmlPayloadConverterTests {
@@ -86,27 +87,27 @@ public class DefaultXmlPayloadConverterTests {
 		Node n = converter.convertToNode(testDocument);
 		XMLAssert.assertXMLEqual(testDocument, (Document) n);
 	}
-	
-	
+
+
 	@Test
 	public void testGetSourcePassingDocumet() throws Exception{
 		Source source = converter.convertToSource(testDocument);
 		assertEquals(DOMSource.class, source.getClass());
 	}
-	
+
 	@Test
 	public void testGetSourcePassingString() throws Exception{
 		Source source = converter.convertToSource(testDocumentAsString);
 		assertEquals(StringSource.class, source.getClass());
 	}
-	
+
 	@Test
 	public void testGetSourcePassingSource() throws Exception{
 		SAXSource passedInSource = new SAXSource();
 		Source source = converter.convertToSource(passedInSource);
 		assertEquals(source, passedInSource);
 	}
-	
+
 	@Test(expected=MessagingException.class)
 	public void testInvalidPayload(){
 		converter.convertToSource(12);
@@ -118,6 +119,6 @@ public class DefaultXmlPayloadConverterTests {
 		Node n = converter.convertToNode(new DOMSource(element));
 		assertTrue("Wrong node returned", element == n);
     }
-    
+
 
 }

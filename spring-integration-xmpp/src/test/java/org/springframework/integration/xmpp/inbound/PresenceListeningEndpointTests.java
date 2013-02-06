@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.xmpp.inbound;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,6 +51,7 @@ import org.springframework.integration.xmpp.core.XmppContextUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class PresenceListeningEndpointTests {
 
@@ -83,13 +84,13 @@ public class PresenceListeningEndpointTests {
 		rosterEndpoint.stop();
 		assertEquals(0, rosterSet.size());
 	}
-	
+
 	@Test(expected=IllegalArgumentException.class)
 	public void testNonInitializedFailure() {
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(mock(XMPPConnection.class));
 		rosterEndpoint.start();
 	}
-	
+
 	@Test
 	public void testRosterPresenceChangeEvent() {
 		XMPPConnection connection = mock(XMPPConnection.class);
@@ -117,7 +118,7 @@ public class PresenceListeningEndpointTests {
 		endpoint.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
 	}
-	
+
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection() {
 		PresenceListeningEndpoint handler = new PresenceListeningEndpoint();
@@ -129,16 +130,16 @@ public class PresenceListeningEndpointTests {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
-		
+
 		ChatManager cm = mock(ChatManager.class);
 		when(connection.getChatManager()).thenReturn(cm);
 		Chat chat = mock(Chat.class);
 		when(cm.getThreadChat(Mockito.anyString())).thenReturn(chat);
-		
+
 		PresenceListeningEndpoint endpoint = new PresenceListeningEndpoint();
-		
+
 		DirectChannel outChannel = new DirectChannel();
-		outChannel.subscribe(new MessageHandler() {		
+		outChannel.subscribe(new MessageHandler() {
 			public void handleMessage(org.springframework.integration.Message<?> message)
 					throws MessagingException {
 				throw new RuntimeException("ooops");
@@ -151,10 +152,10 @@ public class PresenceListeningEndpointTests {
 		endpoint.afterPropertiesSet();
 		RosterListener listener = (RosterListener) TestUtils.getPropertyValue(endpoint, "rosterListener");
 		Presence presence = new Presence(Type.available);
-		
+
 		listener.presenceChanged(presence);
-		
-		ErrorMessage msg =  
+
+		ErrorMessage msg =
 			(ErrorMessage) errorChannel.receive();
 		assertEquals(Type.available.toString(), ((MessagingException)msg.getPayload()).getFailedMessage().getPayload().toString());
 	}

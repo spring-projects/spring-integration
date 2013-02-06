@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.ftp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Map;
 
@@ -32,32 +32,33 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class FtpsInboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpsInboundChannelAdapterComplete() throws Exception{
 
-		ApplicationContext ac = 
+		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpsInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
 		assertEquals("ftpInbound", adapter.getComponentName());
 		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
 		assertNotNull(TestUtils.getPropertyValue(adapter, "poller"));
 		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(adapter, "outputChannel"));
-		FtpInboundFileSynchronizingMessageSource inbound = 
+		FtpInboundFileSynchronizingMessageSource inbound =
 			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		
-		FtpInboundFileSynchronizer fisync = 
+
+		FtpInboundFileSynchronizer fisync =
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
 		assertNotNull(TestUtils.getPropertyValue(fisync, "filter"));
-		
+
 	}
-	
+
 	@Test
 	public void testFtpsInboundChannelAdapterCompleteNoId() throws Exception{
 
-		ApplicationContext ac = 
+		ApplicationContext ac =
 			new ClassPathXmlApplicationContext("FtpsInboundChannelAdapterParserTests-context.xml", this.getClass());
 		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
 		SourcePollingChannelAdapter adapter = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,28 +27,29 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
 /**
- *
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class FileInboundChannelAdapterWithQueueSizeTests {
 
-    @Autowired
-    FileReadingMessageSource source;
+	@Autowired
+	FileReadingMessageSource source;
 
-    private DirectFieldAccessor accessor;
+	private DirectFieldAccessor accessor;
 
-    @Before
-    public void init() {
-        accessor = new DirectFieldAccessor(source);
-    }
+	@Before
+	public void init() {
+		accessor = new DirectFieldAccessor(source);
+	}
 
-    @Test
-    public void queueSize() {
-        Object scanner = accessor.getPropertyValue("scanner");
-        assertThat(scanner, is(HeadDirectoryScanner.class));
-    }
+	@Test
+	public void queueSize() {
+		Object scanner = accessor.getPropertyValue("scanner");
+		assertThat(scanner, is(instanceOf(HeadDirectoryScanner.class)));
+	}
 }

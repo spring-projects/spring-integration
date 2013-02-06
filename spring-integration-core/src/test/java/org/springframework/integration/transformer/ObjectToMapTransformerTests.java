@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,15 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import static org.junit.Assert.assertNull;
 
 /**
  *
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class ObjectToMapTransformerTests {
@@ -53,89 +54,89 @@ public class ObjectToMapTransformerTests {
 		StandardEvaluationContext context = new StandardEvaluationContext();
 		context.addPropertyAccessor(new MapAccessor());
 		ExpressionParser parser = new SpelExpressionParser();
-		
+
 		ObjectToMapTransformer transformer = new ObjectToMapTransformer();
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
 
 		Message<?> transformedMessage = transformer.transform(message);
 		Map<String, Object> transformedMap = (Map<String, Object>) transformedMessage.getPayload();
 		assertNotNull(transformedMap);
-		
+
 		Object valueFromTheMap = null;
 		Object valueFromExpression = null;
 		Expression expression = null;
-		
+
 		expression = parser.parseExpression("departments[0]");
 		valueFromTheMap = transformedMap.get("departments[0]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.address.coordinates");
 		valueFromTheMap = transformedMap.get("person.address.coordinates");
 		valueFromExpression = expression.getValue(context, employee, Map.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.akaNames[0]");
 		valueFromTheMap = transformedMap.get("person.akaNames[0]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("testMapInMapData.internalMapA.bar");
 		valueFromTheMap = transformedMap.get("testMapInMapData.internalMapA.bar");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("companyAddress.street");
 		valueFromTheMap = transformedMap.get("companyAddress.street");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.lname");
 		valueFromTheMap = transformedMap.get("person.lname");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.address.mapWithListData.mapWithListTestData[1]");
 		valueFromTheMap = transformedMap.get("person.address.mapWithListData.mapWithListTestData[1]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("companyAddress.city");
 		valueFromTheMap = transformedMap.get("companyAddress.city");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.akaNames[2]");
 		valueFromTheMap = transformedMap.get("person.akaNames[2]");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.child");
 		valueFromTheMap = transformedMap.get("person.child");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertNull(valueFromTheMap);
 		assertNull(valueFromExpression);
-		
+
 		expression = parser.parseExpression("testMapInMapData.internalMapA.foo");
 		valueFromTheMap = transformedMap.get("testMapInMapData.internalMapA.foo");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.address.city");
 		valueFromTheMap = transformedMap.get("person.address.city");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("companyAddress.coordinates.latitude[0]");
 		valueFromTheMap = transformedMap.get("companyAddress.coordinates.latitude[0]");
 		valueFromExpression = expression.getValue(context, employee, Integer.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("person.remarks[1].baz");
 		valueFromTheMap = transformedMap.get("person.remarks[1].baz");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
-		
+
 		expression = parser.parseExpression("listOfDates[0][1]");
 		valueFromTheMap = new Date((Long) transformedMap.get("listOfDates[0][1]"));
 		valueFromExpression = expression.getValue(context, employee, Date.class);
@@ -145,7 +146,7 @@ public class ObjectToMapTransformerTests {
 	@Test(expected=MessageTransformationException.class)
 	public void testObjectToSpelMapTransformerWithCycle(){
 		Employee employee = this.buildEmployee();
-		Child child = new Child();	
+		Child child = new Child();
 		Person parent = employee.getPerson();
 		parent.setChild(child);
 		child.setParent(parent);
@@ -160,24 +161,24 @@ public class ObjectToMapTransformerTests {
 		companyAddress.setCity("Philadelphia");
 		companyAddress.setStreet("1123 Main");
 		companyAddress.setZip("12345");
-		
+
 		Map<String, Long[]> coordinates = new HashMap<String, Long[]>();
 		coordinates.put("latitude", new Long[]{(long)1, (long)5, (long)13});
 		coordinates.put("longitude", new Long[]{(long)156});
 		companyAddress.setCoordinates(coordinates);
-		
+
 		List<Date> datesA = new ArrayList<Date>();
 		datesA.add(new Date(System.currentTimeMillis() + 10000));
 		datesA.add(new Date(System.currentTimeMillis() + 20000));
-		
+
 		List<Date> datesB = new ArrayList<Date>();
 		datesB.add(new Date(System.currentTimeMillis() + 30000));
 		datesB.add(new Date(System.currentTimeMillis() + 40000));
-		
+
 		List<List<Date>> listOfDates = new ArrayList<List<Date>>();
 		listOfDates.add(datesA);
 		listOfDates.add(datesB);
-		
+
 		Employee employee = new Employee();
 		employee.setCompanyName("ABC Inc.");
 		employee.setCompanyAddress(companyAddress);
@@ -186,7 +187,7 @@ public class ObjectToMapTransformerTests {
 		departments.add("HR");
 		departments.add("IT");
 		employee.setDepartments(departments);
-		
+
 		Person person = new Person();
 		person.setFname("Justin");
 		person.setLname("Case");
@@ -203,7 +204,7 @@ public class ObjectToMapTransformerTests {
 		mapWithListTestData.put("mapWithListTestData", listTestData);
 		personAddress.setMapWithListData(mapWithListTestData);
 		person.setAddress(personAddress);
-		
+
 		Map<String, Object> remarksA = new HashMap<String, Object>();
 		Map<String, Object> remarksB = new HashMap<String, Object>();
 		remarksA.put("foo", "foo");
@@ -214,22 +215,22 @@ public class ObjectToMapTransformerTests {
 		remarks.add(remarksB);
 		person.setRemarks(remarks);
 		employee.setPerson(person);
-		
+
 		Map<String, Map<String, Object>> testMapData = new HashMap<String, Map<String, Object>>();
-		
+
 		Map<String, Object> internalMapA = new HashMap<String, Object>();
 		internalMapA.put("foo", "foo");
 		internalMapA.put("bar", "bar");
 		Map<String, Object> internalMapB = new HashMap<String, Object>();
 		internalMapB.put("baz", "baz");
-		
+
 		testMapData.put("internalMapA", internalMapA);
 		testMapData.put("internalMapB", internalMapB);
-		
+
 		employee.setTestMapInMapData(testMapData);
 		return employee;
 	}
-	
+
 	public static class Employee{
 		private List<String> departments;
 		private List<List<Date>> listOfDates;
@@ -275,7 +276,7 @@ public class ObjectToMapTransformerTests {
 			this.departments = departments;
 		}
 	}
-	
+
 	public static class Person{
 		private String fname;
 		private String lname;
@@ -338,7 +339,7 @@ public class ObjectToMapTransformerTests {
 			this.address = address;
 		}
 	}
-	
+
 	public static class Address{
 		private String street;
 		private String city;
@@ -376,7 +377,7 @@ public class ObjectToMapTransformerTests {
 			this.coordinates = coordinates;
 		}
 	}
-	
+
 	public static class Child {
 		private Person parent;
 

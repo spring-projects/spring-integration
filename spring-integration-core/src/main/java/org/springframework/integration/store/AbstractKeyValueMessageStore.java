@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors
+ * Copyright 2002-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -252,12 +252,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	/**
 	 * Will enrich Message with additional meta headers
-	 * @param message
-	 * @return
 	 */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> enrichMessage(Message<?> message){
-    	Message<?> enrichedMessage = MessageBuilder.fromMessage(message).setHeader(CREATED_DATE, System.currentTimeMillis()).build();
+		Message<?> enrichedMessage = MessageBuilder.fromMessage(message).setHeader(CREATED_DATE, System.currentTimeMillis()).build();
 		Map innerMap = (Map) new DirectFieldAccessor(enrichedMessage.getHeaders()).getPropertyValue("headers");
 		innerMap.put(MessageHeaders.ID, message.getHeaders().getId());
 		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().getTimestamp());

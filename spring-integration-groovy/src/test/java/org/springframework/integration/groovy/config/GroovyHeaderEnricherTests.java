@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.groovy.config;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import org.hamcrest.Matchers;
 
@@ -40,18 +40,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gunnar Hillert
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class GroovyHeaderEnricherTests {
-	
+
 	@Autowired
 	private MessageChannel inputA;
 
 	@Autowired
 	private QueueChannel outputA;
-	
+
 	@Autowired
 	private MessageChannel inputB;
 
@@ -70,10 +71,10 @@ public class GroovyHeaderEnricherTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void inlineScript() throws Exception{
-		Map<String, HeaderEnricher.HeaderValueMessageProcessor> headers =
+		Map<String, HeaderEnricher.HeaderValueMessageProcessor<?>> headers =
 				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript, "handler.transformer.headersToAdd", Map.class);
 		assertEquals(1, headers.size());
-		HeaderEnricher.HeaderValueMessageProcessor headerValueMessageProcessor = headers.get("TEST_HEADER");
+		HeaderEnricher.HeaderValueMessageProcessor<?> headerValueMessageProcessor = headers.get("TEST_HEADER");
 		assertThat(headerValueMessageProcessor.getClass().getName(), Matchers.containsString("HeaderEnricher$MessageProcessingHeaderValueMessageProcessor"));
 		Object targetProcessor = TestUtils.getPropertyValue(headerValueMessageProcessor, "targetProcessor");
 		assertEquals(GroovyScriptExecutingMessageProcessor.class, targetProcessor.getClass());

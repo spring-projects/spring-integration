@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ import org.w3c.dom.Element;
 
 /**
  * Channel Adapter that receives UDP datagram packets and maps them to Messages.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
 public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
-	
+
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
@@ -44,7 +44,7 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "error-channel", "errorChannel");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TASK_EXECUTOR);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.LOOKUP_HOST);
@@ -54,7 +54,7 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 	/**
 	 * @param element
 	 * @param builder
-	 * @param parserContext 
+	 * @param parserContext
 	 */
 	private void addPortToConstructor(Element element,
 			BeanDefinitionBuilder builder, ParserContext parserContext) {
@@ -62,11 +62,6 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 		builder.addConstructorArgValue(port);
 	}
 
-	/**
-	 * @param element
-	 * @param parserContext 
-	 * @return
-	 */
 	private BeanDefinitionBuilder parseUdp(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);

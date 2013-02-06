@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,7 @@ public class MethodInvokingReleaseStrategyTests {
 		}
 		// TODO: this is stupid, but maybe it should be illegal?
 		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
-				"notEnoughParameters", new Class[] {}));
+				"notEnoughParameters"));
 	}
 
 	@Test
@@ -238,7 +238,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 		}
 		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
-				TestReleaseStrategy.class.getMethod("listSubclassParameter", new Class[] { LinkedList.class }));
+				TestReleaseStrategy.class.getMethod("listSubclassParameter", new Class<?>[] { LinkedList.class }));
 		MessageGroup messages = createListOfMessages(3);
 		Assert.assertTrue(adapter.canRelease(messages));
 	}
@@ -253,7 +253,7 @@ public class MethodInvokingReleaseStrategyTests {
 			}
 		}
 		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
-				"wrongReturnType", new Class[] { List.class }));
+				"wrongReturnType", new Class<?>[] { List.class }));
 	}
 
 	private static MessageGroup createListOfMessages(int size) {

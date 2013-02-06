@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -30,6 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 2.0
  */
 @ContextConfiguration
@@ -52,7 +53,7 @@ public class GatewayRequiresReplyTests {
 		TestService gateway = (TestService) applicationContext.getBean("gateway");
 		gateway.test("bad");
 	}
-	
+
 	@Test
 	public void timedOutGateway() {
 		TestService gateway = (TestService) applicationContext.getBean("timeoutGateway");
@@ -64,7 +65,7 @@ public class GatewayRequiresReplyTests {
 	public static interface TestService {
 		public String test(String s);
 	}
-	
+
 	public static class LongRunningService {
 		public String echo(String value) throws Exception{
 			Thread.sleep(5000);
