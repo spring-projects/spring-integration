@@ -40,6 +40,8 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 
 	private volatile SimpleTypeConverter delegate = new SimpleTypeConverter();
 
+	private volatile boolean haveCalledDelegateGetDefaultEditor;
+
 	private volatile ConversionService conversionService;
 
 
@@ -79,9 +81,9 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			return false;
 		}
 		if (!String.class.isAssignableFrom(sourceType)) {
-			return delegate.findCustomEditor(sourceType, null) != null || delegate.getDefaultEditor(sourceType) != null;
+			return delegate.findCustomEditor(sourceType, null) != null || this.getDefaultEditor(sourceType) != null;
 		}
-		return delegate.findCustomEditor(targetType, null) != null || delegate.getDefaultEditor(targetType) != null;
+		return delegate.findCustomEditor(targetType, null) != null || this.getDefaultEditor(targetType) != null;
 	}
 
 	public boolean canConvert(TypeDescriptor sourceTypeDescriptor, TypeDescriptor targetTypeDescriptor) {
@@ -114,7 +116,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
 			PropertyEditor editor = delegate.findCustomEditor(sourceType.getType(), null);
 			if (editor==null) {
-				editor = delegate.getDefaultEditor(sourceType.getType());
+				editor = this.getDefaultEditor(sourceType.getType());
 			}
 			if (editor != null) { // INT-1441
 				String text = null;
@@ -129,6 +131,21 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			}
 		}
 		return delegate.convertIfNecessary(value, targetType.getType());
+	}
+
+	private PropertyEditor getDefaultEditor(Class<?> sourceType) {
+		PropertyEditor defaultEditor;
+		if (this.haveCalledDelegateGetDefaultEditor) {
+			defaultEditor= delegate.getDefaultEditor(sourceType);
+		}
+		else {
+			synchronized(this) {
+				// not thread-safe - it builds the defaultEditors field in-place (SPR-10191)
+				defaultEditor= delegate.getDefaultEditor(sourceType);
+			}
+			this.haveCalledDelegateGetDefaultEditor = true;
+		}
+		return defaultEditor;
 	}
 
 }
