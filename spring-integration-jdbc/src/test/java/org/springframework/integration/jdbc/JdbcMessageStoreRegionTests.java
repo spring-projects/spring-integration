@@ -22,49 +22,61 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.sql.DataSource;
-
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 /**
  * @author Gunnar Hillert
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
 public class JdbcMessageStoreRegionTests {
 
-	@Autowired
-	DataSource dataSource;
+	private static EmbeddedDatabase dataSource;
+	private JdbcTemplate jdbcTemplate;
 
-	JdbcTemplate jdbcTemplate;
-
-	@Autowired
-	@Qualifier("messageStore1")
 	private JdbcMessageStore messageStore1;
-
-	@Autowired
-	@Qualifier("messageStore2")
 	private JdbcMessageStore messageStore2;
 
-	@Before
-	public void init() {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	@BeforeClass
+	public static void setupDatabase() {
+		dataSource = new EmbeddedDatabaseBuilder()
+				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:/org/springframework/integration/jdbc/schema-h2.sql")
+				.build();
 	}
 
+	@AfterClass
+	public static void shutDownDatabase() {
+		dataSource.shutdown();
+	}
+
+	@Before
+	public void beforeTest() {
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+		this.messageStore1 = new JdbcMessageStore(dataSource);
+		messageStore1.setRegion("region1");
+
+		this.messageStore2 = new JdbcMessageStore(dataSource);
+		this.messageStore2.setRegion("region2");
+	}
+
+	@After
+	public void afterTest() {
+		this.jdbcTemplate.execute("delete from INT_GROUP_TO_MESSAGE");
+		this.jdbcTemplate.execute("delete from INT_MESSAGE");
+		this.jdbcTemplate.execute("delete from INT_MESSAGE_GROUP");
+	}
 
 	@Test
-	@DirtiesContext
 	public void testVerifyMessageCount() throws Exception {
 
 		messageStore1.addMessage(MessageBuilder.withPayload("payload1").build());
@@ -79,7 +91,6 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void testInsertNullRegion() throws Exception {
 
 		try {
@@ -94,7 +105,6 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void testVerifyMessageGroupCount() throws Exception {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
@@ -112,7 +122,6 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void testRegionSetToMessageGroup() throws Exception {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
@@ -144,7 +153,6 @@ public class JdbcMessageStoreRegionTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void testRemoveMessageGroup() throws Exception {
 
 		messageStore1.addMessageToGroup("group1", MessageBuilder.withPayload("payload1").build());
