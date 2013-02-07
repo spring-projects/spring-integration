@@ -80,9 +80,9 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			return false;
 		}
 		if (!String.class.isAssignableFrom(sourceType)) {
-			return delegate.findCustomEditor(sourceType, null) != null || delegate.getDefaultEditor(sourceType) != null;
+			return delegate.findCustomEditor(sourceType, null) != null || this.getDefaultEditor(sourceType) != null;
 		}
-		return delegate.findCustomEditor(targetType, null) != null || delegate.getDefaultEditor(targetType) != null;
+		return delegate.findCustomEditor(targetType, null) != null || this.getDefaultEditor(targetType) != null;
 	}
 
 	public boolean canConvert(TypeDescriptor sourceTypeDescriptor, TypeDescriptor targetTypeDescriptor) {
@@ -115,7 +115,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
 			PropertyEditor editor = delegate.findCustomEditor(sourceType.getType(), null);
 			if (editor==null) {
-				editor = delegate.getDefaultEditor(sourceType.getType());
+				editor = this.getDefaultEditor(sourceType.getType());
 			}
 			if (editor != null) { // INT-1441
 				String text = null;
@@ -130,6 +130,11 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 			}
 		}
 		return delegate.convertIfNecessary(value, targetType.getType());
+	}
+
+	private synchronized PropertyEditor getDefaultEditor(Class<?> sourceType) {
+		// not thread-safe - it builds the defaultEditors field in-place (SPR-10191)
+		return delegate.getDefaultEditor(sourceType);
 	}
 
 }
