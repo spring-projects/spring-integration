@@ -157,16 +157,10 @@
 			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html">FileWritingMessageHandler</ulink></classname>.
 			This class can deal with <emphasis>File</emphasis>,
 			<emphasis>String</emphasis>, or <emphasis>byte array</emphasis>
-			payloads. In its simplest form the <classname>FileWritingMessageHandler</classname>
-			only requires a destination directory for writing the files. The name
-			of the file to be written is determined by the handler's
-			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html">FileNameGenerator</ulink></classname>.
-			The <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html">default implementation</ulink>
-			looks for a Message header whose key matches the constant defined as
-			<code>FileHeaders.FILENAME</code>.
+			payloads.
 		</para>
 		<para>
-			Additionally, you can configure the encoding and the charset that
+			You can configure the encoding and the charset that
 			will be used in case of a String payload.
 		</para>
 		<para>
@@ -175,6 +169,71 @@
 			<emphasis>Outbound Gateway</emphasis> using the provided XML namespace
 			support.
 		</para>
+		<section id="file-writing-file-names">
+			<title>Generating Filenames</title>
+			<para>
+				In its simplest form, the <classname>FileWritingMessageHandler</classname>
+				only requires a destination directory for writing the files. The
+				name of the file to be written is determined by the handler's
+				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html">FileNameGenerator</ulink></classname>.
+				The <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html">default implementation</ulink>
+				looks for a Message header whose key matches the constant defined
+				as <code><ulink url="http://static.springsource.org/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME">FileHeaders.FILENAME</ulink></code>.
+			</para>
+			<para>
+				Alternatively, you can specify an expression
+				to be evaluated against the Message in order to generate a file name, e.g.:
+				<emphasis>headers['myCustomHeader'] + '.foo'</emphasis>. The expression must
+				evaluate to a <classname>String</classname>. For convenience,
+				the <classname>DefaultFileNameGenerator</classname> also
+				provides the <emphasis>setHeaderName</emphasis> method, allowing you
+				to explicitly specify the Message header whose value shall be
+				used as the filename.
+			</para>
+			<para>
+				Once setup, the <classname>DefaultFileNameGenerator</classname> will
+				employ the following resolution steps to determine the filename
+				for a given Message payload:
+			</para>
+			<orderedlist>
+				<listitem>
+					Evaluate the expression against the Message and, if the result is a
+					non-empty <classname>String</classname>, use it as the
+					filename.
+				</listitem>
+				<listitem>
+					Otherwise, if the payload is a <classname>java.io.File</classname>, use the
+					file's filename.
+				</listitem>
+				<listitem>
+					Otherwise, use the Message ID appended with <quote>.msg</quote>
+					as the filename.
+				</listitem>
+			</orderedlist>
+			<para>
+				When using the XML namespace support, both, the
+				<emphasis>File Oubound Channel Adapter</emphasis> and
+				the <emphasis>File Outbound Gateway</emphasis> support the
+				following two mutually exclusive configuration attributes:
+			</para>
+			<itemizedlist>
+				<listitem><code>filename-generator</code> (a reference to a <classname>FileNameGenerator</classname>) implementation)</listitem>
+				<listitem><code>filename-generator-expression</code> (an expression evaluating to a <classname>String</classname>)</listitem>
+			</itemizedlist>
+			<para>
+				While writing files, a temporary file suffix will be used (default:
+				<quote>.writing</quote>). It is appended to the filename while
+				the file is being written. To customize the suffix, you
+				can set the <emphasis>temporary-file-suffix</emphasis> attribute
+				on both, the <emphasis>File Oubound Channel Adapter</emphasis> and
+				the <emphasis>File Outbound Gateway</emphasis>.
+			</para>
+			<note>
+				When using the <emphasis>APPEND</emphasis> file <emphasis>mode</emphasis>,
+				the <emphasis>temporary-file-suffix</emphasis> attribute is ignored,
+				since the data is appended to the file directly.
+			</note>
+		</section>
 		<section id="file-writing-output-directory">
 			<title>Specifying the Output Directory</title>
 			<para>
