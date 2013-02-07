@@ -41,6 +41,8 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 
 	private volatile SimpleTypeConverter delegate = new SimpleTypeConverter();
 
+	private volatile boolean haveCalledDelegateGetDefaultEditor;
+
 	private volatile ConversionService conversionService;
 
 
@@ -132,9 +134,19 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		return delegate.convertIfNecessary(value, targetType.getType());
 	}
 
-	private synchronized PropertyEditor getDefaultEditor(Class<?> sourceType) {
-		// not thread-safe - it builds the defaultEditors field in-place (SPR-10191)
-		return delegate.getDefaultEditor(sourceType);
+	private PropertyEditor getDefaultEditor(Class<?> sourceType) {
+		PropertyEditor defaultEditor;
+		if (this.haveCalledDelegateGetDefaultEditor) {
+			defaultEditor= delegate.getDefaultEditor(sourceType);
+		}
+		else {
+			synchronized(this) {
+				// not thread-safe - it builds the defaultEditors field in-place (SPR-10191)
+				defaultEditor= delegate.getDefaultEditor(sourceType);
+			}
+			this.haveCalledDelegateGetDefaultEditor = true;
+		}
+		return defaultEditor;
 	}
 
 }
