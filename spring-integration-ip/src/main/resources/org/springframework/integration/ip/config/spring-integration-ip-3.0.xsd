@@ -572,7 +572,7 @@ sockets are used.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport"/>
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSSLContextSupport"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -585,7 +585,7 @@ and ServerSocket instances after creation and after configured attributes are ap
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport"/>
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSocketSupport"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -601,7 +601,7 @@ used to create SSLServerSocketFactory and SSLSocketFactory instances.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport"/>
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

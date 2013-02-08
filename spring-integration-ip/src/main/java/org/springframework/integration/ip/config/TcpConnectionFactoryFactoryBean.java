@@ -25,8 +25,11 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.DefaultTcpSocketSupport;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
@@ -34,12 +37,9 @@ import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSocketFactorySupport;
-import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSocketSupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
-import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
+import org.springframework.integration.ip.tcp.connection.TcpSSLContextSupport;
+import org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.TcpSocketSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.util.Assert;
 

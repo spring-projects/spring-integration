@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,8 +79,8 @@ public class CachingClientConnectionFactoryTests {
 	public void testReuse() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn1 = makeMockConnection("conn1");
-		TcpConnection mockConn2 = makeMockConnection("conn2");
+		TcpConnectionSupport mockConn1 = makeMockConnection("conn1");
+		TcpConnectionSupport mockConn2 = makeMockConnection("conn2");
 		when(factory.getConnection()).thenReturn(mockConn1).thenReturn(mockConn2);
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 2);
 		cachingFactory.start();
@@ -99,8 +99,8 @@ public class CachingClientConnectionFactoryTests {
 	public void testReuseNoLimit() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn1 = makeMockConnection("conn1");
-		TcpConnection mockConn2 = makeMockConnection("conn2");
+		TcpConnectionSupport mockConn1 = makeMockConnection("conn1");
+		TcpConnectionSupport mockConn2 = makeMockConnection("conn2");
 		when(factory.getConnection()).thenReturn(mockConn1).thenReturn(mockConn2);
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 0);
 		cachingFactory.start();
@@ -119,8 +119,8 @@ public class CachingClientConnectionFactoryTests {
 	public void testReuseClosed() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn1 = makeMockConnection("conn1");
-		TcpConnection mockConn2 = makeMockConnection("conn2");
+		TcpConnectionSupport mockConn1 = makeMockConnection("conn1");
+		TcpConnectionSupport mockConn2 = makeMockConnection("conn2");
 		when(factory.getConnection()).thenReturn(mockConn1)
 				.thenReturn(mockConn2).thenReturn(mockConn1)
 				.thenReturn(mockConn2);
@@ -147,8 +147,8 @@ public class CachingClientConnectionFactoryTests {
 	public void testLimit() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn1 = makeMockConnection("conn1");
-		TcpConnection mockConn2 = makeMockConnection("conn2");
+		TcpConnectionSupport mockConn1 = makeMockConnection("conn1");
+		TcpConnectionSupport mockConn2 = makeMockConnection("conn2");
 		when(factory.getConnection()).thenReturn(mockConn1).thenReturn(mockConn2);
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 2);
 		cachingFactory.setConnectionWaitTimeout(10);
@@ -167,8 +167,8 @@ public class CachingClientConnectionFactoryTests {
 	public void testStop() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn1 = makeMockConnection("conn1");
-		TcpConnection mockConn2 = makeMockConnection("conn2");
+		TcpConnectionSupport mockConn1 = makeMockConnection("conn1");
+		TcpConnectionSupport mockConn2 = makeMockConnection("conn2");
 		int i = 3;
 		when(factory.getConnection()).thenReturn(mockConn1)
 				.thenReturn(mockConn2)
@@ -206,7 +206,7 @@ public class CachingClientConnectionFactoryTests {
 	public void testEnlargePool() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn = makeMockConnection("conn");
+		TcpConnectionSupport mockConn = makeMockConnection("conn");
 		when(factory.getConnection()).thenReturn(mockConn);
 		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(factory, 2);
 		cachingFactory.start();
@@ -232,10 +232,10 @@ public class CachingClientConnectionFactoryTests {
 	public void testReducePool() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
-		TcpConnection mockConn1 = makeMockConnection("conn", true);
-		TcpConnection mockConn2 = makeMockConnection("conn", true);
-		TcpConnection mockConn3 = makeMockConnection("conn", true);
-		TcpConnection mockConn4 = makeMockConnection("conn", true);
+		TcpConnectionSupport mockConn1 = makeMockConnection("conn", true);
+		TcpConnectionSupport mockConn2 = makeMockConnection("conn", true);
+		TcpConnectionSupport mockConn3 = makeMockConnection("conn", true);
+		TcpConnectionSupport mockConn4 = makeMockConnection("conn", true);
 		when(factory.getConnection()).thenReturn(mockConn1)
 				.thenReturn(mockConn2).thenReturn(mockConn3)
 				.thenReturn(mockConn4);
@@ -267,12 +267,12 @@ public class CachingClientConnectionFactoryTests {
 		verify(mockConn2).close();
 	}
 
-	private TcpConnection makeMockConnection(String name) {
+	private TcpConnectionSupport makeMockConnection(String name) {
 		return makeMockConnection(name, false);
 	}
 
-	private TcpConnection makeMockConnection(String name, boolean closeOk) {
-		TcpConnection mockConn1 = mock(TcpConnection.class);
+	private TcpConnectionSupport makeMockConnection(String name, boolean closeOk) {
+		TcpConnectionSupport mockConn1 = mock(TcpConnectionSupport.class);
 		when(mockConn1.getConnectionId()).thenReturn(name);
 		when(mockConn1.toString()).thenReturn(name);
 		when(mockConn1.isOpen()).thenReturn(true);

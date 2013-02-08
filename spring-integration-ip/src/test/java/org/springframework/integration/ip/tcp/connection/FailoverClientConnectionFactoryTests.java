@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,8 +68,8 @@ public class FailoverClientConnectionFactoryTests {
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnection conn1 = makeMockConnection();
-		TcpConnection conn2 = makeMockConnection();
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(conn1);
 		when(factory2.getConnection()).thenReturn(conn2);
 		when(factory1.isActive()).thenReturn(true);
@@ -94,8 +94,8 @@ public class FailoverClientConnectionFactoryTests {
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnection conn1 = makeMockConnection();
-		TcpConnection conn2 = makeMockConnection();
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(conn1);
 		when(factory2.getConnection()).thenReturn(conn2);
 		when(factory1.isActive()).thenReturn(true);
@@ -116,8 +116,8 @@ public class FailoverClientConnectionFactoryTests {
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnection conn1 = makeMockConnection();
-		TcpConnection conn2 = makeMockConnection();
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(conn1);
 		when(factory2.getConnection()).thenReturn(conn2);
 		when(factory1.isActive()).thenReturn(true);
@@ -165,7 +165,7 @@ public class FailoverClientConnectionFactoryTests {
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnection conn1 = makeMockConnection();
+		TcpConnectionSupport conn1 = makeMockConnection();
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -189,8 +189,8 @@ public class FailoverClientConnectionFactoryTests {
 		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
 		factories.add(factory1);
 		factories.add(factory2);
-		TcpConnection conn1 = makeMockConnection();
-		TcpConnection conn2 = makeMockConnection();
+		TcpConnectionSupport conn1 = makeMockConnection();
+		TcpConnectionSupport conn2 = makeMockConnection();
 		when(factory1.getConnection()).thenReturn(conn1);
 		when(factory2.getConnection()).thenReturn(conn2);
 		when(factory1.isActive()).thenReturn(true);
@@ -218,8 +218,8 @@ public class FailoverClientConnectionFactoryTests {
 		Mockito.verify(conn1, times(3)).send(message);
 	}
 
-	public TcpConnection makeMockConnection() {
-		TcpConnection connection = mock(TcpConnection.class);
+	public TcpConnectionSupport makeMockConnection() {
+		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
 		when(connection.isOpen()).thenReturn(true);
 		return connection;
 	}

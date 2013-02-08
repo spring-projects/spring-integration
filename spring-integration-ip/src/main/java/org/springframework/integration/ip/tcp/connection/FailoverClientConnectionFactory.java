@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,8 +99,8 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	}
 
 	@Override
-	protected TcpConnection obtainConnection() throws Exception {
-		TcpConnection connection = this.getTheConnection();
+	protected TcpConnectionSupport obtainConnection() throws Exception {
+		TcpConnectionSupport connection = this.getTheConnection();
 		if (connection != null && connection.isOpen()) {
 			return connection;
 		}
@@ -150,7 +150,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	 * @since 2.2
 	 *
 	 */
-	private class FailoverTcpConnection implements TcpConnection, TcpListener {
+	private class FailoverTcpConnection extends TcpConnectionSupport implements TcpListener {
 
 		private final List<AbstractClientConnectionFactory> factories;
 
@@ -160,7 +160,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		private volatile AbstractClientConnectionFactory currentFactory;
 
-		private volatile TcpConnection delegate;
+		private volatile TcpConnectionSupport delegate;
 
 		private volatile boolean open = true;
 
@@ -212,6 +212,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			}
 		}
 
+		@Override
 		public void close() {
 			this.delegate.close();
 			this.open = false;
@@ -264,10 +265,12 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			throw new UnsupportedOperationException("Not supported on FailoverTcpConnection");
 		}
 
+		@Override
 		public String getHostName() {
 			return this.delegate.getHostName();
 		}
 
+		@Override
 		public String getHostAddress() {
 			return this.delegate.getHostAddress();
 		}
@@ -276,54 +279,67 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			return this.delegate.getPort();
 		}
 
+		@Override
 		public void registerListener(TcpListener listener) {
 			this.delegate.registerListener(listener);
 		}
 
+		@Override
 		public void registerSender(TcpSender sender) {
 			this.delegate.registerSender(sender);
 		}
 
+		@Override
 		public String getConnectionId() {
 			return this.connectionId;
 		}
 
+		@Override
 		public void setSingleUse(boolean singleUse) {
 			this.delegate.setSingleUse(singleUse);
 		}
 
+		@Override
 		public boolean isSingleUse() {
 			return this.delegate.isSingleUse();
 		}
 
+		@Override
 		public boolean isServer() {
 			return this.delegate.isServer();
 		}
 
+		@Override
 		public void setMapper(TcpMessageMapper mapper) {
 			this.delegate.setMapper(mapper);
 		}
 
+		@Override
 		public Deserializer<?> getDeserializer() {
 			return this.delegate.getDeserializer();
 		}
 
+		@Override
 		public void setDeserializer(Deserializer<?> deserializer) {
 			this.delegate.setDeserializer(deserializer);
 		}
 
+		@Override
 		public Serializer<?> getSerializer() {
 			return this.delegate.getSerializer();
 		}
 
+		@Override
 		public void setSerializer(Serializer<?> serializer) {
 			this.delegate.setSerializer(serializer);
 		}
 
+		@Override
 		public TcpListener getListener() {
 			return this.delegate.getListener();
 		}
 
+		@Override
 		public long incrementAndGetConnectionSequence() {
 			return this.delegate.incrementAndGetConnectionSequence();
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2011 the original author or authors.
+ * Copyright 2001-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamExceptio
  * @since 2.0
  *
  */
-public class TcpNetConnection extends AbstractTcpConnection {
+public class TcpNetConnection extends TcpConnectionSupport {
 
 	private final Socket socket;
 

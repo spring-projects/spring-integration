@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	private final AbstractClientConnectionFactory targetConnectionFactory;
 
-	private final SimplePool<TcpConnection> pool;
+	private final SimplePool<TcpConnectionSupport> pool;
 
 	private volatile TcpListener listener;
 
@@ -47,9 +47,9 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		// override single-use to true to force "close" after use
 		target.setSingleUse(true);
 		this.targetConnectionFactory = target;
-		pool = new SimplePool<TcpConnection>(poolSize, new SimplePool.PoolItemCallback<TcpConnection>() {
+		pool = new SimplePool<TcpConnectionSupport>(poolSize, new SimplePool.PoolItemCallback<TcpConnectionSupport>() {
 
-			public TcpConnection createForPool() {
+			public TcpConnectionSupport createForPool() {
 				try {
 					return targetConnectionFactory.getConnection();
 				} catch (Exception e) {
@@ -57,11 +57,11 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 				}
 			}
 
-			public boolean isStale(TcpConnection connection) {
+			public boolean isStale(TcpConnectionSupport connection) {
 				return !connection.isOpen();
 			}
 
-			public void removedFromPool(TcpConnection connection) {
+			public void removedFromPool(TcpConnectionSupport connection) {
 				connection.close();
 			}
 		});
@@ -72,13 +72,11 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public synchronized void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public int getPoolSize() {
 		return this.pool.getPoolSize();
 	}
@@ -96,19 +94,17 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public TcpConnection obtainConnection() throws Exception {
+	public TcpConnectionSupport obtainConnection() throws Exception {
 		return new CachedConnection(this.pool.getItem());
 	}
 
-	private class CachedConnection extends AbstractTcpConnectionInterceptor {
+	private class CachedConnection extends TcpConnectionInterceptorSupport {
 
 		private volatile boolean released;
 
-		public CachedConnection(TcpConnection connection) {
+		public CachedConnection(TcpConnectionSupport connection) {
 			super.setTheConnection(connection);
-			if (connection instanceof AbstractTcpConnection) {
-				((AbstractTcpConnection) connection).registerListener(this);
-			}
+			connection.registerListener(this);
 		}
 
 		@Override

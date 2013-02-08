@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,14 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Iwein Fuld
  * @author Dave Syer
+ * @author Gary Russell
  */
 public class SimpleMessageStoreTests {
 
@@ -116,7 +118,7 @@ public class SimpleMessageStoreTests {
 	@Test
 	public void shouldRegisterCallbacks() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
-		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupCallback() {
+		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupStore.MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			}
 		}));

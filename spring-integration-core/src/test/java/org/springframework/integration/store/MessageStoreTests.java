@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.store;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,22 +25,21 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Dave Syer
+ * @author Gary Russell
  */
 public class MessageStoreTests {
 
 	@Test
 	public void shouldRegisterCallbacks() throws Exception {
 		TestMessageStore store = new TestMessageStore();
-		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupCallback() {
+		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupStore.MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			}
 		}));
@@ -81,8 +82,8 @@ public class MessageStoreTests {
 		MessageGroup testMessages = new SimpleMessageGroup(Arrays.asList(new GenericMessage<String>("foo")), "bar");
 
 		private boolean removed = false;
-		
-		
+
+
 		public Iterator<MessageGroup> iterator() {
 			return Arrays.asList(testMessages).iterator();
 		}
