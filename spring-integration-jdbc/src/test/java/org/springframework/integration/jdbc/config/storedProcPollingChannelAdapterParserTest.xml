@@ -15,6 +15,7 @@
 	<int-jdbc:stored-proc-inbound-channel-adapter id="storedProcedurePollingChannelAdapter"
 				data-source="dataSource" channel="target"
 				stored-procedure-name="GET_PRIME_NUMBERS"
+				return-value-required="true"
 				is-function="false">
 			<int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
 			<int-jdbc:sql-parameter-definition name="password" direction="OUT" />
