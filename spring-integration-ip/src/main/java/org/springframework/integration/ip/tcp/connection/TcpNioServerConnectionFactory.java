@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	/**
 	 * If no listener registers, exits.
 	 * Accepts incoming connections and creates TcpConnections for each new connection.
-	 * Invokes {{@link #initializeConnection(TcpConnection, Socket)} and executes the
+	 * Invokes {{@link #initializeConnection(TcpConnectionSupport, Socket)} and executes the
 	 * connection {@link TcpConnection#run()} using the task executor.
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
@@ -176,7 +176,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 					.createNewConnection(socketChannel, true,
 							this.isLookupHost());
 			connection.setUsingDirectBuffers(this.usingDirectBuffers);
-			TcpConnection wrappedConnection = wrapConnection(connection);
+			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
 			this.initializeConnection(wrappedConnection, socketChannel.socket());
 			return connection;
 		} catch (Exception e) {

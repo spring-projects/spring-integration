@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class TcpMessageMapperTests {
 
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
-		TcpConnection connection = new AbstractTcpConnection(socket, false, false) {
+		TcpConnection connection = new TcpConnectionSupport(socket, false, false) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {
@@ -115,7 +115,7 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		mapper.setApplySequence(true);
 		Socket socket = SocketFactory.getDefault().createSocket();
-		TcpConnection connection = new AbstractTcpConnection(socket, false, false) {
+		TcpConnection connection = new TcpConnectionSupport(socket, false, false) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {

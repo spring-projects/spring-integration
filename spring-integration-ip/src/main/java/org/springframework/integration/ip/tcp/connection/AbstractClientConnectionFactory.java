@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.net.Socket;
  */
 public abstract class AbstractClientConnectionFactory extends AbstractConnectionFactory {
 
-	private TcpConnection theConnection;
+	private TcpConnectionSupport theConnection;
 
 	/**
 	 * Constructs a factory that will established connections to the host and port.
@@ -43,20 +43,20 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * true, a new connection is returned; otherwise a single connection is
 	 * reused for all requests while the connection remains open.
 	 */
-	public TcpConnection getConnection() throws Exception {
+	public TcpConnectionSupport getConnection() throws Exception {
 		this.checkActive();
 		if (this.isSingleUse()) {
 			return obtainConnection();
 		} else {
 			synchronized(this) {
-				TcpConnection connection = obtainConnection();
+				TcpConnectionSupport connection = obtainConnection();
 				this.setTheConnection(connection);
 				return connection;
 			}
 		}
 	}
 
-	protected abstract TcpConnection obtainConnection() throws Exception;
+	protected abstract TcpConnectionSupport obtainConnection() throws Exception;
 
 	/**
 	 * Transfers attributes such as (de)serializers, singleUse etc to a new connection.
@@ -67,7 +67,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * @param connection The new connection.
 	 * @param socket The new socket.
 	 */
-	protected void initializeConnection(TcpConnection connection, Socket socket) {
+	protected void initializeConnection(TcpConnectionSupport connection, Socket socket) {
 		TcpListener listener = this.getListener();
 		if (listener != null) {
 			connection.registerListener(listener);
@@ -85,14 +85,14 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	/**
 	 * @param theConnection the theConnection to set
 	 */
-	protected void setTheConnection(TcpConnection theConnection) {
+	protected void setTheConnection(TcpConnectionSupport theConnection) {
 		this.theConnection = theConnection;
 	}
 
 	/**
 	 * @return the theConnection
 	 */
-	protected TcpConnection getTheConnection() {
+	protected TcpConnectionSupport getTheConnection() {
 		return theConnection;
 	}
 
