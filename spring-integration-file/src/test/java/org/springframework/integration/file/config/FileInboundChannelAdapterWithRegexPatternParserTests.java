@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -59,7 +60,7 @@ public class FileInboundChannelAdapterWithRegexPatternParserTests {
 	public void regexFilter() {
 		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
 		Object extractedFilter = scannerAccessor.getPropertyValue("filter");
-		assertThat(extractedFilter, instanceOf(CompositeFileListFilter.class));
+		assertThat(extractedFilter, is(instanceOf(CompositeFileListFilter.class)));
 		Set<FileListFilter<?>> filters = (Set<FileListFilter<?>>) new DirectFieldAccessor(
 				extractedFilter).getPropertyValue("fileFilters");
 		Pattern pattern = null;
