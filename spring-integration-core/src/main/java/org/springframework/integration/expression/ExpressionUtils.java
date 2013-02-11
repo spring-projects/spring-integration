@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.expression;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
@@ -32,6 +31,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
  *
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.2
  */
 public abstract class ExpressionUtils {
@@ -97,10 +97,7 @@ public abstract class ExpressionUtils {
 	 * @return the evaluation context.
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
-		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
-		if (conversionService == null && beanFactory instanceof ConfigurableListableBeanFactory){
-			conversionService = ((ConfigurableListableBeanFactory)beanFactory).getConversionService();
-		}
-		return createStandardEvaluationContext(new BeanFactoryResolver(beanFactory), conversionService);
+		return createStandardEvaluationContext(new BeanFactoryResolver(beanFactory),
+				IntegrationContextUtils.getConversionService(beanFactory));
 	}
 }
