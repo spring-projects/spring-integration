@@ -89,7 +89,6 @@ public class StoredProcOutboundGatewayParserTests {
 
 	}
 
-
 	@Test
 	public void testSkipUndeclaredResultsAttributeSet() throws Exception {
 		setUp("storedProcOutboundGatewayParserTest.xml", getClass());
@@ -101,6 +100,19 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		boolean  skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
 		assertFalse(skipUndeclaredResults);
+	}
+
+	@Test
+	public void testReturnValueRequiredAttributeSet() throws Exception {
+		setUp("storedProcOutboundGatewayParserTest.xml", getClass());
+
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
+		Object source = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean returnValueRequired = (Boolean) accessor.getPropertyValue("returnValueRequired");
+		assertTrue(returnValueRequired);
 	}
 
 	@SuppressWarnings("unchecked")

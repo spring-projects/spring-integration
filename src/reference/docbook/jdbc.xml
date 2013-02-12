@@ -906,6 +906,7 @@
                                    is-function="false"
                                    max-rows-per-poll=""                         ]]><co id="sp-inbound-xml02-co" linkends="sp-inbound-xml02" /><![CDATA[
                                    skip-undeclared-results=""                   ]]><co id="sp-inbound-xml03-co" linkends="sp-inbound-xml03" /><![CDATA[
+                                   return-value-required="false"                ]]><co id="sp-inbound-xml04-co" linkends="sp-inbound-xml04" /><![CDATA[
     <int:poller/>
     <int-jdbc:sql-parameter-definition name="" direction="IN"
                                                type="STRING"
@@ -951,6 +952,13 @@
                              <emphasis>Optional</emphasis>.
                          </para>
                     </callout>
+					<callout arearefs="sp-inbound-xml04-co" id="sp-inbound-xml04">
+						<para>
+							Indicates whether this procedure's return value
+							should be included. Since <emphasis>Spring Integration 3.0.</emphasis>
+							<emphasis>Optional</emphasis>.
+						</para>
+					</callout>
               </calloutlist></para>
 			<note>
 				When you declare a Poller, you may notice the Poller's
@@ -972,7 +980,6 @@
                                                id=""
                                                ignore-column-meta-data="false"
                                                order=""                         ]]><co id="sp-outbound-xml02-co" linkends="sp-outbound-xml02" /><![CDATA[
-                                               return-value-required="false"    ]]><co id="sp-outbound-xml03-co" linkends="sp-outbound-xml03" /><![CDATA[
                                                sql-parameter-source-factory=""
                                                use-payload-as-parameter-source="">
     <int:poller fixed-rate=""/>
@@ -996,13 +1003,6 @@
                              <emphasis>failover</emphasis> dispatching strategy.
                              It has no effect when this endpoint itself is a
                              Polling Consumer for a channel with a queue.
-                            <emphasis>Optional</emphasis>.
-                        </para>
-                    </callout>
-                    <callout arearefs="sp-outbound-xml03-co" id="sp-outbound-xml03">
-                        <para>
-                            Indicates whether this procedure's return value
-                            should be included.
                             <emphasis>Optional</emphasis>.
                         </para>
                     </callout>

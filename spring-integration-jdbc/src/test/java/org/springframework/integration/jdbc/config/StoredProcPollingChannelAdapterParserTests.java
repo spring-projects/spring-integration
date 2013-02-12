@@ -14,6 +14,7 @@
 package org.springframework.integration.jdbc.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -116,6 +117,19 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		boolean  skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
 		assertTrue("skipUndeclaredResults was not set and should default to 'true'", skipUndeclaredResults);
+	}
+
+	@Test
+	public void testReturnValueRequiredAttributeSet() throws Exception {
+		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
+
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollingAdapter);
+		Object source = accessor.getPropertyValue("source");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean returnValueRequired = (Boolean) accessor.getPropertyValue("returnValueRequired");
+		assertTrue(returnValueRequired);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -235,6 +249,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertFalse(TestUtils.getPropertyValue(autoChannelAdapter, "source.executor.returnValueRequired", Boolean.class));
 	}
 
 	@After

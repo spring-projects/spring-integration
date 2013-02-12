@@ -1101,6 +1101,17 @@
 					<xsd:union memberTypes="xsd:boolean xsd:string" />
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="return-value-required" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Indicates the procedure's return value should be included
+						in the results returned.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
