@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,22 @@
 
 package org.springframework.integration.transformer;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 
 /**
  * @author Oleg Zhurakousky
@@ -114,10 +113,9 @@ public class MapToObjectTransformerTests {
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 
-	@SuppressWarnings("deprecation")
 	private ConfigurableBeanFactory getBeanFactory(){
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
+		GenericConversionService conversionService = new DefaultConversionService();
 		beanFactory.setConversionService(conversionService);
 		return beanFactory;
 	}

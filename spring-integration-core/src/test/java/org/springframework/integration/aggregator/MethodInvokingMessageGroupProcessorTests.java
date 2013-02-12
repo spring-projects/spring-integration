@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,13 @@
 
 package org.springframework.integration.aggregator;
 
+import static junit.framework.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Aggregator;
@@ -44,15 +51,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
-
-import static junit.framework.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {
@@ -227,7 +225,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void shouldFindSimpleAggregatorMethodWithIterator() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -242,7 +239,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
+		GenericConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<ArrayList<?>, Iterator<?>>() {
 			public Iterator<?> convert(ArrayList<?> source) {
 				return source.iterator();
@@ -359,7 +356,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 	@Test
 	public void testHeaderParameters() throws Exception {
 
-		@SuppressWarnings("unused")
 		class SingleAnnotationTestBean {
 			@Aggregator
 			public String method1(List<String> input, @Header("foo") String foo) {
@@ -378,7 +374,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 	@Test
 	public void testHeadersParameters() throws Exception {
 
-		@SuppressWarnings("unused")
 		class SingleAnnotationTestBean {
 			@Aggregator
 			public String method1(List<String> input, @Headers Map<String, ?> map) {
@@ -397,7 +392,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void multipleAnnotations() {
 
-		@SuppressWarnings("unused")
 		class MultipleAnnotationTestBean {
 
 			@Aggregator

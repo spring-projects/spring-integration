@@ -25,13 +25,14 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.expression.TypeConverter;
 
 /**
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Soby Chacko
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
@@ -43,11 +44,10 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	private volatile ConversionService conversionService;
 
 
-	@SuppressWarnings("deprecation")
 	public BeanFactoryTypeConverter() {
 		synchronized (BeanFactoryTypeConverter.class) {
 			if (defaultConversionService == null) {
-				defaultConversionService = ConversionServiceFactory.createDefaultConversionService();
+				defaultConversionService = new DefaultConversionService();
 			}
 		}
 		this.conversionService = defaultConversionService;
