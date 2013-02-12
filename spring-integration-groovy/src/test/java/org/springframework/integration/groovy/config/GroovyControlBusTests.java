@@ -25,9 +25,11 @@ import groovy.lang.GroovyObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Ignore;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanIsAbstractException;
@@ -56,6 +58,7 @@ import org.springframework.web.context.request.RequestContextHolder;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GroovyControlBusTests {
 
 	@Autowired
@@ -69,8 +72,12 @@ public class GroovyControlBusTests {
 
 	private static volatile int adviceCalled;
 
+	@Before
+	public void beforeTest() {
+		adviceCalled = 0;
+	}
+
 	@Test
-	@Ignore
 	public void testOperationOfControlBus() { // long is > 3
 		this.groovyCustomizer.executed = false;
 		Message<?> message = MessageBuilder.withPayload("def result = service.convert('aardvark'); def foo = headers.foo; result+foo").setHeader("foo", "bar").build();
@@ -89,7 +96,6 @@ public class GroovyControlBusTests {
 	}
 
 	@Test //INT-2567
-	@Ignore
 	public void testFailOperationWithCustomScope() {
 		try {
 			Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
@@ -140,7 +146,6 @@ public class GroovyControlBusTests {
 	}
 
 	@Test //INT-2631
-	@Ignore
 	public void testOperationOnPrototypeBean() {
 		Message<?> message = MessageBuilder.withPayload("def result = prototypeService.convert('testString')").build();
 		this.input.send(message);
