@@ -244,7 +244,7 @@
     <programlisting language="xml"><![CDATA[ <int:channel id="threadScopedChannel" scope="thread">
      <int:queue />
  </int:channel>
-	
+
  <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
     <property name="scopes">
          <map>
@@ -254,12 +254,12 @@
  </bean>
 ]]></programlisting>
     <para>
-      The channel above also delegates to a queue internally, but the channel is bound 
+      The channel above also delegates to a queue internally, but the channel is bound
       to the current thread, so the contents of the queue are as well. That way the thread that
-       sends to the channel will later be able to receive those same Messages, but no other thread 
-       would be able to access them. While thread-scoped channels are rarely needed, they can be 
-       useful in situations where <classname>DirectChannels</classname> are being used to enforce a 
-       single thread of operation but any reply Messages should be sent to a "terminal" channel. 
+       sends to the channel will later be able to receive those same Messages, but no other thread
+       would be able to access them. While thread-scoped channels are rarely needed, they can be
+       useful in situations where <classname>DirectChannels</classname> are being used to enforce a
+       single thread of operation but any reply Messages should be sent to a "terminal" channel.
        If that terminal channel is thread-scoped, the original sending thread can collect its replies from it.
       </para>
       <para>
@@ -415,13 +415,13 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 ]]></programlisting>
       </para>
     </section>
-    
+
     <section id="channel-datatype-channel">
     	<title>Datatype Channel Configuration</title>
     	<para>
-    	There are times when a consumer can only process a particular type of payload and you need to therefore ensure the payload type of input Messages. 
-    	Of course the first thing that comes to mind is Message Filter. However all that Message Filter will do is filter out Messages that are not compliant with 
-    	the requirements of the consumer. Another way would be to use a Content Based Router and route Messages with non-compliant data-types to specific 
+    	There are times when a consumer can only process a particular type of payload and you need to therefore ensure the payload type of input Messages.
+    	Of course the first thing that comes to mind is Message Filter. However all that Message Filter will do is filter out Messages that are not compliant with
+    	the requirements of the consumer. Another way would be to use a Content Based Router and route Messages with non-compliant data-types to specific
     	Transformers to enforce transformation/conversion to the required data-type. This of course would work, but a simpler way of accomplishing the
         same thing is to apply the <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> pattern.
         You can use separate Datatype Channels for each specific payload data-type.
@@ -430,10 +430,10 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	      To create a Datatype Channel that only
 	      accepts messages containing a certain payload type, provide the fully-qualified class name in the
 	      channel element's <literal>datatype</literal> attribute:
-	      
+
 	      <programlisting language="xml"><![CDATA[<int:channel id="numberChannel" datatype="java.lang.Number"/>]]></programlisting>
         </para>
-        <para>	      
+        <para>
 	      Note that the type check passes for any type that is <emphasis>assignable</emphasis> to the channel's
 	      datatype. In other words, the "numberChannel" above would accept messages whose payload is
 	      <classname>java.lang.Integer</classname> or <classname>java.lang.Double</classname>. Multiple types can be
@@ -443,21 +443,21 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	    <para>
 	    So the 'numberChannel' above will only accept Messages with a data-type of <classname>java.lang.Number</classname>. But what happens
 	    if the payload of the Message is not of the required type? It depends on whether you have defined a bean named "integrationConversionService"
-	    that is an instance of Spring's <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">Conversion Service</ulink>.
+	    that is an instance of Spring's <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">Conversion Service</ulink>.
 	    If not, then an Exception would be thrown immediately, but if you do have an "integrationConversionService" bean defined, it will be used
 	    in an attempt to convert the Message's payload to the acceptable type.
 	    </para>
 	    <para>
 	    You can even register custom converters. For example, let's say you are sending a Message with a String payload to the 'numberChannel' we configured above.
 		<programlisting language="java"><![CDATA[MessageChannel inChannel = context.getBean("numberChannel", MessageChannel.class);
-inChannel.send(new GenericMessage<String>("5"));]]></programlisting> 
+inChannel.send(new GenericMessage<String>("5"));]]></programlisting>
         </para>
-        <para>		
+        <para>
         Typically this would be a perfectly legal operation, however since we are using Datatype Channel the result of such operation would generate an exception:
 
-		<programlisting language="java"><![CDATA[Exception in thread "main" org.springframework.integration.MessageDeliveryException: 
-Channel 'numberChannel' 
-expected one of the following datataypes [class java.lang.Number], 
+		<programlisting language="java"><![CDATA[Exception in thread "main" org.springframework.integration.MessageDeliveryException:
+Channel 'numberChannel'
+expected one of the following datataypes [class java.lang.Number],
 but received [class java.lang.String]
 …]]></programlisting>
         </para>
@@ -467,22 +467,27 @@ All we need to do is implement a Converter.
 <programlisting language="java"><![CDATA[public static class StringToIntegerConverter implements Converter<String, Integer> {
 	public Integer convert(String source) {
 		return Integer.parseInt(source);
-	}	
+	}
 }]]></programlisting>
         </para>
         <para>
 Then, register it as a Converter with the Integration Conversion Service:
 <programlisting language="java"><![CDATA[<int:converter ref="strToInt"/>
-	
+
 <bean id="strToInt" class="org.springframework.integration.util.Demo.StringToIntegerConverter"/>]]></programlisting>
         </para>
         <para>
 When the 'converter' element is parsed, it will create the "integrationConversionService" bean on-demand if one is not already defined.
 With that Converter in place, the send operation would now be successful since the Datatype Channel will use that Converter to convert the String
 payload to an Integer.
-	    </para>
+        </para>
+        <note>
+            <para>
+               For more information regarding Payload Type Conversion, please read <xref linkend="payload-type-conversion"/>.
+            </para>
+        </note>
     </section>
-    
+
     <section id="channel-configuration-queuechannel">
       <title>QueueChannel Configuration</title>
       <para>
@@ -497,9 +502,9 @@ payload to an Integer.
           recommended to set an explicit value for a bounded queue.
         </note>
       </para>
-      
+
       <para><emphasis>Persistent QueueChannel Configuration</emphasis></para>
-      
+
       <para>
       Since a <classname>QueueChannel</classname> provides the capability to buffer Messages, but does so in-memory only
       by default, it also introduces a possibility that Messages could be lost in the event of a system failure. To
@@ -513,35 +518,35 @@ payload to an Integer.
       </para>
       <para>
       By default any <classname>QueueChannel</classname> only stores its Messages in an in-memory Queue
-      and can therefore lead to the lost message scenario mentioned above. However Spring Integration 
+      and can therefore lead to the lost message scenario mentioned above. However Spring Integration
       provides a <classname>JdbcMessageStore</classname> to allow a <classname>QueueChannel</classname> to be backed by an RDBMS.
       </para>
       <para>
       You can configure a Message Store for any <classname>QueueChannel</classname> by adding the
       <code>message-store</code> attribute as shown in the next example.
-     
+
       <programlisting language="xml"><![CDATA[<int:channel id="dbBackedChannel">
     <int:queue message-store="messageStore">
 <int:channel id="myChannel">
 
 <int-jdbc:message-store id="messageStore" data-source="someDataSource"/>]]></programlisting>
-     
+
      The above example also shows that <classname>JdbcMessageStore</classname> can be configured with the namespace support
      provided by the Spring Integration JDBC module. All you need to do is inject any <classname>javax.sql.DataSource</classname>
      instance. The Spring Integration JDBC module also provides schema DDL for most popular databases. These schemas are located in
      the <emphasis>org.springframework.integration.jdbc</emphasis> package of that module (spring-integration-jdbc).
-     
+
      <important>
      One important feature is that with any transactional persistent store (e.g., JdbcMessageStore), as long as the poller has a transaction configured,
      a Message removed from the store will only be permanently removed if the transaction completes
-     successfully, otherwise the transaction will roll back and the Message will not be lost.  
+     successfully, otherwise the transaction will roll back and the Message will not be lost.
      </important>
      Many other implementations of the Message Store will be available as the growing number of Spring projects
      related to "NoSQL" data stores provide the underlying support. Of course, you can always provide your own implementation
      of the MessageGroupStore interface if you cannot find one that meets your particular needs.
       </para>
     </section>
-    
+
     <section id="channel-configuration-pubsubchannel">
       <title>PublishSubscribeChannel Configuration</title>
       <para>
@@ -648,16 +653,16 @@ payload to an Integer.
 
     <section id="global-channel-configuration-interceptors">
     <title>Global Channel Interceptor Configuration</title>
- 
+
 <titleabbrev id="global-channel-interceptor">Global Channel Interceptor</titleabbrev>
- 
+
       <para>
         Channel Interceptors provide a clean and concise way of applying cross-cutting behavior per individual channel.
         If the same behavior should be applied on multiple channels, configuring the same set of interceptors for
         each channel <emphasis>would not be</emphasis> the most efficient way. To avoid repeated configuration while
         also enabling interceptors to apply to multiple channels, Spring Integration provides
         <emphasis>Global Interceptors</emphasis>.
-       
+
     Look at the example below:
         <programlisting language="xml"><![CDATA[<int:channel-interceptor pattern="input*, bar*, foo" order="3">
     <bean class="foo.barSampleInterceptor"/>
@@ -680,12 +685,12 @@ payload to an Integer.
 </int:channel>]]></programlisting>
   A reasonable question is how will a global interceptor be injected in relation to other interceptors
   configured locally or through other global interceptor definitions? The current implementation provides
-  a very simple mechanism for defining the order of interceptor execution. 
+  a very simple mechanism for defining the order of interceptor execution.
   A positive number in the <code>order</code> attribute will ensure interceptor injection
   after any existing interceptors and a negative number will ensure that the interceptor is injected before
   existing interceptors.
   This means that in the above example, the global interceptor will be injected <emphasis>AFTER</emphasis>
-  (since its order is greater than 0) 
+  (since its order is greater than 0)
   the 'wire-tap' interceptor configured locally. If there were another global interceptor with a matching
   <code>pattern</code>, its order would be determined by comparing the values of the <code>order</code> attribute.
   To inject a global interceptor <emphasis>BEFORE</emphasis> the existing interceptors, use a negative value for the <code>order</code> attribute.
@@ -700,7 +705,7 @@ payload to an Integer.
     <title>Wire Tap</title>
       <para>
     As mentioned above, Spring Integration provides a simple <emphasis>Wire Tap</emphasis> interceptor out of
-    the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an &lt;interceptors/&gt; element. 
+    the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an &lt;interceptors/&gt; element.
     This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging
     Channel Adapter as follows: <programlisting language="xml"><![CDATA[ <int:channel id="in">
      <int:interceptors>
@@ -710,23 +715,23 @@ payload to an Integer.
 
  <int:logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
         <tip>
-      The 'logging-channel-adapter' also accepts an 'expression' attribute so that you can evaluate           
-      a SpEL expression against 'payload' and/or 'headers' variables. Alternatively, to simply log   
+      The 'logging-channel-adapter' also accepts an 'expression' attribute so that you can evaluate
+      a SpEL expression against 'payload' and/or 'headers' variables. Alternatively, to simply log
       the full Message toString() result, provide a value of "true" for the 'log-full-message' attribute.
       That is <code>false</code> by default so that only the payload is logged. Setting that to
       <code>true</code> enables logging of all headers in addition to the payload. The 'expression'
       option does provide the most flexibility, however (e.g. expression="payload.user.name").
       </tip>
       </para>
-      
+
       <para>
       <emphasis>A little more on Wire Tap</emphasis>
       </para>
       <para>
-      One of the common misconceptions about the wire tap and other similar components (<xref linkend="message-publishing-config"/>) 
+      One of the common misconceptions about the wire tap and other similar components (<xref linkend="message-publishing-config"/>)
       is that they are automatically asynchronous in nature. Wire-tap as a component is not
       invoked asynchronously be default. Instead, Spring Integration focuses on a single unified
-      approach to configuring asynchronous behavior: the Message Channel. 
+      approach to configuring asynchronous behavior: the Message Channel.
 
 	  What makes certain parts of the message flow <emphasis>sync</emphasis> or <emphasis>async</emphasis>
 	  is the type of <emphasis>Message Channel</emphasis> that has been configured within that flow. That
@@ -736,7 +741,7 @@ payload to an Integer.
       just an internal, implicit realization of the EIP pattern, it is fully exposed as a configurable
       component to the end user.
 
-	  So, the Wire-tap component is ONLY responsible for performing the following 3 tasks: 
+	  So, the Wire-tap component is ONLY responsible for performing the following 3 tasks:
 <itemizedlist>
            <listitem>
              <para>intercept a message flow by tapping into a channel (e.g., channelA)</para>
@@ -751,21 +756,21 @@ payload to an Integer.
 
 	   It is essentially a variation of the Bridge, but it is encapsulated within a channel definition
        (and hence easier to enable and disable without disrupting a flow). Also, unlike the bridge, it
-       basically forks another message flow. Is that flow <emphasis>synchronous</emphasis> or    
+       basically forks another message flow. Is that flow <emphasis>synchronous</emphasis> or
        <emphasis>asynchronous</emphasis>? The answer simply depends on the type of <emphasis>Message Channel</emphasis>
        that 'channelB' is. And, now you know that we have: <emphasis>Direct Channel</emphasis>,
        <emphasis>Pollable Channel</emphasis>, and <emphasis>Executor Channel</emphasis> as options.
 	   The last two do break the thread boundary making communication via such channels
 	   <emphasis>asynchronous</emphasis> simply because the dispatching of the message from that channel
        to its subscribed handlers happens on a different thread than the one used to send the message to that
-       channel. That is what is going to make your wire-tap flow <emphasis>sync</emphasis> or <emphasis>async</emphasis>. 
-	   It is consistent with other components within the framework (e.g., Message Publisher) and actually 
+       channel. That is what is going to make your wire-tap flow <emphasis>sync</emphasis> or <emphasis>async</emphasis>.
+	   It is consistent with other components within the framework (e.g., Message Publisher) and actually
        brings a level of consistency and simplicity by sparing you from worrying in advance (other than writing
-       thread safe code) whether a particular piece of code should be implemented as <emphasis>sync</emphasis> or  
-       <emphasis>async</emphasis>. The actual wiring of two pieces of code (component A and component B) via 
-       <emphasis>Message Channel</emphasis> is what makes their collaboration <emphasis>sync</emphasis> or 
+       thread safe code) whether a particular piece of code should be implemented as <emphasis>sync</emphasis> or
+       <emphasis>async</emphasis>. The actual wiring of two pieces of code (component A and component B) via
+       <emphasis>Message Channel</emphasis> is what makes their collaboration <emphasis>sync</emphasis> or
        <emphasis>async</emphasis>. You may even want to change from <emphasis>sync</emphasis> to
-       <emphasis>async</emphasis> in the future and <emphasis>Message Channel</emphasis> is what's going 
+       <emphasis>async</emphasis> in the future and <emphasis>Message Channel</emphasis> is what's going
 	   to allow you to do it swiftly without ever touching the code.</para>
 
        <para>One final point regarding the Wire Tap is that, despite the rationale provided above for not
@@ -784,13 +789,13 @@ payload to an Integer.
         <para>It is possible to configure a global wire tap as a special case of the <xref linkend="global-channel-configuration-interceptors" endterm="global-channel-interceptor"/>. Simply configure a top level <code>wire-tap</code> element. Now, in addition to the normal <code>wire-tap</code> namespace support, the <code>pattern</code> and <code>order</code> attributes are supported and work in exactly the same way as with the <code>channel-interceptor</code>
       <programlisting language="xml"><![CDATA[<int:wire-tap pattern="input*, bar*, foo" order="3" channel="wiretapChannel"/>]]></programlisting>
       </para>
-     <tip>A global wire tap provides a convenient way to configure a single channel wire tap externally without modifying the existing channel configuration. Simply set the <code>pattern</code> attribute to the target channel name. For example, This technique may be used to configure a test case to verify messages on a channel.  
+     <tip>A global wire tap provides a convenient way to configure a single channel wire tap externally without modifying the existing channel configuration. Simply set the <code>pattern</code> attribute to the target channel name. For example, This technique may be used to configure a test case to verify messages on a channel.
      </tip>
     </section>
 
-  
+
   </section>
-  
+
 
   <section id="channel-special-channels">
  <title>Special Channels</title>
@@ -798,7 +803,7 @@ payload to an Integer.
         If namespace support is enabled, there are two special channels defined within the application context by default:
         <code>errorChannel</code> and <code>nullChannel</code>. The 'nullChannel' acts like <code>/dev/null</code>,
         simply logging any Message sent to it at DEBUG level and returning immediately. Any time you face channel
-        resolution errors for a reply that you don't care about, you can set the affected component's <code>output-channel</code> attribute 
+        resolution errors for a reply that you don't care about, you can set the affected component's <code>output-channel</code> attribute
         to 'nullChannel' (the name 'nullChannel' is reserved within the application context). The 'errorChannel' is
         used internally for sending error messages and may be overridden with a custom configuration. This is
         discussed in greater detail in <xref linkend="namespace-errorhandler"/>.
