@@ -3262,9 +3262,11 @@ is provided, the return value is expected to match a channel name exactly.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="empty-group-time-to-live-on-expiry" type="xsd:string">
+				<xsd:attribute name="empty-group-min-timeout" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
+							Makes sense only if MessageGroupStoreReaper is configured for MessageStore
+							of this Correlation Endpoint.
 							By default, when a MessageGroupStoreReaper is configured to expire partial
 							groups, empty groups are also removed. Empty groups exist after a group
 							is released normally. This is to enable the detection and discarding of

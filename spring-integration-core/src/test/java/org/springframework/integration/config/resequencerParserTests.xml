@@ -35,7 +35,7 @@
 		discard-channel="discardChannel"
 		send-timeout="86420000"
 		send-partial-result-on-expiry="true"
-		empty-group-time-to-live-on-expiry="60000"
+		empty-group-min-timeout="60000"
 		release-partial-sequences="true"/>
 
 	<resequencer id="resequencerWithCorrelationStrategyRefOnly"

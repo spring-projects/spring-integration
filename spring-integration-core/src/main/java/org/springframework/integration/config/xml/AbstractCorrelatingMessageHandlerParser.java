@@ -67,7 +67,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "empty-group-time-to-live-on-expiry", "minimumTimeoutForEmptyGroups");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "empty-group-min-timeout", "minimumTimeoutForEmptyGroups");
 	}
 
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,

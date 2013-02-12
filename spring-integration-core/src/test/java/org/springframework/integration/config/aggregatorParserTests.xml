@@ -69,7 +69,7 @@
 		ref="aggregatorBean"
 		release-strategy-expression="size() == 2"
         correlation-strategy-expression="headers['foo']"
-		empty-group-time-to-live-on-expiry="60000"/>
+		empty-group-min-timeout="60000"/>
 
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
