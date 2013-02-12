@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.gateway;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.lang.reflect.Method;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -25,12 +28,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -43,12 +45,10 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class GatewayProxyFactoryBeanTests {
 
@@ -67,11 +67,10 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	public void testRequestReplyWithAnonymousChannelConvertedTypeViaConversionService() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GenericConversionService cs = ConversionServiceFactory.createDefaultConversionService();
+		GenericConversionService cs = new DefaultConversionService();
 		Converter<String, byte[]> stringToByteConverter = new Converter<String, byte[]>() {
 			public byte[] convert(String source) {
 				return source.getBytes();
