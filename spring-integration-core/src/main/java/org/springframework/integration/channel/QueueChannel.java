@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,12 @@ import org.springframework.util.Assert;
  * The capacity must be a positive integer value. For a zero-capacity version
  * based upon a {@link java.util.concurrent.SynchronousQueue}, consider the
  * {@link RendezvousChannel}.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
-public class QueueChannel extends AbstractPollableChannel {
+public class QueueChannel extends AbstractPollableChannel implements QueueChannelOperations {
 
 	private final BlockingQueue<Message<?>> queue;
 
@@ -67,6 +68,7 @@ public class QueueChannel extends AbstractPollableChannel {
 	}
 
 
+	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		Assert.notNull(message, "'message' must not be null");
 		try {
@@ -85,6 +87,7 @@ public class QueueChannel extends AbstractPollableChannel {
 		}
 	}
 
+	@Override
 	protected Message<?> doReceive(long timeout) {
 		try {
 			if (timeout > 0) {
@@ -131,9 +134,9 @@ public class QueueChannel extends AbstractPollableChannel {
 	public int getQueueSize() {
 		return this.queue.size();
 	}
-	
+
 	public int getRemainingCapacity() {
 		return this.queue.remainingCapacity();
 	}
-	
+
 }
