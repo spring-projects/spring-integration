@@ -52,7 +52,8 @@
 
   release-strategy="releaseStrategyBean" ]]><co id="resxml14-co" linkends="resxml14" /><![CDATA[
   release-strategy-method="release" ]]><co id="resxml15-co" linkends="resxml15" /><![CDATA[
-  release-strategy-expression="size() == 10" />]]><co id="resxml16-co" linkends="resxml16" /></programlisting>
+  release-strategy-expression="size() == 10" ]]><co id="resxml16-co" linkends="resxml16" /><![CDATA[
+  empty-group-min-timeout="60000" />]]><co id="resxml17-co" linkends="resxml17" /></programlisting>
 
     <para><calloutlist>
         <callout arearefs="resxml1-co" id="resxml1">
@@ -170,6 +171,21 @@
           <code>release-strategy</code>
           or <code>release-strategy-expression</code> is allowed.</para>
         </callout>
+
+        <callout arearefs="resxml17-co" id="resxml17">
+          <para>Only applies if a <classname>MessageGroupStoreReaper</classname> is configured
+          for the <code>&lt;resequcencer&gt;</code>'s <classname>MessageStore</classname>.
+          By default, when a <classname>MessageGroupStoreReaper</classname> is configured to expire partial
+          groups, empty groups are also removed. Empty groups exist after a group
+          is released normally. This is to enable the detection and discarding of
+          late-arriving messages. If you wish to expire empty groups on a longer
+          schedule than expiring partial groups, set this property. Empty groups will
+          then not be removed from the <classname>MessageStore</classname> until they have not been modified
+          for at least this number of milliseconds. Note that the actual time to expire an
+          empty group will also be affected by the reaper's <emphasis>timeout</emphasis>
+          property and it could be as much as this value plus the timeout.</para>
+        </callout>
+
       </calloutlist></para>
 
     <note>

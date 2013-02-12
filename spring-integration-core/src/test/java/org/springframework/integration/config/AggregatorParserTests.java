@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
  */
 
 package org.springframework.integration.config;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,18 +55,13 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
-import static org.hamcrest.CoreMatchers.is;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class AggregatorParserTests {
 
@@ -192,7 +193,7 @@ public class AggregatorParserTests {
 		Assert.assertNotNull(reply);
 		assertEquals(11l, reply.getPayload());
 	}
-	
+
 	@Test // see INT-2011
 	public void testAggregatorWithPojoReleaseStrategyAsCollection() {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInputAsCollection");
@@ -232,9 +233,11 @@ public class AggregatorParserTests {
 		assertSame(context.getBean("aggregatorBean"), messageGroupProcessorTargetObject);
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "releaseStrategy");
 		CorrelationStrategy correlationStrategy = (CorrelationStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "correlationStrategy");
+		Long minimumTimeoutForEmptyGroups = TestUtils.getPropertyValue(aggregatingMessageHandler, "minimumTimeoutForEmptyGroups", Long.class);
 
 		assertTrue(ExpressionEvaluatingReleaseStrategy.class.equals(releaseStrategy.getClass()));
 		assertTrue(ExpressionEvaluatingCorrelationStrategy.class.equals(correlationStrategy.getClass()));
+		assertEquals(60000L, minimumTimeoutForEmptyGroups.longValue());
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)

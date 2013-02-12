@@ -10,4 +10,23 @@
 		were resolved as part of the 3.0 development process.
 	</para>
 
+	<section id="3.0-new-components">
+		<title>New Components</title>
+	</section>
+
+	<section id="3.0-general">
+		<title>General Changes</title>
+
+		<section id="3.0-corr-endpoint-empty-groups">
+			<title>Aggregator 'empty-group-min-timeout' property</title>
+				<para><classname>AbstractCorrelatingMessageHandler</classname> provides a new property
+					<code>empty-group-min-timeout</code>
+					to allow empty group expiry to run on a longer schedule than expiring partial groups. Empty groups will
+					not be removed from the <interfacename>MessageStore</interfacename> until they have not been modified
+					for at least this number of milliseconds. For more information see <xref linkend="aggregator-config"/>.
+				</para>
+		</section>
+
+	</section>
+
 </chapter>

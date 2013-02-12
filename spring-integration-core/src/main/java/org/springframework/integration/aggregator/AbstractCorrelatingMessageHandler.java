@@ -178,7 +178,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	 * By default, when a MessageGroupStoreReaper is configured to expire partial
 	 * groups, empty groups are also removed. Empty groups exist after a group
 	 * is released normally. This is to enable the detection and discarding of
-	 * late-arriving messages. If you wish to run empty group deletion on a longer
+	 * late-arriving messages. If you wish to expire empty groups on a longer
 	 * schedule than expiring partial groups, set this property. Empty groups will
 	 * then not be removed from the MessageStore until they have not been modified
 	 * for at least this number of milliseconds.
