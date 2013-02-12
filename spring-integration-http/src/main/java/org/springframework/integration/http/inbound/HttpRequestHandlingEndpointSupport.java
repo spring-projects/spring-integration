@@ -106,9 +106,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
+
 	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+
 	private static final List<HttpMethod> nonReadableBodyHttpMethods =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
@@ -472,7 +474,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request) and a Content-Type header.
 	 */
 	private boolean isReadable(ServletServerHttpRequest request) {
-		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()))
+		return !(CollectionUtils.containsInstance(httpMethodsWithNoBody, request.getMethod()))
 				&& request.getHeaders().getContentType() != null;
 	}
 
@@ -541,10 +543,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private void validateSupportedMethods() {
 		if (this.requestPayloadType != null
-				&& CollectionUtils.containsAny(nonReadableBodyHttpMethods, Arrays.asList(this.requestMapping.getMethods()))) {
+				&& CollectionUtils.containsAny(httpMethodsWithNoBody, Arrays.asList(this.requestMapping.getMethods()))) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("The 'requestPayloadType' attribute will have no relevance for one of the specified HTTP methods '" +
-						nonReadableBodyHttpMethods + "'");
+						httpMethodsWithNoBody + "'");
 			}
 		}
 	}

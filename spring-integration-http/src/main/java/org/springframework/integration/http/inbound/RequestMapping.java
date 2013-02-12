@@ -15,9 +15,6 @@
  */
 package org.springframework.integration.http.inbound;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMethod;

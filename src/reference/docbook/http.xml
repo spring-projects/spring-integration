@@ -75,7 +75,7 @@
     "multipartResolver" (the same name expected by Spring's DispatcherServlet). If it does in fact locate that
     bean, then the support for MultipartFiles will be enabled on the inbound request mapper. Otherwise, it will
     fail when trying to map a multipart-file request to a Spring Integration Message. For more on Spring's
-    support for MultipartResolvers, refer to the <ulink url="http://static.springsource.org/spring/docs/2.5.x/reference/mvc.html#mvc-multipart">Spring Reference Manual</ulink>.
+    support for MultipartResolvers, refer to the <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-multipart">Spring Reference Manual</ulink>.
       </note>
       </para>
       <para>
@@ -224,35 +224,39 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     request-channel="requests"
     reply-channel="responses"/>]]></programlisting>
 
-    <important>
-        <para>
-            Beginning with <emphasis>Spring Integration 2.1</emphasis> the
-            <emphasis>HTTP Inbound Gateway</emphasis> and the <emphasis>HTTP
-            Inbound Channel Adapter</emphasis> should use the <emphasis>path</emphasis>
-            attribute instead of the <emphasis>name</emphasis> attribute for
-            specifying the request path. The <emphasis>name</emphasis> attribute
-            for those 2 components has been deprecated.
-        </para>
-        <para>
-            If you simply want to identify component itself within your application
-            context, please use the <emphasis>id</emphasis> attribute.
-        </para>
-    </important>
-
-    <para><emphasis>Defining the UriPathHandlerMapping</emphasis></para>
+    <para><emphasis>Request Mapping support</emphasis></para>
 
     <para>
-      In order to use the <emphasis>HTTP Inbound Gateway</emphasis> or the
-      <emphasis>HTTP Inbound Channel Adapter</emphasis> you must define a
-
+      Parsing of the <emphasis>HTTP Inbound Gateway</emphasis> or the
+      <emphasis>HTTP Inbound Channel Adapter</emphasis> registers <code>integrationRequestMappingHandlerMapping</code>
+      	bean of type
       <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
-          >IntegrationRequestMappingHandlerMapping</ulink></interfacename>. This particular implementation of the
+          >IntegrationRequestMappingHandlerMapping</ulink></interfacename>, if there is no one registered before. This particular implementation of the
       <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html"
-          ><interfacename>HandlerMapping</interfacename></ulink> matches against
-      the value of the <emphasis>path</emphasis> attribute.
+          ><interfacename>HandlerMapping</interfacename></ulink>, which delegates its logic to the
+      	<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html"
+      		><interfacename>RequestMappingInfoHandlerMapping</interfacename></ulink>. However <classname>IntegrationRequestMappingHandlerMapping</classname>,
+      	on the configuration phase, to detect and to map Spring Integration <interfacename>HttpRequestHandler</interfacename> and <interfacename>Controller</interfacename>
+      	implementations, uses a bit different way in contradistinction to
+      	<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping">Mapping Requests With @RequestMapping</ulink>.
+      	For this purpose, in conjunction with <code>path</code> and <code>supported-methods</code>
+      	attributes on <code>&lt;http:inbound-channel-adapter&gt;</code> and <code>&lt;http:inbound-gateway&gt;</code>, there is a nested <code>&lt;request-mapping&gt;</code> optional element:
     </para>
-
-    <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<inbound-gateway id="inboundController"
+    request-channel="requests"
+    reply-channel="responses"
+    view-name="foo"
+    error-code="oops">
+   <request-mapping headers="User-Agent" params="myParam=myValue" consumes="application/json" produces="!text/plain"/>
+</inbound-gateway>]]></programlisting>
+      <para>Based on this configuration, on the background, the parser creates some Spring Integration internal <classname>RequestMapping</classname>,
+    	  which, in its turn, is converted to the Spring MVC
+    	  <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html"
+    			  ><classname>RequestMappingInfo</classname></ulink> by <classname>IntegrationRequestMappingHandlerMapping</classname> on the configuration phase.
+    	  <code>&lt;request-mapping&gt;</code> plays the same role in the Spring Integration as
+    	  <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html"
+    			  ><classname>RequestMapping</classname></ulink> annotation in the Spring MVC.
+      </para>
     <para>
         For more information regarding <emphasis>Handler Mappings</emphasis>, please
         see:
@@ -269,7 +273,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para>
         By Using the <emphasis>path</emphasis> attribute in conjunction with the
         <emphasis>payload-expression</emphasis> attribute as well as the <emphasis>
-        header</emphasis> sub-element, you have a high degree of flexiblity for
+        header</emphasis> sub-element, you have a high degree of flexibility for
         mapping inbound request data.
     </para>
 
@@ -300,7 +304,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
     <itemizedlist>
        <listitem>
-           <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/htmlsingle/spring-framework-reference.html#mvc-ann-requestmapping"></ulink>
+           <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping-uri-templates"></ulink>
        </listitem>
     </itemizedlist>
 

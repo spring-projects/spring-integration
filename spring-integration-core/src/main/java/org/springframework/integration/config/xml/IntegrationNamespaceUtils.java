@@ -300,7 +300,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * Utility method to configure HeaderMapper for Inbound and Outbound channel adapters/gateway
 	 */
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
-								ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue){
+								ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue) {
 		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
 		if (!StringUtils.hasText(replyHeaderValue)){
 			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
@@ -430,7 +430,7 @@ public abstract class IntegrationNamespaceUtils {
 			String expressionElementName, ParserContext parserContext, Element element, boolean oneRequired) {
 
 		Assert.hasText(valueElementName, "'valueElementName' must not be empty");
-		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
+		Assert.hasText(expressionElementName, "'expressionElementName' must not be empty");
 
 		String valueElementValue = element.getAttribute(valueElementName);
 		String expressionElementValue = element.getAttribute(expressionElementName);
@@ -464,7 +464,9 @@ public abstract class IntegrationNamespaceUtils {
 				.addConstructorArgValue(methodSignature);
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
-	public static BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
+	public static BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {
+
+		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
 
 		String expressionElementValue = element.getAttribute(expressionElementName);
 

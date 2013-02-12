@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration/http"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:util="http://www.springframework.org/schema/util"
+			 xmlns:si="http://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/http
+			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+
+	<util:constant id="TEST_PATH"
+				   static-field="org.springframework.integration.http.inbound.Int2312RequestMappingIntegrationTests.TEST_PATH"/>
+
+	<inbound-gateway path="#{TEST_PATH}"
+					 request-channel="toLowerCaseChannel"
+					 payload-expression="#pathVariables.value">
+		<request-mapping headers="toLowerCase"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="toLowerCaseChannel" expression="payload.toLowerCase()"/>
+
+	<inbound-gateway path="#{TEST_PATH}"
+					 request-channel="toUpperCaseChannel"
+					 payload-expression="#pathVariables.value">
+		<request-mapping headers="toUpperCase"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="toUpperCaseChannel" expression="payload.toUpperCase()"/>
+
+	<inbound-gateway path="/params"
+					 request-channel="twoParamsChannel">
+		<request-mapping params="param1,param2"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="twoParamsChannel" expression="'User=1;account=1'"/>
+
+	<inbound-gateway path="/params"
+					 request-channel="onlyOneParamChannel">
+		<request-mapping params="param1,!param2"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="onlyOneParamChannel" expression="'User=1'"/>
+
+
+	<inbound-gateway path="/consumes"
+					 request-channel="consumesNonXmlChannel"
+					 supported-methods="GET,PUT">
+		<request-mapping consumes="!text/xml,text/*"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="consumesNonXmlChannel" expression="'BAR'"/>
+
+	<inbound-gateway path="/consumes"
+					 request-channel="consumesXmlChannel"
+					 supported-methods="GET,PUT">
+		<request-mapping consumes="text/xml"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="consumesXmlChannel" expression="'&lt;test&gt;TEXT_XML&lt;/test&gt;'"/>
+
+	<inbound-gateway path="/produces"
+					 request-channel="contentXmlChannel">
+		<request-mapping produces="application/xml"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="contentXmlChannel" expression="'&lt;test&gt;XML&lt;/test&gt;'"/>
+
+	<inbound-gateway path="/produces"
+					 request-channel="contentNonXmlChannel">
+		<request-mapping produces="!application/xml"/>
+	</inbound-gateway>
+
+	<si:transformer input-channel="contentNonXmlChannel" expression="'{&quot;json&quot;:&quot;body&quot;}'"/>
+
+</beans:beans>
