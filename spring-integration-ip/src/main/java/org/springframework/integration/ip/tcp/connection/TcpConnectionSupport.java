@@ -29,6 +29,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.util.Assert;
 
@@ -299,13 +300,13 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	protected void publishConnectionOpenEvent() {
-		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEvent.OPEN,
+		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEventType.OPEN,
 				this.connectionFactoryName);
 		doPublish(event);
 	}
 
 	protected void publishConnectionCloseEvent() {
-		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEvent.CLOSE,
+		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEventType.CLOSE,
 				this.connectionFactoryName);
 		doPublish(event);
 	}

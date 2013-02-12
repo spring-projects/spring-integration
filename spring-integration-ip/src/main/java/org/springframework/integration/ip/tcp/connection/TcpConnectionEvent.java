@@ -27,19 +27,24 @@ public class TcpConnectionEvent extends ApplicationEvent {
 
 	private static final long serialVersionUID = 5323436446362192129L;
 
-	public static final String OPEN = "OPEN";
+	/**
+	 * Valid EventTypes - subclasses should provide similar enums for
+	 * their types.
+	 *
+	 */
+	public enum TcpConnectionEventType implements EventType {
+		OPEN,
+		CLOSE,
+		EXCEPTION;
+	}
 
-	public static final String CLOSE = "CLOSE";
-
-	public static final String EXCEPTION = "EXCEPTION";
-
-	private final String type;
+	private final EventType type;
 
 	private final String connectionFactoryName;
 
 	private final Throwable throwable;
 
-	public TcpConnectionEvent(TcpConnectionSupport connection, String type,
+	public TcpConnectionEvent(TcpConnectionSupport connection, EventType type,
 			String connectionFactoryName) {
 		super(connection);
 		this.type = type;
@@ -50,12 +55,12 @@ public class TcpConnectionEvent extends ApplicationEvent {
 	public TcpConnectionEvent(TcpConnectionSupport connection, Throwable t,
 			String connectionFactoryName) {
 		super(connection);
-		this.type = EXCEPTION;
+		this.type = TcpConnectionEventType.EXCEPTION;
 		this.throwable = t;
 		this.connectionFactoryName = connectionFactoryName;
 	}
 
-	public String getType() {
+	public EventType getType() {
 		return type;
 	}
 
@@ -73,6 +78,14 @@ public class TcpConnectionEvent extends ApplicationEvent {
 				", factory=" + this.connectionFactoryName +
 				", connectionId=" + this.getConnectionId() +
 			   (this.throwable == null ? "" : ", Exception=" + this.throwable) + "]";
+	}
+
+	/**
+	 * A marker interface allowing the definition of enums for allowed event types.
+	 *
+	 */
+	public interface EventType {
+
 	}
 
 }
