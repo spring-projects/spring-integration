@@ -21,6 +21,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.Socket;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.net.SocketFactory;
 
@@ -117,8 +119,8 @@ public class TcpMessageMapperTests {
 		TcpMessageMapper mapper = new TcpMessageMapper() {
 
 			@Override
-			protected void setCustomHeaders(TcpConnection connection, MessageBuilder<Object> messageBuilder) {
-				messageBuilder.setHeader("foo", "bar");
+			protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
+				return Collections.singletonMap("foo", "bar");
 			}
 
 		};

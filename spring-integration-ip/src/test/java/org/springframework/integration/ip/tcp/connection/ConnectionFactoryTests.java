@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -38,12 +39,11 @@ public class ConnectionFactoryTests {
 
 	@Test
 	public void testObtainConnectionIds() throws Exception {
-		final List<TcpConnectionEvent> events = new ArrayList<TcpConnectionEvent>();
+		final List<TcpConnectionEvent> events =
+				Collections.synchronizedList(new ArrayList<TcpConnectionEvent>());
 		ApplicationEventPublisher publisher = new ApplicationEventPublisher() {
 			public void publishEvent(ApplicationEvent event) {
-				synchronized(events) {
-					events.add((TcpConnectionEvent) event);
-				}
+				events.add((TcpConnectionEvent) event);
 			}
 		};
 		int port = SocketUtils.findAvailableServerSocket();

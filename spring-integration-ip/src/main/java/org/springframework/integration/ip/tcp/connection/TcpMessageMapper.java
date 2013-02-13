@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -53,38 +54,34 @@ public class TcpMessageMapper implements
 		Object payload = connection.getPayload();
 		if (payload != null) {
 			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
-			setStandardHeaders(connection, messageBuilder);
-			setCustomHeaders(connection, messageBuilder);
+			String connectionId = connection.getConnectionId();
+			messageBuilder
+				.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
+				.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
+				.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
+				.setHeader(IpHeaders.CONNECTION_ID, connectionId);
+			if (this.applySequence) {
+				messageBuilder
+					.setCorrelationId(connectionId)
+					.setSequenceNumber((int) connection.incrementAndGetConnectionSequence());
+			}
+			Map<String, ?> customHeaders = this.supplyCustomHeaders(connection);
+			if (customHeaders != null) {
+				messageBuilder.copyHeadersIfAbsent(customHeaders);
+			}
 			message = messageBuilder.build();
 		}
 		return message;
 	}
 
-	private void setStandardHeaders(TcpConnection connection, MessageBuilder<Object> messageBuilder) {
-		String connectionId = connection.getConnectionId();
-		if (this.applySequence) {
-			messageBuilder
-					.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
-					.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
-					.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
-					.setHeader(IpHeaders.CONNECTION_ID, connectionId)
-					.setCorrelationId(connectionId)
-					.setSequenceNumber((int) connection.incrementAndGetConnectionSequence());
-		} else {
-			messageBuilder
-					.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
-					.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
-					.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
-					.setHeader(IpHeaders.CONNECTION_ID, connectionId);
-		}
-	}
-
 	/**
-	 * Override to add additional headers.
+	 * Override to provide additional headers. The standard headers cannot be overridden
+	 * and any such headers will be ignored if provided in the result.
 	 * @param connection the connection.
-	 * @param messageBuilder the message builder.
+	 * @return A Map of <String, ?> headers to be added to the message.
 	 */
-	protected void setCustomHeaders(TcpConnection connection, MessageBuilder<Object> messageBuilder) {
+	protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
+		return null;
 	}
 
 	public Object fromMessage(Message<?> message) throws Exception {

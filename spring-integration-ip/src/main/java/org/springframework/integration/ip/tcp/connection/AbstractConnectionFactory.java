@@ -655,7 +655,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	protected List<String> harvestClosedConnections() {
+	/**
+	 * Cleans up this.connections by removing any closed connections.
+	 * @return a list of open connection ids.
+	 */
+	private List<String> removeClosedConnectionsAndReturnOpenConnectionIds() {
 		synchronized (this.connections) {
 			List<String> openConnectionIds = new ArrayList<String>();
 			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
@@ -670,6 +674,13 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			}
 			return openConnectionIds;
 		}
+	}
+
+	/**
+	 * Cleans up this.connections by removing any closed connections.
+	 */
+	protected void harvestClosedConnections() {
+		this.removeClosedConnectionsAndReturnOpenConnectionIds();
 	}
 
 	public boolean isRunning() {
@@ -711,7 +722,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @return the list of connection ids.
 	 */
 	public List<String> getOpenConnectionIds() {
-		return Collections.unmodifiableList(this.harvestClosedConnections());
+		return Collections.unmodifiableList(this.removeClosedConnectionsAndReturnOpenConnectionIds());
 	}
 
 	/**
