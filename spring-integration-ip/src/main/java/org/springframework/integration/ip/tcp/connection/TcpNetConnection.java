@@ -180,7 +180,9 @@ public class TcpNetConnection extends TcpConnectionSupport {
 			this.closeConnection();
 			if (!(e instanceof SoftEndOfStreamException)) {
 				if (e instanceof SocketTimeoutException && this.isSingleUse()) {
-					logger.debug("Closing single use socket after timeout");
+					if (logger.isDebugEnabled()) {
+						logger.debug("Closed single use socket after timeout:" + this.getConnectionId());
+					}
 				}
 				else {
 					if (noReadErrorOnClose) {
