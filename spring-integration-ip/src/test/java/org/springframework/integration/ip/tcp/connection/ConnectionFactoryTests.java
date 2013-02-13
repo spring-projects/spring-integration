@@ -17,6 +17,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.SocketUtils;
 
@@ -63,7 +66,7 @@ public class ConnectionFactoryTests {
 		clientFactory.setBeanName("clientFactory");
 		clientFactory.setApplicationEventPublisher(publisher);
 		clientFactory.start();
-		TcpConnection client = clientFactory.getConnection();
+		TcpConnectionSupport client = clientFactory.getConnection();
 		List<String> clients = clientFactory.getOpenConnectionIds();
 		assertEquals(1, clients.size());
 		assertTrue(clients.contains(client.getConnectionId()));
@@ -76,6 +79,28 @@ public class ConnectionFactoryTests {
 		clients = clientFactory.getOpenConnectionIds();
 		assertEquals(0, clients.size());
 		assertEquals(6, events.size()); // OPEN, CLOSE, EXCEPTION for each side
+
+		FooEvent event = new FooEvent(client, TcpConnectionEventType.OPEN, "foo");
+		client.publishEvent(event);
+		assertEquals(7, events.size());
+
+		try {
+			event = new FooEvent(mock(TcpConnectionSupport.class), TcpConnectionEventType.OPEN, "foo");
+			client.publishEvent(event);
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertTrue("Can only publish events with this as the source".equals(e.getMessage()));
+		}
+	}
+
+	@SuppressWarnings("serial")
+	private class FooEvent extends TcpConnectionEvent {
+
+		public FooEvent(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
+			super(connection, type, connectionFactoryName);
+		}
+
 	}
 
 }

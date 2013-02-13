@@ -419,4 +419,7 @@
 		</constructor-arg>
 	</bean>
 
+	<ip:tcp-connection-event-inbound-channel-adapter id="eventAdapter" channel="nullChannel"
+		event-types="org.springframework.integration.ip.config.ParserUnitTests$EventSubclass1, org.springframework.integration.ip.config.ParserUnitTests$EventSubclass2"/>
+
 </beans>

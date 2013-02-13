@@ -15,10 +15,17 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * {@link MessageProducer} that produces Messages with @link {@link TcpConnectionEvent}
@@ -30,8 +37,38 @@ import org.springframework.integration.support.MessageBuilder;
 public class TcpConnectionEventListeningMessageProducer extends MessageProducerSupport
 	implements ApplicationListener<TcpConnectionEvent> {
 
+	private volatile Set<Class<? extends TcpConnectionEvent>> eventTypes =
+			new HashSet<Class<? extends TcpConnectionEvent>>();
+
+	/**
+	 * Set the list of event types (classes that extend TcpConnectionEvent) that
+	 * this adapter should send to the message channel. By default, all event
+	 * types will be sent.
+	 */
+	@SuppressWarnings("unchecked")
+	public void setEventTypes(Class<? extends TcpConnectionEvent>[] eventTypes) {
+		Assert.notEmpty(eventTypes, "at least one event type is required");
+		Set<Class<? extends TcpConnectionEvent>> eventTypeSet = new HashSet<Class<? extends TcpConnectionEvent>>();
+		eventTypeSet.addAll(CollectionUtils.arrayToList(eventTypes));
+		this.eventTypes = eventTypeSet;
+	}
+
 	public void onApplicationEvent(TcpConnectionEvent event) {
-		this.sendMessage(MessageBuilder.withPayload(event).build());
+		if (CollectionUtils.isEmpty(this.eventTypes)) {
+			this.sendMessage(messageFromEvent(event));
+		}
+		else {
+			for (Class<? extends ApplicationEvent> eventType : this.eventTypes) {
+				if (eventType.isAssignableFrom(event.getClass())) {
+					this.sendMessage(messageFromEvent(event));
+					break;
+				}
+			}
+		}
+	}
+
+	protected Message<TcpConnectionEvent> messageFromEvent(TcpConnectionEvent event) {
+		return MessageBuilder.withPayload(event).build();
 	}
 
 }

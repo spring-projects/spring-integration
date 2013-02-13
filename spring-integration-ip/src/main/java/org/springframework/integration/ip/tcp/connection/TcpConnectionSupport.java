@@ -317,6 +317,16 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		doPublish(event);
 	}
 
+	/**
+	 * Allow interceptors etc to publish events, perhaps subclasses of
+	 * TcpConnectionEvent. The event source must be this connection.
+	 * @param event the event to publish.
+	 */
+	public void publishEvent(TcpConnectionEvent event) {
+		Assert.isTrue(event.getSource() == this, "Can only publish events with this as the source");
+		this.doPublish(event);
+	}
+
 	private void doPublish(TcpConnectionEvent event) {
 		try {
 			if (this.applicationEventPublisher == null) {

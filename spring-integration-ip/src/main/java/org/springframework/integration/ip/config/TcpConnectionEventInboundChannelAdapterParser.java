@@ -36,6 +36,7 @@ public class TcpConnectionEventInboundChannelAdapterParser extends AbstractChann
 				.rootBeanDefinition(TcpConnectionEventListeningMessageProducer.class);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "error-channel", "errorChannel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
 		return adapterBuilder.getBeanDefinition();
 	}
 

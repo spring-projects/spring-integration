@@ -44,7 +44,7 @@
 
 	<task:executor id="exec" pool-size="10"/>
 
-	<int-ip:tcp-event-inbound-channel-adapter channel="events" />
+	<int-ip:tcp-connection-event-inbound-channel-adapter channel="events" />
 
 	<int:channel id="events">
 		<int:queue />

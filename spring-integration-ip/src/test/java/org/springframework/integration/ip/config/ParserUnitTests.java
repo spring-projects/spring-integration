@@ -53,6 +53,9 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
@@ -255,6 +258,9 @@ public class ParserUnitTests {
 
 	@Autowired
 	TcpMessageMapper mapper;
+
+	@Autowired
+	TcpConnectionEventListeningMessageProducer eventAdapter;
 
 	private static volatile int adviceCalled;
 
@@ -643,6 +649,14 @@ public class ParserUnitTests {
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
 	}
 
+	@Test
+	public void testEventAdapter() {
+		Set<?> eventTypes = TestUtils.getPropertyValue(this.eventAdapter, "eventTypes", Set.class);
+		assertEquals(2, eventTypes.size());
+		assertTrue(eventTypes.contains(EventSubclass1.class));
+		assertTrue(eventTypes.contains(EventSubclass2.class));
+	}
+
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
@@ -651,5 +665,21 @@ public class ParserUnitTests {
 			return null;
 		}
 
+	}
+
+	@SuppressWarnings("serial")
+	public static class EventSubclass1 extends TcpConnectionEvent {
+
+		public EventSubclass1(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
+			super(connection, type, connectionFactoryName);
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public static class EventSubclass2 extends TcpConnectionEvent {
+
+		public EventSubclass2(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
+			super(connection, type, connectionFactoryName);
+		}
 	}
 }

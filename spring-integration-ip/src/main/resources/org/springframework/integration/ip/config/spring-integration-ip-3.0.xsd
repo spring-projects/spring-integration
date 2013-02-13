@@ -612,7 +612,7 @@ setCustomHeaders(). Default is TcpMessageMapper.
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="tcp-event-inbound-channel-adapter">
+	<xsd:element name="tcp-connection-event-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures an inbound Channel Adapter which listens for TCP Connection
@@ -621,6 +621,14 @@ setCustomHeaders(). Default is TcpMessageMapper.
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
+			<xsd:attribute name="event-types" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma delimited list of event types (classes that extend TcpConnectionEvent) that this adapter
+						should send to the message channel. By default, all event types will be sent [OPTIONAL]
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
