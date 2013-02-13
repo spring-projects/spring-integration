@@ -103,7 +103,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
-			this.setConversionService(new DefaultConversionService());
+			synchronized (this) {
+				if (this.getConversionService() == null) {
+					this.setConversionService(new DefaultConversionService());
+				}
+			}
 		}
 		return this.getConversionService();
 	}
