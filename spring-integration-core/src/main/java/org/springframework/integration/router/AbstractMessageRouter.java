@@ -37,6 +37,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Soby Chacko
+ * @author Stefan Ferstl
  */
 @ManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
@@ -103,7 +104,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
-			this.setConversionService(new DefaultConversionService());
+			synchronized (this) {
+				if (this.getConversionService() == null) {
+					this.setConversionService(new DefaultConversionService());
+				}
+			}
 		}
 		return this.getConversionService();
 	}
