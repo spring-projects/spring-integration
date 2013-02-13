@@ -37,7 +37,7 @@ subprojects { subproject ->
 		cglibVersion = '2.2'
 		commonsNetVersion = '3.0.1'
 		easymockVersion = '2.3'
-		groovyVersion = '1.8.5'
+		groovyVersion = '2.1.0'
 		jacksonVersion = '1.9.2'
 		javaxActivationVersion = '1.1.1'
 		junitVersion = '4.8.2'
