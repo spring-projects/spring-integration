@@ -110,7 +110,8 @@ public class TcpNetConnection extends TcpConnectionSupport {
 			try {
 				message = this.getMapper().toMessage(this);
 				this.lastRead = System.currentTimeMillis();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (handleReadException(e)) {
 					okToRun = false;
 				}
@@ -175,12 +176,16 @@ public class TcpNetConnection extends TcpConnectionSupport {
 			}
 		}
 		if (doClose) {
+			boolean noReadErrorOnClose = this.noReadErrorOnClose;
 			this.closeConnection();
 			if (!(e instanceof SoftEndOfStreamException)) {
 				if (e instanceof SocketTimeoutException && this.isSingleUse()) {
-					logger.debug("Closing single use socket after timeout");
-				} else {
-					if (this.noReadErrorOnClose) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Closed single use socket after timeout:" + this.getConnectionId());
+					}
+				}
+				else {
+					if (noReadErrorOnClose) {
 						if (logger.isTraceEnabled()) {
 							logger.trace("Read exception " +
 									 this.getConnectionId(), e);
@@ -189,16 +194,18 @@ public class TcpNetConnection extends TcpConnectionSupport {
 							logger.debug("Read exception " +
 									 this.getConnectionId() + " " +
 									 e.getClass().getSimpleName() +
-								     ":" + e.getCause() + ":" + e.getMessage());
+								     ":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 						}
-					} else if (logger.isTraceEnabled()) {
+					}
+					else if (logger.isTraceEnabled()) {
 						logger.error("Read exception " +
 								 this.getConnectionId(), e);
-					} else {
+					}
+					else {
 						logger.error("Read exception " +
 									 this.getConnectionId() + " " +
 									 e.getClass().getSimpleName() +
-								     ":" + e.getCause() + ":" + e.getMessage());
+								     ":" + (e.getCause() != null ? e.getCause() + ":" : "") + e.getMessage());
 					}
 				}
 			}
