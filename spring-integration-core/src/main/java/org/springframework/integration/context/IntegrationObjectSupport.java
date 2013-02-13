@@ -18,7 +18,6 @@ package org.springframework.integration.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -37,10 +36,11 @@ import org.springframework.util.StringUtils;
  * components whereas code built upon the integration framework should not
  * require tight coupling with the context but rather rely on standard
  * dependency injection.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Josh Long
+ * @author Stefan Ferstl
  */
 public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent, BeanFactoryAware, InitializingBean {
 
@@ -65,16 +65,16 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	/**
-	 * Will return the name of this component identified by {@link #componentName} field. 
+	 * Will return the name of this component identified by {@link #componentName} field.
 	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
 	 */
-	public final String getComponentName() {	
+	public final String getComponentName() {
 		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
 	}
 
 	/**
-	 * Sets the name of this component. 
-	 * 
+	 * Sets the name of this component.
+	 *
 	 * @param componentName
 	 */
 	public void setComponentName(String componentName) {
@@ -129,9 +129,13 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	protected final ConversionService getConversionService() {
 		if (this.conversionService == null && this.beanFactory != null) {
-			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
-			if (this.conversionService == null && logger.isDebugEnabled()) {
-				logger.debug("Unable to attempt conversion of Message payload types. Component '" +
+			synchronized (this) {
+				if (this.conversionService == null) {
+					this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+				}
+			}
+			if (this.conversionService == null && this.logger.isDebugEnabled()) {
+				this.logger.debug("Unable to attempt conversion of Message payload types. Component '" +
 						this.getComponentName() + "' has no explicit ConversionService reference, " +
 						"and there is no 'integrationConversionService' bean within the context.");
 			}
