@@ -113,6 +113,22 @@
       When debugging, this transformer is not typically necessary since the 'logging-channel-adapter' is capable
       of logging the Message payload. Refer to <xref linkend="channel-wiretap"/> for more detail.
     </tip>
+    <note>
+      <para>
+        The <emphasis>object-to-string-transformer</emphasis> is very simple; it invokes <code>toString()</code>
+        on the inbound payload. There are two exceptions to this (since 3.0): if the payload is a <code>char[]</code>,
+        it invokes <code>new String(payload)</code>; if the payload is a <code>byte[]</code>, it invokes
+        <code>new String(payload, charset)</code>, where <code>charset</code> is "UTF-8" by default. The
+        <code>charset</code> can be modified by supplying the <emphasis>charset</emphasis> attribute on
+        the transformer.
+      </para>
+      <para>
+        For more sophistication (such as selection of the charset dynamically, at runtime), you can use
+        a SpEL expression-based transformer instead; for example:
+      </para>
+      <programlisting language="xml"><![CDATA[<int:transformer input-channel="in" output-channel="out"
+		 expression="new java.lang.String(payload, headers['myCharset']" />]]></programlisting>
+    </note>
   </para>
   <para>
     If you need to serialize an Object to a byte array or deserialize a byte array back into an Object,
