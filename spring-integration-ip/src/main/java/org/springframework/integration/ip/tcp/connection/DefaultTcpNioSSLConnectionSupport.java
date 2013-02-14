@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
 
 /**
@@ -41,11 +42,14 @@ public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSuppor
 		this.sslContextSupport = sslContextSupport;
 	}
 
-	public TcpNioConnection createNewConnection(SocketChannel socketChannel,
-			boolean server, boolean lookupHost) throws Exception {
-
+	/**
+	 * Creates a {@link TcpNioSSLConnection}.
+	 */
+	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
+			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
-		TcpNioSSLConnection tcpNioSSLConnection = new TcpNioSSLConnection(socketChannel, server, lookupHost, sslEngine);
+		TcpNioSSLConnection tcpNioSSLConnection = new TcpNioSSLConnection(socketChannel, server, lookupHost,
+				applicationEventPublisher, connectionFactoryName, sslEngine);
 		tcpNioSSLConnection.init();
 		return tcpNioSSLConnection;
 	}

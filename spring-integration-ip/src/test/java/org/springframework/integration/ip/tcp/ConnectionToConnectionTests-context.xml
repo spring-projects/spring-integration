@@ -33,15 +33,21 @@
 	/>
 
 	<int-ip:tcp-inbound-gateway id="looper"
-		request-channel="queue"
+		request-channel="serverSideChannel"
 		connection-factory="server"
 		reply-timeout="1"
 		/>
 
-	<int:channel id="queue">
+	<int:channel id="serverSideChannel">
 		<int:queue/>
 	</int:channel>
 
 	<task:executor id="exec" pool-size="10"/>
+
+	<int-ip:tcp-connection-event-inbound-channel-adapter channel="events" />
+
+	<int:channel id="events">
+		<int:queue />
+	</int:channel>
 
 </beans>

@@ -53,6 +53,10 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
@@ -169,9 +173,6 @@ public class ParserUnitTests {
 	AbstractConnectionFactory server1;
 
 	@Autowired
-	AbstractConnectionFactory serverBackwardsCompatible;
-
-	@Autowired
 	AbstractConnectionFactory server2;
 
 	@Autowired
@@ -255,6 +256,12 @@ public class ParserUnitTests {
 	@Autowired
 	TcpSSLContextSupport contextSupport;
 
+	@Autowired
+	TcpMessageMapper mapper;
+
+	@Autowired
+	TcpConnectionEventListeningMessageProducer eventAdapter;
+
 	private static volatile int adviceCalled;
 
 	@Test
@@ -304,8 +311,9 @@ public class ParserUnitTests {
 		assertFalse(cfS1.isLookupHost());
 		assertFalse(tcpIn.isAutoStartup());
 		assertEquals(124, tcpIn.getPhase());
-		assertTrue((Boolean) TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(cfS1, "mapper"), "applySequence"));
+		TcpMessageMapper cfS1Mapper = TestUtils.getPropertyValue(cfS1, "mapper", TcpMessageMapper.class);
+		assertSame(mapper, cfS1Mapper);
+		assertTrue((Boolean) TestUtils.getPropertyValue(cfS1Mapper, "applySequence"));
 		Object socketSupport = TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport");
 		assertTrue(socketSupport instanceof DefaultTcpNetSSLSocketFactorySupport);
 		assertNotNull(TestUtils.getPropertyValue(socketSupport, "sslContext"));
@@ -508,13 +516,6 @@ public class ParserUnitTests {
 	}
 
 	@Test
-	public void testConnDeprecatedPoolSize() {
-		assertTrue(serverBackwardsCompatible instanceof TcpNetServerConnectionFactory);
-		DirectFieldAccessor dfa = new DirectFieldAccessor(serverBackwardsCompatible);
-		assertEquals(123, dfa.getPropertyValue("backlog"));
-	}
-
-	@Test
 	public void testConnClient2() {
 		assertTrue(client2 instanceof TcpNetClientConnectionFactory);
 		assertEquals("localhost", client1.getHost());
@@ -648,6 +649,14 @@ public class ParserUnitTests {
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
 	}
 
+	@Test
+	public void testEventAdapter() {
+		Set<?> eventTypes = TestUtils.getPropertyValue(this.eventAdapter, "eventTypes", Set.class);
+		assertEquals(2, eventTypes.size());
+		assertTrue(eventTypes.contains(EventSubclass1.class));
+		assertTrue(eventTypes.contains(EventSubclass2.class));
+	}
+
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
@@ -656,5 +665,21 @@ public class ParserUnitTests {
 			return null;
 		}
 
+	}
+
+	@SuppressWarnings("serial")
+	public static class EventSubclass1 extends TcpConnectionEvent {
+
+		public EventSubclass1(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
+			super(connection, type, connectionFactoryName);
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public static class EventSubclass2 extends TcpConnectionEvent {
+
+		public EventSubclass2(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
+			super(connection, type, connectionFactoryName);
+		}
 	}
 }

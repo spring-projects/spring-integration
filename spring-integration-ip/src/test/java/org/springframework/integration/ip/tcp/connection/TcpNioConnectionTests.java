@@ -262,7 +262,7 @@ public class TcpNioConnectionTests {
 					}
 				}).when(channel).read(Mockito.any(ByteBuffer.class));
 				when(socket.getReceiveBufferSize()).thenReturn(1024);
-				final TcpNioConnection connection = new TcpNioConnection(channel, false, false);
+				final TcpNioConnection connection = new TcpNioConnection(channel, false, false, null, null);
 				connection.setTaskExecutor(exec);
 				connection.setPipeTimeout(200);
 				Method method = TcpNioConnection.class.getDeclaredMethod("doRead");
@@ -309,7 +309,7 @@ public class TcpNioConnectionTests {
 						return 1027;
 					}
 				}).when(channel).read(Mockito.any(ByteBuffer.class));
-				final TcpNioConnection connection = new TcpNioConnection(channel, false, false);
+				final TcpNioConnection connection = new TcpNioConnection(channel, false, false, null, null);
 				connection.setTaskExecutor(exec);
 				connection.registerListener(new TcpListener(){
 					public boolean onMessage(Message<?> message) {

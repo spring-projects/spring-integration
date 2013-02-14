@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -31,7 +32,9 @@ import org.springframework.integration.support.MessageBuilder;
  * charset (UTF-8 by default).
  * Inbound messages include headers representing the remote end of the
  * connection as well as a connection id that can be used by a {@link TcpSender}
- * to correlate which connection to send a reply.
+ * to correlate which connection to send a reply. If applySequence is set, adds
+ * standard correlationId/sequenceNumber headers allowing for downstream (unbounded)
+ * resequencing.
  * @author Gary Russell
  * @since 2.0
  *
@@ -50,27 +53,35 @@ public class TcpMessageMapper implements
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
+			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
 			String connectionId = connection.getConnectionId();
+			messageBuilder
+				.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
+				.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
+				.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
+				.setHeader(IpHeaders.CONNECTION_ID, connectionId);
 			if (this.applySequence) {
-				message = MessageBuilder.withPayload(payload)
-						.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
-						.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
-						.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
-						.setHeader(IpHeaders.CONNECTION_ID, connectionId)
-						.setCorrelationId(connectionId)
-						.setSequenceNumber((int) connection.incrementAndGetConnectionSequence())
-						.build();
-			} else {
-				message = MessageBuilder.withPayload(payload)
-						.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
-						.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
-						.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
-						.setHeader(IpHeaders.CONNECTION_ID, connectionId)
-						.build();
+				messageBuilder
+					.setCorrelationId(connectionId)
+					.setSequenceNumber((int) connection.incrementAndGetConnectionSequence());
 			}
+			Map<String, ?> customHeaders = this.supplyCustomHeaders(connection);
+			if (customHeaders != null) {
+				messageBuilder.copyHeadersIfAbsent(customHeaders);
+			}
+			message = messageBuilder.build();
 		}
 		return message;
+	}
 
+	/**
+	 * Override to provide additional headers. The standard headers cannot be overridden
+	 * and any such headers will be ignored if provided in the result.
+	 * @param connection the connection.
+	 * @return A Map of <String, ?> headers to be added to the message.
+	 */
+	protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
+		return null;
 	}
 
 	public Object fromMessage(Message<?> message) throws Exception {

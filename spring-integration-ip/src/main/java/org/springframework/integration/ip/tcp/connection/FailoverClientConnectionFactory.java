@@ -20,8 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
@@ -38,8 +36,6 @@ import org.springframework.util.Assert;
  *
  */
 public class FailoverClientConnectionFactory extends AbstractClientConnectionFactory {
-
-	private static final Log logger = LogFactory.getLog(FailoverClientConnectionFactory.class);
 
 	private final List<AbstractClientConnectionFactory> factories;
 
@@ -277,6 +273,10 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		public int getPort() {
 			return this.delegate.getPort();
+		}
+
+		public Object getDeserializerStateKey() {
+			return this.delegate.getDeserializerStateKey();
 		}
 
 		@Override

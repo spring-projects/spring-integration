@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's <em>ip</em> namespace.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -31,9 +31,10 @@ public class IpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("udp-outbound-channel-adapter", new UdpOutboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("tcp-inbound-gateway", new TcpInboundGatewayParser());
 		this.registerBeanDefinitionParser("tcp-outbound-gateway", new TcpOutboundGatewayParser());
-		this.registerBeanDefinitionParser("tcp-connection-factory", new TcpConnectionParser());
+		this.registerBeanDefinitionParser("tcp-connection-factory", new TcpConnectionFactoryParser());
 		this.registerBeanDefinitionParser("tcp-inbound-channel-adapter", new TcpInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("tcp-outbound-channel-adapter", new TcpOutboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("tcp-connection-event-inbound-channel-adapter", new TcpConnectionEventInboundChannelAdapterParser());
 	}
 
 }

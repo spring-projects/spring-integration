@@ -46,7 +46,7 @@ public class TcpNetConnectionTests {
 		InputStream stream = mock(InputStream.class);
 		when(socket.getInputStream()).thenReturn(stream);
 		when(stream.read()).thenReturn((int) 'x');
-		TcpNetConnection connection = new TcpNetConnection(socket, true, false);
+		TcpNetConnection connection = new TcpNetConnection(socket, true, false, null, null);
 		connection.setDeserializer(new ByteArrayStxEtxSerializer());
 		final AtomicReference<Object> log = new AtomicReference<Object>();
 		Log logger = mock(Log.class);

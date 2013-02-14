@@ -89,7 +89,7 @@ public class TcpNioClientConnectionFactory extends
 		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.getHost(), this.getPort()));
 		setSocketAttributes(socketChannel.socket());
 		TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(
-				socketChannel, false, this.isLookupHost());
+				socketChannel, false, this.isLookupHost(), this.getApplicationEventPublisher(), this.getComponentName());
 		connection.setUsingDirectBuffers(this.usingDirectBuffers);
 		connection.setTaskExecutor(this.getTaskExecutor());
 		TcpConnectionSupport wrappedConnection = wrapConnection(connection);

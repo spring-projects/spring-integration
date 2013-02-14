@@ -20,13 +20,16 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.util.Assert;
 
@@ -71,11 +74,32 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private volatile String hostAddress = "unknown";
 
+	private volatile String connectionFactoryName = "unknown";
+
+	private final ApplicationEventPublisher applicationEventPublisher;
+
+	private final AtomicBoolean closePublished = new AtomicBoolean();
+
 	public TcpConnectionSupport() {
-		server = false;
+		this.server = false;
+		this.applicationEventPublisher = null;
 	}
 
-	public TcpConnectionSupport(Socket socket, boolean server, boolean lookupHost) {
+	/**
+	 * Creates a {@link TcpConnectionSupport} object and publishes a {@link TcpConnectionEvent}
+	 * with {@link TcpConnectionEventType#OPEN}, if so configured.
+	 * @param socket the underlying socket.
+	 * @param server true if this connection is a server connection
+	 * @param lookupHost true if reverse lookup of the host name should be performed,
+	 * otherwise, the ip address will be used for identification purposes.
+	 * @param applicationEventPublisher the publisher to which OPEN, CLOSE and EXCEPTION events will
+	 * be sent; may be null if event publishing is not required.
+	 * @param connectionFactoryName the name of the connection factory creating this connection; used
+	 * during event publishing, may be null, in which case "unknown" will be used.
+	 */
+	public TcpConnectionSupport(Socket socket, boolean server, boolean lookupHost,
+			ApplicationEventPublisher applicationEventPublisher,
+			String connectionFactoryName) {
 		this.server = server;
 		InetAddress inetAddress = socket.getInetAddress();
 		if (inetAddress != null) {
@@ -91,6 +115,11 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
+		this.applicationEventPublisher = applicationEventPublisher;
+		if (connectionFactoryName != null) {
+			this.connectionFactoryName = connectionFactoryName;
+		}
+		this.publishConnectionOpenEvent();
 	}
 
 	public void afterSend(Message<?> message) throws Exception {
@@ -114,6 +143,10 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	public void close() {
 		if (this.sender != null) {
 			this.sender.removeDeadConnection(this);
+		}
+		// close() may be called multiple times; only publish once
+		if (!this.closePublished.getAndSet(true)) {
+			this.publishConnectionCloseEvent();
 		}
 	}
 
@@ -264,6 +297,53 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	public String getConnectionId() {
 		return this.connectionId;
+	}
+
+	protected void publishConnectionOpenEvent() {
+		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEventType.OPEN,
+				this.connectionFactoryName);
+		doPublish(event);
+	}
+
+	protected void publishConnectionCloseEvent() {
+		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEventType.CLOSE,
+				this.connectionFactoryName);
+		doPublish(event);
+	}
+
+	protected void publishConnectionExceptionEvent(Throwable t) {
+		TcpConnectionEvent event = new TcpConnectionEvent(this, t,
+				this.connectionFactoryName);
+		doPublish(event);
+	}
+
+	/**
+	 * Allow interceptors etc to publish events, perhaps subclasses of
+	 * TcpConnectionEvent. The event source must be this connection.
+	 * @param event the event to publish.
+	 */
+	public void publishEvent(TcpConnectionEvent event) {
+		Assert.isTrue(event.getSource() == this, "Can only publish events with this as the source");
+		this.doPublish(event);
+	}
+
+	private void doPublish(TcpConnectionEvent event) {
+		try {
+			if (this.applicationEventPublisher == null) {
+				logger.warn("No publisher available to publish " + event);
+			}
+			else {
+				this.applicationEventPublisher.publishEvent(event);
+			}
+		}
+		catch (Exception e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Failed to publish " + event, e);
+			}
+			else if (logger.isWarnEnabled()) {
+				logger.warn("Failed to publish " + event + ":" + e.getMessage());
+			}
+		}
 	}
 
 }

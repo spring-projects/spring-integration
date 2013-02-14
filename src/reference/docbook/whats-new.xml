@@ -12,6 +12,46 @@
 
 	<section id="3.0-new-components">
 		<title>New Components</title>
+		<section id="3.0-tcp-events">
+			<title>TCP/IP Connection Events and Connection Management</title>
+			<para>
+				The (supplied) <classname>TcpConnection</classname>s now emit
+				<interfacename>ApplicationEvent</interfacename>s (specifically
+				<classname>TcpConnectionEvent</classname>s) when connections are
+				opened, closed, or an exception occurs. This allows applications
+				to be informed of changes to TCP connections using the normal
+				Spring <interfacename>ApplicationListener</interfacename>
+				mechanism.
+			</para>
+			<para>
+				<classname>AbstractTcpConnection</classname> has been renamed
+				<classname>TcpConnectionSupport</classname>; custom connections that
+				are subclasses of this class, can use its methods to publish events.
+				Similarly, <classname>AbstractTcpConnectionInterceptor</classname> has
+				been renamed to <classname>TcpConnectionInterceptorSupport</classname>.
+			</para>
+			<para>
+				In addition, a new <code>&lt;int-ip:tcp-connection-event-channel-adapter/&gt;</code>
+				is provided; by default, this adapter sends all <classname>TcpConnectionEvents</classname>
+				to a <interfacename>Channel</interfacename>.
+			</para>
+			<para>
+				Further, the TCP Connection Factories, now provide a new method
+				<code>getOpenConnectionIds()</code>, which returns a list of identifiers for all
+				open connections; this allows applications, for example, to broadcast to all
+				open connections.
+			</para>
+			<para>
+				Finally, the connection factories also provide a new method
+				<code>closeConnection(String connectionId)</code> which allows applications
+				to explicitly close a connection using its ID.
+			</para>
+			<para>
+				Further documentation for these features will follow; for now, refer to the
+				schema documentation for information about the new adapter, and JavaDocs for
+				it as well as the other features.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">

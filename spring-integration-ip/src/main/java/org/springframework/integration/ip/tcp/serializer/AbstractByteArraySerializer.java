@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,19 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 
 /**
- * Base class for (de)serializers that provide a mechanism to 
+ * Base class for (de)serializers that provide a mechanism to
  * reconstruct a byte array from an arbitrary stream.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
  */
 public abstract class AbstractByteArraySerializer implements
-		Serializer<byte[]>, 
+		Serializer<byte[]>,
 		Deserializer<byte[]> {
 
 	protected int maxMessageSize = 2048;
-	
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	/**
@@ -59,9 +59,25 @@ public abstract class AbstractByteArraySerializer implements
 
 	protected void checkClosure(int bite) throws IOException {
 		if (bite < 0) {
-			logger.debug("Socket closed during message assembly");				
+			logger.debug("Socket closed during message assembly");
 			throw new IOException("Socket closed during message assembly");
 		}
+	}
+
+	/**
+	 * Copy size bytes to a new buffer exactly size bytes long.
+	 * @param buffer The buffer containing the data.
+	 * @param size The number of bytes to copy.
+	 * @return The new buffer, or the buffer parameter if it is
+	 * already the correct size.
+	 */
+	protected byte[] copyToSizedArray(byte[] buffer, int size) {
+		if (size == buffer.length) {
+			return buffer;
+		}
+		byte[] assembledData = new byte[size];
+		System.arraycopy(buffer, 0, assembledData, 0, size);
+		return assembledData;
 	}
 
 }

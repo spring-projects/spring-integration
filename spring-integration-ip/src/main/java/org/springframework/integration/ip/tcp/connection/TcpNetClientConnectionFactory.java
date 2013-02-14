@@ -60,7 +60,8 @@ public class TcpNetClientConnectionFactory extends
 		}
 		Socket socket = createSocket(this.getHost(), this.getPort());
 		setSocketAttributes(socket);
-		TcpConnectionSupport connection = new TcpNetConnection(socket, false, this.isLookupHost());
+		TcpConnectionSupport connection = new TcpNetConnection(socket, false, this.isLookupHost(),
+				this.getApplicationEventPublisher(), this.getComponentName());
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
