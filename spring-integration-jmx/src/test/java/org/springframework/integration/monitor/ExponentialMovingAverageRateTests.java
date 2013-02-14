@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2010 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -16,16 +16,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Dave Syer
- * 
+ * @author Gary Russell
+ *
  */
 public class ExponentialMovingAverageRateTests {
 
-	private ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(1., 10., 10);
+	private final static Log logger = LogFactory.getLog(ExponentialMovingAverageRateTests.class);
+
+	private final ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(1., 10., 10);
 
 	@Test
 	public void testGetCount() {
@@ -43,23 +48,43 @@ public class ExponentialMovingAverageRateTests {
 
 	@Test
 	public void testGetEarlyMean() throws Exception {
+		long t0 = System.currentTimeMillis();
 		assertEquals(0, history.getMean(), 0.01);
 		Thread.sleep(20L);
 		history.increment();
-		assertTrue(history.getMean() > 10);
+		long elapsed = System.currentTimeMillis() - t0;
+		if (elapsed < 30L) {
+			assertTrue(history.getMean() > 10);
+		}
+		else {
+			logger.warn("Test took too long to verify mean");
+		}
 	}
 
 	@Test
 	public void testGetMean() throws Exception {
+		long t0 = System.currentTimeMillis();
 		assertEquals(0, history.getMean(), 0.01);
 		Thread.sleep(20L);
 		history.increment();
 		Thread.sleep(20L);
 		history.increment();
 		double before = history.getMean();
-		assertTrue(before > 10);
-		Thread.sleep(20L);
-		assertTrue(history.getMean() < before);
+		long elapsed = System.currentTimeMillis() - t0;
+		if (elapsed < 50L) {
+			assertTrue(before > 10);
+			Thread.sleep(20L);
+			elapsed = System.currentTimeMillis() - t0;
+			if (elapsed < 80L) {
+				assertTrue(history.getMean() < before);
+			}
+			else {
+				logger.warn("Test took too long to verify mean");
+			}
+		}
+		else {
+			logger.warn("Test took too long to verify mean");
+		}
 	}
 
 	@Test
