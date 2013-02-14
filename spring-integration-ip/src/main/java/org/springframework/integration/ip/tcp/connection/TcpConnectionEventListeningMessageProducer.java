@@ -18,7 +18,6 @@ package org.springframework.integration.ip.tcp.connection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageProducer;
@@ -58,7 +57,7 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 			this.sendMessage(messageFromEvent(event));
 		}
 		else {
-			for (Class<? extends ApplicationEvent> eventType : this.eventTypes) {
+			for (Class<? extends TcpConnectionEvent> eventType : this.eventTypes) {
 				if (eventType.isAssignableFrom(event.getClass())) {
 					this.sendMessage(messageFromEvent(event));
 					break;
