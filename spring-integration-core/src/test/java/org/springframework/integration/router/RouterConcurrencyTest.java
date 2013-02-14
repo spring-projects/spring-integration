@@ -37,6 +37,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.test.util.ReflectionTestUtils;
+
 
 /**
  * @author Gary Russell
@@ -84,13 +87,14 @@ public class RouterConcurrencyTest {
 			}
 		}).when(beanFactory).containsBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME);
 		router.setBeanFactory(beanFactory);
+		router.afterPropertiesSet();
 
 		ExecutorService exec = Executors.newFixedThreadPool(2);
 		final List<ConversionService> returns = new ArrayList<ConversionService>();
 		Runnable runnable = new Runnable() {
 
 			public void run() {
-				ConversionService requiredConversionService = router.getRequiredConversionService();
+				ConversionService requiredConversionService = getConversionService(router);
 				System.out.println("Adding " + requiredConversionService);
 				returns.add(requiredConversionService);
 			}
@@ -102,6 +106,10 @@ public class RouterConcurrencyTest {
 		assertTrue(returns.size() == 2);
 		assertNotNull(returns.get(0));
 		assertNotNull(returns.get(1));
+	}
+	
+	private ConversionService getConversionService(IntegrationObjectSupport target) {
+		return (ConversionService) ReflectionTestUtils.invokeGetterMethod(target, "conversionService");
 	}
 
 }

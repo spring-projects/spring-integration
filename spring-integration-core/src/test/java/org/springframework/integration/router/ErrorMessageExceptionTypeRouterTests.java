@@ -75,6 +75,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setChannelMappings(exceptionTypeChannelMap);
 		
 		router.setBeanFactory(beanFactory);
+		router.afterPropertiesSet();
 
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
@@ -97,6 +98,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.afterPropertiesSet();
 
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
@@ -118,6 +120,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.afterPropertiesSet();
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
@@ -172,6 +175,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.afterPropertiesSet();
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
@@ -193,7 +197,9 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
+		router.afterPropertiesSet();
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 		router.handleMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));

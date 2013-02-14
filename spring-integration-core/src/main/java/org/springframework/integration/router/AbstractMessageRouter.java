@@ -18,7 +18,6 @@ package org.springframework.integration.router;
 
 import java.util.Collection;
 
-import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -50,6 +49,14 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
+	
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (this.getConversionService() == null) {
+			this.setConversionService(new DefaultConversionService());
+		}
+	}
 
 	/**
 	 * Set the default channel where Messages should be sent if channel resolution
@@ -102,16 +109,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		return this.messagingTemplate;
 	}
 
-	protected ConversionService getRequiredConversionService() {
-		if (this.getConversionService() == null) {
-			synchronized (this) {
-				if (this.getConversionService() == null) {
-					this.setConversionService(new DefaultConversionService());
-				}
-			}
-		}
-		return this.getConversionService();
-	}
 
 	/**
 	 * Subclasses must implement this method to return a Collection of zero or more

@@ -131,7 +131,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	@Override
-	public void onInit() {
+	public void onInit() throws Exception {
+		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.channelResolver == null && beanFactory != null) {
 			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
@@ -155,9 +156,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
-		if (this.channelResolver == null) {
-			this.onInit();
-		}
 		Assert.state(this.channelResolver != null, "unable to resolve channel names, no ChannelResolver available");
 		MessageChannel channel = null;
 		try {
@@ -225,7 +223,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			else if (channelKey instanceof Collection) {
 				addToCollection(channels, (Collection<?>) channelKey, message);
 			}
-			else if (this.getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
+			else if (this.getConversionService().canConvert(channelKey.getClass(), String.class)) {
 				addChannelFromString(channels, this.getConversionService().convert(channelKey, String.class), message);
 			}
 			else {
