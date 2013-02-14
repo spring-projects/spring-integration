@@ -3837,6 +3837,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
             </xsd:simpleType>
         </xsd:attribute>
+		<xsd:attribute name="charset" type="xsd:string"
+			default="UTF-8">
+			<xsd:annotation>
+				<xsd:documentation>
+					Allows you to specify the Charset (e.g., US-ASCII,
+					ISO-8859-1, UTF-8) to be used when transforming byte[]. [UTF-8] is the default
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="inputOutputChannelGroupWithId">

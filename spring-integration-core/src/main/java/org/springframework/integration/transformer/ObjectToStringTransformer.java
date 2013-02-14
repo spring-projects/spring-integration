@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,47 @@
 
 package org.springframework.integration.transformer;
 
+import org.springframework.util.Assert;
+
+
 /**
  * A simple transformer that creates an outbound payload by invoking the
- * inbound payload Object's <code>toString()</code> method.
- * 
+ * inbound payload Object's <code>toString()</code> method. Unless the
+ * payload is a <code>byte[]</code> or <code>char[]</code>. If the payload
+ * is a byte[], it will be transformed to a String containing the
+ * array's contents, using the {@link #charset}
+ * which, by default, is "UTF-8". If the payload is a char[], it will be
+ * transformed to a String object with the array's contents.
+ *
  * @author Mark Fisher
+ * @author Andrew Cowlin
+ * @author Gary Russell
  * @since 1.0.1
  */
 public class ObjectToStringTransformer extends AbstractPayloadTransformer<Object, String> {
 
+	private final String charset;
+
+	public ObjectToStringTransformer() {
+		this.charset = "UTF-8";
+	}
+
+	public ObjectToStringTransformer(String charset) {
+		Assert.notNull(charset, "'charset' cannot be null");
+		this.charset = charset;
+	}
+
 	@Override
 	protected String transformPayload(Object payload) throws Exception {
-		return payload.toString();
+		if (payload instanceof byte[]) {
+			return new String((byte[]) payload, this.charset);
+		}
+		else if (payload instanceof char[]) {
+			return new String((char[]) payload);
+		}
+		else {
+			return payload.toString();
+		}
 	}
 
 }
