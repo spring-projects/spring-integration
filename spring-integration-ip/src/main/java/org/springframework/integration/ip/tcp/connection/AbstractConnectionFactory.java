@@ -19,11 +19,14 @@ package org.springframework.integration.ip.tcp.connection;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +38,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -51,7 +56,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
-		implements ConnectionFactory, SmartLifecycle {
+		implements ConnectionFactory, SmartLifecycle, ApplicationEventPublisherAware {
 
 	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
@@ -95,7 +100,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile boolean lookupHost = true;
 
-	private volatile List<TcpConnection> connections = new LinkedList<TcpConnection>();
+	private volatile List<TcpConnectionSupport> connections = new LinkedList<TcpConnectionSupport>();
 
 	private volatile TcpSocketSupport tcpSocketSupport = new DefaultTcpSocketSupport();
 
@@ -104,6 +109,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	private volatile long nextCheckForClosedNioConnections;
 
 	private volatile int nioHarvestInterval = DEFAULT_NIO_HARVEST_INTERVAL;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	private static final int DEFAULT_NIO_HARVEST_INTERVAL = 2000;
 
@@ -115,6 +122,14 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		Assert.notNull(host, "host must not be null");
 		this.host = host;
 		this.port = port;
+	}
+
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return applicationEventPublisher;
 	}
 
 	/**
@@ -291,17 +306,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	/**
-	 * @deprecated This property is no longer used. If you wish
-	 * to use a fixed thread pool, provide your own Executor
-	 * in {@link #setTaskExecutor(Executor)}.
-	 * @return the poolSize
-	 */
-	@Deprecated
-	public int getPoolSize() {
-		return 0;
-	}
-
-	/**
 	 * Registers a TcpListener to receive messages after
 	 * the payload has been converted from the input data.
 	 * @param listener the TcpListener.
@@ -371,16 +375,6 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 
-	/**
-	 * @deprecated Default task executor is now a cached rather
-	 * than a fixed pool executor. To use a pool, supply an
-	 * appropriate Executor in {@link AbstractConnectionFactory#setTaskExecutor(Executor)}.
-	 * Use {@link AbstractServerConnectionFactory#setBacklog(int)} to set the connection backlog.
-	 */
-	@Deprecated
-	public void setPoolSize(int poolSize) {
-	}
-
 	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
 		this.interceptorFactoryChain = interceptorFactoryChain;
 	}
@@ -447,7 +441,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.active = false;
 		this.close();
 		synchronized (this.connections) {
-			Iterator<TcpConnection> iterator = this.connections.iterator();
+			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
 			while (iterator.hasNext()) {
 				TcpConnection connection = iterator.next();
 				connection.close();
@@ -554,6 +548,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 											this.port + " : " +
 										    connection.getConnectionId());
 							}
+							connection.publishConnectionExceptionEvent(new SocketTimeoutException("Timing out connection"));
 							connection.timeout();
 						}
 					}
@@ -650,7 +645,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		callback.run();
 	}
 
-	protected void addConnection(TcpConnection connection) {
+	protected void addConnection(TcpConnectionSupport connection) {
 		synchronized (this.connections) {
 			if (!this.active) {
 				connection.close();
@@ -660,16 +655,32 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		}
 	}
 
-	protected void harvestClosedConnections() {
+	/**
+	 * Cleans up this.connections by removing any closed connections.
+	 * @return a list of open connection ids.
+	 */
+	private List<String> removeClosedConnectionsAndReturnOpenConnectionIds() {
 		synchronized (this.connections) {
-			Iterator<TcpConnection> iterator = this.connections.iterator();
+			List<String> openConnectionIds = new ArrayList<String>();
+			Iterator<TcpConnectionSupport> iterator = this.connections.iterator();
 			while (iterator.hasNext()) {
 				TcpConnection connection = iterator.next();
 				if (!connection.isOpen()) {
 					iterator.remove();
 				}
+				else {
+					openConnectionIds.add(connection.getConnectionId());
+				}
 			}
+			return openConnectionIds;
 		}
+	}
+
+	/**
+	 * Cleans up this.connections by removing any closed connections.
+	 */
+	protected void harvestClosedConnections() {
+		this.removeClosedConnectionsAndReturnOpenConnectionIds();
 	}
 
 	public boolean isRunning() {
@@ -705,4 +716,40 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 		this.tcpSocketSupport = tcpSocketSupport;
 	}
 
+	/**
+	 * Returns a list of (currently) open {@link TcpConnection} connection ids; allows,
+	 * for example, broadcast operations to all open connections.
+	 * @return the list of connection ids.
+	 */
+	public List<String> getOpenConnectionIds() {
+		return Collections.unmodifiableList(this.removeClosedConnectionsAndReturnOpenConnectionIds());
+	}
+
+	/**
+	 * Close a connection with the specified connection id.
+	 * @param connectionId the connection id.
+	 * @return true if the connection was closed.
+	 */
+	public boolean closeConnection(String connectionId) {
+		Assert.notNull(connectionId, "'connectionId' to close must not be null");
+		synchronized(this.connections) {
+			boolean closed = false;
+			for (TcpConnectionSupport connection : connections) {
+				if (connectionId.equals(connection.getConnectionId())) {
+					try {
+						connection.close();
+						closed = true;
+						break;
+					}
+					catch (Exception e) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Failed to close connection " + connectionId, e);
+						}
+						connection.publishConnectionExceptionEvent(e);
+					}
+				}
+			}
+			return closed;
+		}
+	}
 }

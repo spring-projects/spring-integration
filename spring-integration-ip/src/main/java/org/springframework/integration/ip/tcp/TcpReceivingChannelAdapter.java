@@ -28,7 +28,6 @@ import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
 import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -189,15 +188,6 @@ public class TcpReceivingChannelAdapter
 	 */
 	public void setClientMode(boolean isClientMode) {
 		this.isClientMode = isClientMode;
-	}
-
-	/**
-	 * @param scheduler the scheduler to set
-	 * @deprecated Use {@link #setTaskScheduler(TaskScheduler)}
-	 */
-	@Deprecated
-	public void setScheduler(TaskScheduler scheduler) {
-		this.setTaskScheduler(scheduler);
 	}
 
 	/**

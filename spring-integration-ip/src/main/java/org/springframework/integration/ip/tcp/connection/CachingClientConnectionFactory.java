@@ -71,12 +71,10 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		this.pool.setWaitTimeout(connectionWaitTimeout);
 	}
 
-	@Override
 	public synchronized void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
-	@Override
 	public int getPoolSize() {
 		return this.pool.getPoolSize();
 	}
