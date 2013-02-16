@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
@@ -31,7 +32,9 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
@@ -66,6 +69,17 @@ public class TcpNetConnectionTests {
 				connection.getConnectionId() +
 				" MessageMappingException:Expected STX to begin message",
 				log.get());
+	}
+
+	@Test
+	public void testBinary() throws Exception {
+		SocketChannel socketChannel = mock(SocketChannel.class);
+		Socket socket = mock(Socket.class);
+		when(socketChannel.socket()).thenReturn(socket);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, null, null);
+		ChannelInputStream inputStream = TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
+		inputStream.write(new byte[] {(byte) 0x80}, 1);
+		assertEquals(0x80, inputStream.read());
 	}
 
 }
