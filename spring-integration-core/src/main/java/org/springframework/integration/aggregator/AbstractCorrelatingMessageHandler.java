@@ -268,20 +268,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			lock.lockInterruptibly();
 			try {
 				/*
-				 * Need to verify the group hasn't changed while we were waiting on
-				 * its lock. We have to re-fetch the group for this. A possible
-				 * future improvement would be to add MessageGroupStore.getLastModified(groupId).
+				 * Refetch the group because it might have changed while we were waiting on
+				 * its lock. If the last modified timestamp changed, defer the completion
+				 * because the selection condition may have changed such that the group
+				 * would no longer be eligible.
 				 */
-				MessageGroup messageGroupNow = this.messageStore.getMessageGroup(
+				MessageGroup groupNow = this.messageStore.getMessageGroup(
 						group.getGroupId());
-				long lastModifiedNow = messageGroupNow.getLastModified();
+				long lastModifiedNow = groupNow.getLastModified();
 				if (group.getLastModified() == lastModifiedNow) {
-					if (group.size() > 0) {
-						if (releaseStrategy.canRelease(group)) {
-							this.completeGroup(correlationKey, group);
+					if (groupNow.size() > 0) {
+						if (releaseStrategy.canRelease(groupNow)) {
+							this.completeGroup(correlationKey, groupNow);
 						}
 						else {
-							this.expireGroup(correlationKey, group);
+							this.expireGroup(correlationKey, groupNow);
 						}
 					}
 					else {
@@ -292,14 +293,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						 */
 						removeGroup = lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
 						if (removeGroup && logger.isDebugEnabled()) {
-							logger.debug("Removing empty group: " + group.getGroupId());
+							logger.debug("Removing empty group: " + correlationKey);
 						}
 					}
 				}
 				else {
 					removeGroup = false;
 					if (logger.isDebugEnabled()) {
-						logger.debug("Group expiry candidate (" + group.getGroupId() +
+						logger.debug("Group expiry candidate (" + correlationKey +
 								") has changed - it may be reconsidered for a future expiration");
 					}
 				}
