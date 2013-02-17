@@ -16,9 +16,11 @@
 package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,9 +30,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -247,6 +251,36 @@ public class AbstractCorrelatingMessageHandlerTests {
 		Thread.sleep(1010);
 		groupStore.expireMessageGroups(0);
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
+	}
+
+	@Test
+	public void testReapWithChangeInSameMillisecond() throws Exception {
+		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
+		handler.setReleaseStrategy(new ReleaseStrategy() {
+			public boolean canRelease(MessageGroup group) {
+				return true;
+			}
+		});
+		QueueChannel outputChannel = new QueueChannel();
+		handler.setOutputChannel(outputChannel);
+		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
+		Method forceComplete = AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
+		forceComplete.setAccessible(true);
+		mgs.addMessageToGroup("foo", new GenericMessage<String>("foo"));
+		GenericMessage<String> secondMessage = new GenericMessage<String>("bar");
+		mgs.addMessageToGroup("foo", secondMessage);
+		MessageGroup group = mgs.getMessageGroup("foo");
+		// remove a message
+		mgs.removeMessageFromGroup("foo", secondMessage);
+		// force lastModified to be the same
+		MessageGroup groupNow = mgs.getMessageGroup("foo");
+		new DirectFieldAccessor(group).setPropertyValue("lastModified", groupNow.getLastModified());
+		forceComplete.invoke(handler, group);
+		Message<?> message = outputChannel.receive(0);
+		assertNotNull(message);
+		Collection<?> payload = (Collection<?>) message.getPayload();
+		assertEquals(1, payload.size());
 	}
 
 }
