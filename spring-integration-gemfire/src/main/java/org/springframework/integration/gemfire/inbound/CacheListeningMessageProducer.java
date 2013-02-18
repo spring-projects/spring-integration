@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -37,13 +38,13 @@ import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
  * enum for all options. A SpEL expression may be provided to generate a Message payload by
  * evaluating that expression against the {@link EntryEvent} instance as the root object. If no
  * payloadExpression is provided, the {@link EntryEvent} itself will be the payload.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @since 2.1
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class CacheListeningMessageProducer extends SpelMessageProducerSupport {
+public class CacheListeningMessageProducer extends ExpressionMessageProducerSupport {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -58,7 +59,7 @@ public class CacheListeningMessageProducer extends SpelMessageProducerSupport {
 	public CacheListeningMessageProducer(Region<?, ?> region) {
 		Assert.notNull(region, "region must not be null");
 		this.region = region;
-		this.listener = new MessageProducingCacheListener();   
+		this.listener = new MessageProducingCacheListener();
 	}
 
 
@@ -81,16 +82,16 @@ public class CacheListeningMessageProducer extends SpelMessageProducerSupport {
 		if (logger.isInfoEnabled()) {
 			logger.info("removing MessageProducingCacheListener from GemFire Region '" + this.region.getName() + "'");
 		}
-		try { 
+		try {
 			this.region.getAttributesMutator().removeCacheListener(this.listener);
 		} catch (CacheClosedException e) {
 			if (logger.isDebugEnabled()){
 				logger.debug(e.getMessage(),e);
 			}
 		}
-		 
+
 	}
- 
+
 	private class MessageProducingCacheListener extends CacheListenerAdapter {
 
 		@Override
@@ -121,16 +122,16 @@ public class CacheListeningMessageProducer extends SpelMessageProducerSupport {
 			}
 		}
 
-		private void processEvent(EntryEvent event) { 
-				this.publish(evaluationResult(event));
-			 
+		private void processEvent(EntryEvent event) {
+				this.publish(evaluatePayloadExpression(event));
+
 		}
 
 		private void publish(Object payload) {
 			sendMessage(MessageBuilder.withPayload(payload).build());
 		}
 	}
-	
-	
+
+
 
 }
