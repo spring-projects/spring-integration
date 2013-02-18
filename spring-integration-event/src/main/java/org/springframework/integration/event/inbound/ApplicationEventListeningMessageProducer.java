@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,103 +16,108 @@
 
 package org.springframework.integration.event.inbound;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationContextEvent;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.SmartApplicationListener;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
-import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
- * An inbound Channel Adapter that passes Spring {@link ApplicationEvent ApplicationEvents} within messages.
+ * An inbound Channel Adapter that implements {@link ApplicationListener} and
+ * passes Spring {@link ApplicationEvent ApplicationEvents} within messages.
  * If a {@link #setPayloadExpression(String) payloadExpression} is provided, it will be evaluated against
  * the ApplicationEvent instance to create the Message payload. Otherwise, the event itself will be the payload.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
+ * @see ApplicationEventMulticaster
+ * @see ExpressionMessageProducerSupport
  */
-public class ApplicationEventListeningMessageProducer extends MessageProducerSupport implements ApplicationListener<ApplicationEvent> {
+public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport implements SmartApplicationListener {
 
 	private final Set<Class<? extends ApplicationEvent>> eventTypes = new CopyOnWriteArraySet<Class<? extends ApplicationEvent>>();
 
-	private volatile Expression payloadExpression;
-
-	private volatile boolean active;
-
-	private final SpelExpressionParser parser = new SpelExpressionParser();
-
+	private ApplicationEventMulticaster applicationEventMulticaster;
 
 	/**
 	 * Set the list of event types (classes that extend ApplicationEvent) that
 	 * this adapter should send to the message channel. By default, all event
 	 * types will be sent.
+	 * In additional this method re-register current instance as a {@link ApplicationListener}
+	 * in the {@link ApplicationEventMulticaster} to clear listeners cache and get a fresh cache entry
+	 * on next appropriate {@link ApplicationEvent}.
+	 *
+	 * @see ApplicationEventMulticaster#addApplicationListener
+	 * @see #supportsEventType
 	 */
-	@SuppressWarnings("unchecked")
-	public void setEventTypes(Class<? extends ApplicationEvent>[] eventTypes) {
+	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
 		Assert.notEmpty(eventTypes, "at least one event type is required");
 		synchronized (this.eventTypes) {
 			this.eventTypes.clear();
-			this.eventTypes.addAll(CollectionUtils.arrayToList(eventTypes));
+			this.eventTypes.addAll(Arrays.asList(eventTypes));
+			if (this.applicationEventMulticaster != null) {
+				this.applicationEventMulticaster.addApplicationListener(this);
+			}
 		}
-	}
 
-	/**
-	 * Provide an expression to be evaluated against the received ApplicationEvent
-	 * instance (the "root object") in order to create the Message payload. If none
-	 * is provided, the ApplicationEvent itself will be used as the payload.
-	 */
-	public void setPayloadExpression(String payloadExpression) {
-		if (payloadExpression == null) {
-			this.payloadExpression = null;
-		}
-		else {
-			this.payloadExpression = this.parser.parseExpression(payloadExpression);
-		}
 	}
 
 	public String getComponentType() {
 		return "event:inbound-channel-adapter";
 	}
 
+	@Override
+	protected void onInit() {
+		super.onInit();
+		this.applicationEventMulticaster = this.getBeanFactory()
+				.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
+		Assert.notNull(this.applicationEventMulticaster,
+				"To use ApplicationListeners the 'applicationEventMulticaster' bean must be supplied within ApplicationContext.");
+	}
+
+	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (this.active || event instanceof ApplicationContextEvent) {
-			if (CollectionUtils.isEmpty(this.eventTypes)) {
-				this.sendEventAsMessage(event);
-				return;
+		if (event instanceof ApplicationContextEvent || this.isRunning()) {
+			if (event.getSource() instanceof Message<?>) {
+				this.sendMessage((Message<?>) event.getSource());
 			}
-			for (Class<? extends ApplicationEvent> eventType : this.eventTypes) {
-				if (eventType.isAssignableFrom(event.getClass())) {
-					this.sendEventAsMessage(event);
-					return;
-				}
+			else {
+				Object payload = this.evaluationResult(event);
+				this.sendMessage(MessageBuilder.withPayload(payload).build());
 			}
 		}
 	}
 
 	@Override
-	protected void doStart() {
-		this.active = true;
+	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
+		for (Class<? extends ApplicationEvent> type : this.eventTypes) {
+			if (type.isAssignableFrom(eventType)) {
+				return true;
+			}
+		}
+		return this.eventTypes.isEmpty();
 	}
 
 	@Override
-	protected void doStop() {
-		this.active = false;
+	public boolean supportsSourceType(Class<?> sourceType) {
+		return true;
 	}
 
-	private void sendEventAsMessage(ApplicationEvent event) {
-		if (event.getSource() instanceof Message<?>) {
-			this.sendMessage((Message<?>) event.getSource());
-		}
-		else {
-			Object payload = (this.payloadExpression != null) ? this.payloadExpression.getValue(event) : event;
-			this.sendMessage(MessageBuilder.withPayload(payload).build());
-		}
+	@Override
+	public int getOrder() {
+		return Ordered.LOWEST_PRECEDENCE;
 	}
 
 }
+
