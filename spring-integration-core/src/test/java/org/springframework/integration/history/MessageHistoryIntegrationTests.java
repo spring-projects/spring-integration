@@ -45,7 +45,8 @@ import static org.junit.Assert.assertNull;
 
 /**
  * @author Oleg Zhurakousky
- * @author Gunnar Hillert
+   @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class MessageHistoryIntegrationTests {
 
@@ -69,61 +70,69 @@ public class MessageHistoryIntegrationTests {
 			public void handleMessage(Message<?> message) {
 				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 
-				Properties event1 = historyIterator.next();
-				assertEquals("sampleGateway", event1.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("gateway", event1.getProperty(MessageHistory.TYPE_PROPERTY));
+				Properties event = historyIterator.next();
+				assertEquals("sampleGateway", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("gateway", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event2 = historyIterator.next();
-				assertEquals("bridgeInChannel", event2.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("channel", event2.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("bridgeInChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event3 = historyIterator.next();
-				assertEquals("testBridge", event3.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("bridge", event3.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testBridge", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("bridge", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event4 = historyIterator.next();
-				assertEquals("headerEnricherChannel", event4.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("channel", event4.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("headerEnricherChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event5 = historyIterator.next();
-				assertEquals("testHeaderEnricher", event5.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("transformer", event5.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testHeaderEnricher", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("transformer", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event6 = historyIterator.next();
-				assertEquals("chainChannel", event6.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("channel", event6.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("chainChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event7 = historyIterator.next();
-				assertEquals("sampleChain", event7.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("chain", event7.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("sampleChain", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("chain", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event8 = historyIterator.next();
-				assertEquals("filterChannel", event8.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("channel", event8.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("sampleChain.handler#0", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("transformer", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event9 = historyIterator.next();
-				assertEquals("testFilter", event9.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("filter", event9.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("sampleChain.handler#1", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("service-activator", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event10 = historyIterator.next();
-				assertEquals("splitterChannel", event10.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("channel", event10.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("filterChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event11 = historyIterator.next();
-				assertEquals("testSplitter", event11.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("splitter", event11.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testFilter", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("filter", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event12 = historyIterator.next();
-				assertEquals("aggregatorChannel", event12.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("channel", event12.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("splitterChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event13 = historyIterator.next();
-				assertEquals("testAggregator", event13.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("aggregator", event13.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testSplitter", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("splitter", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-				Properties event14 = historyIterator.next();
-				assertEquals("endOfThePipeChannel", event14.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("channel", event14.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("aggregatorChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+
+				event = historyIterator.next();
+				assertEquals("testAggregator", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("aggregator", event.getProperty(MessageHistory.TYPE_PROPERTY));
+
+				event = historyIterator.next();
+				assertEquals("endOfThePipeChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);
@@ -185,6 +194,9 @@ public class MessageHistoryIntegrationTests {
 				assertTrue(historyIterator.hasNext());
 				Properties chainHistory = historyIterator.next();
 				assertEquals("sampleChain", chainHistory.get("name"));
+				assertTrue(historyIterator.hasNext());
+				Properties chainHanlderHistory = historyIterator.next();
+				assertEquals("sampleChain.handler#0", chainHanlderHistory.get("name"));
 				assertFalse(historyIterator.hasNext());
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);

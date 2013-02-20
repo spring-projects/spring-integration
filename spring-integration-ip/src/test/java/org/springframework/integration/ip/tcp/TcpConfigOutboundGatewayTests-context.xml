@@ -39,7 +39,7 @@
 
 
 	<int:chain input-channel="tcpOutboundGatewayInsideChain" output-channel="replyChannel">
-		<ip:tcp-outbound-gateway connection-factory="crLfClient2"/>
+		<ip:tcp-outbound-gateway id="tcp-outbound-gateway-within-chain" connection-factory="crLfClient2"/>
 	</int:chain>
 
 	<int:channel id="replyChannel" >

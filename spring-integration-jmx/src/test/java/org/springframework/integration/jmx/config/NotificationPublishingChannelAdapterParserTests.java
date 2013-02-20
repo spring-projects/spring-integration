@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Set;
+import javax.management.MBeanServer;
 import javax.management.Notification;
+import javax.management.ObjectName;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jmx.JmxHeaders;
+import org.springframework.integration.jmx.NotificationPublishingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,13 +59,18 @@ public class NotificationPublishingChannelAdapterParserTests {
 	@Autowired
 	private MessageChannel publishingWithinChainChannel;
 
+	@Autowired
+	private BeanFactory beanFactory;
+
+	@Autowired
+	private MBeanServer server;
+
 	private static volatile int adviceCalled;
 
 	@After
 	public void clearListener() {
 		listener.lastNotification = null;
 	}
-
 
 	@Test
 	public void publishStringMessage() throws Exception {
@@ -102,6 +113,8 @@ public class NotificationPublishingChannelAdapterParserTests {
 
 	@Test //INT-2275
 	public void publishStringMessageWithinChain() throws Exception {
+		assertNotNull(this.beanFactory.getBean("jmx-notification-publishing-channel-adapter-within-chain.handler",
+				MessageHandler.class));
 		assertNull(listener.lastNotification);
 		Message<?> message = MessageBuilder.withPayload("XYZ")
 				.setHeader(JmxHeaders.NOTIFICATION_TYPE, "test.type").build();
@@ -111,9 +124,15 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertEquals("XYZ", notification.getMessage());
 		assertEquals("test.type", notification.getType());
 		assertNull(notification.getUserData());
+		Set<ObjectName> names = server.queryNames(
+				new ObjectName("org.springframework.integration:type=MessageHandler," +
+						"name=chainWithJmxNotificationPublishing.handler$child0*,bean=handler")
+				, null);
+		assertEquals(1, names.size());
 	}
 
 	private static class TestData {
+
 	}
 
 	public static class FooADvice extends AbstractRequestHandlerAdvice {

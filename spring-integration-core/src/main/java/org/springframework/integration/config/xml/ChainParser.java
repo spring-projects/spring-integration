@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -44,20 +45,22 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
+		String chainHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext) + ".handler";
 		ManagedList<BeanMetadataElement> handlerList = new ManagedList<BeanMetadataElement>();
 		NodeList children = element.getChildNodes();
+		int childOrder = 0;
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && !"poller".equals(child.getLocalName())) {
-				BeanDefinitionHolder holder = this.parseChild((Element) child, parserContext, builder.getBeanDefinition());
-				if ("gateway".equals(child.getLocalName())){
+				String childBeanName = this.parseChild(chainHandlerId, (Element) child, childOrder++, parserContext, builder.getBeanDefinition());
+				if ("gateway".equals(child.getLocalName())) {
 					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 							IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.RequestReplyMessageHandlerAdapter");
-					gwBuilder.addConstructorArgValue(holder);
+					gwBuilder.addConstructorArgValue(new RuntimeBeanReference(childBeanName));
 					handlerList.add(gwBuilder.getBeanDefinition());
 				}
 				else {
-					handlerList.add(holder);
+					handlerList.add(new RuntimeBeanReference(childBeanName));
 				}
 			}
 		}
@@ -76,7 +79,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 
 		if (StringUtils.hasText(order)) {
 			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
-				"an 'order' attribute when used within a chain.", source);
+					"an 'order' attribute when used within a chain.", source);
 		}
 
 		final List<Element> pollerChildElements = DomUtils
@@ -84,12 +87,12 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 
 		if (!pollerChildElements.isEmpty()) {
 			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
-				"a 'poller' sub-element when used within a chain.", source);
+					"a 'poller' sub-element when used within a chain.", source);
 		}
 
 	}
 
-	private BeanDefinitionHolder parseChild(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
+	private String parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext, BeanDefinition parentDefinition) {
 
 		BeanDefinitionHolder holder = null;
 
@@ -103,13 +106,17 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
 			if (beanDefinition == null) {
 				parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
+				return null;
 			}
 			else {
-				String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry(), true);
-				holder = new BeanDefinitionHolder(beanDefinition, beanName);
+				String handlerBeanName = chainHandlerId + "$child" + order + "#" +
+						BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
+				String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
+				holder = new BeanDefinitionHolder(beanDefinition, handlerBeanName, handlerAlias);
 			}
 		}
-		return holder;
+		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+		return holder.getBeanName();
 	}
 
 }

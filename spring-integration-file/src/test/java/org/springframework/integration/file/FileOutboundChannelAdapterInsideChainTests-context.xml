@@ -18,7 +18,7 @@
 		<si:header-enricher>
 			<si:header name="#{T(org.springframework.integration.file.FileHeaders).FILENAME}" value="${test.file}"/>
 		</si:header-enricher>
-		<file:outbound-channel-adapter directory="${work.dir}"/>
+		<file:outbound-channel-adapter id="file-outbound-channel-adapter-within-chain" directory="${work.dir}"/>
 	</si:chain>
 
 	<bean id="placeholderProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">

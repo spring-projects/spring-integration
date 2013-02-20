@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.mail;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.DataInputStream;
@@ -30,7 +31,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.message.GenericMessage;
@@ -48,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class MailSendingMessageHandlerContextTests {
 
 	@Autowired
+	@Qualifier("mailSendingMessageConsumer")
 	private MailSendingMessageHandler handler;
 
 	@Autowired
@@ -55,6 +59,9 @@ public class MailSendingMessageHandlerContextTests {
 
 	@Autowired
 	private MessageChannel sendMailOutboundChainChannel;
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 
 	@Before
@@ -106,6 +113,7 @@ public class MailSendingMessageHandlerContextTests {
 
 	@Test //INT-2275
 	public void mailOutboundChannelAdapterWithinChain() {
+		assertNotNull(this.beanFactory.getBean("mail-outbound-channel-adapter-within-chain.handler"));
 		this.sendMailOutboundChainChannel.send(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent", 0, this.mailSender.getSentMimeMessages().size());

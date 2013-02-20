@@ -41,6 +41,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -69,6 +70,9 @@ import org.springframework.util.StringUtils;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ChainParserTests {
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	@Autowired
 	@Qualifier("filterInput")
@@ -324,6 +328,37 @@ public class ChainParserTests {
 		assertEquals(false, TestUtils.getPropertyValue(handlerChain, "running"));
 	}
 
+	@Test
+	public void testInt2755SubComponentsIdSupport() {
+		assertNotNull(this.beanFactory.getBean("subComponentsIdSupport1.handler"));
+		assertNotNull(this.beanFactory.getBean("filterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("serviceActivatorWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("headerEnricherWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("aggregatorWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("nestedChain.handler"));
+		assertNotNull(this.beanFactory.getBean("payloadTypeRouterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("headerValueRouterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("claimCheckInWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("claimCheckOutWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("outboundChannelAdapterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("transformerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("loggingChannelAdapterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("splitterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("resequencerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("enricherWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("headerFilterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("payloadSerializingTransformerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("payloadDeserializingTransformerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("gatewayWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("objectToStringTransformerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("objectToMapTransformerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("mapToObjectTransformerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("controlBusWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("routerWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("exceptionTypeRouterWithinChain.handler"));
+		assertNotNull(this.beanFactory.getBean("recipientListRouterWithinChain.handler"));
+	}
+
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 
 		@Override
@@ -339,4 +374,20 @@ public class ChainParserTests {
 			return StringUtils.collectionToCommaDelimitedString(strings);
 		}
 	}
+
+	public static class FooPojo {
+
+
+		private String bar;
+
+		public String getBar() {
+			return bar;
+		}
+
+		public void setBar(String bar) {
+			this.bar = bar;
+		}
+
+	}
+
 }
