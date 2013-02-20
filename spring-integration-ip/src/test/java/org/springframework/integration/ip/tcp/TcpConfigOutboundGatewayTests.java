@@ -173,6 +173,7 @@ public class TcpConfigOutboundGatewayTests {
 
 	@Test //INT-1029
 	public void testOutboundInsideChain() throws Exception {
+//		this.ctx.getBean("tcp-outbound-gateway-within-chain.handler", TcpOutboundGateway.class);
 		tcpOutboundGatewayInsideChain.send(MessageBuilder.withPayload("test").build());
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
 		assertEquals("echo:test", new String(bytes).trim());

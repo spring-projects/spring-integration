@@ -33,7 +33,7 @@
 		delete-source-files="true"/>
 
 	<si:chain input-channel="fileOutboundGatewayInsideChain" output-channel="output">
-		<outbound-gateway directory="${java.io.tmpdir}/anyDir" delete-source-files="true"/>
+		<outbound-gateway id="file-outbound-gateway-within-chain" directory="${java.io.tmpdir}/anyDir" delete-source-files="true"/>
 	</si:chain>
 
 	<!--suppress SpringModelInspection -->

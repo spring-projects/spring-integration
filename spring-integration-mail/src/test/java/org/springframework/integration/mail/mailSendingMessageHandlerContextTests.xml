@@ -22,7 +22,7 @@
 	</bean>
 
 	<int:chain input-channel="sendMailOutboundChainChannel">
-		<int-mail:outbound-channel-adapter mail-sender="javaMailSender"/>
+		<int-mail:outbound-channel-adapter id="mail-outbound-channel-adapter-within-chain" mail-sender="javaMailSender"/>
 	</int:chain>
 
 </beans>

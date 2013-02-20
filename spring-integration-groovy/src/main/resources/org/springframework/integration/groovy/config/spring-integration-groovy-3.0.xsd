@@ -54,7 +54,7 @@
 					maxOccurs="1" />
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
-			<xsd:attributeGroup ref="integration:inputOutputChannelGroupWithId" />
+			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
 			<xsd:attribute name="customizer" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>

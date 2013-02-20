@@ -19,7 +19,9 @@ package org.springframework.integration.file;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -150,6 +152,10 @@ public class FileOutboundGatewayIntegrationTests {
 
 	@Test //INT-1029
 	public void moveInsideTheChain() throws Exception {
+		// INT-2755
+		Object bean = this.beanFactory.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child.file-outbound-gateway-within-chain.handler");
+		assertTrue(bean instanceof FileWritingMessageHandler);
+
 		fileOutboundGatewayInsideChain.send(message);
 		List<Message<?>> result = outputChannel.clear();
 		assertThat(result.size(), is(1));
