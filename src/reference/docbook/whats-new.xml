@@ -31,8 +31,8 @@
 				been renamed to <classname>TcpConnectionInterceptorSupport</classname>.
 			</para>
 			<para>
-				In addition, a new <code>&lt;int-ip:tcp-connection-event-channel-adapter/&gt;</code>
-				is provided; by default, this adapter sends all <classname>TcpConnectionEvents</classname>
+				In addition, a new <code>&lt;int-ip:tcp-connection-event-inbound-channel-adapter/&gt;</code>
+				is provided; by default, this adapter sends all <classname>TcpConnectionEvent</classname>s
 				to a <interfacename>Channel</interfacename>.
 			</para>
 			<para>
@@ -47,9 +47,7 @@
 				to explicitly close a connection using its ID.
 			</para>
 			<para>
-				Further documentation for these features will follow; for now, refer to the
-				schema documentation for information about the new adapter, and JavaDocs for
-				it as well as the other features.
+				For more information see <xref linkend="tcp-events"/>.
 			</para>
 		</section>
 	</section>

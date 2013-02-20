@@ -454,6 +454,34 @@
         Configuring a connection interceptor factory chain.
     </para>
   </section>
+  <section id="tcp-events">
+    <title>TCP Connection Events</title>
+    <para>
+      Beginning with version 3.0, changes to <interfacename>TcpConnection</interfacename>s
+      are reported by <classname>TcpConnectionEvent</classname>s. <classname>TcpConnectionEvent</classname>
+      is a subclass of <classname>ApplicationEvent</classname> and thus can
+      be received by any <interfacename>ApplicationListener</interfacename> defined in
+      the <interfacename>ApplicationContext</interfacename>.
+    </para>
+    <para>
+      For convenience, a <code>&lt;int-ip:tcp-connection-event-inbound-channel-adapter/&gt;</code>
+      is provided. This adapter will receive all <classname>TcpConnectionEvent</classname>s (by
+      default), and send them to its <code>channel</code>. The adapter accepts an <code>event-type</code>
+      attribute, which is a list of class names for events that should be sent. This can be used
+      if an application subclasses <classname>TcpConnectionEvent</classname> for some reason, and wishes
+      to only receive those events. Omitting this attribute will mean that all
+      <classname>TcpConnectionEvent</classname>s will be sent.
+    </para>
+    <para>
+      <classname>TcpConnectionEvents</classname> contain:
+      <itemizedlist>
+        <listitem>Event type (OPEN, CLOSE, EXCEPTION)</listitem>.
+        <listitem>Connection Id (which can be used in a message header to send data to the connection)</listitem>
+        <listitem>Connection Factory Name (the bean name of the connection factory the connection belongs to)</listitem>
+        <listitem>The <classname>Throwable</classname> (for EXCEPTION event types only)</listitem>
+      </itemizedlist>
+    </para>
+  </section>
   <section id="tcp-adapters">
     <title>TCP Adapters</title>
     <para>
