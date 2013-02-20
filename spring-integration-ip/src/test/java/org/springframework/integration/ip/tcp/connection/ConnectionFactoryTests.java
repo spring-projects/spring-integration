@@ -18,13 +18,20 @@ package org.springframework.integration.ip.tcp.connection;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
@@ -35,6 +42,7 @@ import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -53,6 +61,15 @@ public class ConnectionFactoryTests {
 		TcpNetServerConnectionFactory serverFactory = new TcpNetServerConnectionFactory(port);
 		serverFactory.setBeanName("serverFactory");
 		serverFactory.setApplicationEventPublisher(publisher);
+		serverFactory = spy(serverFactory);
+		final CountDownLatch serverConnectionInitLatch = new CountDownLatch(1);
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object result = invocation.callRealMethod();
+				serverConnectionInitLatch.countDown();
+				return result;
+			}
+		}).when(serverFactory).wrapConnection(any(TcpConnectionSupport.class));
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(serverFactory);
 		adapter.start();
@@ -70,6 +87,7 @@ public class ConnectionFactoryTests {
 		List<String> clients = clientFactory.getOpenConnectionIds();
 		assertEquals(1, clients.size());
 		assertTrue(clients.contains(client.getConnectionId()));
+		assertTrue("Server connection failed to register", serverConnectionInitLatch.await(1, TimeUnit.SECONDS));
 		List<String> servers = serverFactory.getOpenConnectionIds();
 		assertEquals(1, servers.size());
 		assertTrue(serverFactory.closeConnection(servers.get(0)));
