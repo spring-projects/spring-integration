@@ -16,9 +16,9 @@
 
 package org.springframework.integration.event.inbound;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ApplicationContextEvent;
@@ -46,9 +46,19 @@ import org.springframework.util.Assert;
  */
 public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport implements SmartApplicationListener {
 
-	private final Set<Class<? extends ApplicationEvent>> eventTypes = new CopyOnWriteArraySet<Class<? extends ApplicationEvent>>();
+	private final Lock readEventTypesLock;
+	private final Lock writeEventTypesLock;
+
+	{
+		ReadWriteLock lock = new ReentrantReadWriteLock();
+		readEventTypesLock = lock.readLock();
+		writeEventTypesLock = lock.writeLock();
+	}
+
 
 	private ApplicationEventMulticaster applicationEventMulticaster;
+
+	private volatile Class<? extends ApplicationEvent>[] eventTypes;
 
 	/**
 	 * Set the list of event types (classes that extend ApplicationEvent) that
@@ -62,13 +72,15 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see #supportsEventType
 	 */
 	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		Assert.notEmpty(eventTypes, "at least one event type is required");
-		synchronized (this.eventTypes) {
-			this.eventTypes.clear();
-			this.eventTypes.addAll(Arrays.asList(eventTypes));
+		this.writeEventTypesLock.lock();
+		try {
+			this.eventTypes = eventTypes;
 			if (this.applicationEventMulticaster != null) {
 				this.applicationEventMulticaster.addApplicationListener(this);
 			}
+		}
+		finally {
+			this.writeEventTypesLock.unlock();
 		}
 
 	}
@@ -86,35 +98,45 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 				"To use ApplicationListeners the 'applicationEventMulticaster' bean must be supplied within ApplicationContext.");
 	}
 
-	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ApplicationContextEvent || this.isRunning()) {
+
+			this.readEventTypesLock.lock();
+			try {
+				if(!this.supportsEventType(event.getClass())) {
+					return;
+				}
+			}
+			finally {
+				this.readEventTypesLock.unlock();
+			}
+
 			if (event.getSource() instanceof Message<?>) {
 				this.sendMessage((Message<?>) event.getSource());
 			}
 			else {
-				Object payload = this.evaluationResult(event);
+				Object payload = this.evaluatePayloadExpression(event);
 				this.sendMessage(MessageBuilder.withPayload(payload).build());
 			}
 		}
 	}
 
-	@Override
 	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
+		if (this.eventTypes == null) {
+			return true;
+		}
 		for (Class<? extends ApplicationEvent> type : this.eventTypes) {
 			if (type.isAssignableFrom(eventType)) {
 				return true;
 			}
 		}
-		return this.eventTypes.isEmpty();
+		return false;
 	}
 
-	@Override
 	public boolean supportsSourceType(Class<?> sourceType) {
 		return true;
 	}
 
-	@Override
 	public int getOrder() {
 		return Ordered.LOWEST_PRECEDENCE;
 	}

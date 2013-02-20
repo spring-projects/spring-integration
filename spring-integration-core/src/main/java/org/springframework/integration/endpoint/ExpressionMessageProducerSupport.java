@@ -17,6 +17,9 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 
 /**
+ * A {@link MessageProducerSupport} sub-class that provides {@linkplain #payloadExpression}
+ * evaluation with result as a payload for Message to send.
+ *
  * @author David Turanski
  * @author Artem Bilan
  * @since 2.1
@@ -24,15 +27,9 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
  */
 public abstract class ExpressionMessageProducerSupport extends MessageProducerSupport {
 
-	private volatile Expression payloadExpression;
-
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 
-
-	@Override
-	protected void onInit(){
-		super.onInit();
-	}
+	private volatile Expression payloadExpression;
 
 	public void setPayloadExpression(String payloadExpression) {
 		if (payloadExpression == null) {
@@ -43,7 +40,7 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 		}
 	}
 
-	protected Object evaluationResult(Object payload){
+	protected Object evaluatePayloadExpression(Object payload){
 		Object evaluationResult = payload;
 		if (payloadExpression != null) {
 			evaluationResult = payloadExpression.getValue(payload);

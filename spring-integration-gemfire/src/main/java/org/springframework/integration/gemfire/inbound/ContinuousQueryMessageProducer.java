@@ -114,7 +114,7 @@ public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSup
 				logger.debug(String.format("processing cq event key [%s] event [%s]", event.getQueryOperation()
 						.toString(), event.getKey()));
 			}
-			Message<?> cqEventMessage = MessageBuilder.withPayload(evaluationResult(event)).build();
+			Message<?> cqEventMessage = MessageBuilder.withPayload(evaluatePayloadExpression(event)).build();
 			sendMessage(cqEventMessage);
 		}
 	}

@@ -22,6 +22,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -87,11 +90,12 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("inputFiltered"), adapterAccessor.getPropertyValue("outputChannel"));
-		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
+		Class<? extends ApplicationEvent>[] eventTypes = (Class<? extends ApplicationEvent>[]) adapterAccessor.getPropertyValue("eventTypes");
 		assertNotNull(eventTypes);
-		assertTrue(eventTypes.size() == 2);
-		assertTrue(eventTypes.contains(SampleEvent.class));
-		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
+		List<Class<? extends ApplicationEvent>> eventTypeList = Arrays.asList(eventTypes);
+		assertTrue(eventTypeList.size() == 2);
+		assertTrue(eventTypeList.contains(SampleEvent.class));
+		assertTrue(eventTypeList.contains(AnotherSampleEvent.class));
 		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
 	}
 
@@ -103,11 +107,12 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("inputFilteredPlaceHolder"), adapterAccessor.getPropertyValue("outputChannel"));
-		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
+		Class<? extends ApplicationEvent>[] eventTypes = (Class<? extends ApplicationEvent>[]) adapterAccessor.getPropertyValue("eventTypes");
 		assertNotNull(eventTypes);
-		assertTrue(eventTypes.size() == 2);
-		assertTrue(eventTypes.contains(SampleEvent.class));
-		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
+		List<Class<? extends ApplicationEvent>> eventTypeList = Arrays.asList(eventTypes);
+		assertTrue(eventTypeList.size() == 2);
+		assertTrue(eventTypeList.contains(SampleEvent.class));
+		assertTrue(eventTypeList.contains(AnotherSampleEvent.class));
 	}
 
 	@Test

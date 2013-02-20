@@ -123,7 +123,7 @@ public class CacheListeningMessageProducer extends ExpressionMessageProducerSupp
 		}
 
 		private void processEvent(EntryEvent event) {
-				this.publish(evaluationResult(event));
+				this.publish(evaluatePayloadExpression(event));
 
 		}
 
