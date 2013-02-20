@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -41,6 +42,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -54,6 +56,7 @@ import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketF
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
@@ -261,6 +264,9 @@ public class ParserUnitTests {
 
 	@Autowired
 	TcpConnectionEventListeningMessageProducer eventAdapter;
+
+	@Autowired
+	QueueChannel eventChannel;
 
 	private static volatile int adviceCalled;
 
@@ -649,12 +655,28 @@ public class ParserUnitTests {
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEventAdapter() {
 		Set<?> eventTypes = TestUtils.getPropertyValue(this.eventAdapter, "eventTypes", Set.class);
 		assertEquals(2, eventTypes.size());
 		assertTrue(eventTypes.contains(EventSubclass1.class));
 		assertTrue(eventTypes.contains(EventSubclass2.class));
+		assertFalse(TestUtils.getPropertyValue(this.eventAdapter, "autoStartup", Boolean.class));
+		assertEquals(23, TestUtils.getPropertyValue(this.eventAdapter, "phase"));
+		assertEquals("eventErrors", TestUtils.getPropertyValue(this.eventAdapter, "errorChannel",
+				DirectChannel.class).getComponentName());
+
+		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
+		TcpConnectionEvent event = new TcpConnectionEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		this.eventAdapter.setEventTypes(new Class[] {TcpConnectionEvent.class});
+		this.eventAdapter.onApplicationEvent(event);
+		assertNull(this.eventChannel.receive(0));
+		this.eventAdapter.start();
+		this.eventAdapter.onApplicationEvent(event);
+		Message<?> eventMessage = this.eventChannel.receive(0);
+		assertNotNull(eventMessage);
+		assertSame(event, eventMessage.getPayload());
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

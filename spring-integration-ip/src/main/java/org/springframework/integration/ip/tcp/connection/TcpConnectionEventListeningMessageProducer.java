@@ -53,14 +53,16 @@ public class TcpConnectionEventListeningMessageProducer extends MessageProducerS
 	}
 
 	public void onApplicationEvent(TcpConnectionEvent event) {
-		if (CollectionUtils.isEmpty(this.eventTypes)) {
-			this.sendMessage(messageFromEvent(event));
-		}
-		else {
-			for (Class<? extends TcpConnectionEvent> eventType : this.eventTypes) {
-				if (eventType.isAssignableFrom(event.getClass())) {
-					this.sendMessage(messageFromEvent(event));
-					break;
+		if (this.isRunning()) {
+			if (CollectionUtils.isEmpty(this.eventTypes)) {
+				this.sendMessage(messageFromEvent(event));
+			}
+			else {
+				for (Class<? extends TcpConnectionEvent> eventType : this.eventTypes) {
+					if (eventType.isAssignableFrom(event.getClass())) {
+						this.sendMessage(messageFromEvent(event));
+						break;
+					}
 				}
 			}
 		}
