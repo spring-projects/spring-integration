@@ -23,8 +23,8 @@
 		<queue capacity="1"/>
 	</channel>
 
-	<filter ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput">
-		<request-handler-advice-chain>
+	<filter id="advised" ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput">
+		<request-handler-advice-chain discard-within-advice="false">
 			<beans:bean class="org.springframework.integration.config.FilterParserTests$FooFilter" />
 		</request-handler-advice-chain>
 	</filter>
@@ -32,7 +32,7 @@
 	<beans:bean id="selectorBean"
 		class="org.springframework.integration.config.FilterParserTests$TestSelectorBean"/>
 
-	<filter ref="selectorImpl" input-channel="implementationInput" output-channel="implementationOutput"/>
+	<filter id="notAdvised" ref="selectorImpl" input-channel="implementationInput" output-channel="implementationOutput"/>
 
 	<filter ref="selectorImpl" input-channel="exceptionInput" output-channel="implementationOutput" throw-exception-on-rejection="true"/>
 

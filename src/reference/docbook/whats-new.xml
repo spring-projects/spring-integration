@@ -82,6 +82,16 @@
 					for at least this number of milliseconds. For more information see <xref linkend="aggregator-config"/>.
 				</para>
 		</section>
+		<section id="3.0-advising-filters">
+			<title>Advising Filters</title>
+			<para>
+				Previously, when a &lt;filter/&gt; had a &lt;request-handler-advice-chain/&gt;, the discard
+				action was all performed within the scope of the advice chain (including any downstream flow
+				on the <code>discard-channel</code>). The filter element now has an attribute
+				<code>discard-within-advice</code> (default <code>true</code>), to allow the discard action to
+				be performed after the advice chain completes. See <xref linkend="advising-filters"/>.
+			</para>
+		</section>
 		<section id="3.0-o-t-s-t">
 			<title>ObjectToStringTransformer Improvements</title>
 			<para>

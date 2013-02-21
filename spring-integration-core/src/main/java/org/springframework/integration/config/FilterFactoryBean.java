@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Factory bean for creating a Message Filter.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
@@ -39,6 +40,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	private volatile Long sendTimeout;
 
+	private volatile Boolean discardWithinAdvice;
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
 		this.discardChannel = discardChannel;
@@ -50,6 +52,10 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
+	}
+
+	public void setDiscardWithinAdvice(boolean discardWithinAdvice) {
+		this.discardWithinAdvice = discardWithinAdvice;
 	}
 
 	@Override
@@ -82,6 +88,9 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		}
 		if (this.sendTimeout != null) {
 			filter.setSendTimeout(this.sendTimeout.longValue());
+		}
+		if (this.discardWithinAdvice != null) {
+			filter.setDiscardWithinAdvice(this.discardWithinAdvice);
 		}
 		return filter;
 	}
