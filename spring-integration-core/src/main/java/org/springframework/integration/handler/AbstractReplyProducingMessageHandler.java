@@ -104,6 +104,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.adviceChain = adviceChain;
 	}
 
+	protected boolean hasAdviceChain() {
+		return this.adviceChain != null && this.adviceChain.size() > 0;
+	}
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
@@ -134,7 +137,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			result = this.handleRequestMessage(message);
 		}
 		else {
-			result = this.advisedRequestHandler.handleRequestMessage(message);
+			result = doInvokeAdvisedRequestHandler(message);
 		}
 		if (result != null) {
 			MessageHeaders requestHeaders = message.getHeaders();
@@ -147,6 +150,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		else if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
 		}
+	}
+
+	protected Object doInvokeAdvisedRequestHandler(Message<?> message) {
+		return this.advisedRequestHandler.handleRequestMessage(message);
 	}
 
 	private void handleResult(Object result, MessageHeaders requestHeaders) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,14 +31,17 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -69,7 +74,19 @@ public class FilterParserTests {
 	@Autowired @Qualifier("discardAndExceptionOutput")
 	PollableChannel discardAndExceptionOutput;
 
+	@Autowired @Qualifier("advised.handler")
+	MessageFilter advised;
+
+	@Autowired @Qualifier("notAdvised.handler")
+	MessageFilter notAdvised;
+
 	private static volatile int adviceCalled;
+
+	@Test
+	public void adviseDiscard() {
+		assertFalse(TestUtils.getPropertyValue(this.advised, "postProcessWithinAdvice", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(this.notAdvised, "postProcessWithinAdvice", Boolean.class));
+	}
 
 	@Test
 	public void filterWithSelectorAdapterAccepts() {

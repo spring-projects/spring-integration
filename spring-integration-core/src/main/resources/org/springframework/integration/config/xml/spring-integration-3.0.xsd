@@ -2402,7 +2402,26 @@
 
 	<xsd:complexType name="filter-type">
 		<xsd:complexContent>
-			<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+			<xsd:extension base="expressionOrInnerEndpointDefinitionAwareNoAdviceChain">
+			    <xsd:sequence>
+					<xsd:element name="request-handler-advice-chain" minOccurs="0" maxOccurs="1">
+						<xsd:complexType>
+							<xsd:complexContent>
+								<xsd:extension base="adviceChainType">
+									<xsd:attribute name="advise-discard" type="xsd:string" default="true">
+										<xsd:annotation>
+											<xsd:documentation><![CDATA[
+						When true (default) any discard action (and exception thrown) will occur
+						within the scope of the advice classes in the chain. Otherwise, these actions
+						will occur after the advice chain returns.
+											]]></xsd:documentation>
+										</xsd:annotation>
+									</xsd:attribute>
+								</xsd:extension>
+							</xsd:complexContent>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
 				<xsd:attribute name="discard-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -3556,6 +3575,25 @@ is provided, the return value is expected to match a channel name exactly.
 					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
+					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
+				</xsd:choice>
+				<xsd:attribute name="expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							A SpEL expression to be evaluated against the input Message as its root object.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="expressionOrInnerEndpointDefinitionAwareNoAdviceChain">
+		<xsd:complexContent>
+			<xsd:extension base="handlerEndpointType">
+				<xsd:choice minOccurs="0" maxOccurs="2">
+					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 				<xsd:attribute name="expression" type="xsd:string">
