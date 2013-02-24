@@ -16,9 +16,9 @@
 
 package org.springframework.integration.event.inbound;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ApplicationContextEvent;
@@ -40,21 +40,16 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
- *
  * @see ApplicationEventMulticaster
  * @see ExpressionMessageProducerSupport
  */
 public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport implements SmartApplicationListener {
 
-	private final Lock readEventTypesLock;
-	private final Lock writeEventTypesLock;
+	private final Lock changeEventTypesLock = new ReentrantLock();
 
-	{
-		ReadWriteLock lock = new ReentrantReadWriteLock();
-		readEventTypesLock = lock.readLock();
-		writeEventTypesLock = lock.writeLock();
-	}
+	private volatile boolean eventTypesChanging;
 
+	private volatile CountDownLatch changeEventTypesLatch;
 
 	private ApplicationEventMulticaster applicationEventMulticaster;
 
@@ -72,15 +67,19 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see #supportsEventType
 	 */
 	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		this.writeEventTypesLock.lock();
+		this.changeEventTypesLock.lock();
 		try {
+			this.changeEventTypesLatch = new CountDownLatch(1);
+			this.eventTypesChanging = true;
 			this.eventTypes = eventTypes;
 			if (this.applicationEventMulticaster != null) {
 				this.applicationEventMulticaster.addApplicationListener(this);
 			}
 		}
 		finally {
-			this.writeEventTypesLock.unlock();
+			this.eventTypesChanging = false;
+			this.changeEventTypesLatch.countDown();
+			this.changeEventTypesLock.unlock();
 		}
 
 	}
@@ -100,17 +99,17 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ApplicationContextEvent || this.isRunning()) {
-
-			this.readEventTypesLock.lock();
-			try {
-				if(!this.supportsEventType(event.getClass())) {
+			if (this.eventTypesChanging) {
+				try {
+					this.changeEventTypesLatch.await();
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				if (!this.supportsEventType(event.getClass())) {
 					return;
 				}
 			}
-			finally {
-				this.readEventTypesLock.unlock();
-			}
-
 			if (event.getSource() instanceof Message<?>) {
 				this.sendMessage((Message<?>) event.getSource());
 			}

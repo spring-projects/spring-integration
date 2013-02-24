@@ -26,10 +26,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -38,14 +42,18 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
@@ -166,7 +174,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertEquals("test", message2.getPayload());
 	}
 
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void anyApplicationEventCausesExceptionWithErrorHandling() {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
@@ -236,7 +244,8 @@ public class ApplicationEventListeningMessageProducerTests {
 			}
 		}
 
-		ctx.publishEvent(new ApplicationEvent("Some event") {});
+		ctx.publishEvent(new ApplicationEvent("Some event") {
+		});
 
 		assertEquals(4, listenerCounter.get());
 
@@ -244,6 +253,69 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertNotNull(receive);
 		assertSame(event2, receive.getPayload());
 		assertNull(channel.receive(1));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt2935AELMPConcurrency() throws Exception {
+		final ApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster();
+
+		final AtomicInteger receivedMessagesCounter = new AtomicInteger();
+
+		SubscribableChannel output = new DirectChannel();
+
+		output.subscribe(new MessageHandler() {
+			public void handleMessage(Message<?> message) throws MessagingException {
+				try {
+					receivedMessagesCounter.incrementAndGet();
+					Thread.sleep(10);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		});
+
+		final ApplicationEventListeningMessageProducer listenerMessageProducer = new ApplicationEventListeningMessageProducer();
+		listenerMessageProducer.setOutputChannel(output);
+		listenerMessageProducer.setEventTypes(TestApplicationEvent1.class);
+		DirectFieldAccessor dfa = new DirectFieldAccessor(listenerMessageProducer);
+		dfa.setPropertyValue("applicationEventMulticaster", multicaster);
+		multicaster.addApplicationListener(listenerMessageProducer);
+		listenerMessageProducer.start();
+
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+
+		final AtomicInteger eventsCounter = new AtomicInteger();
+
+		executor.execute(new Runnable() {
+			public void run() {
+				while (true) {
+					if (eventsCounter.get() == 1) {
+						break;
+					}
+				}
+				listenerMessageProducer.setEventTypes(TestApplicationEvent2.class);
+				while (true) {
+					if (eventsCounter.get() == 3) {
+						break;
+					}
+				}
+				listenerMessageProducer.setEventTypes(TestApplicationEvent1.class);
+			}
+		});
+
+		executor.execute(new Runnable() {
+			public void run() {
+				for (int i = 0; i < 4; i++) {
+					multicaster.multicastEvent(new TestApplicationEvent1());
+					eventsCounter.incrementAndGet();
+				}
+			}
+		});
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
+		assertEquals(2, receivedMessagesCounter.get());
 	}
 
 	@SuppressWarnings("serial")
@@ -254,7 +326,6 @@ public class ApplicationEventListeningMessageProducerTests {
 		}
 	}
 
-
 	@SuppressWarnings("serial")
 	private static class TestApplicationEvent2 extends ApplicationEvent {
 
@@ -262,7 +333,6 @@ public class ApplicationEventListeningMessageProducerTests {
 			super("event2");
 		}
 	}
-
 
 	@SuppressWarnings("serial")
 	private static class TestMessagingEvent extends ApplicationEvent {
