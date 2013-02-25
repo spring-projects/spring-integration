@@ -76,7 +76,7 @@ public class TcpNetConnectionTests {
 		SocketChannel socketChannel = mock(SocketChannel.class);
 		Socket socket = mock(Socket.class);
 		when(socketChannel.socket()).thenReturn(socket);
-		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, null, null);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false);
 		ChannelInputStream inputStream = TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
 		inputStream.write(new byte[] {(byte) 0x80}, 1);
 		assertEquals(0x80, inputStream.read());
