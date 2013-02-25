@@ -69,7 +69,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private volatile long lastSend;
 
-	private AtomicInteger executionControl = new AtomicInteger();
+	private final AtomicInteger executionControl = new AtomicInteger();
 
 	private volatile boolean writingToPipe;
 
@@ -560,7 +560,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				}
 			}
 			int bite;
-			bite = this.currentBuffer[this.currentOffset++];
+			bite = this.currentBuffer[this.currentOffset++] & 0xff;
 			this.available.decrementAndGet();
 			if (this.currentOffset >= this.currentBuffer.length) {
 				this.currentBuffer = null;
