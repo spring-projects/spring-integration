@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -42,6 +43,7 @@ import javax.xml.transform.Source;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -673,23 +675,28 @@ public class HttpRequestExecutingMessageHandlerTests {
 	}
 
 	@Test //INT-2275
-	public void testOutboundChannelAdapterWithinChain() {
+	public void testOutboundChannelAdapterWithinChain() throws URISyntaxException {
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("HttpOutboundWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundChannelAdapterWithinChain", MessageChannel.class);
+		RestTemplate restTemplate = ctx.getBean("restTemplate", RestTemplate.class);
 		channel.send(MessageBuilder.withPayload("test").build());
-//		It's just enough if it was sent successfully from chain without any failures
+		Mockito.verify(restTemplate).exchange(Mockito.eq(new URI("http://localhost/test1/%2f")), Mockito.eq(HttpMethod.POST),
+				Mockito.any(HttpEntity.class), Mockito.eq((Class<?>) null));
 	}
 
 	@Test //INT-1029
-	public void testHttpOutboundGatewayWithinChain() throws IOException {
+	public void testHttpOutboundGatewayWithinChain() throws IOException, URISyntaxException {
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("HttpOutboundWithinChainTests-context.xml", this.getClass());
 		MessageChannel channel = ctx.getBean("httpOutboundGatewayWithinChain", MessageChannel.class);
+		RestTemplate restTemplate = ctx.getBean("restTemplate", RestTemplate.class);
 		channel.send(MessageBuilder.withPayload("test").build());
 
 		PollableChannel output = ctx.getBean("replyChannel", PollableChannel.class);
 		Message<?> receive = output.receive();
 		assertEquals(HttpStatus.OK, ((ResponseEntity<?>)receive.getPayload()).getStatusCode());
-
+		Mockito.verify(restTemplate)
+				.exchange(Mockito.eq(new URI("http://localhost:51235/%2f/testApps?param=http%20Outbound%20Gateway%20Within%20Chain")),
+				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.eq(String.class));
 	}
 
 	@Test
@@ -698,13 +705,28 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				new SpelExpressionParser().parseExpression("headers['foo']"),
 				restTemplate);
-		String theURL = "http://bar/baz";
+		String theURL = "http://bar/baz?foo#bar";
 		Message<?> message = MessageBuilder.withPayload("").setHeader("foo", theURL).build();
 		try {
 			handler.handleRequestMessage(message);
 		}
 		catch (Exception e) {}
 		assertEquals(theURL, restTemplate.actualUrl.get());
+	}
+
+	@Test
+	public void testInt2455UriNotEncoded() {
+		MockRestTemplate restTemplate = new MockRestTemplate();
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
+				new SpelExpressionParser().parseExpression("'http://my.RabbitMQ.com/api/' + payload"),
+				restTemplate);
+		handler.setEncodeUri(false);
+		Message<?> message = MessageBuilder.withPayload("queues/%2f/si.test.queue?foo#bar").build();
+		try {
+			handler.handleRequestMessage(message);
+		}
+		catch (Exception e) {}
+		assertEquals("http://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar", restTemplate.actualUrl.get());
 	}
 
 	@Test
@@ -857,9 +879,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		private final AtomicReference<String> actualUrl = new AtomicReference<String>();
 
 		@Override
-		public <T> ResponseEntity<T> exchange(String url, HttpMethod method, HttpEntity<?> requestEntity,
-				Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
-			this.actualUrl.set(url);
+		public <T> ResponseEntity<T> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity,
+				Class<T> responseType) throws RestClientException {
+			this.actualUrl.set(uri.toString());
 			this.lastRequestEntity.set(requestEntity);
 			throw new RuntimeException("intentional");
 		}
@@ -869,8 +891,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 	private static class MockRestTemplate2 extends RestTemplate {
 
 		@Override
-		public <T> ResponseEntity<T> exchange(String url, HttpMethod method, HttpEntity<?> requestEntity,
-											  Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
+		public <T> ResponseEntity<T> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity,
+											  Class<T> responseType) throws RestClientException {
 			return new ResponseEntity<T>(HttpStatus.OK);
 		}
 	}

@@ -376,7 +376,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     </para>
   </note>
   <para>
-  	<emphasis>Mapping URI variables</emphasis>
+    <emphasis>Mapping URI Variables</emphasis>
   </para>
   <para>
       If your URL contains URI variables, you can map them using the
@@ -402,6 +402,24 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       method will be invoked on the payload object of the Message and the result
       of that method will be used as the value for the URI variable named 'zipCode'.
   </para>
+  <para>
+    <emphasis>Controlling URI Encoding</emphasis>
+  </para>
+  <para>
+      By default, the URL string is encoded (see
+      <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html">UriComponentsBuilder</ulink>)
+      to the URI object before sending the request. In some scenarios with a non-standard URI (e.g. the RabbitMQ Rest API) it is
+      undesirable to perform the encoding. The <code>&lt;http:outbound-gateway/&gt;</code>
+      and <code>&lt;http:outbound-channel-adapter/&gt;</code> provide an <code>encode-uri</code> attribute.
+      To disable encoding the URL, this attribute should be set to <code>false</code> (by default it is <code>true</code>).
+      If you wish to partially encode some of the URL, this can be achieved using an <code>expression</code> within a
+      <code>&lt;uri-variable/&gt;</code>:
+  </para>
+  <programlisting language="xml"><![CDATA[<http:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
+          <http:uri-variable name="param"
+            expression="T(org.apache.commons.httpclient.util.URIUtil)
+                                             .encodeWithinQuery('Hellow World!')"/>
+</http:outbound-gateway>]]></programlisting>
 
   </section>
 
