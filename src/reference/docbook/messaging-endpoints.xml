@@ -11,5 +11,6 @@
 	<xi:include href="./scripting.xml"/>	
 	<xi:include href="./groovy.xml"/>
 	<xi:include href="./handler-advice.xml"/>
+	<xi:include href="./logging-adapter.xml"/>
 
 </chapter>
