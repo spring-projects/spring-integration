@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * A {@link MessageHandler} implementation that executes HTTP requests by delegating
@@ -89,6 +91,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private final StandardEvaluationContext evaluationContext;
 
 	private final Expression uriExpression;
+
+	private volatile boolean encodeUri = true;
 
 	private volatile Expression httpMethodExpression = new LiteralExpression(HttpMethod.POST.name());
 
@@ -155,6 +159,16 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		StandardEvaluationContext sec = new StandardEvaluationContext();
 		sec.addPropertyAccessor(new MapAccessor());
 		this.evaluationContext = sec;
+	}
+
+	/**
+	 * Specify whether the real URI should be encoded after <code>uriVariables</code>
+	 * expanding and before send request via {@link RestTemplate}. The default value is <code>true</code>.
+	 *
+	 * @see UriComponentsBuilder
+	 */
+	public void setEncodeUri(boolean encodeUri) {
+		this.encodeUri = encodeUri;
 	}
 
 	/**
@@ -348,7 +362,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			Class<?> expectedResponseType = this.determineExpectedResponseType(requestMessage);
 
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
-			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, expectedResponseType, uriVariables);
+			UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(uri).buildAndExpand(uriVariables);
+			URI realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
+			ResponseEntity<?> httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, expectedResponseType);
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
 				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);

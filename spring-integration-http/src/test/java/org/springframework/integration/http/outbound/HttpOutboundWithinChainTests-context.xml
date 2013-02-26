@@ -9,15 +9,22 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<si:chain input-channel="httpOutboundChannelAdapterWithinChain">
-		<outbound-channel-adapter url="http://localhost/test1" rest-template="restTemplate"/>
+		<outbound-channel-adapter url="http://localhost/test1/%2f" encode-uri="false" rest-template="restTemplate"/>
 	</si:chain>
 
-	<beans:bean id="restTemplate" class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandlerTests$MockRestTemplate2"/>
+	<beans:bean id="restTemplate" class="org.mockito.Mockito" factory-method="spy">
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandlerTests$MockRestTemplate2"/>
+		</beans:constructor-arg>
+	</beans:bean>
 
 	<si:chain input-channel="httpOutboundGatewayWithinChain" output-channel="replyChannel">
-		<outbound-gateway url="http://localhost:51235/testApps/httpOutboundGatewayWithinChain"
+		<outbound-gateway url="http://localhost:51235/%2f/testApps?param={param}"
 						  rest-template="restTemplate"
-						  expected-response-type="java.lang.String"/>
+						  encode-uri="false"
+						  expected-response-type="java.lang.String">
+			<uri-variable name="param" expression="T(org.apache.commons.httpclient.util.URIUtil).encodeWithinQuery('http Outbound Gateway Within Chain')"/>
+						  </outbound-gateway>
 	</si:chain>
 
 	<si:channel id="replyChannel">
