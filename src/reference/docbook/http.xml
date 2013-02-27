@@ -245,9 +245,14 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <programlisting language="xml"><![CDATA[<inbound-gateway id="inboundController"
     request-channel="requests"
     reply-channel="responses"
+    path="/foo/{fooId}"
+    supported-methods="GET"
     view-name="foo"
     error-code="oops">
-   <request-mapping headers="User-Agent" params="myParam=myValue" consumes="application/json" produces="!text/plain"/>
+   <request-mapping headers="User-Agent"
+     params="myParam=myValue"
+     consumes="application/json"
+     produces="!text/plain"/>
 </inbound-gateway>]]></programlisting>
       <para>Based on this configuration, on the background, the parser creates some Spring Integration internal <classname>RequestMapping</classname>,
     	  which, in its turn, is converted to the Spring MVC
@@ -258,8 +263,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     			  ><classname>RequestMapping</classname></ulink> annotation in the Spring MVC.
       </para>
     <para>
-        For more information regarding <emphasis>Handler Mappings</emphasis>, please
-        see:
+        For more information regarding <emphasis>Handler Mappings</emphasis>, please see:
     </para>
 
     <itemizedlist>
@@ -267,6 +271,8 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
            <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping"></ulink>
        </listitem>
     </itemizedlist>
+
+    <para></para>
 
     <para><emphasis>URI Template Variables and Expressions</emphasis></para>
 
