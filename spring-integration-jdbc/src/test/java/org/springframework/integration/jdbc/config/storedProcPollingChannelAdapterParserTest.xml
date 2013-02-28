@@ -16,7 +16,7 @@
 				data-source="dataSource" channel="target"
 				stored-procedure-name="GET_PRIME_NUMBERS"
 				return-value-required="true"
-				is-function="false">
+				is-function="true">
 			<int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
 			<int-jdbc:sql-parameter-definition name="password" direction="OUT" />
 			<int-jdbc:sql-parameter-definition name="age"      direction="INOUT" type="INTEGER"  scale="5"/>

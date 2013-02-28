@@ -132,6 +132,18 @@ public class StoredProcPollingChannelAdapterParserTests {
 		assertTrue(returnValueRequired);
 	}
 
+	@Test
+	public void testIsFunctionAttributeSet() throws Exception {
+		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollingAdapter);
+		Object source = accessor.getPropertyValue("source");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean isFunction = (Boolean) accessor.getPropertyValue("isFunction");
+		assertTrue(isFunction);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testProcedurepParametersAreSet() throws Exception {
