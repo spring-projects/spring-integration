@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@
 package org.springframework.integration.jdbc.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -116,6 +117,18 @@ public class StoredProcPollingChannelAdapterParserTests {
 		accessor = new DirectFieldAccessor(source);
 		boolean  skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
 		assertTrue("skipUndeclaredResults was not set and should default to 'true'", skipUndeclaredResults);
+	}
+
+	@Test
+	public void testIsFunctionAttributeSet() throws Exception {
+		setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollingAdapter);
+		Object source = accessor.getPropertyValue("source");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean isFunction = (Boolean) accessor.getPropertyValue("isFunction");
+		assertTrue(isFunction);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -235,6 +248,7 @@ public class StoredProcPollingChannelAdapterParserTests {
 		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
 		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertFalse(TestUtils.getPropertyValue(autoChannelAdapter, "source.executor.isFunction", Boolean.class));
 	}
 
 	@After
