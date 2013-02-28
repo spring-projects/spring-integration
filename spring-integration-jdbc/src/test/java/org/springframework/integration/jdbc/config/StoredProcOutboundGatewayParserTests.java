@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -113,6 +113,54 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		boolean returnValueRequired = (Boolean) accessor.getPropertyValue("returnValueRequired");
 		assertTrue(returnValueRequired);
+	}
+
+	@Test
+	public void testIsFunctionAttributeSet() throws Exception {
+		setUp("storedProcOutboundGatewayParserFunctionTest.xml", getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
+		Object source = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean isFunction = (Boolean) accessor.getPropertyValue("isFunction");
+		assertTrue(isFunction);
+	}
+
+	@Test
+	public void testIsFunctionAttributeSetToFalse() throws Exception {
+		setUp("storedProcOutboundGatewayParserTest.xml", getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
+		Object source = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean isFunction = (Boolean) accessor.getPropertyValue("isFunction");
+		assertFalse(isFunction);
+	}
+
+	@Test
+	public void testIsIgnoreColumnMetaDataSetToFalse() throws Exception {
+		setUp("storedProcOutboundGatewayParserTest.xml", getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
+		Object source = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean ignoreColumnMetaData = (Boolean) accessor.getPropertyValue("ignoreColumnMetaData");
+		assertFalse(ignoreColumnMetaData);
+	}
+
+	@Test
+	public void testIsIgnoreColumnMetaDataSet() throws Exception {
+		setUp("storedProcOutboundGatewayParserFunctionTest.xml", getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
+		Object source = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(source);
+		source = accessor.getPropertyValue("executor");
+		accessor = new DirectFieldAccessor(source);
+		boolean ignoreColumnMetaData = (Boolean) accessor.getPropertyValue("ignoreColumnMetaData");
+		assertTrue(ignoreColumnMetaData);
 	}
 
 	@SuppressWarnings("unchecked")
