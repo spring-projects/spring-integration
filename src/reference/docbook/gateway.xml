@@ -295,7 +295,7 @@ of this chapter.
 Future&lt;Integer&gt; result = mathService.multiplyByTwo(number);
 // do something else here since the reply might take a moment
 int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
-For a more detailed example, please refer to the <emphasis>async-gateway</emphasis> sample distributed within the Spring Integration samples.
+For a more detailed example, please refer to the <ulink url="https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate/async-gateway"><emphasis>async-gateway</emphasis></ulink> sample distributed within the Spring Integration samples.
     </para>
 
     <para><emphasis>Asynchronous Gateway and AsyncTaskExecutor</emphasis></para>
