@@ -16,9 +16,10 @@
 
 package org.springframework.integration.event.inbound;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ApplicationContextEvent;
@@ -40,12 +41,13 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @see ApplicationEventMulticaster
  * @see ExpressionMessageProducerSupport
  */
 public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport implements SmartApplicationListener {
 
-	private final Lock changeEventTypesLock = new ReentrantLock();
+	private volatile Collection<Class<? extends ApplicationEvent>> eventTypes;
 
 	private volatile boolean eventTypesChanging;
 
@@ -53,7 +55,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	private ApplicationEventMulticaster applicationEventMulticaster;
 
-	private volatile Class<? extends ApplicationEvent>[] eventTypes;
+	private volatile boolean active;
 
 	/**
 	 * Set the list of event types (classes that extend ApplicationEvent) that
@@ -67,21 +69,14 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see #supportsEventType
 	 */
 	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		this.changeEventTypesLock.lock();
-		try {
-			this.changeEventTypesLatch = new CountDownLatch(1);
-			this.eventTypesChanging = true;
-			this.eventTypes = eventTypes;
-			if (this.applicationEventMulticaster != null) {
-				this.applicationEventMulticaster.addApplicationListener(this);
-			}
+		this.changeEventTypesLatch = new CountDownLatch(1);
+		this.eventTypesChanging = true;
+		this.eventTypes = new HashSet<Class<? extends ApplicationEvent>>(Arrays.asList(eventTypes));
+		if (this.applicationEventMulticaster != null) {
+			this.applicationEventMulticaster.addApplicationListener(this);
 		}
-		finally {
-			this.eventTypesChanging = false;
-			this.changeEventTypesLatch.countDown();
-			this.changeEventTypesLock.unlock();
-		}
-
+		this.eventTypesChanging = false;
+		this.changeEventTypesLatch.countDown();
 	}
 
 	public String getComponentType() {
@@ -98,16 +93,20 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof ApplicationContextEvent || this.isRunning()) {
+		if (this.active || event instanceof ApplicationContextEvent) {
 			if (this.eventTypesChanging) {
 				try {
 					this.changeEventTypesLatch.await();
+					if (!this.supportsEventType(event.getClass())) {
+						if (this.logger.isInfoEnabled()) {
+							this.logger.info("Received event: " + event +
+									" was discarded after change of 'eventTypes': " + this.eventTypes);
+						}
+						return;
+					}
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-				}
-				if (!this.supportsEventType(event.getClass())) {
-					return;
 				}
 			}
 			if (event.getSource() instanceof Message<?>) {
@@ -138,6 +137,16 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	public int getOrder() {
 		return Ordered.LOWEST_PRECEDENCE;
+	}
+
+	@Override
+	protected void doStart() {
+		this.active = true;
+	}
+
+	@Override
+	protected void doStop() {
+		this.active = false;
 	}
 
 }

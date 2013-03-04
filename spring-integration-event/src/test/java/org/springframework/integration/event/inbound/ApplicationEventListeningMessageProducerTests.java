@@ -24,6 +24,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -31,8 +33,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationEvent;
@@ -258,7 +264,11 @@ public class ApplicationEventListeningMessageProducerTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testInt2935AELMPConcurrency() throws Exception {
-		final ApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster();
+		ExecutorService executor = Executors.newCachedThreadPool();
+
+		SimpleApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster();
+		multicaster = Mockito.spy(multicaster);
+		multicaster.setTaskExecutor(executor);
 
 		final AtomicInteger receivedMessagesCounter = new AtomicInteger();
 
@@ -266,56 +276,74 @@ public class ApplicationEventListeningMessageProducerTests {
 
 		output.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
-				try {
-					receivedMessagesCounter.incrementAndGet();
-					Thread.sleep(10);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
+				receivedMessagesCounter.incrementAndGet();
 			}
 		});
 
 		final ApplicationEventListeningMessageProducer listenerMessageProducer = new ApplicationEventListeningMessageProducer();
+		Log logger = TestUtils.getPropertyValue(listenerMessageProducer, "logger", Log.class);
+		logger = Mockito.spy(logger);
 		listenerMessageProducer.setOutputChannel(output);
 		listenerMessageProducer.setEventTypes(TestApplicationEvent1.class);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(listenerMessageProducer);
 		dfa.setPropertyValue("applicationEventMulticaster", multicaster);
+		dfa.setPropertyValue("logger", logger);
 		multicaster.addApplicationListener(listenerMessageProducer);
-		listenerMessageProducer.start();
 
-		ExecutorService executor = Executors.newFixedThreadPool(2);
+		final Object defaultRetriever = TestUtils.getPropertyValue(multicaster, "defaultRetriever");
+
+		//Emulate delay on re-init of multicaster ApplicationListeners
+		Mockito.doAnswer(new Answer() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				synchronized (defaultRetriever) {
+					try {
+						Thread.sleep(10);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					return invocation.callRealMethod();
+				}
+			}
+		}).when(multicaster).addApplicationListener(Mockito.any(ApplicationListener.class));
 
 		final AtomicInteger eventsCounter = new AtomicInteger();
 
-		executor.execute(new Runnable() {
-			public void run() {
-				while (true) {
-					if (eventsCounter.get() == 1) {
-						break;
-					}
-				}
-				listenerMessageProducer.setEventTypes(TestApplicationEvent2.class);
-				while (true) {
-					if (eventsCounter.get() == 3) {
-						break;
-					}
-				}
-				listenerMessageProducer.setEventTypes(TestApplicationEvent1.class);
-			}
-		});
+		List<Class<? extends ApplicationEvent>> eventTypes = Arrays.asList(TestApplicationEvent2.class, TestApplicationEvent1.class);
 
-		executor.execute(new Runnable() {
-			public void run() {
-				for (int i = 0; i < 4; i++) {
-					multicaster.multicastEvent(new TestApplicationEvent1());
-					eventsCounter.incrementAndGet();
+		final AtomicInteger eventTypesChangerCounter = new AtomicInteger();
+
+		for (final Class<? extends ApplicationEvent> eventType : eventTypes) {
+			executor.execute(new Runnable() {
+				int i = eventTypesChangerCounter.getAndIncrement();
+
+				public void run() {
+					while (true) {
+						if (eventsCounter.get() > i * 3 + 3) {
+							break;
+						}
+					}
+					listenerMessageProducer.setEventTypes(eventType);
 				}
-			}
-		});
+			});
+		}
+
+		listenerMessageProducer.start();
+
+		for (int i = 0; i < 10; i++) {
+			multicaster.multicastEvent(new TestApplicationEvent1());
+			eventsCounter.incrementAndGet();
+			Thread.sleep(10);
+		}
+
 		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
-		assertEquals(2, receivedMessagesCounter.get());
+		executor.awaitTermination(5, TimeUnit.SECONDS);
+
+		assertThat(receivedMessagesCounter.get(), Matchers.allOf(Matchers.greaterThan(3), Matchers.lessThan(10)));
+
+		//ApplicationEventListeningMessageProducer: started
+		//Received event: ... was discarded after change of 'eventTypes':
+		Mockito.verify(logger, Mockito.atLeast(2)).info(Mockito.anyObject());
 	}
 
 	@SuppressWarnings("serial")
