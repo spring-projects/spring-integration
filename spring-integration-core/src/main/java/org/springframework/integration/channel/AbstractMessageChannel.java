@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,10 @@ import org.springframework.util.StringUtils;
  * properties such as the channel name. Also provides the common functionality
  * for sending and receiving {@link Message Messages} including the invocation
  * of any {@link ChannelInterceptor ChannelInterceptors}.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel, TrackableComponent {
 
@@ -54,7 +55,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
+	private volatile String fullChannelName;
 
+
+	@Override
 	public String getComponentType() {
 		return "channel";
 	}
@@ -66,7 +70,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	/**
 	 * Specify the Message payload datatype(s) supported by this channel. If a
 	 * payload type does not match directly, but the 'conversionService' is
-	 * available, then type conversion will be attempted in the order of the 
+	 * available, then type conversion will be attempted in the order of the
 	 * elements provided in this array.
 	 * <p>
 	 * If this property is not set explicitly, any Message payload type will be
@@ -103,6 +107,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * Finally, if that bean is not available, it will fallback to the
 	 * "conversionService" bean, if available.
 	 */
+	@Override
 	public void setConversionService(ConversionService conversionService) {
 		super.setConversionService(conversionService);
 	}
@@ -115,12 +120,28 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	}
 
 	/**
+	 * Returns the fully qualified channel name including the application context
+	 * id, if available.
+	 * @return The name.
+	 */
+	public String getFullChannelName() {
+		if (this.fullChannelName == null) {
+			String contextId = this.getApplicationContextId();
+			String componentName = this.getComponentName();
+			componentName = (StringUtils.hasText(contextId) ? contextId + "." : "") +
+					(StringUtils.hasText(componentName) ? componentName : "unknown.channel.name");
+			this.fullChannelName = componentName;
+		}
+		return this.fullChannelName;
+	}
+
+	/**
 	 * Send a message on this channel. If the channel is at capacity, this
 	 * method will block until either space becomes available or the sending
 	 * thread is interrupted.
-	 * 
+	 *
 	 * @param message the Message to send
-	 * 
+	 *
 	 * @return <code>true</code> if the message is sent successfully or
 	 * <code>false</code> if the sending thread is interrupted.
 	 */
@@ -134,10 +155,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * is interrupted. If the specified timeout is 0, the method will return
 	 * immediately. If less than zero, it will block indefinitely (see
 	 * {@link #send(Message)}).
-	 * 
+	 *
 	 * @param message the Message to send
 	 * @param timeout the timeout in milliseconds
-	 * 
+	 *
 	 * @return <code>true</code> if the message is sent successfully,
 	 * <code>false</code> if the message cannot be sent within the allotted
 	 * time or the sending thread is interrupted.
@@ -185,8 +206,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 			}
 		}
 		throw new MessageDeliveryException(message, "Channel '" + this.getComponentName() +
-				"' expected one of the following datataypes [" + 
-				StringUtils.arrayToCommaDelimitedString(this.datatypes) + 
+				"' expected one of the following datataypes [" +
+				StringUtils.arrayToCommaDelimitedString(this.datatypes) +
 				"], but received [" + message.getPayload().getClass() + "]");
 	}
 

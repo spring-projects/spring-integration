@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ public class DispatcherHasNoSubscribersTests {
 
 		PointToPointSubscribableAmqpChannel amqpChannel = new PointToPointSubscribableAmqpChannel("noSubscribersChannel",
 				container, amqpTemplate);
+		amqpChannel.setBeanName("noSubscribersChannel");
 		amqpChannel.afterPropertiesSet();
 
 		MessageListener listener = (MessageListener) container.getMessageListener();
@@ -79,7 +80,7 @@ public class DispatcherHasNoSubscribersTests {
 			fail("Exception expected");
 		}
 		catch (MessageDeliveryException e) {
-			assertEquals("Dispatcher has no subscribers for amqp-channel noSubscribersChannel.", e.getMessage());
+			assertEquals("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.", e.getMessage());
 		}
 	}
 
@@ -98,12 +99,13 @@ public class DispatcherHasNoSubscribersTests {
 		AmqpTemplate amqpTemplate = mock(AmqpTemplate.class);
 		final Queue queue = new Queue("noSubscribersQueue");
 		PublishSubscribeAmqpChannel amqpChannel = new PublishSubscribeAmqpChannel("noSubscribersChannel",
-				container, amqpTemplate) { 
+				container, amqpTemplate) {
 					@Override
 					protected Queue initializeQueue(AmqpAdmin admin,
 							String channelName) {
 						return queue;
 					}};
+		amqpChannel.setBeanName("noSubscribersChannel");
 		amqpChannel.afterPropertiesSet();
 
 		List<String> logList = insertMockLoggerInListener(amqpChannel);
@@ -142,7 +144,7 @@ public class DispatcherHasNoSubscribersTests {
 			assertNotNull("Failed to get expected exception", message);
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				expectedExceptionFound = true;
-				assertEquals("Dispatcher has no subscribers for amqp-channel noSubscribersChannel.", message);
+				assertEquals("Dispatcher has no subscribers for amqp-channel 'noSubscribersChannel'.", message);
 				break;
 			}
 		}

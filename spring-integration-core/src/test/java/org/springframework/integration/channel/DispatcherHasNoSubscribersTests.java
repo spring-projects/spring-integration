@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  */
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.message.GenericMessage;
@@ -41,14 +44,21 @@ public class DispatcherHasNoSubscribersTests {
 	@Autowired
 	MessageChannel subscribedChannel;
 
+	@Autowired
+	AbstractApplicationContext applicationContext;
+
+	@Before
+	public void setup() {
+		applicationContext.setId("foo");
+	}
+
 	@Test
 	public void oneChannel() {
 		try {
 			noSubscribersChannel.send(new GenericMessage<String>("Hello, world!"));
 			fail("Exception expected");
 		} catch (MessagingException e) {
-			assertEquals("Dispatcher has no subscribers for channel noSubscribersChannel.", e.getMessage());
-			assertEquals("Dispatcher has no subscribers for channel noSubscribersChannel.", e.getLocalizedMessage());
+			assertEquals("Dispatcher has no subscribers for channel 'foo.noSubscribersChannel'.", e.getMessage());
 		}
 	}
 
@@ -58,8 +68,19 @@ public class DispatcherHasNoSubscribersTests {
 			subscribedChannel.send(new GenericMessage<String>("Hello, world!"));
 			fail("Exception expected");
 		} catch (MessagingException e) {
-			assertEquals("Dispatcher has no subscribers for channel noSubscribersChannel.", e.getMessage());
-			assertEquals("Dispatcher has no subscribers for channel noSubscribersChannel.", e.getLocalizedMessage());
+			assertEquals("Dispatcher has no subscribers for channel 'foo.noSubscribersChannel'.", e.getMessage());
+		}
+	}
+
+	@Test
+	public void withNoContext() {
+		DirectChannel channel = new DirectChannel();
+		channel.setBeanName("bar");
+		try {
+			channel.send(new GenericMessage<String>("Hello, world!"));
+			fail("Exception expected");
+		} catch (MessagingException e) {
+			assertEquals("Dispatcher has no subscribers for channel 'bar'.", e.getMessage());
 		}
 	}
 

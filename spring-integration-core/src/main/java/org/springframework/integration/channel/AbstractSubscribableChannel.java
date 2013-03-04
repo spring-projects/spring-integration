@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base implementation of {@link MessageChannel} that invokes the subscribed
@@ -37,7 +36,8 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public abstract class AbstractSubscribableChannel extends AbstractMessageChannel implements SubscribableChannel {
+public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
+		implements SubscribableChannel {
 
 	private final AtomicInteger handlerCounter = new AtomicInteger();
 
@@ -66,7 +66,7 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 				counter = handlerCounter.addAndGet(delta);
 			}
 			if (logger.isInfoEnabled()) {
-				logger.info("Channel '" + this.getComponentName() + "' has " + counter + " subscriber(s).");
+				logger.info("Channel '" + this.getFullChannelName() + "' has " + counter + " subscriber(s).");
 			}
 		}
 	}
@@ -77,10 +77,8 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 			return this.getRequiredDispatcher().dispatch(message);
 		}
 		catch (MessageDispatchingException e) {
-			String componentName = this.getComponentName();
-			componentName = StringUtils.hasText(componentName) ? componentName : "unknown";
-			throw new MessageDeliveryException(message, e.getMessage()
-					+ " for channel " + componentName + ".", e);
+			String description = e.getMessage() + " for channel '" + this.getFullChannelName() + "'.";
+			throw new MessageDeliveryException(message, description, e);
 		}
 	}
 
