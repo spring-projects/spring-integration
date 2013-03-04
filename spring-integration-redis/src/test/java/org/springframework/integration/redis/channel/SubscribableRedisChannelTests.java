@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ import org.springframework.util.ReflectionUtils;
  * @since 2.0
  */
 public class SubscribableRedisChannelTests extends RedisAvailableTests{
-	
 
-	@Test 
+
+	@Test
 	@RedisAvailable
 	public void pubSubChanneTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
@@ -77,6 +77,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests{
 		connectionFactory.afterPropertiesSet();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel.no.subs");
+		channel.setBeanName("dhnsChannel");
 		channel.setBeanFactory(mock(BeanFactory.class));
 		channel.afterPropertiesSet();
 
@@ -94,7 +95,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests{
 		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
 			assertNotNull(cause);
-			assertEquals("Dispatcher has no subscribers for redis-channel si.test.channel.no.subs.", cause.getMessage());
+			assertEquals("Dispatcher has no subscribers for redis-channel 'si.test.channel.no.subs' (dhnsChannel).", cause.getMessage());
 		}
 
 	}

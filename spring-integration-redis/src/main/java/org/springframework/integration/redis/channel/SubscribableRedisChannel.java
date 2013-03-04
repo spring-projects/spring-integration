@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,8 +191,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 				String topicName = SubscribableRedisChannel.this.topicName;
 				topicName = StringUtils.hasText(topicName) ? topicName : "unknown";
 				throw new MessageDeliveryException(siMessage, e.getMessage()
-						+ " for redis-channel "
-						+ topicName + ".", e);
+						+ " for redis-channel '"
+						+ topicName + "' (" + SubscribableRedisChannel.this.getFullChannelName()
+						+ ").", e);
 			}
 		}
 	}

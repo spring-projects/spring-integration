@@ -292,7 +292,7 @@ public class SubscribableJmsChannelTests {
 			fail("Exception expected");
 		}
 		catch (MessageDeliveryException e) {
-			assertEquals("Dispatcher has no subscribers for jms-channel noSubscribersChannel.", e.getMessage());
+			assertEquals("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.", e.getMessage());
 		}
 	}
 
@@ -346,7 +346,7 @@ public class SubscribableJmsChannelTests {
 			assertNotNull("Failed to get expected exception", message);
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				expectedExceptionFound = true;
-				assertEquals("Dispatcher has no subscribers for jms-channel noSubscribersChannel.", message);
+				assertEquals("Dispatcher has no subscribers for jms-channel 'noSubscribersChannel'.", message);
 				break;
 			}
 		}
