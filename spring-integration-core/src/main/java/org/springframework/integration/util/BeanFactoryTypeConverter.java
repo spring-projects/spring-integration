@@ -27,6 +27,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.expression.TypeConverter;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author Dave Syer
@@ -105,10 +108,15 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		 *  INT-2630 Spring 3.1 now converts ALL arguments; we know we don't need to convert MessageHeaders
 		 *  or MessageHistory; the MapToMap converter requires a no-arg constructor.
 		 *  Also INT-2650 - don't convert large byte[]
-		 *  This reverts the effective logic to Spring 3.0.
 		 */
-		if (sourceType != null && sourceType.isAssignableTo(targetType)) {
-			return value;
+		if (sourceType != null) {
+			Class<?> sourceClass = sourceType.getType();
+			Class<?> targetClass = targetType.getType();
+			if ((sourceClass == MessageHeaders.class && targetClass == MessageHeaders.class) ||
+				(sourceClass == MessageHistory.class && targetClass == MessageHistory.class) ||
+				(sourceType.isAssignableTo(targetType) && ClassUtils.isPrimitiveArray(sourceClass))) {
+				return value;
+			}
 		}
 		if (conversionService.canConvert(sourceType, targetType)) {
 			return conversionService.convert(value, sourceType, targetType);
@@ -124,7 +132,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 					editor.setValue(value);
 					text = editor.getAsText();
 				}
-				if (String.class.isAssignableFrom(targetType.getClass())) {
+				if (String.class.isAssignableFrom(targetType.getType())) {
 					return text;
 				}
 				return convertValue(text, TypeDescriptor.valueOf(String.class), targetType);
