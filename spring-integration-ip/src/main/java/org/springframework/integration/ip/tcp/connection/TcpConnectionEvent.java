@@ -61,7 +61,7 @@ public class TcpConnectionEvent extends ApplicationEvent {
 	}
 
 	public EventType getType() {
-		return type;
+		return this.type;
 	}
 
 	public String getConnectionId() {
@@ -69,7 +69,11 @@ public class TcpConnectionEvent extends ApplicationEvent {
 	}
 
 	public String getConnectionFactoryName() {
-		return connectionFactoryName;
+		return this.connectionFactoryName;
+	}
+
+	public Throwable getThrowable() {
+		return this.throwable;
 	}
 
 	@Override

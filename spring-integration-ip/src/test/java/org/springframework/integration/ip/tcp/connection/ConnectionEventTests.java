@@ -17,6 +17,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -42,18 +43,19 @@ public class ConnectionEventTests {
 	@Test
 	public void test() throws Exception {
 		Socket socket = mock(Socket.class);
-		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
+		final AtomicReference<TcpConnectionEvent> theEvent = new AtomicReference<TcpConnectionEvent>();
 		TcpNetConnection conn = new TcpNetConnection(socket, false, false, new ApplicationEventPublisher() {
 
 			public void publishEvent(ApplicationEvent event) {
-				theEvent.set(event);
+				theEvent.set((TcpConnectionEvent) event);
 			}
 		}, "foo");
 		assertNotNull(theEvent.get());
 		assertEquals("TcpConnectionEvent [type=OPEN, factory=foo, connectionId=" + conn.getConnectionId() + "]", theEvent.get().toString());
 		@SuppressWarnings("unchecked")
 		Serializer<Object> serializer = mock(Serializer.class);
-		doThrow(new RuntimeException("foo")).when(serializer).serialize(Mockito.any(Object.class), Mockito.any(OutputStream.class));
+		RuntimeException toBeThrown = new RuntimeException("foo");
+		doThrow(toBeThrown).when(serializer).serialize(Mockito.any(Object.class), Mockito.any(OutputStream.class));
 		conn.setMapper(new TcpMessageMapper());
 		conn.setSerializer(serializer);
 		try {
@@ -64,6 +66,8 @@ public class ConnectionEventTests {
 		assertNotNull(theEvent.get());
 		assertEquals("TcpConnectionEvent [type=EXCEPTION, factory=foo, connectionId=" + conn.getConnectionId() +
 				", Exception=java.lang.RuntimeException: foo]", theEvent.get().toString());
+		assertNotNull(theEvent.get().getThrowable());
+		assertSame(toBeThrown, theEvent.get().getThrowable());
 		conn.close();
 		assertNotNull(theEvent.get());
 		assertEquals("TcpConnectionEvent [type=CLOSE, factory=foo, connectionId=" + conn.getConnectionId() + "]", theEvent.get().toString());

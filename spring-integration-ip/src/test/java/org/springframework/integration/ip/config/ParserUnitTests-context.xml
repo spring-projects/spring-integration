@@ -419,7 +419,13 @@
 		</constructor-arg>
 	</bean>
 
-	<ip:tcp-connection-event-inbound-channel-adapter id="eventAdapter" channel="nullChannel"
+	<ip:tcp-connection-event-inbound-channel-adapter id="eventAdapter" channel="eventChannel"
+		auto-startup="false" phase="23" error-channel="eventErrors"
 		event-types="org.springframework.integration.ip.config.ParserUnitTests$EventSubclass1, org.springframework.integration.ip.config.ParserUnitTests$EventSubclass2"/>
 
+	<int:channel id="eventChannel">
+		<int:queue />
+	</int:channel>
+
+	<int:channel id="eventErrors" />
 </beans>
