@@ -372,20 +372,20 @@ consumer.setTaskExecutor(taskExecutor);</programlisting>
 
     <para>
       For example, a simple interval-based poller with a 1-second interval would be
-      configured like this: <programlisting language="xml"><![CDATA[ <int:transformer input-channel="pollable"
-              ref="transformer"
-              output-channel="output">
-     <int:poller fixed-rate="1000"/>
+      configured like this: <programlisting language="xml"><![CDATA[<int:transformer input-channel="pollable"
+    ref="transformer"
+    output-channel="output">
+    <int:poller fixed-rate="1000"/>
 </int:transformer>]]></programlisting>
 	  As an alternative to <emphasis>fixed-rate</emphasis> you can also use the <emphasis>fixed-delay</emphasis> attribute.
 	  </para>
 	  <para>
       For a poller based on a Cron expression, use the <emphasis>cron</emphasis> attribute instead:
-      <programlisting language="xml"><![CDATA[ <int:transformer input-channel="pollable"
-              ref="transformer"
-              output-channel="output">
-     <int:poller cron="*/10 * * * * MON-FRI"/>
- </int:transformer>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:transformer input-channel="pollable"
+    ref="transformer"
+    output-channel="output">
+    <int:poller cron="*/10 * * * * MON-FRI"/>
+</int:transformer>]]></programlisting>
     </para>
     <para>
       If the input channel is a <interfacename>PollableChannel</interfacename>, then the poller configuration is
@@ -398,13 +398,13 @@ consumer.setTaskExecutor(taskExecutor);</programlisting>
       It is also possible to create top-level pollers in which case only a <emphasis>ref</emphasis> is required:
      </para>
 
-     <programlisting language="xml"><![CDATA[ <int:poller id="weekdayPoller" cron="*/10 * * * * MON-FRI"/>
+     <programlisting language="xml"><![CDATA[<int:poller id="weekdayPoller" cron="*/10 * * * * MON-FRI"/>
 
- <int:transformer input-channel="pollable"
-              ref="transformer"
-              output-channel="output">
+<int:transformer input-channel="pollable"
+    ref="transformer"
+    output-channel="output">
     <int:poller ref="weekdayPoller"/>
- </int:transformer>]]></programlisting>
+</int:transformer>]]></programlisting>
 
  	<note>
 	 	<para>
@@ -423,12 +423,12 @@ consumer.setTaskExecutor(taskExecutor);</programlisting>
       endpoint with a PollableChannel for its input-channel that is defined within the same ApplicationContext and has
       no explicitly configured <emphasis>poller</emphasis> sub-element will use that default.
     </para>
-      <programlisting language="xml"><![CDATA[ <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="3000"/>
+      <programlisting language="xml"><![CDATA[<int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="3000"/>
 
- <!-- No <poller/> sub-element is necessary since there is a default -->
- <int:transformer input-channel="pollable"
-                  ref="transformer"
-                  output-channel="output"/>]]></programlisting>
+<!-- No <poller/> sub-element is necessary since there is a default -->
+<int:transformer input-channel="pollable"
+                 ref="transformer"
+                 output-channel="output"/>]]></programlisting>
 
     <para>
         <emphasis>Transaction Support</emphasis>
@@ -491,12 +491,12 @@ any transaction configuration essentially allowing you to enhance the behavior o
       (the other major factor being the expected volume on the channel to which the endpoint subscribes). To enable
       concurrency for a polling endpoint that is configured with the XML namespace support, provide the <emphasis>task-executor</emphasis>
       reference on its &lt;poller/&gt; element and then provide one or more of the properties shown below:
-      <programlisting language="xml"><![CDATA[ <int:poller task-executor="pool" fixed-rate="1000"/>
+      <programlisting language="xml"><![CDATA[<int:poller task-executor="pool" fixed-rate="1000"/>
 
- <task:executor id="pool"
-                pool-size="5-25"
-                queue-capacity="20"
-                keep-alive="120"/>]]></programlisting>
+<task:executor id="pool"
+               pool-size="5-25"
+               queue-capacity="20"
+               keep-alive="120"/>]]></programlisting>
       If no <emphasis>task-executor</emphasis> is provided, the consumer's handler will be invoked in the caller's thread. Note that the
       <emphasis>caller</emphasis> is usually the default <interfacename>TaskScheduler</interfacename>
       (see <xref linkend="namespace-taskscheduler"/>). Also, keep in mind that the <emphasis>task-executor</emphasis> attribute can
@@ -513,11 +513,11 @@ any transaction configuration essentially allowing you to enhance the behavior o
         hand when using Spring Integration's own queue-based channels, the timeout value does have a chance to
         participate. The following example demonstrates how a Polling Consumer will receive Messages nearly
         instantaneously.
-      <programlisting language="xml"><![CDATA[ <int:service-activator input-channel="someQueueChannel"
-        output-channel="output">
-     <int:poller receive-timeout="30000" fixed-rate="10"/>
+      <programlisting language="xml"><![CDATA[<int:service-activator input-channel="someQueueChannel"
+    output-channel="output">
+    <int:poller receive-timeout="30000" fixed-rate="10"/>
 
- </int:service-activator>]]></programlisting>
+</int:service-activator>]]></programlisting>
       Using this approach does not carry much overhead since internally it is nothing more then a timed-wait thread
       which does not require nearly as much CPU resource usage as a thrashing, infinite while loop for example.
     </para>
@@ -593,13 +593,13 @@ any transaction configuration essentially allowing you to enhance the behavior o
       To register a Converter all you need is to implement
       <interfacename>org.springframework.core.convert.converter.Converter</interfacename> and define it via
       convenient namespace support:
-      <programlisting language="xml"><![CDATA[ <int:converter ref="sampleConverter"/>
+      <programlisting language="xml"><![CDATA[<int:converter ref="sampleConverter"/>
 
 <bean id="sampleConverter" class="foo.bar.TestConverter"/>]]></programlisting>
 
       or as an inner bean:
-      <programlisting language="xml"><![CDATA[ <int:converter>
-	<bean class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter3"/>
+      <programlisting language="xml"><![CDATA[<int:converter>
+    <bean class="o.s.i.config.xml.ConverterParserTests$TestConverter3"/>
 </int:converter>]]></programlisting>
      </para>
      <important>

@@ -189,18 +189,18 @@ as a convinience.
       </para>
       <para>
         Key strategy interfaces for this feature are
-      <programlisting><![CDATA[public interface TransactionSynchronizationFactory {
+      <programlisting language="java"><![CDATA[public interface TransactionSynchronizationFactory {
 
-	TransactionSynchronization create(Object key);
+    TransactionSynchronization create(Object key);
 }
 
 public interface TransactionSynchronizationProcessor {
 
-	void processBeforeCommit(IntegrationResourceHolder holder);
+    void processBeforeCommit(IntegrationResourceHolder holder);
 
-	void processAfterCommit(IntegrationResourceHolder holder);
+    void processAfterCommit(IntegrationResourceHolder holder);
 
-	void processAfterRollback(IntegrationResourceHolder holder);
+    void processAfterRollback(IntegrationResourceHolder holder);
 
 }]]></programlisting>
 
@@ -229,19 +229,19 @@ public interface TransactionSynchronizationProcessor {
         To simplify configuration of these components, namespace support for the default factory has been provided. Configuration is best
         described using an example:
       </para>
-      <programlisting><![CDATA[<int-file:inbound-channel-adapter id="inputDirPoller"
-				  channel="someChannel"
-				  directory="/foo/bar"
-				  filter="filter"
-				  comparator="testComparator">
-	<int:poller fixed-rate="5000">
-		<int:transactional transaction-manager="transactionManager" synchronization-factory="syncFactory" />
-	</int:poller>
+      <programlisting language="xml"><![CDATA[<int-file:inbound-channel-adapter id="inputDirPoller"
+    channel="someChannel"
+    directory="/foo/bar"
+    filter="filter"
+    comparator="testComparator">
+    <int:poller fixed-rate="5000">
+        <int:transactional transaction-manager="transactionManager" synchronization-factory="syncFactory" />
+    </int:poller>
 </int-file:inbound-channel-adapter>
 
 <int:transaction-synchronization-factory id="syncFactory">
-	<int:after-commit expression="payload.renameTo('/success/' + payload.name)" channel="committedChannel" />
-	<int:after-rollback expression="payload.renameTo('/failed/' + payload.name)" channel="rolledBackChannel" />
+    <int:after-commit expression="payload.renameTo('/success/' + payload.name)" channel="committedChannel" />
+    <int:after-rollback expression="payload.renameTo('/failed/' + payload.name)" channel="rolledBackChannel" />
 </int:transaction-synchronization-factory>]]></programlisting>
       <para>
         The result of the SpEL evaluation is sent as the payload to either the <emphasis>committedChannel</emphasis>
@@ -261,10 +261,10 @@ public interface TransactionSynchronizationProcessor {
         followed by the synchronized action.
        </para>
        <para>
-        It is also important to understand that if you provide a custom <classname>TransactionSynchronizationFactory</classname>, 
-        it is responsible for creating a resource synchronization that will cause the bound resource to be unbound automatically, 
-        when the transaction completes. 
-        The default <classname>TransactionSynchronizationFactory</classname> does this by returning a subclass 
+        It is also important to understand that if you provide a custom <classname>TransactionSynchronizationFactory</classname>,
+        it is responsible for creating a resource synchronization that will cause the bound resource to be unbound automatically,
+        when the transaction completes.
+        The default <classname>TransactionSynchronizationFactory</classname> does this by returning a subclass
         of <classname>ResourceHolderSynchronization</classname>, with the default
         <emphasis>shouldUnbindAtCompletion()</emphasis> returning <code>true</code>.
        </para>
@@ -296,6 +296,6 @@ public interface TransactionSynchronizationProcessor {
         To use a <classname>PseudoTransactionManager</classname>, simply define it as a &lt;bean/&gt;, in the same
         way you would configure a real transaction manager:
       </para>
-      <programlisting><![CDATA[<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />]]></programlisting>
+      <programlisting language="xml"><![CDATA[<bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager" />]]></programlisting>
     </section>
 </appendix>

@@ -374,7 +374,7 @@ static class BankingOperationsImpl implements BankingOperations {
     <int:poller trigger="customTrigger"/>
 </int:inbound-channel-adapter>
 
-<beans:bean id="customTrigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+<beans:bean id="customTrigger" class="o.s.scheduling.support.PeriodicTrigger">
     <beans:constructor-arg value="9999"/>
 </beans:bean>]]></programlisting>
 

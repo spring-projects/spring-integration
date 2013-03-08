@@ -169,30 +169,30 @@
 		</para>
 
 		<programlisting language="xml"><![CDATA[<bean id="jpaExecutor" class="o.s.i.jpa.core.JpaExecutor">
-	<constructor-arg name="entityManager" ref="entityManager"/>
-	<property name="entityClass"        value="o.s.i.jpa.test.entity.StudentDomain"/>
-	<property name="jpaQuery"           value="select s from Student s where s.id = :id"/>
-	<property name="expectSingleResult" value="true"/>
-	<property name="jpaParameters" >
-		<util:list>
-			<bean class="org.springframework.integration.jpa.support.JpaParameter">
-				<property name="name"       value="id"/>
-				<property name="expression" value="payload"/>
-			</bean>
-		</util:list>
-	</property>
+    <constructor-arg name="entityManager" ref="entityManager"/>
+    <property name="entityClass"        value="o.s.i.jpa.test.entity.StudentDomain"/>
+    <property name="jpaQuery"           value="select s from Student s where s.id = :id"/>
+    <property name="expectSingleResult" value="true"/>
+    <property name="jpaParameters" >
+        <util:list>
+            <bean class="org.springframework.integration.jpa.support.JpaParameter">
+                <property name="name"       value="id"/>
+                <property name="expression" value="payload"/>
+            </bean>
+        </util:list>
+    </property>
 </bean>
 
 <bean id="jpaOutboundGateway" class="o.s.i.jpa.outbound.JpaOutboundGateway">
-	<constructor-arg ref="jpaExecutor"/>
-	<property        name="gatewayType"   value="RETRIEVING"/>
-	<property        name="outputChannel" ref="studentReplyChannel"/>
+    <constructor-arg ref="jpaExecutor"/>
+    <property        name="gatewayType"   value="RETRIEVING"/>
+    <property        name="outputChannel" ref="studentReplyChannel"/>
 </bean>
 
 <bean id="getStudentEndpoint"
-	  class="org.springframework.integration.endpoint.EventDrivenConsumer">
-	<constructor-arg name="inputChannel" ref="getStudentChannel"/>
-	<constructor-arg name="handler"      ref="jpaOutboundGateway"/>
+      class="org.springframework.integration.endpoint.EventDrivenConsumer">
+    <constructor-arg name="inputChannel" ref="getStudentChannel"/>
+    <constructor-arg name="handler"      ref="jpaOutboundGateway"/>
 </bean>]]></programlisting>
 		<note>
 			For more examples of constructing JPA components purely through Java,
@@ -348,19 +348,18 @@
 				adapters.The xml snippet below shows a sample where a transaction manager is configured with
 				the poller used with an <emphasis>Inbound Channel Adapter</emphasis>.
 			</para>
-			<programlisting language="xml"><![CDATA[
-<int-jpa:inbound-channel-adapter
-		channel="inboundChannelAdapterOne"
-		entity-manager="em"
-		auto-startup="true"
-		jpa-query="select s from Student s"
-		expect-single-result="true"
-		delete-after-poll="true">
-	<int:poller fixed-rate="2000" >
-		<int:transactional propagation="REQUIRED" transaction-manager="transactionManager"/>
-	</int:poller>
-</int-jpa:inbound-channel-adapter>
-			]]></programlisting>
+			<programlisting language="xml"><![CDATA[<int-jpa:inbound-channel-adapter
+    channel="inboundChannelAdapterOne"
+    entity-manager="em"
+    auto-startup="true"
+    jpa-query="select s from Student s"
+    expect-single-result="true"
+    delete-after-poll="true">
+    <int:poller fixed-rate="2000" >
+        <int:transactional propagation="REQUIRED"
+            transaction-manager="transactionManager"/>
+    </int:poller>
+</int-jpa:inbound-channel-adapter>]]></programlisting>
 			<para>
 				However, it may be necessary to specifically start a transaction when using an <emphasis>Outbound Channel Adapter</emphasis>/<emphasis>Gateway</emphasis>.
 				If a <emphasis>DirectChannel</emphasis> is an input channel for the outbound adapter/gateway,
@@ -369,15 +368,16 @@
 				in a new transaction as below.
 			</para>
 			<programlisting language="xml"><![CDATA[<int-jpa:outbound-gateway
-		request-channel="namedQueryRequestChannel"
-		reply-channel="namedQueryResponseChannel"
-		named-query="updateStudentByRollNumber"
-		entity-manager="em"
-		gateway-type="UPDATING">
-	<int-jpa:parameter name="lastName" expression="payload"/>
-	<int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>]]>
+    request-channel="namedQueryRequestChannel"
+    reply-channel="namedQueryResponseChannel"
+    named-query="updateStudentByRollNumber"
+    entity-manager="em"
+    gateway-type="UPDATING">
+    <int-jpa:parameter name="lastName" expression="payload"/>
+    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>]]>
 		<emphasis role="bold">
-		<![CDATA[<int-jpa:transactional propagation="REQUIRES_NEW" transaction-manager="transactionManager"/>]]>
+		<![CDATA[    <int-jpa:transactional propagation="REQUIRES_NEW"
+        transaction-manager="transactionManager"/>]]>
 		</emphasis><![CDATA[
 </int-jpa:outbound-gateway>]]></programlisting>
 			<para>
@@ -594,9 +594,9 @@
 					Adapter to persist an entity to the database.
 				</para>
 				<programlisting language="xml"><![CDATA[<int-jpa:outbound-channel-adapter channel="entityTypeChannel" ]]><co id="entityTypeChannel"/><![CDATA[
-        entity-class="org.springframework.integration.jpa.test.entity.Student" ]]><co id="entityClass"/><![CDATA[
-        persist-mode="PERSIST" ]]><co id="persistMode"/><![CDATA[
-        entity-manager="em"/ >]]><co id="entityMgr"/></programlisting>
+    entity-class="org.springframework.integration.jpa.test.entity.Student" ]]><co id="entityClass"/><![CDATA[
+    persist-mode="PERSIST" ]]><co id="persistMode"/><![CDATA[
+    entity-manager="em"/ >]]><co id="entityMgr"/></programlisting>
 				<calloutlist>
 					<callout arearefs="entityTypeChannel">
 						<para>
@@ -815,10 +815,10 @@ public class Student {
   order="" ]]><co id="outAdaptOrder"/><![CDATA[
   parameter-source-factory=""  ]]><co id="outAdaptParamSourceFact"/><![CDATA[
   persist-mode="MERGE"  ]]><co id="outAdaptPersistMode"/><![CDATA[
-  use-payload-as-parameter-source="true"  ]]><co id="outAdaptUserPayloadAsParamSrc"/><![CDATA[>
+  use-payload-as-parameter-source="true"  ]]><co id="outAdaptUserPayloadAsParamSrc"/><![CDATA[
 	<int:poller/>
-	<int-jpa:transactional/>   ]]><co id="outAdaptTransactional"/><![CDATA[>
-	<int-jpa:parameter/>   ]]><co id="outAdaptParam"/><![CDATA[>
+	<int-jpa:transactional/>   ]]><co id="outAdaptTransactional"/><![CDATA[
+	<int-jpa:parameter/>   ]]><co id="outAdaptParam"/><![CDATA[
 </int-jpa:outbound-channel-adapter>]]></programlisting>
 			<calloutlist>
 				<callout arearefs="outAdaptAutoStart">
@@ -1053,29 +1053,28 @@ public class Student {
 		<section id="jpa-updating-outbound-gateway">
 			<title>Updating Outbound Gateway</title>
 			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="" ]]><co id="outGateRequestChannel"/><![CDATA[
-		auto-startup="true"
-		entity-class=""
-		entity-manager=""
-		entity-manager-factory=""
-		id=""
-		jpa-operations=""
-		jpa-query=""
-		named-query=""
-		native-query=""
-		order=""
-		parameter-source-factory=""
-		persist-mode="MERGE"
-		reply-channel="" ]]><co id="outGateReplyChannel"/><![CDATA[
-		reply-timeout="" ]]><co id="outGateReplyTimeout"/><![CDATA[
-		use-payload-as-parameter-source="true">
+    auto-startup="true"
+    entity-class=""
+    entity-manager=""
+    entity-manager-factory=""
+    id=""
+    jpa-operations=""
+    jpa-query=""
+    named-query=""
+    native-query=""
+    order=""
+    parameter-source-factory=""
+    persist-mode="MERGE"
+    reply-channel="" ]]><co id="outGateReplyChannel"/><![CDATA[
+    reply-timeout="" ]]><co id="outGateReplyTimeout"/><![CDATA[
+    use-payload-as-parameter-source="true">
 
-		<int:poller/>
-		<int-jpa:transactional/>
+    <int:poller/>
+    <int-jpa:transactional/>
 
-		<int-jpa:parameter name="" type="" value=""/>
-		<int-jpa:parameter name="" expression=""/>
-
-	</int-jpa:updating-outbound-gateway>]]></programlisting>
+    <int-jpa:parameter name="" type="" value=""/>
+    <int-jpa:parameter name="" expression=""/>
+</int-jpa:updating-outbound-gateway>]]></programlisting>
 
 			<calloutlist>
 				<callout arearefs="outGateRequestChannel">
@@ -1102,31 +1101,30 @@ public class Student {
 		<section id="jpa-retrieving-outbound-gateway">
 			<title>Retrieving Outbound Gateway</title>
 			<programlisting language="xml"><![CDATA[<int-jpa:retrieving-outbound-gateway request-channel=""
-		auto-startup="true"
-		delete-after-poll="false"
-		delete-in-batch="false"
-		entity-class=""
-		entity-manager=""
-		entity-manager-factory=""
-		expect-single-result="false" ]]><co id="outGateExpectSingleResult"/><![CDATA[
-		id=""
-		jpa-operations=""
-		jpa-query=""
-		max-number-of-results="" ]]><co id="outGateMaxNumOfResults"/><![CDATA[
-		named-query=""
-		native-query=""
-		order=""
-		parameter-source-factory=""
-		reply-channel=""
-		reply-timeout=""
-		use-payload-as-parameter-source="true">
-		<int:poller></int:poller>
-		<int-jpa:transactional/>
+    auto-startup="true"
+    delete-after-poll="false"
+    delete-in-batch="false"
+    entity-class=""
+    entity-manager=""
+    entity-manager-factory=""
+    expect-single-result="false" ]]><co id="outGateExpectSingleResult"/><![CDATA[
+    id=""
+    jpa-operations=""
+    jpa-query=""
+    max-number-of-results="" ]]><co id="outGateMaxNumOfResults"/><![CDATA[
+    named-query=""
+    native-query=""
+    order=""
+    parameter-source-factory=""
+    reply-channel=""
+    reply-timeout=""
+    use-payload-as-parameter-source="true">
+    <int:poller></int:poller>
+    <int-jpa:transactional/>
 
-		<int-jpa:parameter name="" type="" value=""/>
-		<int-jpa:parameter name="" expression=""/>
-
-	</int-jpa:retrieving-outbound-gateway>]]></programlisting>
+    <int-jpa:parameter name="" type="" value=""/>
+    <int-jpa:parameter name="" expression=""/>
+</int-jpa:retrieving-outbound-gateway>]]></programlisting>
 			<calloutlist>
 				<callout arearefs="outGateExpectSingleResult">
 					<para>
@@ -1188,9 +1186,9 @@ public class Student {
 				as JPA defining parameter.
 			</para>
 			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="entityRequestChannel" ]]><co id="gatewayEntityReqChannel"/><![CDATA[
-	    reply-channel="entityResponseChannel" ]]><co id="gatewayEntityRepChannel"/><![CDATA[
-	    entity-class="org.springframework.integration.jpa.test.entity.Student"
-	    entity-manager="em"/>]]></programlisting>
+    reply-channel="entityResponseChannel" ]]><co id="gatewayEntityRepChannel"/><![CDATA[
+    entity-class="org.springframework.integration.jpa.test.entity.Student"
+    entity-manager="em"/>]]></programlisting>
 			<calloutlist>
 				<callout arearefs="gatewayEntityReqChannel">
 					<para>
@@ -1219,12 +1217,12 @@ public class Student {
 				<emphasis>Updating Outbound Gateway</emphasis>.
 			</para>
 			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="jpaqlRequestChannel"
-	  reply-channel="jpaqlResponseChannel"
-	  jpa-query="update Student s set s.lastName = :lastName where s.rollNumber = :rollNumber" ]]><co id="jpaQlGatewayQuery"/><![CDATA[
-	  entity-manager="em">
-	    <int-jpa:parameter name="lastName" expression="payload"/>
-	    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
-	</int-jpa:updating-outbound-gateway>]]></programlisting>
+  reply-channel="jpaqlResponseChannel"
+  jpa-query="update Student s set s.lastName = :lastName where s.rollNumber = :rollNumber" ]]><co id="jpaQlGatewayQuery"/><![CDATA[
+  entity-manager="em">
+    <int-jpa:parameter name="lastName" expression="payload"/>
+    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+</int-jpa:updating-outbound-gateway>]]></programlisting>
 			<calloutlist>
 				<callout arearefs="jpaQlGatewayQuery">
 					<para>
@@ -1250,12 +1248,12 @@ public class Student {
 			</para>
 
 			<programlisting language="xml"><![CDATA[<int-jpa:retrieving-outbound-gateway request-channel="retrievingGatewayReqChannel"
-	    reply-channel="retrievingGatewayReplyChannel"
-	    jpa-query="select s from Student s where s.firstName = :firstName and s.lastName = :lastName"
-	    entity-manager="em">
-	    <int-jpa:parameter name="firstName" expression="payload"/>
-	    <int-jpa:parameter name="lastName" expression="headers['lastName']"/>
-	</int-jpa:outbound-gateway>]]></programlisting>
+    reply-channel="retrievingGatewayReplyChannel"
+    jpa-query="select s from Student s where s.firstName = :firstName and s.lastName = :lastName"
+    entity-manager="em">
+    <int-jpa:parameter name="firstName" expression="payload"/>
+    <int-jpa:parameter name="lastName" expression="headers['lastName']"/>
+</int-jpa:outbound-gateway>]]></programlisting>
 
 			<para><emphasis>Update using a Named Query</emphasis></para>
 			<para>
@@ -1264,12 +1262,12 @@ public class Student {
 				attribute is used instead, as seen in the xml snippet below.
 			</para>
 			<programlisting language="xml"><![CDATA[<int-jpa:updating-outbound-gateway request-channel="namedQueryRequestChannel"
-	    reply-channel="namedQueryResponseChannel"
-	    named-query="updateStudentByRollNumber"
-	    entity-manager="em">
-	    <int-jpa:parameter name="lastName" expression="payload"/>
-	    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
-	</int-jpa:outbound-gateway>]]></programlisting>
+    reply-channel="namedQueryResponseChannel"
+    named-query="updateStudentByRollNumber"
+    entity-manager="em">
+    <int-jpa:parameter name="lastName" expression="payload"/>
+    <int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+</int-jpa:outbound-gateway>]]></programlisting>
 			<note>
 				<para>
 					You can find a complete Sample application for using Spring

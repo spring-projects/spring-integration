@@ -17,11 +17,10 @@
   </para>
   <para>
     To configure the outbound gateway write a bean definition like this:
-    <programlisting language="xml"><![CDATA[  <bean id="rmiOutGateway" class=org.spf.integration.rmi.RmiOutboundGateway>
+    <programlisting language="xml"><![CDATA[<bean id="rmiOutGateway" class=org.spf.integration.rmi.RmiOutboundGateway>
     <constructor-arg value="rmi://host"/>
     <property name="replyChannel" value="replies"/>
-  </bean>]]>
-  </programlisting>
+</bean>]]></programlisting>
     </para>
   </section>
 
@@ -29,10 +28,9 @@
     <title>Inbound RMI</title>
     <para>
     To receive messages over RMI you need to use a <classname>RmiInboundGateway</classname>. This gateway can be configured like this
-    <programlisting language="xml"><![CDATA[ <bean id="rmiOutGateway" class=org.spf.integration.rmi.RmiInboundGateway>
-     <property name="requestChannel" value="requests"/>
- </bean>]]>
-    </programlisting>
+    <programlisting language="xml"><![CDATA[<bean id="rmiOutGateway" class=org.spf.integration.rmi.RmiInboundGateway>
+    <property name="requestChannel" value="requests"/>
+</bean>]]></programlisting>
     </para>
   </section>
 
@@ -40,26 +38,26 @@
     <title>RMI namespace support</title>
     <para>
     To configure the inbound gateway you can choose to use the namespace support for it. The following code snippet shows the different configuration options that are supported.
-    <programlisting language="xml"><![CDATA[ <int-rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
+    <programlisting language="xml"><![CDATA[<int-rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
 
- <int-rmi:inbound-gateway id="gatewayWithCustomProperties" request-channel="testChannel"
-                      expect-reply="false" request-timeout="123" reply-timeout="456"/>
+<int-rmi:inbound-gateway id="gatewayWithCustomProperties" request-channel="testChannel"
+    expect-reply="false" request-timeout="123" reply-timeout="456"/>
 
- <int-rmi:inbound-gateway id="gatewayWithHost" request-channel="testChannel"
-                      registry-host="localhost"/>
+<int-rmi:inbound-gateway id="gatewayWithHost" request-channel="testChannel"
+    registry-host="localhost"/>
 
- <int-rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel"
-                      registry-port="1234"/>
+<int-rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel"
+    registry-port="1234"/>
 
- <int-rmi:inbound-gateway id="gatewayWithExecutorRef" request-channel="testChannel"
-                      remote-invocation-executor="invocationExecutor"/>]]></programlisting>
+<int-rmi:inbound-gateway id="gatewayWithExecutorRef" request-channel="testChannel"
+    remote-invocation-executor="invocationExecutor"/>]]></programlisting>
     </para>
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration for an outbound rmi gateway.
-    <programlisting language="xml"><![CDATA[ <int-rmi:outbound-gateway id="gateway"
-                       request-channel="localChannel"
-                       remote-channel="testChannel"
-                       host="localhost"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int-rmi:outbound-gateway id="gateway"
+    request-channel="localChannel"
+    remote-channel="testChannel"
+    host="localhost"/>]]></programlisting>
     </para>
   </section>
 

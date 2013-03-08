@@ -24,11 +24,12 @@
       but the delayer also has 'default-delay' and 'delay-header-name' attributes that are used to
       determine the number of milliseconds
       that each Message should be delayed. The following delays all messages by 3 seconds:
-      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" default-delay="3000" output-channel="output"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input"
+             default-delay="3000" output-channel="output"/>]]></programlisting>
       If you need per-Message determination of the delay, then you can also provide the name of a header
       using the 'delay-header-name' attribute:
-      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
-          default-delay="3000" delay-header-name="delay"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
+             default-delay="3000" delay-header-name="delay"/>]]></programlisting>
       In the example above the 3 second delay would only apply in the case that the header value is
       not present for a given inbound Message. If you only want to apply a delay to Messages that have
       an explicit header value, then you can set the 'default-delay' to 0 or don't use it at all (by default it is 0).
@@ -53,11 +54,11 @@
       provided by Spring Integration on startup: <xref linkend="namespace-taskscheduler"/>.
       If you want to delegate to a different scheduler, you can provide a reference through the delayer element's
       'scheduler' attribute:
-      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
-          delay-header-name="delay"
-          scheduler="exampleTaskScheduler"/>
+      <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
+    delay-header-name="delay"
+    scheduler="exampleTaskScheduler"/>
 
- <task:scheduler id="exampleTaskScheduler" pool-size="3"/>]]></programlisting>
+<task:scheduler id="exampleTaskScheduler" pool-size="3"/>]]></programlisting>
       <tip>
          If you configure an external <classname>ThreadPoolTaskScheduler</classname>
          you can set on this scheduler property <code>waitForTasksToCompleteOnShutdown = true</code>.
@@ -104,18 +105,18 @@
       Message will remain in the persistent <interfacename>MessageStore</interfacename>. You can use any custom
       <interfacename>org.aopalliance.aop.Advice</interfacename> implementation within the <code>&lt;advice-chain&gt;</code>.
       A sample configuration of the <code>&lt;delayer&gt;</code> may look like this:
-      <programlisting language="xml"><![CDATA[ <int:delayer id="delayer" input-channel="input" output-channel="output"
-        delay-header-name="delay"
-        message-store="jdbcMessageStore">
-     <int:advice-chain>
-       <beans:ref bean="customAdviceBean"/>
-       <tx:advice>
-         <tx:attributes>
-          <tx:method name="*" read-only="true"/>
-         </tx:attributes>
-       </tx:advice>
-     </int:advice-chain>
- </int:delayer>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
+    delay-header-name="delay"
+    message-store="jdbcMessageStore">
+    <int:advice-chain>
+        <beans:ref bean="customAdviceBean"/>
+        <tx:advice>
+            <tx:attributes>
+                <tx:method name="*" read-only="true"/>
+            </tx:attributes>
+        </tx:advice>
+    </int:advice-chain>
+</int:delayer>]]></programlisting>
     </para>
     <para>
       The <classname>DelayHandler</classname> can be exported as a JMX <code>MBean</code>
@@ -123,9 +124,9 @@
       which allows the rescheduling of delayed persisted Messages at runtime, for example, if the
       <interfacename>TaskScheduler</interfacename> has previously been stopped.
       These operations can be invoked via a <code>Control Bus</code> command:
-      <programlisting language="java"><![CDATA[ Message<String> delayerReschedulingMessage =
-                MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
- controlBusChannel.send(delayerReschedulingMessage);]]></programlisting>
+      <programlisting language="java"><![CDATA[Message<String> delayerReschedulingMessage =
+    MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
+    controlBusChannel.send(delayerReschedulingMessage);]]></programlisting>
     </para>
     <note>
       For more information regarding the Message Store, JMX and the Control Bus, please read <xref linkend="system-management-chapter"/>.

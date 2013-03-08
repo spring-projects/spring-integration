@@ -27,8 +27,8 @@
       A <classname>FileReadingMessageSource</classname> can be used to consume files from the filesystem.
       This is an implementation of <interfacename>MessageSource</interfacename> that creates messages from
       a file system directory. <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
-      class="org.springframework.integration.file.FileReadingMessageSource"
-        p:inputDirectory="${input.directory}"/>]]></programlisting>
+    class="org.springframework.integration.file.FileReadingMessageSource"
+    p:inputDirectory="${input.directory}"/>]]></programlisting>
     </para>
     <para>
       To prevent creating messages for certain files, you may supply a
@@ -36,9 +36,9 @@
       <classname>AcceptOnceFileListFilter</classname> is used. This filter
       ensures files are picked up only once from the directory.
       <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
-      class="org.springframework.integration.file.FileReadingMessageSource"
-        p:inputDirectory="${input.directory}"
-        p:filter-ref="customFilterBean"/>]]></programlisting>
+    class="org.springframework.integration.file.FileReadingMessageSource"
+    p:inputDirectory="${input.directory}"
+    p:filter-ref="customFilterBean"/>]]></programlisting>
     </para>
     <para>
       A common problem with reading files is that a file may be detected before
@@ -51,19 +51,19 @@
       The <classname>CompositeFileListFilter</classname> enables the
       composition.
       <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
-      class="org.springframework.integration.file.FileReadingMessageSource"
-        p:inputDirectory="${input.directory}"
-        p:filter-ref="compositeFilter"/>
+    class="org.springframework.integration.file.FileReadingMessageSource"
+    p:inputDirectory="${input.directory}"
+    p:filter-ref="compositeFilter"/>
 <bean id="compositeFilter"
-      class="org.springframework.integration.file.filters.CompositeFileListFilter">
-  <constructor-arg>
-    <list>
-      <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter"/>
-      <bean class="org.springframework.integration.file.filters.RegexPatternFileListFilter">
-        <constructor-arg value="^test.*$"/>
-      </bean>
-    </list>
-  </constructor-arg>
+    class="org.springframework.integration.file.filters.CompositeFileListFilter">
+    <constructor-arg>
+        <list>
+            <bean class="o.s.i.file.filters.AcceptOnceFileListFilter"/>
+            <bean class="o.s.i.file.filters.RegexPatternFileListFilter">
+                <constructor-arg value="^test.*$"/>
+            </bean>
+        </list>
+    </constructor-arg>
 </bean>]]></programlisting>
     </para>
     <para>
@@ -85,20 +85,20 @@
         <para>
       Within this namespace you can reduce the FileReadingMessageSource and wrap
       it in an inbound Channel Adapter like this:
-      <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn1"
-           directory="file:${input.directory}" prevent-duplicates="true"/>
+      <programlisting language="xml"><![CDATA[<int-file:inbound-channel-adapter id="filesIn1"
+    directory="file:${input.directory}" prevent-duplicates="true"/>
 
- <int-file:inbound-channel-adapter id="filesIn2"
-           directory="file:${input.directory}"
-           filter="customFilterBean" />
+<int-file:inbound-channel-adapter id="filesIn2"
+    directory="file:${input.directory}"
+    filter="customFilterBean" />
 
- <int-file:inbound-channel-adapter id="filesIn3"
-           directory="file:${input.directory}"
-           filename-pattern="test*" />
+<int-file:inbound-channel-adapter id="filesIn3"
+    directory="file:${input.directory}"
+    filename-pattern="test*" />
 
- <int-file:inbound-channel-adapter id="filesIn4"
-           directory="file:${input.directory}"
-           filename-regex="test[0-9]+\.txt" />              ]]></programlisting>
+<int-file:inbound-channel-adapter id="filesIn4"
+    directory="file:${input.directory}"
+    filename-regex="test[0-9]+\.txt" />]]></programlisting>
     </para>
         <para>
       The first channel adapter is relying on the default filter that just prevents
@@ -117,17 +117,17 @@
             them from being picked up concurrently. To do this you can use a <interfacename>FileLocker</interfacename>.
             There is a java.nio based implementation available out of the box, but it is also possible to implement your
             own locking scheme. The nio locker can be injected as follows
-            <programlisting  language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
-         directory="file:${input.directory}" prevent-duplicates="true">
-     <int-file:nio-locker/>
- </int-file:inbound-channel-adapter>]]></programlisting>
+            <programlisting  language="xml"><![CDATA[<int-file:inbound-channel-adapter id="filesIn"
+    directory="file:${input.directory}" prevent-duplicates="true">
+    <int-file:nio-locker/>
+</int-file:inbound-channel-adapter>]]></programlisting>
     </para>
         <para>
             A custom locker you can configure like this:
-             <programlisting  language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
-         directory="file:${input.directory}" prevent-duplicates="true">
-     <int-file:locker ref="customLocker"/>
- </int-file:inbound-channel-adapter>]]></programlisting>
+             <programlisting  language="xml"><![CDATA[<int-file:inbound-channel-adapter id="filesIn"
+    directory="file:${input.directory}" prevent-duplicates="true">
+    <int-file:locker ref="customLocker"/>
+</int-file:inbound-channel-adapter>]]></programlisting>
         </para>
       <note>
             When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a
@@ -143,8 +143,8 @@
             that Spring Integration uses internally to wire FileListFilters FileLocker to the FileReadingMessageSource.
             A custom DirectoryScanner can be injected into the &lt;int-file:inbound-channel-adapter/&gt; on the <code>scanner</code>
             attribute.
-            <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}"
-       prevent-duplicates="true" scanner="customDirectoryScanner"/>]]></programlisting>
+            <programlisting language="xml"><![CDATA[<int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}"
+    prevent-duplicates="true" scanner="customDirectoryScanner"/>]]></programlisting>
         </para>
         <para>
             This gives you full freedom to choose the ordering, listing and locking strategies.
@@ -355,13 +355,13 @@
 		</section>
 		<section id="file-outbound-channel-adapter">
 			<title>File Outbound Channel Adapter</title>
-			<programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>]]></programlisting>
+			<programlisting language="xml"><![CDATA[<int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>]]></programlisting>
 			<para>
 				The namespace based configuration also supports a <code>delete-source-files</code> attribute.
 				If set to <code>true</code>, it will trigger the deletion of the original source files after writing
 				to a destination. The default value for that flag is <code>false</code>.
 			</para>
-			<programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut"
+			<programlisting language="xml"><![CDATA[<int-file:outbound-channel-adapter id="filesOut"
     directory="${output.directory}"
     delete-source-files="true"/>]]></programlisting>
 			<note>
@@ -436,11 +436,11 @@
     </para>
     <para>
       To configure File specific transformers you can use the appropriate elements from the file namespace.
-      <programlisting language="xml"><![CDATA[ <int-file:file-to-bytes-transformer  input-channel="input" output-channel="output"
-             delete-files="true"/>
+      <programlisting language="xml"><![CDATA[<int-file:file-to-bytes-transformer  input-channel="input" output-channel="output"
+    delete-files="true"/>
 
- <int-file:file-to-string-transformer input-channel="input" output-channel="output"
-             delete-files="true" charset="UTF-8"/>]]></programlisting>
+<int-file:file-to-string-transformer input-channel="input" output-channel="output"
+    delete-files="true" charset="UTF-8"/>]]></programlisting>
     </para>
     <para>
       The <emphasis>delete-files</emphasis> option signals to the transformer that it should delete

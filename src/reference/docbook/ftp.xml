@@ -11,12 +11,12 @@
       The File Transfer Protocol (FTP) is a simple network protocol which allows you to transfer files between two computers on the Internet.
     </para>
     <para>
-    There are two actors when it comes to FTP communication: <emphasis>client</emphasis> and <emphasis>server</emphasis>. 
-    To transfer files with FTP/FTPS, you use a <emphasis>client</emphasis> which initiates a connection to a remote computer 
-    that is running an FTP <emphasis>server</emphasis>. After the connection is established, the <emphasis>client</emphasis> can choose 
-    to send and/or receive copies of files. 
+    There are two actors when it comes to FTP communication: <emphasis>client</emphasis> and <emphasis>server</emphasis>.
+    To transfer files with FTP/FTPS, you use a <emphasis>client</emphasis> which initiates a connection to a remote computer
+    that is running an FTP <emphasis>server</emphasis>. After the connection is established, the <emphasis>client</emphasis> can choose
+    to send and/or receive copies of files.
     </para>
-    
+
      <para>
     Spring Integration supports sending and receiving files over FTP/FTPS by providing three <emphasis>client</emphasis>
     side endpoints: <emphasis>Inbound Channel Adapter</emphasis>, <emphasis>Outbound Channel Adapter</emphasis>, and
@@ -26,153 +26,153 @@
     <para>
     	To use the <emphasis>FTP</emphasis> namespace, add the following to the header of your XML file:
     	<programlisting language="xml"><![CDATA[xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp 
+xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
 ]]></programlisting>
     </para>
   </section>
-  
-  
+
+
   <section id="ftp-session-factory">
   	<title>FTP Session Factory</title>
   	<para>
-  	Before configuring FTP adapters you must configure an <emphasis>FTP Session Factory</emphasis>. You can configure 
+  	Before configuring FTP adapters you must configure an <emphasis>FTP Session Factory</emphasis>. You can configure
   	the <emphasis>FTP Session Factory</emphasis> with a regular bean definition where the implementation class is <classname>org.springframework.integration.ftp.session.DefaultFtpSessionFactory</classname>:
 	Below is a basic configuration:
-	
-	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" 
-	class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
-		<property name="host" value="localhost"/>
-		<property name="port" value="22"/>
-		<property name="username" value="kermit"/>
-		<property name="password" value="frog"/>
-		<property name="clientMode" value="0"/>
-		<property name="fileType" value="2"/>
-		<property name="bufferSize" value="100000"/>
+
+	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory"
+    class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+    <property name="host" value="localhost"/>
+    <property name="port" value="22"/>
+    <property name="username" value="kermit"/>
+    <property name="password" value="frog"/>
+    <property name="clientMode" value="0"/>
+    <property name="fileType" value="2"/>
+    <property name="bufferSize" value="100000"/>
 </bean>]]></programlisting>
 	</para>
 	<para>
 	For FTPS connections all you need to do is use <classname>org.springframework.integration.ftp.session.DefaultFtpsSessionFactory</classname> instead.
 	Below is the complete configuration sample:
-	
-	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" 
-	class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
-		<property name="host" value="localhost"/>
-		<property name="port" value="22"/>
-		<property name="username" value="oleg"/>
-		<property name="password" value="password"/>
-		<property name="clientMode" value="1"/>
-		<property name="fileType" value="2"/>
-		<property name="useClientMode" value="true"/>
-		<property name="cipherSuites" value="a,b.c"/>
-		<property name="keyManager" ref="keyManager"/>
-		<property name="protocol" value="SSL"/>
-		<property name="trustManager" ref="trustManager"/>
-		<property name="prot" value="P"/>
-		<property name="needClientAuth" value="true"/>
-		<property name="authValue" value="oleg"/>
-		<property name="sessionCreation" value="true"/>
-		<property name="protocols" value="SSL, TLS"/>
-		<property name="implicit" value="true"/>
+
+	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory"
+    class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
+    <property name="host" value="localhost"/>
+    <property name="port" value="22"/>
+    <property name="username" value="oleg"/>
+    <property name="password" value="password"/>
+    <property name="clientMode" value="1"/>
+    <property name="fileType" value="2"/>
+    <property name="useClientMode" value="true"/>
+    <property name="cipherSuites" value="a,b.c"/>
+    <property name="keyManager" ref="keyManager"/>
+    <property name="protocol" value="SSL"/>
+    <property name="trustManager" ref="trustManager"/>
+    <property name="prot" value="P"/>
+    <property name="needClientAuth" value="true"/>
+    <property name="authValue" value="oleg"/>
+    <property name="sessionCreation" value="true"/>
+    <property name="protocols" value="SSL, TLS"/>
+    <property name="implicit" value="true"/>
 </bean>]]></programlisting>
 	</para>
 
 	<para>
-	Every time an adapter requests a session object from its <interfacename>SessionFactory</interfacename> the session is 
-	returned from a session pool maintained by a caching wrapper around the factory. A Session in the session pool might go stale 
-	(if it has been disconnected by the server due to inactivity) so the <interfacename>SessionFactory</interfacename> 
+	Every time an adapter requests a session object from its <interfacename>SessionFactory</interfacename> the session is
+	returned from a session pool maintained by a caching wrapper around the factory. A Session in the session pool might go stale
+	(if it has been disconnected by the server due to inactivity) so the <interfacename>SessionFactory</interfacename>
 	will perform validation to make sure that it never returns a stale session to the adapter. If a stale session was encountered,
 	it will be removed from the pool, and a new one will be created.
 	<note>
-	If you experience connectivity problems and would like to trace Session creation as well as see which Sessions are 
+	If you experience connectivity problems and would like to trace Session creation as well as see which Sessions are
 	polled you may enable it by setting the logger to TRACE level (e.g., log4j.category.org.springframework.integration.file=TRACE)
 	</note>
 	</para>
 
 	<para>
-	Now all you need to do is inject these session factories into your adapters. Obviously the protocol (FTP or FTPS) that an adapter will 
+	Now all you need to do is inject these session factories into your adapters. Obviously the protocol (FTP or FTPS) that an adapter will
 	use depends on the type of session factory that has been injected into the adapter.
   	</para>
   	<para>
   	<note>
-  	A more practical way to provide values for <emphasis>FTP/FTPS Session Factories</emphasis> is by using Spring's property 
+  	A more practical way to provide values for <emphasis>FTP/FTPS Session Factories</emphasis> is by using Spring's property
   	placeholder support (See: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
   	</note>
   </para>
-  
+
   <para>
   	<emphasis>Advanced Configuration</emphasis>
   </para>
-  
+
   <para>
-  <classname>DefaultFtpSessionFactory</classname> provides an abstraction over the underlying client API which, in the current release of  
-  Spring Integration, is <ulink url="http://commons.apache.org/net/">Apache Commons Net</ulink>. This spares you from the low level configuration details 
-  of the <classname>org.apache.commons.net.ftp.FTPClient</classname>. However there are times when access to lower level <classname>FTPClient</classname> details is 
-  necessary to achieve more advanced configuration (e.g., setting data timeout, default timeout etc.). For that purpose, <classname>AbstractFtpSessionFactory</classname> 
+  <classname>DefaultFtpSessionFactory</classname> provides an abstraction over the underlying client API which, in the current release of
+  Spring Integration, is <ulink url="http://commons.apache.org/net/">Apache Commons Net</ulink>. This spares you from the low level configuration details
+  of the <classname>org.apache.commons.net.ftp.FTPClient</classname>. However there are times when access to lower level <classname>FTPClient</classname> details is
+  necessary to achieve more advanced configuration (e.g., setting data timeout, default timeout etc.). For that purpose, <classname>AbstractFtpSessionFactory</classname>
   (the base class for all FTP Session Factories) exposes hooks, in the form of the two post-processing methods below.
   <programlisting language="java"><![CDATA[/**
-	 * Will handle additional initialization after client.connect() method was invoked, 
-	 * but before any action on the client has been taken 
-	 */
-	protected void postProcessClientAfterConnect(T t) throws IOException {
-		// NOOP
-	}
-	/**
-	 * Will handle additional initialization before client.connect() method was invoked. 
-	 */
-	protected void postProcessClientBeforeConnect(T client) throws IOException {
-		// NOOP
-	}]]></programlisting>
-	As you can see, there is no default implementation for these two methods. However, by extending <classname>DefaultFtpSessionFactory</classname> you can override these methods 
+ * Will handle additional initialization after client.connect() method was invoked,
+ * but before any action on the client has been taken
+ */
+protected void postProcessClientAfterConnect(T t) throws IOException {
+    // NOOP
+}
+/**
+ * Will handle additional initialization before client.connect() method was invoked.
+ */
+protected void postProcessClientBeforeConnect(T client) throws IOException {
+    // NOOP
+}]]></programlisting>
+	As you can see, there is no default implementation for these two methods. However, by extending <classname>DefaultFtpSessionFactory</classname> you can override these methods
 	to provide more advanced configuration of the <classname>FTPClient</classname>. For example:
 	<programlisting language="java"><![CDATA[public class AdvancedFtpSessionFactory extends DefaultFtpSessionFactory {
 
-  protected void postProcessClientBeforeConnect(FTPClient ftpClient) throws IOException {
-     ftpClient.setDataTimeout(5000);
-     ftpClient.setDefaultTimeout(5000);
-  }
+    protected void postProcessClientBeforeConnect(FTPClient ftpClient) throws IOException {
+       ftpClient.setDataTimeout(5000);
+       ftpClient.setDefaultTimeout(5000);
+    }
 }]]></programlisting>
   </para>
   </section>
-  
+
   <section id="ftp-inbound">
   	<title>FTP Inbound Channel Adapter</title>
   	<para>
-  	The <emphasis>FTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the FTP server and will listen 
+  	The <emphasis>FTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the FTP server and will listen
   	for the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
-  	
+
   	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter id="ftpInbound"
-				channel="ftpChannel" 
-				session-factory="ftpSessionFactory"
-				charset="UTF-8"
-				auto-create-local-directory="true"
-				delete-remote-files="true"
-				filename-pattern="*.txt"
-				remote-directory="some/remote/path"
-				remote-file-separator="/"
-				local-filename-generator-expression="#this.toUpperCase() + '.a'"
-				local-directory=".">
-			<int:poller fixed-rate="1000"/>
+    channel="ftpChannel"
+    session-factory="ftpSessionFactory"
+    charset="UTF-8"
+    auto-create-local-directory="true"
+    delete-remote-files="true"
+    filename-pattern="*.txt"
+    remote-directory="some/remote/path"
+    remote-file-separator="/"
+    local-filename-generator-expression="#this.toUpperCase() + '.a'"
+    local-directory=".">
+    <int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>]]></programlisting>
 
-	As you can see from the configuration above you can configure an <emphasis>FTP Inbound Channel Adapter</emphasis> via the <code>inbound-channel-adapter</code> 
-	element while also providing values for various attributes such as <code>local-directory</code>, <code>filename-pattern</code> 
+	As you can see from the configuration above you can configure an <emphasis>FTP Inbound Channel Adapter</emphasis> via the <code>inbound-channel-adapter</code>
+	element while also providing values for various attributes such as <code>local-directory</code>, <code>filename-pattern</code>
 	(which is based on simple pattern matching, not regular expressions), and of course the reference to a <code>session-factory</code>.
 	</para>
 	<para>
-	By default the transferred file will carry the same name as the original file. If you want to override this behavior you 
-	can set the <code>local-filename-generator-expression</code> attribute which allows you to provide a SpEL Expression to generate 
-	the name of the local file. Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context 
+	By default the transferred file will carry the same name as the original file. If you want to override this behavior you
+	can set the <code>local-filename-generator-expression</code> attribute which allows you to provide a SpEL Expression to generate
+	the name of the local file. Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context
 	is a <classname>Message</classname>, this inbound adapter does not yet have the Message at the time of evaluation since
 	that's what it ultimately generates with the transferred file as its payload. So, the root object of the SpEL Evaluation Context
 	is the original name of the remote file (String).
 	</para>
-	
+
   	<para>
 	Sometimes file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be
-	sufficient. If this is the case, you can use the <code>filename-regex</code> attribute to specify a Regular Expression 
+	sufficient. If this is the case, you can use the <code>filename-regex</code> attribute to specify a Regular Expression
 	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code>
-	attribute and provide a reference to any custom implementation of the 
+	attribute and provide a reference to any custom implementation of the
 	<classname>org.springframework.integration.file.filters.FileListFilter</classname>, a strategy interface for filtering a
 	list of files.
   	</para>
@@ -181,12 +181,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	file separator character to use if the default '/' is not applicable for your particular environment.
 	</note>
   	<para>
-  	Please refer to the schema for more details on these attributes. 
+  	Please refer to the schema for more details on these attributes.
   	</para>
   	<para>
-  	It is also important to understand that the <emphasis>FTP Inbound Channel Adapter</emphasis> is a <emphasis>Polling Consumer</emphasis> and 
+  	It is also important to understand that the <emphasis>FTP Inbound Channel Adapter</emphasis> is a <emphasis>Polling Consumer</emphasis> and
   	therefore you must configure a poller (either via a global default or a local sub-element).
-    Once a file has been transferred, a Message with a <classname>java.io.File</classname> as its payload will be generated and sent to the channel 
+    Once a file has been transferred, a Message with a <classname>java.io.File</classname> as its payload will be generated and sent to the channel
     identified by the <code>channel</code> attribute.
   	</para>
   	<para>
@@ -198,18 +198,17 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
     As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete.
     To handle these scenarios you can use the filtering support provided by the <code>filename-pattern</code>, <code>filename-regex</code>
     and <code>filter</code> attributes. Here is an example that uses a custom Filter implementation.
-	
-	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter 
-			channel="ftpChannel" 
-			session-factory="ftpSessionFactory"
-			filter="customFilter"
-			local-directory="file:/my_transfers">
-			remote-directory="some/remote/path"
+
+	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter
+    channel="ftpChannel"
+    session-factory="ftpSessionFactory"
+    filter="customFilter"
+    local-directory="file:/my_transfers">
+    remote-directory="some/remote/path"
 	<int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>
-	
-<bean id="customFilter" class="org.example.CustomFilter"/>
-]]></programlisting>
+
+<bean id="customFilter" class="org.example.CustomFilter"/>]]></programlisting>
   	</para>
   	<para>
   		<emphasis>Poller configuration notes for the inbound FTP adapter</emphasis>
@@ -219,25 +218,25 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	<emphasis>1) Communicate with a remote server in order to transfer files from a remote directory to a local directory.</emphasis>
 	<emphasis>2) For each transferred file, generate a Message with that file as a payload and send it to the channel identified by the 'channel' attribute.</emphasis>
 
-	That is why they are called 'channel-adapters' rather than just 'adapters'. The main job of such an adapter is to generate a 
-	Message to be sent to a Message Channel. Essentially, the second task mentioned above takes precedence in such a way that 
-	*IF* your local directory already has one or more files it will first generate Messages from those, and *ONLY* 
+	That is why they are called 'channel-adapters' rather than just 'adapters'. The main job of such an adapter is to generate a
+	Message to be sent to a Message Channel. Essentially, the second task mentioned above takes precedence in such a way that
+	*IF* your local directory already has one or more files it will first generate Messages from those, and *ONLY*
 	when all local files have been processed, will it initiate the remote communication to retrieve more files.
     </para>
     <para>
-	Also, when configuring a trigger on the poller you should pay close attention to the <code>max-messages-per-poll</code> 
+	Also, when configuring a trigger on the poller you should pay close attention to the <code>max-messages-per-poll</code>
 	attribute. Its default value is 1 for all <classname>SourcePollingChannelAdapter</classname> instances (including FTP).
-	This means that as soon as one file is processed, it will wait for the next execution time as determined by your 
-	trigger configuration. If you happened to have one or more files sitting in the <code>local-directory</code>, it would process 
-	those files before it would initiate communication with the remote FTP server. And, if the <code>max-messages-per-poll</code> 
+	This means that as soon as one file is processed, it will wait for the next execution time as determined by your
+	trigger configuration. If you happened to have one or more files sitting in the <code>local-directory</code>, it would process
+	those files before it would initiate communication with the remote FTP server. And, if the <code>max-messages-per-poll</code>
 	were set to 1 (default), then it would be processing only one file at a time with intervals as defined by your trigger,
 	essentially working as <emphasis>one-poll = one-file</emphasis>.
   	</para>
   	<para>
-  	For typical file-transfer use cases, you most likely want the opposite behavior: to process all the files you can for each 
+  	For typical file-transfer use cases, you most likely want the opposite behavior: to process all the files you can for each
   	poll and only then wait for the next poll. If that is the case, set <code>max-messages-per-poll</code> to -1. Then, on
-  	each poll, the adapter will attempt to generate as many Messages as it possibly can. In other words, it will process 
-  	everything in the local directory, and then it will connect to the remote directory to transfer everything that is available 
+  	each poll, the adapter will attempt to generate as many Messages as it possibly can. In other words, it will process
+  	everything in the local directory, and then it will connect to the remote directory to transfer everything that is available
   	there to be processed locally. Only then is the poll operation considered complete, and the poller will wait for the next execution time.
 	</para>
 	<para>
@@ -245,51 +244,51 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 		from files with each poll. For example, a value of 10 means that on each poll it will attempt to process no more than 10 files.
   	</para>
   </section>
-  
+
   <section id="ftp-outbound">
   	<title>FTP Outbound Channel Adapter</title>
-  	
+
   	<para>
-  	The <emphasis>FTP Outbound Channel Adapter</emphasis> relies upon a <classname>MessageHandler</classname> implementation that will connect to the 
-  	FTP server and initiate an FTP transfer for every file it receives in the payload of incoming Messages. It also supports several 
+  	The <emphasis>FTP Outbound Channel Adapter</emphasis> relies upon a <classname>MessageHandler</classname> implementation that will connect to the
+  	FTP server and initiate an FTP transfer for every file it receives in the payload of incoming Messages. It also supports several
   	representations of the <emphasis>File</emphasis> so you are not limited only to java.io.File typed payloads.
-    The <emphasis>FTP Outbound Channel Adapter</emphasis> 
-  	supports the following payloads: 1) <classname>java.io.File</classname> - the actual file object; 
-  	2) <classname>byte[]</classname> - a byte array that represents the file contents; and 3) <classname>java.lang.String</classname> - 
+    The <emphasis>FTP Outbound Channel Adapter</emphasis>
+  	supports the following payloads: 1) <classname>java.io.File</classname> - the actual file object;
+  	2) <classname>byte[]</classname> - a byte array that represents the file contents; and 3) <classname>java.lang.String</classname> -
   	text that represents the file contents.
-  	
+
   	<programlisting language="xml"><![CDATA[<int-ftp:outbound-channel-adapter id="ftpOutbound"
-				channel="ftpChannel" 
-				session-factory="ftpSessionFactory"
-				charset="UTF-8"
-				remote-file-separator="/"
-				auto-create-directory="true"
-				remote-directory-expression="headers.['remote_dir']"
-				temporary-remote-directory-expression="headers.['temp_remote_dir']"
-				filename-generator="fileNameGenerator"/>]]></programlisting>	
+    channel="ftpChannel"
+    session-factory="ftpSessionFactory"
+    charset="UTF-8"
+    remote-file-separator="/"
+    auto-create-directory="true"
+    remote-directory-expression="headers.['remote_dir']"
+    temporary-remote-directory-expression="headers.['temp_remote_dir']"
+    filename-generator="fileNameGenerator"/>]]></programlisting>
 
 	As you can see from the configuration above you can configure an <emphasis>FTP Outbound Channel Adapter</emphasis> via the
-	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>filename-generator</code> 
+	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>filename-generator</code>
 	(an implementation of the <classname>org.springframework.integration.file.FileNameGenerator</classname> strategy interface),
 	a reference to a <code>session-factory</code>, as well as other attributes. You can also see
-	some examples of <code>*expression</code> attributes which allow you to use SpEL 
-	to configure things like <code>remote-directory-expression</code>, <code>temporary-remote-directory-expression</code> and <code>remote-filename-generator-expression</code> 
-	(a SpEL alternative to <code>filename-generator</code> shown above). As with any component that allows the usage of SpEL, access to Payload and Message Headers is available via 
+	some examples of <code>*expression</code> attributes which allow you to use SpEL
+	to configure things like <code>remote-directory-expression</code>, <code>temporary-remote-directory-expression</code> and <code>remote-filename-generator-expression</code>
+	(a SpEL alternative to <code>filename-generator</code> shown above). As with any component that allows the usage of SpEL, access to Payload and Message Headers is available via
 	'payload' and 'headers' variables.
 	Please refer to the schema for more details on
     the available attributes.
 	 <note>
-	 By default Spring Integration will use <classname>org.springframework.integration.file.DefaultFileNameGenerator</classname> if none is specified.
+	 By default Spring Integration will use <classname>o.s.i.file.DefaultFileNameGenerator</classname> if none is specified.
 	 <classname>DefaultFileNameGenerator</classname> will determine the file name based on the value of the <code>file_name</code> header (if it exists)
      in the MessageHeaders, or if the payload of the Message is already a <classname>java.io.File</classname>, then it will use the original name of that file.
 	 </note>
   	</para>
-  	
+
   	<para>
   	<important>
-  	Defining certain values (e.g., remote-directory) might be platform/ftp server dependent. For example as it 
-  	was reported on this forum http://forum.springsource.org/showthread.php?p=333478&amp;posted=1#post333478 on some 
-  	platforms you must add slash to the end of the directory definition (e.g., remote-directory="/foo/bar/" 
+  	Defining certain values (e.g., remote-directory) might be platform/ftp server dependent. For example as it
+  	was reported on this forum http://forum.springsource.org/showthread.php?p=333478&amp;posted=1#post333478 on some
+  	platforms you must add slash to the end of the directory definition (e.g., remote-directory="/foo/bar/"
   	instead of remote-directory="/foo/bar")
   	</important>
   	</para>
@@ -407,13 +406,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	<para>
 	  Here is an example of a gateway configured for an ls command...
 	  <programlisting language="xml"><![CDATA[<int-ftp:outbound-gateway id="gateway1"
-		session-factory="ftpSessionFactory"
-		request-channel="inbound1"
-		command="ls"
-		command-options="-1"
-		expression="payload"
-		reply-channel="toSplitter"/>
-]]></programlisting>
+    session-factory="ftpSessionFactory"
+    request-channel="inbound1"
+    command="ls"
+    command-options="-1"
+    expression="payload"
+    reply-channel="toSplitter"/>]]></programlisting>
 	</para>
 	<para>
 	  The payload of the message sent to the toSplitter channel is a list of String objects
@@ -433,23 +431,23 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	    of the <classname>CachingSessionFactory</classname> instance. That provides the <code>sessionCacheSize</code> and <code>sessionWaitTimeout</code>
 	    properties. As its name suggests, the  <code>sessionCacheSize</code> property controls how many active sessions this adapter will
 	    maintain in its cache (the DEFAULT is unbounded). If the <code>sessionCacheSize</code> threshold has been reached, any attempt to
-	    acquire another session will block until either one of the cached sessions becomes available or until the wait time for a Session 
+	    acquire another session will block until either one of the cached sessions becomes available or until the wait time for a Session
 	    expires (the DEFAULT wait time is Integer.MAX_VALUE). The <code>sessionWaitTimeout</code> property enables configuration of that value.
     </para>
     <para>
     If you want your Sessions to be cached, simply configure your default Session Factory as described above and then
     wrap it in an instance of <classname>CachingSessionFactory</classname> where you may provide those additional properties.
+	</para>
+    <programlisting language="xml"><![CDATA[<bean id="ftpSessionFactory" class="o.s.i.ftp.session.DefaultFtpSessionFactory">
+    <property name="host" value="localhost"/>
+</bean>
 
-    <programlisting language="xml"><![CDATA[<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
-		<property name="host" value="localhost"/>
-	</bean>
-	
-	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
-		<constructor-arg ref="ftpSessionFactory"/>
-		<constructor-arg value="10"/>
-		<property name="sessionWaitTimeout" value="1000"/>
-	</bean>]]></programlisting>
-	
+<bean id="cachingSessionFactory" class="o.s.i.file.remote.session.CachingSessionFactory">
+    <constructor-arg ref="ftpSessionFactory"/>
+    <constructor-arg value="10"/>
+    <property name="sessionWaitTimeout" value="1000"/>
+</bean>]]></programlisting>
+	<para>
 	In the above example you see a <classname>CachingSessionFactory</classname> created with the
 	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
 

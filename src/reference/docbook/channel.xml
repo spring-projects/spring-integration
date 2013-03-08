@@ -241,18 +241,17 @@
       <title>Scoped Channel</title>
       <para>
         Spring Integration 1.0 provided a <classname>ThreadLocalChannel</classname> implementation, but that has been removed as of 2.0. Now, there is a more general way for handling the same requirement by simply adding a "scope" attribute to a channel. The value of the attribute can be any name of a Scope that is available within the context. For example, in a web environment, certain Scopes are available, and any custom Scope implementations can be registered with the context. Here's an example of a ThreadLocal-based scope being applied to a channel, including the registration of the Scope itself.</para>
-    <programlisting language="xml"><![CDATA[ <int:channel id="threadScopedChannel" scope="thread">
+    <programlisting language="xml"><![CDATA[<int:channel id="threadScopedChannel" scope="thread">
      <int:queue />
- </int:channel>
+</int:channel>
 
- <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+<bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
     <property name="scopes">
-         <map>
-             <entry key="thread" value="org.springframework.context.support.SimpleThreadScope" />
-         </map>
-     </property>
- </bean>
-]]></programlisting>
+        <map>
+            <entry key="thread" value="org.springframework.context.support.SimpleThreadScope" />
+        </map>
+    </property>
+</bean>]]></programlisting>
     <para>
       The channel above also delegates to a queue internally, but the channel is bound
       to the current thread, so the contents of the queue are as well. That way the thread that
@@ -707,13 +706,13 @@ payload to an Integer.
     As mentioned above, Spring Integration provides a simple <emphasis>Wire Tap</emphasis> interceptor out of
     the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an &lt;interceptors/&gt; element.
     This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging
-    Channel Adapter as follows: <programlisting language="xml"><![CDATA[ <int:channel id="in">
-     <int:interceptors>
-         <int:wire-tap channel="logger"/>
-     </int:interceptors>
- </int:channel>
+    Channel Adapter as follows: <programlisting language="xml"><![CDATA[<int:channel id="in">
+    <int:interceptors>
+        <int:wire-tap channel="logger"/>
+    </int:interceptors>
+</int:channel>
 
- <int:logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
+<int:logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
         <tip>
       The 'logging-channel-adapter' also accepts an 'expression' attribute so that you can evaluate
       a SpEL expression against 'payload' and/or 'headers' variables. Alternatively, to simply log
