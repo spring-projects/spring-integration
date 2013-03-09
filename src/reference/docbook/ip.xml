@@ -159,9 +159,10 @@
        <para>
         This is the extent of message correlation performed when sharing connection
         factories between inbound and outbound adapters. Such sharing allows for
-        asynchronous two-way communication over TCP. Only payload information is
+        asynchronous two-way communication over TCP. By default, only payload information is
         transferred using TCP; therefore any message correlation must be performed
-        by downstream components such as aggregators or other endpoints.
+        by downstream components such as aggregators or other endpoints. Support for
+        transferring selected headers was introduced in version 3.0.
         For more information refer to <xref linkend="ip-correlation" />.
        </para>
       </tip>
@@ -225,7 +226,17 @@
       telnet as a client, for example.
      </para>
      <para>
-      The <classname>ByteArrayStxEtxSerializer</classname>,
+      The <classname>ByteArraySingleTerminatorSerializer</classname>,
+      converts a byte array to a stream of bytes followed by a single termination
+      character (default 0x00).
+     </para>
+     <para>
+      The <classname>ByteArrayLfSerializer</classname>,
+      converts a byte array to a stream of bytes followed by a single linefeed
+      character (0x0a).
+     </para>
+     <para>
+		 The <classname>ByteArrayStxEtxSerializer</classname>,
       converts a byte array to a stream of bytes preceded by an STX (0x02) and
       followed by an ETX (0x03).
      </para>
@@ -275,6 +286,21 @@
       <classname>maxMessageSize</classname> property. If you are using the default (de)serializer
       and wish to increase the maximum message size, you must declare it as an explicit bean
       with the property set and configure the connection factory to use that bean.
+     </para>
+     <para>
+      The <classname>MapJsonSerializer</classname> uses a Jackson
+      <classname>ObjectMapper</classname> to convert between a <interfacename>Map</interfacename>
+      and JSON. This can be used in conjunction with a <classname>MessageConvertingTcpMessageMapper
+      </classname> and a <classname>MapMessageConverter</classname>
+      to transfer selected headers and the payload in a JSON format.
+      <note>
+        The Jackson <classname>ObjectMapper</classname> cannot demarcate messages in the stream.
+        Therefore, the <classname>MapJsonSerializer</classname> needs to delegate to another
+        (de)serializer to handle message demarcation. By default, a
+        <classname>ByteArrayLfSerializer</classname> is used, resulting in messages with the
+        format <code>&lt;json&gt;&lt;LF&gt;</code> on the wire, but you can configure it to
+        use others instead.
+      </note>
      </para>
      <para>
       The final standard serializer is
@@ -677,8 +703,12 @@
     <para>
      One goal of the IP Endpoints is to provide communication with systems other
      than another Spring Integration application. For this reason, only
-     message payloads are sent
-     and received. No message correlation is provided by the framework,
+     message payloads are sent and received, by default. Since 3.0, headers can
+     be transferred, using JSON, Java serialization, or with custom
+     <interfacename>Serializer</interfacename>s and
+     <interfacename>Deserializer</interfacename>s; see <xref linkend="ip-headers"/>
+     for more information.
+     No message correlation is provided by the framework,
      except when using the gateways, or collaborating channel adapters on the
      server side. In the paragraphs below we discuss the various
      correlation techniques available to applications. In most cases, this
@@ -798,6 +828,98 @@
             </para>
         </note>
     </para>
+   </section>
+   <section id="ip-headers">
+     <title>Transferring Headers</title>
+     <para>
+       TCP is a streaming protocol; <interfacename>Serializers</interfacename> and
+       <interfacename>Deserializers</interfacename> are used to demarcate messages
+       within the stream. Prior to 3.0, only message payloads (String or byte[])
+       could be transferred over
+       TCP. Beginning with 3.0, you can now transfer selected headers as well as the
+       payload. It is important to understand, though, that "live" objects, such
+       as the <code>replyChannel</code> header cannot be serialized.
+     </para>
+     <para>
+       Sending header information over TCP requires some additional configuration.
+     </para>
+     <para>
+       The first step is to provide the <classname>ConnectionFactory</classname>
+       with a <classname>MessageConvertingTcpMessageMapper</classname> using the
+       <code>mapper</code> attribute. This mapper delegates to any
+       <interfacename>MessageConverter</interfacename> implementation to convert
+       the message to/from some object that can be (de)serialized by the
+       configured <code>serializer</code> and <code>deserializer</code>.
+     </para>
+     <para>
+       A <classname>MapMessageConverter</classname> is provided, which allows the
+       specification of a list of headers that will be added to a
+       <interfacename>Map</interfacename> object, along with the payload.
+       The generated Map has two entries: <code>payload</code> and
+       <code>headers</code>. The <code>headers</code> entry is itself a
+       <interfacename>Map</interfacename> containing the selected headers.
+     </para>
+     <para>
+       The second step is to provide a (de)serializer that can convert between
+       a <interfacename>Map</interfacename> and some wire format. This can
+       be a custom <interfacename>(de)Serializer</interfacename>, which would
+       typically be needed if the peer system is not a Spring Integration
+       application.
+     </para>
+     <para>
+       A <classname>MapJsonSerializer</classname> is provided that will
+       convert a Map to/from JSON. This uses a Spring Integration
+       <classname>JsonObjectMapper</classname> to perform this function. You
+       can provide a custom <classname>JsonObjectMapper</classname> if needed.
+       By default, the serializer inserts a linefeed
+       <code>0x0a</code> character between objects.
+       See the JavaDocs for more information.
+     </para>
+     <note>
+       At the time of writing, the <classname>JsonObjectMapper</classname>
+       uses whichever version of <code>Jackson</code> is on the classpath.
+     </note>
+     <para>
+       You can also use standard Java serialization of the Map, using
+       the <classname>DefaultSerializer</classname> and
+       <classname>DefaultDeserializer</classname>.
+     </para>
+     <para>
+       The following example shows the configuration of a connection
+       factory that transfers the <code>correlationId</code>,
+       <code>sequenceNumber</code>, and <code>sequenceSize</code>
+       headers using JSON.
+     </para>
+     <programlisting language="xml"><![CDATA[<int-ip:tcp-connection-factory id="client"
+    type="client"
+    host="localhost"
+    port="12345"
+    mapper="mapper"
+    serializer="jsonSerializer"
+    deserializer="jsonSerializer"/>
+
+<bean id="mapper"
+      class="o.sf.integration.ip.tcp.connection.MessageConvertingTcpMessageMapper">
+    <constructor-arg name="messageConverter">
+        <bean class="o.sf.integration.support.converter.MapMessageConverter">
+            <property name="headerNames">
+                <list>
+                    <value>correlationId</value>
+                    <value>sequenceNumber</value>
+                    <value>sequenceSize</value>
+                </list>
+            </property>
+        </bean>
+    </constructor-arg>
+</bean>
+
+<bean id="jsonSerializer" class="o.sf.integration.ip.tcp.serializer.MapJsonSerializer" />
+     ]]></programlisting>
+     <para>
+       A message sent with the above configuration, with payload 'foo' would appear on the wire like so:
+     </para>
+     <programlisting language="xml"><![CDATA[
+{"headers":{"correlationId":"bar","sequenceSize":5,"sequenceNumber":1},"payload":"foo"}]]></programlisting>
    </section>
   </section>
   <section id="note_nio">

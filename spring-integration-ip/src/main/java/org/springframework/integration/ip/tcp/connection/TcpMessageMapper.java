@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.ip.IpHeaders;
@@ -43,6 +45,8 @@ public class TcpMessageMapper implements
 		InboundMessageMapper<TcpConnection>,
 		OutboundMessageMapper<Object> {
 
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
 	private volatile String charset = "UTF-8";
 
 	private volatile boolean stringToBytes = true;
@@ -54,24 +58,37 @@ public class TcpMessageMapper implements
 		Object payload = connection.getPayload();
 		if (payload != null) {
 			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload);
-			String connectionId = connection.getConnectionId();
-			messageBuilder
-				.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
-				.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
-				.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
-				.setHeader(IpHeaders.CONNECTION_ID, connectionId);
-			if (this.applySequence) {
-				messageBuilder
-					.setCorrelationId(connectionId)
-					.setSequenceNumber((int) connection.incrementAndGetConnectionSequence());
-			}
-			Map<String, ?> customHeaders = this.supplyCustomHeaders(connection);
-			if (customHeaders != null) {
-				messageBuilder.copyHeadersIfAbsent(customHeaders);
-			}
+			this.addStandardHeaders(connection, messageBuilder);
+			this.addCustomHeaders(connection, messageBuilder);
 			message = messageBuilder.build();
 		}
+		else {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Null payload from connection " + connection.getConnectionId());
+			}
+		}
 		return message;
+	}
+
+	protected final void addStandardHeaders(TcpConnection connection, MessageBuilder<?> messageBuilder) {
+		String connectionId = connection.getConnectionId();
+		messageBuilder
+			.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
+			.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
+			.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
+			.setHeader(IpHeaders.CONNECTION_ID, connectionId);
+		if (this.applySequence) {
+			messageBuilder
+				.setCorrelationId(connectionId)
+				.setSequenceNumber((int) connection.incrementAndGetConnectionSequence());
+		}
+	}
+
+	protected final void addCustomHeaders(TcpConnection connection, MessageBuilder<?> messageBuilder) {
+		Map<String, ?> customHeaders = this.supplyCustomHeaders(connection);
+		if (customHeaders != null) {
+			messageBuilder.copyHeadersIfAbsent(customHeaders);
+		}
 	}
 
 	/**
