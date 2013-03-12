@@ -548,6 +548,33 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		private volatile boolean isClosed;
 
 		@Override
+		public int read(byte[] b, int off, int len) throws IOException {
+			Assert.notNull(b, "byte[] cannot be null");
+			if (off < 0 || len < 0 || len > b.length - off) {
+			    throw new IndexOutOfBoundsException();
+			}
+			else if (len == 0) {
+			    return 0;
+			}
+
+			int n = 0;
+			while ((this.available.get() > 0 || n == 0) &&
+						n < len) {
+				int bite = read();
+				if (bite < 0) {
+					if (n == 0) {
+						return -1;
+					}
+					else {
+						return n;
+					}
+				}
+				b[off + n++] = (byte) bite;
+			}
+			return n;
+		}
+
+		@Override
 		public synchronized int read() throws IOException {
 			if (this.isClosed && available.get() == 0) {
 				return -1;
