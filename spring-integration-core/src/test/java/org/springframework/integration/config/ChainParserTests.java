@@ -30,6 +30,9 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.commons.logging.Log;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
@@ -57,9 +60,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Mark Fisher
@@ -277,7 +277,7 @@ public class ChainParserTests {
 		assertSame(successMessage, testConsumer.getLastMessage());
 	}
 
-	@Test //INT-2275
+	@Test //INT-2275, INT-2958
 	public void chainWithLoggingChannelAdapter() {
 		Log logger = mock(Log.class);
 		final AtomicReference<String> log = new AtomicReference<String>();
@@ -291,12 +291,12 @@ public class ChainParserTests {
 
 		@SuppressWarnings("unchecked")
 		List<MessageHandler> handlers = TestUtils.getPropertyValue(this.logChain, "handlers", List.class);
-		MessageHandler handler = handlers.get(1);
+		MessageHandler handler = handlers.get(2);
 		assertTrue(handler instanceof LoggingHandler);
 		DirectFieldAccessor dfa = new DirectFieldAccessor(handler);
 		dfa.setPropertyValue("messageLogger", logger);
 
-		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload("test").build());
+		this.loggingChannelAdapterChannel.send(MessageBuilder.withPayload(new byte[] {116, 101, 115, 116}).build());
 		assertNotNull(log.get());
 		assertEquals("TEST", log.get());
 	}

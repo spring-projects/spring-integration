@@ -1504,7 +1504,7 @@
 					<xsd:element name="payload-serializing-transformer" type="payload-serializing-transformer-type"/>
 					<xsd:element name="payload-deserializing-transformer"
 								 type="payload-deserializing-transformer-type"/>
-					<xsd:element name="object-to-string-transformer" type="specialized-transformer-type"/>
+					<xsd:element name="object-to-string-transformer" type="specialized-transformer-charset-aware-type"/>
 					<xsd:element name="object-to-map-transformer" type="specialized-transformer-type"/>
 					<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type"/>
 					<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type"/>
@@ -2023,7 +2023,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="specialized-transformer-type">
+				<xsd:extension base="specialized-transformer-charset-aware-type">
 					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
 				</xsd:extension>
 			</xsd:complexContent>
@@ -2357,6 +2357,21 @@
 			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
 			<xsd:element ref="poller" />
 		</xsd:choice>
+	</xsd:complexType>
+
+	<xsd:complexType name="specialized-transformer-charset-aware-type">
+		<xsd:complexContent>
+			<xsd:extension base="specialized-transformer-type">
+				<xsd:attribute name="charset" type="xsd:string" default="UTF-8">
+					<xsd:annotation>
+						<xsd:documentation>
+							Allows you to specify the Charset (e.g., US-ASCII,
+							ISO-8859-1, UTF-8) to be used when transforming byte[]. [UTF-8] is the default
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:element name="filter">
@@ -3837,15 +3852,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
             </xsd:simpleType>
         </xsd:attribute>
-		<xsd:attribute name="charset" type="xsd:string"
-			default="UTF-8">
-			<xsd:annotation>
-				<xsd:documentation>
-					Allows you to specify the Charset (e.g., US-ASCII,
-					ISO-8859-1, UTF-8) to be used when transforming byte[]. [UTF-8] is the default
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="inputOutputChannelGroupWithId">
