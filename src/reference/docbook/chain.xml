@@ -58,13 +58,13 @@
       The &lt;chain&gt; element provides an <code>input-channel</code> attribute, and if the last element in the chain is capable
       of producing reply messages (optional), it also supports an <code>output-channel</code> attribute. The sub-elements are then
       filters, transformers, splitters, and service-activators. The last element may also be a router or an outbound-channel-adapter.
-      <programlisting language="xml"><![CDATA[ <int:chain input-channel="input" output-channel="output">
-     <int:filter ref="someSelector" throw-exception-on-rejection="true"/>
-     <int:header-enricher>
-         <int:header name="foo" value="bar"/>
-     </int:header-enricher>
-     <int:service-activator ref="someService" method="someMethod"/>
- </int:chain>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:chain input-channel="input" output-channel="output">
+    <int:filter ref="someSelector" throw-exception-on-rejection="true"/>
+    <int:header-enricher>
+        <int:header name="foo" value="bar"/>
+    </int:header-enricher>
+    <int:service-activator ref="someService" method="someMethod"/>
+</int:chain>]]></programlisting>
     </para>
   <para>
     The &lt;header-enricher&gt; element used in the above example will set a message header named "foo" with a value
@@ -75,14 +75,14 @@
   <para>
     The &lt;chain&gt; can be configured as the last 'black-box' consumer of the message flow. For this solution it is
     enough to put at the end of the &lt;chain&gt; some &lt;outbound-channel-adapter&gt;:
-    <programlisting language="xml"><![CDATA[ <int:chain input-channel="input">
-     <si-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
-     <int:service-activator ref="someService" method="someMethod"/>
-     <int:header-enricher>
-         <int:header name="foo" value="bar"/>
-     </int:header-enricher>
-     <int:logging-channel-adapter level="INFO" log-full-message="true"/>
- </int:chain>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int:chain input-channel="input">
+    <si-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
+    <int:service-activator ref="someService" method="someMethod"/>
+    <int:header-enricher>
+        <int:header name="foo" value="bar"/>
+    </int:header-enricher>
+    <int:logging-channel-adapter level="INFO" log-full-message="true"/>
+</int:chain>]]></programlisting>
   </para>
 	<para><emphasis>Disallowed Attributes and Elements</emphasis></para>
 	<para>
@@ -130,7 +130,7 @@
     To accomplish this you can utilize a Messaging Gateway by including a &lt;gateway&gt; element.
     For example:
 	</para>
-    <programlisting language="xml"><![CDATA[  <int:chain id="main-chain" input-channel="in" output-channel="out">
+    <programlisting language="xml"><![CDATA[<int:chain id="main-chain" input-channel="in" output-channel="out">
     <int:header-enricher>
       <int:header name="name" value="Many" />
     </int:header-enricher>
@@ -138,26 +138,26 @@
       <bean class="org.foo.SampleService" />
     </int:service-activator>
     <int:gateway request-channel="inputA"/>  
-  </int:chain>
+</int:chain>
 
-  <int:chain id="nested-chain-a" input-channel="inputA">
+<int:chain id="nested-chain-a" input-channel="inputA">
     <int:header-enricher>
-      <int:header name="name" value="Moe" />
+        <int:header name="name" value="Moe" />
     </int:header-enricher>
     <int:gateway request-channel="inputB"/> 
     <int:service-activator>
-      <bean class="org.foo.SampleService" />
+        <bean class="org.foo.SampleService" />
     </int:service-activator>
-  </int:chain>
+</int:chain>
 
-  <int:chain id="nested-chain-b" input-channel="inputB">
+<int:chain id="nested-chain-b" input-channel="inputB">
     <int:header-enricher>
-      <int:header name="name" value="Jack" />
+        <int:header name="name" value="Jack" />
     </int:header-enricher>
     <int:service-activator>
-      <bean class="org.foo.SampleService" />
+        <bean class="org.foo.SampleService" />
     </int:service-activator>
-  </int:chain>]]></programlisting>
+</int:chain>]]></programlisting>
 	<para>
     In the above example the <emphasis>nested-chain-a</emphasis> will be called at the end of
     <emphasis>main-chain</emphasis> processing by the 'gateway' element configured there. While in

@@ -26,18 +26,18 @@
  <section id="samples-get">
    <title>Where to get Samples</title>
    <para>
-       The Spring Integration Samples project is hosted on <ulink url="https://github.com/SpringSource/spring-integration-samples/">GitHub</ulink>. 
+       The Spring Integration Samples project is hosted on <ulink url="https://github.com/SpringSource/spring-integration-samples/">GitHub</ulink>.
        You can find the repository at:
    </para>
    <para>
        <ulink url="https://github.com/SpringSource/spring-integration-samples">https://github.com/SpringSource/spring-integration-samples</ulink>
    </para>
    <para>
-       In order to check out or <emphasis>clone</emphasis> (Git parlance) the samples, 
-       please make sure you have a Git client installed on your system. 
-       There are several GUI-based products available for many platforms, e.g. 
-       <ulink url="http://eclipse.org/egit/">EGit</ulink> for the Eclipse IDE. 
-       A simple Google search will help you find them. Of course you can also just 
+       In order to check out or <emphasis>clone</emphasis> (Git parlance) the samples,
+       please make sure you have a Git client installed on your system.
+       There are several GUI-based products available for many platforms, e.g.
+       <ulink url="http://eclipse.org/egit/">EGit</ulink> for the Eclipse IDE.
+       A simple Google search will help you find them. Of course you can also just
        use the command line interface for <link linkend="http://git-scm.com/">Git</link>.
     </para>
     <note>
@@ -45,48 +45,48 @@
         <ulink url="http://git-scm.com/">http://git-scm.com/</ulink>.
     </note>
     <para>
-       In order to checkout (clone in Git terms) the Spring Integration samples 
+       In order to checkout (clone in Git terms) the Spring Integration samples
        repository using the Git command line tool, issue the following commands:
     </para>
-    
+
     <programlisting language="xml"><![CDATA[$ git clone https://github.com/SpringSource/spring-integration-samples.git]]></programlisting>
 
    <para>
-       That is all you need to do in order to clone the entire samples repository 
-       into a directory named <emphasis>spring-integration-samples</emphasis> within 
+       That is all you need to do in order to clone the entire samples repository
+       into a directory named <emphasis>spring-integration-samples</emphasis> within
        the working directory where you issued that <emphasis>git</emphasis> command.
-       Since the samples repository is a live repository, you might want to perform 
-       periodic <emphasis>pulls</emphasis> (updates) to get new samples, as well as updates to 
-       the existing samples. In order to do so issue the following git 
+       Since the samples repository is a live repository, you might want to perform
+       periodic <emphasis>pulls</emphasis> (updates) to get new samples, as well as updates to
+       the existing samples. In order to do so issue the following git
        <emphasis>PULL</emphasis> command:
    </para>
-   
+
    <programlisting language="xml"><![CDATA[$ git pull]]></programlisting>
 
    </section>
    <section>
-       <title>Submitting Samples or Sample Requests</title>   
+       <title>Submitting Samples or Sample Requests</title>
        <para>
            <emphasis>How can I contribute my own Samples?</emphasis>
        </para>
 	   <para>
-	       Github is for social coding: if you want to submit your own code examples 
-	       to the Spring Integration Samples project, we encourage contributions 
-	       through <ulink url="http://help.github.com/send-pull-requests/"><emphasis>pull 
-	       requests</emphasis></ulink> from 
-	       <ulink url="http://help.github.com/fork-a-repo/"><emphasis>forks</emphasis></ulink> 
-	       of this repository. If you want to contribute code this way, please 
-	       reference, if possible, a 
-	       <ulink url="https://jira.springframework.org/browse/INTSAMPLES"><emphasis>JIRA Ticket</emphasis></ulink> 
+	       Github is for social coding: if you want to submit your own code examples
+	       to the Spring Integration Samples project, we encourage contributions
+	       through <ulink url="http://help.github.com/send-pull-requests/"><emphasis>pull
+	       requests</emphasis></ulink> from
+	       <ulink url="http://help.github.com/fork-a-repo/"><emphasis>forks</emphasis></ulink>
+	       of this repository. If you want to contribute code this way, please
+	       reference, if possible, a
+	       <ulink url="https://jira.springframework.org/browse/INTSAMPLES"><emphasis>JIRA Ticket</emphasis></ulink>
 	       that provides some details regarding the provided sample.
 	   </para>
 	   <important>
 	       <title>Sign the contributor license agreement</title>
 	       <para>
-	           Very important: before we can accept your Spring Integration sample, 
-	           we will need you to sign the SpringSource contributor license agreement (CLA). 
-	           Signing the contributor's agreement does not grant anyone commit rights 
-	           to the main repository, but it does mean that we can accept your 
+	           Very important: before we can accept your Spring Integration sample,
+	           we will need you to sign the SpringSource contributor license agreement (CLA).
+	           Signing the contributor's agreement does not grant anyone commit rights
+	           to the main repository, but it does mean that we can accept your
 	           contributions, and you will get an author credit if we do. In order to
 	           read and sign the CLA, please go to:
 	       </para>
@@ -94,33 +94,33 @@
 	           <ulink url="https://support.springsource.com/spring_committer_signup"/>
 	       </para>
 	       <para>
-	           As Project, please select <emphasis>Spring Integration</emphasis>. 
+	           As Project, please select <emphasis>Spring Integration</emphasis>.
 	           The Project Lead is <emphasis>Mark Fisher</emphasis>.
 	       </para>
 	   </important>
 	   <para><emphasis>Code Contribution Process</emphasis></para>
 	   <para>
-	       For the actual code contribution process, please read the the 
-	       <emphasis>Contributor Guidelines</emphasis> for Spring Integration, 
+	       For the actual code contribution process, please read the the
+	       <emphasis>Contributor Guidelines</emphasis> for Spring Integration,
 	       they apply for this project as well:
 	   </para>
 	   <para>
 	       <ulink url="https://github.com/SpringSource/spring-integration/wiki/Contributor-Guidelines"/>
 	   </para>
 	   <para>
-	       This process ensures that every commit gets peer-reviewed. As a matter of 
+	       This process ensures that every commit gets peer-reviewed. As a matter of
 	       fact, the core committers follow the exact same rules.
 	       We are gratefully looking forward to your Spring Integration Samples!
 	   </para>
-   
+
 	   <para><emphasis>Sample Requests</emphasis></para>
-	   
+
 	   <para>
-	       As mentioned earlier, the <emphasis>Spring Integration Samples</emphasis> 
-	       project has a dedicated JIRA Issue tracking system. To submit new sample 
+	       As mentioned earlier, the <emphasis>Spring Integration Samples</emphasis>
+	       project has a dedicated JIRA Issue tracking system. To submit new sample
 	       requests, please visit our JIRA Issue Tracking system:
 	   </para>
-	   
+
 	   <para>
 	       <ulink url="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</ulink>.
 	   </para>
@@ -128,7 +128,7 @@
  <section id="samples-structure">
    <title>Samples Structure</title>
    <para>
-   Starting with Spring Integration 2.0, the structure of the <emphasis>samples</emphasis> 
+   Starting with Spring Integration 2.0, the structure of the <emphasis>samples</emphasis>
    changed as well. With plans for more samples we realized that some
    samples have different goals than others. While they all share the common goal of showing you how to apply and work with
    the Spring Integration framework, they also differ in areas where some samples are meant to concentrate on a technical
@@ -443,7 +443,7 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       </para>
       <para>
       This and other samples in this section are built on top of Enterprise Integration Patterns and can be considered "building blocks"
-      for YOUR solution; they are not intended to be complete solutions. Integration concerns exist in all types of application 
+      for YOUR solution; they are not intended to be complete solutions. Integration concerns exist in all types of application
       (whether server based or not).
       It should not require change in design, testing and deployment strategy if such applications need to be integrated.
       </para>
@@ -480,129 +480,129 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       </para>
       <para>
         Here is the XML configuration:
+      </para>
         <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-  <beans:beans xmlns:int="http://www.springframework.org/schema/integration"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:beans="http://www.springframework.org/schema/beans"
-      xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
-      xsi:schemaLocation="http://www.springframework.org/schema/beans
-              http://www.springframework.org/schema/beans/spring-beans.xsd
-              http://www.springframework.org/schema/integration
-              http://www.springframework.org/schema/integration/spring-integration.xsd
-              http://www.springframework.org/schema/integration/stream
-              http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+<beans:beans xmlns:int="http://www.springframework.org/schema/integration"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:beans="http://www.springframework.org/schema/beans"
+ xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+ xsi:schemaLocation="http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans.xsd
+  http://www.springframework.org/schema/integration
+  http://www.springframework.org/schema/integration/spring-integration.xsd
+  http://www.springframework.org/schema/integration/stream
+  http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
-      <int:gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
+    <int:gateway id="cafe" service-interface="o.s.i.samples.cafe.Cafe"/>
 
-      <int:channel id="orders"/>
-      <int:splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
+    <int:channel  id="orders"/>
+    <int:splitter input-channel="orders" ref="orderSplitter"
+                  method="split" output-channel="drinks"/>
 
-      <int:channel id="drinks"/>
-      <int:router input-channel="drinks" ref="drinkRouter" method="resolveOrderItemChannel"/>
+    <int:channel id="drinks"/>
+    <int:router  input-channel="drinks"
+                 ref="drinkRouter" method="resolveOrderItemChannel"/>
 
-      <int:channel id="coldDrinks">
-          <int:queue capacity="10"/>
-      </int:channel>
-      <int:service-activator input-channel="coldDrinks" ref="barista"
-                         method="prepareColdDrink" output-channel="preparedDrinks"/>
+    <int:channel id="coldDrinks"><int:queue capacity="10"/></int:channel>
+    <int:service-activator input-channel="coldDrinks" ref="barista"
+                           method="prepareColdDrink" output-channel="preparedDrinks"/>
 
-      <int:channel id="hotDrinks">
-          <int:queue capacity="10"/>
-      </int:channel>
-      <int:service-activator input-channel="hotDrinks" ref="barista"
-                         method="prepareHotDrink" output-channel="preparedDrinks"/>
+    <int:channel id="hotDrinks"><int:queue capacity="10"/></int:channel>
+    <int:service-activator input-channel="hotDrinks" ref="barista"
+                           method="prepareHotDrink" output-channel="preparedDrinks"/>
 
-      <int:channel id="preparedDrinks"/>
-      <int:aggregator input-channel="preparedDrinks" ref="waiter"
-                  method="prepareDelivery" output-channel="deliveries"/>
+    <int:channel id="preparedDrinks"/>
+    <int:aggregator input-channel="preparedDrinks" ref="waiter"
+                    method="prepareDelivery" output-channel="deliveries"/>
 
-      <int-stream:stdout-channel-adapter id="deliveries"/>
+    <int-stream:stdout-channel-adapter id="deliveries"/>
 
-      <beans:bean id="orderSplitter"
-                  class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
+    <beans:bean id="orderSplitter"
+                class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
 
-      <beans:bean id="drinkRouter"
-                  class="org.springframework.integration.samples.cafe.xml.DrinkRouter"/>
+    <beans:bean id="drinkRouter"
+                class="org.springframework.integration.samples.cafe.xml.DrinkRouter"/>
 
-      <beans:bean id="barista" class="org.springframework.integration.samples.cafe.xml.Barista"/>
+    <beans:bean id="barista" class="o.s.i.samples.cafe.xml.Barista"/>
+    <beans:bean id="waiter"  class="o.s.i.samples.cafe.xml.Waiter"/>
 
-      <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
+    <int:poller id="poller" default="true" fixed-rate="1000"/>
 
-      <int:poller id="poller" default="true" fixed-rate="1000"/>
-
-  </beans:beans>]]></programlisting>
+</beans:beans>]]></programlisting>
+	<para>
         As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
         its own Lifecycle (by default endpoints start automatically upon initialization - to prevent that add the
         "auto-startup" attribute with a value of "false"). Most importantly, notice that the objects are simple POJOs
         with strongly typed method arguments. For example, here is the Splitter:
+	</para>
         <programlisting language="java"><![CDATA[public class OrderSplitter {
-
-      public List<OrderItem> split(Order order) {
-          return order.getItems();
-      }
-  }]]></programlisting>
+    public List<OrderItem> split(Order order) {
+        return order.getItems();
+    }
+}]]></programlisting>
+  <para>
       In the case of the Router, the return value does not have to be a <interfacename>MessageChannel</interfacename>
       instance (although it can be). As you see in this example, a String-value representing the channel name is
       returned instead.
+  </para>
       <programlisting language="java"><![CDATA[public class DrinkRouter {
-
-      public String resolveOrderItemChannel(OrderItem orderItem) {
-          return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
-      }
-  }]]></programlisting>
-      </para>
+    public String resolveOrderItemChannel(OrderItem orderItem) {
+        return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
+    }
+}]]></programlisting>
       <para>
         Now turning back to the XML, you see that there are two &lt;service-activator&gt; elements. Each of these
         is delegating to the same <classname>Barista</classname> instance but different methods: 'prepareHotDrink'
         or 'prepareColdDrink' corresponding to the two channels where order items have been routed.
+      </para>
         <programlisting language="java"><![CDATA[public class Barista {
 
-      private long hotDrinkDelay = 5000;
-      private long coldDrinkDelay = 1000;
+    private long hotDrinkDelay = 5000;
+    private long coldDrinkDelay = 1000;
 
-      private AtomicInteger hotDrinkCounter = new AtomicInteger();
-      private AtomicInteger coldDrinkCounter = new AtomicInteger();
+    private AtomicInteger hotDrinkCounter = new AtomicInteger();
+    private AtomicInteger coldDrinkCounter = new AtomicInteger();
 
-      public void setHotDrinkDelay(long hotDrinkDelay) {
-          this.hotDrinkDelay = hotDrinkDelay;
-      }
+    public void setHotDrinkDelay(long hotDrinkDelay) {
+        this.hotDrinkDelay = hotDrinkDelay;
+    }
 
-      public void setColdDrinkDelay(long coldDrinkDelay) {
-          this.coldDrinkDelay = coldDrinkDelay;
-      }
+    public void setColdDrinkDelay(long coldDrinkDelay) {
+        this.coldDrinkDelay = coldDrinkDelay;
+    }
 
-      public Drink prepareHotDrink(OrderItem orderItem) {
-          try {
-              Thread.sleep(this.hotDrinkDelay);
-              System.out.println(Thread.currentThread().getName()
-                      + " prepared hot drink #" + hotDrinkCounter.incrementAndGet()
-                      + " for order #" + orderItem.getOrder().getNumber() + ": " + orderItem);
-              return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
-                      orderItem.isIced(), orderItem.getShots());
-          }
-          catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-              return null;
-          }
-      }
+    public Drink prepareHotDrink(OrderItem orderItem) {
+        try {
+            Thread.sleep(this.hotDrinkDelay);
+            System.out.println(Thread.currentThread().getName()
+                    + " prepared hot drink #" + hotDrinkCounter.incrementAndGet()
+                    + " for order #" + orderItem.getOrder().getNumber()
+                    + ": " + orderItem);
+            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
+                    orderItem.isIced(), orderItem.getShots());
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+    }
 
-      public Drink prepareColdDrink(OrderItem orderItem) {
-          try {
-              Thread.sleep(this.coldDrinkDelay);
-              System.out.println(Thread.currentThread().getName()
-                      + " prepared cold drink #" + coldDrinkCounter.incrementAndGet()
-                      + " for order #" + orderItem.getOrder().getNumber() + ": " + orderItem);
-              return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
-                      orderItem.isIced(), orderItem.getShots());
-          }
-          catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-              return null;
-          }
-      }
-
-  }]]></programlisting>
-      </para>
+    public Drink prepareColdDrink(OrderItem orderItem) {
+        try {
+            Thread.sleep(this.coldDrinkDelay);
+            System.out.println(Thread.currentThread().getName()
+                    + " prepared cold drink #" + coldDrinkCounter.incrementAndGet()
+                    + " for order #" + orderItem.getOrder().getNumber() + ": "
+                    + orderItem);
+            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
+                    orderItem.isIced(), orderItem.getShots());
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+    }
+}]]></programlisting>
       <para>
         As you can see from the code excerpt above, the barista methods have different delays (the hot drinks take 5
         times as long to prepare). This simulates work being completed at different rates. When the
@@ -611,30 +611,32 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         interface. Above, you will see that the &lt;gateway&gt; element is specified in the configuration file. This
         triggers the creation of a proxy that implements the given 'service-interface' and connects it to a channel.
         The channel name is provided on the @Gateway annotation of the <interfacename>Cafe</interfacename> interface.
-        <programlisting language="java">public interface Cafe {
-
-      @Gateway(requestChannel="orders")
-      void placeOrder(Order order);
-
-  }</programlisting>
-        Finally, have a look at the <methodname>main()</methodname> method of the <classname>CafeDemo</classname> itself.
-        <programlisting language="java"><![CDATA[public static void main(String[] args) {
-      AbstractApplicationContext context = null;
-      if (args.length > 0) {
-          context = new FileSystemXmlApplicationContext(args);
-      }
-      else {
-          context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
-      }
-      Cafe cafe = context.getBean("cafe", Cafe.class);
-      for (int i = 1; i <= 100; i++) {
-          Order order = new Order(i);
-          order.addItem(DrinkType.LATTE, 2, false);
-          order.addItem(DrinkType.MOCHA, 3, true);
-          cafe.placeOrder(order);
-      }
-  }]]></programlisting>
       </para>
+      <programlisting language="java">public interface Cafe {
+
+    @Gateway(requestChannel="orders")
+    void placeOrder(Order order);
+
+}</programlisting>
+      <para>
+        Finally, have a look at the <methodname>main()</methodname> method of the <classname>CafeDemo</classname> itself.
+      </para>
+      <programlisting language="java"><![CDATA[public static void main(String[] args) {
+    AbstractApplicationContext context = null;
+    if (args.length > 0) {
+        context = new FileSystemXmlApplicationContext(args);
+    }
+    else {
+        context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+    }
+    Cafe cafe = context.getBean("cafe", Cafe.class);
+    for (int i = 1; i <= 100; i++) {
+        Order order = new Order(i);
+        order.addItem(DrinkType.LATTE, 2, false);
+        order.addItem(DrinkType.MOCHA, 3, true);
+        cafe.placeOrder(order);
+    }
+}]]></programlisting>
       <tip>
         To run this sample as well as 8 others, refer to the <code>README.txt</code> within the "samples" directory
         of the main distribution as described at the beginning of this chapter.
@@ -645,6 +647,7 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         This is to be expected based on their respective delays of 1000 and 5000 milliseconds. However, by configuring a
         poller with a concurrent task executor, you can dramatically change the results. For example, you could use a
         thread pool executor with 5 workers for the hot drink barista while keeping the cold drink barista as it is:
+      </para>
         <programlisting language="xml"><![CDATA[<int:service-activator input-channel="hotDrinks"
                      ref="barista"
                      method="prepareHotDrink"
@@ -659,7 +662,6 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
   </int:service-activator>
 
   ]]><emphasis><![CDATA[<task:executor id="pool" pool-size="5"/>]]></emphasis></programlisting>
-      </para>
       <para>
         Also, notice that the worker thread name is displayed with each invocation. You will see that the hot drinks are
         prepared by the task-executor threads. If you provide a much shorter poller interval (such as 100 milliseconds),
@@ -684,10 +686,9 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         the XPath splitter component.
           <programlisting language="xml"><![CDATA[<int-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
               output-channel="stockCheckerChannel" create-documents="true">
-      <int-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem" 
+      <int-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem"
                                 namespace-map="orderNamespaceMap" />
-  </int-xml:xpath-splitter>
-  ]]></programlisting>
+  </int-xml:xpath-splitter>]]></programlisting>
       </para>
       <para>
         A service activator is then used to pass the message into a stock checker POJO.  The order item document is enriched with information
@@ -697,16 +698,14 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
     <si-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" namespace-map="orderNamespaceMap" />
     <si-xml:mapping value="true" channel="warehouseDispatchChannel"/>
     <si-xml:mapping value="false" channel="outOfStockChannel"/>
-</si-xml:xpath-router>
-  ]]></programlisting>
+</si-xml:xpath-router>]]></programlisting>
       </para>
       <para>
         Where the order item is not in stock the message is transformed using
         xslt into a format suitable for sending to the supplier.
-          <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer input-channel="outOfStockChannel" 
+          <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer input-channel="outOfStockChannel"
   output-channel="resupplyOrderChannel"
-  xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
-  ]]></programlisting>
+  xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>]]></programlisting>
       </para>
     </section>
   </section>

@@ -72,20 +72,22 @@
   </para>
     <para>
     To configure the inbound channel adapter the following code snippet shows the different configuration options that are supported.
+    </para>
     <programlisting language="xml"><![CDATA[<int-stream:stdin-channel-adapter id="adapterWithDefaultCharset"/>
 
 <int-stream:stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8"/>]]></programlisting>
-    </para>
     <para>
     To configure the outbound channel adapter you can use the namespace support as well. The following code snippet shows the different configuration for an outbound channel adapters.
-    <programlisting language="xml"><![CDATA[<int-stream:stdout-channel-adapter id="stdoutAdapterWithDefaultCharset" channel="testChannel"/>
+    </para>
+    <programlisting language="xml"><![CDATA[<int-stream:stdout-channel-adapter id="stdoutAdapterWithDefaultCharset"
+    channel="testChannel"/>
 
-<int-stream:stdout-channel-adapter id="stdoutAdapterWithProvidedCharset" charset="UTF-8" channel="testChannel"/>
+<int-stream:stdout-channel-adapter id="stdoutAdapterWithProvidedCharset" charset="UTF-8"
+    channel="testChannel"/>
 
 <int-stream:stderr-channel-adapter id="stderrAdapter" channel="testChannel"/>
 
-<int-stream:stdout-channel-adapter id="newlineAdapter" append-newline="true" channel="testChannel"/>
-    ]]></programlisting>
-    </para>
+<int-stream:stdout-channel-adapter id="newlineAdapter" append-newline="true"
+    channel="testChannel"/>]]></programlisting>
   </section>
 </chapter>

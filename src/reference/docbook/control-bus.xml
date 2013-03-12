@@ -37,8 +37,8 @@
   For example, to execute a method on a Spring Bean a client
   could send a message to the operation channel as follows:</para>
 
-  <programlisting>Message operation = MessageBuilder.withPayload("@myServiceBean.shutdown()").build();
-operationChannel.send(operation)</programlisting>
+  <programlisting language="java"><![CDATA[Message operation = MessageBuilder.withPayload("@myServiceBean.shutdown()").build();
+operationChannel.send(operation)]]></programlisting>
 
   <para>The root of the context for the expression is the
   <classname>Message</classname> itself, so you also have access to the 'payload'

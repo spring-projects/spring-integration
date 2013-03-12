@@ -110,12 +110,12 @@
             Here is an overview of all available configuration parameters of the
             <code>xpath-expression</code> element:
         </para>
-        <programlisting language="xml"><![CDATA[<int-xml:xpath-expression expression=""     ]]><co id="xpath-expression-xml01-co" linkends="xpath-expression-xml01" /><![CDATA[
-		          id=""             ]]><co id="xpath-expression-xml02-co" linkends="xpath-expression-xml02" /><![CDATA[
-		          namespace-map=""  ]]><co id="xpath-expression-xml03-co" linkends="xpath-expression-xml03" /><![CDATA[
-		          ns-prefix=""      ]]><co id="xpath-expression-xml04-co" linkends="xpath-expression-xml04" /><![CDATA[
-		          ns-uri="">        ]]><co id="xpath-expression-xml05-co" linkends="xpath-expression-xml05" /><![CDATA[
-    <map></map>                           ]]><co id="xpath-expression-xml06-co" linkends="xpath-expression-xml06" /><![CDATA[
+        <programlisting language="xml"><![CDATA[<int-xml:xpath-expression expression=""]]><co id="xpath-expression-xml01-co" linkends="xpath-expression-xml01" /><![CDATA[
+          id=""             ]]><co id="xpath-expression-xml02-co" linkends="xpath-expression-xml02" /><![CDATA[
+          namespace-map=""  ]]><co id="xpath-expression-xml03-co" linkends="xpath-expression-xml03" /><![CDATA[
+          ns-prefix=""      ]]><co id="xpath-expression-xml04-co" linkends="xpath-expression-xml04" /><![CDATA[
+          ns-uri="">        ]]><co id="xpath-expression-xml05-co" linkends="xpath-expression-xml05" /><![CDATA[
+    <map></map>             ]]><co id="xpath-expression-xml06-co" linkends="xpath-expression-xml06" /><![CDATA[
 </int-xml:xpath-expression>]]></programlisting>
     <para>
         <calloutlist>
