@@ -705,7 +705,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				new SpelExpressionParser().parseExpression("headers['foo']"),
 				restTemplate);
-		String theURL = "http://bar/baz";
+		String theURL = "http://bar/baz?foo#bar";
 		Message<?> message = MessageBuilder.withPayload("").setHeader("foo", theURL).build();
 		try {
 			handler.handleRequestMessage(message);
@@ -721,12 +721,12 @@ public class HttpRequestExecutingMessageHandlerTests {
 				new SpelExpressionParser().parseExpression("'http://my.RabbitMQ.com/api/' + payload"),
 				restTemplate);
 		handler.setEncodeUri(false);
-		Message<?> message = MessageBuilder.withPayload("queues/%2f/si.test.queue").build();
+		Message<?> message = MessageBuilder.withPayload("queues/%2f/si.test.queue?foo#bar").build();
 		try {
 			handler.handleRequestMessage(message);
 		}
 		catch (Exception e) {}
-		assertEquals("http://my.RabbitMQ.com/api/queues/%2f/si.test.queue", restTemplate.actualUrl.get());
+		assertEquals("http://my.RabbitMQ.com/api/queues/%2f/si.test.queue?foo#bar", restTemplate.actualUrl.get());
 	}
 
 	@Test

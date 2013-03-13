@@ -362,7 +362,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			Class<?> expectedResponseType = this.determineExpectedResponseType(requestMessage);
 
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
-			UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(uri).buildAndExpand(uriVariables);
+			UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
 			URI realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, expectedResponseType);
 			if (this.expectReply) {
