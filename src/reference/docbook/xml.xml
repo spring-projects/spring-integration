@@ -1150,17 +1150,6 @@
 	    thos <code>match-value</code> attribute must be a valid Regular Expression.
     </para>
 
-    <note>
-        In prior versions of Spring Integration the functionality of the XPath Filter
-        was configured using the <code>xpath-selector</code> element. However, in order
-        to provide a more consistent behavior within the Spring Integration Framework,
-        <emphasis role="bold">the <code>xpath-selector</code> element is deprecated as of version 2.1</emphasis>.
-
-        Please use <code>&lt;xpath-filter&gt;</code> instead. It provides the same
-        set of functionality. In fact it still uses the same <code>MessageSelectors</code>
-        internally.
-    </note>
-
 	<programlisting language="xml"><![CDATA[<int-xml:xpath-filter discard-channel=""                     ]]><co id="xpath-filter-xml01-co" linkends="xpath-filter-xml01" /><![CDATA[
                       id=""                                  ]]><co id="xpath-filter-xml02-co" linkends="xpath-filter-xml02" /><![CDATA[
                       input-channel=""                       ]]><co id="xpath-filter-xml03-co" linkends="xpath-filter-xml03" /><![CDATA[
