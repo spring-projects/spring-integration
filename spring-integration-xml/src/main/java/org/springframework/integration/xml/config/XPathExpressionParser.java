@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.w3c.dom.Element;
  * Parser for the &lt;xpath-expression&gt; element.
  *
  * @author Jonas Partner
+ * @author Soby Chacko
  */
 public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 
@@ -98,10 +99,9 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	protected Map<?,?> parseNamespaceMapElement(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
-		BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext());
-		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement());
+		BeanDefinitionParserDelegate beanParser = parserContext.getDelegate();
+		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement(), beanParser);
 		return beanParser.parseMapElement(element, parentDefinition);
 	}
 
