@@ -32,7 +32,6 @@ public class IntegrationXmlNamespaceHandler extends AbstractIntegrationNamespace
 		registerBeanDefinitionParser("xpath-header-enricher", new XPathHeaderEnricherParser());
 		registerBeanDefinitionParser("xpath-router", new XPathRouterParser());
 		registerBeanDefinitionParser("xpath-filter", new XPathFilterParser());
-		registerBeanDefinitionParser("xpath-selector", new XPathSelectorParser());
 		registerBeanDefinitionParser("xpath-expression", new XPathExpressionParser());
 		registerBeanDefinitionParser("xpath-splitter", new XPathMessageSplitterParser());
 		registerBeanDefinitionParser("validating-filter", new XmlPayloadValidatingFilterParser());
