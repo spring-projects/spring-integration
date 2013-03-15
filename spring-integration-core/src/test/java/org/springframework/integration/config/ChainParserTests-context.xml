@@ -102,8 +102,8 @@
 	</chain>
 
 	<chain id="logChain" input-channel="loggingChannelAdapterChannel">
-<object-to-string-transformer charset="cp1251"/>
-<transformer id="transformerWithinChain" expression="payload.toUpperCase()"/>
+		<object-to-string-transformer charset="cp1251"/>
+		<transformer id="transformerWithinChain" expression="payload.toUpperCase()"/>
 		<logging-channel-adapter id="loggingChannelAdapterWithinChain" level="WARN"/>
 	</chain>
 

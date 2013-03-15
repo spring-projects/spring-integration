@@ -2032,13 +2032,8 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-<<<<<<< HEAD
 				<xsd:extension base="specialized-transformer-charset-aware-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
-=======
-				<xsd:extension base="specialized-transformer-type">
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
->>>>>>> 16843ef... INT-2755: Support 'id' for <chain> sub-components
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

@@ -15,11 +15,11 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -52,15 +52,16 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && !"poller".equals(child.getLocalName())) {
-				String childBeanName = this.parseChild(chainHandlerId, (Element) child, childOrder++, parserContext, builder.getBeanDefinition());
+				BeanMetadataElement childBeanMetadata = this.parseChild(chainHandlerId, (Element) child, childOrder++,
+						parserContext, builder.getBeanDefinition());
 				if ("gateway".equals(child.getLocalName())) {
 					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 							IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.RequestReplyMessageHandlerAdapter");
-					gwBuilder.addConstructorArgValue(new RuntimeBeanReference(childBeanName));
+					gwBuilder.addConstructorArgValue(childBeanMetadata);
 					handlerList.add(gwBuilder.getBeanDefinition());
 				}
 				else {
-					handlerList.add(new RuntimeBeanReference(childBeanName));
+					handlerList.add(childBeanMetadata);
 				}
 			}
 		}
@@ -92,7 +93,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 
 	}
 
-	private String parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext, BeanDefinition parentDefinition) {
+	private BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext, BeanDefinition parentDefinition) {
 
 		BeanDefinitionHolder holder = null;
 
@@ -115,8 +116,12 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				holder = new BeanDefinitionHolder(beanDefinition, handlerBeanName, handlerAlias);
 			}
 		}
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
-		return holder.getBeanName();
+		if (StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
+			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+			return new RuntimeBeanReference(holder.getBeanName());
+		}
+
+		return holder;
 	}
 
 }

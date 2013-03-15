@@ -99,10 +99,6 @@ public class MessageHistoryIntegrationTests {
 				assertEquals("chain", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
 				event = historyIterator.next();
-				assertEquals("sampleChain.handler#0", event.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("transformer", event.getProperty(MessageHistory.TYPE_PROPERTY));
-
-				event = historyIterator.next();
 				assertEquals("sampleChain.handler#1", event.getProperty(MessageHistory.NAME_PROPERTY));
 				assertEquals("service-activator", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
@@ -194,9 +190,6 @@ public class MessageHistoryIntegrationTests {
 				assertTrue(historyIterator.hasNext());
 				Properties chainHistory = historyIterator.next();
 				assertEquals("sampleChain", chainHistory.get("name"));
-				assertTrue(historyIterator.hasNext());
-				Properties chainHanlderHistory = historyIterator.next();
-				assertEquals("sampleChain.handler#0", chainHanlderHistory.get("name"));
 				assertFalse(historyIterator.hasNext());
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);

@@ -22,7 +22,7 @@
 		<int:header-enricher>
 			<int:header name="baz" value="baz"/>
 		</int:header-enricher>
-		<int:service-activator expression="payload"/>
+		<int:service-activator id="service-activator-within-chain" expression="payload"/>
 	</int:chain>
 
 	<int:filter id="testFilter" input-channel="filterChannel"
