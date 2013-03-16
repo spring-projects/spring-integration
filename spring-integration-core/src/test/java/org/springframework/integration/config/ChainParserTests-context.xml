@@ -141,6 +141,13 @@
 		</recipient-list-router>
 	</chain>
 
+	<chain id="chainReplayRequired" input-channel="chainReplayRequiredChannel">
+		<transformer id="transformerReplayRequired" expression="null"/>
+	</chain>
+
+	<chain id="chainMessageRejectedException" input-channel="chainMessageRejectedExceptionChannel">
+		<filter id="filterMessageRejectedException" expression="false" throw-exception-on-rejection="true"/>
+	</chain>
 
 	<beans:bean id="testConsumer" class="org.springframework.integration.config.TestConsumer"/>
 

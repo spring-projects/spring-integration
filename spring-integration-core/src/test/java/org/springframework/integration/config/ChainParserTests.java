@@ -48,11 +48,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
+import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -144,6 +147,12 @@ public class ChainParserTests {
 
 	@Autowired
 	private PollableChannel numbers;
+
+	@Autowired
+	private MessageChannel chainReplayRequiredChannel;
+
+	@Autowired
+	private MessageChannel chainMessageRejectedExceptionChannel;
 
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
@@ -357,6 +366,29 @@ public class ChainParserTests {
 		assertNotNull(this.beanFactory.getBean("routerWithinChain.handler"));
 		assertNotNull(this.beanFactory.getBean("exceptionTypeRouterWithinChain.handler"));
 		assertNotNull(this.beanFactory.getBean("recipientListRouterWithinChain.handler"));
+	}
+
+	@Test
+	public void testInt2755SubComponentException() {
+		GenericMessage<String> testMessage = new GenericMessage<String>("test");
+		try {
+			this.chainReplayRequiredChannel.send(testMessage);
+			fail("Expected ReplyRequiredException");
+		}
+		catch (Exception e) {
+			assertTrue(e instanceof ReplyRequiredException);
+			assertTrue(e.getMessage().contains("chainReplayRequired.transformerReplayRequired"));
+		}
+
+		try {
+			this.chainMessageRejectedExceptionChannel.send(testMessage);
+			fail("Expected MessageRejectedException");
+		}
+		catch (Exception e) {
+			assertTrue(e instanceof MessageRejectedException);
+			assertTrue(e.getMessage().contains("chainMessageRejectedException.filterMessageRejectedException"));
+		}
+
 	}
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {

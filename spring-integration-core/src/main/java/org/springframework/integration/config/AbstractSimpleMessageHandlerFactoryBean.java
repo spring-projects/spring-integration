@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,6 +23,8 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
@@ -34,8 +36,10 @@ import org.springframework.util.CollectionUtils;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler> implements FactoryBean<MessageHandler>, BeanFactoryAware {
+public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
+		implements FactoryBean<MessageHandler>, BeanFactoryAware {
 
 	private volatile H handler;
 
@@ -51,6 +55,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 
 	private volatile List<Advice> adviceChain;
 
+	private volatile String componentName;
 
 	public AbstractSimpleMessageHandlerFactoryBean() {
 		super();
@@ -76,16 +81,19 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		this.adviceChain = adviceChain;
 	}
 
+	/**
+	 * Sets the name of the handler component.
+	 *
+	 * @param componentName
+	 */
+	public void setComponentName(String componentName) {
+		this.componentName = componentName;
+	}
+
 	public H getObject() throws Exception {
 		if (this.handler == null) {
 			this.handler = this.createHandlerInternal();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
-			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
-				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
-			}
-			if (this.handler instanceof Orderable && this.order != null) {
-				((Orderable) this.handler).setOrder(this.order.intValue());
-			}
 		}
 		return this.handler;
 	}
@@ -100,9 +108,18 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			if (handler instanceof BeanFactoryAware) {
 				((BeanFactoryAware) handler).setBeanFactory(getBeanFactory());
 			}
+			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
+				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
+			}
+			if (this.handler instanceof IntegrationObjectSupport && this.componentName != null) {
+				((IntegrationObjectSupport) this.handler).setComponentName(this.componentName);
+			}
 			if (!CollectionUtils.isEmpty(this.adviceChain) &&
 					this.handler instanceof AbstractReplyProducingMessageHandler) {
 				((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
+			}
+			if (this.handler instanceof Orderable && this.order != null) {
+				((Orderable) this.handler).setOrder(this.order);
 			}
 			this.initialized = true;
 		}

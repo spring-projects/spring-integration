@@ -117,6 +117,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			}
 		}
 		if (StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
+			holder.getBeanDefinition().getPropertyValues().add("componentName", element.getAttribute(ID_ATTRIBUTE));
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 			return new RuntimeBeanReference(holder.getBeanName());
 		}

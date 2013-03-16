@@ -190,7 +190,10 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 						}
 					}
 					if (targetHandler instanceof IntegrationObjectSupport) {
-						((IntegrationObjectSupport) targetHandler).setComponentName(componentName + ".handler#" + i);
+						IntegrationObjectSupport ios = (IntegrationObjectSupport) targetHandler;
+						String handlerComponentName = componentName + "." +
+								(ios.getComponentName() != null ? ios.getComponentName() : "handler#" + i);
+						ios.setComponentName(handlerComponentName);
 					}
 				} catch (Exception e) {
 					if (logger.isDebugEnabled()) {
