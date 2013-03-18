@@ -28,8 +28,8 @@ subprojects { subproject ->
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
 
-	sourceCompatibility=1.6
-	targetCompatibility=1.6
+	sourceCompatibility=1.7
+	targetCompatibility=1.7
 
 	ext {
 		aspectjVersion = '1.6.8'
