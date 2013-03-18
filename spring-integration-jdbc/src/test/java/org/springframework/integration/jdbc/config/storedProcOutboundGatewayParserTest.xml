@@ -18,7 +18,7 @@
 		data-source="datasource" auto-startup="true" id="storedProcedureOutboundGateway"
 		ignore-column-meta-data="false" is-function="false"
 		skip-undeclared-results="false" order="2" reply-channel="replyChannel"
-		reply-timeout="555" return-value-required="true">
+		reply-timeout="555" return-value-required="true" requires-reply="true">
 
 		<int-jdbc:sql-parameter-definition name="username" direction="IN" type="VARCHAR" />
 		<int-jdbc:sql-parameter-definition name="password" direction="OUT" />

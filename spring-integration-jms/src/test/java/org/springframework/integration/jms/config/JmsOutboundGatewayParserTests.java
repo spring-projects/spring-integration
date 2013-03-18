@@ -128,6 +128,7 @@ public class JmsOutboundGatewayParserTests {
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		Object order = accessor.getPropertyValue("order");
 		assertEquals(99, order);
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
 	}
 
 	@Test

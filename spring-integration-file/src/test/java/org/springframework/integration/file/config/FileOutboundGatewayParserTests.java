@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -27,10 +28,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
@@ -45,6 +48,7 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -69,6 +73,10 @@ public class FileOutboundGatewayParserTests {
 	MessageChannel gatewayWithReplaceModeChannel;
 
 	@Autowired
+    @Qualifier("gatewayWithReplaceMode.handler")
+	MessageHandler gatewayWithReplaceModeHandler;
+
+	@Autowired
 	MessageChannel gatewayWithFailModeLowercaseChannel;
 
 	private volatile static int adviceCalled;
@@ -82,6 +90,7 @@ public class FileOutboundGatewayParserTests {
 		assertEquals(Boolean.FALSE, gatewayAccessor.getPropertyValue("autoStartup"));
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(777, handlerAccessor.getPropertyValue("order"));
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("requiresReply"));
 		DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
 		assertNotNull(fileNameGenerator);
 		String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
@@ -263,6 +272,8 @@ public class FileOutboundGatewayParserTests {
 	 */
 	@Test
 	public void gatewayWithReplaceMode() throws Exception{
+
+		assertFalse(TestUtils.getPropertyValue(this.gatewayWithReplaceModeHandler, "requiresReply", Boolean.class));
 
 		final MessagingTemplate messagingTemplate = new MessagingTemplate(this.gatewayWithReplaceModeChannel);
 

@@ -15,7 +15,12 @@
  */
 package org.springframework.integration.amqp.config;
 
+<<<<<<< HEAD
 import static org.junit.Assert.assertEquals;
+=======
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+>>>>>>> de75475... INT-2822: 'requires-reply' for outbound gateways
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -62,7 +67,7 @@ public class AmqpOutboundGatewayParserTests {
 		Object edc = context.getBean("rabbitGateway");
 		AmqpOutboundEndpoint gateway = TestUtils.getPropertyValue(edc, "handler", AmqpOutboundEndpoint.class);
 		assertEquals(5, gateway.getOrder());
-		assertTrue(context.containsBean("rabbitGateway"));
+		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		assertEquals(context.getBean("fromRabbit"), TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("amqp:outbound-gateway", gateway.getComponentType());
 		MessageChannel returnChannel = context.getBean("returnChannel", MessageChannel.class);
@@ -80,6 +85,8 @@ public class AmqpOutboundGatewayParserTests {
 		Object eventDrivernConsumer = context.getBean("withHeaderMapperCustomRequestResponse");
 
 		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler", AmqpOutboundEndpoint.class);
+
+		assertFalse(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);

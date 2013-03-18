@@ -40,6 +40,7 @@
 		routing-key="si.test.binding"
 		amqp-template="amqpTemplate"
 		order="5"
+		requires-reply="false"
 		mapped-request-headers="foo*"
 		mapped-reply-headers="bar*"/>
 

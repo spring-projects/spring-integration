@@ -47,6 +47,7 @@ import org.springframework.jdbc.core.SqlParameter;
 /**
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  *
  */
@@ -65,6 +66,7 @@ public class StoredProcOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
 		Object source = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(source);
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
 		source = accessor.getPropertyValue("executor");
 		accessor = new DirectFieldAccessor(source);
 		Expression  storedProcedureName = (Expression) accessor.getPropertyValue("storedProcedureNameExpression");

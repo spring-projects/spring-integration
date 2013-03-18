@@ -14,14 +14,17 @@ package org.springframework.integration.jdbc.config;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
@@ -29,6 +32,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -75,6 +79,7 @@ public class JdbcOutboundGatewayParserTests {
 		assertEquals("bar", payload.get("name"));
 		JdbcOutboundGateway gateway = context.getBean("jdbcGateway.handler", JdbcOutboundGateway.class);
 		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
+		Assert.assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		Object gw = context.getBean("jdbcGateway");
 		assertEquals(1, adviceCalled);
 	}
@@ -209,6 +214,13 @@ public class JdbcOutboundGatewayParserTests {
 				JdbcOutboundGateway.class));
 
 		MessageChannel channel = context.getBean("jdbcOutboundGatewayInsideChain", MessageChannel.class);
+		MessageHandler chainHandler = context.getBean("chainWithJdbcOutboundGateway.handler", MessageHandler.class);
+		List handlers = TestUtils.getPropertyValue(chainHandler, "handlers", List.class);
+		assertEquals(1, handlers.size());
+		Object jdbcMessageHandler = handlers.get(0);
+		Assert.assertTrue(jdbcMessageHandler instanceof JdbcOutboundGateway);
+		assertFalse(TestUtils.getPropertyValue(jdbcMessageHandler, "requiresReply", Boolean.class));
+
 		channel.send(MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build());
 
 		PollableChannel outbound = context.getBean("replyChannel", PollableChannel.class);

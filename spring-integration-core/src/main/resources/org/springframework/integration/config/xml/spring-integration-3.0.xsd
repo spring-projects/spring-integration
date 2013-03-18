@@ -1083,10 +1083,8 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specify whether the service method must return a non-null value. This value will be
-							FALSE by
-							default, but if set to TRUE, a MessageHandlingException will be thrown when
-							the underlying service method (or
-							expression) returns a NULL value.
+								'false' by default, but if set to 'true', a ReplyRequiredException will be thrown when
+								the underlying service method (or expression) returns a null value.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -3153,9 +3151,9 @@ is provided, the return value is expected to match a channel name exactly.
 				<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							Specify whether the splitter method must return a non-null value. This value will be
-							FALSE by default, but if set to TRUE, a MessageHandlingException will be thrown when
-							the underlying service method (or expression) returns a NULL value.
+							Specify whether the service method must return a non-null value. This value will be
+							'false' by default, but if set to 'true', a ReplyRequiredException will be thrown when
+							the underlying service method (or expression) returns a null value.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

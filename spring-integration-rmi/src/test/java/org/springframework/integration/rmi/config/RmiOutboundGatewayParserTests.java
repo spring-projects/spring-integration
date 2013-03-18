@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.rmi.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -60,6 +62,7 @@ public class RmiOutboundGatewayParserTests {
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
 		RmiOutboundGateway gateway = context.getBean("gateway.handler", RmiOutboundGateway.class);
 		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
+		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 	}
 
 	@Test
@@ -67,6 +70,9 @@ public class RmiOutboundGatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
 		MessageChannel localChannel = (MessageChannel) context.getBean("advisedChannel");
+		RmiOutboundGateway gateway = context.getBean("advised.handler", RmiOutboundGateway.class);
+		assertFalse(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
+
 		localChannel.send(new GenericMessage<String>("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
