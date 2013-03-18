@@ -17,13 +17,15 @@
 package org.springframework.integration.ws.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
@@ -72,6 +74,7 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object expected = context.getBean("outputChannel");
 		assertEquals(expected, accessor.getPropertyValue("outputChannel"));
+		Assert.assertEquals(Boolean.FALSE, accessor.getPropertyValue("requiresReply"));
 
 		@SuppressWarnings("unchecked")
 		List<String> requestHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.requestHeaderNames", List.class);
@@ -96,18 +99,20 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("ignoreEmptyResponses"));
+		Assert.assertEquals(Boolean.FALSE, accessor.getPropertyValue("requiresReply"));
 	}
 
 	@Test
 	public void simpleGatewayWithIgnoreEmptyResponses() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithIgnoreEmptyResponsesFalse");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithIgnoreEmptyResponsesFalseAndRequiresReplyTrue");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreEmptyResponses"));
+		Assert.assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
 	}
 
 	@Test

@@ -272,5 +272,38 @@
 				For more information see <xref linkend="ip-headers"/>.
 			</para>
 		</section>
+		<section id="3.0-outbound-gateway-requires-reply">
+			<title>'requires-reply' Attribute for Outbound Gateways</title>
+			<para>
+				All Outbound Gateways (e.g. <code>&lt;jdbc:outbound-gateway/&gt;</code> or <code>&lt;jms:outbound-gateway/&gt;</code>)
+				are designed for 'request-reply' scenarios. A response is expected from the external service and
+				will be published to the <code>reply-channel</code>, or the <code>replyChannel</code> message header. 
+				However, there are some cases where the external system might not always return a
+				result, e.g. a <code>&lt;jdbc:outbound-gateway/&gt;</code>, when a SELECT ends with an empty <interfacename>ResultSet</interfacename>
+				or, say, a Web Service is One-Way. An option is therefore needed to configure whether or not a
+				<emphasis>reply</emphasis> is required.
+				For this purpose, the <emphasis>requires-reply</emphasis> attribute has been introduced for Outbound Gateway components.
+				In most cases, the default value for <emphasis>requires-reply</emphasis> is <code>true</code> and, if there is not any result,
+				a <classname>ReplyRequiredException</classname> will be thrown. Changing the value to <code>false</code>
+				means that, if an external service doesn't return anything, the message-flow will end at that point,
+				similar to an Outbound Channel Adapter.
+			</para>
+			<note>
+				The WebService outbound gateway has an additional attribute <code>ignore-empty-responses</code>; this is used to
+				treat an empty String response as if no response was received. It is true by default but can be set to false to
+				allow the application to receive an empty String in the reply message payload. When the attribute is true an empty
+				string is treated as no response for the purposes of the <emphasis>requires-reply</emphasis> attribute.
+				<emphasis>requires-reply</emphasis> is false by default for the WebService outbound gateway.
+			</note>
+			<para>
+				Note, the <code>requiresReply</code> property was previously present in the <classname>AbstractReplyProducingMessageHandler</classname>
+				but set to <code>false</code>, and there wasn't any way to configure it on Outbound Gateways using the XML namespace.
+			</para>
+			<important>
+				Previously, a gateway receiving no reply would silently end the flow (with a DEBUG log message); with this change an
+				exception will now be thrown by default by most gateways. To revert to the previous behavior,
+				set <code>requires-reply</code> to false.
+			</important>
+		</section>
 	</section>
 </chapter>

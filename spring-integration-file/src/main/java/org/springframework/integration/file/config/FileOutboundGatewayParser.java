@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public class FileOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = FileWritingMessageHandlerBeanDefinitionBuilder.configure(element, true, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "reply-timeout", "sendTimeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "requires-reply");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "reply-channel", "outputChannel");
  		return handlerBuilder;
 	}

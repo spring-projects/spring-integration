@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,18 +13,24 @@
 package org.springframework.integration.jpa.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.After;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
@@ -42,13 +48,11 @@ import org.springframework.integration.test.util.TestUtils;
  * @since 2.2
  *
  */
-public class JpaOutboundGatewayParserTests {
+public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice {
 
 	private ConfigurableApplicationContext context;
 
 	private EventDrivenConsumer consumer;
-
-	private static volatile int adviceCalled;
 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParser() throws Exception {
@@ -69,6 +73,7 @@ public class JpaOutboundGatewayParserTests {
 
 		assertEquals(100, sendTimeout);
 
+		assertFalse(TestUtils.getPropertyValue(jpaOutboundGateway, "requiresReply", Boolean.class));
 
 		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
 
@@ -87,7 +92,6 @@ public class JpaOutboundGatewayParserTests {
 		final Integer maxNumberOfResults = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResults", Integer.class);
 
 		assertEquals(Integer.valueOf(55), maxNumberOfResults);
-
 	}
 
 	@Test
@@ -108,6 +112,8 @@ public class JpaOutboundGatewayParserTests {
 		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout", Long.class);
 
 		assertEquals(100, sendTimeout);
+
+		assertFalse(TestUtils.getPropertyValue(jpaOutboundGateway, "requiresReply", Boolean.class));
 
 		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
 
@@ -136,14 +142,22 @@ public class JpaOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void advised() throws Exception {
+	public void advised() throws Throwable {
 		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "advised");
 
 		MessageHandler jpaOutboundGateway = context.getBean("advised.handler", MessageHandler.class);
+		FooAdvice advice = context.getBean("jpaFooAdvice", FooAdvice.class);
 		assertTrue(AopUtils.isAopProxy(jpaOutboundGateway));
 
-		jpaOutboundGateway.handleMessage(new GenericMessage<String>("foo"));
-		assertEquals(1, adviceCalled);
+		try {
+			jpaOutboundGateway.handleMessage(new GenericMessage<String>("foo"));
+			fail("expected ReplyRequiredException");
+		}
+		catch (MessagingException e) {
+			assertTrue(e instanceof ReplyRequiredException);
+		}
+
+		Mockito.verify(advice).doInvoke(Mockito.any(ExecutionCallback.class), Mockito.any(Object.class), Mockito.any(Message.class));
 	}
 
 	@Test
@@ -168,11 +182,16 @@ public class JpaOutboundGatewayParserTests {
 		consumer   = this.context.getBean(gatewayId, EventDrivenConsumer.class);
 	}
 
+	@Override
+	protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		// Workaround for access to protected AbstractRequestHandlerAdvice.ExecutionCallback
+		return null;
+	}
+
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
-			adviceCalled++;
 			return null;
 		}
 

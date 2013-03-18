@@ -14,7 +14,7 @@
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
 	<si:channel id="requestChannel"/>
-		
+
 	<jms:outbound-gateway id="jmsGateway"
 						  request-destination-name="requestQueue"
 						  request-channel="requestChannel"
@@ -47,7 +47,8 @@
 		request-destination-name="requestQueue"
 		request-channel="requestChannel"
 		delivery-persistent="true"
-		auto-startup="false">
+		auto-startup="false"
+		requires-reply="false">
 		<jms:request-handler-advice-chain>
 			<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$FooAdvice" />
 		</jms:request-handler-advice-chain>

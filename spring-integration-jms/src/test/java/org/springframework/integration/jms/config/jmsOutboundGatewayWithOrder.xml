@@ -15,7 +15,7 @@
 	<jms:outbound-gateway id="jmsGateway"
 	                      request-destination="requestQueue"
 	                      request-channel="requestChannel"
-	                      order="99"/>
+	                      order="99" requires-reply="true"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

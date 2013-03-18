@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.jmx.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.integration.jmx.OperationInvokingMessageHandler;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
@@ -25,10 +26,11 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class OperationInvokingOutboundGatewayParser extends AbstractConsumerEndpointParser {
-	
+
 	@Override
 	protected String getInputChannelAttributeName() {
 		return "request-channel";
@@ -36,12 +38,12 @@ public class OperationInvokingOutboundGatewayParser extends AbstractConsumerEndp
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
-				"org.springframework.integration.jmx.OperationInvokingMessageHandler");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(OperationInvokingMessageHandler.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "object-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "operation-name");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		return builder;
 	}
 

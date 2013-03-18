@@ -87,6 +87,16 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						'false' by default, otherwise a ReplyRequiredException will be thrown when
+						the underlying service returns a null value, or an empty String (if
+						'ignore-empty-responses' is 'true').
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="uri" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -139,7 +149,9 @@
 			<xsd:attribute name="ignore-empty-responses" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Indicates whether empty String response payloads should be ignored. The default is TRUE.
+	Indicates whether empty String response payloads should be considered as null. The default is TRUE.
+	See also 'requires-reply'. Note that when 'requires-reply' is 'true' the response is not actually 'ignored',
+	because it will cause a ReplyRequiredException to be thrown.
 	Set this to FALSE if you want to send empty String responses in reply Messages.
 					]]></xsd:documentation>
 				</xsd:annotation>

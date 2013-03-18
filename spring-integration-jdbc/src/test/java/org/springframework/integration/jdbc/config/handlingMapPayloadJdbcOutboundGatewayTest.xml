@@ -26,7 +26,7 @@
 	<si:chain input-channel="jdbcOutboundGatewayInsideChain" output-channel="replyChannel">
 		<outbound-gateway id="jdbc-outbound-gateway-within-chain" query="select * from foos where id=:headers[id]"
 						  update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
-						  data-source="dataSource"/>
+						  data-source="dataSource" requires-reply="false"/>
 
 	</si:chain>
 

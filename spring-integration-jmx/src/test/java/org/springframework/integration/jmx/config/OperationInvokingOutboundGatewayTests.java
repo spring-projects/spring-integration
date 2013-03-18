@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -27,10 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.jmx.OperationInvokingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -61,6 +65,12 @@ public class OperationInvokingOutboundGatewayTests {
 	@Autowired
 	private TestBean testBean;
 
+	@Autowired
+	@Qualifier("operationInvokingWithinChain.handler")
+	private MessageHandler operationInvokingWithinChain;
+
+
+
 	private static volatile int adviceCalled;
 
 	@After
@@ -89,8 +99,14 @@ public class OperationInvokingOutboundGatewayTests {
 		assertEquals(3, testBean.messages.size());
 	}
 
-	@Test //INT-1029
+	@Test //INT-1029, INT-2822
 	public void testOutboundGatewayInsideChain() throws Exception {
+		List handlers = TestUtils.getPropertyValue(this.operationInvokingWithinChain, "handlers", List.class);
+		assertEquals(1, handlers.size());
+		Object handler = handlers.get(0);
+		assertTrue(handler instanceof OperationInvokingMessageHandler);
+		assertTrue(TestUtils.getPropertyValue(handler, "requiresReply", Boolean.class));
+
 		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("1").build());
 		assertEquals(1, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 		jmxOutboundGatewayInsideChain.send(MessageBuilder.withPayload("2").build());
@@ -99,7 +115,7 @@ public class OperationInvokingOutboundGatewayTests {
 		assertEquals(3, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 	}
 
-	public static class FooADvice extends AbstractRequestHandlerAdvice {
+	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
 		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
