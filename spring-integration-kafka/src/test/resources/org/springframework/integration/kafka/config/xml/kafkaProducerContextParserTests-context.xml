@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+       xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <int-kafka:producer-context id="producerContext">
+        <int-kafka:producer-configurations>
+            <int-kafka:producer-configuration broker-list="localhost:9092"
+                                           key-class-type="java.lang.String"
+                                           value-class-type="java.lang.String"
+                                           key-encoder="valueEncoder"
+                                           value-encoder="valueEncoder"
+                                           topic="test1"
+                                           compression-codec="default"/>
+            <int-kafka:producer-configuration broker-list="localhost:9092"
+                                           topic="test2"
+                                           compression-codec="default"/>
+        </int-kafka:producer-configurations>
+    </int-kafka:producer-context>
+
+    <bean id="valueEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroBackedKafkaEncoder">
+            <constructor-arg value="java.lang.String" />
+    </bean>
+</beans>

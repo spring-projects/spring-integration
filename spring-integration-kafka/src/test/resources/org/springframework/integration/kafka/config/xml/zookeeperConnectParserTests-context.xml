@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <int-kafka:zookeeper-connect id="zookeeperConnect" zk-connect="localhost:2181" zk-connection-timeout="10000"
+            zk-session-timeout="10000"
+            zk-sync-time="200" />
+
+    <int-kafka:zookeeper-connect id="defaultZookeeperConnect" />
+</beans>
