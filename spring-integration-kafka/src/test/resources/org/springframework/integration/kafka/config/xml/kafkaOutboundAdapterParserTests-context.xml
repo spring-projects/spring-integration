@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+    <int:channel id="inputToKafka">
+        <int:queue/>
+    </int:channel>
+
+    <int-kafka:outbound-channel-adapter id="kafkaOutboundChannelAdapter"
+                                        kafka-producer-context-ref="kafkaProducerContext"
+                                        auto-startup="false"
+                                        channel="inputToKafka"
+            >
+        <int:poller fixed-delay="1000" time-unit="MILLISECONDS" receive-timeout="0" task-executor="taskExecutor"/>
+    </int-kafka:outbound-channel-adapter>
+
+    <task:executor id="taskExecutor" pool-size="5" keep-alive="120" queue-capacity="500"/>
+
+    <bean id="kafkaEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroBackedKafkaEncoder">
+        <constructor-arg value="java.lang.String" />
+    </bean>
+
+    <int-kafka:producer-context id="kafkaProducerContext">
+        <int-kafka:producer-configurations>
+            <int-kafka:producer-configuration broker-list="localhost:9092"
+                                           key-class-type="java.lang.String"
+                                           value-class-type="java.lang.String"
+                                           topic="test1"
+                                           value-encoder="kafkaEncoder"
+                                           key-encoder="kafkaEncoder"
+                                           compression-codec="default"/>
+            <int-kafka:producer-configuration broker-list="localhost:9092"
+                                           topic="test2"
+                                           compression-codec="default"/>
+        </int-kafka:producer-configurations>
+    </int-kafka:producer-context>
+</beans>

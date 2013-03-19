@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="whats-new">
+    <title>What's new?</title>
+    <para>
+        This chapter provides an overview of the new features and improvements
+        that have been added to the Kafka Adapter:
+    </para>
+</chapter>
