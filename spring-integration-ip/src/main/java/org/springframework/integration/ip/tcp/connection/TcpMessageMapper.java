@@ -93,8 +93,6 @@ public class TcpMessageMapper implements
 
 	/**
 	 * Extracts the payload as a byte array.
-	 * @param message
-	 * @return
 	 */
 	private byte[] getPayloadAsBytes(Message<?> message) {
 		byte[] bytes = null;

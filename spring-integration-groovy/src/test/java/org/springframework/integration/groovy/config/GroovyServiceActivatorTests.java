@@ -142,7 +142,7 @@ public class GroovyServiceActivatorTests {
 	//INT-2399
 	@Test(expected = MessageHandlingException.class)
 	public void invalidInlineScript() throws Exception {
-		Message message = new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
+		Message<?> message = new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
 		try {
 			this.invalidInlineScript.send(message);
 			fail("MessageHandlingException expected!");

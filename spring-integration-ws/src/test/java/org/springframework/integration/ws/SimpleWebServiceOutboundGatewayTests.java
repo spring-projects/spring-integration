@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,16 +40,15 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.soap.SoapMessage;
-import org.springframework.ws.soap.SoapMessageFactory;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
-import org.springframework.xml.namespace.QNameUtils;
 
 import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class SimpleWebServiceOutboundGatewayTests {
@@ -105,7 +104,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 		Mockito.when(messageSender.createConnection(Mockito.any(URI.class))).thenReturn(wsConnection);
 		Mockito.when(messageSender.supports(Mockito.any(URI.class))).thenReturn(true);
 
-		Mockito.doAnswer(new Answer() {
+		Mockito.doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Exception{
 				Object[] args = invocation.getArguments();
 				WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];

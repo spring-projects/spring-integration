@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-	
+
 	private static final String BASE_PACKAGE = "org.springframework.integration.ip.udp";
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
@@ -38,16 +38,11 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		return builder.getBeanDefinition();
 	}
 
-	/**
-	 * @param element
-	 * @param parserContext 
-	 * @return
-	 */
 	private BeanDefinitionBuilder parseUdp(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);
 		if (multicast.equals("true")) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + 
+			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
 					".MulticastSendingMessageHandler");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
 					element, IpAdapterParserUtils.MIN_ACKS_SUCCESS,
@@ -89,7 +84,7 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TASK_EXECUTOR);
 		return builder;
 	}

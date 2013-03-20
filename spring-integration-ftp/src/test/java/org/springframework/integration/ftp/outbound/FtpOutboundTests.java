@@ -164,10 +164,10 @@ public class FtpOutboundTests {
 		Object payload = result.getPayload();
 		assertTrue(payload instanceof List<?>);
 		@SuppressWarnings("unchecked")
-		List<? extends FileInfo> remoteFiles = (List<? extends FileInfo>) payload;
+		List<? extends FileInfo<?>> remoteFiles = (List<? extends FileInfo<?>>) payload;
 		assertEquals(3, remoteFiles.size());
 		List<String> files = Arrays.asList(new File("remote-test-dir").list());
-		for (FileInfo remoteFile : remoteFiles) {
+		for (FileInfo<?> remoteFile : remoteFiles) {
 			assertTrue(files.contains(remoteFile.getFilename()));
 		}
 	}

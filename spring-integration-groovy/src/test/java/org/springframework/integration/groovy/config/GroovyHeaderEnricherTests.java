@@ -71,10 +71,10 @@ public class GroovyHeaderEnricherTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void inlineScript() throws Exception{
-		Map<String, HeaderEnricher.HeaderValueMessageProcessor> headers =
+		Map<String, HeaderEnricher.HeaderValueMessageProcessor<?>> headers =
 				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript, "handler.transformer.headersToAdd", Map.class);
 		assertEquals(1, headers.size());
-		HeaderEnricher.HeaderValueMessageProcessor headerValueMessageProcessor = headers.get("TEST_HEADER");
+		HeaderEnricher.HeaderValueMessageProcessor<?> headerValueMessageProcessor = headers.get("TEST_HEADER");
 		assertThat(headerValueMessageProcessor.getClass().getName(), Matchers.containsString("HeaderEnricher$MessageProcessingHeaderValueMessageProcessor"));
 		Object targetProcessor = TestUtils.getPropertyValue(headerValueMessageProcessor, "targetProcessor");
 		assertEquals(GroovyScriptExecutingMessageProcessor.class, targetProcessor.getClass());

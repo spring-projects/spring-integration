@@ -729,7 +729,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpRequestExecutingMessageHandler handler =
 				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		ConfigurableListableBeanFactory bf = new DefaultListableBeanFactory();
-		ProxyFactory pf = new ProxyFactory(new Class[] {ConversionService.class, ConverterRegistry.class});
+		ProxyFactory pf = new ProxyFactory(new Class<?>[] {ConversionService.class, ConverterRegistry.class});
 		final AtomicInteger converterCount = new AtomicInteger();
 		pf.addAdvice(new MethodInterceptor() {
 
