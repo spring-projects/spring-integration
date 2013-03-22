@@ -283,19 +283,19 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	private void makeDirectories(String path, Session<F> session) throws IOException {
 		if (!session.exists(path)){
 
-			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
+			int nextSeparatorIndex = path.lastIndexOf(this.remoteFileSeparator);
 
 			if (nextSeparatorIndex > -1){
 				List<String> pathsToCreate = new LinkedList<String>();
 				while (nextSeparatorIndex > -1){
 					String pathSegment = path.substring(0, nextSeparatorIndex);
-					if (session.exists(pathSegment)){
+					if (pathSegment.length() == 0 || session.exists(pathSegment)) {
 						// no more paths to create
 						break;
 					}
 					else {
 						pathsToCreate.add(0, pathSegment);
-						nextSeparatorIndex = pathSegment.lastIndexOf(remoteFileSeparator);
+						nextSeparatorIndex = pathSegment.lastIndexOf(this.remoteFileSeparator);
 					}
 				}
 

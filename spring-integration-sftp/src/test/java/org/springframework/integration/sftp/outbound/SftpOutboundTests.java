@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,23 @@ package org.springframework.integration.sftp.outbound;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
-import com.jcraft.jsch.SftpATTRS;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
@@ -50,9 +54,11 @@ import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpATTRS;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class SftpOutboundTests {
 
@@ -147,12 +153,37 @@ public class SftpOutboundTests {
 		Object payload = result.getPayload();
 		assertTrue(payload instanceof List<?>);
 		@SuppressWarnings("unchecked")
-		List<? extends FileInfo> remoteFiles = (List<? extends FileInfo>) payload;
+		List<? extends FileInfo<?>> remoteFiles = (List<? extends FileInfo<?>>) payload;
 		assertEquals(3, remoteFiles.size());
 		List<String> files = Arrays.asList(new File("remote-test-dir").list());
-		for (FileInfo remoteFile : remoteFiles) {
+		for (FileInfo<?> remoteFile : remoteFiles) {
 			assertTrue(files.contains(remoteFile.getFilename()));
 		}
+	}
+
+	@Test //INT-2954
+	public void testMkDir() throws Exception {
+		@SuppressWarnings("unchecked")
+		Session<LsEntry> session = mock(Session.class);
+		when(session.exists(anyString())).thenReturn(Boolean.FALSE);
+		@SuppressWarnings("unchecked")
+		SessionFactory<LsEntry> sessionFactory = mock(SessionFactory.class);
+		when(sessionFactory.getSession()).thenReturn(session);
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
+		handler.setAutoCreateDirectory(true);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("/foo/bar/baz"));
+		final List<String> madeDirs = new ArrayList<String>();
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				madeDirs.add((String) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(session).mkdir(anyString());
+		handler.handleMessage(new GenericMessage<String>("qux"));
+		assertEquals(3, madeDirs.size());
+		assertEquals("/foo", madeDirs.get(0));
+		assertEquals("/foo/bar", madeDirs.get(1));
+		assertEquals("/foo/bar/baz", madeDirs.get(2));
 	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
