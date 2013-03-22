@@ -587,8 +587,9 @@
 								<xsd:documentation>
 										<![CDATA[
 								Allows you to specify how long this gateway will wait for the reply message
-								before throwing an exception. By default it will wait indefinitely.
-								Value is specified in milliseconds
+								before returning. By default it will wait indefinitely. 'null' is returned
+								if the gateway times out.
+								Value is specified in milliseconds.
 										]]>
 								</xsd:documentation>
 							</xsd:annotation>
@@ -667,7 +668,8 @@
 					<xsd:documentation>
 							<![CDATA[
 					Allows you to specify how long this gateway will wait for the reply message
-					before throwing an exception. By default it will wait indefinitely.
+					before returning. By default it will wait indefinitely. 'null' is returned
+					if the gateway times out.
 					Value is specified in milliseconds.
 							]]>
 					</xsd:documentation>
