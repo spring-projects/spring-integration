@@ -127,5 +127,14 @@
 				please see <xref linkend="jdbc-message-store-generic"/>.
 			</para>
 		</section>
+		<section>
+			<title>Jackson Support (JSON)</title>
+			<para>
+				A new abstraction for JSON conversion has been introduced. Implementations for Jackson 1.x
+				and Jackson 2 are currently provided, with the version being determined by presence on
+				the classpath. Previously, only Jackson 1.x was supported. For more information,
+				see 'JSON Transformers' in <xref linkend="transformer"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

@@ -35,6 +35,7 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ObjectToJsonTransformerTests {
@@ -123,7 +124,7 @@ public class ObjectToJsonTransformerTests {
 	public void objectPayloadWithCustomObjectMapper() throws Exception {
 		ObjectMapper customMapper = new ObjectMapper();
 		customMapper.configure(Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(customMapper);
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(new JacksonJsonObjectMapper(customMapper));
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
@@ -138,15 +139,20 @@ public class ObjectToJsonTransformerTests {
 		assertTrue(addressResult.contains("street:\"Main Street\""));
 	}
 
+	@SuppressWarnings("deprecation")
+	@Test(expected = IllegalArgumentException.class)
+	public void testInt2831IllegalArgument() throws Exception {
+		new ObjectToJsonTransformer(new Object());
+	}
 
 	@SuppressWarnings("unused")
 	private static class TestPerson {
 
-		private String firstName;
+		private final String firstName;
 
-		private String lastName;
+		private final String lastName;
 
-		private int age;
+		private final int age;
 
 		private TestAddress address;
 
@@ -182,9 +188,9 @@ public class ObjectToJsonTransformerTests {
 	@SuppressWarnings("unused")
 	private static class TestAddress {
 
-		private int number;
+		private final int number;
 
-		private String street;
+		private final String street;
 
 
 		public TestAddress(int number, String street) {
