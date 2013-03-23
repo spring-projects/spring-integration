@@ -15,9 +15,6 @@
  */
 package org.springframework.integration.json;
 
-import java.io.StringWriter;
-
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
@@ -28,29 +25,35 @@ import org.springframework.util.StringUtils;
 
 /**
  * Transformer implementation that converts a payload instance into a JSON string representation.
+ * By default this transformer uses {@linkplain JacksonJsonObjectMapperProvider} factory
+ * to get an instance of Jackson or Jackson 2 JSON-processor {@linkplain JsonObjectMapper} implementation
+ * dependently of jackson-databind or jackson-mapper-asl libs in the classpath.
+ * Any other {@linkplain JsonObjectMapper} implementation can be provided.
  *
  * @author Mark Fisher
  * @author James Carr
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ObjectToJsonTransformer extends AbstractTransformer {
 
 	public static final String JSON_CONTENT_TYPE = "application/json";
 
-	private final ObjectMapper objectMapper;
+	private final JsonObjectMapper jsonObjectMapper;
 
 	private volatile String contentType = JSON_CONTENT_TYPE;
+
 	private volatile boolean contentTypeExplicitlySet = false;
 
-	public ObjectToJsonTransformer(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper must not be null");
-		this.objectMapper = objectMapper;
+	public ObjectToJsonTransformer(JsonObjectMapper jsonObjectMapper) {
+		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
+		this.jsonObjectMapper = jsonObjectMapper;
 	}
 
 	public ObjectToJsonTransformer() {
-		this.objectMapper = new ObjectMapper();
+		this.jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
 	}
 
 	/**
@@ -65,15 +68,9 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		this.contentType = contentType.trim();
 	}
 
-	private String transformPayload(Object payload) throws Exception {
-		StringWriter writer = new StringWriter();
-		this.objectMapper.writeValue(writer, payload);
-		return writer.toString();
-	}
-
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
-		String payload = this.transformPayload(message.getPayload());
+		String payload = this.jsonObjectMapper.toJson(message.getPayload());
 		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload);
 
 		LinkedCaseInsensitiveMap<Object> headers = new LinkedCaseInsensitiveMap<Object>();
@@ -93,4 +90,5 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		messageBuilder.copyHeaders(headers);
 		return messageBuilder.build();
 	}
+
 }

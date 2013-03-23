@@ -35,6 +35,7 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ObjectToJsonTransformerTests {
@@ -123,7 +124,7 @@ public class ObjectToJsonTransformerTests {
 	public void objectPayloadWithCustomObjectMapper() throws Exception {
 		ObjectMapper customMapper = new ObjectMapper();
 		customMapper.configure(Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
-		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(customMapper);
+		ObjectToJsonTransformer transformer = new  ObjectToJsonTransformer(new JacksonJsonObjectMapper(customMapper));
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();

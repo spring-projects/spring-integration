@@ -2,7 +2,7 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration.xsd">
@@ -16,5 +16,10 @@
 	<object-to-json-transformer id="overridenContentTypeTransformer" input-channel="customObjectMapperInput" content-type="text/xml"/>
 
 	<beans:bean id="customObjectMapper" class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomObjectMapper"/>
+
+	<object-to-json-transformer id="customJsonObjectMapperTransformer" input-channel="customJsonObjectMapperInput"
+								object-mapper="customJsonObjectMapper"/>
+
+	<beans:bean id="customJsonObjectMapper" class="org.springframework.integration.json.ObjectToJsonTransformerParserTests$CustomJsonObjectMapper"/>
 
 </beans:beans>
