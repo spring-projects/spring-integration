@@ -387,7 +387,7 @@ Caused by: java.lang.RuntimeException: foo
 	<section id="custom-advice">
 		<title>Custom Advice Classes</title>
 		<para>
-			In addition to the provided Advice classes above, you can implement your own Adivce classes. While you can
+			In addition to the provided Advice classes above, you can implement your own Advice classes. While you can
 			provide any implementation of <classname>org.aopalliance.aop.Advice</classname>, it is generally recommended
 			that you subclass <classname>o.s.i.handler.advice.AbstractRequestHandlerAdvice</classname>.
 			This has the benefit of avoiding writing low-level <emphasis>Aspect Oriented Programming</emphasis> code as well
