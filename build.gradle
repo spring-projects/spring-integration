@@ -459,7 +459,7 @@ project('spring-integration-sftp') {
 		compile project(":spring-integration-core")
 		compile project(":spring-integration-file")
 		compile project(":spring-integration-stream")
-		compile "com.jcraft:jsch:0.1.45"
+		compile "com.jcraft:jsch:0.1.49"
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-test")
