@@ -17,7 +17,6 @@ package org.springframework.integration.util;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -30,12 +29,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,13 +46,11 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.NamedComponent;
-import org.springframework.integration.handler.MethodInvokingMessageProcessor;
-import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 
@@ -151,85 +143,9 @@ public class BeanFactoryTypeConverterTests {
 		assertEquals("foo", typeConverter.convertValue(object, TypeDescriptor.valueOf(Object.class), TypeDescriptor.valueOf(String.class)));
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testMapOfMapOfCollectionIsConverted() {
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, Bar>() {
-			public Bar convert(Foo source) {
-				return new Bar();
-			}
-		});
-		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
-		beanFactory.setConversionService(conversionService);
-		typeConverter.setBeanFactory(beanFactory);
-		Map<String, Map<String, Set<Foo>>> foos;
-		Map<String, Map<String, Set<Bar>>> bars;
-
-		TypeDescriptor sourceType = TypeDescriptor.map(Map.class, null, null);
-		TypeDescriptor targetType = TypeDescriptor.map(Map.class, TypeDescriptor.valueOf(String.class),
-				TypeDescriptor.map(Map.class, TypeDescriptor.valueOf(String.class),
-						TypeDescriptor.collection(Set.class, TypeDescriptor.valueOf(Bar.class))));
-
-		Set<Foo> fooSet = new HashSet<Foo>();
-		fooSet.add(new Foo());
-		Map<String, Set<Foo>> fooMap = new HashMap<String, Set<Foo>>();
-		fooMap.put("foo", fooSet);
-		foos = new HashMap<String, Map<String, Set<Foo>>>();
-		foos.put("foo", fooMap);
-
-		bars = (Map<String, Map<String, Set<Bar>>>) typeConverter.convertValue(foos, sourceType, targetType);
-		assertTrue(bars.get("foo").get("foo").iterator().next() instanceof Bar);
-
-		Service service = new Service();
-		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<Service>(service, "handle");
-		processor.setConversionService(conversionService);
-		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
-		QueueChannel replyChannel = new QueueChannel();
-		handler.setOutputChannel(replyChannel);
-		handler.handleMessage(new GenericMessage<Map<String, Map<String, Set<Foo>>>>(foos));
-		Message<?> message = replyChannel.receive(0);
-		assertNotNull(message);
-		assertEquals("bar", message.getPayload());
-	}
-
-	@Test
-	public void testCollectionIsConverted() {
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, Bar>() {
-			public Bar convert(Foo source) {
-				return new Bar();
-			}
-		});
-		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
-		beanFactory.setConversionService(conversionService);
-		typeConverter.setBeanFactory(beanFactory);
-
-		Service service = new Service();
-		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<Service>(service, "handle");
-		processor.setConversionService(conversionService);
-		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
-		QueueChannel replyChannel = new QueueChannel();
-		handler.setOutputChannel(replyChannel);
-		handler.handleMessage(new GenericMessage<Collection<Foo>>(Collections.singletonList(new Foo())));
-		Message<?> message = replyChannel.receive(0);
-		assertNotNull(message);
-		assertEquals("baz", message.getPayload());
-	}
-
-	@Test
-	public void testNullArg() {
-		DefaultConversionService conversionService = new DefaultConversionService();
-		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
-		Object foo = typeConverter.convertValue(null, null, TypeDescriptor.valueOf(Bar.class));
-		assertNull(foo);
-	}
-
 	@Test
 	public void testVoidArg() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		Object foo = typeConverter.convertValue(null, null, TypeDescriptor.valueOf(Void.class));
 		assertNull(foo);
@@ -239,7 +155,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testEditorWithTargetString() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		UUID uuid = UUID.randomUUID();
 		Object foo = typeConverter.convertValue(uuid, TypeDescriptor.valueOf(UUID.class),
@@ -249,7 +165,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testEditorWithTargetFoo() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		final Foo foo = new Foo();
 		conversionService.addConverter(new Converter<String, Foo>() {
 			public Foo convert(String source) {
@@ -265,7 +181,7 @@ public class BeanFactoryTypeConverterTests {
 
 	@Test
 	public void testDelegateWithTargetUUID() {
-		DefaultConversionService conversionService = new DefaultConversionService();
+		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		UUID uuid = UUID.randomUUID();
 		Object converted = typeConverter.convertValue(uuid.toString(), TypeDescriptor.valueOf(String.class),
@@ -319,16 +235,4 @@ public class BeanFactoryTypeConverterTests {
 
 	}
 
-	public static class Service {
-
-		public String handle(Map<String, Map<String, Set<Bar>>> payload) {
-			assertTrue(payload.get("foo").get("foo").iterator().next() instanceof Bar);
-			return "bar";
-		}
-
-		public String handle(Collection<Bar> payload) {
-			assertTrue(payload.iterator().next() instanceof Bar);
-			return "baz";
-		}
-	}
 }
