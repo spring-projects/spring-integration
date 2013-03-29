@@ -24,7 +24,6 @@ import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
@@ -158,13 +157,13 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (StringUtils.hasText(userId)) {
 				headers.put(AmqpHeaders.USER_ID, userId);
 			}
-			Object replyCorrelation = amqpMessageProperties.getHeaders().get(RabbitTemplate.STACKED_CORRELATION_HEADER);
+			Object replyCorrelation = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER);
 			if (replyCorrelation instanceof String) {
 				if (StringUtils.hasText((String) replyCorrelation)) {
 					headers.put(AmqpHeaders.SPRING_REPLY_CORRELATION, replyCorrelation);
 				}
 			}
-			Object replyToStack = amqpMessageProperties.getHeaders().get(RabbitTemplate.STACKED_REPLY_TO_HEADER);
+			Object replyToStack = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_REPLY_TO_HEADER);
 			if (replyToStack instanceof String) {
 				if (StringUtils.hasText((String) replyToStack)) {
 					headers.put(AmqpHeaders.SPRING_REPLY_TO_STACK, replyToStack);
@@ -185,8 +184,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	@Override
 	protected Map<String, Object> extractUserDefinedHeaders(MessageProperties amqpMessageProperties) {
 		Map<String, Object> headers = amqpMessageProperties.getHeaders();
-		headers.remove(RabbitTemplate.STACKED_CORRELATION_HEADER);
-		headers.remove(RabbitTemplate.STACKED_REPLY_TO_HEADER);
+		headers.remove(AmqpHeaders.STACKED_CORRELATION_HEADER);
+		headers.remove(AmqpHeaders.STACKED_REPLY_TO_HEADER);
 		return headers;
 	}
 

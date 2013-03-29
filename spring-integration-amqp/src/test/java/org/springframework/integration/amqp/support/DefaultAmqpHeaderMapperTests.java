@@ -25,11 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageHeaders;
@@ -43,6 +41,7 @@ import org.springframework.integration.amqp.AmqpHeaders;
  */
 public class DefaultAmqpHeaderMapperTests {
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
@@ -94,8 +93,8 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(testTimestamp, amqpProperties.getTimestamp());
 		assertEquals("test.type", amqpProperties.getType());
 		assertEquals("test.userId", amqpProperties.getUserId());
-		assertEquals("test.correlation", amqpProperties.getHeaders().get(RabbitTemplate.STACKED_CORRELATION_HEADER));
-		assertEquals("test.replyTo2", amqpProperties.getHeaders().get(RabbitTemplate.STACKED_REPLY_TO_HEADER));
+		assertEquals("test.correlation", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER));
+		assertEquals("test.replyTo2", amqpProperties.getHeaders().get(AmqpHeaders.STACKED_REPLY_TO_HEADER));
 	}
 
 	@Test
@@ -113,6 +112,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("text/html", amqpProperties.getContentType());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void toHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
@@ -138,8 +138,8 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setTimestamp(testTimestamp);
 		amqpProperties.setType("test.type");
 		amqpProperties.setUserId("test.userId");
-		amqpProperties.setHeader(RabbitTemplate.STACKED_CORRELATION_HEADER, "test.correlation");
-		amqpProperties.setHeader(RabbitTemplate.STACKED_REPLY_TO_HEADER, "test.replyTo2");
+		amqpProperties.setHeader(AmqpHeaders.STACKED_CORRELATION_HEADER, "test.correlation");
+		amqpProperties.setHeader(AmqpHeaders.STACKED_REPLY_TO_HEADER, "test.replyTo2");
 		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
 		assertEquals("test.appId", headerMap.get(AmqpHeaders.APP_ID));
 		assertEquals("test.clusterId", headerMap.get(AmqpHeaders.CLUSTER_ID));
