@@ -44,7 +44,7 @@ class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter {
 
 
 	@Override
-	public final void onInit() {
+	public final void onInit() throws Exception {
 		super.onInit();
 		if (this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<Object>) this.messageProcessor).setConversionService(this.getConversionService());

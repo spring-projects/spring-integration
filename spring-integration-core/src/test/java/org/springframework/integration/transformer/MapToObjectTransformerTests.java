@@ -111,6 +111,7 @@ public class MapToObjectTransformerTests {
 				beanFactory.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConverterRegistry.class);
 		conversionService.addConverter(new StringToAddressConverter());
 		transformer.setBeanFactory(beanFactory);
+		transformer.afterPropertiesSet();
 
 		Message<?> newMessage = transformer.transform(message);
 		Person person = (Person) newMessage.getPayload();
