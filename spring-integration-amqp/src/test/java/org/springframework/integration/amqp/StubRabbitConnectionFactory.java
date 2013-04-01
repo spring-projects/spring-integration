@@ -25,6 +25,17 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 
+import com.rabbitmq.client.AMQP.Basic.RecoverOk;
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.AMQP.Channel.FlowOk;
+import com.rabbitmq.client.AMQP.Confirm.SelectOk;
+import com.rabbitmq.client.AMQP.Exchange.BindOk;
+import com.rabbitmq.client.AMQP.Exchange.DeclareOk;
+import com.rabbitmq.client.AMQP.Exchange.DeleteOk;
+import com.rabbitmq.client.AMQP.Exchange.UnbindOk;
+import com.rabbitmq.client.AMQP.Queue.PurgeOk;
+import com.rabbitmq.client.AMQP.Tx.CommitOk;
+import com.rabbitmq.client.AMQP.Tx.RollbackOk;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Command;
 import com.rabbitmq.client.ConfirmListener;
@@ -35,17 +46,6 @@ import com.rabbitmq.client.Method;
 import com.rabbitmq.client.ReturnListener;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.AMQP.Basic.RecoverOk;
-import com.rabbitmq.client.AMQP.Channel.FlowOk;
-import com.rabbitmq.client.AMQP.Confirm.SelectOk;
-import com.rabbitmq.client.AMQP.Exchange.BindOk;
-import com.rabbitmq.client.AMQP.Exchange.DeclareOk;
-import com.rabbitmq.client.AMQP.Exchange.DeleteOk;
-import com.rabbitmq.client.AMQP.Exchange.UnbindOk;
-import com.rabbitmq.client.AMQP.Queue.PurgeOk;
-import com.rabbitmq.client.AMQP.Tx.CommitOk;
-import com.rabbitmq.client.AMQP.Tx.RollbackOk;
 
 /**
  * @author Mark Fisher
@@ -87,7 +87,7 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 			return false;
 		}
 	}
-	
+
 	private static class StubChannel implements Channel {
 
 		public void addShutdownListener(ShutdownListener listener) {
@@ -334,7 +334,7 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public RecoverOk basicRecover(boolean requeue) throws IOException {
 			return null;
 		}
-		
+
 		@Deprecated
 		public void basicRecoverAsync(boolean requeue) throws IOException {
 		}
@@ -408,6 +408,10 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 
 		public void waitForConfirmsOrDie(long timeout) throws IOException,
 				InterruptedException, TimeoutException {
+		}
+
+		public void basicPublish(String arg0, String arg1, boolean arg2, BasicProperties arg3, byte[] arg4)
+				throws IOException {
 		}
 	}
 

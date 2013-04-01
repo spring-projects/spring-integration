@@ -22,7 +22,7 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 /**
  * Pre-defined names and prefixes to be used for setting and/or retrieving AMQP
  * MessageProperties from/to integration Message Headers.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class AmqpHeaders {
@@ -86,5 +86,21 @@ public abstract class AmqpHeaders {
 	public static final String RETURN_EXCHANGE = PREFIX + "returnExchange";
 
 	public static final String RETURN_ROUTING_KEY = PREFIX + "returnRoutingKey";
+
+	/**
+	 * Compatibility with Spring-AMQP 1.1
+	 * This was previously in RabbitTemplate
+	 * @deprecated Use the standard Rabbit CorrelationId header (mapped to {@link #CORRELATION_ID}).
+	 */
+	@Deprecated
+	public static final String STACKED_CORRELATION_HEADER = "spring_reply_correlation";
+
+	/**
+	 * Compatibility with Spring-AMQP 1.1
+	 * This was previously in RabbitTemplate
+	 * @deprecated No longer used by Spring-AMQP 1.2 and above.
+	 */
+	@Deprecated
+	public static final String STACKED_REPLY_TO_HEADER = "spring_reply_to";
 
 }
