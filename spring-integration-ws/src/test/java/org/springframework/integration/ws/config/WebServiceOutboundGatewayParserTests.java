@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNull;
 import java.net.URI;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -72,6 +73,7 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object expected = context.getBean("outputChannel");
 		assertEquals(expected, accessor.getPropertyValue("outputChannel"));
+		Assert.assertEquals(Boolean.FALSE, accessor.getPropertyValue("requiresReply"));
 
 		@SuppressWarnings("unchecked")
 		List<String> requestHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.requestHeaderNames", List.class);
@@ -108,6 +110,7 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreEmptyResponses"));
+		Assert.assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
 	}
 
 	@Test

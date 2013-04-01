@@ -87,6 +87,15 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether this outbound gateway must return a non-null value. This value is
+						'false' by default, otherwise a ReplyRequiredException will be thrown when
+						the underlying service returns a null value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="uri" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[

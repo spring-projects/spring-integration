@@ -83,6 +83,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-empty-responses");
 		this.postProcessGateway(builder, element, parserContext);
 
