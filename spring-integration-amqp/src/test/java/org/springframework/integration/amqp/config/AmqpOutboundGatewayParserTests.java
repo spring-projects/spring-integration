@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -263,6 +264,18 @@ public class AmqpOutboundGatewayParserTests {
 		assertNull(replyMessage.getHeaders().get(AmqpHeaders.APP_ID));
 
 	}
+
+	@Test
+	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
+		try {
+			new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-headerMapper-fail-context.xml", this.getClass());
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+		}
+	}
+
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 

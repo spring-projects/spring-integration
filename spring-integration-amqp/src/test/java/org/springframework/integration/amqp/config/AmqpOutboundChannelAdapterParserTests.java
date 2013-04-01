@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.amqp.rabbit.support.PublisherCallbackChannel;
 import org.springframework.amqp.rabbit.support.PublisherCallbackChannelImpl;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -52,6 +53,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.NamedComponent;
@@ -84,6 +86,10 @@ public class AmqpOutboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
+
+	@Autowired
+	@Qualifier("withCustomHeaderMapper.handler")
+	private MessageHandler amqpMessageHandlerWithCustomHeaderMapper;
 
 	@Test
 	public void verifyIdAsChannel() {
@@ -287,6 +293,24 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Mockito.verify(mockChannel, Mockito.times(1)).basicPublish(Mockito.eq(""), Mockito.eq(""),
 				Mockito.anyBoolean(), Mockito.anyBoolean(), Mockito.any(BasicProperties.class), Mockito.any(byte[].class));
 	}
+
+	@Test
+	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
+		try {
+			new ClassPathXmlApplicationContext("AmqpOutboundChannelAdapterParserTests-headerMapper-fail-context.xml", this.getClass());
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+		}
+	}
+
+	@Test
+	public void testInt2971AmqpOutboundChannelAdapterWithCustomHeaderMapper() {
+		AmqpHeaderMapper headerMapper = TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper, "headerMapper", AmqpHeaderMapper.class);
+		assertSame(this.context.getBean("customHeaderMapper"), headerMapper);
+	}
+
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 

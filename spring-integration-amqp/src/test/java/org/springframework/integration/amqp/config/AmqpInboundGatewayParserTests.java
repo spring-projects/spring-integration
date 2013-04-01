@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
@@ -47,9 +49,11 @@ import org.springframework.util.ReflectionUtils;
 import static junit.framework.Assert.assertEquals;
 
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 @ContextConfiguration
@@ -77,12 +81,12 @@ public class AmqpInboundGatewayParserTests {
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(gateway, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(gateway, "phase"));
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void verifyUsageWithHeaderMapper() throws Exception{
 		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);
-		requestChannel.subscribe(new MessageHandler() {		
+		requestChannel.subscribe(new MessageHandler() {
 			public void handleMessage(org.springframework.integration.Message<?> siMessage)
 					throws MessagingException {
 				org.springframework.integration.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage).setHeader("bar", "bar").build();
@@ -90,14 +94,14 @@ public class AmqpInboundGatewayParserTests {
 				replyChannel.send(replyMessage);
 			}
 		});
-		
+
 		final AmqpInboundGateway gateway = context.getBean("withHeaderMapper", AmqpInboundGateway.class);
-		
+
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpInboundGateway.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
 		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class);
 		amqpTemplate = Mockito.spy(amqpTemplate);
-			
+
 		Mockito.doAnswer(new Answer() {
 		      public Object answer(InvocationOnMock invocation) {
 		          Object[] args = invocation.getArguments();
@@ -109,8 +113,8 @@ public class AmqpInboundGatewayParserTests {
 		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
 				 Mockito.any(Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);
-		
-		AbstractMessageListenerContainer mlc = 
+
+		AbstractMessageListenerContainer mlc =
 				TestUtils.getPropertyValue(gateway, "messageListenerContainer", AbstractMessageListenerContainer.class);
 		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
 		MessageProperties amqpProperties = new MessageProperties();
@@ -124,9 +128,20 @@ public class AmqpInboundGatewayParserTests {
 		amqpProperties.setHeader("bar", "bar");
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
 		listener.onMessage(amqpMessage);
-		
+
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
+	}
+
+	@Test
+	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
+		try {
+			new ClassPathXmlApplicationContext("AmqpInboundGatewayParserTests-headerMapper-fail-context.xml", this.getClass());
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+		}
 	}
 
 	private static class TestConverter extends SimpleMessageConverter {}
