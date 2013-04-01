@@ -163,8 +163,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
 			if (logger.isDebugEnabled()) {
 				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'messageConverters'.");
-			}
-		}
+			}		}
 		else if (JacksonJsonUtils.isJacksonPresent()) {
 			this.defaultMessageConverters.add(new MappingJacksonHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
