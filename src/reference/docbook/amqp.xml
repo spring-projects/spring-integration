@@ -27,7 +27,7 @@
         (<ulink url="http://www.springsource.org/spring-amqp">http://www.springsource.org/spring-amqp</ulink>)
         which "applies core Spring concepts to the development of AMQP-based
         messaging solutions". Spring AMQP provides similar semantics as Spring JMS
-        (<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/htmlsingle/spring-framework-reference.html#jms">http://.../spring-framework-reference.html#jms</ulink>).
+        (<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html">http://static.springsource.org/spring/docs/current/spring-framework-reference/html/jms.html</ulink>).
     </para>
     <para>
         Whereas the provided AMQP Channel Adapters are intended for unidirectional
@@ -133,12 +133,12 @@
                 <emphasis>Optional (Defaults to true)</emphasis>.</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-11-co" id="amqp-inbound-channel-adapter-xml-11">
-                <para><classname>HeaderMapper</classname> to use when receiving AMQP Messages.
+                <para><interfacename>AmqpHeaderMapper</interfacename> to use when receiving AMQP Messages.
                 <emphasis>Optional</emphasis>.
                 By default only standard AMQP properties (e.g. contentType) will be copied to and from
  			    Spring Integration MessageHeaders. Any user-defined headers within the AMQP
                 MessageProperties will NOT be copied to or from an AMQP Message unless
-                explicitly identified via 'requestHeaderNames' and/or 'replyHeaderNames' properties of this <classname>HeaderMapper</classname>.
+                explicitly identified via 'requestHeaderNames' and/or 'replyHeaderNames' properties of this <classname>DefaultAmqpHeaderMapper</classname>.
 				If you need to copy all user-defined headers simply use wild-card character '*'.
                 </para>
             </callout>
@@ -155,7 +155,7 @@ this list can also be simple patterns to be matched against the header names (e.
 	this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-14-co" id="amqp-inbound-channel-adapter-xml-14">
-                <para>Reference to the <interface>SimpleMessageListenerContainer</interface>
+                <para>Reference to the <interfacename>SimpleMessageListenerContainer</interfacename>
                       to use for receiving AMQP Messages. If this attribute is provided,
                       then no other attribute related to the listener container
                       configuration should be provided. In other words, by
@@ -538,9 +538,9 @@ this list can also be simple patterns to be matched against the header names (e.
 			The Spring Integration AMPQ Adapters will map standard AMQP  properties
 			automatically. These properties will be copied by default to and from
 			Spring Integration
-			<classname><ulink url="http://static.springsource.org/spring-integration/docs/latest-ga/api/org/springframework/integration/MessageHeaders.html">MessageHeaders</ulink></classname>
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/MessageHeaders.html">MessageHeaders</ulink></classname>
 			using the
-			<classname><ulink url="http://static.springsource.org/spring-integration/docs/latest-ga/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html">DefaultAmqpHeaderMapper</ulink></classname>.
+			<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/amqp/support/DefaultAmqpHeaderMapper.html">DefaultAmqpHeaderMapper</ulink></classname>.
 		</para>
 		<para>
 			Of course, you can pass in your own implementation of AMQP specific header
@@ -552,7 +552,7 @@ this list can also be simple patterns to be matched against the header names (e.
 			will NOT be copied to or from an AMQP Message, unless explicitly specified
 			by the <emphasis>requestHeaderNames</emphasis> and/or
 			<emphasis>replyHeaderNames</emphasis> properties of the
-			<classname>HeaderMapper</classname>.
+			<classname>DefaultAmqpHeaderMapper</classname>.
 		</para>
 		<tip>
 			When mapping user-defined headers, the values can also contain simple
