@@ -19,6 +19,7 @@ package org.springframework.integration.test.util;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
@@ -176,4 +177,13 @@ public abstract class TestUtils {
     	}
 		return component;
     }
+    
+    /**
+     * Update file path by replacing any '/' with the system's file separator.
+     * @param s The file path containing '/'.
+     * @return The updated file path (if necessary).
+     */
+	public static String applySystemFileSeparator(String s) {
+		return s.replaceAll("/", java.util.regex.Matcher.quoteReplacement(File.separator));
+	}
 }
