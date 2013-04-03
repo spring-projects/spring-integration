@@ -418,9 +418,14 @@ The order for this consumer when multiple consumers are registered thereby enabl
 		</xsd:attribute>
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+The reference to the 'AmqpHeaderMapper' implementation bean to map AMQP Headers from the AMQP request into the MessageHeaders
+and from the Spring Integration MessageHeaders to the AMQP Headers.
+This is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'.
+						]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+						<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -478,9 +483,14 @@ property set to TRUE.
 		</xsd:attribute>
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+The reference to the 'AmqpHeaderMapper' implementation bean to map AMQP Headers from the AMQP request into the MessageHeaders
+and from the Spring Integration MessageHeaders to the AMQP Headers.
+This is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'.
+						]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+						<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
