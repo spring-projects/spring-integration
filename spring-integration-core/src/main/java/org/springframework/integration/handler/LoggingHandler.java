@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -15,11 +15,9 @@ package org.springframework.integration.handler;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -34,13 +32,14 @@ import org.springframework.util.StringUtils;
  * MessageHandler implementation that simply logs the Message or its payload depending on the value of the
  * 'shouldLogFullMessage' property. If logging the payload, and it is assignable to Throwable, it will log the stack
  * trace. By default, it will log the payload only.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 1.0.1
  */
 public class LoggingHandler extends AbstractMessageHandler {
 
-	private static enum Level {
+	public static enum Level {
 		FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 	}
 
@@ -49,7 +48,11 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	private volatile Expression expression;
 
-	private final Level level;
+	private volatile boolean expressionSet;
+
+	private volatile boolean shouldLogFullMessageSet;
+
+	private volatile Level level;
 
 	private final EvaluationContext evaluationContext;
 
@@ -62,6 +65,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * The valid levels are: FATAL, ERROR, WARN, INFO, DEBUG, or TRACE
 	 */
 	public LoggingHandler(String level) {
+		Assert.notNull(level, "'level' cannot be null");
 		try {
 			this.level = Level.valueOf(level.toUpperCase());
 		}
@@ -76,9 +80,26 @@ public class LoggingHandler extends AbstractMessageHandler {
 		this.expression = EXPRESSION_PARSER.parseExpression("payload");
 	}
 
-
 	public void setExpression(String expressionString) {
+		Assert.isTrue(!(this.shouldLogFullMessageSet), "Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
+		this.expressionSet = true;
 		this.expression = EXPRESSION_PARSER.parseExpression(expressionString);
+	}
+
+	/**
+	 * @return The current logging {@link Level}.
+	 */
+	public Level getLevel() {
+		return level;
+	}
+
+	/**
+	 * Set the logging {@link Level}.
+	 * @param level the level.
+	 */
+	public void setLevel(Level level) {
+		Assert.notNull(level, "'level' cannot be null");
+		this.level = level;
 	}
 
 	public void setLoggerName(String loggerName) {
@@ -91,6 +112,8 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 * <code>false</code> by default.
 	 */
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
+		Assert.isTrue(!(this.expressionSet), "Cannot set both 'expression' AND 'shouldLogFullMessage' properties");
+		this.shouldLogFullMessageSet = true;
 		this.expression = (shouldLogFullMessage) ? EXPRESSION_PARSER.parseExpression("#root") : EXPRESSION_PARSER
 				.parseExpression("payload");
 	}
@@ -102,51 +125,59 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
+		switch (this.level) {
+		case FATAL:
+			if (messageLogger.isFatalEnabled()) {
+				messageLogger.fatal(createLogMessage(message));
+			}
+			break;
+		case ERROR:
+			if (messageLogger.isErrorEnabled()) {
+				messageLogger.error(createLogMessage(message));
+			}
+			break;
+		case WARN:
+			if (messageLogger.isWarnEnabled()) {
+				messageLogger.warn(createLogMessage(message));
+			}
+			break;
+		case INFO:
+			if (messageLogger.isInfoEnabled()) {
+				messageLogger.info(createLogMessage(message));
+			}
+			break;
+		case DEBUG:
+			if (messageLogger.isDebugEnabled()) {
+				messageLogger.debug(createLogMessage(message));
+			}
+			break;
+		case TRACE:
+			if (messageLogger.isTraceEnabled()) {
+				messageLogger.trace(createLogMessage(message));
+			}
+			break;
+		default:
+			throw new IllegalStateException("Level '" + this.level + "' is not supported");
+		}
+	}
+
+
+	private Object createLogMessage(Message<?> message) {
 		Object logMessage = this.expression.getValue(this.evaluationContext, message);
 		if (logMessage instanceof Throwable) {
 			StringWriter stringWriter = new StringWriter();
 			if (logMessage instanceof AggregateMessageDeliveryException) {
 				stringWriter.append(((Throwable) logMessage).getMessage());
-				for (Exception exception : (List<? extends Exception>) ((AggregateMessageDeliveryException)logMessage).getAggregatedExceptions()) {
+				for (Exception exception : ((AggregateMessageDeliveryException)logMessage).getAggregatedExceptions()) {
 					exception.printStackTrace(new PrintWriter(stringWriter, true));
 				}
-			} else {
+			}
+			else {
 				((Throwable) logMessage).printStackTrace(new PrintWriter(stringWriter, true));
 			}
 			logMessage = stringWriter.toString();
 		}
-		switch (this.level) {
-		case FATAL:
-			if (messageLogger.isFatalEnabled()) {
-				messageLogger.fatal(logMessage);
-			}
-			break;
-		case ERROR:
-			if (messageLogger.isErrorEnabled()) {
-				messageLogger.error(logMessage);
-			}
-			break;
-		case WARN:
-			if (messageLogger.isWarnEnabled()) {
-				messageLogger.warn(logMessage);
-			}
-			break;
-		case INFO:
-			if (messageLogger.isInfoEnabled()) {
-				messageLogger.info(logMessage);
-			}
-			break;
-		case DEBUG:
-			if (messageLogger.isDebugEnabled()) {
-				messageLogger.debug(logMessage);
-			}
-			break;
-		case TRACE:
-			if (messageLogger.isTraceEnabled()) {
-				messageLogger.trace(logMessage);
-			}
-			break;
-		}
+		return logMessage;
 	}
 
 }
