@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xmpp.outbound;
 
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -38,10 +38,11 @@ import org.springframework.integration.xmpp.core.XmppContextUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  *
  */
 public class ChatMessageSendingMessageHandlerTests {
-	
+
 
 	@Test
 	public void validateMessagePostAsString() throws Exception{
@@ -51,79 +52,79 @@ public class ChatMessageSendingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("Test Message").
 					setHeader(XmppHeaders.TO, "kermit@frog.com").
 					build();
-		// first Message new 
+		// first Message new
 		handler.handleMessage(message);
-		
+
 		class EqualSmackMessage extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
 		      public boolean matches(Object msg) {
 		    	  org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
 		    	  boolean bodyMatches = smackMessage.getBody().equals("Test Message");
 		    	  boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
-		          return bodyMatches & toMatches;		          
+		          return bodyMatches & toMatches;
 		      }
 		}
-		
+
 		verify(connection, times(1)).sendPacket(Mockito.argThat(new EqualSmackMessage()));
-		
+
 		// assuming we know thread ID although currently we do not provide this capability
 		message = MessageBuilder.withPayload("Hello Kitty").
 			setHeader(XmppHeaders.TO, "kermit@frog.com").
 			setHeader(XmppHeaders.THREAD, "123").
 			build();
-		
+
 		class EqualSmackMessageWithThreadId extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
 		      public boolean matches(Object msg) {
 		    	  org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
 		    	  boolean bodyMatches = smackMessage.getBody().equals("Hello Kitty");
 		    	  boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
 		    	  boolean threadIdMatches = smackMessage.getThread().equals("123");
-		          return bodyMatches & toMatches & threadIdMatches;		          
+		          return bodyMatches & toMatches & threadIdMatches;
 		      }
 		}
 		reset(connection);
 		handler.handleMessage(message);
-		
+
 		// in threaded conversation we need to look for existing chat
 		verify(connection, times(1)).sendPacket(Mockito.argThat(new EqualSmackMessageWithThreadId()));
 	}
-	
+
 	@Test
 	public void validateMessagePostAsSmackMessage() throws Exception{
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
 		handler.afterPropertiesSet();
-		
+
 		org.jivesoftware.smack.packet.Message smackMessage = new org.jivesoftware.smack.packet.Message("kermit@frog.com");
 		smackMessage.setBody("Test Message");
-		
-		
+
+
 		Message<?> message = MessageBuilder.withPayload(smackMessage).build();
-		// first Message new 
+		// first Message new
 		handler.handleMessage(message);
-		
+
 		verify(connection, times(1)).sendPacket(smackMessage);
-		
+
 		// assuming we know thread ID although currently we do not provide this capability
 		smackMessage = new org.jivesoftware.smack.packet.Message("kermit@frog.com");
 		smackMessage.setBody("Hello Kitty");
 		smackMessage.setThread("123");
 		message = MessageBuilder.withPayload(smackMessage).build();
-		
+
 		reset(connection);
 		handler.handleMessage(message);
-		
+
 		// in threaded conversation we need to look for existing chat
 		verify(connection, times(1)).sendPacket(smackMessage);
 	}
-	
+
 	@Test(expected=MessageHandlingException.class)
-	public void validateFailureNoChatToUser() throws Exception{	
+	public void validateFailureNoChatToUser() throws Exception{
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
 		handler.handleMessage(new GenericMessage<String>("hello"));
 	}
-	
+
 	@Test(expected=MessageHandlingException.class)
-	public void validateMessageWithUnsupportedPayload() throws Exception{	
+	public void validateMessageWithUnsupportedPayload() throws Exception{
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
 		handler.handleMessage(new GenericMessage<Integer>(123));
 	}
@@ -136,7 +137,7 @@ public class ChatMessageSendingMessageHandlerTests {
 		handler.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(handler,"xmppConnection"));
 	}
-	
+
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class MethodInvokingSelectorTests {
 
@@ -41,7 +42,7 @@ public class MethodInvokingSelectorTests {
 	@Test
 	public void acceptedWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("acceptString", new Class[] { Message.class });
+		Method method = testBean.getClass().getMethod("acceptString", new Class<?>[] { Message.class });
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
 		assertTrue(selector.accept(new GenericMessage<String>("should accept")));
 	}
@@ -55,7 +56,7 @@ public class MethodInvokingSelectorTests {
 	@Test
 	public void rejectedWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("acceptString", new Class[] { Message.class });
+		Method method = testBean.getClass().getMethod("acceptString", new Class<?>[] { Message.class });
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
 		assertFalse(selector.accept(new GenericMessage<Integer>(99)));
 	}
@@ -69,7 +70,7 @@ public class MethodInvokingSelectorTests {
 	@Test
 	public void noArgMethodWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("noArgs", new Class[] {});
+		Method method = testBean.getClass().getMethod("noArgs", new Class<?>[] {});
 		new MethodInvokingSelector(testBean, method);
 	}
 
@@ -82,7 +83,7 @@ public class MethodInvokingSelectorTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void voidReturningMethodWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
-		Method method = testBean.getClass().getMethod("returnVoid", new Class[] { Message.class });
+		Method method = testBean.getClass().getMethod("returnVoid", new Class<?>[] { Message.class });
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
 		selector.accept(new GenericMessage<String>("test"));
 	}

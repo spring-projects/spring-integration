@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
+import static org.hamcrest.CoreMatchers.containsString;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
@@ -32,6 +32,7 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 @RunWith(org.mockito.runners.MockitoJUnitRunner.class)
 public class AbstractReplyProducingMessageHandlerTests {
@@ -59,7 +60,7 @@ public class AbstractReplyProducingMessageHandlerTests {
 			fail("Expected a MessagingException");
 		}
 		catch (MessagingException e) {
-			assertThat(e.getMessage(), JUnitMatchers.containsString("'testChannel'"));
+			assertThat(e.getMessage(), containsString("'testChannel'"));
 		}
 	}
 

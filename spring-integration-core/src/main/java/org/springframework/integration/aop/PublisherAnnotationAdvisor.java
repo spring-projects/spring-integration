@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  * An advisor that will apply the {@link MessagePublishingInterceptor} to any
  * methods containing the provided annotations. If no annotations are provided,
  * the default will be {@link Publisher @Publisher}.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -55,7 +55,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 
 	private final MessagePublishingInterceptor interceptor;
 
-
+	@SuppressWarnings("unchecked") //For JDK7
 	public PublisherAnnotationAdvisor(Class<? extends Annotation> ... publisherAnnotationTypes) {
 		this.publisherAnnotationTypes = new HashSet<Class<? extends Annotation>>(Arrays.asList(publisherAnnotationTypes));
 		PublisherMetadataSource metadataSource = new MethodAnnotationPublisherMetadataSource(this.publisherAnnotationTypes);

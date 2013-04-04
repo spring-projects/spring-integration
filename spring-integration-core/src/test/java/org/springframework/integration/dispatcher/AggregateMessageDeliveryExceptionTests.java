@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
+import static org.hamcrest.CoreMatchers.containsString;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
@@ -32,6 +32,7 @@ import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 public class AggregateMessageDeliveryExceptionTests {
 
@@ -60,9 +61,9 @@ public class AggregateMessageDeliveryExceptionTests {
 
 	@Test
 	public void shouldShowOriginalExceptionsInMessage() {
-		assertThat(exception.getMessage(), JUnitMatchers.containsString("first problem"));
-		assertThat(exception.getMessage(), JUnitMatchers.containsString("second problem"));
-		assertThat(exception.getMessage(), JUnitMatchers.containsString("third problem"));
+		assertThat(exception.getMessage(), containsString("first problem"));
+		assertThat(exception.getMessage(), containsString("second problem"));
+		assertThat(exception.getMessage(), containsString("third problem"));
 	}
 
 	@Test

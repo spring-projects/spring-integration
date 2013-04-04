@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.jms.config;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -39,6 +39,7 @@ import org.springframework.jms.listener.AbstractMessageListenerContainer;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  *
  */
 public class JmsChannelHistoryTests {
@@ -52,7 +53,7 @@ public class JmsChannelHistoryTests {
 		channel.setShouldTrack(true);
 		channel.setBeanName("jmsChannel");
 		Message<String> message = new GenericMessage<String>("hello");
-		
+
 		doAnswer(new Answer() {
 		      @SuppressWarnings("unchecked")
 			public Object answer(InvocationOnMock invocation) {
@@ -65,7 +66,7 @@ public class JmsChannelHistoryTests {
 		channel.send(message);
 		verify(template, times(1)).convertAndSend(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testFullConfig() throws Exception{
 		ActiveMqTestUtils.prepare();

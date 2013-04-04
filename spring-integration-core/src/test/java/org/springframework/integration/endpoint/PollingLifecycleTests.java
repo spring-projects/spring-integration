@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package org.springframework.integration.endpoint;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -45,17 +45,18 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  *
  */
 public class PollingLifecycleTests {
 	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 	private TestErrorHandler errorHandler = new TestErrorHandler();
-	
+
 	@Before
 	public void init() throws Exception {
 		taskScheduler.afterPropertiesSet();
 	}
-	
+
 	@Test
 	public void ensurePollerTaskStops() throws Exception{
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -86,12 +87,12 @@ public class PollingLifecycleTests {
 		Mockito.reset(handler);
 		Mockito.verify(handler, atMost(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void ensurePollerTaskStopsForAdapter() throws Exception{
 		final CountDownLatch latch = new CountDownLatch(1);
 		QueueChannel channel = new QueueChannel();
-		
+
 		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
@@ -115,12 +116,12 @@ public class PollingLifecycleTests {
 		assertNull(channel.receive(1000));
 		Mockito.verify(source, times(1)).receive();
 	}
-	
+
 	@Test
 	public void ensurePollerTaskStopsForAdapterWithInterruptible() throws Exception{
 		final CountDownLatch latch = new CountDownLatch(2);
 		QueueChannel channel = new QueueChannel();
-		
+
 		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(-1);
@@ -129,16 +130,16 @@ public class PollingLifecycleTests {
 		final Runnable coughtInterrupted = mock(Runnable.class);
 		MessageSource<String> source = new MessageSource<String>() {
 			public Message<String> receive() {
-				
+
 				try {
-					for (int i = 0; i < 10; i++) {			
+					for (int i = 0; i < 10; i++) {
 						Thread.sleep(1000);
 						latch.countDown();
 					}
 				} catch (InterruptedException e) {
 					coughtInterrupted.run();
 				}
-				
+
 				return new GenericMessage<String>("hello");
 			}
 		};

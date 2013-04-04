@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,12 +52,13 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class InnerDefinitionHandlerAwareEndpointParserTests {
 
-	@Autowired 
+	@Autowired
 	private Properties testConfigurations;
 
 	@Test
@@ -65,7 +66,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String configProperty = testConfigurations.getProperty("splitter-inner-success");
 		this.testSplitterDefinitionSuccess(configProperty);
 	}
-	
+
 	@Test
 	public void testInnerSplitterDefinitionSuccessWithPoller(){
 		String configProperty = testConfigurations.getProperty("splitter-inner-success-with-poller");
@@ -89,7 +90,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String xmlConfig = testConfigurations.getProperty("splitter-failure-refAndBean");
 		this.bootStrap(xmlConfig);
 	}
-	
+
 	@Test
 	public void testInnerTransformerDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("transformer-inner-success");
@@ -101,13 +102,13 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String configProperty = testConfigurations.getProperty("transformer-ref-success");
 		this.testTransformerDefinitionSuccess(configProperty);
 	}
-	
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testInnerTransformerDefinitionFailureRefAndInner(){
 		String xmlConfig = testConfigurations.getProperty("transformer-failure-refAndBean");
 		this.bootStrap(xmlConfig);
 	}
-	
+
 	@Test
 	public void testInnerRouterDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("router-inner-success");
@@ -119,13 +120,13 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String configProperty = testConfigurations.getProperty("router-ref-success");
 		this.testRouterDefinitionSuccess(configProperty);
 	}
-	
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testInnerRouterDefinitionFailureRefAndInner(){
 		String xmlConfig = testConfigurations.getProperty("router-failure-refAndBean");
 		this.bootStrap(xmlConfig);
 	}
-	
+
 	@Test
 	public void testInnerSADefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("sa-inner-success");
@@ -143,7 +144,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String xmlConfig = testConfigurations.getProperty("sa-failure-refAndBean");
 		this.bootStrap(xmlConfig);
 	}
-	
+
 	@Test
 	public void testInnerAggregatorDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("aggregator-inner-success");
@@ -173,13 +174,13 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String xmlConfig = testConfigurations.getProperty("aggregator-failure-refAndBean");
 		this.bootStrap(xmlConfig);
 	}
-	
+
 	@Test
 	public void testInnerFilterDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("filter-inner-success");
 		this.testFilterDefinitionSuccess(configProperty);
 	}
-	
+
 	@Test
 	public void testRefFilterDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("filter-ref-success");
@@ -191,7 +192,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String xmlConfig = testConfigurations.getProperty("filter-failure-refAndBean");
 		this.bootStrap(xmlConfig);
 	}
-	
+
 	private void testSplitterDefinitionSuccess(String configProperty){
 		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testSplitter");
@@ -205,7 +206,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		outChannel = (PollableChannel) ac.getBean("outChannel");
 		Assert.assertTrue(outChannel.receive().getPayload() instanceof String);
 	}
-	
+
 	private void testTransformerDefinitionSuccess(String configProperty){
 		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer transformer = (EventDrivenConsumer) ac.getBean("testTransformer");
@@ -270,7 +271,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		Message<?> reply = output.receive(0);
 		assertEquals("foo", reply.getPayload());
 	}
-	
+
 	private ApplicationContext bootStrap(String configProperty){
 		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
 		GenericApplicationContext ac = new GenericApplicationContext();
@@ -295,13 +296,13 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 			return CollectionUtils.arrayToList(payload);
 		}
 	}
-	
+
 	public static class TestTransformer{
 		public String split(String[] payload){
 			return StringUtils.arrayToDelimitedString(payload, ",");
 		}
 	}
-	
+
 	public static class TestRouter{
 		public String route(String value) {
 			return (value.equals("1")) ? "channel1" : "channel2";
@@ -313,7 +314,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 			return value;
 		}
 	}
-	
+
 	public static class TestAggregator{
 		public Integer sum(List<Integer> numbers) {
 			int result = 0;
@@ -329,5 +330,5 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 			return value.equals("foo");
 		}
 	}
-		
+
 }

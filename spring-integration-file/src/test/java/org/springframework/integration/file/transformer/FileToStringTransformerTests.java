@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.transformer;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -43,7 +44,7 @@ public class FileToStringTransformerTests extends
 		Message<?> result = transformer.transform(message);
 		assertThat(result, is(notNullValue()));
 		// TODO: refactor to payload matcher
-		assertThat(result.getPayload(), is(String.class));
+		assertThat(result.getPayload(), is(instanceOf(String.class)));
 		assertThat((String) result.getPayload(), is(SAMPLE_CONTENT));
 	}
 
@@ -53,7 +54,7 @@ public class FileToStringTransformerTests extends
 		Message<?> result = transformer.transform(message);
 		assertThat(result, is(notNullValue()));
 		// TODO: refactor to payload matcher
-		assertThat(result.getPayload(), is(String.class));
+		assertThat(result.getPayload(), is(instanceOf(String.class)));
 		assertThat((String) result.getPayload(), is(not(SAMPLE_CONTENT)));
 	}
 

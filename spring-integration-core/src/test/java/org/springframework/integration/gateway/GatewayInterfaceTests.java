@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.gateway;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,6 +36,7 @@ import org.springframework.integration.core.MessageHandler;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class GatewayInterfaceTests {
 
@@ -49,7 +50,7 @@ public class GatewayInterfaceTests {
 		bar.foo("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceAnnotatedMethod(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -60,7 +61,7 @@ public class GatewayInterfaceTests {
 		bar.bar("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceSuperclassUnAnnotatedMethod(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -71,7 +72,7 @@ public class GatewayInterfaceTests {
 		bar.baz("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceCastAsSuperclassAnnotatedMethod(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -82,7 +83,7 @@ public class GatewayInterfaceTests {
 		foo.foo("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceCastAsSuperclassUnAnnotatedMethod(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -93,7 +94,7 @@ public class GatewayInterfaceTests {
 		foo.baz("hello");
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceHashcode() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -104,7 +105,7 @@ public class GatewayInterfaceTests {
 		assertEquals(bar.hashCode(), ac.getBean(Bar.class).hashCode());
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceToString(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -115,7 +116,7 @@ public class GatewayInterfaceTests {
 		bar.toString();
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceEquals() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -134,7 +135,7 @@ public class GatewayInterfaceTests {
 		assertFalse(bar.equals(fb.getObject()));
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test
 	public void testWithServiceGetClass(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
@@ -145,25 +146,25 @@ public class GatewayInterfaceTests {
 		bar.getClass();
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 	}
-	
+
 	@Test(expected=IllegalArgumentException.class)
 	public void testWithServiceAsNotAnInterface(){
 		new GatewayProxyFactoryBean(NotAnInterface.class);
 	}
 
-	
+
 	public interface Foo {
 		@Gateway(requestChannel="requestChannelFoo")
 		public void foo(String payload);
-		
+
 		public void baz(String payload);
 	}
-	
+
 	public static interface Bar extends Foo{
 		@Gateway(requestChannel="requestChannelBar")
-		public void bar(String payload);	
+		public void bar(String payload);
 	}
-	
+
 	public static class NotAnInterface {
 		public void fail(String payload){}
 	}

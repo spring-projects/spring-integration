@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,11 @@ import org.springframework.integration.Message;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -48,12 +48,13 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class FtpInboundRemoteFileSystemSynchronizerTests {
-	
+
 	private static FTPClient ftpClient = mock(FTPClient.class);
-	
+
 	@After
 	public void cleanup(){
 		File file = new File("test");
@@ -70,7 +71,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 	public void testCopyFileToLocalDir() throws Exception {
 		File localDirectoy = new File("test");
 		assertFalse(localDirectoy.exists());
-		
+
 		TestFtpSessionFactory ftpSessionFactory = new TestFtpSessionFactory();
 		ftpSessionFactory.setUsername("kermit");
 		ftpSessionFactory.setPassword("frog");
@@ -79,14 +80,14 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new FtpRegexPatternFileListFilter(".*\\.test$"));
-		
+
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = expressionParser.parseExpression("#this.toUpperCase() + '.a'");
 		synchronizer.setLocalFilenameGeneratorExpression(expression);
 
-		FtpInboundFileSynchronizingMessageSource ms = 
+		FtpInboundFileSynchronizingMessageSource ms =
 				new FtpInboundFileSynchronizingMessageSource(synchronizer);
-		
+
 		ms.setAutoCreateLocalDirectory(true);
 
 		ms.setLocalDirectory(localDirectoy);
@@ -99,7 +100,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		assertEquals("B.TEST.a", btestFile.getPayload().getName());
 		Message<File> nothing =  ms.receive();
 		assertNull(nothing);
-		
+
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
 		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy);
 
@@ -109,14 +110,14 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
-		
+
 		@Override
 		protected FTPClient createClientInstance() {
 			try {
 				when(ftpClient.getReplyCode()).thenReturn(250);
 				when(ftpClient.login("kermit", "frog")).thenReturn(true);
 				when(ftpClient.changeWorkingDirectory(Mockito.anyString())).thenReturn(true);
-				
+
 				String[] files = new File("remote-test-dir").list();
 				Collection<Object> ftpFiles = new ArrayList<Object>();
 				for (String fileName : files) {

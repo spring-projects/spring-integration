@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.junit.Assert.assertEquals;
 
@@ -36,6 +36,7 @@ import org.springframework.xml.transform.StringResult;
 /**
  * @author Jonas Partner
  * @author Dave Turanski
+ * @author Gunnar Hillert
  */
 public class ResultToStringTransformerTests {
 
@@ -57,7 +58,7 @@ public class ResultToStringTransformerTests {
 		String transformedString = (String) transformed;
 		assertXMLEqual("Wrong content", doc, transformedString);
 	}
-	
+
 	@Test
 	public void testWithOutputProperties() throws Exception {
 		String formattedDoc = "<order><orderItem>test</orderItem></order>";

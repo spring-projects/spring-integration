@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.groovy.config;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
@@ -25,8 +25,11 @@ import groovy.lang.GroovyObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanIsAbstractException;
@@ -50,10 +53,12 @@ import org.springframework.web.context.request.RequestContextHolder;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Gunnar Hillert
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GroovyControlBusTests {
 
 	@Autowired
@@ -66,6 +71,11 @@ public class GroovyControlBusTests {
 	private MyGroovyCustomizer groovyCustomizer;
 
 	private static volatile int adviceCalled;
+
+	@Before
+	public void beforeTest() {
+		adviceCalled = 0;
+	}
 
 	@Test
 	public void testOperationOfControlBus() { // long is > 3

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip.udp;
 
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -43,14 +43,15 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
  * If run as a JUnit just sends one message and terminates (see console).
- * 
- * If run from main(),  
+ *
+ * If run from main(),
  * hangs around for a couple of minutes to allow console interaction - enter a message on the
- * console and you should see it go through the outbound context, over UDP, and 
+ * console and you should see it go through the outbound context, over UDP, and
  * received in the other context (and written back to the console).
- *  
+ *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class UdpUnicastEndToEndTests implements Runnable {
@@ -88,7 +89,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
 		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"testIp-out-context.xml", UdpUnicastEndToEndTests.class);	
+				"testIp-out-context.xml", UdpUnicastEndToEndTests.class);
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}

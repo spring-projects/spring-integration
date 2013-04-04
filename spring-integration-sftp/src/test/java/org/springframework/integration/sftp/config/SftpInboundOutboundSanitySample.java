@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousy
+ * @author Gunnar Hillert
  *
  */
 public class SftpInboundOutboundSanitySample {
-	
+
 
 	@Test
 	@Ignore
@@ -52,7 +53,7 @@ public class SftpInboundOutboundSanitySample {
 		if (fileB.exists()){
 			fileB.delete();
 		}
-		
+
 		new ClassPathXmlApplicationContext("SftpInboundReceiveSample-ignored.xml", this.getClass());
 		Thread.sleep(5000);
 		fileA = new File("local-test-dir/a.test");
@@ -60,12 +61,12 @@ public class SftpInboundOutboundSanitySample {
 		assertTrue(fileA.exists());
 		assertTrue(fileB.exists());
 	}
-	
+
 	@Test
 	@Ignore
 	public void testOutbound() throws Exception{
-		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("SftpOutboundTransferSample-ignored.xml", this.getClass());	
+		ApplicationContext ac =
+			new ClassPathXmlApplicationContext("SftpOutboundTransferSample-ignored.xml", this.getClass());
 		File fileA = new File("local-test-dir/a.test");
 		File fileB = new File("local-test-dir/b.test");
 		MessageChannel ftpChannel = ac.getBean("ftpChannel", MessageChannel.class);

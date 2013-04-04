@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.springframework.integration.dispatcher;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -33,6 +33,7 @@ import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  *
  */
 public class UnicastingDispatcherTests {
@@ -43,7 +44,7 @@ public class UnicastingDispatcherTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("unicasting-with-async.xml", this.getClass());
 		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
 		MessageHandler errorHandler = new MessageHandler() {
-			
+
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				assertTrue(message.getPayload() instanceof MessageDeliveryException);
@@ -51,10 +52,10 @@ public class UnicastingDispatcherTests {
 			}
 		};
 		errorChannel.subscribe(errorHandler);
-		
+
 		RequestReplyExchanger exchanger = context.getBean(RequestReplyExchanger.class);
 		Message<String> reply = (Message<String>) exchanger.exchange(new GenericMessage<String>("Hello"));
 		assertEquals("reply", reply.getPayload());
 	}
-	
+
 }

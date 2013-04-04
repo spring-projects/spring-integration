@@ -16,12 +16,6 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +49,13 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Marius Bogoevici
@@ -62,6 +63,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gunnar Hillert
  */
 public class AggregatorParserTests {
 
@@ -119,7 +121,7 @@ public class AggregatorParserTests {
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertThat(consumer, is(AggregatingMessageHandler.class));
+		assertThat(consumer, is(instanceOf(AggregatingMessageHandler.class)));
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Map<?, ?> map = (Map<?, ?>) new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))

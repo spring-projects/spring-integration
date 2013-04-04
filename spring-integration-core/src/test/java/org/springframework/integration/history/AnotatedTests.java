@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.history;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,6 +38,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  *
  */
 public class AnotatedTests {
@@ -56,7 +57,7 @@ public class AnotatedTests {
 		};
 		listener = spy(listener);
 		ac.addApplicationListener(listener);
-		
+
 		MessageChannel channel = ac.getBean("inputChannel", MessageChannel.class);
 		EventDrivenConsumer consumer = ac.getBean("myAdapter", EventDrivenConsumer.class);
 		MessageHandler handler = (MessageHandler) TestUtils.getPropertyValue(consumer, "handler");

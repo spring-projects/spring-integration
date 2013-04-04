@@ -1,12 +1,12 @@
 /*
- *  Copyright 2002-2012 the original author or authors.
- * 
+ *  Copyright 2002-2013 the original author or authors.
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- *  
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,15 +41,17 @@ import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
 import org.springframework.integration.ws.SoapHeaderMapper;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.support.AbstractMarshaller;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.context.DefaultMessageContext;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.soap.SoapMessage;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.junit.Assert.assertThat;
@@ -61,23 +63,25 @@ import static org.mockito.Mockito.when;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
 public class WebServiceInboundGatewayParserTests {
 
 	@Autowired
 	@Qualifier("requestsMarshalling")
 	PollableChannel requestsMarshalling;
-	
+
 	@Autowired
 	@Qualifier("requestsSimple")
 	PollableChannel requestsSimple;
-	
+
 	@Autowired
 	@Qualifier("customErrorChannel")
 	MessageChannel customErrorChannel;
-	
+
 	@Autowired
 	@Qualifier("requestsVerySimple")
 	MessageChannel requestsVerySimple;
@@ -98,7 +102,7 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("requestChannel"),
 				is(requestsVerySimple));
-		
+
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("errorChannel"),
 				is(customErrorChannel));
@@ -121,17 +125,20 @@ public class WebServiceInboundGatewayParserTests {
 	@Autowired
 	@Qualifier("marshalling")
 	MarshallingWebServiceInboundGateway marshallingGateway;
-	
+
 	@Autowired
 	AbstractMarshaller marshaller;
 
 	@Test
 	public void marshallersSet() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(marshallingGateway);
-		assertThat((AbstractMarshaller) accessor.getPropertyValue("marshaller"),
-				is(marshaller));
-		assertThat((AbstractMarshaller) accessor.getPropertyValue("unmarshaller"),
-				is(marshaller));
+
+		AbstractMarshaller retrievedMarshaller = (AbstractMarshaller) accessor.getPropertyValue("marshaller");
+		assertThat(retrievedMarshaller, is(marshaller));
+
+		AbstractMarshaller retrievedUnMarshaller = (AbstractMarshaller) accessor.getPropertyValue("unmarshaller");
+		assertThat(retrievedUnMarshaller, is(marshaller));
+
 		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
 
 		assertThat(
@@ -201,7 +208,7 @@ public class WebServiceInboundGatewayParserTests {
 
 	@SuppressWarnings("unused")
 	private static class TestHeaderMapper implements SoapHeaderMapper {
-		
+
 		public void fromHeadersToRequest(MessageHeaders headers,
 				SoapMessage target) {
 		}

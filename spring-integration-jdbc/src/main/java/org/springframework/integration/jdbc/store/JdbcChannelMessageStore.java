@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -476,10 +476,11 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	}
 
 	/**
-	 * Helper method that converts the channel id to a UUID.
+	 * Helper method that converts the channel id to a UUID using
+	 * {@link UUIDConverter#getUUID(Object)}.
 	 *
-	 * @param input
-	 * @return
+	 * @param input Parameter may be null
+	 * @return Returns null when the input is null otherwise the UUID as String.
 	 */
 	private String getKey(Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();

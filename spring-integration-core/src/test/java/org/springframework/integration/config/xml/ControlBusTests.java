@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -39,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Dave Syer
+ * @author Gunnar Hillert
  * @since 2.0
  */
 @ContextConfiguration
@@ -58,12 +59,12 @@ public class ControlBusTests {
 		assertEquals("catbar", output.receive(0).getPayload());
 		assertNull(output.receive(0));
 	}
-	
+
 	@Test
 	public void testLifecycleMethods() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("ControlBusLifecycleTests-context.xml", this.getClass());
-		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);  
-		PollableChannel outputChannel = context.getBean("outputChannel", PollableChannel.class);  
+		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
+		PollableChannel outputChannel = context.getBean("outputChannel", PollableChannel.class);
 		assertNull(outputChannel.receive(1000));
 		Message<?> message = MessageBuilder.withPayload("@adapter.start()").build();
 		inputChannel.send(message);
@@ -78,7 +79,7 @@ public class ControlBusTests {
 			return "cat";
 		}
 	}
-	
+
 	public static class AdapterService {
 		public Message<String> receive() {
 			return new GenericMessage<String>(new Date().toString());

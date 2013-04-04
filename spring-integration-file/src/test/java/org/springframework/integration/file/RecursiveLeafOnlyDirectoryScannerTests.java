@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.file;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.matchers.JUnitMatchers.hasItem;
+import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +30,7 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 public class RecursiveLeafOnlyDirectoryScannerTests {
 
@@ -65,7 +66,7 @@ public class RecursiveLeafOnlyDirectoryScannerTests {
 	@Test
 	public void shouldReturnAllFiles() {
 		List<File> files = new RecursiveLeafOnlyDirectoryScanner().listFiles(recursivePath.getRoot());
-		assertThat(files.size(), is(3));
+		assertEquals(Integer.valueOf(files.size()), Integer.valueOf(3));
 		assertThat(files, hasItem(topLevelFile));
 		assertThat(files, hasItem(subLevelFile));
 		assertThat(files, hasItem(subSubLevelFile));

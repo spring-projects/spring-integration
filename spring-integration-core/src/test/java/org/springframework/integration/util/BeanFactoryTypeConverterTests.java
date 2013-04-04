@@ -15,10 +15,10 @@
  */
 package org.springframework.integration.util;
 
-import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -65,6 +65,7 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Gunnar Hillert
  *
  */
 public class BeanFactoryTypeConverterTests {

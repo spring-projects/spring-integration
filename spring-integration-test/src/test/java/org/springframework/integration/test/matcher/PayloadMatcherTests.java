@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.springframework.integration.test.matcher;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -31,6 +32,7 @@ import org.springframework.integration.support.MessageBuilder;
 /**
  * @author Alex Peters
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 public class PayloadMatcherTests {
 
@@ -50,17 +52,17 @@ public class PayloadMatcherTests {
 
 	@Test
 	public void hasPayload_withMatcher_matches() throws Exception {
-		assertThat(message, 
-				hasPayload(is(BigDecimal.class)));
+		assertThat(message,
+				hasPayload(is(instanceOf(BigDecimal.class))));
 		assertThat(message, hasPayload(notNullValue()));
 	}
 
 	@Test
 	public void hasPayload_withNotMatchingMatcher_notMatching()
 			throws Exception {
-		assertThat(message, not((hasPayload(is(String.class)))));
+		assertThat(message, not((hasPayload(is(instanceOf(String.class))))));
 	}
-	
+
 	@Test
 	public void readableException() throws Exception {
 		try {

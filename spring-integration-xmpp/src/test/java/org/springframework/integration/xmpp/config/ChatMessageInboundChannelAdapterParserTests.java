@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
 import java.lang.reflect.Field;
@@ -37,6 +37,8 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
@@ -44,9 +46,11 @@ import org.springframework.util.ReflectionUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
 public class ChatMessageInboundChannelAdapterParserTests {
 
 	@Autowired
@@ -72,7 +76,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		XMPPConnection connection = (XMPPConnection)TestUtils.getPropertyValue(adapter, "xmppConnection");
 		assertEquals(connection, context.getBean("testConnection"));
 	}
-	
+
 	@Test
 	public void testInboundAdapterUsageWithHeaderMapper() {
 		XMPPConnection xmppConnection = Mockito.mock(XMPPConnection.class);
@@ -80,15 +84,15 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		Mockito.when(xmppConnection.getChatManager()).thenReturn(chatManager);
 		Chat chat = Mockito.mock(Chat.class);
 		Mockito.when(chatManager.getThreadChat(Mockito.any(String.class))).thenReturn(chat);
-		
+
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
-		
+
 		Field xmppConnectionField = ReflectionUtils.findField(ChatMessageListeningEndpoint.class, "xmppConnection");
 		xmppConnectionField.setAccessible(true);
 		ReflectionUtils.setField(xmppConnectionField, adapter, xmppConnection);
-		
+
 		PacketListener packetListener = TestUtils.getPropertyValue(adapter, "packetListener", PacketListener.class);
-		
+
 		Message message = new Message();
 		message.setBody("hello");
 		message.setTo("oleg");

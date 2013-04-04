@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -35,6 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
+ * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -49,9 +51,8 @@ public class MethodInvokingSelectorParserTests {
 	public void configOK() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(chain);
 		List<MessageSelector> selectors = (List<MessageSelector>) accessor.getPropertyValue("selectors");
-		assertThat(selectors.get(0), is(MethodInvokingSelector.class));
+		assertThat(selectors.get(0), is(instanceOf(MethodInvokingSelector.class)));
 	}
-
 
 	public static class TestFilter {
 		public boolean accept(Message<?> m) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,33 +32,34 @@ import org.hamcrest.core.IsEqual;
  * <p>
  * It is possible to match a single entry by value or matcher like this:
  * </p>
- * 
+ *
  * <pre>
  * assertThat(map, hasEntry(SOME_KEY, is(SOME_VALUE)));
  * assertThat(map, hasEntry(SOME_KEY, is(String.class)));
  * assertThat(map, hasEntry(SOME_KEY, notNullValue()));
  * </pre>
- * 
+ *
  * <p>
  * It's also possible to match multiple entries in a map:
  * </p>
- * 
+ *
  * <pre>
  * Map&lt;String, Object&gt; expectedInMap = new HashMap&lt;String, Object&gt;();
  * expectedInMap.put(SOME_KEY, SOME_VALUE);
  * expectedInMap.put(OTHER_KEY, is(OTHER_VALUE));
  * assertThat(map, hasAllEntries(expectedInMap));
  * </pre>
- * 
+ *
  * <p>If you only need to verify the existence of a key:</p>
- * 
+ *
  * <pre>
  * assertThat(map, hasKey(SOME_KEY));
  * </pre>
- * 
+ *
  * @author Alex Peters
  * @author Iwein Fuld
- * 
+ * @author Gunnar Hillert
+ *
  */
 public class MapContentMatchers<T, V> extends
 		TypeSafeMatcher<Map<? super T, ? super V>> {
@@ -123,7 +124,7 @@ public class MapContentMatchers<T, V> extends
 	}
 
 	@Factory
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T, V> Matcher<Map<? super T, ? super V>> hasAllEntries(
 			Map<T, V> entries) {
 		List<Matcher<? extends Map<? super T, ? super V>>> matchers = new ArrayList<Matcher<? extends Map<? super T, ? super V>>>(
@@ -137,6 +138,7 @@ public class MapContentMatchers<T, V> extends
 				matchers.add(hasEntry(entry.getKey(), value));
 			}
 		}
-		return AllOf.allOf(matchers);
+		//return AllOf.allOf(matchers); //Does not work with Hamcrest 1.3
+		return new AllOf(matchers);
 	}
 }

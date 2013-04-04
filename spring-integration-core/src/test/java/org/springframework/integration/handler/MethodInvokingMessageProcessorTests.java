@@ -30,7 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.internal.matchers.TypeSafeMatcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -48,6 +48,7 @@ import org.springframework.integration.util.MessagingMethodInvokerHelper;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodInvokingMessageProcessorTests {
