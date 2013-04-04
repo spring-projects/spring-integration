@@ -59,7 +59,7 @@ public class ChannelWithCustomQueueParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(customQueueChannel);
 		Object queue = accessor.getPropertyValue("queue");
 		assertNotNull(queue);
-		assertThat(queue, instanceOf(ArrayBlockingQueue.class));
+		assertThat(queue, is(instanceOf(ArrayBlockingQueue.class)));
 		assertThat(((BlockingQueue<?>)queue).remainingCapacity(), is(2));
 	}
 

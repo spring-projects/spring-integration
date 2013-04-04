@@ -81,9 +81,9 @@ public class ChannelParserTests {
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		Object dispatcher = accessor.getPropertyValue("dispatcher");
-		assertThat(dispatcher, instanceOf(UnicastingDispatcher.class));
+		assertThat(dispatcher, is(instanceOf(UnicastingDispatcher.class)));
 		assertThat(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"),
-				instanceOf(RoundRobinLoadBalancingStrategy.class));
+				is(instanceOf(RoundRobinLoadBalancingStrategy.class)));
 	}
 
 	@Test
