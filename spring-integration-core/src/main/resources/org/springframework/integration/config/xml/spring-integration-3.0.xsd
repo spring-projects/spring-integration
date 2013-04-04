@@ -2408,11 +2408,11 @@
 						<xsd:complexType>
 							<xsd:complexContent>
 								<xsd:extension base="adviceChainType">
-									<xsd:attribute name="advise-discard" type="xsd:string" default="true">
+									<xsd:attribute name="discard-within-advice" type="xsd:string" default="true">
 										<xsd:annotation>
 											<xsd:documentation><![CDATA[
 						When true (default) any discard action (and exception thrown) will occur
-						within the scope of the advice classes in the chain. Otherwise, these actions
+						within the scope of the advice class(es) in the chain. Otherwise, these actions
 						will occur after the advice chain returns.
 											]]></xsd:documentation>
 										</xsd:annotation>

@@ -40,11 +40,11 @@ public abstract class AbstractReplyProducingPostProcessingMessageHandler
 	 * there is no advice chain.
 	 */
 	protected boolean isPostProcessWithinAdviceIfPresent() {
-		return this.hasAdviceChain() ? this.postProcessWithinAdvice : true;
+		return !this.hasAdviceChain() || this.postProcessWithinAdvice;
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
+	protected final Object handleRequestMessage(Message<?> requestMessage) {
 		Object result = this.doHandleRequestMessage(requestMessage);
 		if (this.isPostProcessWithinAdviceIfPresent()) {
 			this.postProcess(requestMessage, result);
@@ -53,7 +53,7 @@ public abstract class AbstractReplyProducingPostProcessingMessageHandler
 	}
 
 	@Override
-	protected Object doInvokeAdvisedRequestHandler(Message<?> message) {
+	protected final Object doInvokeAdvisedRequestHandler(Message<?> message) {
 		Object result = super.doInvokeAdvisedRequestHandler(message);
 		if (!this.isPostProcessWithinAdviceIfPresent()) {
 			this.postProcess(message, result);

@@ -47,8 +47,7 @@ public class FilterParser extends AbstractDelegatingConsumerEndpointParser {
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
 				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
 		if (adviceChainElement != null) {
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, adviceChainElement, "advise-discard",
-					"discardWithinAdvice");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, adviceChainElement, "discard-within-advice");
 		}
 	}
 

@@ -24,7 +24,7 @@
 	</channel>
 
 	<filter id="advised" ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput">
-		<request-handler-advice-chain advise-discard="false">
+		<request-handler-advice-chain discard-within-advice="false">
 			<beans:bean class="org.springframework.integration.config.FilterParserTests$FooFilter" />
 		</request-handler-advice-chain>
 	</filter>

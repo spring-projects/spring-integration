@@ -19,8 +19,8 @@ import org.springframework.integration.Message;
 
 
 /**
- * Implementations of this interface are a subclass of
- * {@link AbstractMessageHandler} that performs post processing after the
+ * Implementations of this interface are subclasses of
+ * {@link AbstractMessageHandler} that perform post processing after the
  * {@link AbstractMessageHandler#handleMessageInternal(org.springframework.integration.Message)}
  * call.
  *
@@ -32,9 +32,9 @@ public interface PostProcessingMessageHandler {
 
 	/**
 	 * Take some further action on the result and/or message.
-	 * @param result The result from handleMessageinternal().
+	 * @param result The result from {@link AbstractMessageHandler#handleMessageInternal(Message)}.
 	 * @param message The message.
-	 * @return The result.
+	 * @return The post-processed result.
 	 */
 	public Object postProcess(Message<?> message, Object result);
 
