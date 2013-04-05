@@ -54,36 +54,67 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected final SessionFactory<F> sessionFactory;
 
-	protected final String command;
+	protected final Command command;
 
-	public static final String COMMAND_LS = "ls";
+	public static enum Command {
+		LS("ls"),
+		GET("get"),
+		RM("rm"),
+		MGET("mget"),
+		MV("mv");
 
-	public static final String COMMAND_GET = "get";
+		private String command;
 
-	public static final String COMMAND_RM = "rm";
+		private Command(String command) {
+			this.command = command;
+		}
 
-	public static final String COMMAND_MGET = "mget";
+		public String getCommand() {
+			return this.command;
+		}
 
-	public static final String OPTION_NAME_ONLY = "-1";
+		public static Command toCommand(String cmd) {
+			for (Command command : values()) {
+				if (command.getCommand().equals(cmd)) {
+					return command;
+				}
+			}
+			throw new IllegalArgumentException("No Command with value '" + cmd + "'");
+		}
+	}
 
-	public static final String OPTION_ALL = "-a";
+	public static enum Option {
+		NAME_ONLY("-1"),
+		ALL("-a"),
+		NOSORT("-f"),
+		SUBDIRS("-dirs"),
+		LINKS("-links"),
+		PRESERVE_TIMESTAMP("-P"),
+		EXCEPTION_WHEN_EMPTY("-x");
 
-	public static final String OPTION_NOSORT = "-f";
+		private String option;
 
-	public static final String OPTION_SUBDIRS = "-dirs";
+		private Option(String option) {
+			this.option = option;
+		}
 
-	public static final String OPTION_LINKS = "-links";
+		public String getOption() {
+			return this.option;
+		}
 
-	public static final String OPTION_PRESERVE_TIMESTAMP = "-P";
-
-	public static final String OPTION_EXCEPTION_WHEN_EMPTY = "-x";
-
-	private final Set<String> supportedCommands = new HashSet<String>(Arrays.asList(
-			COMMAND_LS, COMMAND_GET, COMMAND_RM, COMMAND_MGET));
+		public static Option toOption(String opt) {
+			for (Option option : values()) {
+				if (option.getOption().equals(opt)) {
+					return option;
+				}
+			}
+			throw new IllegalArgumentException("No option with value '" + opt + "'");
+		}
+	}
 
 	private final ExpressionEvaluatingMessageProcessor<String> processor;
 
-	protected volatile Set<String> options = new HashSet<String>();
+	protected volatile Set<Option> options = new HashSet<Option>();
 
 	private volatile String remoteFileSeparator = "/";
 
@@ -99,7 +130,19 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private volatile FileListFilter<F> filter;
 
 
+	/**
+	 * @deprecated User {@link #AbstractRemoteFileOutboundGateway(SessionFactory, Command, String)
+	 */
+	@Deprecated
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
+			String expression) {
+		this.sessionFactory = sessionFactory;
+		this.command = Command.toCommand(command);
+		this.processor = new ExpressionEvaluatingMessageProcessor<String>(
+			new SpelExpressionParser().parseExpression(expression));
+	}
+
+	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, Command command,
 			String expression) {
 		this.sessionFactory = sessionFactory;
 		this.command = command;
@@ -114,7 +157,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	public void setOptions(String options) {
 		String[] opts = options.split("\\s");
 		for (String opt : opts) {
-			this.options.add(opt.trim());
+			String trimmedOpt = opt.trim();
+			if (StringUtils.hasLength(trimmedOpt)) {
+				this.options.add(Option.toOption(trimmedOpt));
+			}
 		}
 	}
 
@@ -157,17 +203,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	protected void onInit() {
 		super.onInit();
 		Assert.notNull(this.command, "command must not be null");
-		Assert.isTrue(
-				this.supportedCommands.contains(this.command),
-				"command must be one of "
-						+ StringUtils
-								.collectionToCommaDelimitedString(this.supportedCommands));
-		if (COMMAND_RM.equals(this.command) || COMMAND_MGET.equals(this.command) ||
-				COMMAND_GET.equals(this.command)) {
+		if (Command.RM.equals(this.command) || Command.MGET.equals(this.command) ||
+				Command.GET.equals(this.command)) {
 			Assert.isNull(this.filter, "Filters are not supported with the rm, get, and mget commands");
 		}
-		if (COMMAND_GET.equals(this.command)
-				|| COMMAND_MGET.equals(this.command)) {
+		if (Command.GET.equals(this.command)
+				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectory, "localDirectory must not be null");
 			try {
 				if (!this.localDirectory.exists()) {
@@ -201,7 +242,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Session<F> session = this.sessionFactory.getSession();
 		try {
-			if (COMMAND_LS.equals(this.command)) {
+			if (Command.LS.equals(this.command)) {
 				String dir = this.processor.processMessage(requestMessage);
 				if (!dir.endsWith(this.remoteFileSeparator)) {
 					dir += this.remoteFileSeparator;
@@ -211,7 +252,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 					.build();
 			}
-			else if (COMMAND_GET.equals(this.command)) {
+			else if (Command.GET.equals(this.command)) {
 				String remoteFilePath =  this.processor.processMessage(requestMessage);
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
@@ -224,7 +265,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
 			}
-			else if (COMMAND_MGET.equals(this.command)) {
+			else if (Command.MGET.equals(this.command)) {
 				String remoteFilePath =  this.processor.processMessage(requestMessage);
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
@@ -237,7 +278,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
 			}
-			else if (COMMAND_RM.equals(this.command)) {
+			else if (Command.RM.equals(this.command)) {
 				String remoteFilePath =  this.processor.processMessage(requestMessage);
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
@@ -267,7 +308,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			Collection<F> filteredFiles = this.filterFiles(files);
 			for (F file : filteredFiles) {
 				if (file != null) {
-					if (this.options.contains(OPTION_SUBDIRS) || !isDirectory(file)) {
+					if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
 						lsFiles.add(file);
 					}
 				}
@@ -276,18 +317,18 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		else {
 			return lsFiles;
 		}
-		if (!this.options.contains(OPTION_LINKS)) {
+		if (!this.options.contains(Option.LINKS)) {
 			purgeLinks(lsFiles);
 		}
-		if (!this.options.contains(OPTION_ALL)) {
+		if (!this.options.contains(Option.ALL)) {
 			purgeDots(lsFiles);
 		}
-		if (this.options.contains(OPTION_NAME_ONLY)) {
+		if (this.options.contains(Option.NAME_ONLY)) {
 			List<String> results = new ArrayList<String>();
 			for (F file : lsFiles) {
 				results.add(getFilename(file));
 			}
-			if (!this.options.contains(OPTION_NOSORT)) {
+			if (!this.options.contains(Option.NOSORT)) {
 				Collections.sort(results);
 			}
 			return results;
@@ -297,7 +338,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			for (AbstractFileInfo<F> file : canonicalFiles) {
 				file.setRemoteDirectory(dir);
 			}
-			if (!this.options.contains(OPTION_NOSORT)) {
+			if (!this.options.contains(Option.NOSORT)) {
 				Collections.sort(canonicalFiles);
 			}
 			return canonicalFiles;
@@ -367,7 +408,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if (!tempFile.renameTo(localFile)) {
 				throw new MessagingException("Failed to rename local file");
 			}
-			if (lsFirst && this.options.contains(OPTION_PRESERVE_TIMESTAMP)) {
+			if (lsFirst && this.options.contains(Option.PRESERVE_TIMESTAMP)) {
 				localFile.setLastModified(getModified(files[0]));
 			}
 			return localFile;
@@ -384,7 +425,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (fileNames == null) {
 			fileNames = new String[0];
 		}
-		if (fileNames.length == 0 && this.options.contains(OPTION_EXCEPTION_WHEN_EMPTY)) {
+		if (fileNames.length == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at " + remoteDirectory
 					+ " with pattern " + remoteFilename);
 		}

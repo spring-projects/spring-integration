@@ -52,7 +52,7 @@ import org.springframework.integration.message.GenericMessage;
 @SuppressWarnings("rawtypes")
 public class RemoteFileOutboundGatewayTests {
 
-	private String tmpDir = System.getProperty("java.io.tmpdir");
+	private final String tmpDir = System.getProperty("java.io.tmpdir");
 
 
 	@Test(expected=IllegalArgumentException.class)
@@ -650,7 +650,7 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 			String command, String expression) {
-		super(sessionFactory, command, expression);
+		super(sessionFactory, Command.toCommand(command), expression);
 	}
 
 	@Override
@@ -683,12 +683,12 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 
 class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 
-	private String filename;
-	private int size;
-	private boolean dir;
-	private boolean link;
-	private long modified;
-	private String permissions;
+	private final String filename;
+	private final int size;
+	private final boolean dir;
+	private final boolean link;
+	private final long modified;
+	private final String permissions;
 
 	public TestLsEntry(String filename, int size, boolean dir, boolean link,
 			long modified, String permissions) {
