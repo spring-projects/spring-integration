@@ -45,7 +45,7 @@ import static org.junit.Assert.assertNull;
 
 /**
  * @author Oleg Zhurakousky
-   @author Gunnar Hillert
+ * @author Gunnar Hillert
  * @author Artem Bilan
  */
 public class MessageHistoryIntegrationTests {
