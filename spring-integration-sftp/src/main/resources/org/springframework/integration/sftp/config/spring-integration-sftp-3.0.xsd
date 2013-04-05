@@ -3,6 +3,7 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:tool="http://www.springframework.org/schema/tool"
 	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
 	targetNamespace="http://www.springframework.org/schema/integration/sftp"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
@@ -10,7 +11,8 @@
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
 		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
-
+	<xsd:import namespace="http://www.springframework.org/schema/integration/file"
+		schemaLocation="http://www.springframework.org/schema/integration/file/spring-integration-file-3.0.xsd" />
 
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
@@ -240,12 +242,15 @@
 					<xsd:all>
 						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
-					<xsd:attribute name="command" use="required" type="xsd:string">
+					<xsd:attribute name="command" use="required">
 						<xsd:annotation>
 							<xsd:documentation>
-								sftp command - ls, get or rm
+								sftp command.
 							</xsd:documentation>
 						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="int-file:remoteGatewayCommand xsd:string"/>
+						</xsd:simpleType>
 					</xsd:attribute>
 					<xsd:attribute name="command-options" type="xsd:string">
 						<xsd:annotation>
@@ -269,6 +274,15 @@
 								SpEL expression representing the path in the
 								command (e.g. ls path to
 								list the files in directory path).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="rename-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression representing the path for the
+								new filename when using the 'mv' command. Defaults
+								to "headers.['file_renameTo']".
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

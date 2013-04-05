@@ -327,6 +327,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 		  <listitem>get (retrieve file)</listitem>
 		  <listitem>mget (retrieve file(s))</listitem>
 		  <listitem>rm (remove file(s))</listitem>
+		  <listitem>mv (move/rename file)</listitem>
 	    </itemizedlist>
 	  </para>
 	  <para><emphasis>ls</emphasis></para>
@@ -397,8 +398,23 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the filename is
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
+	  <para><emphasis>mv</emphasis></para>
 	  <para>
-	    In each case, the PATH that these commands act on is provided by the 'expression'
+		The <emphasis>mv</emphasis> command has no options.
+	  </para>
+	  <para>
+		The <emphasis>expression</emphasis> attribute defines the "from" path and the
+		<emphasis>rename-expression</emphasis> attribute defines the "to" path. By default, the
+		<emphasis>rename-expression</emphasis> is <code>headers['file_renameTo']</code>. This
+		expression must not evaluate to null, or an empty <code>String</code>. If necessary,
+		any remote directories needed will be created.
+		The payload of the result message is <code>Boolean.TRUE</code>.
+		The original remote directory is provided in the <code>file_remoteDirectory</code> header, and the filename is
+		provided in the <code>file_remoteFile</code> header. The new path is in
+		the <code>file_renameTo</code> header.
+	  </para>
+	  <para>
+	    For all commands, the PATH that the command acts on is provided by the 'expression'
 	    property of the gateway. For the mget command, the expression might evaluate to '*', meaning
 	    retrieve all files, or 'somedirectory/*' etc.
 	  </para>
