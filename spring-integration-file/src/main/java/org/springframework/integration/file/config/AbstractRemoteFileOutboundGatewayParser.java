@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package org.springframework.integration.file.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.remote.session.SessionFactoryFactoryBean;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
@@ -60,6 +59,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rename-expression");
 		return builder;
 	}
 

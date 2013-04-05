@@ -243,7 +243,7 @@
 					<xsd:attribute name="command" use="required" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								sftp command - ls, get or rm
+								sftp command - ls, get, rm, mget or mv.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -269,6 +269,15 @@
 								SpEL expression representing the path in the
 								command (e.g. ls path to
 								list the files in directory path).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="rename-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								SpEL expression representing the path for the
+								new filename when using the 'mv' command. Defaults
+								to "headers.['file_renameTo']".
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

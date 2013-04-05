@@ -47,6 +47,17 @@
 		</int-ftp:request-handler-advice-chain>
 	</int-ftp:outbound-gateway>
 
+	<int-ftp:outbound-gateway id="gateway3"
+		session-factory="sf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		auto-startup="false"
+		command="mv"
+		expression="payload"
+		rename-expression="'foo'"
+		order="1"
+		/>
+
 	<int-ftp:outbound-gateway id="withBeanExpression"
 		local-directory="local-test-dir"
 		session-factory="sf"

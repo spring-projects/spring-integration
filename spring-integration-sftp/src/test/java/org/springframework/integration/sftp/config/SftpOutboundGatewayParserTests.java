@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Command;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Option;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
@@ -55,6 +57,9 @@ public class SftpOutboundGatewayParserTests {
 	AbstractEndpoint gateway2;
 
 	@Autowired
+	AbstractEndpoint gateway3;
+
+	@Autowired
 	AbstractEndpoint advised;
 
 	private static volatile int adviceCalled;
@@ -69,11 +74,11 @@ public class SftpOutboundGatewayParserTests {
 		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
-		assertEquals("ls", TestUtils.getPropertyValue(gateway, "command"));
+		assertEquals(Command.LS, TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
-		assertTrue(options.contains("-1"));
-		assertTrue(options.contains("-f"));
+		assertTrue(options.contains(Option.NAME_ONLY));
+		assertTrue(options.contains(Option.NOSORT));
 
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 		assertEquals(Long.valueOf(777), sendTimeout);
@@ -89,10 +94,20 @@ public class SftpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
-		assertEquals("get", TestUtils.getPropertyValue(gateway, "command"));
+		assertEquals(Command.GET, TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
-		assertTrue(options.contains("-P"));
+		assertTrue(options.contains(Option.PRESERVE_TIMESTAMP));
+	}
+
+	@Test
+	public void testGatewayMv() {
+		SftpOutboundGateway gateway = TestUtils.getPropertyValue(gateway3,
+				"handler", SftpOutboundGateway.class);
+		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
+		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
+		assertEquals(Command.MV, TestUtils.getPropertyValue(gateway, "command"));
+		assertEquals("'foo'", TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression"));
 	}
 
 	@Test
