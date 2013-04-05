@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,8 +34,11 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
@@ -42,6 +47,7 @@ import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 
 
 /**
@@ -290,6 +296,55 @@ public class RemoteFileOutboundGatewayTests {
 			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("testremote/*"));
+	}
+
+	@Test
+	public void testMove() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mv", "payload");
+		Session<?> session = mock(Session.class);
+		final AtomicReference<String> args = new AtomicReference<String>();
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object[] arguments = invocation.getArguments();
+				args.set((String) arguments[0] + (String) arguments[1]);
+				return null;
+			}
+		}).when(session).rename(anyString(), anyString());
+		when (sessionFactory.getSession()).thenReturn(session);
+		Message<String> requestMessage = MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.RENAME_TO, "bar")
+				.build();
+		Message<?> out = (Message<?>) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo", out.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals("foobar", args.get());
+		assertEquals(Boolean.TRUE, out.getPayload());
+	}
+
+	@Test
+	public void testMoveWithExpression() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mv", "payload");
+		gw.setRenameExpression("payload.substring(1)");
+		Session<?> session = mock(Session.class);
+		final AtomicReference<String> args = new AtomicReference<String>();
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object[] arguments = invocation.getArguments();
+				args.set((String) arguments[0] + (String) arguments[1]);
+				return null;
+			}
+		}).when(session).rename(anyString(), anyString());
+		when (sessionFactory.getSession()).thenReturn(session);
+		Message<?> out = (Message<?>) gw.handleRequestMessage(new GenericMessage<String>("foo"));
+		assertEquals("oo", out.getHeaders().get(FileHeaders.RENAME_TO));
+		assertEquals("foo", out.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals("foooo", args.get());
+		assertEquals(Boolean.TRUE, out.getPayload());
 	}
 
 	/**
