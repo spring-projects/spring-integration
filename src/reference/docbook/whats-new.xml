@@ -1,77 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="whats-new"
-	xmlns:xi="http://www.w3.org/2001/XInclude"
-	xmlns:xlink="http://www.w3.org/1999/xlink">
-	<title>What's new in Spring Integration 3.0?</title>
-	<para>
-		This chapter provides an overview of the new features and improvements
-		that have been introduced with Spring Integration 3.0 If you are interested
-		in even more detail, please take a look at the Issue Tracker tickets that
-		were resolved as part of the 3.0 development process.
-	</para>
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>What's new in Spring Integration 3.0?</title>
+    <para>
+        This chapter provides an overview of the new features and improvements
+        that have been introduced with Spring Integration 3.0 If you are interested
+        in even more detail, please take a look at the Issue Tracker tickets that
+        were resolved as part of the 3.0 development process.
+    </para>
 
-	<section id="3.0-new-components">
-		<title>New Components</title>
-		<section id="3.0-tcp-events">
-			<title>TCP/IP Connection Events and Connection Management</title>
-			<para>
-				The (supplied) <classname>TcpConnection</classname>s now emit
-				<interfacename>ApplicationEvent</interfacename>s (specifically
-				<classname>TcpConnectionEvent</classname>s) when connections are
-				opened, closed, or an exception occurs. This allows applications
-				to be informed of changes to TCP connections using the normal
-				Spring <interfacename>ApplicationListener</interfacename>
-				mechanism.
-			</para>
-			<para>
-				<classname>AbstractTcpConnection</classname> has been renamed
-				<classname>TcpConnectionSupport</classname>; custom connections that
-				are subclasses of this class, can use its methods to publish events.
-				Similarly, <classname>AbstractTcpConnectionInterceptor</classname> has
-				been renamed to <classname>TcpConnectionInterceptorSupport</classname>.
-			</para>
-			<para>
-				In addition, a new <code>&lt;int-ip:tcp-connection-event-inbound-channel-adapter/&gt;</code>
-				is provided; by default, this adapter sends all <classname>TcpConnectionEvent</classname>s
-				to a <interfacename>Channel</interfacename>.
-			</para>
-			<para>
-				Further, the TCP Connection Factories, now provide a new method
-				<code>getOpenConnectionIds()</code>, which returns a list of identifiers for all
-				open connections; this allows applications, for example, to broadcast to all
-				open connections.
-			</para>
-			<para>
-				Finally, the connection factories also provide a new method
-				<code>closeConnection(String connectionId)</code> which allows applications
-				to explicitly close a connection using its ID.
-			</para>
-			<para>
-				For more information see <xref linkend="tcp-events"/>.
-			</para>
-		</section>
-	</section>
+    <section id="3.0-new-components">
+        <title>New Components</title>
+        <section id="3.0-tcp-events">
+            <title>TCP/IP Connection Events and Connection Management</title>
+            <para>
+                The (supplied) <classname>TcpConnection</classname>s now emit
+                <interfacename>ApplicationEvent</interfacename>s (specifically
+                <classname>TcpConnectionEvent</classname>s) when connections are
+                opened, closed, or an exception occurs. This allows applications
+                to be informed of changes to TCP connections using the normal
+                Spring <interfacename>ApplicationListener</interfacename>
+                mechanism.
+            </para>
+            <para>
+                <classname>AbstractTcpConnection</classname> has been renamed
+                <classname>TcpConnectionSupport</classname>; custom connections that
+                are subclasses of this class, can use its methods to publish events.
+                Similarly, <classname>AbstractTcpConnectionInterceptor</classname> has
+                been renamed to <classname>TcpConnectionInterceptorSupport</classname>.
+            </para>
+            <para>
+                In addition, a new <code>&lt;int-ip:tcp-connection-event-inbound-channel-adapter/&gt;</code>
+                is provided; by default, this adapter sends all <classname>TcpConnectionEvent</classname>s
+                to a <interfacename>Channel</interfacename>.
+            </para>
+            <para>
+                Further, the TCP Connection Factories, now provide a new method
+                <code>getOpenConnectionIds()</code>, which returns a list of identifiers for all
+                open connections; this allows applications, for example, to broadcast to all
+                open connections.
+            </para>
+            <para>
+                Finally, the connection factories also provide a new method
+                <code>closeConnection(String connectionId)</code> which allows applications
+                to explicitly close a connection using its ID.
+            </para>
+            <para>
+                For more information see <xref linkend="tcp-events"/>.
+            </para>
+        </section>
+    </section>
 
-	<section id="3.0-general">
-		<title>General Changes</title>
+    <section id="3.0-general">
+        <title>General Changes</title>
 
-		<section id="3.0-corr-endpoint-empty-groups">
-			<title>Aggregator 'empty-group-min-timeout' property</title>
-				<para><classname>AbstractCorrelatingMessageHandler</classname> provides a new property
-					<code>empty-group-min-timeout</code>
-					to allow empty group expiry to run on a longer schedule than expiring partial groups. Empty groups will
-					not be removed from the <interfacename>MessageStore</interfacename> until they have not been modified
-					for at least this number of milliseconds. For more information see <xref linkend="aggregator-config"/>.
-				</para>
-		</section>
-		<section id="3.0-o-t-s-t">
-			<title>ObjectToStringTransformer Improvements</title>
-			<para>
-				This transformer now correctly transforms <code>byte[]</code> and <code>char[]</code>
-				payloads to <classname>String</classname>. For more information see <xref linkend="transformer"/>.
-			</para>
-		</section>
+        <section id="3.0-corr-endpoint-empty-groups">
+            <title>Aggregator 'empty-group-min-timeout' property</title>
+            <para><classname>AbstractCorrelatingMessageHandler</classname> provides a new property
+                <code>empty-group-min-timeout</code>
+                to allow empty group expiry to run on a longer schedule than expiring partial groups. Empty groups will
+                not be removed from the <interfacename>MessageStore</interfacename> until they have not been modified
+                for at least this number of milliseconds. For more information see <xref linkend="aggregator-config"/>.
+            </para>
+        </section>
+        <section id="3.0-o-t-s-t">
+        	<title>ObjectToStringTransformer Improvements</title>
+        	<para>
+        		This transformer now correctly transforms <code>byte[]</code> and <code>char[]</code>
+        		payloads to <classname>String</classname>. For more information see <xref linkend="transformer"/>.
+        	</para>
+        </section>
+        <section id="3.0-ws-outbound-uri-substitution">
+        	<title>Web Service Outbound URI Configuration</title>
+        	<para>
+        		Web Service Outbound Gateway 'uri' attribute now supports <code>&lt;uri-variable/&gt;</code> substitution for all
+        		URI-schemes supported by Spring Web Services. For more information see <xref linkend="outbound-uri"/>.
+        	</para>
+        </section>
 
-	</section>
+    </section>
 
 </chapter>
