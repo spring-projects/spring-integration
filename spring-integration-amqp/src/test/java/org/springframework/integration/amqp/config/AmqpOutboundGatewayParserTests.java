@@ -15,12 +15,8 @@
  */
 package org.springframework.integration.amqp.config;
 
-<<<<<<< HEAD
 import static org.junit.Assert.assertEquals;
-=======
-import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
->>>>>>> de75475... INT-2822: 'requires-reply' for outbound gateways
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
