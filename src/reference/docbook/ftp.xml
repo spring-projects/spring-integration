@@ -406,8 +406,9 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 		The <emphasis>expression</emphasis> attribute defines the "from" path and the
 		<emphasis>rename-expression</emphasis> attribute defines the "to" path. By default, the
 		<emphasis>rename-expression</emphasis> is <code>headers['file_renameTo']</code>. This
-		expression must not evaluate to null, or an empty <code>String</code>. The payload of
-		the result message is <code>Boolean.TRUE</code>.
+		expression must not evaluate to null, or an empty <code>String</code>. If necessary,
+		any remote directories needed will be created.
+		The payload of the result message is <code>Boolean.TRUE</code>.
 		The original remote directory is provided in the <code>file_remoteDirectory</code> header, and the filename is
 		provided in the <code>file_remoteFile</code> header. The new path is in
 		the <code>file_renameTo</code> header.

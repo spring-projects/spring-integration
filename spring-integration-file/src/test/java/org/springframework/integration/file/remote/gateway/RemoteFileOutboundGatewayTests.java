@@ -347,6 +347,42 @@ public class RemoteFileOutboundGatewayTests {
 		assertEquals(Boolean.TRUE, out.getPayload());
 	}
 
+	@Test
+	public void testMoveWithMkDirs() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mv", "payload");
+		gw.setRenameExpression("'foo/bar/baz'");
+		Session<?> session = mock(Session.class);
+		final AtomicReference<String> args = new AtomicReference<String>();
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object[] arguments = invocation.getArguments();
+				args.set((String) arguments[0] + (String) arguments[1]);
+				return null;
+			}
+		}).when(session).rename(anyString(), anyString());
+		final List<String> madeDirs = new ArrayList<String>();
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				madeDirs.add((String) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(session).mkdir(anyString());
+		when (sessionFactory.getSession()).thenReturn(session);
+		Message<String> requestMessage = MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.RENAME_TO, "bar")
+				.build();
+		Message<?> out = (Message<?>) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo", out.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals("foofoo/bar/baz", args.get());
+		assertEquals(Boolean.TRUE, out.getPayload());
+		assertEquals(2, madeDirs.size());
+		assertEquals("foo", madeDirs.get(0));
+		assertEquals("foo/bar", madeDirs.get(1));
+	}
+
 	/**
 	 * @return
 	 */

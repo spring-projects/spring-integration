@@ -35,6 +35,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.RemoteFileUtils;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -520,7 +521,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	protected void mv(Session<?> session, String remoteFilePath, String remoteFileNewPath) throws IOException {
-		// TODO: auto mkdir target path?
+		int lastSeparator = remoteFileNewPath.lastIndexOf(this.remoteFileSeparator);
+		if (lastSeparator > 0) {
+			String remoteFileDirectory = remoteFileNewPath.substring(0, lastSeparator + 1);
+			RemoteFileUtils.makeDirectories(remoteFileDirectory, session, this.remoteFileSeparator, this.logger);
+		}
 		session.rename(remoteFilePath, remoteFileNewPath);
 	}
 

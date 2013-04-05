@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -31,6 +29,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.remote.RemoteFileUtils;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -246,7 +245,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 		if (this.autoCreateDirectory) {
 			try {
-				this.makeDirectories(remoteDirectory, session);
+				RemoteFileUtils.makeDirectories(remoteDirectory, session, this.remoteFileSeparator, this.logger);
 			}
 			catch (IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
@@ -280,35 +279,4 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		return directoryPath;
 	}
 
-	private void makeDirectories(String path, Session<F> session) throws IOException {
-		if (!session.exists(path)){
-
-			int nextSeparatorIndex = path.lastIndexOf(this.remoteFileSeparator);
-
-			if (nextSeparatorIndex > -1){
-				List<String> pathsToCreate = new LinkedList<String>();
-				while (nextSeparatorIndex > -1){
-					String pathSegment = path.substring(0, nextSeparatorIndex);
-					if (pathSegment.length() == 0 || session.exists(pathSegment)) {
-						// no more paths to create
-						break;
-					}
-					else {
-						pathsToCreate.add(0, pathSegment);
-						nextSeparatorIndex = pathSegment.lastIndexOf(this.remoteFileSeparator);
-					}
-				}
-
-				for (String pathToCreate : pathsToCreate) {
-					if (logger.isDebugEnabled()){
-						logger.debug("Creating '" + pathToCreate + "'");
-					}
-					session.mkdir(pathToCreate);
-				}
-			}
-			else {
-				session.mkdir(path);
-			}
-		}
-	}
 }
