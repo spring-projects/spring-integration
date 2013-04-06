@@ -78,6 +78,13 @@
 				URI-schemes supported by Spring Web Services. For more information see <xref linkend="outbound-uri"/>.
 			</para>
 		</section>
+		<section id="3.0-xFTP-gw">
+			<title>(S)FTP(S) Gateways</title>
+			<para>
+				The gateways now support the <code>mv</code> command, enabling the renaming of remote
+				files.
+			</para>
+		</section>
 	</section>
 
 </chapter>
