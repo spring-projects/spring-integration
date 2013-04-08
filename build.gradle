@@ -480,6 +480,14 @@ project('spring-integration-stream') {
 	}
 }
 
+project('spring-integration-syslog') {
+	description = 'Spring Integration Syslog Support'
+	dependencies {
+		compile project(":spring-integration-ip")
+		testCompile project(":spring-integration-test")
+	}
+}
+
 project('spring-integration-test') {
 	description = 'Spring Integration Test Support'
 	dependencies {

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+	xmlns:int-syslog="http://www.springframework.org/schema/integration/syslog"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration/syslog http://www.springframework.org/schema/integration/syslog/spring-integration-syslog.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int-syslog:inbound-channel-adapter id="foo" port="1514" />
+
+	<int-syslog:inbound-channel-adapter id="foobar" channel="foo" port="1514" auto-startup="false" />
+
+	<int:channel id="foo">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="errors">
+		<int:queue/>
+	</int:channel>
+
+	<int-syslog:inbound-channel-adapter id="explicitUdp" protocol="udp" port="1514" auto-startup="false" />
+	
+	<int:channel id="explicitUdp">
+		<int:queue/>
+	</int:channel>
+
+	<int-syslog:inbound-channel-adapter id="fullBoatUdp" 
+		channel="foo"
+		auto-startup="false"
+		phase="123"
+		converter="converter"
+		send-timeout="456"
+		error-channel="errors">
+			<int-syslog:udp-attributes port="1514" lookup-host="false" />
+	</int-syslog:inbound-channel-adapter>
+
+	<bean id="converter"
+		class="org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterParserTests$PassThruConverter" />
+
+	<int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="1514" />
+
+	<int:channel id="bar">
+		<int:queue/>
+	</int:channel>
+
+	<int-syslog:inbound-channel-adapter id="fullBoatTcp"
+		protocol="tcp"
+		channel="bar"
+		connection-factory="cf"
+		auto-startup="false"
+		phase="123"
+		converter="converter"
+		send-timeout="456"
+		error-channel="errors" />
+
+	<int-ip:tcp-connection-factory id="cf" type="server" port="1514" />
+</beans>

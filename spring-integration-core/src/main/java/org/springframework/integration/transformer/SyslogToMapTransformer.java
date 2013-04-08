@@ -132,12 +132,13 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	@Override
 	protected Map<String, ?> transformPayload(Object payload) throws Exception {
-		Assert.isTrue(payload instanceof byte[] || payload instanceof String,
-				"payload must be String or byte[]");
-		if (payload instanceof byte[]) {
+		boolean isByteArray = payload instanceof byte[];
+		boolean isString = payload instanceof String;
+		Assert.isTrue(isByteArray || isString, "payload must be String or byte[]");
+		if (isByteArray) {
 			return this.transform((byte[]) payload);
 		}
-		else if (payload instanceof String) {
+		else if (isString) {
 			return this.transform((String) payload);
 		}
 		return null;
