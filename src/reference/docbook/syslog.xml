@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="syslog"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Syslog Support</title>
+
+	<section id="syslog-intro">
+		<title>Introduction</title>
+		<para>
+			Spring Integration 2.2 introduced the Syslog transformer
+			<classname>SyslogToMapTransformer</classname>. This transformer, together with
+			a <code>UDP</code> or <code>TCP</code> inbound adapter could be used to receive
+			and analyze syslog records from other hosts. The transformer creates a message
+			payload containing a map of the elements from the syslog message.
+		</para>
+		<para>
+			Spring Integration 3.0 introduced convenient namespace support for configuring a
+			Syslog inbound adapter in a single element.
+		</para>
+	</section>
+
+	<section id="syslog-inbound-adapter">
+		<title>Syslog &lt;inbound-channel-adapter&gt;</title>
+		<para>
+			This element encompases a <code>UDP</code> or <code>TCP</code> inbound channel adapter
+			and a <interfacename>MessageConverter</interfacename> to convert the Syslog message to
+			a Spring Integration message. The <classname>DefaultMessageConverter</classname> delegates
+			to the <classname>SyslogToMapTransformer</classname>, creating a message with its payload
+			being the <code>Map</code> of Syslog fields. In addition, all fields except the message
+			are also made available as headers in the message, prefixed with <code>syslog_</code>.
+		</para>
+		<section id="syslog-inbound-examplers">
+			<title>Example Configuration</title>
+			<programlisting language="xml"><![CDATA[<int-syslog:inbound-channel-adapter id="syslogIn" port="1514" />]]></programlisting>
+			<para>
+				A <code>UDP</code> adapter that sends messages to channel <code>syslogIn</code> (the adapter bean
+				name is <code>syslogIn.adapter</code>). The adapter listens on port <code>1514</code>.
+			</para>
+			<programlisting language="xml"><![CDATA[<int-syslog:inbound-channel-adapter id="syslogIn"
+	channel="fromSyslog" port="1514" />]]></programlisting>
+			<para>
+				A <code>UDP</code> adapter that sends message to channel <code>fromSyslog</code> (the adapter bean
+				name is <code>syslogIn</code>). The adapter listens on port <code>1514</code>.
+			</para>
+			<programlisting language="xml"><![CDATA[<int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="1514" />]]></programlisting>
+			<para>
+				A <code>TCP</code> adapter that sends messages to channel <code>syslogIn</code> (the adapter bean
+				name is <code>syslogIn.adapter</code>). The adapter listens on port <code>1514</code>.
+			</para>
+			<para>
+				Note the addition of the <code>protocol</code> attribute. This attribute can contain <code>udp</code>
+				or <code>tcp</code>; it defaults to <code>udp</code>.
+			</para>
+			<programlisting language="xml"><![CDATA[<int-syslog:inbound-channel-adapter id="udpSyslog"
+	channel="fromSyslog"
+	auto-startup="false"
+	phase="10000"
+	converter="converter"
+	send-timeout="1000"
+	error-channel="errors">
+		<int-syslog:udp-attributes port="1514" lookup-host="false" />
+</int-syslog:inbound-channel-adapter>]]></programlisting>
+			<para>
+				A <code>UDP</code> adapter that sends messages to channel <code>fromSyslog</code>. It also shows the
+				<interfacename>SmartLifecyle</interfacename> attributes <code>auto-startup</code> and
+				<code>phase</code>. It has a reference to a custom <interfacename>
+				org.springframework.integration.syslog.MessageConverter</interfacename>
+				with id <code>converter</code> and an <code>error-channel</code>. Also notice the
+				<code>udp-attributes</code> child element. You can set various UDP attributes here, as defined
+				in <xref linkend="ip-ib-adapter-attributes"/>.
+			</para>
+			<note>
+				When using the <code>udp-attributes</code> element, the <code>port</code> attribute must be
+				provided there rather than on the <code>inbound-channel-adapter</code> element itself.
+			</note>
+			<programlisting language="xml"><![CDATA[<int-syslog:inbound-channel-adapter id="TcpSyslog"
+	protocol="tcp"
+	channel="fromSyslog"
+	connection-factory="cf" />
+
+<int-ip:tcp-connection-factory id="cf" type="server" port="1514" />]]></programlisting>
+			<para>
+				A <code>TCP</code> adapter that sends messages to channel <code>fromSyslog</code>. It also shows
+				how to reference an externally defined connection factory, which can be used for advanced
+				configuration (socket keep alive etc). For more information, see <xref linkend="connection-factories"/>.
+			</para>
+			<note>
+				The externally configured <code>connection-factory</code> must be of type <code>server</code> and,
+				the port is defined there rather than on the <code>inbound-channel-adapter</code> element itself.
+			</note>
+		</section>
+	</section>
+</chapter>
