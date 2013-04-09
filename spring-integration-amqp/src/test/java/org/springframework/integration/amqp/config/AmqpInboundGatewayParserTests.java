@@ -16,6 +16,10 @@
 
 package org.springframework.integration.amqp.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.lang.reflect.Field;
 
 import org.junit.Test;
@@ -32,7 +36,9 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
@@ -44,13 +50,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
- *
+ * @author Artem Bilan
  * @since 2.1
  */
 @ContextConfiguration
@@ -128,6 +131,17 @@ public class AmqpInboundGatewayParserTests {
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
 				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
+	}
+
+	@Test
+	public void testInt2971HeaderMapperAndMappedHeadersExclusivity() {
+		try {
+			new ClassPathXmlApplicationContext("AmqpInboundGatewayParserTests-headerMapper-fail-context.xml", this.getClass());
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().startsWith("Configuration problem: The 'header-mapper' attribute " +
+					"is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'"));
+		}
 	}
 
 	private static class TestConverter extends SimpleMessageConverter {}

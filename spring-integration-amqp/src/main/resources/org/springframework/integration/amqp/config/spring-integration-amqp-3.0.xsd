@@ -193,6 +193,9 @@
 			which itself is a Map.
 			This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 			this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+			A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+			it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+			standard headers to also be mapped.
 								]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -243,6 +246,9 @@
 	which itself is a Map.
 	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	A special token 'STANDARD_REPLY_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+	it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+	standard headers to also be mapped.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -418,9 +424,15 @@ The order for this consumer when multiple consumers are registered thereby enabl
 		</xsd:attribute>
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Reference to a bean implementing 'AmqpHeaderMapper' that maps Spring Integration MessageHeaders to/from
+AMQP Message properties.
+This is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'.
+Default: DefaultAmqpHeaderMapper.
+						]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+						<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -431,6 +443,9 @@ The order for this consumer when multiple consumers are registered thereby enabl
 Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
 This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+A special token 'STANDARD_REQUEST_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+standard headers to also be mapped.
 						]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -478,9 +493,15 @@ property set to TRUE.
 		</xsd:attribute>
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Reference to a bean implementing 'AmqpHeaderMapper' that maps Spring Integration MessageHeaders to/from
+AMQP Message properties.
+This is mutually exclusive with 'mapped-request-headers' or 'mapped-reply-headers'.
+Default: DefaultAmqpHeaderMapper.
+						]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+						<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -491,6 +512,9 @@ property set to TRUE.
 Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
 This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+A special token 'STANDARD_REQUEST_HEADERS' represents all the standard AMQP headers (replyTo, correlationId etc);
+it is included by default. If you wish to add your own headers, you must also include this token if you wish the
+standard headers to also be mapped.
 						]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

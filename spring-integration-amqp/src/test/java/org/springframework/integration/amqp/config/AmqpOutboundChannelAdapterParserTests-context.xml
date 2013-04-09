@@ -25,6 +25,14 @@
 								   exchange-name="outboundchanneladapter.test.1"
 								   mapped-request-headers="foo*"/>
 
+	<bean id="customHeaderMapper" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.amqp.support.AmqpHeaderMapper"/>
+	</bean>
+
+	<amqp:outbound-channel-adapter id="withCustomHeaderMapper"
+								   exchange-name="test.exchange"
+								   header-mapper="customHeaderMapper"/>
+
 	<int:channel id="requestChannel"/>
 
 	<int:chain id="chainWithRabbitOutbound" input-channel="amqpOutboundChannelAdapterWithinChain">
