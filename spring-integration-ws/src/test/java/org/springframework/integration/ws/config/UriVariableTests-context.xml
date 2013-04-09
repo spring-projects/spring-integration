@@ -1,17 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:ws="http://www.springframework.org/schema/integration/ws"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:ws="http://www.springframework.org/schema/integration/ws"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration/ws
 			http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
 
-	<ws:outbound-gateway id="gateway" request-channel="input" uri="http://springsource.org/{foo}-{bar}" interceptor="interceptor">
+	<bean id="interceptor" class="org.springframework.integration.ws.config.UriVariableTests$TestClientInterceptor"/>
+
+	<!--HTTP Transport-->
+	<ws:outbound-gateway request-channel="inputHttp"
+						 uri="http://test.org/{foo}-{bar}?param={param}"
+						 interceptor="interceptor">
 		<ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
 		<ws:uri-variable name="bar" expression="headers.x"/>
+		<ws:uri-variable name="param" expression="headers.param"/>
 	</ws:outbound-gateway>
 
-	<bean id="interceptor" class="org.springframework.integration.ws.config.UriVariableTests$TestClientInterceptor"/>
+	<!--JMS Transport-->
+	<ws:outbound-gateway request-channel="inputJms"
+						 uri="jms:{destination}?deliveryMode={deliveryMode}&amp;priority={priority}"
+						 interceptor="interceptor"
+						 message-sender="jmsMessageSender">
+		<ws:uri-variable name="destination" expression="headers.jmsQueue"/>
+		<ws:uri-variable name="deliveryMode" expression="headers.deliveryMode"/>
+		<ws:uri-variable name="priority" expression="headers.jms_priority"/>
+	</ws:outbound-gateway>
+
+	<bean id="jmsMessageSender" class="org.mockito.Mockito" factory-method="spy">
+		<constructor-arg>
+			<bean class="org.springframework.ws.transport.jms.JmsMessageSender">
+				<property name="connectionFactory" ref="jmsConnectionFactory"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="jmsConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="javax.jms.ConnectionFactory"/>
+	</bean>
+
+	<!--Email Transport-->
+	<ws:outbound-gateway request-channel="inputEmail"
+						 uri="mailto:{to}?subject={subject}"
+						 interceptor="emailInterceptor"
+						 message-sender="emailMessageSender">
+		<ws:uri-variable name="to" expression="headers.to"/>
+		<ws:uri-variable name="subject" expression="headers.subject"/>
+	</ws:outbound-gateway>
+
+	<bean id="emailMessageSender" class="org.springframework.ws.transport.mail.MailMessageSender">
+		<property name="from" value="spring-integration-ws SOAP Client &lt;client@example.com&gt;"/>
+		<property name="transportUri" value="smtp://client:s04p@smtp.example.com"/>
+		<property name="storeUri" value="imap://client:s04p@imap.example.com/INBOX"/>
+	</bean>
+
+	<bean id="emailInterceptor" class="org.springframework.integration.ws.config.UriVariableTests$Int2720EmailTestClientInterceptor"/>
+
+	<!--XMPP Transport-->
+	<ws:outbound-gateway request-channel="inputXmpp"
+						 uri="xmpp:{user}@jabber.org"
+						 interceptor="interceptor"
+						 message-sender="xmppMessageSender">
+		<ws:uri-variable name="user" expression="headers.to"/>
+	</ws:outbound-gateway>
+
+	<bean id="xmppMessageSender" class="org.springframework.ws.transport.xmpp.XmppMessageSender">
+		<property name="connection" ref="xmppConnection"/>
+	</bean>
+
+	<bean id="xmppConnection" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
+	</bean>
 
 </beans>

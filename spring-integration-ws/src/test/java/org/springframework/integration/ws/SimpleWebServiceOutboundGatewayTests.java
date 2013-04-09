@@ -16,6 +16,10 @@
 
 package org.springframework.integration.ws;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -42,8 +46,6 @@ import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
