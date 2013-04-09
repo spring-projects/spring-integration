@@ -26,6 +26,7 @@ import javax.xml.transform.TransformerException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
@@ -105,6 +106,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		}
 	}
 
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
+
 	/**
 	 * Specify whether empty String response payloads should be ignored.
 	 * The default is <code>true</code>. Set this to <code>false</code> if
@@ -124,6 +129,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	public void setFaultMessageResolver(FaultMessageResolver faultMessageResolver) {
 		this.webServiceTemplate.setFaultMessageResolver(faultMessageResolver);
+	}
+
+	public void setMessageSender(WebServiceMessageSender messageSender) {
+		this.webServiceTemplate.setMessageSender(messageSender);
 	}
 
 	public void setMessageSenders(WebServiceMessageSender... messageSenders) {

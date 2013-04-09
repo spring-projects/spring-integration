@@ -543,6 +543,7 @@ project('spring-integration-ws') {
 		}
 		testCompile "org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1"
 		testCompile "org.igniterealtime.smack:smack:3.2.1"
+		testCompile "org.igniterealtime.smack:smackx:3.2.1"
 		testCompile "javax.mail:mail:1.4.5"
 	}
 

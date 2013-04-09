@@ -112,7 +112,7 @@ public class UriVariableTests {
 			assertTrue(WebServiceIOException.class.equals(causeType) // offline
 					|| SoapMessageCreationException.class.equals(causeType));
 		}
-		assertEquals("http://springsource.org/spring-integration?param=test1%20%26%20test2", this.interceptor.getLastUri().toString());
+		assertEquals("http://test.org/spring-integration?param=test1%20%26%20test2", this.interceptor.getLastUri().toString());
 	}
 
 	@Test

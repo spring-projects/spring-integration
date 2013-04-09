@@ -81,7 +81,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 				builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
 			}
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-empty-responses");
 		this.postProcessGateway(builder, element, parserContext);
@@ -124,7 +124,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 					"Only one of message-sender or message-senders should be specified.", element);
 		}
 		if (StringUtils.hasText(messageSenderRef)) {
-			builder.addPropertyReference("messageSenders", messageSenderRef);
+			builder.addPropertyReference("messageSender", messageSenderRef);
 		}
 		if (StringUtils.hasText(messageSenderListRef)) {
 			builder.addPropertyReference("messageSenders", messageSenderListRef);

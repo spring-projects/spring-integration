@@ -11,7 +11,7 @@
 
 	<!--HTTP Transport-->
 	<ws:outbound-gateway request-channel="inputHttp"
-						 uri="http://springsource.org/{foo}-{bar}?param={param}"
+						 uri="http://test.org/{foo}-{bar}?param={param}"
 						 interceptor="interceptor">
 		<ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
 		<ws:uri-variable name="bar" expression="headers.x"/>

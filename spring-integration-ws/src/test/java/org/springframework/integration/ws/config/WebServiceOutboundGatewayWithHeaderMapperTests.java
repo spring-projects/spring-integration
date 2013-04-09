@@ -67,7 +67,6 @@ import org.w3c.dom.Element;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
- * @author Artem Bilan
  *
  */
 public class WebServiceOutboundGatewayWithHeaderMapperTests {
@@ -231,7 +230,9 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		          return wsMessage;
 		      }})
 		 .when(wsConnection).receive(Mockito.any(WebServiceMessageFactory.class));
-		gateway.setMessageSenders(messageSender);
+
+		gateway.setMessageSender(messageSender);
+
 		MessageChannel inputChannel = context.getBean(channelName, MessageChannel.class);
 		Message<?> message =
 				MessageBuilder.withPayload(payload).
