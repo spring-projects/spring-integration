@@ -377,8 +377,18 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para>
       By default URL string is encoded
       (<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html">UriComponentsBuilder</ulink>)
-      to the URI object before sending request. In some scenarios with non-standard URI (e.g. RabbitMQ rest API) it is
-      undesirable to do encoding. To achieve this goal
+      to the URI object before sending request. In some scenarios with non-standard URI (e.g. RabbitMQ Rest API) it is
+      undesirable to do encoding. To achieve this goal <code>&lt;http:outbound-gateway/&gt;</code>
+      and <code>&lt;http:outbound-channel-adapter/&gt;</code> provide an <code>encode-uri</code> attribute.
+      To disable encoding the value of this attribute should be <code>false</code> (by default it is <code>true</code>).
+      However there is still an opportunity to do partial uri-encoding within <code>&lt;uri-variable/&gt;</code> <code>expression</code>:
+    </para>
+    <para>
+       <programlisting language="xml"><![CDATA[<http:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
+          <http:uri-variable name="param"
+            expression="T(org.apache.commons.httpclient.util.URIUtil)
+                                             .encodeWithinQuery('Hellow World!')"/>
+</http:outbound-gateway>]]></programlisting>
     </para>
   </note>
   <para>
