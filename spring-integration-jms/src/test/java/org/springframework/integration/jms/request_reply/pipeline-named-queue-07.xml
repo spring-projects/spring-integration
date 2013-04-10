@@ -10,9 +10,10 @@
 	<int:gateway default-request-channel="pipeline07" default-request-timeout="10000" default-reply-timeout="10000"/>
 
 	<int-jms:outbound-gateway request-channel="pipeline07"
-	    connection-factory="connectionFactory"
-	    reply-destination-name="pipeline07-01"
-	    correlation-key="foo"
+		connection-factory="connectionFactory"
+		reply-destination-name="pipeline07-01"
+		correlation-key="foo"
+		receive-timeout="10000"
 		request-destination-name="siOutQueue07">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
@@ -33,9 +34,10 @@
 	</int:chain>
 
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
-	    connection-factory="connectionFactory"
-	    reply-destination-name="pipeline07-02"
+		connection-factory="connectionFactory"
+		reply-destination-name="pipeline07-02"
 		request-destination-name="anotherGatewayQueue07"
+		receive-timeout="10000"
 		correlation-key="bar">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>

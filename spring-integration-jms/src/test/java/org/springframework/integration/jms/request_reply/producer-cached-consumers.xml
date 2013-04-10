@@ -9,9 +9,10 @@
 	<int:gateway id="standardMessageIdCopyingConsumerWithOptimization" default-request-channel="jmsInOptimizedA"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInOptimizedA"
-	    connection-factory="connectionFactory"
+		connection-factory="connectionFactory"
 		request-destination="siOutQueueOptimizedA"
 		reply-destination="siInQueueOptimizedA"
+		receive-timeout="10000"
 		correlation-key="JMSCorrelationID">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
@@ -30,8 +31,9 @@
 	<int:gateway id="standardMessageIdCopyingConsumerWithoutOptimization" default-request-channel="jmsInNonOptimizedB"/>
 
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedB"
-	    connection-factory="connectionFactory"
+		connection-factory="connectionFactory"
 		request-destination="siOutQueueNonOptimizedB"
+		receive-timeout="10000"
 		reply-destination="siInQueueNonOptimizedB">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
