@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.mysql;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -37,7 +37,9 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -54,32 +57,71 @@ import org.springframework.integration.store.MessageGroupStore.MessageGroupCallb
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.annotation.Repeat;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * @author Dave Syer
- * @author Mark Fisher
- * @author Oleg Zhurakousky
+ * Based on the test for Derby:
+ *
+ * {@link org.springframework.integration.jdbc.JdbcMessageStoreTests}
+ *
+ * This tests requires at least MySql 5.6.4 as it uses the fractional second support
+ * in that version. For more information, please see:
+ *
+ * http://dev.mysql.com/doc/refman/5.6/en/fractional-seconds.html
+ *
+ * Also, please make sure you are using the respective DDL scripts:
+ *
+ * schema-mysql-5_6_4.sql
+ *
  * @author Gunnar Hillert
- * @author Artem Bilan
- * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class JdbcMessageStoreTests {
+@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
+@Ignore
+public class MySqlJdbcMessageStoreTests {
 
-	private static final Log LOG = LogFactory.getLog(JdbcMessageStoreTests.class);
+	private static final Log LOG = LogFactory.getLog(MySqlJdbcMessageStoreTests.class);
 
 	@Autowired
 	private DataSource dataSource;
 
 	private JdbcMessageStore messageStore;
 
+	@Autowired
+	private PlatformTransactionManager transactionManager;
+
 	@Before
 	public void init() {
 		messageStore = new JdbcMessageStore(dataSource);
+		messageStore.setRegion("JdbcMessageStoreTests");
+	}
+
+	@After
+	public void afterTest() {
+		final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		new TransactionTemplate(this.transactionManager).execute(new TransactionCallback<Void>() {
+		public Void doInTransaction(TransactionStatus status) {
+			final int deletedGroupToMessageRows = jdbcTemplate.update("delete from INT_GROUP_TO_MESSAGE");
+			final int deletedMessages = jdbcTemplate.update("delete from INT_MESSAGE");
+			final int deletedMessageGroups = jdbcTemplate.update("delete from INT_MESSAGE_GROUP");
+
+			LOG.info(String.format("Cleaning Database - Deleted Messages: %s, " +
+					"Deleted GroupToMessage Rows: %s, Deleted Message Groups: %s",
+					deletedMessages, deletedGroupToMessageRows, deletedMessageGroups));
+			return null;
+		}
+		});
 	}
 
 	@Test
@@ -364,38 +406,41 @@ public class JdbcMessageStoreTests {
 	@Test
 	@Transactional
 	public void testMessagePollingFromTheGroup() throws Exception {
-		String groupId = "X";
 
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
-		Thread.sleep(1);
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
-		Thread.sleep(1);
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("baz").setCorrelationId(groupId).build());
+		final String groupX = "X";
 
-		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupId).build());
-		Thread.sleep(1);
-		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("bazA").setCorrelationId(groupId).build());
-
-		MessageGroup group = messageStore.getMessageGroup("X");
+		messageStore.addMessageToGroup(groupX, MessageBuilder.withPayload("foo").setCorrelationId(groupX).build());
+		Thread.sleep(100);
+		messageStore.addMessageToGroup(groupX, MessageBuilder.withPayload("bar").setCorrelationId(groupX).build());
+		Thread.sleep(100);
+		messageStore.addMessageToGroup(groupX, MessageBuilder.withPayload("baz").setCorrelationId(groupX).build());
+		Thread.sleep(100);
+		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupX).build());
+		Thread.sleep(100);
+		messageStore.addMessageToGroup("Y", MessageBuilder.withPayload("bazA").setCorrelationId(groupX).build());
+		Thread.sleep(100);
+		MessageGroup group = messageStore.getMessageGroup(groupX);
 		assertEquals(3, group.size());
 
-		Message<?> message1 = messageStore.pollMessageFromGroup("X");
+		Message<?> message1 = messageStore.pollMessageFromGroup(groupX);
 		assertNotNull(message1);
 		assertEquals("foo", message1.getPayload());
 
-		group = messageStore.getMessageGroup("X");
+		group = messageStore.getMessageGroup(groupX);
 		assertEquals(2, group.size());
 
-		Message<?> message2 = messageStore.pollMessageFromGroup("X");
+		Message<?> message2 = messageStore.pollMessageFromGroup(groupX);
 		assertNotNull(message2);
 		assertEquals("bar", message2.getPayload());
 
-		group = messageStore.getMessageGroup("X");
+		group = messageStore.getMessageGroup(groupX);
 		assertEquals(1, group.size());
 	}
 
 	@Test
 	@Transactional
+	@Rollback(false)
+	@Repeat(20)
 	public void testSameMessageToMultipleGroups() throws Exception {
 
 		final String group1Id = "group1";
@@ -431,6 +476,8 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	@Rollback(false)
+	@Repeat(20)
 	public void testSameMessageAndGroupToMultipleRegions() throws Exception {
 
 		final String groupId = "myGroup";

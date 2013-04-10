@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+
+	<tx:annotation-driven/>
+	<int:annotation-config/>
+
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/int30"/>
+		<property name="username" value="root"/>
+		<property name="password" value="root"/>
+		<property name="maxActive" value="10"/>
+		<property name="defaultAutoCommit" value="false"/>
+	</bean>
+
+	<int-jdbc:message-store id="messageStore" data-source="dataSource" region="MessageStoreMultipleChannelTests"/>
+
+	<bean id="placeholderProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:int-${ENVIRONMENT:derby}.properties" />
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="order" value="1" />
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<task:executor id="pool" pool-size="1"
+		queue-capacity="20" keep-alive="120"/>
+
+	<int:poller id="defaultPoller" default="true" fixed-rate="2000"
+		max-messages-per-poll="1" task-executor="pool">
+		<int:transactional />
+	</int:poller>
+
+	<!-- Start of Flow -->
+
+	<int:channel id="requestChannel">
+		<int:queue message-store="messageStore"/>
+	</int:channel>
+
+	<bean id="splitter" class="org.springframework.integration.jdbc.mysql.MySqlJdbcMessageStoreMultipleChannelTests$Splitter"/>
+
+	<int:splitter input-channel="requestChannel" output-channel="afterSplitChannel"
+		ref="splitter" method="duplicate" apply-sequence="true">
+	</int:splitter>
+
+	<!-- Must not use the message store -->
+	<int:channel id="afterSplitChannel"/>
+
+	<int:header-value-router input-channel="afterSplitChannel" header-name="sequenceNumber">
+		<int:mapping value="1" channel="firstChannel" />
+		<int:mapping value="2" channel="secondChannel" />
+	</int:header-value-router>
+
+	<int:channel id="firstChannel">
+		<int:queue message-store="messageStore"/>
+		<int:interceptors>
+			<int:wire-tap channel="loggit"/>
+		</int:interceptors>
+	</int:channel>
+
+	<int:channel id="secondChannel">
+		<int:queue message-store="messageStore"/>
+		<int:interceptors>
+			<int:wire-tap channel="loggit"/>
+		</int:interceptors>
+	</int:channel>
+
+	<int:logging-channel-adapter id="loggit" log-full-message="true"/>
+
+	<beans:bean id="serviceActivator"
+		class="org.springframework.integration.jdbc.mysql.MySqlJdbcMessageStoreMultipleChannelTests$ServiceActivator"/>
+
+	<int:service-activator id="serviceActivator1" input-channel="firstChannel"
+		ref="serviceActivator" method="first" />
+
+	<int:service-activator id="serviceActivator2" input-channel="secondChannel"
+		ref="serviceActivator" method="second" />
+
+	<int:channel id="errorChannel">
+		<int:queue/>
+	</int:channel>
+
+</beans>

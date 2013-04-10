@@ -302,7 +302,7 @@ project('spring-integration-jdbc') {
 		testCompile "org.powermock:powermock-api-mockito:1.5"
 
 		testCompile "postgresql:postgresql:9.1-901-1.jdbc4"
-		testCompile "mysql:mysql-connector-java:5.1.21"
+		testCompile "mysql:mysql-connector-java:5.1.24"
 		testCompile "commons-dbcp:commons-dbcp:1.4"
 		//testCompile "com.oracle:ojdbc6:11.2.0.3"
 
