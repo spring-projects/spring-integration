@@ -473,4 +473,48 @@ public class MySqlJdbcMessageStoreTests {
 		assertEquals(Integer.valueOf(2), (Integer) messageFromGroup2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
 
 	}
+
+	@Test
+	@Transactional
+	@Rollback(false)
+	@Repeat(20)
+	public void testSameMessageAndGroupToMultipleRegions() throws Exception {
+
+		final String groupId = "myGroup";
+		final String region1 = "region1";
+		final String region2 = "region2";
+
+		final JdbcMessageStore messageStore1 = new JdbcMessageStore(dataSource);
+		messageStore1.setRegion(region1);
+
+		final JdbcMessageStore messageStore2 = new JdbcMessageStore(dataSource);
+		messageStore1.setRegion(region2);
+
+		final Message<String> message = MessageBuilder.withPayload("foo").build();
+
+		final MessageBuilder<String> builder1 = MessageBuilder.fromMessage(message);
+		final MessageBuilder<String> builder2 = MessageBuilder.fromMessage(message);
+
+		builder1.setSequenceNumber(1);
+		builder2.setSequenceNumber(2);
+
+		final Message<?> message1 = builder1.build();
+		final Message<?> message2 = builder2.build();
+
+		messageStore1.addMessageToGroup(groupId, message1);
+		messageStore2.addMessageToGroup(groupId, message2);
+
+		final Message<?> messageFromRegion1 = messageStore1.pollMessageFromGroup(groupId);
+		final Message<?> messageFromRegion2 = messageStore2.pollMessageFromGroup(groupId);
+
+		assertNotNull(messageFromRegion1);
+		assertNotNull(messageFromRegion2);
+
+		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + messageFromRegion1.getHeaders().getSequenceNumber());
+		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " + messageFromRegion2.getHeaders().getSequenceNumber());
+
+		assertEquals(Integer.valueOf(1), (Integer) messageFromRegion1.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+
+	}
 }
