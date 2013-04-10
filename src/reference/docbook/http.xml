@@ -374,6 +374,12 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       reason, it is recommended that if you wish to generate the URL entirely at runtime, you
       use the 'url-expression' attribute.
     </para>
+    <para>
+      By default URL string is encoded
+      (<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html">UriComponentsBuilder</ulink>)
+      to the URI object before sending request. In some scenarios with non-standard URI (e.g. RabbitMQ rest API) it is
+      undesirable to do encoding. To achieve this goal
+    </para>
   </note>
   <para>
   	<emphasis>Mapping URI variables</emphasis>
