@@ -166,7 +166,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 					}
 				});
 			}
-			assertTrue(latch.await(60, TimeUnit.SECONDS));
+			assertTrue(latch.await(120, TimeUnit.SECONDS));
 			// technically all we care that its > 0,
 			// but reality of this test it has to be something more then 0
 			assertTrue(successCounter.get() > 10);
