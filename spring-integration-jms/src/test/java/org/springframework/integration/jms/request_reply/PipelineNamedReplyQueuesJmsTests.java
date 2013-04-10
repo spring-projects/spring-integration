@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
 /**
@@ -35,7 +36,7 @@ import org.springframework.integration.message.GenericMessage;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class PipelineNamedReplyQueuesJmsTests {
+public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
 

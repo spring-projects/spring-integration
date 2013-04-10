@@ -10,9 +10,10 @@
 	<int:gateway default-request-channel="pipeline02" default-request-timeout="10000" default-reply-timeout="10000"/>
 
 	<int-jms:outbound-gateway request-channel="pipeline02"
-	    connection-factory="connectionFactory"
-	    reply-destination-name="pipeline02-01"
-	    correlation-key="corr02"
+		connection-factory="connectionFactory"
+		reply-destination-name="pipeline02-01"
+		correlation-key="corr02"
+		receive-timeout="10000"
 		request-destination-name="siOutQueue02">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
@@ -33,16 +34,17 @@
 	</int:chain>
 
 	<int-jms:outbound-gateway request-channel="anotherGatewayChannel"
-	    connection-factory="connectionFactory"
-	    reply-destination-name="pipeline02-02"
-	    correlation-key="corr02"
+		connection-factory="connectionFactory"
+		reply-destination-name="pipeline02-02"
+		correlation-key="corr02"
+		receive-timeout="10000"
 		request-destination-name="anotherGatewayQueue02">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
 
 	<int-jms:inbound-gateway request-channel="anotherIn"
 		request-destination-name="anotherGatewayQueue02"
-	    correlation-key="corr02"
+		correlation-key="corr02"
 		connection-factory="connectionFactory"
 		concurrent-consumers="10"
 		reply-timeout="10000"/>
@@ -50,8 +52,9 @@
 	<int:transformer input-channel="anotherIn" expression="payload" output-channel="toThird" />
 
 	<int-jms:outbound-gateway request-channel="toThird"
-	    connection-factory="connectionFactory"
-	    reply-destination-name="pipeline02-03"
+		connection-factory="connectionFactory"
+		reply-destination-name="pipeline02-03"
+		receive-timeout="10000"
 		request-destination-name="thirdGatewayQueue02">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
