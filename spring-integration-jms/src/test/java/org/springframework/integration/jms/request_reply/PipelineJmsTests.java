@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,14 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
-public class PipelineJmsTests {
+public class PipelineJmsTests extends ActiveMQMultiContextTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
 
@@ -128,7 +130,7 @@ public class PipelineJmsTests {
 		this.test("pipeline-09.xml");
 	}
 
-	public void test(String contextConfig) throws Exception{
+	public void test(String contextConfig) throws Exception {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(contextConfig, this.getClass());
 		final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
@@ -136,33 +138,36 @@ public class PipelineJmsTests {
 		final AtomicInteger successCounter = new AtomicInteger();
 		final AtomicInteger timeoutCounter = new AtomicInteger();
 		final AtomicInteger failureCounter = new AtomicInteger();
-
-		for (int i = 0; i < requests; i++) {
-			final int y = i;
-			executor.execute(new Runnable() {
-				public void run() {
-					try {
-						assertEquals(y, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
-						successCounter.incrementAndGet();
-					} catch (MessageTimeoutException e) {
-						timeoutCounter.incrementAndGet();
-					} catch (Throwable t) {
-						failureCounter.incrementAndGet();
-					} finally {
-						latch.countDown();
+		try {
+			for (int i = 0; i < requests; i++) {
+				final int y = i;
+				executor.execute(new Runnable() {
+					public void run() {
+						try {
+							assertEquals(y, gateway.exchange(new GenericMessage<Integer>(y)).getPayload());
+							successCounter.incrementAndGet();
+						} catch (MessageTimeoutException e) {
+							timeoutCounter.incrementAndGet();
+						} catch (Throwable t) {
+							failureCounter.incrementAndGet();
+						} finally {
+							latch.countDown();
+						}
 					}
-				}
-			});
+				});
+			}
+			latch.await();
 		}
-		latch.await();
-		System.out.println("Success: " + successCounter.get());
-		System.out.println("Timeout: " + timeoutCounter.get());
-		System.out.println("Failure: " + failureCounter.get());
-		// technically all we care that its > 0,
-		// but reality of this test it has to be something more then 0
-		assertTrue(successCounter.get() > 10);
-		assertEquals(0, failureCounter.get());
-		assertEquals(requests, successCounter.get() + timeoutCounter.get());
-		context.destroy();
+		finally {
+			System.out.println("Success: " + successCounter.get());
+			System.out.println("Timeout: " + timeoutCounter.get());
+			System.out.println("Failure: " + failureCounter.get());
+			// technically all we care that its > 0,
+			// but reality of this test it has to be something more then 0
+			assertTrue(successCounter.get() > 10);
+			assertEquals(0, failureCounter.get());
+			assertEquals(requests, successCounter.get() + timeoutCounter.get());
+			context.destroy();
+		}
 	}
 }

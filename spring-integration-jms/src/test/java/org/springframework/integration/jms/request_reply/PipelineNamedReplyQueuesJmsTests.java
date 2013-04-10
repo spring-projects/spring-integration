@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
 /**
@@ -35,7 +36,7 @@ import org.springframework.integration.message.GenericMessage;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class PipelineNamedReplyQueuesJmsTests {
+public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
 
@@ -165,7 +166,7 @@ public class PipelineNamedReplyQueuesJmsTests {
 					}
 				});
 			}
-			assertTrue(latch.await(60, TimeUnit.SECONDS));
+			assertTrue(latch.await(120, TimeUnit.SECONDS));
 			// technically all we care that its > 0,
 			// but reality of this test it has to be something more then 0
 			assertTrue(successCounter.get() > 10);

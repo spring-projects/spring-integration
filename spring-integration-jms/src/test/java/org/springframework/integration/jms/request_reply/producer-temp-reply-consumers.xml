@@ -9,7 +9,8 @@
 	<int:gateway default-request-channel="jmsIn"/>
 
 	<int-jms:outbound-gateway request-channel="jmsIn"
-	    connection-factory="connectionFactory"
+		connection-factory="connectionFactory"
+		receive-timeout="10000"
 		request-destination="siOutQueue">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
