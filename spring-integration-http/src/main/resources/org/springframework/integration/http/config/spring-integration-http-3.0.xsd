@@ -390,6 +390,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="encode-uri" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						When set to "false", the real URI won't be encoded before send request. It may be useful
+						in some scenarios. It allows to make some partial encoding manually, if needed,
+						e.g. through "url-expression". Default is "true".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="http-method">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -558,6 +567,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			SpEL Expression resolving to a URL to which the requests should be sent. The resolved
 			value may include {placeholders} for further evaluation against uri-variables.
 							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="encode-uri" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								When set to "false", the real URI won't be encoded before send request. It may be useful
+								in some scenarios. It allows to make some partial encoding manually, if needed,
+								e.g. through "url-expression". Default is "true".
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="http-method">
