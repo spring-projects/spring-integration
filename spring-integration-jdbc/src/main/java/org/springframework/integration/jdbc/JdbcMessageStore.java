@@ -115,11 +115,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		POLL_FROM_GROUP("SELECT %PREFIX%MESSAGE.MESSAGE_ID, %PREFIX%MESSAGE.MESSAGE_BYTES from %PREFIX%MESSAGE " +
 				"where %PREFIX%MESSAGE.MESSAGE_ID = " +
-				"(SELECT min(MESSAGE_ID) from %PREFIX%MESSAGE where CREATED_DATE = " +
+				"(SELECT min(m.MESSAGE_ID) from %PREFIX%MESSAGE m " +
+				"join %PREFIX%GROUP_TO_MESSAGE on m.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
+					"where CREATED_DATE = " +
 					"(SELECT min(CREATED_DATE) from %PREFIX%MESSAGE, %PREFIX%GROUP_TO_MESSAGE " +
 						"where %PREFIX%MESSAGE.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
 						"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
-						"and %PREFIX%MESSAGE.REGION = ?))"),
+						"and %PREFIX%MESSAGE.REGION = ?) " +
+					"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
+					"and m.REGION = ?)"),
 
 		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE" +
 				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY = ?"),
@@ -602,7 +606,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @return a message; could be null if query produced no Messages
 	 */
 	protected Message<?> doPollForMessage(String groupIdKey) {
-		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP), new Object[] { groupIdKey, region }, mapper);
+		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP), new Object[] { groupIdKey, region, groupIdKey, region }, mapper);
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0){
 			return messages.get(0);
