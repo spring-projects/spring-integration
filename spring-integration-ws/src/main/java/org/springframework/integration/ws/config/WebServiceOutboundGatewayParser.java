@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
@@ -32,6 +30,8 @@ import org.springframework.integration.ws.DefaultSoapHeaderMapper;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
+import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 
 /**
  * Parser for the &lt;outbound-gateway/&gt; element in the 'ws' namespace.
@@ -39,18 +39,15 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Jonas Partner
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.ws";
-
-
 	@Override
 	protected String getGatewayClassName(Element element) {
-		String simpleClassName = (StringUtils.hasText(element.getAttribute("marshaller"))) ?
-				"MarshallingWebServiceOutboundGateway" : "SimpleWebServiceOutboundGateway";
-		return BASE_PACKAGE +  "." + simpleClassName;
+		return ((StringUtils.hasText(element.getAttribute("marshaller"))) ?
+				MarshallingWebServiceOutboundGateway.class : SimpleWebServiceOutboundGateway.class).getName();
 	}
 
 	@Override
@@ -117,14 +114,9 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		if (StringUtils.hasText(messageFactoryRef)) {
 			builder.addConstructorArgReference(messageFactoryRef);
 		}
-		String requestCallbackRef = element.getAttribute("request-callback");
-		if (StringUtils.hasText(requestCallbackRef)) {
-			builder.addPropertyReference("requestCallback", requestCallbackRef);
-		}
-		String faultMessageResolverRef = element.getAttribute("fault-message-resolver");
-		if (StringUtils.hasText(faultMessageResolverRef)) {
-			builder.addPropertyReference("faultMessageResolver", faultMessageResolverRef);
-		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-callback");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "fault-message-resolver");
+
 		String messageSenderRef = element.getAttribute("message-sender");
 		String messageSenderListRef = element.getAttribute("message-senders");
 		if (StringUtils.hasText(messageSenderRef) && StringUtils.hasText(messageSenderListRef)) {
@@ -144,9 +136,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 					"Only one of interceptor or interceptors should be specified.", element);
 		}
 		if (StringUtils.hasText(interceptorRef)) {
-			ManagedList<RuntimeBeanReference> interceptors = new ManagedList<RuntimeBeanReference>();
-			interceptors.add(new RuntimeBeanReference(interceptorRef));
-			builder.addPropertyValue("interceptors", interceptors);
+			builder.addPropertyReference("interceptors", interceptorRef);
 		}
 		if (StringUtils.hasText(interceptorListRef)) {
 			builder.addPropertyReference("interceptors", interceptorListRef);

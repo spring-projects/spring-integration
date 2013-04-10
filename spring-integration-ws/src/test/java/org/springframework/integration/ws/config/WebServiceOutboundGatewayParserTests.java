@@ -18,7 +18,6 @@ package org.springframework.integration.ws.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.net.URI;
@@ -43,11 +42,11 @@ import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.web.util.UriTemplate;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
-import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
@@ -399,9 +398,9 @@ public class WebServiceOutboundGatewayParserTests {
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithJmsUri");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
-		DestinationProvider destinationProvider = TestUtils.getPropertyValue(handler, "destinationProvider", DestinationProvider.class);
-		assertNotNull(destinationProvider);
-		assertEquals(URI.create("jms:wsQueue"), destinationProvider.getDestination());
+		assertNull(TestUtils.getPropertyValue(handler, "destinationProvider"));
+		UriTemplate uriTemplate = TestUtils.getPropertyValue(handler, "uriTemplate", UriTemplate.class);
+		assertEquals(URI.create("jms:wsQueue"), uriTemplate.expand());
 	}
 
     @Test(expected = BeanDefinitionParsingException.class)

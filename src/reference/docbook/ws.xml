@@ -7,7 +7,7 @@
     <title>Outbound Web Service Gateways</title>
     <para>
       To invoke a Web Service upon sending a message to a channel, there are two options - both of which build
-      upon the <ulink url="http://static.springframework.org/spring-ws/sites/1.5/">Spring Web Services</ulink>
+      upon the <ulink url="http://static.springsource.org/spring-ws/site/">Spring Web Services</ulink>
       project: <classname>SimpleWebServiceOutboundGateway</classname> and
       <classname>MarshallingWebServiceOutboundGateway</classname>. The former will accept either a
       <classname>String</classname> or <interfacename>javax.xml.transform.Source</interfacename> as the message
@@ -21,10 +21,10 @@
       <note>
       When using the namespace support described below, you will only need to set a URI. Internally, the parser
       will configure a fixed URI DestinationProvider implementation. If you do need dynamic resolution of the
-    URI at runtime, however, then the DestinationProvider can provide such behavior as looking up the URI from
-    a registry. See the Spring Web Services
-    <ulink url="http://static.springsource.org/spring-ws/sites/1.5/apidocs/index.html">javadoc</ulink> for
-    more information about the DestinationProvider strategy.
+      URI at runtime, however, then the DestinationProvider can provide such behavior as looking up the URI from
+      a registry. See the Spring Web Services
+      <ulink url="http://static.springsource.org/spring-ws/site/apidocs/org/springframework/ws/client/support/destination/DestinationProvider.html">DestinationProvider</ulink>
+      JavaDoc for more information about this strategy.
     </note>
     </para>
     <para>
@@ -59,7 +59,7 @@ as per standard Spring Web Services configuration.
     </para>
     <para>
       For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering
-      <ulink url="http://static.springframework.org/spring-ws/sites/1.5/reference/html/server.html">creating a Web Service</ulink>.
+      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/server.html">creating a Web Service</ulink>.
       The chapter covering
       <ulink url="http://static.springframework.org/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink> is also applicable again.
     </para>
@@ -133,17 +133,26 @@ as per standard Spring Web Services configuration.
   <section id="outbound-uri">
     <title>Outbound URI Configuration</title>
     <para>
-      For URIs with an <emphasis>http:</emphasis> (or <emphasis>https:</emphasis>) scheme,
-      &lt;uri-variable/&gt; substitution is supported:
+      For all URI-schemes supported by Spring Web Services
+     (<ulink url="http://static.springsource.org/spring-ws/site/reference/html/client.html#client-transports">URIs and Transports</ulink>)
+     <code>&lt;uri-variable/&gt;</code> substitution is provided:
     </para>
-    <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="gateway" request-channel="input" uri="http://springsource.org/{foo}-{bar}">
+    <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="gateway" request-channel="input"
+        uri="http://springsource.org/{foo}-{bar}">
     <ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
     <ws:uri-variable name="bar" expression="headers.x"/>
+</ws:outbound-gateway>
+
+<ws:outbound-gateway request-channel="inputJms"
+        uri="jms:{destination}?deliveryMode={deliveryMode}&amp;priority={priority}"
+        message-sender="jmsMessageSender">
+    <ws:uri-variable name="destination" expression="headers.jmsQueue"/>
+    <ws:uri-variable name="deliveryMode" expression="headers.deliveryMode"/>
+    <ws:uri-variable name="priority" expression="headers.jms_priority"/>
 </ws:outbound-gateway>]]></programlisting>
-	<para>
-	  For other schemes, such as <emphasis>jms:</emphasis>, or if a <classname>DestinationProvider</classname>
-	  is supplied, variable substitution is not supported and a configuration error will result if variables
-	  are provided.
-	</para>
+    <para>
+      If a <classname>DestinationProvider</classname> is supplied, variable substitution is not supported
+      and a configuration error will result if variables are provided.
+    </para>
   </section>
 </chapter>

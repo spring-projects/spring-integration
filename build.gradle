@@ -535,6 +535,16 @@ project('spring-integration-ws') {
 		testCompile project(":spring-integration-test")
 		testCompile "stax:stax-api:1.0.1"
 		testCompile "xstream:xstream:1.2.2"
+		testCompile ("org.springframework.ws:spring-ws-support:$springWsVersion") {
+			exclude group: 'org.springframework'
+		}
+		testCompile ("org.springframework:spring-jms:$springVersion") {
+			exclude group: 'org.springframework'
+		}
+		testCompile "org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1"
+		testCompile "org.igniterealtime.smack:smack:3.2.1"
+		testCompile "org.igniterealtime.smack:smackx:3.2.1"
+		testCompile "javax.mail:mail:1.4.5"
 	}
 
 	// suppress saaj path warnings
