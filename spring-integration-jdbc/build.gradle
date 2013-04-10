@@ -24,7 +24,7 @@ task generateSql {
                 classpath: configurations.vpp.asPath)
 
     doLast {
-        ['hsqldb', 'h2', 'db2', 'derby', 'mysql',
+        ['hsqldb', 'h2', 'db2', 'derby', 'mysql', 'mysql-5_6_4',
          'oracle10g', 'postgresql', 'sqlserver', 'sybase'].each { dbType ->
             ant.vppcopy(todir: generatedResourcesDir, overwrite: 'true') {
                 config {

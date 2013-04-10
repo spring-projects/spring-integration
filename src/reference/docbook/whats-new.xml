@@ -116,6 +116,16 @@
 				files.
 			</para>
 		</section>
+		<section id="3.0-jdbc-mysql-v5_6_4">
+			<title>JDBC Message Store Improvements</title>
+			<para>
+				<emphasis>Spring Integration 3.0</emphasis> adds a new set of DDL
+				scripts for <emphasis>MySQL</emphasis> version 5.6.4 and higher.
+				Now <emphasis>MySQL</emphasis> supports <emphasis>fractional
+				seconds</emphasis> and is thus improving the FIFO ordering when
+				polling from a MySQL-based Message Store. For more information,
+				please see <xref linkend="jdbc-message-store-generic"/>.
+			</para>
+		</section>
 	</section>
-
 </chapter>
