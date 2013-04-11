@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,24 +22,22 @@ import java.util.Properties;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.CacheFactory;
-import com.gemstone.gemfire.cache.DataPolicy;
 import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.RegionShortcut;
 import com.gemstone.gemfire.cache.Scope;
 import com.gemstone.gemfire.cache.server.CacheServer;
-import com.gemstone.gemfire.distributed.DistributedSystem;
 
 /**
  * @author Costin Leau
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Soby Chacko
  *
  * Runs as a standalone Java app.
  * Modified from SGF implementation for testing client/server CQ features
  */
-@SuppressWarnings("deprecation")
 public class CacheServerProcess {
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void main(String[] args) throws Exception {
 
 		Properties props = new Properties();
@@ -48,20 +46,18 @@ public class CacheServerProcess {
 
 		System.out.println("\nConnecting to the distributed system and creating the cache.");
 
-		DistributedSystem ds = DistributedSystem.connect(props);
-		Cache cache = CacheFactory.create(ds);
+		Cache cache = new CacheFactory(props).create();
 
 		// Create region.
-		com.gemstone.gemfire.cache.AttributesFactory factory = new com.gemstone.gemfire.cache.AttributesFactory();
-		factory.setDataPolicy(DataPolicy.REPLICATE);
-		factory.setScope(Scope.DISTRIBUTED_ACK);
-		Region testRegion = cache.createRegion("test", factory.create());
-		System.out.println("Test region, " + testRegion.getFullPath() + ", created in cache.");
+		Region<?,?> region = cache.createRegionFactory(RegionShortcut.REPLICATE)
+				.setScope(Scope.DISTRIBUTED_ACK)
+				.create("test");
+
+		System.out.println("Test region, " + region.getFullPath() + ", created in cache.");
 
 		// Start Cache Server.
 		CacheServer server = cache.addCacheServer();
 		server.setPort(40404);
-		server.setNotifyBySubscription(true);
 		System.out.println("Starting server");
 		server.start();
 		ForkUtil.createControlFile(CacheServerProcess.class.getName());
