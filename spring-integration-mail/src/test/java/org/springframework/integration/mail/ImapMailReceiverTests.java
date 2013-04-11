@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,6 +41,7 @@ import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Store;
 import javax.mail.URLName;
@@ -55,6 +57,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -75,11 +79,21 @@ import com.sun.mail.imap.IMAPMessage;
  */
 public class ImapMailReceiverTests {
 
-	private AtomicInteger failed = new AtomicInteger(0);
+	private final AtomicInteger failed = new AtomicInteger(0);
 
 	@Test
 	public void receiveAndMarkAsReadDontDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
+		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
+		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
+	}
+
+	private AbstractMailReceiver receiveAndMarkAsReadDontDeleteGuts(AbstractMailReceiver receiver, Message msg1,
+			Message msg2) throws NoSuchFieldException, IllegalAccessException, MessagingException {
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
@@ -89,8 +103,6 @@ public class ImapMailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 
 		doAnswer(new Answer<Object>() {
@@ -117,10 +129,38 @@ public class ImapMailReceiverTests {
 			}
 		}).when(receiver).fetchMessages(messages);
 		receiver.receive();
+		return receiver;
+	}
+
+	@Test // INT-2991 Flag.SEEN was set twice when a filter is used
+	public void receiveAndMarkAsReadDontDeletePassingFilter() throws Exception{
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		Expression selectorExpression = new SpelExpressionParser().parseExpression("true");
+		receiver.setSelectorExpression(selectorExpression);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
 	}
+
+	@Test // INT-2991 filtered messages were marked SEEN
+	public void receiveAndMarkAsReadDontDeleteFiltered() throws Exception{
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		when(msg2.getSubject()).thenReturn("foo"); // should not be marked seen
+		Expression selectorExpression = new SpelExpressionParser()
+				.parseExpression("subject == null OR !subject.equals('foo')");
+		receiver.setSelectorExpression(selectorExpression);
+		receiver = receiveAndMarkAsReadDontDeleteGuts(receiver, msg1, msg2);
+		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
+		verify(msg2, never()).setFlag(Flag.SEEN, true);
+		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
+	}
+
+
 	@Test
 	public void receiveMarkAsReadAndDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
@@ -165,6 +205,7 @@ public class ImapMailReceiverTests {
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
 		verify(receiver, times(1)).deleteMessages((Message[]) Mockito.any());
 	}
+
 	@Test
 	public void receiveAndDontMarkAsRead() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
