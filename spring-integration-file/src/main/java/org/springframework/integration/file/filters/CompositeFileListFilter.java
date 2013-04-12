@@ -65,7 +65,7 @@ public class CompositeFileListFilter<F> implements FileListFilter<F> {
 
 	/**
 	 * Not thread safe. Only a single thread may add filters at a time.
-	 * <p/>
+	 * <p>
 	 * Add the new filters to this CompositeFileListFilter while maintaining the existing filters.
 	 *
 	 * @param filtersToAdd a list of filters to add

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 the original author or authors
+ * Copyright 2007-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -227,14 +227,14 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * Will extract the payload from the Message and store it in the collection identified by the
 	 * key (which may be determined by an expression). The type of collection is specified by the
 	 * {@link #collectionType} property. The default CollectionType is LIST.
-	 * <p/>
+	 * <p>
 	 * The rules for storing the payload are:
-	 * <p/>
+	 * <p>
 	 * <b>LIST/SET</b>
 	 * If the payload is of type Collection and {@link #extractPayloadElements} is 'true' (default),
 	 * the payload will be added using the addAll() method. If {@link #extractPayloadElements}
 	 * is set to 'false', then regardless of the payload type, the payload will be added using add().
-	 * <p/>
+	 * <p>
 	 * <b>ZSET</b>
 	 * In addition to the rules described for LIST/SET, ZSET allows 'score' information
 	 * to be provided. The score can be provided using the {@link RedisHeaders#ZSET_SCORE} message header
@@ -242,7 +242,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * value to be saved and each corresponding Map 'value' is the score assigned to it.
 	 * If {@link #extractPayloadElements} is set to 'false' the map will be stored as a single entry.
 	 * If the 'score' can not be determined, the default value (1) will be used.
-	 * <p/>
+	 * <p>
 	 * <b>MAP/PROPERTIES</b>
 	 * You can also add items to a Map or Properties based store.
 	 * If the payload itself is of type Map or Properties, it can be stored either as a batch or single

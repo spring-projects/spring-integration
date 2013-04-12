@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,16 +42,16 @@ import org.springframework.web.HttpRequestHandler;
  * same name. If the {@link #expectReply} property is set to true, a response can generated from a reply Message.
  * Otherwise, the gateway will play the role of a unidirectional Channel Adapter with a simple status-based response
  * (e.g. 200 OK).
- * <p/>
+ * <p>
  * The default supported request methods are GET and POST, but the list of values can be configured with the
  * {@link #supportedMethods} property. The payload generated from a GET request (or HEAD or OPTIONS if supported) will
  * be a {@link MultiValueMap} containing the parameter values. For a request containing a body (e.g. a POST), the type
  * of the payload is determined by the {@link #setRequestPayloadType(Class) request payload type}.
- * <p/>
+ * <p>
  * If the HTTP request is a multipart and a "multipartResolver" bean has been defined in the context, then it will be
  * converted by the {@link MultipartAwareFormHttpMessageConverter} as long as the default message converters have not
  * been overwritten (although providing a customized instance of the Multipart-aware converter is also an option).
- * <p/>
+ * <p>
  * By default a number of {@link HttpMessageConverter}s are already configured. The list can be overridden by calling
  * the {@link #setMessageConverters(List)} method.
  *

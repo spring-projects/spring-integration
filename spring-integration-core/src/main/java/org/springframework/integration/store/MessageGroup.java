@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import java.util.Collection;
 import org.springframework.integration.Message;
 
 /**
- * A group of messages that are correlated with each other and should be processed in the same context. 
- * <p/>
+ * A group of messages that are correlated with each other and should be processed in the same context.
+ * <p>
  * The message group allows implementations to be mutable, but this behavior is optional. Implementations should take
  * care to document their thread safety and mutability.
- * 
+ *
  * @author Dave Syer
  * @author Oleg Zhurakousky
  */
@@ -45,7 +45,7 @@ public interface MessageGroup {
 	 * @return the key that links these messages together
 	 */
 	Object getGroupId();
-	
+
 	/**
 	 * Returns the sequenceNumber of the last released message. Used in Resequencer use cases only
 	 */
@@ -55,9 +55,9 @@ public interface MessageGroup {
 	 * @return true if the group is complete (i.e. no more messages are expected to be added)
 	 */
 	boolean isComplete();
-	
+
 	/**
-	 * 
+	 *
 	 */
 	void complete();
 
@@ -80,7 +80,7 @@ public interface MessageGroup {
 	 * @return the timestamp (milliseconds since epoch) associated with the creation of this group
 	 */
 	long getTimestamp();
-	
+
 	/**
 	 * @return the timestamp (milliseconds since epoch) associated with the time this group was last updated
 	 */

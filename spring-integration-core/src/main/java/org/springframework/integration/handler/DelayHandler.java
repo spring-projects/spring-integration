@@ -49,12 +49,12 @@ import org.springframework.util.CollectionUtils;
  * therefore, the calling thread does not block. The advantage of this approach
  * is that many delays can be managed concurrently, even very long delays,
  * without producing a buildup of blocked Threads.
- * <p/>
+ * <p>
  * One thing to keep in mind, however, is that any active transactional context
  * will not propagate from the original sender to the eventual recipient. This
  * is a side-effect of passing the Message to the output channel after the
  * delay with a different Thread in control.
- * <p/>
+ * <p>
  * When this handler's 'delayHeaderName' property is configured, that value, if
  * present on a Message, will take precedence over the handler's 'defaultDelay'
  * value. The actual header value may be a long, a String that can be parsed

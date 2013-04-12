@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 /**
  * Default directory scanner and base class for other directory scanners.
  * Manages the default interrelations between filtering, scanning and locking.
- * 
+ *
  * @author Iwein Fuld
  * @since 2.0
  */
@@ -52,7 +52,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 
 	/**
 	 * {@inheritDoc}
-	 * <p/>
+	 * <p>
 	 * This class takes the minimal implementation and merely delegates to the
 	 * locker if set.
 	 */
@@ -72,7 +72,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 	/**
 	 * Subclasses may refine the listing strategy by overriding this method. The
 	 * files returned here are passed onto the filter.
-	 * 
+	 *
 	 * @param directory root directory to use for listing
 	 * @return the files this scanner should consider
 	 */

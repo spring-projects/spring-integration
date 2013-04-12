@@ -40,7 +40,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * Base class charged with knowing how to connect to a remote file system,
  * scan it for new files and then download the files.
- * <p/>
+ * <p>
  * The implementation should run through any configured
  * {@link org.springframework.integration.file.filters.FileListFilter}s to
  * ensure the file entry is acceptable.

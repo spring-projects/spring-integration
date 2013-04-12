@@ -35,11 +35,11 @@ import org.springframework.integration.core.MessageHandler;
  * as determined by the {@link LoadBalancingStrategy} if one is configured. As
  * soon as <em>one</em> of the handlers accepts the Message, the dispatcher will
  * return <code>true</code> and ignore the rest of its handlers.
- * <p/>
+ * <p>
  * If the dispatcher has no handlers, a {@link MessageDeliveryException} will be
  * thrown. If all handlers throw Exceptions, the dispatcher will throw an
  * {@link AggregateMessageDeliveryException}.
- * <p/>
+ * <p>
  * A load-balancing strategy may be provided to this class to control the order in
  * which the handlers will be tried.
  *

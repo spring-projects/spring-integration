@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	/**
 	 * Specify a prefix to be prepended to the header name for any integration
 	 * message header that is being mapped to or from a user-defined value.
-	 * <p/>
+	 * <p>
 	 * This does not affect the standard properties for the particular protocol, such as
 	 * contentType for AMQP, etc. The header names used for mapping such properties are
 	 * defined in a corresponding Headers class as constants (e.g. AmqpHeaders).
