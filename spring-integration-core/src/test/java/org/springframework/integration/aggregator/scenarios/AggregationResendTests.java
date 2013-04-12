@@ -58,7 +58,7 @@ public class AggregationResendTests {
 	 * explicit timeout value of 1 second on the aggregator. What we'll see is
 	 * that we get one aggregate Message back immediately.
 	 *
-	 * <p>We should <emphasis>not</emphasis> get another 3 after the 1 second.
+	 * <p>We should <em>not</em> get another 3 after the 1 second.
 	 */
 	@Test
 	@Ignore // timeout is no longer supported
@@ -72,7 +72,7 @@ public class AggregationResendTests {
 	 * after 60 seconds. What we'll see is that we get one aggregate Message back
 	 * immediately.
 	 *
-	 * <p>We should <emphasis>not</emphasis> get another 3 after the 60 seconds.
+	 * <p>We should <em>not</em> get another 3 after the 60 seconds.
 	 */
 	@Test
 	@Ignore // disabling from normal testing, should be the same behavior whether explicit or default

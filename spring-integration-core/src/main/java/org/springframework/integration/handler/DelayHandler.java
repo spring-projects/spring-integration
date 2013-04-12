@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Set the default delay in milliseconds. If no 'delayHeaderName' property
 	 * has been provided, the default delay will be applied to all Messages. If
-	 * a delay should <emphasis>only</emphasis> be applied to Messages with a
+	 * a delay should <em>only</em> be applied to Messages with a
 	 * header, then set this value to 0.
 	 */
 	public void setDefaultDelay(long defaultDelay) {

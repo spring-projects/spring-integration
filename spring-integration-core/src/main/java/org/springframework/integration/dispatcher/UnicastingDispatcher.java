@@ -1,4 +1,4 @@
-/* Copyright 2002-2012 the original author or authors.
+/* Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	/**
 	 * Handles Exceptions that occur while dispatching. If this dispatcher has
 	 * failover enabled, it will only throw an Exception when the handler list
-	 * is exhausted. The 'isLast' flag will be <emphasis>true</emphasis> if the
+	 * is exhausted. The 'isLast' flag will be <em>true</em> if the
 	 * Exception occurred during the final iteration of the MessageHandlers.
 	 * If failover is disabled for this dispatcher, it will re-throw any
 	 * Exception immediately.
