@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,12 +40,12 @@ import org.springframework.util.Assert;
  * files TO the remote file system that exist uniquely in the local file system.
  * It only handles pulling from the remote file system - as you would expect
  * from an 'inbound' adapter).
- * <p/>
+ * <p>
  * The base class supports configuration of whether the remote file system and
  * local file system's directories should be created on start (what 'creating a
  * directory' means to the specific adapter is of course implementation
  * specific).
- * <p/>
+ * <p>
  * This class is to be used as a pair with an implementation of
  * {@link AbstractInboundFileSynchronizer}. The synchronizer must
  * handle the work of actually connecting to the remote file system and

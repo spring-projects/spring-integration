@@ -78,7 +78,7 @@ public class TcpMessageMapper implements
 	 * Override to provide additional headers. The standard headers cannot be overridden
 	 * and any such headers will be ignored if provided in the result.
 	 * @param connection the connection.
-	 * @return A Map of <String, ?> headers to be added to the message.
+	 * @return A Map of {@code <String, ?>} headers to be added to the message.
 	 */
 	protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
 		return null;

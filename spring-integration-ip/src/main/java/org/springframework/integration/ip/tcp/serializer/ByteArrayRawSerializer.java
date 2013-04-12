@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,12 @@ import java.io.OutputStream;
  * A byte array (de)serializer that does nothing with the payload; sends it raw.
  * Message termination for assembly purposes is signaled by the client closing the
  * connection. The serializer does not, itself, close the connection after
- * writing the bytes.<p/>
+ * writing the bytes.
+ * <p>
  * Because the socket must be closed to indicate message end, this (de)serializer
- * can only be used by uni-directional (non-collaborating) channel adapters, and 
+ * can only be used by uni-directional (non-collaborating) channel adapters, and
  * not by gateways.
- * 
+ *
  * @author Gary Russell
  * @since 2.0.3
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
@@ -40,21 +39,21 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * A composite {@link MessageHandler} implementation that invokes a chain of
  * MessageHandler instances in order.
- * <p/>
+ * <p>
  * Each of the handlers except for the last one <b>must</b> implement the
  * {@link MessageProducer} interface. The last handler must also <b>if</b>
  * the chain itself has an output channel configured. No other assumptions
  * are made about the type of handler.
- * <p/>
+ * <p>
  * It is expected that each handler will produce reply messages and send them to
  * its output channel, although this is not enforced. It is possible to filter
  * messages in the middle of the chain, for example using a
  * {@link MessageFilter}. A {@link MessageHandler} returning null will have the
  * same effect, although this option is less expressive.
- * <p/>
+ * <p>
  * This component can be used from the namespace to improve the readability of
  * the configuration by removing channels that can be created implicitly.
- * <p/>
+ * <p>
  *
  * <pre>
  * &lt;chain&gt;

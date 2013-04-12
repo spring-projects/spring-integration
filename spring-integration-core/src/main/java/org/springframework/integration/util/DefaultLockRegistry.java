@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,7 +22,7 @@ import org.springframework.util.Assert;
  * the array is based on the 'mask' parameter passed in the constructor. The default mask is 0xFF which will create
  * and array consisting of 256 {@link ReentrantLock} instances.
  * When the {@link #obtain(Object)} method is called with the lockKey (e.g., Object) the index of the {@link Lock}
- * is determined by masking the object's hashCode (e.g., object.hashCode & mask) and the {@link Lock} is returned.
+ * is determined by masking the object's hashCode (e.g., {@code object.hashCode & mask}) and the {@link Lock} is returned.
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -48,8 +48,10 @@ public final class DefaultLockRegistry implements LockRegistry {
 	 * mask - the mask must have a value Math.pow(2, n) - 1 where n
 	 * is 1 to 31, creating a hash of Math.pow(2, n) locks.
 	 * <p> Examples:
+	 * <ul>
 	 * <li>0x3ff (1023) - 1024 locks</li>
 	 * <li>0xfff (4095) - 4096 locks</li>
+	 * </ul>
 	 * <p>
 	 * @param mask
 	 */

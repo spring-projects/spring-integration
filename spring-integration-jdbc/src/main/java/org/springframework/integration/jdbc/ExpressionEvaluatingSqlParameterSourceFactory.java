@@ -68,8 +68,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * context: generally in an outbound setting it is a Message, and in an inbound setting it is a result set row (a
 	 * Map or a domain object if a RowMapper has been provided). The {@link #setStaticParameters(Map) static parameters}
 	 * can be referred to in an expression using the variable <code>#staticParameters</code>, for example:
-	 *
-	 * <table border="1" cellspacing="1" cellpadding="1">
+	 * <p>
+	 * <table>
+	 * <caption>Parameter Expressions Samples</caption>
 	 * <tr>
 	 * <th><b>Key</b></th>
 	 * <th><b>Value (Expression)</b></th>
@@ -77,20 +78,21 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * </tr>
 	 * <tr>
 	 * <td>id</td>
-	 * <td>payload.businessKey</td>
-	 * <td>select * from items where id=:id</td>
+	 * <td>{@code payload.businessKey}</td>
+	 * <td>{@code select * from items where id=:id}</td>
 	 * </tr>
 	 * <tr>
 	 * <td>date</td>
-	 * <td>headers['timestamp']</td>
-	 * <td>select * from items where created>:date</td>
+	 * <td>{@code headers['timestamp']}</td>
+	 * <td>{@code select * from items where created>:date}</td>
 	 * </tr>
 	 * <tr>
 	 * <td>key</td>
-	 * <td>#staticParameters['foo'].toUpperCase()</td>
-	 * <td>select * from items where name=:key</td>
+	 * <td>{@code #staticParameters['foo'].toUpperCase()}</td>
+	 * <td>{@code select * from items where name=:key}</td>
 	 * </tr>
-	 * </pre>
+	 * </table>
+	 * <p>
 	 *
 	 * @param parameterExpressions the parameter expressions to set
 	 */

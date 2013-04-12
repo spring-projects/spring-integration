@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,18 @@ import org.mockito.Mockito;
 import org.springframework.integration.Message;
 
 /**
- * <h2>Mockito matcher factory for {@link Message} matcher creation.</h2>
+ * Mockito matcher factory for {@link Message} matcher creation.
  * <p>
  * This class contains expressive factory methods for the most common Mockito
  * matchers needed when matching {@link Message}s. If you need a different
  * matching strategy, any Hamcrest matcher can be used in Mockito through
  * {@link Mockito#argThat(Matcher)}.
- * 
- * <h3>Example usage:</h3>
+ *
+ * Example usage:
  * <p>
  * With {@link Mockito#verify(Object)}:
  * </p>
- * 
+ *
  * <pre>
  * &#064;Mock
  * MessageHandler handler;
@@ -49,16 +49,16 @@ import org.springframework.integration.Message;
  * <p>
  * With {@link Mockito#when(Object)}:
  * </p>
- * 
+ *
  * <pre>
  * ...
  * when(channel.send(messageWithPayload(SOME_PAYLOAD))).thenReturn(true);
  * assertThat(channel.send(message), is(true));
  * </pre>
- * 
+ *
  * @author Alex Peters
  * @author Iwein Fuld
- * 
+ *
  */
 public class MockitoMessageMatchers {
 

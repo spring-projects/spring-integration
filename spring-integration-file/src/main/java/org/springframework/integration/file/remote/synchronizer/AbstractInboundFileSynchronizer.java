@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,11 @@ import org.springframework.util.ObjectUtils;
 /**
  * Base class charged with knowing how to connect to a remote file system,
  * scan it for new files and then download the files.
- * <p/>
+ * <p>
  * The implementation should run through any configured
  * {@link org.springframework.integration.file.filters.FileListFilter}s to
  * ensure the file entry is acceptable.
- * 
+ *
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -76,12 +76,12 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	private final SessionFactory<F> sessionFactory;
 
 	/**
-	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
+	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
 	private volatile FileListFilter<F> filter;
 
 	/**
-	 * Should we <emphasis>delete</emphasis> the remote <b>source</b> files
+	 * Should we <em>delete</em> the remote <b>source</b> files
 	 * after copying to the local directory? By default this is false.
 	 */
 	private volatile boolean deleteRemoteFiles;
@@ -132,7 +132,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
-	
+
 	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
 	}
@@ -179,7 +179,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			}
 			return;
 		}
-				
+
 		File localFile = new File(localDirectory, localFileName);
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
@@ -211,7 +211,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 				catch (Exception ignored2) {
 				}
 			}
-			
+
 			if (tempFile.renameTo(localFile)) {
 				if (this.deleteRemoteFiles) {
 					session.remove(remoteFilePath);
@@ -222,7 +222,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			}
 		}
 	}
-	
+
 	private String generateLocalFileName(String remoteFileName){
 		if (this.localFilenameGeneratorExpression != null){
 			return this.localFilenameGeneratorExpression.getValue(evaluationContext, remoteFileName, String.class);
