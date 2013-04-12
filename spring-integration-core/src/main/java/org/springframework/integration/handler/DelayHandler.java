@@ -137,7 +137,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify the <code>List<Advice></code> to advise {@link DelayHandler.ReleaseMessageHandler} proxy.
+	 * Specify the {@code List<Advice>} to advise {@link DelayHandler.ReleaseMessageHandler} proxy.
 	 * Usually used to add transactions to delayed messages retrieved from a transactional message store.
 	 *
 	 * @see #createReleaseMessageTask
@@ -182,7 +182,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Checks if 'requestMessage' wasn't delayed before
 	 * ({@link #releaseMessageAfterDelay} and {@link DelayHandler.DelayedMessageWrapper}).
 	 * Than determine 'delay' for 'requestMessage' ({@link #determineDelayForMessage})
-	 * and if <code>delay > 0</code> schedules 'releaseMessage' task after 'delay'.
+	 * and if {@code delay > 0} schedules 'releaseMessage' task after 'delay'.
 	 *
 	 * @param requestMessage - the Message which may be delayed.
 	 * @return - <code>null</code> if 'requestMessage' is delayed,

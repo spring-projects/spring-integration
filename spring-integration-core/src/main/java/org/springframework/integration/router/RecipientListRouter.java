@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * &lt;recipient-list-router id="simpleRouter" input-channel="routingChannelA"&gt;
  *     &lt;recipient channel="channel1"/&gt;
  *     &lt;recipient channel="channel2"/&gt;
- * &lt;/recipient-list-router>
+ * &lt;/recipient-list-router&gt;
  * </pre>
  * <p>
  * A Message Router that sends Messages to a list of recipient channels. The
