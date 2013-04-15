@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,22 +57,22 @@ import org.springframework.xml.transform.StringSource;
  * Thread safe XSLT transformer implementation which returns a transformed
  * {@link Source}, {@link Document}, or {@link String}. If
  * alwaysUseSourceResultFactories is false (default) the following logic occurs
- * <p/>
+ * <p>
  * {@link String} payload in results in {@link String} payload out
- * <p/>
+ * <p>
  * {@link Document} payload in results in {@link Document} payload out
- * <p/>
+ * <p>
  * {@link Source} payload in results in {@link Result} payload out, type will be
  * determined by the {@link ResultFactory}, {@link DomResultFactory} by default.
  * If an instance of {@link ResultTransformer} is registered this will be used
  * to convert the result.
- * <p/>
+ * <p>
  * If alwaysUseSourceResultFactories is true then the ResultFactory and
  * {@link SourceFactory} will be used to create the {@link Source} from the
  * payload and the {@link Result} to pass into the transformer. An instance of
  * {@link ResultTransformer} can also be provided to convert the Result prior to
  * returning.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky

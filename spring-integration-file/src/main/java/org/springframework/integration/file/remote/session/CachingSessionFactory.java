@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	public CachingSessionFactory(SessionFactory<F> sessionFactory) {
 		this(sessionFactory, 0);
 	}
-	
+
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
 		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
@@ -67,9 +67,9 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 
 	/**
-	 * Sets the limit of how long to wait for a session to become available. 
-	 * 
-	 * @throws {@link IllegalStateException} if the wait expires prior to a Session becoming available.
+	 * Sets the limit of how long to wait for a session to become available.
+	 *
+	 * @throws IllegalStateException if the wait expires prior to a Session becoming available.
 	 */
 	public void setSessionWaitTimeout(long sessionWaitTimeout) {
 		this.pool.setWaitTimeout(sessionWaitTimeout);
@@ -140,7 +140,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		public boolean mkdir(String directory) throws IOException {
 			return this.targetSession.mkdir(directory);
 		}
-		
+
 		public boolean exists(String path) throws IOException{
 			return this.targetSession.exists(path);
 		}

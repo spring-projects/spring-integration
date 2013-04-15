@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,12 +49,12 @@ import org.springframework.util.CollectionUtils;
  * therefore, the calling thread does not block. The advantage of this approach
  * is that many delays can be managed concurrently, even very long delays,
  * without producing a buildup of blocked Threads.
- * <p/>
+ * <p>
  * One thing to keep in mind, however, is that any active transactional context
  * will not propagate from the original sender to the eventual recipient. This
  * is a side-effect of passing the Message to the output channel after the
  * delay with a different Thread in control.
- * <p/>
+ * <p>
  * When this handler's 'delayHeaderName' property is configured, that value, if
  * present on a Message, will take precedence over the handler's 'defaultDelay'
  * value. The actual header value may be a long, a String that can be parsed
@@ -111,7 +111,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Set the default delay in milliseconds. If no 'delayHeaderName' property
 	 * has been provided, the default delay will be applied to all Messages. If
-	 * a delay should <emphasis>only</emphasis> be applied to Messages with a
+	 * a delay should <em>only</em> be applied to Messages with a
 	 * header, then set this value to 0.
 	 */
 	public void setDefaultDelay(long defaultDelay) {
@@ -137,7 +137,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify the <code>List<Advice></code> to advise {@link DelayHandler.ReleaseMessageHandler} proxy.
+	 * Specify the {@code List<Advice>} to advise {@link DelayHandler.ReleaseMessageHandler} proxy.
 	 * Usually used to add transactions to delayed messages retrieved from a transactional message store.
 	 *
 	 * @see #createReleaseMessageTask
@@ -182,7 +182,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Checks if 'requestMessage' wasn't delayed before
 	 * ({@link #releaseMessageAfterDelay} and {@link DelayHandler.DelayedMessageWrapper}).
 	 * Than determine 'delay' for 'requestMessage' ({@link #determineDelayForMessage})
-	 * and if <code>delay > 0</code> schedules 'releaseMessage' task after 'delay'.
+	 * and if {@code delay > 0} schedules 'releaseMessage' task after 'delay'.
 	 *
 	 * @param requestMessage - the Message which may be delayed.
 	 * @return - <code>null</code> if 'requestMessage' is delayed,

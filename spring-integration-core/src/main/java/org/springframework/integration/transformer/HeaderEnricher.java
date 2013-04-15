@@ -41,7 +41,7 @@ import org.springframework.integration.support.MessageBuilder;
  * Accepts the boolean 'overwrite' property that specifies whether values should
  * be overwritten. By default, any existing header values for a given key, will
  * <em>not</em> be replaced.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @author Artem Bilan
@@ -83,7 +83,7 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 	/**
 	 * Specify whether <code>null</code> values, such as might be returned from
 	 * an expression evaluation, should be skipped. The default value is
-	 * <code>true</code>. Set this to <code>false</false> if a
+	 * <code>true</code>. Set this to <code>false</code> if a
 	 * <code>null</code> value should trigger <i>removal</i> of the
 	 * corresponding header instead.
 	 */
@@ -220,7 +220,7 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.beans.factory.BeanNameAware#setBeanName(java.lang
 	 * .String)
@@ -232,7 +232,7 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,9 +81,9 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 
 	/**
 	 * Specify a dot-delimited String representing the Notification type to
-	 * use by default when <emphasis>no</emphasis> explicit Notification mapper
+	 * use by default when <em>no</em> explicit Notification mapper
 	 * has been configured. If not provided, then a notification type header will
-	 * be required for each message being mapped into a Notification. 
+	 * be required for each message being mapped into a Notification.
 	 */
 	public void setDefaultNotificationType(String defaultNotificationType) {
 		this.defaultNotificationType = defaultNotificationType;

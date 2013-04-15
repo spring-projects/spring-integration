@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
  * of the insertion while maintaining the order of insertion for the un-ordered elements.
  * <p>
  * The class is package-protected and only intended for use by the AbstractDispatcher. It
- * <emphasis>must</emphasis> enforce safe concurrent access for all usage by the dispatcher.
+ * <em>must</em> enforce safe concurrent access for all usage by the dispatcher.
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher

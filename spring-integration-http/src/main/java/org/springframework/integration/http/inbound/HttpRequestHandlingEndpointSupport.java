@@ -73,20 +73,21 @@ import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Base class for HTTP request handling endpoints.
- * <p/>
+ * <p>
  * By default GET and POST requests are accepted, but the 'supportedMethods' property may be set to include others or
  * limit the options (e.g. POST only). A GET request will generate a payload containing its 'parameterMap' while a POST
  * request will be converted to a Message payload according to the registered {@link HttpMessageConverter}s. Several are
  * registered by default, but the list can be explicitly set via {@link #setMessageConverters(List)}.
- * <p/>
- * To customize the mapping of request headers to the MessageHeaders, provide a reference to a {@link HeaderMapper
- * HeaderMapper<HttpHeaders>} implementation to the {@link #setHeaderMapper(HeaderMapper)} method.
- * <p/>
+ * <p>
+ * To customize the mapping of request headers to the MessageHeaders, provide a
+ * reference to a {@code HeaderMapper<HttpHeaders>} implementation
+ * to the {@link #setHeaderMapper(HeaderMapper)} method.
+ * <p>
  * The behavior is "request/reply" by default. Pass <code>false</code> to the constructor to force send-only as opposed
  * to sendAndReceive. Send-only means that as soon as the Message is created and passed to the
  * {@link #setRequestChannel(org.springframework.integration.MessageChannel) request channel}, a response will be
  * generated. Subclasses determine how that response is generated (e.g. simple status response or rendering a View).
- * <p/>
+ * <p>
  * In a request-reply scenario, the reply Message's payload will be extracted prior to generating a response by default.
  * To have the entire serialized Message available for the response, switch the {@link #extractReplyPayload} value to
  * <code>false</code>.

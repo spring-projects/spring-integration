@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,12 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 
 /**
- * <h2>Are the {@link MessageHeaders} of a {@link Message} containing any entry
- * or multiple that match?</h2>
- *
- *
- * <h3>
+ * Are the {@link MessageHeaders} of a {@link Message} containing any entry
+ * or multiple that match?
+ * <p>
  * For example using {@link Assert#assertThat(Object, Matcher)} for a single
- * entry:</h3>
+ * entry:
+ * <p>
  *
  * <pre>
  * ANY_HEADER_KEY = &quot;foo&quot;;
@@ -44,9 +43,9 @@ import static org.hamcrest.CoreMatchers.is;
  * assertThat(message, hasEntry(ANY_HEADER_KEY, notNullValue()));
  * assertThat(message, hasEntry(ANY_HEADER_KEY, is(ANY_HEADER_VALUE)));
  * </pre>
- *
- * <h3>For multiple entries to match all:</h3>
- *
+ * <p>
+ * For multiple entries to match all:
+ * <p>
  * <pre>
  * Map&lt;String, Object&gt; expectedInHeaderMap = new HashMap&lt;String, Object&gt;();
  * expectedInHeaderMap.put(ANY_HEADER_KEY, ANY_HEADER_VALUE);
@@ -54,8 +53,9 @@ import static org.hamcrest.CoreMatchers.is;
  * assertThat(message, HeaderMatcher.hasAllEntries(expectedInHeaderMap));
  * </pre>
  *
- * <h3>
- * For a single key:</h3>
+ * <p>
+ * For a single key:
+ * <p>
  *
  * <pre>
  * ANY_HEADER_KEY = &quot;foo&quot;;

@@ -397,7 +397,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 * How often we clean up closed NIO connections if soTimeout is 0.
-	 * Ignored when soTimeout > 0 because the clean up
+	 * Ignored when {@code soTimeout > 0} because the clean up
 	 * process is run as part of the timeout handling.
 	 * Default 2000 milliseconds.
 	 * @param nioHarvestInterval The interval in milliseconds.
@@ -504,7 +504,8 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	/**
 	 *
-	 * Times out any expired connections then, if selectionCount > 0, processes the selected keys.
+	 * Times out any expired connections then, if {@code selectionCount > 0},
+	 * processes the selected keys.
 	 * Removes closed connections from the connections field, and from the connections parameter.
 	 *
 	 * @param selectionCount Number of IO Events, if 0 we were probably woken up by a close.

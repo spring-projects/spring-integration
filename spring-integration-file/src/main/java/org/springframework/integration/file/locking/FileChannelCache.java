@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,9 @@ final class FileChannelCache {
     /**
      * Try to get a lock for this file while guaranteeing that the same channel will be used for all file locks in this
      * VM. If the lock could not be acquired this method will return <code>null</code>.
-     * <p/>
+     * <p>
      * Locks acquired through this method should be passed back to #closeChannelFor to prevent memory leaks.
-     * <p/>
+     * <p>
      * Thread safe.
      */
     public static FileLock tryLockFor(File fileToLock) throws IOException {
@@ -65,7 +65,7 @@ final class FileChannelCache {
 
     /**
      * Close the channel for the file passed in.
-     * <p/>
+     * <p>
      * Thread safe.
      */
     public static void closeChannelFor(File fileToUnlock) {

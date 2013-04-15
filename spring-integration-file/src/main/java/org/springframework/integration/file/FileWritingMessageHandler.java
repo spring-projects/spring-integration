@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,7 +121,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	/**
 	 * Specify whether to create the destination directory automatically if it
 	 * does not yet exist upon initialization. By default, this value is
-	 * <emphasis>true</emphasis>. If set to <emphasis>false</emphasis> and the
+	 * <em>true</em>. If set to <em>false</em> and the
 	 * destination directory does not exist, an Exception will be thrown upon
 	 * initialization.
 	 */

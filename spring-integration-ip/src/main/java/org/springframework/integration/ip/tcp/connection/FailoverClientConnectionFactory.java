@@ -59,17 +59,17 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	 * data need a Listener to send the messages to.
 	 * This applies to client factories used for outbound gateways
 	 * or for a pair of collaborating channel adapters.
-	 * <p/>
+	 * <p>
 	 * During initialization, if a factory detects it has no listener
 	 * it's listening logic (active thread) is terminated.
-	 * <p/>
+	 * <p>
 	 * The listener registered with a factory is provided to each
 	 * connection it creates so it can call the onMessage() method.
-	 * <p/>
+	 * <p>
 	 * This code satisfies the first requirement in that this
 	 * listener signals to the factory that it needs to run
 	 * its listening logic.
-	 * <p/>
+	 * <p>
 	 * When we wrap actual connections with FailoverTcpConnections,
 	 * the connection is given the wrapper as a listener, so it
 	 * can enhance the headers in onMessage(); the wrapper then invokes

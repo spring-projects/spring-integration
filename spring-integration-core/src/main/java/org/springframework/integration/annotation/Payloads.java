@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,10 @@ import java.lang.annotation.Target;
  * This annotation marks a method parameter as being a list of message payloads, for POJO handlers that deal with lists
  * of messages (e.g. aggregators and release strategies).
  * <p>
- * Example: void foo(@Payloads("city.name") List<String> cityName) - will map the value of the 'name' property of the 'city'
+ * Example:
+ * {@code void foo(@Payloads("city.name") List<String> cityName)} - will map the value of the 'name' property of the 'city'
  * property of all the payload objects in the input list.
- * 
+ *
  * @author Dave Syer
  * @since 2.0
  */

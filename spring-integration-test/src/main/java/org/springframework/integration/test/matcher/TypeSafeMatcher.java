@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.lang.reflect.Method;
 /**
  * This class was copied from JUnit to avoid using it from org.junit.internal (causing a backwards compatibility issue).
  * If you want to extend this class use a recent version of JUnit, and extend
- * <code>org.junit.matchers.TypeSafeMatcher</code> 
- * <p/>
+ * <code>org.junit.matchers.TypeSafeMatcher</code>
+ * <p>
  * Convenient base class for Matchers that require a non-null value of a specific type.
  * This simply implements the null check, checks the type and then casts.
  *

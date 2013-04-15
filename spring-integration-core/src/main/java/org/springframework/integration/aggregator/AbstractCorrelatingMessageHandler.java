@@ -49,11 +49,11 @@ import org.springframework.util.CollectionUtils;
  * and is used as a base class for Aggregator - {@link AggregatingMessageHandler} and
  * Resequencer - {@link ResequencingMessageHandler},
  * or custom implementations requiring correlation.
- * <p/>
+ * <p>
  * To customize this handler inject {@link CorrelationStrategy},
  * {@link ReleaseStrategy}, and {@link MessageGroupProcessor} implementations as
  * you require.
- * <p/>
+ * <p>
  * By default the {@link CorrelationStrategy} will be a
  * {@link HeaderAttributeCorrelationStrategy} and the {@link ReleaseStrategy} will be a
  * {@link SequenceSizeReleaseStrategy}.
