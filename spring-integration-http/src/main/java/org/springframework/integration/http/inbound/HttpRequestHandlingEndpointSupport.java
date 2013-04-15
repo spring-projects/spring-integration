@@ -79,8 +79,9 @@ import org.springframework.web.util.UrlPathHelper;
  * request will be converted to a Message payload according to the registered {@link HttpMessageConverter}s. Several are
  * registered by default, but the list can be explicitly set via {@link #setMessageConverters(List)}.
  * <p>
- * To customize the mapping of request headers to the MessageHeaders, provide a reference to a {@link HeaderMapper
- * HeaderMapper<HttpHeaders>} implementation to the {@link #setHeaderMapper(HeaderMapper)} method.
+ * To customize the mapping of request headers to the MessageHeaders, provide a
+ * reference to a {@code HeaderMapper<HttpHeaders>} implementation
+ * to the {@link #setHeaderMapper(HeaderMapper)} method.
  * <p>
  * The behavior is "request/reply" by default. Pass <code>false</code> to the constructor to force send-only as opposed
  * to sendAndReceive. Send-only means that as soon as the Message is created and passed to the

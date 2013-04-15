@@ -82,9 +82,7 @@ subprojects { subproject ->
 	// dependencies that are common across all java projects
 	dependencies {
 		testCompile "cglib:cglib-nodep:$cglibVersion"
-		testCompile("junit:junit:$junitVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
+		testCompile "junit:junit:$junitVersion"
 		testCompile "log4j:log4j:$log4jVersion"
 		testCompile "org.easymock:easymock:$easymockVersion"
 		testCompile "org.easymock:easymockclassextension:$easymockVersion"
@@ -485,11 +483,9 @@ project('spring-integration-test') {
 	description = 'Spring Integration Test Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("junit:junit:$junitVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
+		compile "junit:junit:$junitVersion"
 		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-		compile "org.mockito:mockito-all:$mockitoVersion"
+		compile "org.mockito:mockito-core:$mockitoVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
 	}

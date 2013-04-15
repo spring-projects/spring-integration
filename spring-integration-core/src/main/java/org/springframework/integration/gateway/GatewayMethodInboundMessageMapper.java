@@ -52,19 +52,19 @@ import org.springframework.util.StringUtils;
  * A Message Mapper implementation that supports mapping <i>to</i> a
  * Message from an argument array when invoking gateway methods.
  * <p>
- * Some examples of legal method signatures:<br/>
- * <tt>public void dealWith(Object payload);</tt><br/>
- * <tt>public void dealWith(Message message);</tt><br/>
- * <tt>public void dealWith(@Header String myHeader, Object payload);</tt><br/>
- * <br/>
- * <tt>public void dealWith(@Headers Map headers, Object payload);</tt><br/>
- * <tt>public void dealWith(@Headers Properties headers, Map payload);</tt><br/>
- * <tt>public void dealWith(Properties headers, Object payload);</tt><br/>
+ * Some examples of legal method signatures:<br>
+ * <tt>public void dealWith(Object payload);</tt><br>
+ * <tt>public void dealWith(Message message);</tt><br>
+ * <tt>public void dealWith(@Header String myHeader, Object payload);</tt><br>
+ * <br>
+ * <tt>public void dealWith(@Headers Map headers, Object payload);</tt><br>
+ * <tt>public void dealWith(@Headers Properties headers, Map payload);</tt><br>
+ * <tt>public void dealWith(Properties headers, Object payload);</tt><br>
  * <p>
- * Some examples of illegal method signatures: <br/>
- * <tt>public void dealWith(Object payload, String payload);</tt><br/>
- * <tt>public void dealWith(Message message, Object payload);</tt><br/>
- * <tt>public void dealWith(Properties headers, Map payload);</tt><br/>
+ * Some examples of illegal method signatures: <br>
+ * <tt>public void dealWith(Object payload, String payload);</tt><br>
+ * <tt>public void dealWith(Message message, Object payload);</tt><br>
+ * <tt>public void dealWith(Properties headers, Map payload);</tt><br>
  *
  * @author Mark Fisher
  * @author Iwein Fuld
