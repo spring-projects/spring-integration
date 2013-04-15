@@ -57,11 +57,29 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected final Command command;
 
+	/**
+	 * Enumeration of commands supported by the gateways.
+	 */
 	public static enum Command {
+		/**
+		 * List remote files.
+		 */
 		LS("ls"),
+		/**
+		 * Retrieve a remote file.
+		 */
 		GET("get"),
+		/**
+		 * Remove a remote file (path - including wildcards).
+		 */
 		RM("rm"),
+		/**
+		 * Retrieve multiple files matching a wildcard path.
+		 */
 		MGET("mget"),
+		/**
+		 * Move (rename) a remote file.
+		 */
 		MV("mv");
 
 		private String command;
@@ -84,13 +102,38 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
+	/**
+	 * Enumeration of options supported by various commands.
+	 *
+	 */
 	public static enum Option {
+		/**
+		 * Don't return full file information; just the name (ls).
+		 */
 		NAME_ONLY("-1"),
+		/**
+		 * Include directories {@code .} and {@code ..} in the results (ls).
+		 */
 		ALL("-a"),
+		/**
+		 * Do not sort the results (ls with NAME_ONLY).
+		 */
 		NOSORT("-f"),
+		/**
+		 * Include directories in the results (ls).
+		 */
 		SUBDIRS("-dirs"),
+		/**
+		 * Include links in the results (ls).
+		 */
 		LINKS("-links"),
+		/**
+		 * Preserve the server timestamp (get, mget).
+		 */
 		PRESERVE_TIMESTAMP("-P"),
+		/**
+		 * Throw an exception if no files returned (mget).
+		 */
 		EXCEPTION_WHEN_EMPTY("-x");
 
 		private String option;

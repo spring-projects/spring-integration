@@ -562,4 +562,14 @@ Only files matching this regular expression will be picked up by this adapter.
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:simpleType name="remoteGatewayCommand">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="ls"/>
+			<xsd:enumeration value="get"/>
+			<xsd:enumeration value="rm"/>
+			<xsd:enumeration value="mget"/>
+			<xsd:enumeration value="mv"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 </xsd:schema>
