@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -33,11 +33,11 @@ import org.springframework.integration.store.SimpleMessageStore;
  * When a message can be processed it is up to the client to take care of the locking (potentially from the ReleaseStrategy's
  * {@link org.springframework.integration.aggregator.ReleaseStrategy#canRelease(org.springframework.integration.store.MessageGroup) canRelease(..)}
  * method).
- * <p/>
+ * <p>
  * This class differs from AbstractCorrelatingMessageHandler in that it completely decouples the receiver and the sender. It can
  * be applied in scenarios where completion of a message group is not well defined but only a certain amount of messages
  * for any given correlation key may be processed at a time.
- * <p/>
+ * <p>
  * The messages will be stored in a {@link org.springframework.integration.store.MessageGroupStore MessageStore}
  * for each correlation key.
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  * default, an
  * {@link AcceptOnceFileListFilter}
  * is used. It ensures files are picked up only once from the directory.
- * <p/>
+ * <p>
  * A common problem with reading files is that a file may be detected before it
  * is ready. The default {@link AcceptOnceFileListFilter}
  * does not prevent this. In most cases, this can be prevented if the
@@ -51,12 +51,12 @@ import org.springframework.util.Assert;
  * pattern-matching filter that accepts only files that are ready (e.g. based on
  * a known suffix), composed with the default {@link AcceptOnceFileListFilter}
  * would allow for this.
- * <p/>
+ * <p>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in
  * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as
  * a {@link ResequencingMessageGroupProcessor}, but in cases where writing files
  * and failure downstream are rare it might be sufficient.
- * <p/>
+ * <p>
  * FileReadingMessageSource is fully thread-safe under concurrent
  * <code>receive()</code> invocations and message delivery callbacks.
  *
@@ -120,12 +120,12 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	/**
 	 * Creates a FileReadingMessageSource with a {@link PriorityBlockingQueue}
 	 * ordered with the passed in {@link Comparator}
-	 * <p/>
+	 * <p>
 	 * The size of the queue used should be large enough to hold all the files
 	 * in the input directory in order to sort all of them, so restricting the
 	 * size of the queue is mutually exclusive with ordering. No guarantees
 	 * about file delivery order can be made under concurrent access.
-	 * <p/>
+	 * <p>
 	 *
 	 * @param receptionOrderComparator
 	 *            the comparator to be used to order the files in the internal
@@ -160,7 +160,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	/**
 	 * Specify whether to create the source directory automatically if it does
 	 * not yet exist upon initialization. By default, this value is
-	 * <emphasis>true</emphasis>. If set to <emphasis>false</emphasis> and the
+	 * <em>true</em>. If set to <em>false</em> and the
 	 * source directory does not exist, an Exception will be thrown upon
 	 * initialization.
 	 *
@@ -180,7 +180,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * filters are required a
 	 * {@link org.springframework.integration.file.filters.CompositeFileListFilter}
 	 * can be used to group them together.
-	 * <p/>
+	 * <p>
 	 * <b>The supplied filter must be thread safe.</b>.
 	 *
 	 * @param filter a filter
@@ -193,7 +193,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	/**
 	 * Optional. Sets a {@link FileLocker} to be used to guard files against
 	 * duplicate processing.
-	 * <p/>
+	 * <p>
 	 * <b>The supplied FileLocker must be thread safe</b>
 	 *
 	 * @param locker a locker
@@ -206,7 +206,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	/**
 	 * Optional. Set this flag if you want to make sure the internal queue is
 	 * refreshed with the latest content of the input directory on each poll.
-	 * <p/>
+	 * <p>
 	 * By default this implementation will empty its queue before looking at the
 	 * directory again. In cases where order is relevant it is important to
 	 * consider the effects of setting this flag. The internal

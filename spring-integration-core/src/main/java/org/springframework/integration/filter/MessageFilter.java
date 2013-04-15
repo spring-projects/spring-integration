@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * {@link MessageRejectedException} depending on the value of its
  * {@link #throwExceptionOnRejection} property. If a discard channel is
  * provided, the rejected Messages will be sent to that channel.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -56,14 +56,14 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 
 
 	/**
-	 * Specify whether this filter should throw a 
+	 * Specify whether this filter should throw a
 	 * {@link MessageRejectedException} when its selector does not accept a
 	 * Message. The default value is <code>false</code> meaning that rejected
 	 * Messages will be quietly dropped or sent to the discard channel if
 	 * available. Typically this value would not be <code>true</code> when
 	 * a discard channel is provided, but if so, it will still apply
 	 * (in such a case, the Message will be sent to the discard channel,
-	 * and <emphasis>then</emphasis> the exception will be thrown).
+	 * and <em>then</em> the exception will be thrown).
 	 * @see #setDiscardChannel(MessageChannel)
 	 */
 	public void setThrowExceptionOnRejection(boolean throwExceptionOnRejection) {

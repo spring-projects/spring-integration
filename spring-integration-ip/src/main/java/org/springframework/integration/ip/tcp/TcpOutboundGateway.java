@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2012 the original author or authors.
+ * Copyright 2001-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  * single use connections, each request is blocked until the previous response is received
  * (or times out). Asynchronous requests/responses over the same connection are not
  * supported - use a pair of outbound/inbound adapters for that use case.
- * <p/>
+ * <p>
  * {@link SmartLifecycle} methods delegate to the underlying {@link AbstractConnectionFactory}
  *
  *

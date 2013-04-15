@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,10 @@ import org.springframework.util.ErrorHandler;
  * {@link UnicastingDispatcher} which in turn delegates all dispatching
  * invocations to an {@link Executor}.
  * <p>
- * <emphasis>NOTE: unlike DirectChannel, the ExecutorChannel does not support a
+ * <em><b>NOTE</b>: unlike DirectChannel, the ExecutorChannel does not support a
  * shared transactional context between sender and handler, because the
  * {@link Executor} typically does not block the sender's Thread since it
- * uses another Thread for the dispatch.</emphasis> (SyncTaskExecutor is an
+ * uses another Thread for the dispatch.</em> (SyncTaskExecutor is an
  * exception but would provide no value for this channel. If synchronous
  * dispatching is required, a DirectChannel should be used instead).
  *

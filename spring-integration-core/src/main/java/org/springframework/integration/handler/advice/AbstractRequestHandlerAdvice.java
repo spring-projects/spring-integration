@@ -99,8 +99,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 	}
 
 	/**
-	 * Subclasses implement this method to apply behavior to the {@link MessageHandler}.<p/> callback.execute()
-	 * invokes the handler method and returns its result, or null.
+	 * Subclasses implement this method to apply behavior to the {@link MessageHandler}.
+	 * <p>
+	 * callback.execute() invokes the handler method and returns its result, or null.
 	 *
 	 * @param callback Subclasses invoke the execute() method on this interface to invoke the handler method.
 	 * @param target   The target handler.

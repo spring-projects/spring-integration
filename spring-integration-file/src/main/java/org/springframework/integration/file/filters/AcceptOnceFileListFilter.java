@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * {@link FileListFilter} that passes files only one time. This can
  * conveniently be used to prevent duplication of files, as is done in
  * {@link org.springframework.integration.file.FileReadingMessageSource}.
- * <p/>
+ * <p>
  * This implementation is thread safe.
  *
  * @author Iwein Fuld

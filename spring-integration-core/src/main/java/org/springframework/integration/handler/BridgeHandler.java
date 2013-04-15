@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import org.springframework.integration.Message;
  * directly to the output channel without modifying it. The main purpose of this
  * handler is to bridge a PollableChannel to a SubscribableChannel or
  * vice-versa.
- * <p/>
+ * <p>
  * The BridgeHandler can be used as a stopper at the end of an assembly line of
  * channels. In this setup the output channel doesn't have to be set, but if the
  * output channel is omitted the <tt>REPLY_CHANNEL</tt> MUST be set on the
  * message. Otherwise, a MessagingException will be thrown at runtime.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  */

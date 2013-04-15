@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,14 @@ import org.springframework.ws.support.MarshallingUtils;
  * @since 1.0.2
  */
 public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInboundGateway {
-	
+
 	private volatile Marshaller marshaller;
 
 	private volatile Unmarshaller unmarshaller;
 
 	/**
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code>.
-	 * The {@link Marshaller} and {@link Unmarshaller} must be injected using properties. 
+	 * The {@link Marshaller} and {@link Unmarshaller} must be injected using properties.
 	 */
 	public MarshallingWebServiceInboundGateway() {
 	}
@@ -47,10 +47,10 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code> with the given marshaller.
 	 * The Marshaller must also implement {@link Unmarshaller}, since it is used for both marshalling and
 	 * unmarshalling.
-	 * <p/>
+	 * <p>
 	 * Note that all {@link Marshaller} implementations in Spring-OXM also implement the {@link Unmarshaller}
 	 * interface, so you can safely use this constructor for any of those implementations.
-	 * 
+	 *
 	 * @param marshaller object used as marshaller and unmarshaller
 	 * @throws IllegalArgumentException when <code>marshaller</code> does not implement {@link Unmarshaller}
 	 * @see #MarshallingWebServiceInboundGateway(Marshaller, Unmarshaller)
@@ -76,13 +76,13 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	public void setMarshaller(Marshaller marshaller) {
 		Assert.notNull(marshaller, "'marshaller' must no be null");
 		this.marshaller = marshaller;
-	}	
+	}
 
 	public void setUnmarshaller(Unmarshaller unmarshaller) {
 		Assert.notNull(unmarshaller, "'unmarshaller' must no be null");
 		this.unmarshaller = unmarshaller;
 	}
-	
+
 	protected void onInit() throws Exception {
 		super.onInit();
 		Assert.notNull(marshaller, "This implementation requires Marshaller");
@@ -95,16 +95,16 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 		Assert.notNull(request, "Invalid message context: request was null.");
 		Object requestObject = MarshallingUtils.unmarshal(unmarshaller, request);
 		MessageBuilder<?> builder = MessageBuilder.withPayload(requestObject);
-		
+
 		this.fromSoapHeaders(messageContext, builder);
-		
+
 		Message<?> replyMessage = this.sendAndReceiveMessage(builder.build());
-		
+
 		if (replyMessage != null) {
 			WebServiceMessage response = messageContext.getResponse();
 			this.toSoapHeaders(response, replyMessage);
 
 			MarshallingUtils.marshal(marshaller, replyMessage.getPayload(), response);
-		}		
+		}
 	}
 }

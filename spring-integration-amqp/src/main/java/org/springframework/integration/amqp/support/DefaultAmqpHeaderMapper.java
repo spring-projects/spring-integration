@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of {@link AmqpHeaderMapper}.
- * <p/>
+ * <p>
  * By default this implementation will only copy AMQP properties (e.g. contentType) to and from
  * Spring Integration MessageHeaders. Any user-defined headers within the AMQP
  * MessageProperties will NOT be copied to or from an AMQP Message unless
@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
  * and {@link AbstractHeaderMapper#setReplyHeaderNames(String[])}}
  * as well as 'mapped-request-headers' and 'mapped-reply-headers' attributes of the AMQP adapters).
  * If you need to copy all user-defined headers simply use wild-card character '*'.
- * <p/>
+ * <p>
  * Constants for the AMQP header keys are defined in {@link AmqpHeaders}.
  *
  * @author Mark Fisher

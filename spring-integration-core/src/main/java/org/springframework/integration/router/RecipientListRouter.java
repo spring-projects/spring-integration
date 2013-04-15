@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,25 +31,25 @@ import org.springframework.util.Assert;
  * &lt;recipient-list-router id="simpleRouter" input-channel="routingChannelA"&gt;
  *     &lt;recipient channel="channel1"/&gt;
  *     &lt;recipient channel="channel2"/&gt;
- * &lt;/recipient-list-router>
+ * &lt;/recipient-list-router&gt;
  * </pre>
- * <p/>
+ * <p>
  * A Message Router that sends Messages to a list of recipient channels. The
  * recipients can be provided as a static list of {@link MessageChannel}
  * instances via the {@link #setChannels(List)} method, or for dynamic behavior,
  * the values can be provided via the {@link #setRecipients(List)} method.
- * <p/>
+ * <p>
  * For more advanced, programmatic control of dynamic recipient lists, consider
  * using the @Router annotation or extending {@link AbstractMappingMessageRouter} instead.
- * <p/>
+ * <p>
  * Contrary to a standard &lt;router .../&gt; this handler will try to send to
  * all channels that are configured as recipients. It is to channels what a
  * publish subscribe channel is to endpoints.
- * <p/>
+ * <p>
  * Using this class only makes sense if it is essential to send messages on
  * multiple channels instead of sending them to multiple handlers. If the latter
  * is an option using a publish subscribe channel is the more flexible solution.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */

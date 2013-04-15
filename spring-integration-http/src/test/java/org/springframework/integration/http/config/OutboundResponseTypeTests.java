@@ -51,8 +51,8 @@ import com.sun.net.httpserver.HttpServer;
  * @author Gary Russell
  * @since 2.2
  *
- *         <p/>
- *         see https://jira.springsource.org/browse/INT-2397
+ * <p>
+ * see https://jira.springsource.org/browse/INT-2397
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
