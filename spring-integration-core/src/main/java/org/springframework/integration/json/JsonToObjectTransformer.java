@@ -18,6 +18,7 @@ package org.springframework.integration.json;
 
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Transformer implementation that converts a JSON string payload into an instance of the provided target Class.
@@ -28,10 +29,9 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
- * @since 2.0
- *
  * @see JsonObjectMapper
  * @see JacksonJsonObjectMapperProvider
+ * @since 2.0
  */
 public class JsonToObjectTransformer<T> extends AbstractPayloadTransformer<String, T> {
 
@@ -41,6 +41,28 @@ public class JsonToObjectTransformer<T> extends AbstractPayloadTransformer<Strin
 
 	public JsonToObjectTransformer(Class<T> targetClass) {
 		this(targetClass, null);
+	}
+
+	/**
+	 * @deprecated in favor of {@link #JsonToObjectTransformer(Class, JsonObjectMapper)}
+	 */
+	@Deprecated
+	public JsonToObjectTransformer(Class<T> targetClass, Object objectMapper) throws ClassNotFoundException {
+		Assert.notNull(targetClass, "targetClass must not be null");
+		this.targetClass = targetClass;
+		if (objectMapper != null) {
+			try {
+				Class<?> objectMapperClass = ClassUtils.forName("org.codehaus.jackson.map.ObjectMapper", ClassUtils.getDefaultClassLoader());
+				Assert.isTrue(objectMapperClass.isAssignableFrom(objectMapper.getClass()));
+				this.jsonObjectMapper = new JacksonJsonObjectMapper((org.codehaus.jackson.map.ObjectMapper) objectMapper);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+		else {
+			this.jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+		}
 	}
 
 	public JsonToObjectTransformer(Class<T> targetClass, JsonObjectMapper jsonObjectMapper) {

@@ -50,7 +50,7 @@ class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonPar
 
 	@Override
 	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage) throws Exception {
-		String error = MESSAGE_FORMAT_ERROR + jsonMessage;
+		String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
 		Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
 		Map<String, Object> headers = null;
 		Object payload = null;

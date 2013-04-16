@@ -20,6 +20,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.StringUtils;
 
@@ -47,6 +48,22 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 
 	private volatile boolean contentTypeExplicitlySet = false;
 
+	/**
+	 * @deprecated in favor of {@link #ObjectToJsonTransformer(JsonObjectMapper)}
+	 */
+	@Deprecated
+	public ObjectToJsonTransformer(Object objectMapper) {
+		Assert.notNull(objectMapper, "objectMapper must not be null");
+		try {
+			Class<?> objectMapperClass = ClassUtils.forName("org.codehaus.jackson.map.ObjectMapper", ClassUtils.getDefaultClassLoader());
+			Assert.isTrue(objectMapperClass.isAssignableFrom(objectMapper.getClass()));
+			this.jsonObjectMapper = new JacksonJsonObjectMapper((org.codehaus.jackson.map.ObjectMapper) objectMapper);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
 	public ObjectToJsonTransformer(JsonObjectMapper jsonObjectMapper) {
 		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
 		this.jsonObjectMapper = jsonObjectMapper;
@@ -61,7 +78,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	 *
 	 * @param contentType
 	 */
-	public void setContentType(String contentType){
+	public void setContentType(String contentType) {
 		// only null assertion is needed since "" is a valid value
 		Assert.notNull(contentType, "'contentType' must not be null");
 		this.contentTypeExplicitlySet = true;
@@ -77,7 +94,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		headers.putAll(message.getHeaders());
 
 		if (headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
-			if (this.contentTypeExplicitlySet){
+			if (this.contentTypeExplicitlySet) {
 				// override, unless empty
 				if (StringUtils.hasLength(this.contentType)) {
 					headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);

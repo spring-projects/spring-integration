@@ -139,6 +139,10 @@ public class ObjectToJsonTransformerTests {
 		assertTrue(addressResult.contains("street:\"Main Street\""));
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testInt2831IllegalArgument() throws Exception {
+		new ObjectToJsonTransformer(new Object());
+	}
 
 	@SuppressWarnings("unused")
 	private static class TestPerson {

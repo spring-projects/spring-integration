@@ -41,10 +41,7 @@ public class JsonToObjectTransformerParser extends AbstractTransformerParser {
 		String objectMapper = element.getAttribute("object-mapper");
 		builder.addConstructorArgValue(type);
 		if (StringUtils.hasText(objectMapper)) {
-			BeanDefinitionBuilder jsonObjectMapperDefBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.JsonObjectMapperFactoryBean");
-			jsonObjectMapperDefBuilder.addConstructorArgValue(objectMapper);
-			builder.addConstructorArgValue(jsonObjectMapperDefBuilder.getRawBeanDefinition());
+			builder.addConstructorArgReference(objectMapper);
 		}
 	}
 

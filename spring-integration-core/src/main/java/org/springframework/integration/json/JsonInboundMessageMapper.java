@@ -83,12 +83,10 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 		return null;
 	}
 
+
 	public static interface JsonMessageParser<P> {
 
-		static final String MESSAGE_FORMAT_ERROR = "JSON message is invalid.  Expected a message in the format of either " +
-				"{\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
-
-		public abstract Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage) throws Exception;
+		Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage) throws Exception;
 
 	}
 
