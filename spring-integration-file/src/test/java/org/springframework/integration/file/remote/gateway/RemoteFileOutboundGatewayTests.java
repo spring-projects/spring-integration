@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,8 +34,11 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
@@ -42,6 +47,7 @@ import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 
 
 /**
@@ -52,7 +58,7 @@ import org.springframework.integration.message.GenericMessage;
 @SuppressWarnings("rawtypes")
 public class RemoteFileOutboundGatewayTests {
 
-	private String tmpDir = System.getProperty("java.io.tmpdir");
+	private final String tmpDir = System.getProperty("java.io.tmpdir");
 
 
 	@Test(expected=IllegalArgumentException.class)
@@ -290,6 +296,91 @@ public class RemoteFileOutboundGatewayTests {
 			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("testremote/*"));
+	}
+
+	@Test
+	public void testMove() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mv", "payload");
+		Session<?> session = mock(Session.class);
+		final AtomicReference<String> args = new AtomicReference<String>();
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object[] arguments = invocation.getArguments();
+				args.set((String) arguments[0] + (String) arguments[1]);
+				return null;
+			}
+		}).when(session).rename(anyString(), anyString());
+		when (sessionFactory.getSession()).thenReturn(session);
+		Message<String> requestMessage = MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.RENAME_TO, "bar")
+				.build();
+		Message<?> out = (Message<?>) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo", out.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals("foobar", args.get());
+		assertEquals(Boolean.TRUE, out.getPayload());
+	}
+
+	@Test
+	public void testMoveWithExpression() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mv", "payload");
+		gw.setRenameExpression("payload.substring(1)");
+		Session<?> session = mock(Session.class);
+		final AtomicReference<String> args = new AtomicReference<String>();
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object[] arguments = invocation.getArguments();
+				args.set((String) arguments[0] + (String) arguments[1]);
+				return null;
+			}
+		}).when(session).rename(anyString(), anyString());
+		when (sessionFactory.getSession()).thenReturn(session);
+		Message<?> out = (Message<?>) gw.handleRequestMessage(new GenericMessage<String>("foo"));
+		assertEquals("oo", out.getHeaders().get(FileHeaders.RENAME_TO));
+		assertEquals("foo", out.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals("foooo", args.get());
+		assertEquals(Boolean.TRUE, out.getPayload());
+	}
+
+	@Test
+	public void testMoveWithMkDirs() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mv", "payload");
+		gw.setRenameExpression("'foo/bar/baz'");
+		Session<?> session = mock(Session.class);
+		final AtomicReference<String> args = new AtomicReference<String>();
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Object[] arguments = invocation.getArguments();
+				args.set((String) arguments[0] + (String) arguments[1]);
+				return null;
+			}
+		}).when(session).rename(anyString(), anyString());
+		final List<String> madeDirs = new ArrayList<String>();
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				madeDirs.add((String) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(session).mkdir(anyString());
+		when (sessionFactory.getSession()).thenReturn(session);
+		Message<String> requestMessage = MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.RENAME_TO, "bar")
+				.build();
+		Message<?> out = (Message<?>) gw.handleRequestMessage(requestMessage);
+		assertEquals("foo", out.getHeaders().get(FileHeaders.REMOTE_FILE));
+		assertEquals("foofoo/bar/baz", args.get());
+		assertEquals(Boolean.TRUE, out.getPayload());
+		assertEquals(2, madeDirs.size());
+		assertEquals("foo", madeDirs.get(0));
+		assertEquals("foo/bar", madeDirs.get(1));
 	}
 
 	/**
@@ -650,7 +741,7 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 			String command, String expression) {
-		super(sessionFactory, command, expression);
+		super(sessionFactory, Command.toCommand(command), expression);
 	}
 
 	@Override
@@ -683,12 +774,12 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 
 class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 
-	private String filename;
-	private int size;
-	private boolean dir;
-	private boolean link;
-	private long modified;
-	private String permissions;
+	private final String filename;
+	private final int size;
+	private final boolean dir;
+	private final boolean link;
+	private final long modified;
+	private final String permissions;
 
 	public TestLsEntry(String filename, int size, boolean dir, boolean link,
 			long modified, String permissions) {

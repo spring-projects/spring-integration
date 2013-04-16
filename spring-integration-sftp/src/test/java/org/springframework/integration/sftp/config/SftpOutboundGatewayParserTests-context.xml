@@ -43,6 +43,16 @@
 		order="2"
 		/>
 
+	<int-sftp:outbound-gateway id="gateway3"
+		session-factory="sf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		command="mv"
+		expression="payload"
+		rename-expression="'foo'"
+		order="1"
+		/>
+
 	<int-sftp:outbound-gateway id="advised"
 		local-directory="local-test-dir"
 		session-factory="sf"
