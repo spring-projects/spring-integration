@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" 
+<beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
@@ -8,8 +8,13 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY"/>
-	
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" />
+		<property name="url" value="jdbc:derby:memory:myDB;create=true" />
+		<property name="username" value="sa" />
+		<property name="password" value="sa" />
+	</bean>
+
 	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
 		<jdbc:script location="${int.drop.script}" />
 		<jdbc:script location="${int.schema.script}" />
@@ -22,7 +27,7 @@
 	</channel>
 
 	<int:channel id="output"/>
-	
+
 	<int:logging-channel-adapter channel="output"/>
 
 	<bean id="queue" class="org.springframework.integration.store.MessageGroupQueue">
