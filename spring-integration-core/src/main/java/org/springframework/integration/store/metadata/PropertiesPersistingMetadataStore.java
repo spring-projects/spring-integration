@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.store;
+package org.springframework.integration.store.metadata;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +24,6 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -32,10 +31,10 @@ import org.springframework.util.DefaultPropertiesPersister;
 
 /**
  * Properties file-based implementation of {@link MetadataStore}. To avoid conflicts
- * each instance should be constructed with the unique key from which unique file name 
+ * each instance should be constructed with the unique key from which unique file name
  * will be generated. The file name will be 'persistentKey' + ".last.entry".
  * Files will be written to the 'java.io.tmpdir' +  "/spring-integration/".
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0
@@ -68,7 +67,7 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 			}
 		}
 		catch (Exception e) {
-			throw new IllegalArgumentException("Failed to create metadata-store file '" 
+			throw new IllegalArgumentException("Failed to create metadata-store file '"
 					+ this.file.getAbsolutePath() + "'", e);
 		}
 		this.loadMetadata();
@@ -91,7 +90,7 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 		try {
 			outputStream = new FileOutputStream(this.file);
 			this.persister.store(this.metadata, outputStream, "Last feed entry");
-		} 
+		}
 		catch (IOException e) {
 			// not fatal for the functionality of the component
 			logger.warn("Failed to persist feed entry. This may result in a duplicate "
@@ -102,7 +101,7 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 				if (outputStream != null) {
 					outputStream.close();
 				}
-			} 
+			}
 			catch (IOException e) {
 				// not fatal for the functionality of the component
 				logger.warn("Failed to close FileOutputStream to " + this.file.getAbsolutePath(), e);

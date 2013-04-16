@@ -44,7 +44,7 @@ public class TcpConnectionEvent extends ApplicationEvent {
 
 	private final Throwable throwable;
 
-	public TcpConnectionEvent(TcpConnectionSupport connection, EventType type,
+	public TcpConnectionEvent(TcpConnection connection, EventType type,
 			String connectionFactoryName) {
 		super(connection);
 		this.type = type;
@@ -52,7 +52,7 @@ public class TcpConnectionEvent extends ApplicationEvent {
 		this.connectionFactoryName = connectionFactoryName;
 	}
 
-	public TcpConnectionEvent(TcpConnectionSupport connection, Throwable t,
+	public TcpConnectionEvent(TcpConnection connection, Throwable t,
 			String connectionFactoryName) {
 		super(connection);
 		this.type = TcpConnectionEventType.EXCEPTION;

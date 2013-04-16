@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.store;
+package org.springframework.integration.store.metadata;
 
 /**
  * Strategy interface for storing metadata from certain adapters
  * to avoid duplicate delivery of messages, for example.
- * 
+ *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher

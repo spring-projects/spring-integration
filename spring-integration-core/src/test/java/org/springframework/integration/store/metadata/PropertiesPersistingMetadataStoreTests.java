@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.store;
+package org.springframework.integration.store.metadata;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.integration.store.PropertiesPersistingMetadataStore;
+import org.springframework.integration.store.metadata.PropertiesPersistingMetadataStore;
 
 /**
  * @author Oleg Zhurakousky
