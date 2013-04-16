@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.store.MetadataStore;
-import org.springframework.integration.store.SimpleMetadataStore;
+import org.springframework.integration.store.metadata.MetadataStore;
+import org.springframework.integration.store.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -48,7 +48,7 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
 /**
  * This implementation of {@link MessageSource} will produce individual
  * {@link SyndEntry}s for a feed identified with the 'feedUrl' attribute.
- * 
+ *
  * @author Josh Long
  * @author Mario Gray
  * @author Oleg Zhurakousky
@@ -102,6 +102,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		this.metadataStore = metadataStore;
 	}
 
+	@Override
 	public String getComponentType() {
 		return "feed:inbound-channel-adapter";
 	}
@@ -186,7 +187,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 				Collections.sort(retrievedEntries, this.syndEntryComparator);
 				for (SyndEntry entry : retrievedEntries) {
 					Date entryDate = getLastModifiedDate(entry);
-					if ((entryDate != null && entryDate.getTime() > this.lastTime) 
+					if ((entryDate != null && entryDate.getTime() > this.lastTime)
 						|| (entryDate == null && withinNewEntries)) {
 						this.entries.add(entry);
 						withinNewEntries = true;

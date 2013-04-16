@@ -17,8 +17,8 @@
 package org.springframework.integration.feed.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -44,7 +43,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.store.MetadataStore;
+import org.springframework.integration.store.metadata.MetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;

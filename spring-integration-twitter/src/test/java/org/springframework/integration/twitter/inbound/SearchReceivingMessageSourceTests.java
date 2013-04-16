@@ -16,6 +16,11 @@
 
 package org.springframework.integration.twitter.inbound;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,18 +29,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
-import org.springframework.integration.store.SimpleMetadataStore;
+import org.springframework.integration.store.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.social.twitter.api.SearchOperations;
 import org.springframework.social.twitter.api.SearchResults;
