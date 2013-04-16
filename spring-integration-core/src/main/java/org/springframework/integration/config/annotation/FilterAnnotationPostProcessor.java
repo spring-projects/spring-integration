@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
  * Post-processor for Methods annotated with {@link Filter @Filter}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Filter> {
@@ -48,6 +49,16 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
 			filter.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+		}
+		String discardWithinAdvice = annotation.discardWithinAdvice();
+		if (StringUtils.hasText(discardWithinAdvice)) {
+			if (discardWithinAdvice.trim().equalsIgnoreCase("false")) {
+				filter.setDiscardWithinAdvice(false);
+			}
+			else {
+				Assert.isTrue(discardWithinAdvice.trim().equalsIgnoreCase("true"),
+						"'discardWithinAdvice' attribute must be 'true' or 'false' if provided");
+			}
 		}
 		return filter;
 	}

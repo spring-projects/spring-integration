@@ -326,6 +326,9 @@ public class FooService {
         still available. For more detail see <xref linkend="bridge"/>.
       </note>
     </para>
+    <para>
+        Also see <xref linkend="advising-with-annotations"/>.
+    </para>
   </section>
 
   <section id="message-mapping-rules">

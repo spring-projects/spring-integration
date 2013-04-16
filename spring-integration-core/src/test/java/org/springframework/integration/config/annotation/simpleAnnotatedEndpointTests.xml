@@ -15,6 +15,15 @@
 		<integration:queue capacity="5"/>
 	</integration:channel>
 
-	<bean id="endpoint" class="org.springframework.integration.config.annotation.AnnotatedTestService"/>
+	<bean id="endpoint" class="org.springframework.integration.config.annotation.AnnotatedTestServiceWithAdvice"/>
+
+	<integration:channel id="advisedIn"/>
+
+	<integration:channel id="advisedOut">
+		<integration:queue capacity="1"/>
+	</integration:channel>
+
+	<bean id="advice"
+		class="org.springframework.integration.config.annotation.MessagingAnnotationPostProcessorTests$ServiceActivatorAdvice"/>
 
 </beans>

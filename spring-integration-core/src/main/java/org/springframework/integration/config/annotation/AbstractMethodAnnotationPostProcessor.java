@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -31,6 +35,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
@@ -40,10 +45,13 @@ import org.springframework.util.StringUtils;
  * Base class for Method-level annotation post-processors.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation> implements MethodAnnotationPostProcessor<T> {
 
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "inputChannel";
+
+	private static final String ADVICE_CHAIN_ATTRIBUTE = "adviceChain";
 
 
 	protected final BeanFactory beanFactory;
@@ -60,6 +68,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageHandler handler = this.createHandler(bean, method, annotation);
+		setAdviceChainIfPresent(beanName, annotation, handler);
 		if (handler instanceof Orderable) {
 			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
@@ -74,6 +83,36 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			return endpoint;
 		}
 		return handler;
+	}
+
+
+	protected final void setAdviceChainIfPresent(String beanName, T annotation, MessageHandler handler) {
+		String adviceChainName = (String) AnnotationUtils.getValue(annotation, ADVICE_CHAIN_ATTRIBUTE);
+		if (StringUtils.hasText(adviceChainName)) {
+			Object adviceChainBean = this.beanFactory.getBean(adviceChainName);
+			Advice[] adviceChain;
+			if (adviceChainBean instanceof Advice) {
+				adviceChain = new Advice[] {(Advice) adviceChainBean};
+			}
+			else if (adviceChainBean instanceof Advice[]) {
+				adviceChain = (Advice[]) adviceChainBean;
+			}
+			else if(adviceChainBean instanceof Collection) {
+				@SuppressWarnings("unchecked")
+				Collection<Advice> collection = (Collection<Advice>) adviceChainBean;
+				adviceChain = collection.toArray(new Advice[collection.size()]);
+			}
+			else {
+				throw new IllegalArgumentException("Invalid advice chain type:" +
+					adviceChainName.getClass().getName() + " for bean '" + beanName + "'");
+			}
+			if (handler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) handler).setAdviceChain(Arrays.asList(adviceChain));
+			}
+			else {
+				throw new IllegalArgumentException("Cannot apply advice chain to " + handler.getClass().getName());
+			}
+		}
 	}
 
 	protected boolean shouldCreateEndpoint(T annotation) {

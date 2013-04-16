@@ -161,6 +161,9 @@
 List&lt;LineItem&gt; extractItems(Order order) {
     return order.getItems()
 }</programlisting></para>
+    <para>
+        Also see <xref linkend="advising-with-annotations"/>.
+    </para>
   </section>
 	</section>
 </section>

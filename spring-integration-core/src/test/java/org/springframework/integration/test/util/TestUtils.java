@@ -24,6 +24,7 @@ import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.hamcrest.Matcher;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.BeanFactory;
@@ -54,6 +55,7 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public abstract class TestUtils {
 
@@ -141,11 +143,15 @@ public abstract class TestUtils {
 							"channel name has already been set with a conflicting value");
 				}
 			}
-			registerBean(channelName, channel, this);
+			TestUtils.registerBean(channelName, channel, this);
 		}
 
 		public void registerEndpoint(String endpointName, AbstractEndpoint endpoint) {
-			registerBean(endpointName, endpoint, this);
+			TestUtils.registerBean(endpointName, endpoint, this);
+		}
+
+		public void registerBean(String beanName, Object bean) {
+			TestUtils.registerBean(beanName, bean, this);
 		}
 	}
 

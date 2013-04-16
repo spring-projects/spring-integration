@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,9 @@ import java.lang.annotation.Target;
  * Return values from the annotated method may be either a Collection or Array
  * with elements of any type. If the type is not a Message, each will be used
  * as the payload for creating a new Message.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -47,5 +48,7 @@ public @interface Splitter {
 	String inputChannel() default "";
 
 	String outputChannel() default "";
+
+	String adviceChain() default "";
 
 }
