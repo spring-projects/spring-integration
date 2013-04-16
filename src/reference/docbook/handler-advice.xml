@@ -458,6 +458,13 @@ protected abstract Object doInvoke(ExecutionCallback callback, Object target, Me
 			</para>
 		</note>
 	</section>
+	<section id="other-advice">
+		<title>Other Advice Chain Elements</title>
+		<para>
+			While the abstract class mentioned above is provided as a convenience, you can add any <classname>
+			Advice</classname> to the chain, including a transaction advice.
+		</para>
+	</section>
 	<section id="advising-filters">
 		<title>Advising Filters</title>
 		<para>
@@ -472,6 +479,41 @@ protected abstract Object doInvoke(ExecutionCallback callback, Object target, Me
 		<para>
 			Setting <emphasis>discard-within-advice</emphasis> to "false" modifies this behavior and the discard
 			(or exception) occurs after the advice chain is called.
+		</para>
+	</section>
+	<section id="advising-with-annotations">
+		<title>Advising Endpoints Using Annotations</title>
+		<para>
+			When configuring certain endpoints using annotations (<code>@Filter</code>, <code>@ServiceActivator</code>,
+			<code>@Splitter</code>, and <code>@Transformer</code>), you can supply a bean name for the advice
+			chain in the <code>adviceChain</code> attribute. In addition, the <code>@Filter</code> annotation
+			also has the <code>discardWithinAdvice</code> attribute, which can be used to configure the discard
+			behavior as discussed in <xref linkend="advising-filters"/>. An example with the discard being
+			performed after the advice is shown below.
+		</para>
+		<programlisting language="java"><![CDATA[@MessageEndpoint
+public class MyAdvisedFilter {
+
+	@Filter(inputChannel="input", outputChannel="output",
+			adviceChain="adviceChain", discardWithinAdvice="false")
+	public boolean filter(String s) {
+		return s.contains("good");
+	}
+}]]></programlisting>
+	</section>
+	<section id="Advice Order">
+		<title>Ordering Advices within an Advice Chain</title>
+		<para>
+			Advice classes are "around" advices and are applied in a nested fashion. The first advice is the
+			outermost, the last advice the innermost (closest to the handler being advised). It is important
+			to put the advice classes in the correct order to achieve the functionality you desire.
+		</para>
+		<para>
+			For example, let's say you want to add a retry advice and a transaction advice.
+			You may want to place the retry advice advice first, followed by the transaction advice.
+			Then, each retry will be performed in a new transaction. On the other hand, if you want all the attempts,
+			and any recovery operations (in the retry <classname>RecoveryCallback</classname>), to be scoped within
+			the transaction, you would put the transaction advice first.
 		</para>
 	</section>
 </section>
