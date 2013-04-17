@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public abstract class AbstractRemoteFileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -62,6 +63,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		if (StringUtils.hasText(comparator)) {
 			messageSourceBuilder.addConstructorArgReference(comparator);
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(messageSourceBuilder, element, "local-filter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-local-directory");
 		String localFileGeneratorExpression = element.getAttribute("local-filename-generator-expression");

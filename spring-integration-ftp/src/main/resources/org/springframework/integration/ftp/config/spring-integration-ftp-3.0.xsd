@@ -190,7 +190,28 @@
 							<xsd:documentation>
 								Allows you to specify a reference to a
 								[org.springframework.integration.file.filters.FileListFilter]
-								bean.
+								bean. This filter is applied to files on the remote server and
+								only files that pass the filter are retrieved.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="local-filter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.file.filters.FileListFilter" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Allows you to specify a reference to a
+								[org.springframework.integration.file.filters.FileListFilter]
+								bean. This filter is applied to files after they have been
+								retrieved. The default is an AcceptOnceFileListFilter which means that,
+								even if a new instance of a file is retrieved from the remote server,
+								a message won't be generated. The filter provided here is combined
+								with a filter that prevents the message source from processing
+								files that are currently being downloaded.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

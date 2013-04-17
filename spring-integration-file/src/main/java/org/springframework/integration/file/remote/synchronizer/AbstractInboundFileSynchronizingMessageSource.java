@@ -79,6 +79,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	 */
 	private final FileReadingMessageSource fileSource;
 
+	private volatile FileListFilter<File> localFileListFilter = new AcceptOnceFileListFilter<File>();
+
 
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this(synchronizer, null);
@@ -102,6 +104,20 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 
 	public void setLocalDirectory(File localDirectory) {
 		this.localDirectory = localDirectory;
+	}
+
+	/**
+	 * A {@link FileListFilter} used to determine which files will generate messages
+	 * after they have been synchronized. It will be combined with a filter that
+	 * will prevent accessing files that are in the process of being synchronized
+	 * (files having the {@link AbstractInboundFileSynchronizer#getTemporaryFileSuffix()}).
+	 * <p>
+	 * The default is an {@link AcceptOnceFileListFilter} which filters duplicate file
+	 * names (processed during the current execution).
+	 * @param localFileListFilter
+	 */
+	public void setLocalFilter(FileListFilter<File> localFileListFilter) {
+		this.localFileListFilter = localFileListFilter;
 	}
 
 	@Override
@@ -153,7 +169,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	private FileListFilter<File> buildFilter() {
 		Pattern completePattern = Pattern.compile("^.*(?<!" + this.synchronizer.getTemporaryFileSuffix() + ")$");
 		return new CompositeFileListFilter<File>(Arrays.asList(
-				new AcceptOnceFileListFilter<File>(),
+				this.localFileListFilter,
 				new RegexPatternFileListFilter(completePattern)));
 	}
 
