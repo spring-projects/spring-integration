@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -34,6 +35,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
@@ -77,6 +79,8 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(filter);
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
+		FileListFilter<?> acceptAllFilter = ac.getBean("acceptAllFilter", FileListFilter.class);
+		assertTrue(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
 	}
 
 	@Test

@@ -78,6 +78,27 @@
 				URI-schemes supported by Spring Web Services. For more information see <xref linkend="outbound-uri"/>.
 			</para>
 		</section>
+		<section id="3.0-xFTP-ib">
+			<title>(S)FTP(S) Inbound Adapters</title>
+			<para>
+				Previously, there was no way to override the default filter used to process files retrieved
+				from a remote server. The <code>filter</code> attribute determines which files are retrieved
+				but the <classname>FileReadingMessageSource</classname> uses an
+				<classname>AcceptOnceFileListFilter</classname>. This means that if a new copy of a file
+				is retrieved, with the same name as a previously copied file, no message was sent from the
+				adapter.
+			</para>
+			<para>
+				With this release, a new attribute <code>local-filter</code> allows you to override the
+				default filter, for example with an <classname>AcceptAllFileListFilter</classname>, or some
+				other custom filter.
+			</para>
+			<para>
+				For users that wish the behavior of the <classname>AcceptOnceFileListFilter</classname>
+				to be maintained across JVM executions, a custom filter that retains state, perhaps on
+				the file system, can now be configured.
+			</para>
+		</section>
 		<section id="3.0-xFTP-gw">
 			<title>(S)FTP(S) Gateways</title>
 			<para>

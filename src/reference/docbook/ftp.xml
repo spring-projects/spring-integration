@@ -151,6 +151,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
     remote-directory="some/remote/path"
     remote-file-separator="/"
     local-filename-generator-expression="#this.toUpperCase() + '.a'"
+    local-filter="myFilter"
     local-directory=".">
     <int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>]]></programlisting>
@@ -174,13 +175,20 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code>
 	attribute and provide a reference to any custom implementation of the
 	<classname>org.springframework.integration.file.filters.FileListFilter</classname>, a strategy interface for filtering a
-	list of files.
+	list of files. This filter determines which remote files are retrieved.
   	</para>
-  	<note>
-	As of Spring Integration 2.0.2, we have added a 'remote-file-separator' attribute. That allows you to configure a
-	file separator character to use if the default '/' is not applicable for your particular environment.
+	<note>
+	Beginning with 3.0, you can also specify a filter used to filter the files locally, once they have
+	been retrieved. The default filter is an <classname>AcceptOnceFileListFilter</classname> which prevents processing
+	files with the same name multiple times in the same JVM execution; this can now be overridden
+	(for example with an <classname>AcceptAllFileListFilter</classname>), using the <code>local-filter</code> attribute.
+	Previously, the default	<classname>AcceptOnceFileListFilter</classname> could not be overridden.
 	</note>
-  	<para>
+	<para>
+	The 'remote-file-separator' attribute allows you to configure a
+	file separator character to use if the default '/' is not applicable for your particular environment.
+	</para>
+	<para>
   	Please refer to the schema for more details on these attributes.
   	</para>
   	<para>

@@ -19,10 +19,11 @@ package org.springframework.integration.sftp.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -30,7 +31,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
@@ -38,6 +38,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
@@ -87,6 +88,8 @@ public class InboundChannelAdapterParserTests {
 		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		assertNotNull(requestChannel.receive(2000));
+		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
+		assertTrue(TestUtils.getPropertyValue(source, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
 	}
 
 	@Test
