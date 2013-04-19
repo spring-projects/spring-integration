@@ -21,6 +21,6 @@
 
 	<bean id="fileUrlFeedFetcher" class="org.springframework.integration.feed.inbound.FileUrlFeedFetcher"/>
 
-	<bean id="metadataStore" class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>
+	<bean id="metadataStore" class="org.springframework.integration.store.metadata.PropertiesPersistingMetadataStore"/>
 
 </beans>

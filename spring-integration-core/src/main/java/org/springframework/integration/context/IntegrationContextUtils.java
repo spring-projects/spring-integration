@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@ package org.springframework.integration.context;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.store.MetadataStore;
+import org.springframework.integration.store.metadata.MetadataStore;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
  * Utility methods for accessing common integration components from the BeanFactory.
- * 
+ *
  * @author Mark Fisher
  * @author Josh Long
  */

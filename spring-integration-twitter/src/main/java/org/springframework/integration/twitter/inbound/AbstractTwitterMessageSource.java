@@ -1,4 +1,4 @@
-/* Copyright 2002-2012 the original author or authors.
+/* Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.store.MetadataStore;
-import org.springframework.integration.store.SimpleMetadataStore;
+import org.springframework.integration.store.metadata.MetadataStore;
+import org.springframework.integration.store.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;

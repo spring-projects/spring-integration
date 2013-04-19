@@ -25,10 +25,8 @@ import java.net.URL;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
-import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
-import org.springframework.integration.store.PropertiesPersistingMetadataStore;
+import org.springframework.integration.store.metadata.PropertiesPersistingMetadataStore;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.fetcher.FeedFetcher;
