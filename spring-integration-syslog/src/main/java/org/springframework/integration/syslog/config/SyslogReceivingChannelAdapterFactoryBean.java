@@ -62,7 +62,14 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	private volatile String beanName;
 
+	/**
+	 * Instantiates a factory bean that creates a {@link UdpSyslogReceivingChannelAdapter}
+	 * if the protocol is {@link Protocol#udp} or a {@link TcpSyslogReceivingChannelAdapter} if
+	 * the protocol is {@link Protocol#tcp}.
+	 * @param protocol The protocol.
+	 */
 	public SyslogReceivingChannelAdapterFactoryBean(Protocol protocol) {
+		Assert.notNull(protocol, "'protocol' cannot be null");
 		this.protocol = protocol;
 	}
 
@@ -163,13 +170,16 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 			}
 			Assert.isNull(this.udpAdapter, "Cannot specifiy 'udp-attributes' when the protocol is 'tcp'");
 		}
-		else {
+		else if(this.protocol == Protocol.udp) {
 			adapter = new UdpSyslogReceivingChannelAdapter();
 			if (this.udpAdapter != null) {
 				Assert.isNull(this.port, "Cannot specify both 'port' and 'udpAdapter'");
 				((UdpSyslogReceivingChannelAdapter) adapter).setUdpAdapter(this.udpAdapter);
 			}
 			Assert.isNull(this.connectionFactory, "Cannot specifiy 'connection-factory' unless the protocol is 'tcp'");
+		}
+		else {
+			throw new IllegalStateException("Unsupported protocol: " + this.protocol.toString());
 		}
 		if (this.port != null) {
 			adapter.setPort(this.port);

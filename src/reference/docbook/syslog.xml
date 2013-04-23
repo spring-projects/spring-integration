@@ -6,7 +6,7 @@
 	<section id="syslog-intro">
 		<title>Introduction</title>
 		<para>
-			Spring Integration 2.2 introduced the syslog transformer
+			Spring Integration 2.2 introduced the Syslog transformer
 			<classname>SyslogToMapTransformer</classname>. This transformer, together with
 			a <code>UDP</code> or <code>TCP</code> inbound adapter could be used to receive
 			and analyze syslog records from other hosts. The transformer creates a message
@@ -14,7 +14,7 @@
 		</para>
 		<para>
 			Spring Integration 3.0 introduced convenient namespace support for configuring a
-			syslog inbound adapter in a single element.
+			Syslog inbound adapter in a single element.
 		</para>
 	</section>
 
@@ -22,10 +22,10 @@
 		<title>Syslog &lt;inbound-channel-adapter&gt;</title>
 		<para>
 			This element encompases a <code>UDP</code> or <code>TCP</code> inbound channel adapter
-			and a <interfacename>MessageConverter</interfacename> to convert the syslog message to
+			and a <interfacename>MessageConverter</interfacename> to convert the Syslog message to
 			a Spring Integration message. The <classname>DefaultMessageConverter</classname> delegates
 			to the <classname>SyslogToMapTransformer</classname>, creating a message with its payload
-			being the <code>Map</code> of syslog fields. In addition, all fields except the message
+			being the <code>Map</code> of Syslog fields. In addition, all fields except the message
 			are also made available as headers in the message, prefixed with <code>syslog_</code>.
 		</para>
 		<section id="syslog-inbound-examplers">
@@ -62,7 +62,8 @@
 			<para>
 				A <code>UDP</code> adapter that sends messages to channel <code>fromSyslog</code>. It also shows the
 				<interfacename>SmartLifecyle</interfacename> attributes <code>auto-startup</code> and
-				<code>phase</code>. It has a reference to a custom <interfacename>MessageConverter</interfacename>
+				<code>phase</code>. It has a reference to a custom <interfacename>
+				org.springframework.integration.syslog.MessageConverter</interfacename>
 				with id <code>converter</code> and an <code>error-channel</code>. Also notice the
 				<code>udp-attributes</code> child element. You can set various UDP attributes here, as defined
 				in <xref linkend="ip-ib-adapter-attributes"/>.

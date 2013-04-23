@@ -40,14 +40,30 @@ public abstract class SyslogReceivingChannelAdapterSupport extends MessageProduc
 
 	private volatile MessageConverter converter = new DefaultMessageConverter();
 
+	/**
+	 * @return The port on which this adapter listens.
+	 */
 	protected int getPort() {
 		return this.port;
 	}
 
+	/**
+	 * Sets the port on which the adapter listens; default is 514; note that
+	 * the RFC does not specify a well known port for TCP; 514 is the well-known
+	 * port for UDP. Many admins also use 514 for TCP; see RFC-6587 for more
+	 * information about TCP and RFC-3164/5424 for more information about UDP.
+	 * @param port The port.
+	 */
 	public void setPort(int port) {
 		this.port = port;
 	}
 
+	/**
+	 * A {@link MessageConverter} to convert the byte array payload
+	 * of the underlying UDP/TCP message to a Spring Integration message
+	 * with decoded payload and headers; default is {@link DefaultMessageConverter}.
+	 * @param converter The converter.
+	 */
 	public void setConverter(MessageConverter converter) {
 		this.converter = converter;
 	}

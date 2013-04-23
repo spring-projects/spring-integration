@@ -26,7 +26,7 @@ import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
- * Parses &lt;int-syslog:inbound-channel-adapter/&gt;
+ * Parses a {@code <int-syslog:inbound-channel-adapter/>}.
  * @author Gary Russell
  * @since 3.0
  *

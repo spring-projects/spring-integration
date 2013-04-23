@@ -39,7 +39,7 @@ public class SysLogTransformerTests {
 		assertEquals(6, transformed.size());
 		assertEquals(19, transformed.get(SyslogToMapTransformer.FACILITY));
 		assertEquals(6, transformed.get(SyslogToMapTransformer.SEVERITY));
-		Object date = transformed.get(SyslogToMapTransformer.TIMESAMP);
+		Object date = transformed.get(SyslogToMapTransformer.TIMESTAMP);
 		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
 		assertEquals("TESTING[70729]", transformed.get(SyslogToMapTransformer.TAG));

@@ -15,9 +15,12 @@
  */
 package org.springframework.integration.syslog;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
@@ -25,8 +28,9 @@ import org.springframework.integration.transformer.SyslogToMapTransformer;
 
 /**
  * Default {@link MessageConverter}; delegates to a {@link SyslogToMapTransformer}
- * to convert the payload to a map of values and also provides each field (FACILITY,
- * SEVERITY, TIMESTAMP, HOSTNAME, TAG) as a message header (prefixed by 'syslog_').
+ * to convert the payload to a map of values and also provides some of the map
+ * contents as message headers.
+ * See @link {@link SyslogHeaders} for the headers that are mapped.
  * @author Gary Russell
  * @since 3.0
  *
@@ -35,15 +39,17 @@ public class DefaultMessageConverter implements MessageConverter {
 
 	private final SyslogToMapTransformer transformer = new SyslogToMapTransformer();
 
+	public static final Set<String> SYSLOG_PAYLOAD_ENTRIES = new HashSet<String>(
+			Arrays.asList(new String[] {SyslogToMapTransformer.MESSAGE, SyslogToMapTransformer.UNDECODED}));
+
 	@Override
 	public Message<?> fromSyslog(Message<?> message) throws Exception {
 		Map<String, ?> map = this.transformer.doTransform(message);
 		Map<String, Object> out = new HashMap<String, Object>();
 		for (Entry<String, ?> entry : map.entrySet()) {
 			String key = entry.getKey();
-			if (!SyslogToMapTransformer.MESSAGE.equals(key) &&
-				!SyslogToMapTransformer.UNDECODED.equals(key)) {
-				out.put(PREFIX + entry.getKey(), entry.getValue());
+			if (!SYSLOG_PAYLOAD_ENTRIES.contains(key)) {
+				out.put(SyslogHeaders.PREFIX + entry.getKey(), entry.getValue());
 			}
 		}
 		return MessageBuilder.withPayload(map)

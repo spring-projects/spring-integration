@@ -93,9 +93,9 @@ public class SyslogReceivingChannelAdapterParserTests {
 
 	@Test
 	public void testSimplestUdp() throws Exception {
-		assertEquals(1514, TestUtils.getPropertyValue(adapter1, "udpAdapter.port"));
+		int port = TestUtils.getPropertyValue(adapter1, "udpAdapter.port", Integer.class);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", 1514));
+		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", port));
 		DatagramSocket socket = new DatagramSocket();
 		Thread.sleep(1000);
 		socket.send(packet);
@@ -107,6 +107,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 
 	@Test
 	public void testExplicitChannelUdp() throws Exception {
+		assertEquals(1514, TestUtils.getPropertyValue(foobar, "udpAdapter.port"));
 		assertSame(foo, TestUtils.getPropertyValue(foobar, "outputChannel"));
 	}
 

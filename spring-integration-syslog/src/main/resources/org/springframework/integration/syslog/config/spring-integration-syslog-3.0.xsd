@@ -102,7 +102,7 @@
 							<xsd:documentation>
 								A timeout (milliseconds) when sending messages to 'channel' or 'error-channel'. Only
 								applies if the send might block - such as when sending to a bounded QueueChannel that
-								is currently full.
+								is currently full. Default is infinity.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
