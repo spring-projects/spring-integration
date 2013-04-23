@@ -56,7 +56,7 @@ public class SyslogTransformerParserTests {
 		assertEquals(6, map.size());
 		assertEquals(19, map.get(SyslogToMapTransformer.FACILITY));
 		assertEquals(5, map.get(SyslogToMapTransformer.SEVERITY));
-		Object date = map.get(SyslogToMapTransformer.TIMESAMP);
+		Object date = map.get(SyslogToMapTransformer.TIMESTAMP);
 		assertTrue(date instanceof Date || date instanceof String);
 		assertEquals("WEBERN", map.get(SyslogToMapTransformer.HOST));
 		assertEquals("TESTING[70729]", map.get(SyslogToMapTransformer.TAG));

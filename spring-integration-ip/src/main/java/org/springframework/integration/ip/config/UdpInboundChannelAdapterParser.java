@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
  */
 public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
+	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);

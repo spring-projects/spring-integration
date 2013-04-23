@@ -42,7 +42,13 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	public static final String SEVERITY = "SEVERITY";
 
-	public static final String TIMESAMP = "TIMESTAMP";
+	public static final String TIMESTAMP = "TIMESTAMP";
+
+	/**
+	 * @deprecated; use {@link #TIMESTAMP}
+	 */
+	@Deprecated
+	public static final String TIMESAMP = TIMESTAMP;
 
 	public static final String HOST = "HOST";
 
@@ -100,14 +106,14 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 					else {
 						calendar.set(Calendar.YEAR, year);
 					}
-					map.put(TIMESAMP, calendar.getTime());
+					map.put(TIMESTAMP, calendar.getTime());
 				}
 				catch (Exception e) {
 					/*
 					 * If we can't parse the timestamp, return it as an
 					 * unmodified String. (Postel's law).
 					 */
-					map.put(TIMESAMP, timestamp);
+					map.put(TIMESTAMP, timestamp);
 				}
 				map.put(HOST, matcher.group(3));
 				map.put(TAG, matcher.group(4));
@@ -132,12 +138,13 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 
 	@Override
 	protected Map<String, ?> transformPayload(Object payload) throws Exception {
-		Assert.isTrue(payload instanceof byte[] || payload instanceof String,
-				"payload must be String or byte[]");
-		if (payload instanceof byte[]) {
+		boolean isByteArray = payload instanceof byte[];
+		boolean isString = payload instanceof String;
+		Assert.isTrue(isByteArray || isString, "payload must be String or byte[]");
+		if (isByteArray) {
 			return this.transform((byte[]) payload);
 		}
-		else if (payload instanceof String) {
+		else if (isString) {
 			return this.transform((String) payload);
 		}
 		return null;
