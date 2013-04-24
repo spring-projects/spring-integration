@@ -150,6 +150,7 @@
       <xi:include href="./rmi.xml"/>
       <xi:include href="./sftp.xml"/>
       <xi:include href="./stream.xml"/>
+      <xi:include href="./syslog.xml"/>
       <xi:include href="./twitter.xml"/>
       <xi:include href="./ws.xml"/>
 	  <xi:include href="./xml.xml"/>
