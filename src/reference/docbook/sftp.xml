@@ -227,6 +227,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			local-directory="file:target/foo"
 			auto-create-local-directory="true"
 			local-filename-generator-expression="#this.toUpperCase() + '.a'"
+			local-filter="myFilter"
 			delete-remote-files="false">
 		<int:poller fixed-rate="1000"/>
 </int-sftp:inbound-channel-adapter>]]></programlisting>
@@ -251,8 +252,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use the <code>filter</code>
 	attribute to provide a reference to a custom implementation of the
 	<classname>org.springframework.integration.file.filters.FileListFilter</classname> - a strategy interface for filtering a
-	list of files.
+	list of files. This filter determines which remote files are retrieved.
   	</para>
+	<note>
+	Beginning with 3.0, you can also specify a filter used to filter the files locally, once they have
+	been retrieved. The default filter is an <classname>AcceptOnceFileListFilter</classname> which prevents processing
+	files with the same name multiple times in the same JVM execution; this can now be overridden
+	(for example with an <classname>AcceptAllFileListFilter</classname>), using the <code>local-filter</code> attribute.
+	Previously, the default	<classname>AcceptOnceFileListFilter</classname> could not be overridden.
+	</note>
   	<para>
   	Please refer to the schema for more detail on these attributes.
   	</para>

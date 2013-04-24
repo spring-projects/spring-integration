@@ -48,11 +48,14 @@
 			local-filename-generator-expression="#this.toUpperCase() + '.a'"
 			temporary-file-suffix=".bar"
 			comparator="comparator"
+			local-filter="acceptAllFilter"
 			delete-remote-files="${delete.remote.files}">
 		<poller fixed-rate="1000">
 			<transactional synchronization-factory="syncFactory"/>
 		</poller>
 	</sftp:inbound-channel-adapter>
+
+	<beans:bean id="acceptAllFilter" class="org.springframework.integration.file.filters.AcceptAllFileListFilter" />
 	
 	<transaction-synchronization-factory id="syncFactory">
 		<after-commit expression="'foo'" channel="successChannel"/>
