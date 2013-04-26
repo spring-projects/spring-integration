@@ -38,6 +38,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.syslog.MessageConverter;
 import org.springframework.integration.syslog.inbound.TcpSyslogReceivingChannelAdapter;
@@ -129,8 +130,9 @@ public class SyslogReceivingChannelAdapterParserTests {
 
 	@Test
 	public void testSimplestTcp() throws Exception {
+		int port = TestUtils.getPropertyValue(adapter2, "connectionFactory", AbstractConnectionFactory.class).getPort();
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes("UTF-8");
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", 1514);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		Thread.sleep(1000);
 		socket.getOutputStream().write(buf);
 		socket.close();

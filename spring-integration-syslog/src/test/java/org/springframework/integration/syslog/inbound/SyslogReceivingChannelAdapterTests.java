@@ -30,6 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterFactoryBean;
+import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -42,7 +43,8 @@ public class SyslogReceivingChannelAdapterTests {
 	public void testUdp() throws Exception {
 		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
 				SyslogReceivingChannelAdapterFactoryBean.Protocol.udp);
-		factory.setPort(1514);
+		int port = SocketUtils.findAvailableUdpSocket(1514);
+		factory.setPort(port);
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
 		factory.afterPropertiesSet();
@@ -50,20 +52,22 @@ public class SyslogReceivingChannelAdapterTests {
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
 		Thread.sleep(1000);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", 1514));
+		DatagramPacket packet = new DatagramPacket(buf, buf.length, new InetSocketAddress("localhost", port));
 		DatagramSocket socket = new DatagramSocket();
 		socket.send(packet);
 		socket.close();
 		Message<?> message = outputChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
+		adapter.stop();
 	}
 
 	@Test
 	public void testTcp() throws Exception {
 		SyslogReceivingChannelAdapterFactoryBean factory = new SyslogReceivingChannelAdapterFactoryBean(
 				SyslogReceivingChannelAdapterFactoryBean.Protocol.tcp);
-		factory.setPort(1514);
+		int port = SocketUtils.findAvailableServerSocket(1514);
+		factory.setPort(port);
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
 		factory.afterPropertiesSet();
@@ -71,12 +75,13 @@ public class SyslogReceivingChannelAdapterTests {
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
 		Thread.sleep(1000);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes("UTF-8");
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", 1514);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		socket.getOutputStream().write(buf);
 		socket.close();
 		Message<?> message = outputChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
+		adapter.stop();
 	}
 
 }
