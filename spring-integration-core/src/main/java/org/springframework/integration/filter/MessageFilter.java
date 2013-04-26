@@ -90,9 +90,6 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	@Override
 	public final void onInit() {
 		super.onInit();
-		if (this.selector instanceof AbstractMessageProcessingSelector) {
-			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
-		}
 		if (this.selector instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.selector).setBeanFactory(this.getBeanFactory());
 		}

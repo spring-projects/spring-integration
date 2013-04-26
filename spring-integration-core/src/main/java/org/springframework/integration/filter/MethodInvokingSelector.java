@@ -25,10 +25,10 @@ import org.springframework.util.Assert;
 
 /**
  * A method-invoking implementation of {@link MessageSelector}.
- * 
+ *
  * @author Mark Fisher
  */
-public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
+public class MethodInvokingSelector extends MessageProcessingSelector {
 
 	public MethodInvokingSelector(Object object, Method method) {
 		super(new MethodInvokingMessageProcessor<Boolean>(object, method));

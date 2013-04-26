@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,16 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
+import org.springframework.integration.filter.MessageProcessingSelector;
 import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.util.StringUtils;
 
 /**
  * Factory bean for creating a Message Filter.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
@@ -72,6 +75,11 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return this.createFilter(new ExpressionEvaluatingSelector(expression));
 	}
 
+	@Override
+	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
+		return this.createFilter(new MessageProcessingSelector(processor));
+	}
+
 	private MessageFilter createFilter(MessageSelector selector) {
 		MessageFilter filter = new MessageFilter(selector);
 		if (this.throwExceptionOnRejection != null) {
@@ -81,7 +89,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			filter.setDiscardChannel(discardChannel);
 		}
 		if (this.sendTimeout != null) {
-			filter.setSendTimeout(this.sendTimeout.longValue());
+			filter.setSendTimeout(this.sendTimeout);
 		}
 		return filter;
 	}

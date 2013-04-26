@@ -23,14 +23,14 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  * A Message Router implementation that evaluates the specified SpEL
  * expression. The result of evaluation will typically be a String to be
  * resolved to a channel name or a Collection (or Array) of strings.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionEvaluatingRouter extends AbstractMessageProcessingRouter {
+public class ExpressionEvaluatingRouter extends MessageProcessingRouter {
 
 	public ExpressionEvaluatingRouter(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Object>(expression));
 	}
-	
+
 }

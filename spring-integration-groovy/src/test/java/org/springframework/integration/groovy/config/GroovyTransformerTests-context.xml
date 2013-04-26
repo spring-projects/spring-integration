@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration/groovy http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<transformer input-channel="referencedScriptInput">
+	<transformer id="groovyTransformer" input-channel="referencedScriptInput">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyTransformerTests.groovy"/>
 	</transformer>
 
