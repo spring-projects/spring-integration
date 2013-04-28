@@ -94,15 +94,15 @@ public class LocalChannelRegistryTests {
 
 	@Test
 	public void testTap() {
-		DirectChannel channel = new DirectChannel();
-		registry.tap("tap", channel);
-		assertTrue(context.containsBean("tap"));
+		
+		DirectChannel registeredChannel = new DirectChannel();
+		registry.outbound("outbound", registeredChannel);
+		DirectChannel tapChannel = new DirectChannel();
+		registry.tap("outbound", tapChannel);
 
-		SubscribableChannel registeredChannel = context.getBean("tap", SubscribableChannel.class);
+ 		final AtomicBoolean messageReceived = new AtomicBoolean();
 
-		final AtomicBoolean messageReceived = new AtomicBoolean();
-
-		registeredChannel.subscribe(new MessageHandler() {
+		tapChannel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
@@ -112,14 +112,13 @@ public class LocalChannelRegistryTests {
 		});
 
 		//avoid DHNS error
-		channel.subscribe(new MessageHandler() {
+		registeredChannel.subscribe(new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-
 			}
 		});
 
-		channel.send(new GenericMessage<String>("hello"));
+		registeredChannel.send(new GenericMessage<String>("hello"));
 
 		assertTrue(messageReceived.get());
 

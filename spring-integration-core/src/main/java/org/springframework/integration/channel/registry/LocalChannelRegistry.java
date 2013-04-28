@@ -53,7 +53,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		Assert.hasText(name, "A valid name is required to register an inbound channel");
 		Assert.notNull(channel, "channel cannot be null");
 		BridgeHandler handler = new BridgeHandler();
-		 
+
 		DirectChannel localChannel = new DirectChannel();
 		localChannel.setComponentName(name);
 		localChannel.setBeanFactory(applicationContext);
@@ -78,7 +78,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		Assert.isTrue(channel instanceof SubscribableChannel,
 				"channel must be of type " + SubscribableChannel.class.getName());
 		BridgeHandler handler = new BridgeHandler();
-		 
+
 		DirectChannel localChannel = new DirectChannel();
 		localChannel.setComponentName(name);
 		localChannel.setBeanFactory(applicationContext);
@@ -100,16 +100,16 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	public void tap(String name, MessageChannel channel) {
 		Assert.hasText(name, "A valid name is required to register a tap channel");
 		Assert.notNull(channel, "channel cannot be null");
+		WireTap wiretap = new WireTap(channel);
 
-		DirectChannel localChannel = new DirectChannel();
-		localChannel.setComponentName(name);
-		localChannel.setBeanFactory(applicationContext);
-		localChannel.setBeanName(name);
-		WireTap wiretap = new WireTap(localChannel);
-		((AbstractMessageChannel) channel).addInterceptor(wiretap);
-
-		 applicationContext.getBeanFactory().registerSingleton(name, localChannel);
-
+		AbstractMessageChannel registeredChannel = null;
+		try {
+			registeredChannel = applicationContext.getBean(name, AbstractMessageChannel.class);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("No channel is currently registered for '" + name + "'");
+		}
+		
+		registeredChannel.addInterceptor(wiretap);
 	}
 
 	/* (non-Javadoc)
@@ -117,7 +117,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext =(AbstractApplicationContext) applicationContext;
+		this.applicationContext = (AbstractApplicationContext) applicationContext;
 
 	}
 
@@ -126,6 +126,6 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(applicationContext,"The 'applicationContext' property cannot be null");
+		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
 	}
 }

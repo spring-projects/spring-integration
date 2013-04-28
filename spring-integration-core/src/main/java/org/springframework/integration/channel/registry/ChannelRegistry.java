@@ -26,9 +26,9 @@ public interface ChannelRegistry extends DisposableBean {
 	void outbound(String name, MessageChannel channel);
 
 	/**
-	 * Register a message producer used to tap a message stream
-	 * @param name the logical identity of the tap
-	 * @param channel the channel bound to the tap
+	 * Create a tap on an already registered channel
+	 * @param the registered name
+	 * @param channel the output channel of the tap
 	 */
 	void tap(String name, MessageChannel channel);
 
