@@ -335,7 +335,7 @@ public class FailoverClientConnectionFactoryTests {
 		Message<?> replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		server1.stop();
-		TestingUtilities.waitStopListening(server1, null);
+		TestingUtilities.waitUntilFactoryHasThisNumberOfConnections(client1, 0);
 		outGateway.handleMessage(message);
 		socket = getSocket(client2);
 		port2 = socket.getLocalPort();
@@ -343,6 +343,7 @@ public class FailoverClientConnectionFactoryTests {
 		replyMessage = replyChannel.receive(10000);
 		assertNotNull(replyMessage);
 		gateway2.stop();
+		outGateway.stop();
 	}
 
 	private Socket getSocket(AbstractClientConnectionFactory client) throws Exception {

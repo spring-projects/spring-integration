@@ -120,6 +120,9 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			this.connectionFactoryName = connectionFactoryName;
 		}
 		this.publishConnectionOpenEvent();
+		if (logger.isDebugEnabled()) {
+			logger.debug("New connection " + this);
+		}
 	}
 
 	public void afterSend(Message<?> message) throws Exception {
