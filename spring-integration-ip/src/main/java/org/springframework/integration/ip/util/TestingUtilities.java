@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.ip.util;
 
+import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 
 /**
@@ -88,4 +89,23 @@ public class TestingUtilities {
 		}
 	}
 
+	/**
+	 * Wait for up to 10 seconds for the connection factory to have the specified number
+	 * of connections.
+	 * @param factory The factory.
+	 * @param n The required number of connections.
+	 * @throws Exception IllegalStateException if the count does not match.
+	 */
+	public static void waitUntilFactoryHasThisNumberOfConnections(AbstractConnectionFactory factory, int n)
+			throws Exception {
+		int timer = 0;
+		while (timer < 10000) {
+			if (factory.getOpenConnectionIds().size() == n) {
+				return;
+			}
+			Thread.sleep(100);
+			timer += 100;
+		}
+		throw new IllegalStateException("Connections=" + factory.getOpenConnectionIds().size() + "wanted=" + n);
+	}
 }
