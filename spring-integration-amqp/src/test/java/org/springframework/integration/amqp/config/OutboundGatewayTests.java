@@ -16,12 +16,24 @@
 
 package org.springframework.integration.amqp.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
-
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -31,7 +43,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 public class OutboundGatewayTests {
 
-	private ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+	private final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 
 	@Test
 	public void testVanillaConfiguration() throws Exception {
@@ -44,6 +56,32 @@ public class OutboundGatewayTests {
 		assertTrue(context.getBeanFactory().containsBeanDefinition("expression"));
 		Object target = context.getBean("expression");
 		assertNotNull(ReflectionTestUtils.getField(ReflectionTestUtils.getField(target, "handler"), "routingKeyGenerator"));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testExpressionsBeanResolver() {
+		BeanFactory bf = mock(BeanFactory.class);
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return invocation.getArguments()[0] + "bar";
+			}
+		}).when(bf).getBean(anyString());
+		RabbitTemplate template = mock(RabbitTemplate.class);
+		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
+		endpoint.setRoutingKeyExpression("@foo");
+		endpoint.setExchangeNameExpression("@bar");
+		endpoint.setConfirmCorrelationExpression("@baz");
+		endpoint.setBeanFactory(bf);
+		endpoint.afterPropertiesSet();
+		Message<?> message = new GenericMessage<String>("Hello, world!");
+		assertEquals("foobar", TestUtils.getPropertyValue(endpoint, "routingKeyGenerator", MessageProcessor.class)
+				.processMessage(message));
+		assertEquals("barbar", TestUtils.getPropertyValue(endpoint, "exchangeNameGenerator", MessageProcessor.class)
+				.processMessage(message));
+		assertEquals("bazbar", TestUtils.getPropertyValue(endpoint, "correlationDataGenerator", MessageProcessor.class)
+				.processMessage(message));
 	}
 
 }
