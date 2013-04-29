@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,142 +16,78 @@
 
 package org.springframework.integration.json;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.lang.reflect.Type;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.type.JavaType;
-import org.codehaus.jackson.type.TypeReference;
-
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.mapping.InboundMessageMapper;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.util.Assert;
 
 /**
- * {@link InboundMessageMapper} implementation that maps incoming JSON messages to a {@link Message} with the specified payload type.  
- * 
+ * {@link org.springframework.integration.mapping.InboundMessageMapper} implementation that maps incoming JSON messages
+ * to a {@link Message} with the specified payload type.
+ * By default it uses {@link JacksonJsonObjectMapperProvider} to get Jackson or Jackson 2 {@link JsonMessageParser}
+ * implementation dependently from classpath.
+ * Any other {@link JsonMessageParser} implementation may be provided through the appropriate constructor.
+ *
  * @author Jeremy Grelle
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
-public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
+public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<JsonInboundMessageMapper.JsonMessageParser> {
 
-	private static final String MESSAGE_FORMAT_ERROR = "JSON message is invalid.  Expected a message in the format of either " +
-			"{\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
-
-	private static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
-
-	static {
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.PRIORITY, Integer.class);
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.EXPIRATION_DATE, Long.class);
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.SEQUENCE_SIZE, Integer.class);
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.SEQUENCE_NUMBER, Integer.class);
-	}
-
-
-	private final JavaType payloadType;
-
-	private final Map<String, Class<?>> headerTypes = DEFAULT_HEADER_TYPES;
-
-	private volatile ObjectMapper objectMapper = new ObjectMapper();
-
-	private volatile boolean mapToPayload = false;
-
+	private volatile JsonMessageParser<?> messageParser;
 
 	public JsonInboundMessageMapper(Class<?> payloadType) {
-		Assert.notNull(payloadType, "payloadType must not be null");
-		this.payloadType = TypeFactory.defaultInstance().constructType(payloadType);
+		this((Type) payloadType);
 	}
 
-	public JsonInboundMessageMapper(TypeReference<?> typeReference) {
-		Assert.notNull(typeReference, "typeReference must not be null");
-		this.payloadType = TypeFactory.defaultInstance().constructType(typeReference);
+	public JsonInboundMessageMapper(Type payloadType) {
+		this(payloadType, null);
 	}
 
-
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper must not be null");
-		this.objectMapper = objectMapper;
+	public JsonInboundMessageMapper(Class<?> payloadType, JsonMessageParser<?> messageParser) {
+		this((Type) payloadType, messageParser);
 	}
 
-	public void setHeaderTypes(Map<String, Class<?>> headerTypes) {
-		this.headerTypes.putAll(headerTypes);
+	public JsonInboundMessageMapper(Type payloadType, JsonMessageParser<?> messageParser) {
+		super(payloadType);
+		this.messageParser = messageParser != null ? messageParser : JacksonJsonObjectMapperProvider.newJsonMessageParser();
 	}
 
-	public void setMapToPayload(boolean mapToPayload) {
-		this.mapToPayload = mapToPayload;
+	public boolean isMapToPayload() {
+		return mapToPayload;
+	}
+
+	public Type getPayloadType() {
+		return payloadType;
+	}
+
+	public Map<String, Class<?>> getHeaderTypes() {
+		return headerTypes;
 	}
 
 	public Message<?> toMessage(String jsonMessage) throws Exception {
-		JsonParser parser = new JsonFactory().createJsonParser(jsonMessage);
-		if (this.mapToPayload) {
-			try {
-				return MessageBuilder.withPayload(readPayload(parser, jsonMessage)).build();
-			}
-			catch (JsonMappingException ex) {
-				throw new IllegalArgumentException("Mapping of JSON message " + jsonMessage +
-						" directly to payload of type " + this.payloadType.getRawClass().getName() + " failed.", ex);
-			}
-		}
-		else {
-			String error = MESSAGE_FORMAT_ERROR + jsonMessage;
-			Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
-			Map<String, Object> headers = null;
-			Object payload = null;
-			while(parser.nextToken() != JsonToken.END_OBJECT) {
-				Assert.isTrue(parser.getCurrentToken() == JsonToken.FIELD_NAME, error);
-				boolean isHeadersToken = "headers".equals(parser.getCurrentName());
-				boolean isPayloadToken = "payload".equals(parser.getCurrentName()); 
-				Assert.isTrue(isHeadersToken || isPayloadToken, error);
-				if (isHeadersToken) {
-					Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
-					headers = readHeaders(parser, jsonMessage);
-				}
-				else if (isPayloadToken) {
-					parser.nextToken();
-					try {
-						payload = readPayload(parser, jsonMessage);
-					}
-					catch (JsonMappingException ex) {
-						throw new IllegalArgumentException("Mapping payload of JSON message " + jsonMessage +
-								" to payload type " + this.payloadType.getRawClass().getName() + " failed.", ex);
-					}
-				}
-			}
-			Assert.notNull(headers, error);
-			return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
-		}
+		return this.messageParser.doInParser(this, jsonMessage);
 	}
 
-	protected Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception{
-		Map<String, Object> headers = new LinkedHashMap<String, Object>();
-		while (parser.nextToken() != JsonToken.END_OBJECT) {
-			String headerName = parser.getCurrentName();
-			parser.nextToken();
-			Class<?> headerType = this.headerTypes.containsKey(headerName) ?
-					this.headerTypes.get(headerName) : Object.class;
-			try {
-				headers.put(headerName, this.objectMapper.readValue(parser, headerType));
-			}
-			catch (JsonMappingException ex) {
-				throw new IllegalArgumentException("Mapping header \"" + headerName + "\" of JSON message " +
-						jsonMessage + " to header type " + this.payloadType.getRawClass().getName() + " failed.", ex);
-			}
-		}
-		return headers;
+	@Override
+	protected Map<String, Object> readHeaders(JsonMessageParser parser, String jsonMessage) throws Exception {
+		//No-op
+		return null;
 	}
 
-	protected Object readPayload(JsonParser parser, String jsonMessage) throws Exception {
-		return this.objectMapper.readValue(parser, this.payloadType);
+	@Override
+	protected Object readPayload(JsonMessageParser parser, String jsonMessage) throws Exception {
+		//No-op
+		return null;
+	}
+
+
+	public static interface JsonMessageParser<P> {
+
+		Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage) throws Exception;
+
 	}
 
 }

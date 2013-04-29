@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,63 @@
 
 package org.springframework.integration.json;
 
-import org.codehaus.jackson.map.ObjectMapper;
-
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Transformer implementation that converts a JSON string payload into an instance of the provided target Class.
+ * By default this transformer uses {@linkplain JacksonJsonObjectMapperProvider} factory
+ * to get an instance of Jackson 1 or Jackson 2 JSON-processor {@linkplain JsonObjectMapper} implementation
+ * dependently of jackson-databind or jackson-mapper-asl libs in the classpath.
+ * Any other {@linkplain JsonObjectMapper} implementation can be provided.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ * @see JsonObjectMapper
+ * @see JacksonJsonObjectMapperProvider
  * @since 2.0
  */
 public class JsonToObjectTransformer<T> extends AbstractPayloadTransformer<String, T> {
 
 	private final Class<T> targetClass;
 
-	private final ObjectMapper objectMapper;
-
+	private final JsonObjectMapper<?> jsonObjectMapper;
 
 	public JsonToObjectTransformer(Class<T> targetClass) {
 		this(targetClass, null);
 	}
 
-	public JsonToObjectTransformer(Class<T> targetClass, ObjectMapper objectMapper) {
+	/**
+	 * @deprecated in favor of {@link #JsonToObjectTransformer(Class, JsonObjectMapper)}
+	 */
+	@Deprecated
+	public JsonToObjectTransformer(Class<T> targetClass, Object objectMapper) throws ClassNotFoundException {
 		Assert.notNull(targetClass, "targetClass must not be null");
 		this.targetClass = targetClass;
-		this.objectMapper = (objectMapper != null) ? objectMapper : new ObjectMapper();
+		if (objectMapper != null) {
+			try {
+				Class<?> objectMapperClass = ClassUtils.forName("org.codehaus.jackson.map.ObjectMapper", ClassUtils.getDefaultClassLoader());
+				Assert.isTrue(objectMapperClass.isAssignableFrom(objectMapper.getClass()));
+				this.jsonObjectMapper = new JacksonJsonObjectMapper((org.codehaus.jackson.map.ObjectMapper) objectMapper);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+		else {
+			this.jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+		}
 	}
 
+	public JsonToObjectTransformer(Class<T> targetClass, JsonObjectMapper jsonObjectMapper) {
+		Assert.notNull(targetClass, "targetClass must not be null");
+		this.targetClass = targetClass;
+		this.jsonObjectMapper = (jsonObjectMapper != null) ? jsonObjectMapper : JacksonJsonObjectMapperProvider.newInstance();
+	}
 
 	protected T transformPayload(String payload) throws Exception {
-		return this.objectMapper.readValue(payload, this.targetClass);
+		return this.jsonObjectMapper.fromJson(payload, this.targetClass);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.junit.Test;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class JsonToObjectTransformerTests {
@@ -44,13 +45,19 @@ public class JsonToObjectTransformerTests {
 		ObjectMapper customMapper = new ObjectMapper();
 		customMapper.configure(Feature.ALLOW_UNQUOTED_FIELD_NAMES, Boolean.TRUE);
 		customMapper.configure(Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
-		JsonToObjectTransformer<TestPerson> transformer = new JsonToObjectTransformer<TestPerson>(TestPerson.class, customMapper);
+		JsonToObjectTransformer<TestPerson> transformer =
+				new JsonToObjectTransformer<TestPerson>(TestPerson.class, new JacksonJsonObjectMapper(customMapper));
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
 		TestPerson person = transformer.transformPayload(jsonString);
 		assertEquals("John", person.getFirstName());
 		assertEquals("Doe", person.getLastName());
 		assertEquals(42, person.getAge());
 		assertEquals("123 Main Street", person.getAddress().toString());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testInt2831IllegalArgument() throws Exception {
+		new JsonToObjectTransformer<String>(String.class, new Object());
 	}
 
 
