@@ -20,6 +20,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
@@ -79,7 +80,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 				"channel must be of type " + SubscribableChannel.class.getName());
 		BridgeHandler handler = new BridgeHandler();
 
-		DirectChannel localChannel = new DirectChannel();
+		PublishSubscribeChannel localChannel = new PublishSubscribeChannel();
 		localChannel.setComponentName(name);
 		localChannel.setBeanFactory(applicationContext);
 		localChannel.setBeanName(name);
@@ -100,16 +101,18 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	public void tap(String name, MessageChannel channel) {
 		Assert.hasText(name, "A valid name is required to register a tap channel");
 		Assert.notNull(channel, "channel cannot be null");
-		WireTap wiretap = new WireTap(channel);
 
-		AbstractMessageChannel registeredChannel = null;
+		SubscribableChannel registeredChannel = null;
 		try {
-			registeredChannel = applicationContext.getBean(name, AbstractMessageChannel.class);
+			registeredChannel = applicationContext.getBean(name, SubscribableChannel.class);
 		} catch (Exception e) {
 			throw new IllegalArgumentException("No channel is currently registered for '" + name + "'");
 		}
-		
-		registeredChannel.addInterceptor(wiretap);
+
+		BridgeHandler handler = new BridgeHandler();
+		handler.setOutputChannel(channel);
+		handler.afterPropertiesSet();
+		registeredChannel.subscribe(handler);
 	}
 
 	/* (non-Javadoc)
