@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -87,21 +88,31 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 				"Either an exchangeName or an exchangeNameExpression can be provided, but not both");
 		Assert.state(this.confirmCorrelationExpression == null || !this.expectReply,
 				"Confirm correlation expression does not apply to a gateway");
+		BeanFactory beanFactory = this.getBeanFactory();
 		if (exchangeNameExpression != null) {
 			Expression expression = expressionParser.parseExpression(this.exchangeNameExpression);
 			this.exchangeNameGenerator = new ExpressionEvaluatingMessageProcessor<String>(expression, String.class);
+			if (beanFactory != null) {
+				this.exchangeNameGenerator.setBeanFactory(beanFactory);
+			}
 		}
 		Assert.state(routingKeyExpression == null || routingKey == null,
 				"Either a routingKey or a routingKeyExpression can be provided, but not both");
 		if (routingKeyExpression != null) {
 			Expression expression = expressionParser.parseExpression(this.routingKeyExpression);
 			this.routingKeyGenerator = new ExpressionEvaluatingMessageProcessor<String>(expression, String.class);
+			if (beanFactory != null) {
+				this.routingKeyGenerator.setBeanFactory(beanFactory);
+			}
 		}
 		if (this.confirmCorrelationExpression != null) {
 			Expression expression = expressionParser.parseExpression(this.confirmCorrelationExpression);
 			this.correlationDataGenerator = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
 			Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for publisher confirms");
 			((RabbitTemplate) this.amqpTemplate).setConfirmCallback(this);
+			if (beanFactory != null) {
+				this.correlationDataGenerator.setBeanFactory(beanFactory);
+			}
 		}
 		if (this.returnChannel != null) {
 			Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for publisher returns");
