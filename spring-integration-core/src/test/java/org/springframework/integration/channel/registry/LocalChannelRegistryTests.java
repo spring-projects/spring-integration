@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -93,14 +94,14 @@ public class LocalChannelRegistryTests {
 	}
 
 	@Test
-	public void testTap() {
-		
+	public void testOutboundTap() {
+
 		DirectChannel registeredChannel = new DirectChannel();
 		registry.outbound("outbound", registeredChannel);
 		DirectChannel tapChannel = new DirectChannel();
 		registry.tap("outbound", tapChannel);
 
- 		final AtomicBoolean messageReceived = new AtomicBoolean();
+		final AtomicBoolean messageReceived = new AtomicBoolean();
 
 		tapChannel.subscribe(new MessageHandler() {
 
@@ -111,6 +112,33 @@ public class LocalChannelRegistryTests {
 			}
 		});
 
+		registeredChannel.send(new GenericMessage<String>("hello"));
+
+		assertTrue(messageReceived.get());
+
+	}
+
+	@Test
+	public void testInboundTap() {
+
+		DirectChannel registeredChannel = new DirectChannel();
+		registry.inbound("inbound", registeredChannel);
+		DirectChannel tapChannel = new DirectChannel();
+		registry.tap("inbound", tapChannel);
+		
+		MessageChannel inbound = context.getBean("inbound",MessageChannel.class);
+
+		final AtomicBoolean messageReceived = new AtomicBoolean();
+
+		tapChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messageReceived.set(true);
+				assertEquals("hello", message.getPayload());
+			}
+		});
+		
 		//avoid DHNS error
 		registeredChannel.subscribe(new MessageHandler() {
 			@Override
@@ -118,7 +146,7 @@ public class LocalChannelRegistryTests {
 			}
 		});
 
-		registeredChannel.send(new GenericMessage<String>("hello"));
+		inbound.send(new GenericMessage<String>("hello"));
 
 		assertTrue(messageReceived.get());
 

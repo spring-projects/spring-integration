@@ -37,15 +37,6 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	private AbstractApplicationContext applicationContext;
 
 	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.DisposableBean#destroy()
-	 */
-	@Override
-	public void destroy() throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	/* (non-Javadoc)
 	 * @see org.springframework.integration.module.registry.ChannelRegistry#inbound(java.lang.String, org.springframework.integration.MessageChannel)
 	 */
 	@Override
@@ -54,7 +45,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		Assert.notNull(channel, "channel cannot be null");
 		BridgeHandler handler = new BridgeHandler();
 
-		DirectChannel localChannel = new DirectChannel();
+		PublishSubscribeChannel localChannel = new PublishSubscribeChannel();
 		localChannel.setComponentName(name);
 		localChannel.setBeanFactory(applicationContext);
 		localChannel.setBeanName(name);
@@ -119,6 +110,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
 		this.applicationContext = (AbstractApplicationContext) applicationContext;
 
 	}

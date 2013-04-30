@@ -1,6 +1,5 @@
 package org.springframework.integration.channel.registry;
 
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.MessageChannel;
 
 /**
@@ -10,7 +9,7 @@ import org.springframework.integration.MessageChannel;
  * @author David Turanski
  * @since 3.0
  */
-public interface ChannelRegistry extends DisposableBean {
+public interface ChannelRegistry {
 	/**
 	 * Register a message consumer
 	 * @param name the logical identity of the message consumer
