@@ -14,6 +14,7 @@ package org.springframework.integration.channel.registry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -93,29 +94,12 @@ public class LocalChannelRegistryTests {
 
 	}
 
-	@Test
-	public void testOutboundTap() {
-
+	@Test(expected = IllegalArgumentException.class)
+	public void testOutboundTapShouldFail() {
 		DirectChannel registeredChannel = new DirectChannel();
 		registry.outbound("outbound", registeredChannel);
 		DirectChannel tapChannel = new DirectChannel();
 		registry.tap("outbound", tapChannel);
-
-		final AtomicBoolean messageReceived = new AtomicBoolean();
-
-		tapChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				messageReceived.set(true);
-				assertEquals("hello", message.getPayload());
-			}
-		});
-
-		registeredChannel.send(new GenericMessage<String>("hello"));
-
-		assertTrue(messageReceived.get());
-
 	}
 
 	@Test
@@ -125,8 +109,8 @@ public class LocalChannelRegistryTests {
 		registry.inbound("inbound", registeredChannel);
 		DirectChannel tapChannel = new DirectChannel();
 		registry.tap("inbound", tapChannel);
-		
-		MessageChannel inbound = context.getBean("inbound",MessageChannel.class);
+
+		MessageChannel inbound = context.getBean("inbound", MessageChannel.class);
 
 		final AtomicBoolean messageReceived = new AtomicBoolean();
 
@@ -138,7 +122,7 @@ public class LocalChannelRegistryTests {
 				assertEquals("hello", message.getPayload());
 			}
 		});
-		
+
 		//avoid DHNS error
 		registeredChannel.subscribe(new MessageHandler() {
 			@Override
@@ -149,6 +133,23 @@ public class LocalChannelRegistryTests {
 		inbound.send(new GenericMessage<String>("hello"));
 
 		assertTrue(messageReceived.get());
+	}
 
+	@Test
+	public void testOnlyOneChannelRegisteredForAName() {
+		DirectChannel registeredChannel = new DirectChannel();
+		registry.inbound("name", registeredChannel);
+
+		DirectChannel anotherChannel = new DirectChannel();
+		try {
+			registry.outbound("name", anotherChannel);
+			fail("should throw an exception here");
+		} catch (IllegalArgumentException e) {
+		}
+		try {
+			registry.inbound("name", anotherChannel);
+			fail("should throw an exception here");
+		} catch (IllegalArgumentException e) {
+		}
 	}
 }

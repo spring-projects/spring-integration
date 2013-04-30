@@ -17,10 +17,15 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.util.Assert;
@@ -43,9 +48,11 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	public void inbound(String name, MessageChannel channel) {
 		Assert.hasText(name, "A valid name is required to register an inbound channel");
 		Assert.notNull(channel, "channel cannot be null");
+		Assert.isTrue(!applicationContext.containsBean(name), "a channel is already registered for '" + name + "'");
+
 		BridgeHandler handler = new BridgeHandler();
 
-		PublishSubscribeChannel localChannel = new PublishSubscribeChannel();
+		DirectChannel localChannel = new DirectChannel();
 		localChannel.setComponentName(name);
 		localChannel.setBeanFactory(applicationContext);
 		localChannel.setBeanName(name);
@@ -53,6 +60,29 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 
 		handler.setOutputChannel(channel);
 		handler.afterPropertiesSet();
+
+		String tapName = name + ".tap";
+		Assert.isTrue(!applicationContext.containsBean(tapName),
+				"cannot create tap channel - context already contains a bean named '" + tapName + "'");
+
+		PublishSubscribeChannel tapChannel = new PublishSubscribeChannel();
+		tapChannel.setComponentName(tapName);
+		tapChannel.setBeanFactory(applicationContext);
+		tapChannel.setBeanName(tapName);
+		tapChannel.afterPropertiesSet();
+		WireTap wireTap = new WireTap(tapChannel);
+		((AbstractMessageChannel) channel).addInterceptor(wireTap);
+
+// WireTap will fail if there is not at least one subscriber
+		MessageHandler noOpTapHandler = new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		};
+
+		tapChannel.subscribe(noOpTapHandler);
+
+		applicationContext.getBeanFactory().registerSingleton(tapName, tapChannel);
 
 		localChannel.subscribe(handler);
 		applicationContext.getBeanFactory().registerSingleton(name, localChannel);
@@ -66,6 +96,8 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	public void outbound(String name, MessageChannel channel) {
 		Assert.hasText(name, "A valid name is required to register an outbound channel");
 		Assert.notNull(channel, "channel cannot be null");
+		Assert.isTrue(!applicationContext.containsBean(name), "a channel is already registered for '" + name + "'");
+
 		Assert.isTrue(channel instanceof SubscribableChannel,
 				"channel must be of type " + SubscribableChannel.class.getName());
 		BridgeHandler handler = new BridgeHandler();
@@ -92,17 +124,20 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		Assert.hasText(name, "A valid name is required to register a tap channel");
 		Assert.notNull(channel, "channel cannot be null");
 
-		SubscribableChannel registeredChannel = null;
+		SubscribableChannel tapChannel = null;
+		String tapName = name + ".tap";
+
 		try {
-			registeredChannel = applicationContext.getBean(name, SubscribableChannel.class);
+			tapChannel = applicationContext.getBean(tapName, SubscribableChannel.class);
 		} catch (Exception e) {
-			throw new IllegalArgumentException("No channel is currently registered for '" + name + "'");
+			throw new IllegalArgumentException("No tap channel is exists for '" + name
+					+ "'. A tap is only valid for a registered inbound channel.");
 		}
 
 		BridgeHandler handler = new BridgeHandler();
 		handler.setOutputChannel(channel);
 		handler.afterPropertiesSet();
-		registeredChannel.subscribe(handler);
+		tapChannel.subscribe(handler);
 	}
 
 	/* (non-Javadoc)
