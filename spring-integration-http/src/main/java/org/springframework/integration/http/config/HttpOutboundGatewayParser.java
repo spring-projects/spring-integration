@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -44,6 +45,8 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
 
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 

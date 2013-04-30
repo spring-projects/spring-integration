@@ -136,5 +136,14 @@
 				see 'JSON Transformers' in <xref linkend="transformer"/>.
 			</para>
 		</section>
+		<section id="3.0-http-encode-uri">
+			<title>HTTP Outbound Endpoint 'encode-uri' property</title>
+			<para>
+				<code>&lt;http:outbound-gateway/&gt;</code> and <code>&lt;http:outbound-channel-adapter/&gt;</code> now
+				provide an <code>encode-uri</code> attribute to allow disabling the encoding of the URI object
+				before sending the request. For more information see <xref linkend="http"/>.
+			</para>
+		</section>
+
 	</section>
 </chapter>
