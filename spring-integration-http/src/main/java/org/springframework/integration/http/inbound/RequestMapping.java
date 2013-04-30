@@ -20,13 +20,20 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * Internal class for mapping web requests onto specific {@link HttpRequestHandlingEndpointSupport}.
+ * Class for mapping web requests onto specific {@link HttpRequestHandlingEndpointSupport}.
+ * Provides direct mapping in terms of functionality compared to
+ * {@link org.springframework.web.bind.annotation.RequestMapping}.
+ * <p>
+ * Through the {@link IntegrationRequestMappingHandlerMapping}'s 'detect handler method' process is converted
+ * to the {@link org.springframework.web.servlet.mvc.method.RequestMappingInfo}, which is used in the Spring MVC
+ * {@link org.springframework.web.servlet.HandlerMapping} infrastructure.
  *
  * @author Artem Bilan
- * @see org.springframework.web.bind.annotation.RequestMapping
  * @since 3.0
+ *
+ * @see org.springframework.web.bind.annotation.RequestMapping
  */
-class RequestMapping {
+public class RequestMapping {
 
 	private String[] pathPatterns;
 
@@ -89,11 +96,12 @@ class RequestMapping {
 		return produces;
 	}
 
-	RequestMethod[] getRequestMethods() {
+	public RequestMethod[] getRequestMethods() {
 		RequestMethod[] requestMethods = new RequestMethod[this.methods.length];
 		for (int i = 0; i < this.methods.length; i++) {
 			requestMethods[i] = RequestMethod.valueOf(this.methods[i].name());
 		}
 		return requestMethods;
 	}
+
 }

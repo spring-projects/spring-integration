@@ -17,6 +17,7 @@
 package org.springframework.integration.http.config;
 
 import java.util.List;
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,11 +32,12 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping;
+import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
+import org.springframework.integration.http.support.HttpContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the 'inbound-channel-adapter' and 'inbound-gateway' elements
@@ -188,8 +190,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 	}
 
 	private BeanDefinition createRequestMapping(Element element) {
-		BeanDefinitionBuilder requestMappingDefBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".http.inbound.RequestMapping");
+		BeanDefinitionBuilder requestMappingDefBuilder = BeanDefinitionBuilder.genericBeanDefinition(RequestMapping.class);
 
 		String methods = element.getAttribute("supported-methods");
 		if (StringUtils.hasText(methods)) {
@@ -211,19 +212,19 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 	}
 
 	/**
-	 * This method will auto-register a {@link IntegrationRequestMappingHandlerMapping}
-	 * which could also be overridden by the user  by simply registering
-	 * a {@link IntegrationRequestMappingHandlerMapping} <bean> with 'id'
-	 * {@link HttpNamespaceHandler#HANDLER_MAPPING_BEAN_NAME}.
+	 * This method will auto-register an {@link IntegrationRequestMappingHandlerMapping}
+	 * which could also be overridden by the user by simply registering
+	 * a {@link IntegrationRequestMappingHandlerMapping} {@code <bean>} with 'id'
+	 * {@link HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
 	 */
 	private void registerRequestMappingHandlerMappingIfNecessary(ParserContext parserContext) {
-		if (!parserContext.getRegistry().containsBeanDefinition(HttpNamespaceHandler.HANDLER_MAPPING_BEAN_NAME)) {
+		if (!parserContext.getRegistry().containsBeanDefinition(HttpContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 			BeanDefinitionBuilder requestMappingBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationRequestMappingHandlerMapping.class);
 			requestMappingBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			requestMappingBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, 0);
 			BeanComponentDefinition requestMappingComponent =
-					new BeanComponentDefinition(requestMappingBuilder.getBeanDefinition(), HttpNamespaceHandler.HANDLER_MAPPING_BEAN_NAME);
+					new BeanComponentDefinition(requestMappingBuilder.getBeanDefinition(), HttpContextUtils.HANDLER_MAPPING_BEAN_NAME);
 			parserContext.registerBeanComponent(requestMappingComponent);
 		}
 	}

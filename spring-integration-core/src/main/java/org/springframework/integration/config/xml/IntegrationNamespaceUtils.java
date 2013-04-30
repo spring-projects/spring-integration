@@ -17,6 +17,9 @@ import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -36,6 +39,8 @@ import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;

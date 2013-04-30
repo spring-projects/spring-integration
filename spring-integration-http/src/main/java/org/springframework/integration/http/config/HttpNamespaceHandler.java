@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,9 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * Namespace handler for Spring Integration's <em>http</em> namespace.
  *
  * @author Mark Fisher
- * @author Artem Bilan
  * @since 1.0.2
  */
 public class HttpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
-
-	/**
-	 * @see HttpInboundEndpointParser
-	 */
-	public static final String HANDLER_MAPPING_BEAN_NAME = "integrationRequestMappingHandlerMapping";
 
 	public void init() {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new HttpInboundEndpointParser(false));
@@ -38,7 +32,5 @@ public class HttpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new HttpOutboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-gateway", new HttpOutboundGatewayParser());
 	}
-
-
 
 }

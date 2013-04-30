@@ -16,172 +16,125 @@
 
 package org.springframework.integration.http.inbound;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.web.HttpRequestHandler;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.handler.AbstractHandlerMapping;
-import org.springframework.web.servlet.mvc.Controller;
-import org.springframework.web.servlet.mvc.condition.*;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.util.UrlPathHelper;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.util.ReflectionUtils;
+import org.springframework.web.HttpRequestHandler;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.mvc.condition.RequestCondition;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
 /**
- * {@link org.springframework.web.servlet.HandlerMapping} implementation that
+ * The {@link org.springframework.web.servlet.HandlerMapping} implementation that
  * detects and registers {@link RequestMappingInfo}s for {@link HttpRequestHandlingEndpointSupport}
  * from a Spring Integration HTTP configuration of
- * &lt;inbound-channel-adapter&gt; or &lt;inbound-gateway&gt; element.
+ * {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
+ * <p>
+ * This class is automatically configured as bean in the application context on the parsing phase of
+ * the {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements, if there is none registered, yet.
+ * However it can be configured as a regular bean with appropriate configuration for
+ * {@link RequestMappingHandlerMapping}. It is recommended to have only one similar bean in the application context
+ * and with the 'id' {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
+ * <p>
+ * In most cases Spring MVC offers to configure Request Mapping via {@link org.springframework.stereotype.Controller}
+ * and {@link org.springframework.web.bind.annotation.RequestMapping},
+ * and that's why Spring MVC Handler Mapping infrastructure relies on {@link org.springframework.web.method.HandlerMethod},
+ * because different methods at the same {@link org.springframework.stereotype.Controller} user-class may have its own
+ * {@link org.springframework.web.bind.annotation.RequestMapping}. From other side all Spring Integration HTTP Inbound
+ * Endpoints are configured on the basis of the same {@link HttpRequestHandlingEndpointSupport} class and there is no
+ * any {@link RequestMappingInfo} configuration without {@link org.springframework.web.method.HandlerMethod} in the Spring MVC.
+ * Accordingly {@link IntegrationRequestMappingHandlerMapping} is some {@link org.springframework.web.servlet.HandlerMapping}
+ * compromise implementation between method-level annotation and component-level (e.g. Spring Integration XML) configurations.
  *
  * @author Artem Bilan
- *
- * @see RequestMappingHandlerMapping
  * @since 3.0
+ *
+ * @see RequestMapping
+ * @see RequestMappingHandlerMapping
  */
-public class IntegrationRequestMappingHandlerMapping extends AbstractHandlerMapping
-		implements InitializingBean, ApplicationListener<ContextRefreshedEvent> {
+public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 
 	private static final Method HANDLE_REQUEST_METHOD = ReflectionUtils.findMethod(HttpRequestHandler.class,
 			"handleRequest", HttpServletRequest.class, HttpServletResponse.class);
 
-	private final HandlerMappingBridge delegate = new HandlerMappingBridge();
+	private static final Method CREATE_REQUEST_MAPPING_INFO_METHOD;
 
-	private boolean useSuffixPatternMatch = true;
-
-	private boolean useTrailingSlashMatch = true;
-
-	/**
-	 * @see RequestMappingHandlerMapping#setUseSuffixPatternMatch
-	 */
-	public void setUseSuffixPatternMatch(boolean useSuffixPatternMatch) {
-		this.useSuffixPatternMatch = useSuffixPatternMatch;
-	}
-
-	/**
-	 * @see RequestMappingHandlerMapping#setUseTrailingSlashMatch
-	 */
-	public void setUseTrailingSlashMatch(boolean useTrailingSlashMatch) {
-		this.useTrailingSlashMatch = useTrailingSlashMatch;
-	}
-
-	/**
-	 * @see org.springframework.web.servlet.handler.AbstractHandlerMethodMapping#setDetectHandlerMethodsInAncestorContexts
-	 */
-	public void setDetectHandlerMethodsInAncestorContexts(boolean detectHandlerMethodsInAncestorContexts) {
-		this.delegate.setDetectHandlerMethodsInAncestorContexts(detectHandlerMethodsInAncestorContexts);
-	}
-
-	/**
-	 * @see RequestMappingHandlerMapping#useSuffixPatternMatch
-	 */
-	public boolean useSuffixPatternMatch() {
-		return this.useSuffixPatternMatch;
-	}
-
-	/**
-	 * @see RequestMappingHandlerMapping#useTrailingSlashMatch
-	 */
-	public boolean useTrailingSlashMatch() {
-		return this.useTrailingSlashMatch;
+	static {
+		/**
+		 * Need for full reuse {@link RequestMappingHandlerMapping}'s logic
+		 * and makes this class Spring MVC version independent.
+		 */
+		CREATE_REQUEST_MAPPING_INFO_METHOD = ReflectionUtils.findMethod(RequestMappingHandlerMapping.class,
+				"createRequestMappingInfo", org.springframework.web.bind.annotation.RequestMapping.class, RequestCondition.class);
+		ReflectionUtils.makeAccessible(CREATE_REQUEST_MAPPING_INFO_METHOD);
 	}
 
 	@Override
-	protected Object getHandlerInternal(HttpServletRequest request) throws Exception {
-		final HandlerMethod handlerMethod = this.delegate.getHandlerInternal(request);
-		return handlerMethod != null ? handlerMethod.getBean() : null;
+	protected final boolean isHandler(Class<?> beanType) {
+		return HttpRequestHandlingEndpointSupport.class.isAssignableFrom(beanType);
+	}
+
+	@Override
+	protected final HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpServletRequest request) {
+		if (handler instanceof HandlerMethod) {
+			HandlerMethod handlerMethod = (HandlerMethod) handler;
+			handler = handlerMethod.getBean();
+		}
+		return super.getHandlerExecutionChain(handler, request);
+	}
+
+	@Override
+	protected final void detectHandlerMethods(Object handler) {
+		if (handler instanceof String) {
+			handler = this.getApplicationContext().getBean((String) handler);
+		}
+		RequestMappingInfo mapping = this.getMappingForEndpoint((HttpRequestHandlingEndpointSupport) handler);
+		this.registerHandlerMethod(handler, HANDLE_REQUEST_METHOD, mapping);
 	}
 
 	/**
-	 * Initialize {@link #delegate}, since it is out of Application Context
-	 */
-	public void afterPropertiesSet() throws Exception {
-		this.delegate.setApplicationContext(this.getApplicationContext());
-		this.delegate.setPathMatcher(this.getPathMatcher());
-		this.delegate.setUrlPathHelper(this.getUrlPathHelper());
-	}
-
-	/**
-	 * Handles {@link ContextRefreshedEvent} to invoke {@link #delegate#afterPropertiesSet()}
-	 * as late as possible after application context startup.
-	 * Also it checks 'event.getApplicationContext()' to ignore
-	 * other {@link ContextRefreshedEvent}s which may be published
-	 * in the 'parent-child' contexts, e.g. in the Spring-MVC applications.
+	 * Created a {@link RequestMappingInfo} from a 'Spring Integration HTTP Inbound Endpoint' {@link RequestMapping}.
 	 *
-	 * @param event - {@link ContextRefreshedEvent} which occurs
-	 *              after Application context is completely initialized.
-	 * @see org.springframework.web.servlet.handler.AbstractHandlerMethodMapping#afterPropertiesSet()
+	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
-	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (this.getApplicationContext().equals(event.getApplicationContext())) {
-			this.delegate.afterPropertiesSet();
-		}
-	}
-
-	/**
-	 * An internal bridge {@link RequestMappingInfoHandlerMapping} implementation.
-	 */
-	private class HandlerMappingBridge extends RequestMappingInfoHandlerMapping {
-
-		@Override
-		protected boolean isHandler(Class<?> beanType) {
-			return HttpRequestHandlingEndpointSupport.class.isAssignableFrom(beanType);
-		}
-
-		@Override
-		protected void detectHandlerMethods(Object handler) {
-			if (handler instanceof String) {
-				handler = this.getApplicationContext().getBean((String) handler);
+	private RequestMappingInfo getMappingForEndpoint(HttpRequestHandlingEndpointSupport endpoint) {
+		final RequestMapping requestMapping = endpoint.getRequestMapping();
+		Object[] createRequestMappingInfoParams = new Object[]{new org.springframework.web.bind.annotation.RequestMapping() {
+			public String[] value() {
+				return requestMapping.getPathPatterns();
 			}
-			RequestMappingInfo mapping = this.getMappingForEndpoint((HttpRequestHandlingEndpointSupport) handler);
-			this.registerHandlerMethod(handler, HANDLE_REQUEST_METHOD, mapping);
-		}
 
-		@Override
-		protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
-			return super.getHandlerInternal(request);
-		}
+			public RequestMethod[] method() {
+				return requestMapping.getRequestMethods();
+			}
 
-		/**
-		 * Created a {@link RequestMappingInfo} from a 'Spring Integration HTTP Inbound Endpoint' {@link RequestMapping}.
-		 *
-		 * @see RequestMappingHandlerMapping#getMappingForMethod
-		 */
-		private RequestMappingInfo getMappingForEndpoint(HttpRequestHandlingEndpointSupport endpoint) {
-			RequestMapping requestMapping = endpoint.getRequestMapping();
-			return new RequestMappingInfo(
-					new PatternsRequestCondition(requestMapping.getPathPatterns(),
-							this.getUrlPathHelper(),
-							this.getPathMatcher(),
-							IntegrationRequestMappingHandlerMapping.this.useSuffixPatternMatch(),
-							IntegrationRequestMappingHandlerMapping.this.useTrailingSlashMatch()),
-					new RequestMethodsRequestCondition(requestMapping.getRequestMethods()),
-					new ParamsRequestCondition(requestMapping.getParams()),
-					new HeadersRequestCondition(requestMapping.getHeaders()),
-					new ConsumesRequestCondition(requestMapping.getConsumes(), requestMapping.getHeaders()),
-					new ProducesRequestCondition(requestMapping.getProduces(), requestMapping.getHeaders()),
-					null);
-		}
+			public String[] params() {
+				return requestMapping.getParams();
+			}
 
-		/**
-		 * No-op
-		 */
-		@Override
-		protected final RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
-			return null;
-		}
+			public String[] headers() {
+				return requestMapping.getHeaders();
+			}
 
+			public String[] consumes() {
+				return requestMapping.getConsumes();
+			}
+
+			public String[] produces() {
+				return requestMapping.getProduces();
+			}
+
+			public Class<? extends Annotation> annotationType() {
+				return org.springframework.web.bind.annotation.RequestMapping.class;
+			}
+		}, this.getCustomTypeCondition(endpoint.getClass())};
+		return (RequestMappingInfo) ReflectionUtils.invokeMethod(CREATE_REQUEST_MAPPING_INFO_METHOD, this, createRequestMappingInfoParams);
 	}
 
 }

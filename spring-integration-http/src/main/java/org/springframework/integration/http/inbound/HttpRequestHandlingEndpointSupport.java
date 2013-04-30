@@ -63,6 +63,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -80,14 +81,14 @@ import org.springframework.web.servlet.HandlerMapping;
  * reference to a {@code HeaderMapper<HttpHeaders>} implementation
  * to the {@link #setHeaderMapper(HeaderMapper)} method.
  * <p>
- * The behavior is "request/reply" by default. Pass <code>false</code> to the constructor to force send-only as opposed
+ * The behavior is "request/reply" by default. Pass {@code false} to the constructor to force send-only as opposed
  * to sendAndReceive. Send-only means that as soon as the Message is created and passed to the
  * {@link #setRequestChannel(org.springframework.integration.MessageChannel) request channel}, a response will be
  * generated. Subclasses determine how that response is generated (e.g. simple status response or rendering a View).
  * <p>
  * In a request-reply scenario, the reply Message's payload will be extracted prior to generating a response by default.
  * To have the entire serialized Message available for the response, switch the {@link #extractReplyPayload} value to
- * <code>false</code>.
+ * {@code false}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -158,6 +159,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			if (logger.isDebugEnabled()) {
 				logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'messageConverters'.");
 			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'messageConverters'.");
+			}
 		}
 		if (JacksonJsonUtils.isJackson2Present()) {
 			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
@@ -169,10 +173,22 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			if (logger.isDebugEnabled()) {
 				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'messageConverters'.");
 			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'messageConverters'.");
+			}
 		}
-		if (romePresent) {
+		else if (jacksonPresent) {
+			this.messageConverters.add(new MappingJacksonHttpMessageConverter());
+			if (logger.isDebugEnabled()) {
+				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'messageConverters'.");
+			}
+		}		if (romePresent) {
 			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
 			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
+			if (logger.isDebugEnabled()) {
+				logger.debug("'AtomFeedHttpMessageConverter' was added to the 'messageConverters'.");
+				logger.debug("'RssChannelHttpMessageConverter' was added to the 'messageConverters'.");
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("'AtomFeedHttpMessageConverter' was added to the 'messageConverters'.");
 				logger.debug("'RssChannelHttpMessageConverter' was added to the 'messageConverters'.");
@@ -185,6 +201,25 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 */
 	protected boolean isExpectReply() {
 		return expectReply;
+	}
+
+	/**
+	 * Set the path template for which this endpoint expects requests.
+	 * May include path variable {keys} to match against.
+	 * @deprecated in favor of {@linkplain #requestMapping}
+	 */
+	@Deprecated
+	public void setPath(String path) {
+		this.requestMapping.setPathPatterns(path);
+	}
+
+	/**
+	* @deprecated in favor of {@linkplain #requestMapping}
+	*/
+	@Deprecated
+	String getPath() {
+		String[] pathPatterns = this.requestMapping.getPathPatterns();
+		return !ObjectUtils.isEmpty(pathPatterns) ? pathPatterns[0] : null;
 	}
 
 	/**
@@ -244,8 +279,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	 * Set the {@link RequestMapping} to allow provide flexible RESTFul-mapping for this endpoint.
-	 * See Spring MVC 3.1
+	 * Set the {@link RequestMapping} which allows you to specify a flexible RESTFul-mapping for this endpoint.
 	 */
 	public void setRequestMapping(RequestMapping requestMapping) {
 		Assert.notNull(requestMapping, "requestMapping must not be null");
@@ -254,6 +288,16 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	public RequestMapping getRequestMapping() {
 		return requestMapping;
+	}
+
+	/**
+	 * Specify the supported request methods for this gateway. By default, only GET and POST are supported.
+	 * @deprecated in favor to {@linkplain #requestMapping}
+	 */
+	@Deprecated
+	public void setSupportedMethods(HttpMethod... supportedMethods) {
+		Assert.notEmpty(supportedMethods, "at least one supported method is required");
+		this.requestMapping.setMethods(supportedMethods);
 	}
 
 	/**
@@ -350,7 +394,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			StandardEvaluationContext evaluationContext = this.createEvaluationContext();
 			evaluationContext.setRootObject(httpEntity);
 
-			LinkedMultiValueMap<String, String> requestParams = this.convertParameterMap(servletRequest.getParameterMap());
+			MultiValueMap<String, String> requestParams = this.convertParameterMap(servletRequest.getParameterMap());
 			evaluationContext.setVariable("requestParams", requestParams);
 
 			Map<String, String> pathVariables =
@@ -493,8 +537,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Converts a servlet request's parameterMap to a {@link MultiValueMap}.
 	 */
 	@SuppressWarnings("rawtypes")
-	private LinkedMultiValueMap<String, String> convertParameterMap(Map parameterMap) {
-		LinkedMultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>(parameterMap.size());
+	private MultiValueMap<String, String> convertParameterMap(Map parameterMap) {
+		MultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>(parameterMap.size());
 		for (Object key : parameterMap.keySet()) {
 			String[] values = (String[]) parameterMap.get(key);
 			for (String value : values) {

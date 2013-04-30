@@ -224,23 +224,37 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     request-channel="requests"
     reply-channel="responses"/>]]></programlisting>
 
+
     <para><emphasis>Request Mapping support</emphasis></para>
 
     <para>
+	  <note>
+        Spring Integration 3.0 is improving the REST support by introducing the
+        <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
+        >IntegrationRequestMappingHandlerMapping</ulink></interfacename>. The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
+      </note>
+    </para>
+
+    <para>
       Parsing of the <emphasis>HTTP Inbound Gateway</emphasis> or the
-      <emphasis>HTTP Inbound Channel Adapter</emphasis> registers <code>integrationRequestMappingHandlerMapping</code>
+      <emphasis>HTTP Inbound Channel Adapter</emphasis> registers an <code>integrationRequestMappingHandlerMapping</code>
       	bean of type
       <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
-          >IntegrationRequestMappingHandlerMapping</ulink></interfacename>, if there is no one registered before. This particular implementation of the
+          >IntegrationRequestMappingHandlerMapping</ulink></interfacename>, if there is none registered, yet. This particular implementation of the
       <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html"
-          ><interfacename>HandlerMapping</interfacename></ulink>, which delegates its logic to the
+          ><interfacename>HandlerMapping</interfacename></ulink> delegates its logic to the
       	<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfoHandlerMapping.html"
-      		><interfacename>RequestMappingInfoHandlerMapping</interfacename></ulink>. However <classname>IntegrationRequestMappingHandlerMapping</classname>,
-      	on the configuration phase, to detect and to map Spring Integration <interfacename>HttpRequestHandler</interfacename> and <interfacename>Controller</interfacename>
-      	implementations, uses a bit different way in contradistinction to
-      	<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping">Mapping Requests With @RequestMapping</ulink>.
-      	For this purpose, in conjunction with <code>path</code> and <code>supported-methods</code>
-      	attributes on <code>&lt;http:inbound-channel-adapter&gt;</code> and <code>&lt;http:inbound-gateway&gt;</code>, there is a nested <code>&lt;request-mapping&gt;</code> optional element:
+      		><interfacename>RequestMappingInfoHandlerMapping</interfacename></ulink>. The implementation provides similar functionality as provided by the
+		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html"
+				><classname>org.springframework.web.bind.annotation.RequestMapping</classname></ulink> annotation in Spring MVC.
+		<note>
+			For more information, please see
+			<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping">Mapping Requests With @RequestMapping</ulink>.
+		</note>
+
+		For this purpose, Spring Integration 3.0 introduces the <code>&lt;request-mapping&gt;</code> sub-element.
+		This optional sub-element can be added to the <code>&lt;http:inbound-channel-adapter&gt;</code> and the <code>&lt;http:inbound-gateway&gt;</code>.
+		It works in conjunction with the <code>path</code> and <code>supported-methods</code> attributes:
     </para>
     <programlisting language="xml"><![CDATA[<inbound-gateway id="inboundController"
     request-channel="requests"
@@ -254,25 +268,66 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
      consumes="application/json"
      produces="!text/plain"/>
 </inbound-gateway>]]></programlisting>
-      <para>Based on this configuration, on the background, the parser creates some Spring Integration internal <classname>RequestMapping</classname>,
-    	  which, in its turn, is converted to the Spring MVC
-    	  <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html"
-    			  ><classname>RequestMappingInfo</classname></ulink> by <classname>IntegrationRequestMappingHandlerMapping</classname> on the configuration phase.
-    	  <code>&lt;request-mapping&gt;</code> plays the same role in the Spring Integration as
-    	  <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html"
-    			  ><classname>RequestMapping</classname></ulink> annotation in the Spring MVC.
-      </para>
-    <para>
-        For more information regarding <emphasis>Handler Mappings</emphasis>, please see:
+    <para>Based on this configuration, the parser creates an instance of the <classname>IntegrationRequestMappingHandlerMapping</classname> (if none exists, yet),
+        a <classname>HttpRequestHandlingController</classname> bean and associated with it
+        <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/RequestMapping.html"
+        		  ><classname>org.springframework.integration.http.inbound.RequestMapping</classname></ulink>,
+        which, in its turn, is converted to the Spring MVC
+        <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/mvc/method/RequestMappingInfo.html"
+        		  ><classname>RequestMappingInfo</classname></ulink>.
     </para>
+    <para>
+        The <code>&lt;request-mapping&gt;</code> sub-element provides the following attributes:
+        <itemizedlist>
+            <listitem>
+               headers
+            </listitem>
+            <listitem>
+               params
+            </listitem>
+            <listitem>
+               consumes
+            </listitem>
+            <listitem>
+               produces
+            </listitem>
+        </itemizedlist>
+    </para>
+    <para>
+    	With the <code>path</code> and <code>supported-methods</code> attributes of the <code>&lt;http:inbound-channel-adapter&gt;</code> or
+    	the <code>&lt;http:inbound-gateway&gt;</code> <code>&lt;request-mapping&gt;</code> attributes translate directly into the respective options
+    	provided by the <classname>org.springframework.web.bind.annotation.RequestMapping</classname> annotation in Spring MVC.
+    </para>
+    <para>
+    	The <code>&lt;request-mapping&gt;</code> allows to configure several Spring Integration HTTP Inbound Endpoints to the same <code>path</code>
+    	(or even the same <code>supported-methods</code>) and to provide different downstream message flows based on incoming HTTP Request.
+    </para>
+    <para>
+        However you always can get the data from <interfacename>Message</interfacename> into the flow as early as possibly
+    	and apply routing and filtering logic then, e.g.:
+    </para>
+      <programlisting language="xml"><![CDATA[<http:inbound-gateway request-channel="httpMethodRouter"
+       supported-methods="GET,DELETE"
+       path="/process/{entId}"
+       payload-expression="#pathVariables.entId"/>
 
+<router input-channel="httpMethodRouter" expression="headers.http_requestMethod">
+    <mapping value="GET" channel="in1"/>
+    <mapping value="DELETE" channel="in2"/>
+</router>
+
+<service-activator input-channel="in1" ref="service" method="getEntity"/>
+
+<service-activator input-channel="in2" ref="service" method="delete"/>]]></programlisting>
+	<para>
+		For more information regarding <emphasis>Handler Mappings</emphasis>, please see:
+	</para>
     <itemizedlist>
        <listitem>
            <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping"></ulink>
        </listitem>
     </itemizedlist>
 
-    <para></para>
 
     <para><emphasis>URI Template Variables and Expressions</emphasis></para>
 
