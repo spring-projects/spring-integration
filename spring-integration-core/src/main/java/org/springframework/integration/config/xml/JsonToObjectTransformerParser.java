@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,23 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.json.JsonToObjectTransformer;
+
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class JsonToObjectTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected String getTransformerClassName() {
-		return "org.springframework.integration.json.JsonToObjectTransformer";
+		return JsonToObjectTransformer.class.getName();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,24 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.json.ObjectToJsonTransformer;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ObjectToJsonTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected String getTransformerClassName() {
-		return "org.springframework.integration.json.ObjectToJsonTransformer";
+		return ObjectToJsonTransformer.class.getName();
 	}
 
 	@Override
@@ -40,8 +42,9 @@ public class ObjectToJsonTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(objectMapper)) {
 			builder.addConstructorArgReference(objectMapper);
 		}
-		if (element.hasAttribute(MessageHeaders.CONTENT_TYPE)){
+		if (element.hasAttribute("content-type")){
 			builder.addPropertyValue("contentType", element.getAttribute("content-type"));
 		}
 	}
+
 }

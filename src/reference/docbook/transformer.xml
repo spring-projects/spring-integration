@@ -225,17 +225,31 @@ public class Kid {
         <programlisting language="xml"><![CDATA[<int:json-to-object-transformer input-channel="objectMapperInput"
     type="foo.MyDomainObject" object-mapper="customObjectMapper"/>]]></programlisting>
     </para>
+    <note>
+      <para>
+        Beginning with version 3.0, the <code>object-mapper</code> attribute references an instance of a new
+        strategy interface <interfacename>JsonObjectMapper</interfacename>. This abstraction allows multiple
+        implementations of json mappers to be used. Implementations that wrap Jackson 1.x and Jackson 2 are
+        provided, with the version being detected on the classpath. These classes are
+        <classname>JacksonJsonObjectMapper</classname> and <classname>Jackson2JsonObjectMapper</classname>.
+      </para>
+      <para>
+        For backward compatibility, a simple Jackson 1.x <classname>ObjectMapper</classname> can be provided
+        instead of a <interfacename>JsonObjectMapper</interfacename>. This will be removed in a future release.
+      </para>
+    </note>
     <para>
-        You may wish to consider using a FactoryBean or simple factory method to create the ObjectMapper with
+        You may wish to consider using a <interfacename>FactoryBean</interfacename> or simple factory
+        method to create the <classname>JsonObjectMapper</classname> with
         the required characteristics.
     </para>
     <para>
         <programlisting language="java"><![CDATA[public class ObjectMapperFactory {
 
-    public static ObjectMapper getMapper() {
+    public static Jackson2JsonObjectMapper getMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-        return mapper;
+        return new Jackson2JsonObjectMapper(mapper);
     }
 }]]></programlisting>
     </para>

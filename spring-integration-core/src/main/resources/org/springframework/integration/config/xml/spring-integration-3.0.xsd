@@ -2124,15 +2124,19 @@
 		<xsd:attribute name="object-mapper" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Reference to a Jackson ObjectMapper instance to be provided optionally
-					if the default ObjectMapper
-					configuration is not desirable.
+					Optional reference to a JsonObjectMapper instance.
+					By default, a JsonObjectMapper that uses a Jackson 2 ObjectMapper, or Jackson ObjectMapper
+					implementation is used, depending on the jars on the classpath.
+					Note: for backward compatibility, this attribute can take a reference to the Jackson 1 ObjectMapper bean.
+					This Jackson 1 ObjectMapper backward compatibility is deprecated
+					and will be removed in the Spring Integration 3.1 or above.
 				</xsd:documentation>
+				<!-- TODO: Revert in the Spring Integration 3.1 or above after removing Jackson 1 backward compatibility
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.codehaus.jackson.map.ObjectMapper" />
+						<tool:expected-type type="org.springframework.integration.json.JsonObjectMapper" />
 					</tool:annotation>
-				</xsd:appinfo>
+				</xsd:appinfo>-->
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -2166,15 +2170,19 @@
 		<xsd:attribute name="object-mapper" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Reference to a Jackson ObjectMapper instance to be provided optionally
-					if the default ObjectMapper
-					configuration is not desirable.
+					Optional reference to a JsonObjectMapper instance.
+					By default, a JsonObjectMapper that uses a Jackson 2 ObjectMapper, or Jackson ObjectMapper
+					implementation is used, depending on the jars on the classpath.
+					Note: for backward compatibility this attribute can take a reference to the Jackson 1 ObjectMapper bean.
+					This Jackson 1 ObjectMapper backward compatibility is deprecated
+					and will be removed in the Spring Integration 3.1 or above.
 				</xsd:documentation>
+				<!-- TODO: Revert in the Spring Integration 3.1 or above after removing Jackson 1 backward compatibility
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.codehaus.jackson.map.ObjectMapper" />
+						<tool:expected-type type="org.springframework.integration.json.JsonObjectMapper" />
 					</tool:annotation>
-				</xsd:appinfo>
+				</xsd:appinfo>-->
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

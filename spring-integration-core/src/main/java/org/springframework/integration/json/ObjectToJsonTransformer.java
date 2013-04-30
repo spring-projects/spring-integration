@@ -15,42 +15,64 @@
  */
 package org.springframework.integration.json;
 
-import java.io.StringWriter;
-
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.StringUtils;
 
 /**
  * Transformer implementation that converts a payload instance into a JSON string representation.
+ * By default this transformer uses {@linkplain JacksonJsonObjectMapperProvider} factory
+ * to get an instance of a Jackson or Jackson 2 JSON-processor {@linkplain JsonObjectMapper} implementation
+ * depending on the jackson-databind or jackson-mapper-asl libs on the classpath.
+ * Any other {@linkplain JsonObjectMapper} implementation can be provided.
  *
  * @author Mark Fisher
  * @author James Carr
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ObjectToJsonTransformer extends AbstractTransformer {
 
 	public static final String JSON_CONTENT_TYPE = "application/json";
 
-	private final ObjectMapper objectMapper;
+	private final JsonObjectMapper<?> jsonObjectMapper;
 
 	private volatile String contentType = JSON_CONTENT_TYPE;
+
 	private volatile boolean contentTypeExplicitlySet = false;
 
-	public ObjectToJsonTransformer(ObjectMapper objectMapper) {
+	/**
+	 * Backward compatibility - allows existing configurations using Jackson 1.x to inject
+	 * an ObjectMapper directly.
+	 * @deprecated in favor of {@link #ObjectToJsonTransformer(JsonObjectMapper)}
+	 */
+	@Deprecated
+	public ObjectToJsonTransformer(Object objectMapper) {
 		Assert.notNull(objectMapper, "objectMapper must not be null");
-		this.objectMapper = objectMapper;
+		try {
+			Class<?> objectMapperClass = ClassUtils.forName("org.codehaus.jackson.map.ObjectMapper", ClassUtils.getDefaultClassLoader());
+			Assert.isTrue(objectMapperClass.isAssignableFrom(objectMapper.getClass()));
+			this.jsonObjectMapper = new JacksonJsonObjectMapper((org.codehaus.jackson.map.ObjectMapper) objectMapper);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	public ObjectToJsonTransformer(JsonObjectMapper<?> jsonObjectMapper) {
+		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
+		this.jsonObjectMapper = jsonObjectMapper;
 	}
 
 	public ObjectToJsonTransformer() {
-		this.objectMapper = new ObjectMapper();
+		this.jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
 	}
 
 	/**
@@ -58,29 +80,23 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 	 *
 	 * @param contentType
 	 */
-	public void setContentType(String contentType){
+	public void setContentType(String contentType) {
 		// only null assertion is needed since "" is a valid value
 		Assert.notNull(contentType, "'contentType' must not be null");
 		this.contentTypeExplicitlySet = true;
 		this.contentType = contentType.trim();
 	}
 
-	private String transformPayload(Object payload) throws Exception {
-		StringWriter writer = new StringWriter();
-		this.objectMapper.writeValue(writer, payload);
-		return writer.toString();
-	}
-
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
-		String payload = this.transformPayload(message.getPayload());
+		String payload = this.jsonObjectMapper.toJson(message.getPayload());
 		MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(payload);
 
 		LinkedCaseInsensitiveMap<Object> headers = new LinkedCaseInsensitiveMap<Object>();
 		headers.putAll(message.getHeaders());
 
 		if (headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
-			if (this.contentTypeExplicitlySet){
+			if (this.contentTypeExplicitlySet) {
 				// override, unless empty
 				if (StringUtils.hasLength(this.contentType)) {
 					headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
@@ -93,4 +109,5 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		messageBuilder.copyHeaders(headers);
 		return messageBuilder.build();
 	}
+
 }

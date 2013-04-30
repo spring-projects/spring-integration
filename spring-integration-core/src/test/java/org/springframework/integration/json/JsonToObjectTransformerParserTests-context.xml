@@ -2,18 +2,24 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<json-to-object-transformer input-channel="defaultObjectMapperInput"
+	<json-to-object-transformer id="defaultJacksonMapperTransformer" input-channel="defaultObjectMapperInput"
 			type="org.springframework.integration.json.JsonToObjectTransformerParserTests$TestPerson"/>
 
-	<json-to-object-transformer input-channel="customObjectMapperInput"
+	<json-to-object-transformer id="customJacksonMapperTransformer" input-channel="customObjectMapperInput"
 			type="org.springframework.integration.json.JsonToObjectTransformerParserTests$TestPerson"
 			object-mapper="customObjectMapper"/>
 
 	<beans:bean id="customObjectMapper" class="org.springframework.integration.json.JsonToObjectTransformerParserTests$CustomObjectMapper"/>
+
+	<json-to-object-transformer id="customJsonMapperTransformer" input-channel="customJsonObjectMapperInput"
+			type="org.springframework.integration.json.JsonToObjectTransformerParserTests$TestPerson"
+			object-mapper="customJsonObjectMapper"/>
+
+	<beans:bean id="customJsonObjectMapper" class="org.springframework.integration.json.JsonToObjectTransformerParserTests$CustomJsonObjectMapper"/>
 
 </beans:beans>

@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -58,11 +59,16 @@ public class ObjectToJsonTransformerParserTests {
 	@Autowired
 	private volatile MessageChannel customObjectMapperInput;
 
+	@Autowired
+	private volatile MessageChannel customJsonObjectMapperInput;
+
 	@Test
 	public void testContentType(){
 		ObjectToJsonTransformer transformer =
 				TestUtils.getPropertyValue(context.getBean("defaultTransformer"), "handler.transformer", ObjectToJsonTransformer.class);
 		assertEquals("application/json", TestUtils.getPropertyValue(transformer, "contentType"));
+
+		assertEquals(Jackson2JsonObjectMapper.class, TestUtils.getPropertyValue(transformer, "jsonObjectMapper").getClass());
 
 		Message<?> transformed = transformer.transform(MessageBuilder.withPayload("foo").build());
 		assertTrue(transformed.getHeaders().containsKey(MessageHeaders.CONTENT_TYPE));
@@ -147,6 +153,23 @@ public class ObjectToJsonTransformerParserTests {
 		assertTrue(addressResult.contains("street:\"Main Street\""));
 	}
 
+	@Test
+	public void testInt2831CustomJsonObjectMapper() {
+		TestPerson person = new TestPerson();
+		person.setFirstName("John");
+		person.setLastName("Doe");
+		person.setAge(42);
+		QueueChannel replyChannel = new QueueChannel();
+		Message<TestPerson> message = MessageBuilder.withPayload(person).setReplyChannel(replyChannel).build();
+		this.customJsonObjectMapperInput.send(message);
+		Message<?> reply = replyChannel.receive(0);
+		assertNotNull(reply);
+		assertNotNull(reply.getPayload());
+		assertEquals(String.class, reply.getPayload().getClass());
+		String resultString = (String) reply.getPayload();
+		assertEquals("{" + person.toString() + "}", resultString);
+	}
+
 
 	static class TestPerson {
 
@@ -193,8 +216,8 @@ public class ObjectToJsonTransformerParserTests {
 
 		@Override
 		public String toString() {
-			return "name=" + this.firstName + " " + this.lastName
-					+ ", age=" + this.age + ", address=" + this.address;
+			return "\"name\":\"" + this.firstName + " " + this.lastName
+					+ "\", \"age\":" + this.age + ", \"address\":\"" + this.address + "\"";
 		}
 	}
 
@@ -233,6 +256,14 @@ public class ObjectToJsonTransformerParserTests {
 
 		public CustomObjectMapper() {
 			this.configure(Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
+		}
+	}
+
+	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter<Object> {
+
+		@Override
+		public String toJson(Object value) throws Exception {
+			return "{" + value.toString() + "}";
 		}
 	}
 

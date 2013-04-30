@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,31 @@
  */
 
 package org.springframework.integration.json;
-
-import java.io.StringWriter;
-
-import org.codehaus.jackson.map.ObjectMapper;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.util.Assert;
 
 /**
  * {@link OutboundMessageMapper} implementation the converts a {@link Message} to a JSON string representation.
- * 
+ *
  * @author Jeremy Grelle
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> {
 
 	private volatile boolean shouldExtractPayload = false;
 
-	private volatile ObjectMapper objectMapper = new ObjectMapper();
+	private volatile JsonObjectMapper<?> jsonObjectMapper;
 
+	public JsonOutboundMessageMapper() {
+		this(JacksonJsonObjectMapperProvider.newInstance());
+	}
 
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper must not be null");
-		this.objectMapper = objectMapper;
+	public JsonOutboundMessageMapper(JsonObjectMapper<?> jsonObjectMapper) {
+		Assert.notNull(jsonObjectMapper, "jsonObjectMapper must not be null");
+		this.jsonObjectMapper = jsonObjectMapper;
 	}
 
 	public void setShouldExtractPayload(boolean shouldExtractPayload) {
@@ -48,14 +47,7 @@ public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> 
 	}
 
 	public String fromMessage(Message<?> message) throws Exception {
-		StringWriter writer = new StringWriter();
-		if (this.shouldExtractPayload) {
-			this.objectMapper.writeValue(writer, message.getPayload());
-		}
-		else {
-			this.objectMapper.writeValue(writer, message);
-		}
-		return writer.toString();
+		return this.jsonObjectMapper.toJson(this.shouldExtractPayload ? message.getPayload() : message);
 	}
 
 }
