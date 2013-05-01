@@ -14,7 +14,6 @@ package org.springframework.integration.channel.registry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -136,20 +135,23 @@ public class LocalChannelRegistryTests {
 	}
 
 	@Test
-	public void testOnlyOneChannelRegisteredForAName() {
-		DirectChannel registeredChannel = new DirectChannel();
-		registry.inbound("name", registeredChannel);
+	public void testBiDirectionalRegistration() {
+		DirectChannel outbound = new DirectChannel();
+		DirectChannel inbound = new DirectChannel();
 
-		DirectChannel anotherChannel = new DirectChannel();
-		try {
-			registry.outbound("name", anotherChannel);
-			fail("should throw an exception here");
-		} catch (IllegalArgumentException e) {
-		}
-		try {
-			registry.inbound("name", anotherChannel);
-			fail("should throw an exception here");
-		} catch (IllegalArgumentException e) {
-		}
+		registry.outbound("foo", outbound);
+		registry.inbound("foo", inbound);
+
+		final AtomicBoolean messageReceived = new AtomicBoolean();
+		inbound.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messageReceived.set(true);
+				assertEquals("hello", message.getPayload());
+			}
+		});
+
+		outbound.send(new GenericMessage<String>("hello"));
+		assertTrue(messageReceived.get());
 	}
 }
