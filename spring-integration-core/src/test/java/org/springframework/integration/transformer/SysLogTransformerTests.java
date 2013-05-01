@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Test;
 
@@ -44,6 +45,24 @@ public class SysLogTransformerTests {
 		assertEquals("WEBERN", transformed.get(SyslogToMapTransformer.HOST));
 		assertEquals("TESTING[70729]", transformed.get(SyslogToMapTransformer.TAG));
 		assertEquals("TEST SYSLOG MESSAGE", transformed.get(SyslogToMapTransformer.MESSAGE));
+
+		String[] fields = new String[] {SyslogToMapTransformer.FACILITY,
+				SyslogToMapTransformer.SEVERITY, SyslogToMapTransformer.TIMESTAMP, SyslogToMapTransformer.HOST,
+				SyslogToMapTransformer.TAG, SyslogToMapTransformer.MESSAGE};
+		Object[] values = new Object[] {19, 6, date, "WEBERN", "TESTING[70729]", "TEST SYSLOG MESSAGE"};
+		// check iteration order
+		int n = 0;
+		for (Entry<String, ?> entry : transformed.entrySet()) {
+			assertEquals(fields[n++], entry.getKey());
+		}
+		n = 0;
+		for (String key : transformed.keySet()) {
+			assertEquals(fields[n++], key);
+		}
+		n = 0;
+		for (Object value : transformed.values()) {
+			assertEquals(values[n++], value);
+		}
 	}
 
 	@Test
