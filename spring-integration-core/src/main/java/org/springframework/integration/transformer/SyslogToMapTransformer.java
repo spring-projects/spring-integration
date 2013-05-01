@@ -19,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,7 +74,7 @@ public class SyslogToMapTransformer extends AbstractPayloadTransformer<Object, M
 	}
 
 	private Map<String, ?> transform(String payload) {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		Matcher matcher = pattern.matcher(payload);
 		if (matcher.matches()) {
 			try {
