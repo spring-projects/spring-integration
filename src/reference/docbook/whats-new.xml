@@ -144,6 +144,24 @@
 				before sending the request. For more information see <xref linkend="http"/>.
 			</para>
 		</section>
+		<section id="3.0-amqp-mapping">
+			<title>AMQP Outbound Gateway Header Mapping</title>
+			<para>
+				Previously, the &lt;int-amqp:outbound-gateway/&gt; mapped headers before invoking the message
+				converter, and the converter could overwrite headers such as <code>content-type</code>. The
+				outbound adapter maps the headers after the conversion, which means headers like
+				<code>content-type</code> from the outbound <code>Message</code> (if present) are used.
+			</para>
+			<para>
+				Starting with this release, the gateway now maps the headers after the message conversion,
+				consistent with the adapter. If your application relies on the previous behavior (where the
+				converter's headers overrode the mapped headers), you either need to filter those headers
+				(before the message reaches the gateway)
+				or set them appropriately. The headers affected by the <classname>SimpleMessageConverter</classname>
+				are <code>content-type</code> and <code>content-encoding</code>. Custom message converters
+				may set other headers.
+			</para>
+		</section>
 
 	</section>
 </chapter>

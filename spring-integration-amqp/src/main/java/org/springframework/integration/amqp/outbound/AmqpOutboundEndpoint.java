@@ -231,12 +231,11 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	}
 
 	private Message<?> sendAndReceive(String exchangeName, String routingKey, Message<?> requestMessage) {
-		// TODO: add a convertSendAndReceive method that accepts a MessagePostProcessor so we can map headers?
 		Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for send and receive");
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		MessageProperties amqpMessageProperties = new MessageProperties();
-		this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
 		org.springframework.amqp.core.Message amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
+		this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
 		org.springframework.amqp.core.Message amqpReplyMessage = this.amqpTemplate.sendAndReceive(exchangeName, routingKey, amqpMessage);
 		if (amqpReplyMessage == null) {
 			return null;
