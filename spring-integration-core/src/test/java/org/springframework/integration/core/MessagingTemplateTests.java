@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -51,10 +54,11 @@ import org.springframework.integration.test.util.TestUtils.TestApplicationContex
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MessagingTemplateTests {
 
-	private TestApplicationContext context = TestUtils.createTestApplicationContext();
+	private final TestApplicationContext context = TestUtils.createTestApplicationContext();
 
 	private QueueChannel requestChannel;
 
@@ -305,16 +309,16 @@ public class MessagingTemplateTests {
 
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", testChannel);
-		
+
 		MessagingTemplate template = new MessagingTemplate();
 		template.setBeanFactory(beanFactory);
-	
+
 		template.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		template.send("testChannel", message);
 		assertEquals(message, testChannel.receive(0));
-		
-		template.setChannelResolver(new ChannelResolver() {	
+
+		template.setChannelResolver(new ChannelResolver() {
 			public MessageChannel resolveChannelName(String channelName) {
 				return anotherChannel;
 			}
@@ -405,7 +409,7 @@ public class MessagingTemplateTests {
 		template.convertAndSend(channel, "test");
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
-		assertEquals("test", reply.getPayload());		
+		assertEquals("test", reply.getPayload());
 	}
 
 	@Test
@@ -452,7 +456,7 @@ public class MessagingTemplateTests {
 		template.convertAndSend(channel, "test");
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
-		assertEquals("to:test", reply.getPayload());		
+		assertEquals("to:test", reply.getPayload());
 	}
 
 	@Test
@@ -524,6 +528,86 @@ public class MessagingTemplateTests {
 		assertEquals("from:TO:TEST", result);
 	}
 
+	@Test
+	public void testLateReply() {
+		MessagingTemplate template = new MessagingTemplate();
+		QueueChannel channel = new QueueChannel();
+		template.setDefaultChannel(channel);
+		template.setReceiveTimeout(1);
+		template.setShouldFailIfNoReceiver(true);
+		Object result = template.sendAndReceive(new GenericMessage<String>("foo"));
+		assertNull(result);
+		Message<?> message = channel.receive();
+		try {
+			((MessageChannel) message.getHeaders().getReplyChannel()).send(new GenericMessage<String>("bar"));
+			fail("Exception expected");
+		}
+		catch (MessagingException e) {
+			assertEquals("Reply message being sent, but the receiving thread has already timed out", e.getMessage());
+		}
+	}
+
+	@Test
+	public void testNeverReceive() {
+		MessagingTemplate template = new MessagingTemplate();
+		DirectChannel channel = new DirectChannel();
+		final AtomicReference<MessageChannel> replyChannel = new AtomicReference<MessageChannel>();
+		channel.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				replyChannel.set((MessageChannel) message.getHeaders().getReplyChannel());
+				throw new MessagingException("foo");
+			}
+		});
+		template.setDefaultChannel(channel);
+		template.setReceiveTimeout(10000);
+		template.setShouldFailIfNoReceiver(true);
+		try {
+			template.sendAndReceive(new GenericMessage<String>("foo"));
+			fail("Exception expected");
+		}
+		catch (MessagingException e) {
+			assertTrue(e.getMessage().equals("foo"));
+		}
+		try {
+			replyChannel.get().send(new GenericMessage<String>("bar"));
+			fail("Exception expected");
+		}
+		catch (MessagingException e) {
+			assertEquals(
+					"Reply message being sent, but the receiving thread has already caught an exception and won't receive",
+					e.getMessage());
+		}
+	}
+
+	@Test
+	public void testTwoReplies() {
+		MessagingTemplate template = new MessagingTemplate();
+		DirectChannel channel = new DirectChannel();
+		final AtomicReference<MessageChannel> replyChannel = new AtomicReference<MessageChannel>();
+		channel.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				MessageChannel replyChannelHeader = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.set(replyChannelHeader);
+				replyChannelHeader.send(new GenericMessage<String>("bar"));
+			}
+		});
+		template.setDefaultChannel(channel);
+		template.setReceiveTimeout(10000);
+		template.setShouldFailIfNoReceiver(true);
+		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("foo"));
+		assertTrue(reply.getPayload().equals("bar"));
+		try {
+			replyChannel.get().send(new GenericMessage<String>("baz"));
+			fail("Exception expected");
+		}
+		catch (MessagingException e) {
+			assertEquals(
+					"Reply message being sent, but the receiving thread has already received a reply",
+					e.getMessage());
+		}
+	}
 
 	private static class TestMapper implements InboundMessageMapper<Object>, OutboundMessageMapper<Object> {
 
