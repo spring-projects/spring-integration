@@ -35,6 +35,7 @@ subprojects { subproject ->
 		aspectjVersion = '1.6.8'
 		cglibVersion = '2.2'
 		commonsNetVersion = '3.0.1'
+		commonsIoVersion = '2.4'
 		derbyVersion = '10.9.1.0'
 		easymockVersion = '2.3'
 		groovyVersion = '2.1.0'
@@ -203,6 +204,7 @@ project('spring-integration-file') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context:$springVersion"
+		compile("commons-io:commons-io:$commonsIoVersion", optional)
 		testCompile project(":spring-integration-test")
 	}
 }

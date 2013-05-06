@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's 'file' namespace.
- * 
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  */
@@ -32,6 +32,7 @@ public class FileNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		registerBeanDefinitionParser("outbound-gateway", new FileOutboundGatewayParser());
 		registerBeanDefinitionParser("file-to-string-transformer", new FileToStringTransformerParser());
 		registerBeanDefinitionParser("file-to-bytes-transformer", new FileToByteArrayTransformerParser());
+		registerBeanDefinitionParser("tail-inbound-channel-adapter", new FileTailInboundChannelAdapterParser());
 	}
 
 }
