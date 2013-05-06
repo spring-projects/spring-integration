@@ -193,6 +193,104 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:complexType>
     </xsd:element>
 
+    <xsd:element name="tail-inbound-channel-adapter">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures an inbound channel adapter that 'tails' a file on the filesystem.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:attribute name="id" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (xxxFileTailingMessageProducer)
+
+                        If no "channel" attribute is defined, then the "id" attribute is required.
+                        In that case the "id" attribute's value will be used as the channel name and ".adapter" will be
+                        appended to the "id" value of the underlying bean definition.
+                        ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="channel" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[Defines the message channel to which the payload shall be forwarded to.
+
+                        Any Channel Adapter can be created without a "channel" reference in which case
+                        it will implicitly create an instance of DirectChannel. The created channel's name will match
+                        the "id" attribute of the <inbound-channel-adapter/> element. Therefore, if the "channel" attribute
+                        is not provided, then the "id" attribute is required.
+                        ]]></xsd:documentation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="native-options" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configures the adapter to exec 'tail' with these options (appended by the file name). This
+                        will likely be the most efficient implementation on operating systems that
+                        support a 'tail' command. Example: "-F -n 0" (follow the filename and emit no
+                        existing lines). When this attribute is not
+                        specified, the Apache commons-io 'Tailer' class is used instead.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="file" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The fully qualified name of the file to be tailed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="task-executor" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A reference to a TaskExecutor; default is a SimpleAsyncTaskExecutor; the
+                        native adapter uses two threads - one for stdout the other for stderr.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="delay" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Does not apply to the native adapter - the delay in milliseconds between polls when no new
+                        data was detected in the file. Defailt 1000.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="file-delay" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Does not apply to the native adapter - the delay in milliseconds between attempts to open
+                        the file when no file was found. Defailt 5000.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="auto-startup" type="xsd:string" default="true">
+                <xsd:annotation>
+				    <xsd:documentation>
+				        Lifecycle attribute signaling if this component should be started during Application Context startup.
+				    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="phase" type="xsd:string">
+                <xsd:annotation>
+				    <xsd:documentation>
+				        Lifecycle attribute signaling the phase in which this component should be started during
+				        Application Context startup when 'auto-startup' is true.
+				    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+
     <xsd:element name="outbound-gateway">
         <xsd:annotation>
             <xsd:documentation>
