@@ -17,9 +17,8 @@
 package org.springframework.integration.event.inbound;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.concurrent.CountDownLatch;
+import java.util.Set;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ApplicationContextEvent;
@@ -47,11 +46,7 @@ import org.springframework.util.Assert;
  */
 public class ApplicationEventListeningMessageProducer extends ExpressionMessageProducerSupport implements SmartApplicationListener {
 
-	private volatile Collection<Class<? extends ApplicationEvent>> eventTypes;
-
-	private volatile boolean eventTypesChanging;
-
-	private volatile CountDownLatch changeEventTypesLatch;
+	private volatile Set<Class<? extends ApplicationEvent>> eventTypes;
 
 	private ApplicationEventMulticaster applicationEventMulticaster;
 
@@ -69,14 +64,10 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see #supportsEventType
 	 */
 	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		this.changeEventTypesLatch = new CountDownLatch(1);
-		this.eventTypesChanging = true;
 		this.eventTypes = new HashSet<Class<? extends ApplicationEvent>>(Arrays.asList(eventTypes));
 		if (this.applicationEventMulticaster != null) {
 			this.applicationEventMulticaster.addApplicationListener(this);
 		}
-		this.eventTypesChanging = false;
-		this.changeEventTypesLatch.countDown();
 	}
 
 	public String getComponentType() {
@@ -94,21 +85,6 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (this.active || event instanceof ApplicationContextEvent) {
-			if (this.eventTypesChanging) {
-				try {
-					this.changeEventTypesLatch.await();
-					if (!this.supportsEventType(event.getClass())) {
-						if (this.logger.isInfoEnabled()) {
-							this.logger.info("Received event: " + event +
-									" was discarded after change of 'eventTypes': " + this.eventTypes);
-						}
-						return;
-					}
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
 			if (event.getSource() instanceof Message<?>) {
 				this.sendMessage((Message<?>) event.getSource());
 			}
