@@ -21,6 +21,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -50,6 +51,11 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 				&& (arguments.length == 1 && arguments[0] instanceof Message);
 
 		if (!isMessageMethod) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("This advice " + this.getClass().getName() +
+						" can only be used for MessageHandlers; an attempt to advise method '" + method.getName() +
+						"' in '" + method.getDeclaringClass().getName() + "' is ignored");
+			}
 			return invocation.proceed();
 		}
 		else {

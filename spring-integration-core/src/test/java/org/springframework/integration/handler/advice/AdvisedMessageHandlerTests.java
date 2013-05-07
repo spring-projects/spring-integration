@@ -16,6 +16,7 @@
 package org.springframework.integration.handler.advice;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -23,37 +24,52 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.logging.Log;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryState;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.DefaultRetryState;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Gary Russell
@@ -785,6 +801,55 @@ public class AdvisedMessageHandlerTests {
 			assertNotNull(error);
 			assertSame(theThrowable, error.getPayload().getCause());
 		}
+	}
+
+	@Test
+	public void testInappropriateAdvice() throws Exception {
+		final AtomicBoolean called = new AtomicBoolean(false);
+		Advice advice = new AbstractRequestHandlerAdvice() {
+			@Override
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+				called.set(true);
+				return callback.execute();
+			}
+		};
+		PollableChannel inputChannel = new QueueChannel();
+		PollingConsumer consumer = new PollingConsumer(inputChannel, new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
+		consumer.setAdviceChain(Collections.singletonList(advice));
+		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(
+				Executors.newSingleThreadExecutor(),
+				new ErrorHandler() {
+					@Override
+					public void handleError(Throwable t) {
+					}
+				}));
+		consumer.afterPropertiesSet();
+
+		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "poller.pollingTask", Callable.class);
+		assertTrue(AopUtils.isAopProxy(pollingTask));
+		Log logger = TestUtils.getPropertyValue(advice, "logger", Log.class);
+		logger = spy(logger);
+		when(logger.isWarnEnabled()).thenReturn(Boolean.TRUE);
+		final AtomicReference<String> logMessage = new AtomicReference<String>();
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				logMessage.set((String) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(logger).warn(Mockito.anyString());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(advice);
+		accessor.setPropertyValue("logger", logger);
+
+		pollingTask.call();
+		assertFalse(called.get());
+		assertNotNull(logMessage.get());
+		assertTrue(logMessage.get().endsWith("can only be used for MessageHandlers; " +
+				"an attempt to advise method 'call' in 'java.util.concurrent.Callable' is ignored"));
 	}
 
 	private interface Bar {
