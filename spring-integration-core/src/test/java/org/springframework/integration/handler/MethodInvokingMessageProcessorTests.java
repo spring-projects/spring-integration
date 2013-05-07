@@ -28,10 +28,11 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
@@ -301,6 +302,15 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
+	public void testProcessMessageMethodNotFound() throws Exception {
+		expected.expect(new ExceptionCauseMatcher(SpelEvaluationException.class));
+		TestDifferentErrorService service = new TestDifferentErrorService();
+		Method method = TestErrorService.class.getMethod("checked", String.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.processMessage(new GenericMessage<String>("foo"));
+	}
+
+	@Test
 	public void messageAndHeaderWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
@@ -348,7 +358,7 @@ public class MethodInvokingMessageProcessorTests {
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
 
-		private Class<? extends Exception> type;
+		private final Class<? extends Exception> type;
 
 		public ExceptionCauseMatcher(Class<? extends Exception> type) {
 			this.type = type;
@@ -373,6 +383,13 @@ public class MethodInvokingMessageProcessorTests {
 			throw new UnsupportedOperationException("Expected test exception");
 		}
 
+		public String checked(String input) throws Exception {
+			throw new CheckedException("Expected test exception");
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private static class TestDifferentErrorService {
 		public String checked(String input) throws Exception {
 			throw new CheckedException("Expected test exception");
 		}
