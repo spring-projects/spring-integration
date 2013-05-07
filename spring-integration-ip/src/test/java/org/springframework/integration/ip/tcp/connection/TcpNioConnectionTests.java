@@ -53,7 +53,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
+import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
@@ -335,6 +337,109 @@ public class TcpNioConnectionTests {
 		});
 		future.get(60, TimeUnit.SECONDS);
 		assertTrue(messageLatch.await(10, TimeUnit.SECONDS));
+	}
+
+	@Test
+	public void testByteArrayRead() throws Exception {
+		SocketChannel socketChannel = mock(SocketChannel.class);
+		Socket socket = mock(Socket.class);
+		when(socketChannel.socket()).thenReturn(socket);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
+		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
+				.getPropertyValue("channelInputStream");
+		stream.write("foo".getBytes(), 3);
+		byte[] out = new byte[2];
+		int n = stream.read(out);
+		assertEquals(2, n);
+		assertEquals("fo", new String(out));
+		out = new byte[2];
+		n = stream.read(out);
+		assertEquals(1, n);
+		assertEquals("o\u0000", new String(out));
+	}
+
+	@Test
+	public void testByteArrayReadMulti() throws Exception {
+		SocketChannel socketChannel = mock(SocketChannel.class);
+		Socket socket = mock(Socket.class);
+		when(socketChannel.socket()).thenReturn(socket);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
+		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
+				.getPropertyValue("channelInputStream");
+		stream.write("foo".getBytes(), 3);
+		stream.write("bar".getBytes(), 3);
+		byte[] out = new byte[6];
+		int n = stream.read(out);
+		assertEquals(6, n);
+		assertEquals("foobar", new String(out));
+	}
+
+	@Test
+	public void testByteArrayReadWithOffset() throws Exception {
+		SocketChannel socketChannel = mock(SocketChannel.class);
+		Socket socket = mock(Socket.class);
+		when(socketChannel.socket()).thenReturn(socket);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
+		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
+				.getPropertyValue("channelInputStream");
+		stream.write("foo".getBytes(), 3);
+		byte[] out = new byte[5];
+		int n = stream.read(out, 1, 4);
+		assertEquals(3, n);
+		assertEquals("\u0000foo\u0000", new String(out));
+	}
+
+	@Test
+	public void testByteArrayReadWithBadArgs() throws Exception {
+		SocketChannel socketChannel = mock(SocketChannel.class);
+		Socket socket = mock(Socket.class);
+		when(socketChannel.socket()).thenReturn(socket);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
+		TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
+				.getPropertyValue("channelInputStream");
+		stream.write("foo".getBytes(), 3);
+		byte[] out = new byte[5];
+		try {
+			stream.read(out, 1, 5);
+			fail("Expected IndexOutOfBoundsException");
+		}
+		catch (IndexOutOfBoundsException e) {}
+		try {
+			stream.read(null, 1, 5);
+			fail("Expected IllegalArgumentException");
+		}
+		catch (IllegalArgumentException e) {}
+		assertEquals(0, stream.read(out, 0, 0));
+		assertEquals(3, stream.read(out));
+	}
+
+	@Test
+	public void testByteArrayBlocksForZeroRead() throws Exception {
+		SocketChannel socketChannel = mock(SocketChannel.class);
+		Socket socket = mock(Socket.class);
+		when(socketChannel.socket()).thenReturn(socket);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, false, null, null);
+		final TcpNioConnection.ChannelInputStream stream = (ChannelInputStream) new DirectFieldAccessor(connection)
+				.getPropertyValue("channelInputStream");
+		final CountDownLatch latch = new CountDownLatch(1);
+		final byte[] out = new byte[4];
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(new Runnable(){
+			public void run() {
+				try {
+					stream.read(out);
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				latch.countDown();
+			}
+		});
+		Thread.sleep(1000);
+		assertEquals(0x00, out[0]);
+		stream.write("foo".getBytes(), 3);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertEquals("foo\u0000", new String(out));
 	}
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {
