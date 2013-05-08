@@ -15,6 +15,8 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -42,10 +44,18 @@ import org.springframework.util.xml.DomUtils;
  */
 public class ChainParser extends AbstractConsumerEndpointParser {
 
+	private final Log logger = LogFactory.getLog(this.getClass());
+
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
-		String chainHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext) + ".handler";
+
+		if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
+			logger.info("It is preferable to provide an explicit 'id' attribute on 'chain' " +
+					"to make easier identification of child elements in logs etc.");
+		}
+
+		String chainHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
 		ManagedList<BeanMetadataElement> handlerList = new ManagedList<BeanMetadataElement>();
 		NodeList children = element.getChildNodes();
 		int childOrder = 0;
@@ -93,9 +103,20 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 
 	}
 
-	private BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext, BeanDefinition parentDefinition) {
+	private BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext,
+										   BeanDefinition parentDefinition) {
 
 		BeanDefinitionHolder holder = null;
+
+		String id = element.getAttribute(ID_ATTRIBUTE);
+		boolean hasId = StringUtils.hasText(id);
+		String handlerBeanName = chainHandlerId + "$child" + (hasId ? "." + id : "#" + order);
+
+		if (parserContext.getRegistry().isBeanNameInUse(handlerBeanName)) {
+			parserContext.getReaderContext().error("BeanDefinition is already registered for given 'beanName': " + handlerBeanName,
+					element);
+			return null;
+		}
 
 		if ("bean".equals(element.getLocalName())) {
 			holder = parserContext.getDelegate().parseBeanDefinitionElement(element, parentDefinition);
@@ -110,14 +131,14 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				return null;
 			}
 			else {
-				String handlerBeanName = chainHandlerId + "$child" + order + "#" +
-						BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
 				String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
 				holder = new BeanDefinitionHolder(beanDefinition, handlerBeanName, handlerAlias);
 			}
 		}
-		if (StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
-			holder.getBeanDefinition().getPropertyValues().add("componentName", element.getAttribute(ID_ATTRIBUTE));
+
+		holder.getBeanDefinition().getPropertyValues().add("componentName", handlerBeanName);
+
+		if (hasId) {
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 			return new RuntimeBeanReference(holder.getBeanName());
 		}

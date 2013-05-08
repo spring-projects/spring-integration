@@ -108,20 +108,54 @@
 	</important>
 	<para>
 		The <emphasis>id</emphasis> attribute, however, is allowed to be specified.
-		In fact, the <link linkend='delayer'><emphasis>Delayer</emphasis></link>
-		component actually requires the <emphasis>id</emphasis> attribute to be present.
+		Since Spring Integration 3.0 <emphasis>id</emphasis> attribute plays almost the same identification role
+		as for root beans. Let's look at the example:
+		<programlisting language="xml"><![CDATA[<int:chain id="fooChain" input-channel="input">
+    <int:service-activator id="fooService" ref="someService" method="someMethod"/>
+    <int:object-to-json-transformer/>
+</int:chain>]]></programlisting>
+		<itemizedlist>
+			<listitem>
+				The <code>&lt;chain&gt;</code> root element has <emphasis>id</emphasis> 'fooChain'. So,
+				<classname>AbstractEndpoint</classname> implementation (<classname>PollingConsumer</classname> or
+				<classname>EventDrivenConsumer</classname>, depending on the <emphasis>input-channel</emphasis> type)
+				bean takes this value as a root component.
+			</listitem>
+			<listitem>
+				The <classname>MessageHandlerChain</classname> bean acquires a bean alias 'fooChain.handler', which allows
+				direct access to this bean from <interfacename>BeanFactory</interfacename>.
+			</listitem>
+			<listitem>
+				The <code>&lt;service-activator&gt;</code> doesn't provide Messaging Endpoint (<classname>PollingConsumer</classname>
+				or <classname>EventDrivenConsumer</classname>) within <code>&lt;chain&gt;</code> - it is just one of
+				<interfacename>MessageHandler</interfacename>s in the <code>&lt;chain&gt;</code> black box. So, in this case,
+				'fooService' <emphasis>id</emphasis> is involved in the generation of <classname>ServiceActivatingHandler</classname>'s
+				bean alias - 'fooService.handler', as it is for root components.
+			</listitem>
+			<listitem>
+			    From other side <classname>ServiceActivatingHandler</classname>'s bean name is based on <code>&lt;chain&gt;</code>
+				element <emphasis>id</emphasis> and its own <emphasis>id</emphasis> and this bean name shows relationship inside
+				<code>&lt;chain&gt;</code> black box. Here it looks like 'fooChain$child.fooService'. The same value is applied
+				to the <classname>ServiceActivatingHandler</classname>'s component name.
+			</listitem>
+			<listitem>
+				The last <code>&lt;chain&gt;</code> sub-component, <code>&lt;object-to-json-transformer&gt;</code>, doesn't have
+				an <emphasis>id</emphasis> attribute. However, it has precise <emphasis>order</emphasis>
+				in the <code>&lt;chain&gt;</code>'s handler list. So, this order is involved in the generation of
+				<classname>MessageTransformingHandler</classname>'s bean name and component name. Here it looks like
+				'fooChain$child#1'. This transformer doesn't get bean alias, because it isn't registered as a bean within
+				application context.
+			</listitem>
+		</itemizedlist>
 	</para>
 	<para>
-		In most other cases, the <emphasis>id</emphasis> will generally be
-		ignored but may still add value for documentation purposes, and may also
-		be  used for providing more meaningful log messages.
+		The <emphasis>id</emphasis> attribute for <code>&lt;chain&gt;</code> sub-components allows them to be eligible for
+		<link linkend='jmx-mbean-exporter'>JMX export</link> and they are trackable via <link linkend='message-history'>Message History</link>.
+		By the bean alias, using suffix '.handler', <code>&lt;chain&gt;</code> sub-components <interfacename>MessageHandler</interfacename>s
+		can be accessed from <interfacename>BeanFactory</interfacename>.
+		<note>It is preferable to provide an explicit <emphasis>id</emphasis> attribute on the <code>&lt;chain&gt;</code>
+		to make easier identification of sub-components in logs etc.</note>
 	</para>
-	<note>
-		Currently, the XML Schema of the <emphasis>Spring Integration</emphasis> Core module
-		prevents you from setting the <emphasis>id</emphasis> attribute for
-		Core components within a Message Handler Chain. This may be relaxed in future,
-		to provide the benefits described above.
-	</note>
 	<para><emphasis>Calling a Chain from within a Chain</emphasis></para>
 
 	<para>

@@ -99,7 +99,7 @@ public class MessageHistoryIntegrationTests {
 				assertEquals("chain", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
 				event = historyIterator.next();
-				assertEquals("sampleChain.service-activator-within-chain", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("sampleChain$child.service-activator-within-chain", event.getProperty(MessageHistory.NAME_PROPERTY));
 				assertEquals("service-activator", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
 				event = historyIterator.next();

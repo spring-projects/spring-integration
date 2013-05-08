@@ -377,7 +377,7 @@ public class ChainParserTests {
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof ReplyRequiredException);
-			assertTrue(e.getMessage().contains("chainReplayRequired.transformerReplayRequired"));
+			assertTrue(e.getMessage().contains("'chainReplayRequired$child.transformerReplayRequired'"));
 		}
 
 		try {
@@ -386,7 +386,7 @@ public class ChainParserTests {
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof MessageRejectedException);
-			assertTrue(e.getMessage().contains("chainMessageRejectedException.filterMessageRejectedException"));
+			assertTrue(e.getMessage().contains("chainMessageRejectedException$child.filterMessageRejectedException"));
 		}
 
 	}
