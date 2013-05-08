@@ -95,6 +95,18 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertNotNull(message2);
 		assertEquals("event1", ((ApplicationEvent) message2.getPayload()).getSource());
 		assertNull(channel.receive(0));
+
+		adapter.setEventTypes((Class<? extends ApplicationEvent>) null);
+		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+
+		adapter.setEventTypes(null, TestApplicationEvent2.class, null);
+		assertFalse(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+
+		adapter.setEventTypes(null, null);
+		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
 	}
 
 	@Test

@@ -17,7 +17,9 @@
 package org.springframework.integration.event.inbound;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.context.ApplicationEvent;
@@ -31,6 +33,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * An inbound Channel Adapter that implements {@link ApplicationListener} and
@@ -40,7 +43,6 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Artem Bilan
- *
  * @see ApplicationEventMulticaster
  * @see ExpressionMessageProducerSupport
  */
@@ -63,8 +65,12 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * @see ApplicationEventMulticaster#addApplicationListener
 	 * @see #supportsEventType
 	 */
+	@SuppressWarnings("unchecked")
 	public void setEventTypes(Class<? extends ApplicationEvent>... eventTypes) {
-		this.eventTypes = new HashSet<Class<? extends ApplicationEvent>>(Arrays.asList(eventTypes));
+		Set<Class<? extends ApplicationEvent>> eventSet = new HashSet<Class<? extends ApplicationEvent>>(CollectionUtils.arrayToList(eventTypes));
+		eventSet.remove(null);
+		this.eventTypes = (eventSet.size() > 0 ? eventSet : null);
+
 		if (this.applicationEventMulticaster != null) {
 			this.applicationEventMulticaster.addApplicationListener(this);
 		}
