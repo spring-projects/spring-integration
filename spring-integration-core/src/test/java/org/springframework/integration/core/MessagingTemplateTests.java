@@ -534,7 +534,7 @@ public class MessagingTemplateTests {
 		QueueChannel channel = new QueueChannel();
 		template.setDefaultChannel(channel);
 		template.setReceiveTimeout(1);
-		template.setShouldFailIfNoReceiver(true);
+		template.setThrowExceptionOnLateReply(true);
 		Object result = template.sendAndReceive(new GenericMessage<String>("foo"));
 		assertNull(result);
 		Message<?> message = channel.receive();
@@ -561,7 +561,7 @@ public class MessagingTemplateTests {
 		});
 		template.setDefaultChannel(channel);
 		template.setReceiveTimeout(10000);
-		template.setShouldFailIfNoReceiver(true);
+		template.setThrowExceptionOnLateReply(true);
 		try {
 			template.sendAndReceive(new GenericMessage<String>("foo"));
 			fail("Exception expected");
@@ -595,7 +595,7 @@ public class MessagingTemplateTests {
 		});
 		template.setDefaultChannel(channel);
 		template.setReceiveTimeout(10000);
-		template.setShouldFailIfNoReceiver(true);
+		template.setThrowExceptionOnLateReply(true);
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("foo"));
 		assertTrue(reply.getPayload().equals("bar"));
 		try {

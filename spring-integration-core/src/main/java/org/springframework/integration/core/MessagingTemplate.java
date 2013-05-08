@@ -65,7 +65,7 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 
 	private final Object initializationMonitor = new Object();
 
-	private volatile boolean shouldFailIfNoReceiver = false;
+	private volatile boolean throwExceptionOnLateReply = false;
 
 
 	/**
@@ -137,15 +137,15 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	}
 
 	/**
-	 * Specify whether or not a send on the reply channel throws an exception
+	 * Specify whether or not an attempt to send on the reply channel throws an exception
 	 * if no receiving thread will actually receive the reply. This can occur
 	 * if the receiving thread has already timed out, or will never call receive()
 	 * because it caught an exception, or has already received a reply.
 	 * (default false - just a WARN log is emitted in these cases).
-	 * @param shouldFailIfNoReceiver TRUE or FALSE.
+	 * @param throwExceptionOnLateReply TRUE or FALSE.
 	 */
-	public void setShouldFailIfNoReceiver(boolean shouldFailIfNoReceiver) {
-		this.shouldFailIfNoReceiver = shouldFailIfNoReceiver;
+	public void setThrowExceptionOnLateReply(boolean throwExceptionOnLateReply) {
+		this.throwExceptionOnLateReply = throwExceptionOnLateReply;
 	}
 
 	public void afterPropertiesSet() {
@@ -326,7 +326,7 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	private <S, R> Message<R> doSendAndReceive(MessageChannel channel, Message<S> requestMessage) {
 		Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
 		Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
-		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout, this.shouldFailIfNoReceiver);
+		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout, this.throwExceptionOnLateReply);
 		requestMessage = MessageBuilder.fromMessage(requestMessage)
 				.setReplyChannel(replyChannel)
 				.setErrorChannel(replyChannel)
@@ -386,7 +386,7 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 
 		private final CountDownLatch latch = new CountDownLatch(1);
 
-		private final boolean shouldFailIfNoReceiver;
+		private final boolean throwExceptionOnLateReply;
 
 		private volatile boolean clientTimedOut;
 
@@ -395,9 +395,9 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		private volatile boolean clientHasReceived;
 
 
-		public TemporaryReplyChannel(long receiveTimeout, boolean shouldFailIfNoReceiver) {
+		public TemporaryReplyChannel(long receiveTimeout, boolean throwExceptionOnLateReply) {
 			this.receiveTimeout = receiveTimeout;
-			this.shouldFailIfNoReceiver = shouldFailIfNoReceiver;
+			this.throwExceptionOnLateReply = throwExceptionOnLateReply;
 		}
 
 		public void setClientWontReceive(boolean clientWontReceive) {
@@ -452,7 +452,7 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 				if (logger.isWarnEnabled()) {
 					logger.warn(exceptionMessage + ":" + message);
 				}
-				if (this.shouldFailIfNoReceiver) {
+				if (this.throwExceptionOnLateReply) {
 					throw new MessageDeliveryException(message, exceptionMessage);
 				}
 			}
