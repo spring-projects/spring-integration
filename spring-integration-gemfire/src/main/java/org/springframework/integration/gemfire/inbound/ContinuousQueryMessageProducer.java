@@ -26,6 +26,7 @@ import org.springframework.data.gemfire.listener.ContinuousQueryDefinition;
 import org.springframework.data.gemfire.listener.ContinuousQueryListener;
 import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
 import org.springframework.integration.Message;
+import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -36,13 +37,13 @@ import com.gemstone.gemfire.cache.query.CqEvent;
  * constantly evaluated against a cache
  * {@link com.gemstone.gemfire.cache.Region}. This is much faster than
  * re-querying the cache manually.
- * 
+ *
  * @author Josh Long
  * @author David Turanski
  * @since 2.1
- * 
+ *
  */
-public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport implements ContinuousQueryListener {
+public class ContinuousQueryMessageProducer extends ExpressionMessageProducerSupport implements ContinuousQueryListener {
 	private static Log logger = LogFactory.getLog(ContinuousQueryMessageProducer.class);
 
 	private final String query;
@@ -57,7 +58,7 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 			CqEventType.UPDATED));
 
 	/**
-	 * 
+	 *
 	 * @param queryListenerContainer a {@link org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer}
 	 * @param query the query string
 	 */
@@ -69,7 +70,7 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 	}
 
 	/**
-	 * 
+	 *
 	 * @param queryName optional query name
 	 */
 	public void setQueryName(String queryName) {
@@ -77,7 +78,7 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 	}
 
 	/**
-	 * 
+	 *
 	 * @param durable true if the query is a durable subscription
 	 */
 	public void setDurable(boolean durable) {
@@ -102,7 +103,7 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.springframework.data.gemfire.listener.QueryListener#onEvent(com.gemstone
 	 * .gemfire.cache.query.CqEvent)
@@ -113,14 +114,14 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 				logger.debug(String.format("processing cq event key [%s] event [%s]", event.getQueryOperation()
 						.toString(), event.getKey()));
 			}
-			Message<?> cqEventMessage = MessageBuilder.withPayload(evaluationResult(event)).build();
+			Message<?> cqEventMessage = MessageBuilder.withPayload(evaluatePayloadExpression(event)).build();
 			sendMessage(cqEventMessage);
 		}
 	}
 
 	private boolean isEventSupported(CqEvent event) {
-		 
-		 String eventName = event.getQueryOperation().toString() + 
+
+		 String eventName = event.getQueryOperation().toString() +
 		 	(event.getQueryOperation().toString().endsWith("Y")? "ED" : "D");
 		 CqEventType eventType = CqEventType.valueOf(eventName);
 		 return supportedEventTypes.contains(eventType);
