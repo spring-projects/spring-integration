@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,30 @@
 package org.springframework.integration.event.inbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
@@ -35,10 +49,12 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ApplicationEventListeningMessageProducerTests {
 
@@ -50,7 +66,9 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
+		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
 		adapter.onApplicationEvent(new TestApplicationEvent1());
+		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
 		adapter.onApplicationEvent(new TestApplicationEvent2());
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
@@ -66,17 +84,29 @@ public class ApplicationEventListeningMessageProducerTests {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
 		adapter.setOutputChannel(channel);
-		adapter.setEventTypes(new Class[]{TestApplicationEvent1.class});
+		adapter.setEventTypes(TestApplicationEvent1.class);
 		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
+		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
 		adapter.onApplicationEvent(new TestApplicationEvent1());
-		adapter.onApplicationEvent(new TestApplicationEvent2());
+		assertFalse(adapter.supportsEventType(TestApplicationEvent2.class));
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
 		assertEquals("event1", ((ApplicationEvent) message2.getPayload()).getSource());
-		Message<?> message3 = channel.receive(0);
-		assertNull(message3);
+		assertNull(channel.receive(0));
+
+		adapter.setEventTypes((Class<? extends ApplicationEvent>) null);
+		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+
+		adapter.setEventTypes(null, TestApplicationEvent2.class, null);
+		assertFalse(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
+
+		adapter.setEventTypes(null, null);
+		assertTrue(adapter.supportsEventType(TestApplicationEvent1.class));
+		assertTrue(adapter.supportsEventType(TestApplicationEvent2.class));
 	}
 
 	@Test
@@ -148,7 +178,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertEquals("test", message2.getPayload());
 	}
 
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void anyApplicationEventCausesExceptionWithErrorHandling() {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
@@ -170,6 +200,65 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.onApplicationEvent(new TestApplicationEvent1());
 	}
 
+	@Test
+	@SuppressWarnings({"unchecked", "serial"})
+	public void testInt2935CheckRetrieverCache() {
+		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
+		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
+
+		QueueChannel channel = new QueueChannel();
+		ApplicationEventListeningMessageProducer listenerMessageProducer = new ApplicationEventListeningMessageProducer();
+		listenerMessageProducer.setOutputChannel(channel);
+		listenerMessageProducer.setEventTypes(TestApplicationEvent2.class);
+		beanFactory.registerSingleton("testListenerMessageProducer", listenerMessageProducer);
+
+		AtomicInteger listenerCounter = new AtomicInteger();
+		beanFactory.registerSingleton("testListener", new TestApplicationListener(listenerCounter));
+
+		ctx.refresh();
+
+		ApplicationEventMulticaster multicaster =
+				ctx.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
+		Map retrieverCache = TestUtils.getPropertyValue(multicaster, "retrieverCache", Map.class);
+
+		ctx.publishEvent(new TestApplicationEvent1());
+
+		//Before retrieverCache grew exponentially: the same ApplicationEventListeningMessageProducer for each event
+		assertEquals(2, retrieverCache.size());
+		for (Object key : retrieverCache.keySet()) {
+			Class<? extends ApplicationEvent> event = TestUtils.getPropertyValue(key, "eventType", Class.class);
+			assertThat(event, Matchers.is(Matchers.isOneOf(ContextRefreshedEvent.class, TestApplicationEvent1.class)));
+			Set listeners = TestUtils.getPropertyValue(retrieverCache.get(key), "applicationListenerBeans", Set.class);
+			assertEquals(1, listeners.size());
+			assertEquals("testListener", listeners.iterator().next());
+		}
+
+		TestApplicationEvent2 event2 = new TestApplicationEvent2();
+		ctx.publishEvent(event2);
+		assertEquals(3, retrieverCache.size());
+		for (Object key : retrieverCache.keySet()) {
+			Class event = TestUtils.getPropertyValue(key, "eventType", Class.class);
+			if (TestApplicationEvent2.class.isAssignableFrom(event)) {
+				Set listeners = TestUtils.getPropertyValue(retrieverCache.get(key), "applicationListenerBeans", Set.class);
+				assertEquals(2, listeners.size());
+				for (Object listener : listeners) {
+					assertThat((String) listener, Matchers.is(Matchers.isOneOf("testListenerMessageProducer", "testListener")));
+				}
+				break;
+			}
+		}
+
+		ctx.publishEvent(new ApplicationEvent("Some event") {
+		});
+
+		assertEquals(4, listenerCounter.get());
+
+		final Message<?> receive = channel.receive(10);
+		assertNotNull(receive);
+		assertSame(event2, receive.getPayload());
+		assertNull(channel.receive(1));
+	}
+
 
 	@SuppressWarnings("serial")
 	private static class TestApplicationEvent1 extends ApplicationEvent {
@@ -179,7 +268,6 @@ public class ApplicationEventListeningMessageProducerTests {
 		}
 	}
 
-
 	@SuppressWarnings("serial")
 	private static class TestApplicationEvent2 extends ApplicationEvent {
 
@@ -188,12 +276,24 @@ public class ApplicationEventListeningMessageProducerTests {
 		}
 	}
 
-
 	@SuppressWarnings("serial")
 	private static class TestMessagingEvent extends ApplicationEvent {
 
 		public TestMessagingEvent(Message<?> message) {
 			super(message);
+		}
+	}
+
+	private static class TestApplicationListener implements ApplicationListener<ApplicationEvent> {
+
+		private final AtomicInteger counter;
+
+		private TestApplicationListener(AtomicInteger counter) {
+			this.counter = counter;
+		}
+
+		public void onApplicationEvent(ApplicationEvent event) {
+			this.counter.incrementAndGet();
 		}
 	}
 
