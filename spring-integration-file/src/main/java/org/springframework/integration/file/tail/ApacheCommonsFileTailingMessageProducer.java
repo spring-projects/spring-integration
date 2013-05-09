@@ -48,11 +48,6 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	}
 
 	@Override
-	protected void onInit() {
-		super.onInit();
-	}
-
-	@Override
 	protected void doStart() {
 		super.doStart();
 		this.tailer = new Tailer(this.getFile(), this, this.pollingDelay);

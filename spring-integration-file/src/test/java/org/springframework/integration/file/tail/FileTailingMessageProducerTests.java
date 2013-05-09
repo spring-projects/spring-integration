@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,6 +46,8 @@ import org.springframework.integration.test.util.TestUtils;
  *
  */
 public class FileTailingMessageProducerTests {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
 
@@ -77,7 +81,7 @@ public class FileTailingMessageProducerTests {
 			@Override
 			public void publishEvent(ApplicationEvent event) {
 				FileTailingEvent tailEvent = (FileTailingEvent) event;
-				System.err.println(tailEvent);
+				logger.warn(event);
 				events.add(tailEvent);
 			}
 		});
@@ -97,7 +101,7 @@ public class FileTailingMessageProducerTests {
 		}
 		foo.flush();
 		for (int i = 0; i < 50; i++) {
-			Message<?> message = outputChannel.receive(1000);
+			Message<?> message = outputChannel.receive(5000);
 			assertNotNull(message);
 			assertEquals("hello" + i, message.getPayload());
 		}

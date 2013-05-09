@@ -38,12 +38,17 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 
 	private volatile String options = "-F -n 0";
 
-	private volatile String command = "tail";
+	private volatile String command = "ADAPTER_NOT_INITIALIZED";
 
 	private volatile BufferedReader reader;
 
 	public void setOptions(String options) {
-		this.options = options;
+		if (options == null) {
+			this.options = "";
+		}
+		else {
+			this.options = options;
+		}
 	}
 
 	@Override
@@ -55,8 +60,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	protected void onInit() {
 		Assert.notNull(getFile(), "File cannot be null");
 		super.onInit();
-		String command = "tail";
-		this.command = command +  " " + this.options + " " + this.getFile().getAbsolutePath();
+		this.command = "tail " + this.options + " " + this.getFile().getAbsolutePath();
 	}
 
 	@Override
@@ -83,7 +87,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			this.startProcessMonitor();
 		}
 		catch (IOException e) {
-			throw new MessagingException("Failed to exec tail command: '" + this.options + "'", e);
+			throw new MessagingException("Failed to exec tail command: '" + this.command + "'", e);
 		}
 	}
 
@@ -101,6 +105,8 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
+					logger.error("Interrupted - stopping adapter", e);
+					stop();
 				}
 				finally {
 					if (process != null) {
@@ -139,7 +145,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 						errorReader.close();
 					}
 					catch (IOException e) {
-						e.printStackTrace();
+						logger.error("Exception while closing stderr", e);
 					}
 				}
 			}

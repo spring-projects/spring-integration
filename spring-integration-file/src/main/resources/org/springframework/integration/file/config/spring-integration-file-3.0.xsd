@@ -229,11 +229,11 @@ Only files matching this regular expression will be picked up by this adapter.
             <xsd:attribute name="native-options" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Configures the adapter to exec 'tail' with these options (appended by the file name). This
-                        will likely be the most efficient implementation on operating systems that
-                        support a 'tail' command. Example: "-F -n 0" (follow the filename and emit no
-                        existing lines). When this attribute is not
-                        specified, the Apache commons-io 'Tailer' class is used instead.
+                        Configures the adapter to exec 'tail' with these options (appended by the file name).
+                        Default: "-F -n 0" (follow the filename and emit no
+                        existing lines). This attribute is not allowed if 'delay' or 'file-delay' is
+                        specified, which cause the Apache commons-io 'Tailer' class to be used instead of
+                        using a native 'tail' command.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
@@ -261,7 +261,8 @@ Only files matching this regular expression will be picked up by this adapter.
                 <xsd:annotation>
                     <xsd:documentation>
                         Does not apply to the native adapter - the delay in milliseconds between polls when no new
-                        data was detected in the file. Defailt 1000.
+                        data was detected in the file. Default 1000. Note: Setting this option forces the use of the Apache
+                        Tailer implementation instead of the native 'tail' command.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
@@ -269,7 +270,8 @@ Only files matching this regular expression will be picked up by this adapter.
                 <xsd:annotation>
                     <xsd:documentation>
                         Does not apply to the native adapter - the delay in milliseconds between attempts to open
-                        the file when no file was found. Defailt 5000.
+                        the file when no file was found. Default 5000. Note: Setting this option forces the use of the Apache
+                        Tailer implementation instead of the native 'tail' command.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>

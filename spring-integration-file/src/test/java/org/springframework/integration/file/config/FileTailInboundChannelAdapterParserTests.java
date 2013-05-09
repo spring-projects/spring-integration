@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
@@ -41,7 +42,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileTailInboundChannelAdapterParserTests {
 
-	@Autowired
+	@Autowired @Qualifier("default")
+	private OSDelegatingFileTailingMessageProducer defaultAdapter;
+
+	@Autowired @Qualifier("native")
 	private OSDelegatingFileTailingMessageProducer nativeAdapter;
 
 	@Autowired
@@ -49,6 +53,15 @@ public class FileTailInboundChannelAdapterParserTests {
 
 	@Autowired
 	private TaskExecutor exec;
+
+	@Test
+	public void testDefault() {
+		assertEquals("tail -F -n 0 /tmp/baz", TestUtils.getPropertyValue(defaultAdapter, "command"));
+		assertEquals("/tmp/baz", TestUtils.getPropertyValue(defaultAdapter, "file", File.class).getAbsolutePath());
+		assertSame(exec, TestUtils.getPropertyValue(defaultAdapter, "taskExecutor"));
+		assertFalse(TestUtils.getPropertyValue(defaultAdapter, "autoStartup", Boolean.class));
+		assertEquals(123, TestUtils.getPropertyValue(defaultAdapter, "phase"));
+	}
 
 	@Test
 	public void testNative() {

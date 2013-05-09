@@ -27,6 +27,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.Assert;
 
 /**
  * Base class for file tailing inbound adapters.
@@ -44,7 +45,8 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private volatile TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
-	private volatile CountDownLatch started;
+	private volatile CountDownLatch started = new CountDownLatch(1);
+
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -52,19 +54,24 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	}
 
 	public void setFile(File file) {
+		Assert.notNull("'file' cannot be null");
 		this.file = file;
 	}
 
 	protected File getFile() {
-		return file;
+		if (this.file == null) {
+			throw new IllegalStateException("No 'file' has been provided");
+		}
+		return this.file;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		Assert.notNull("'taskExecutor' cannot be null");
 		this.taskExecutor = taskExecutor;
 	}
 
 	protected TaskExecutor getTaskExecutor() {
-		return taskExecutor;
+		return this.taskExecutor;
 	}
 
 	protected void hasStarted() {
@@ -77,8 +84,9 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	}
 
 	@Override
-	protected void doStart() {
-		super.doStart();
+	protected void doStop() {
+		super.doStop();
+		// prepare a new latch for the next start
 		this.started = new CountDownLatch(1);
 	}
 

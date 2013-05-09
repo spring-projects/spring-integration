@@ -99,13 +99,14 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	@Override
 	protected FileTailingMessageProducerSupport createInstance() throws Exception {
 		FileTailingMessageProducerSupport adapter;
-		if (this.nativeOptions != null) {
+		if (this.delay == null && this.fileDelay == null) {
 			adapter = new OSDelegatingFileTailingMessageProducer();
-			Assert.isNull(this.delay, "Cannot have 'delay' with a native adapter");
-			Assert.isNull(this.fileDelay, "Cannot have 'fileDelay' with a native adapter");
-			((OSDelegatingFileTailingMessageProducer) adapter).setOptions(this.nativeOptions);
+			if (this.nativeOptions != null) {
+				((OSDelegatingFileTailingMessageProducer) adapter).setOptions(this.nativeOptions);
+			}
 		}
 		else {
+			Assert.isNull(this.nativeOptions, "Cannot have 'delay' or 'file-delay' with a native adapter");
 			adapter = new ApacheCommonsFileTailingMessageProducer();
 			if (this.delay != null) {
 				((ApacheCommonsFileTailingMessageProducer) adapter).setPollingDelay(this.delay);

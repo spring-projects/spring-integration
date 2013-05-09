@@ -149,7 +149,7 @@
         <para>
             This gives you full freedom to choose the ordering, listing and locking strategies.
         </para>
-        <section>
+        <section id="file-tailing">
           <title>'Tail'ing Files</title>
           <para>
             Another popular use case is to get 'lines' from the end (or tail) of a file. Two implementations are provided;
@@ -187,11 +187,18 @@
           </para>
           <programlisting language="xml"><![CDATA[<int-file:tail-inbound-channel-adapter id="native"
 	channel="input"
-	native-options="-F -n 0"
 	task-executor="exec"
 	file="/tmp/foo"/>]]></programlisting>
           <para>
-            This creates a native adapter with '-F -n 0' options (follow the file name from the current end).
+            This creates a native adapter with default '-F -n 0' options (follow the file name from the current end).
+          </para>
+          <programlisting language="xml"><![CDATA[<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	native-options="-F -n 6"
+	task-executor="exec"
+	file="/tmp/foo"/>]]></programlisting>
+          <para>
+            This creates a native adapter with '-F -n 6' options (follow the file name, emit up to 6 lines before the current end).
           </para>
           <programlisting language="xml"><![CDATA[<int-file:tail-inbound-channel-adapter id="apache"
 	channel="input"
