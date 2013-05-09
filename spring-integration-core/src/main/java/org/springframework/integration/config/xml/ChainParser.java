@@ -13,7 +13,9 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,7 +58,8 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		}
 
 		String chainHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
-		ManagedList<BeanMetadataElement> handlerList = new ManagedList<BeanMetadataElement>();
+		List<BeanMetadataElement> handlerList = new ManagedList<BeanMetadataElement>();
+		Set<String> handlerBeanNameSet = new HashSet<String>();
 		NodeList children = element.getChildNodes();
 		int childOrder = 0;
 		for (int i = 0; i < children.getLength(); i++) {
@@ -64,6 +67,15 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			if (child.getNodeType() == Node.ELEMENT_NODE && !"poller".equals(child.getLocalName())) {
 				BeanMetadataElement childBeanMetadata = this.parseChild(chainHandlerId, (Element) child, childOrder++,
 						parserContext, builder.getBeanDefinition());
+				if (childBeanMetadata instanceof RuntimeBeanReference) {
+					String handlerBeanName = ((RuntimeBeanReference) childBeanMetadata).getBeanName();
+					if (!handlerBeanNameSet.add(handlerBeanName)) {
+						parserContext.getReaderContext().error("BeanDefinition is already registered for given " +
+								"beanName: '" + handlerBeanName + "' within current <chain>.",
+								element);
+						return null;
+					}
+				}
 				if ("gateway".equals(child.getLocalName())) {
 					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 							IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.RequestReplyMessageHandlerAdapter");
@@ -111,12 +123,6 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		String id = element.getAttribute(ID_ATTRIBUTE);
 		boolean hasId = StringUtils.hasText(id);
 		String handlerBeanName = chainHandlerId + "$child" + (hasId ? "." + id : "#" + order);
-
-		if (parserContext.getRegistry().isBeanNameInUse(handlerBeanName)) {
-			parserContext.getReaderContext().error("BeanDefinition is already registered for given 'beanName': " + handlerBeanName,
-					element);
-			return null;
-		}
 
 		if ("bean".equals(element.getLocalName())) {
 			holder = parserContext.getDelegate().parseBeanDefinitionElement(element, parentDefinition);
