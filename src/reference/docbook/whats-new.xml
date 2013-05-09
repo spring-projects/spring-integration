@@ -223,6 +223,23 @@
 			<para>
 				For more information see <xref linkend="stored-procedures"/>.
 			</para>
+		</section>			<title>'requires-reply' attribute for Outbound Gateways</title>
+			<para>
+				All Outbound Gateways (e.g. <code>&lt;ftp:outbound-gateway/&gt;</code> or <code>&lt;jms:outbound-gateway/&gt;</code>)
+				are designed for 'request-reply' scenario. In this case we are expecting that response from external service
+				will be published to the <code>reply-channel</code>. But there are many cases where external system doesn't
+				return result, e.g. <code>&lt;jdbc:outbound-gateway/&gt;</code>, when SELECT ends with empty <interfacename>ResultSet</interfacename>
+				or the underlying Web Service is One-Way. So, we need an option when we can decide do not expect <emphasis>reply</emphasis>.
+				For this purpose <emphasis>requires-reply</emphasis> attribute was introduced for all Outbound Gateway components.
+				In most cases default value for <emphasis>requires-reply</emphasis> is <code>true</code> and if there is no any result
+				<classname>ReplyRequiredException</classname> will be thrown. Change it to <code>false</code>
+				means that, if an external service doesn't return anything, the message-flow will end on current Outbound Gateway,
+				similar to Outbound Channel Adapter.
+			</para>
+			<para>
+				Note, the <code>requiresReply</code> property is presented in the <classname>AbstractReplyProducingMessageHandler</classname>
+				but with value <code>false</code> and there wasn't any configuration ability on Outbound Gateways to change it before this release.
+			</para>
 		</section>
 		<section id="3.0-event-for-imap-idle">
 			<title>IMAP Idle Connection Exceptions</title>

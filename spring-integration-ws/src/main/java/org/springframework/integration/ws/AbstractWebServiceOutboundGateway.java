@@ -70,8 +70,6 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private volatile WebServiceMessageCallback requestCallback;
 
-	private volatile boolean ignoreEmptyResponses = true;
-
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	public AbstractWebServiceOutboundGateway(final String uri, WebServiceMessageFactory messageFactory) {
@@ -111,12 +109,12 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	/**
-	 * Specify whether empty String response payloads should be ignored.
-	 * The default is <code>true</code>. Set this to <code>false</code> if
-	 * you want to send empty String responses in reply Messages.
+	 * Backward compatibility - with no op.
+	 * @deprecated in favor of {@link #setRequiresReply(boolean)}
 	 */
+	@Deprecated
 	public void setIgnoreEmptyResponses(boolean ignoreEmptyResponses) {
-		this.ignoreEmptyResponses = ignoreEmptyResponses;
+		//No-op
 	}
 
 	public void setMessageFactory(WebServiceMessageFactory messageFactory) {
@@ -167,15 +165,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
 					"Web Service request in outbound gateway: " + this.getComponentName());
 		}
-		Object responsePayload = this.doHandle(uri.toString(), requestMessage, this.requestCallback);
-		if (responsePayload != null) {
-			boolean shouldIgnore = (this.ignoreEmptyResponses
-					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));
-			if (!shouldIgnore) {
-				return responsePayload;
-			}
-		}
-		return null;
+		return this.doHandle(uri.toString(), requestMessage, this.requestCallback);
 	}
 
 	protected abstract Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback);

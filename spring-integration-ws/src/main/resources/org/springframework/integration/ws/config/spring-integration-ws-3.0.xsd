@@ -148,8 +148,7 @@
 			<xsd:attribute name="ignore-empty-responses" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Indicates whether empty String response payloads should be ignored. The default is TRUE.
-	Set this to FALSE if you want to send empty String responses in reply Messages.
+	[DEPRECATED] with 'no-op' in favor of 'requires-reply' attribute.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
