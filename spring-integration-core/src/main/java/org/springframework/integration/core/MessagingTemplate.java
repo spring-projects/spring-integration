@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,9 +42,10 @@ import org.springframework.util.Assert;
  * This is the central class for invoking message exchange operations across
  * {@link MessageChannel}s. It supports one-way send and receive calls as well
  * as request/reply.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class MessagingTemplate implements MessagingOperations, BeanFactoryAware, InitializingBean {
 
@@ -62,6 +64,8 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
+
+	private volatile boolean throwExceptionOnLateReply = false;
 
 
 	/**
@@ -110,7 +114,7 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 
 	/**
 	 * Specify the timeout value to use for send operations.
-	 * 
+	 *
 	 * @param sendTimeout the send timeout in milliseconds
 	 */
 	public void setSendTimeout(long sendTimeout) {
@@ -119,7 +123,7 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 
 	/**
 	 * Specify the timeout value to use for receive operations.
-	 *  
+	 *
 	 * @param receiveTimeout the receive timeout in milliseconds
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
@@ -130,6 +134,18 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		if (this.channelResolver == null && beanFactory != null) {
 			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		}
+	}
+
+	/**
+	 * Specify whether or not an attempt to send on the reply channel throws an exception
+	 * if no receiving thread will actually receive the reply. This can occur
+	 * if the receiving thread has already timed out, or will never call receive()
+	 * because it caught an exception, or has already received a reply.
+	 * (default false - just a WARN log is emitted in these cases).
+	 * @param throwExceptionOnLateReply TRUE or FALSE.
+	 */
+	public void setThrowExceptionOnLateReply(boolean throwExceptionOnLateReply) {
+		this.throwExceptionOnLateReply = throwExceptionOnLateReply;
 	}
 
 	public void afterPropertiesSet() {
@@ -310,12 +326,18 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	private <S, R> Message<R> doSendAndReceive(MessageChannel channel, Message<S> requestMessage) {
 		Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
 		Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
-		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout);
+		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout, this.throwExceptionOnLateReply);
 		requestMessage = MessageBuilder.fromMessage(requestMessage)
 				.setReplyChannel(replyChannel)
 				.setErrorChannel(replyChannel)
 				.build();
-		this.doSend(channel, requestMessage);
+		try {
+			this.doSend(channel, requestMessage);
+		}
+		catch (RuntimeException e) {
+			replyChannel.setClientWontReceive(true);
+			throw e;
+		}
 		Message<R> reply = this.doReceive(replyChannel);
 		if (reply != null) {
 			reply = MessageBuilder.fromMessage(reply)
@@ -356,15 +378,30 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 
 	private static class TemporaryReplyChannel implements PollableChannel {
 
+		private static final Log logger = LogFactory.getLog(TemporaryReplyChannel.class);
+
 		private volatile Message<?> message;
 
 		private final long receiveTimeout;
 
 		private final CountDownLatch latch = new CountDownLatch(1);
 
+		private final boolean throwExceptionOnLateReply;
 
-		public TemporaryReplyChannel(long receiveTimeout) {
+		private volatile boolean clientTimedOut;
+
+		private volatile boolean clientWontReceive;
+
+		private volatile boolean clientHasReceived;
+
+
+		public TemporaryReplyChannel(long receiveTimeout, boolean throwExceptionOnLateReply) {
 			this.receiveTimeout = receiveTimeout;
+			this.throwExceptionOnLateReply = throwExceptionOnLateReply;
+		}
+
+		public void setClientWontReceive(boolean clientWontReceive) {
+			this.clientWontReceive = clientWontReceive;
 		}
 
 
@@ -376,9 +413,15 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 			try {
 				if (this.receiveTimeout < 0) {
 					this.latch.await();
+					this.clientHasReceived = true;
 				}
 				else {
-					this.latch.await(this.receiveTimeout, TimeUnit.MILLISECONDS);
+					if (this.latch.await(this.receiveTimeout, TimeUnit.MILLISECONDS)) {
+						this.clientHasReceived = true;
+					}
+					else {
+						this.clientTimedOut = true;
+					}
 				}
 			}
 			catch (InterruptedException e) {
@@ -394,6 +437,25 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		public boolean send(Message<?> message, long timeout) {
 			this.message = message;
 			this.latch.countDown();
+			if (this.clientTimedOut || this.clientHasReceived || this.clientWontReceive) {
+				String exceptionMessage = "";
+				if (this.clientTimedOut) {
+					exceptionMessage = "Reply message being sent, but the receiving thread has already timed out";
+				}
+				else if (this.clientHasReceived) {
+					exceptionMessage = "Reply message being sent, but the receiving thread has already received a reply";
+				}
+				else if (this.clientWontReceive) {
+					exceptionMessage = "Reply message being sent, but the receiving thread has already caught an exception and won't receive";
+				}
+
+				if (logger.isWarnEnabled()) {
+					logger.warn(exceptionMessage + ":" + message);
+				}
+				if (this.throwExceptionOnLateReply) {
+					throw new MessageDeliveryException(message, exceptionMessage);
+				}
+			}
 			return true;
 		}
 	}
