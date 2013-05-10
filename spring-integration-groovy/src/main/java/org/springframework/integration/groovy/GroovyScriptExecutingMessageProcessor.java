@@ -20,6 +20,10 @@ import groovy.lang.GString;
 
 import java.util.Map;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
@@ -35,7 +39,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
+public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> implements BeanFactoryAware, BeanClassLoaderAware {
 
 	private final GroovyScriptFactory scriptFactory;
 
@@ -72,6 +76,16 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	public void setCustomizer(GroovyObjectCustomizer customizer) {
 		this.customizerDecorator.setCustomizer(customizer);
 	}
+
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        scriptFactory.setBeanClassLoader(classLoader);
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        scriptFactory.setBeanFactory(beanFactory);
+    }
 
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
