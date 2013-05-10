@@ -18,8 +18,6 @@ package org.springframework.integration.file.tail;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.MessagingException;
 import org.springframework.util.Assert;
@@ -43,8 +41,6 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	private volatile String command = "ADAPTER_NOT_INITIALIZED";
 
 	private volatile BufferedReader reader;
-
-	private volatile CountDownLatch readerInitialized;
 
 	public void setOptions(String options) {
 		if (options == null) {
@@ -92,15 +88,13 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 */
 	private void runExec() {
 		try {
-			this.readerInitialized = new CountDownLatch(1);
 			Process process = Runtime.getRuntime().exec(this.command);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			this.getTaskExecutor().execute(this);
 			this.process = process;
 			this.startStatusReader();
 			this.startProcessMonitor();
 			this.reader = reader;
-			this.readerInitialized.countDown();
+			this.getTaskExecutor().execute(this);
 		}
 		catch (IOException e) {
 			throw new MessagingException("Failed to exec tail command: '" + this.command + "'", e);
@@ -180,16 +174,6 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 */
 	@Override
 	public void run() {
-		try {
-			if (!this.readerInitialized.await(60, TimeUnit.SECONDS)) {
-				logger.error("No stdout reader to read");
-				throw new IllegalStateException("No stdout reader to read");
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return;
-		}
 		String line;
 		try {
 			while ((line = this.reader.readLine()) != null) {
