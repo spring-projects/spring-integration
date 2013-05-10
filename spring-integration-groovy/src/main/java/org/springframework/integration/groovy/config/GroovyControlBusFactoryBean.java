@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,9 +18,7 @@ import java.util.Map;
 
 import groovy.lang.Binding;
 import groovy.lang.MissingPropertyException;
-import org.springframework.beans.factory.BeanCreationNotAllowedException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.*;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -41,13 +39,16 @@ import org.springframework.util.CustomizableThreadCreator;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Stefan Reuter
  * @since 2.0
  */
-public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
+public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements BeanClassLoaderAware {
 
 	private volatile Long sendTimeout;
 
 	private volatile GroovyObjectCustomizer customizer;
+
+	private volatile ClassLoader beanClassLoader;
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
@@ -55,6 +56,11 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 	public void setCustomizer(GroovyObjectCustomizer customizer) {
 		this.customizer = customizer;
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
 	}
 
 	@Override
@@ -69,6 +75,12 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 		});
 		if (this.customizer != null) {
 			processor.setCustomizer(this.customizer);
+		}
+		if (this.beanClassLoader != null) {
+			processor.setBeanClassLoader(beanClassLoader);
+		}
+		if (getBeanFactory() != null) {
+			processor.setBeanFactory(getBeanFactory());
 		}
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
