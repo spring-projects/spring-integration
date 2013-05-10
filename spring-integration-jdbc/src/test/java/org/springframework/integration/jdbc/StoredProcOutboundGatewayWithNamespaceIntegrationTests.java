@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 
 		assertEquals("Wrong username", "myUsername", userFromDb.getUsername());
 		assertEquals("Wrong password", "myPassword", userFromDb.getPassword());
-		assertEquals("Wrong email",    "myEmail",    userFromDb.getEmail());
+		assertEquals("Wrong email",    "'myEmail'",    userFromDb.getEmail());
 
 	}
 
@@ -134,7 +134,7 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 				//prevent message overload
 				return null;
 			}
-			return Integer.valueOf(count.incrementAndGet());
+			return count.incrementAndGet();
 		}
 	}
 
@@ -152,4 +152,12 @@ public class StoredProcOutboundGatewayWithNamespaceIntegrationTests {
 			return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
 		}
 	}
+
+	static class TestService {
+
+		public String quote(String s) {
+			return "'" + s + "'";
+		}
+	}
+
 }

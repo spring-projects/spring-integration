@@ -26,7 +26,7 @@
 			reply-channel="outputChannel">
 		<int-jdbc:parameter name="username" expression="payload.username"/>
 		<int-jdbc:parameter name="password" expression="payload.password"/>
-		<int-jdbc:parameter name="email"    expression="payload.email"/>
+		<int-jdbc:parameter name="email"    expression="@testService.quote(payload.email)"/>
 		<int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper" />
 	</int-jdbc:stored-proc-outbound-gateway>
 
@@ -53,5 +53,7 @@
 	<int:channel id="replyChannel">
 		<int:queue/>
 	</int:channel>
+
+	<bean id="testService" class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$TestService"/>
 
 </beans>
