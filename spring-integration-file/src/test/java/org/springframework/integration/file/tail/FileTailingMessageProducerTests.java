@@ -17,28 +17,24 @@ package org.springframework.integration.file.tail;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport.FileTailingEvent;
-import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
@@ -63,7 +59,7 @@ public class FileTailingMessageProducerTests {
 	@Test
 	public void testOS() throws Exception {
 		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
-		testGuts(adapter);
+		testGuts(adapter, "reader");
 	}
 
 	@Test
@@ -71,11 +67,11 @@ public class FileTailingMessageProducerTests {
 		ApacheCommonsFileTailingMessageProducer adapter = new ApacheCommonsFileTailingMessageProducer();
 		adapter.setMissingFileDelay(500);
 		adapter.setPollingDelay(100);
-		testGuts(adapter);
+		testGuts(adapter, "tailer");
 	}
 
-	private void testGuts(FileTailingMessageProducerSupport adapter) throws InterruptedException,
-			FileNotFoundException, IOException {
+	private void testGuts(FileTailingMessageProducerSupport adapter, String field)
+			throws Exception {
 		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
 		adapter.setApplicationEventPublisher(new ApplicationEventPublisher() {
 			@Override
@@ -94,7 +90,7 @@ public class FileTailingMessageProducerTests {
 		file.delete();
 		renamed.delete();
 		adapter.start();
-		assertTrue((TestUtils.getPropertyValue(adapter, "started", CountDownLatch.class)).await(10, TimeUnit.SECONDS));
+		waitForField(adapter, field);
 		FileOutputStream foo = new FileOutputStream(file);
 		for (int i = 0; i < 50; i++) {
 			foo.write(("hello" + i + "\n").getBytes());
@@ -122,6 +118,20 @@ public class FileTailingMessageProducerTests {
 		}
 		foo.close();
 		adapter.stop();
+	}
+
+	private void waitForField(FileTailingMessageProducerSupport adapter, String field) throws Exception {
+		int n = 0;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		while (n < 100) {
+			if (accessor.getPropertyValue(field) == null) {
+				Thread.sleep(100);
+			}
+			else {
+				return;
+			}
+		}
+		fail("adapter failed to start");
 	}
 
 }

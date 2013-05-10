@@ -50,8 +50,9 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStart() {
 		super.doStart();
-		this.tailer = new Tailer(this.getFile(), this, this.pollingDelay);
-		this.getTaskExecutor().execute(this.tailer);
+		Tailer tailer = new Tailer(this.getFile(), this, this.pollingDelay);
+		this.getTaskExecutor().execute(tailer);
+		this.tailer = tailer;
 	}
 
 	@Override
@@ -62,7 +63,6 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	@Override
 	public void init(Tailer tailer) {
-		this.hasStarted();
 	}
 
 	@Override

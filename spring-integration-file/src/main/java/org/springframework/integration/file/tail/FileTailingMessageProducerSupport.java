@@ -16,7 +16,6 @@
 package org.springframework.integration.file.tail;
 
 import java.io.File;
-import java.util.concurrent.CountDownLatch;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,8 +44,6 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private volatile TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
-	private volatile CountDownLatch started = new CountDownLatch(1);
-
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -74,20 +71,9 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		return this.taskExecutor;
 	}
 
-	protected void hasStarted() {
-		this.started.countDown();
-	}
-
 	@Override
 	public String getComponentType() {
 		return "file:tail-inbound-channel-adapter";
-	}
-
-	@Override
-	protected void doStop() {
-		super.doStop();
-		// prepare a new latch for the next start
-		this.started = new CountDownLatch(1);
 	}
 
 	protected void send(String line) {
