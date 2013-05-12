@@ -162,6 +162,15 @@
 				may set other headers.
 			</para>
 		</section>
+		<section id="3.0-stored-proc-sql-return-type">
+			<title>SqlReturnType support for Stored Procedure components</title>
+			<para>
+				For more complex database-specific types, not supported by the standard
+				<code>CallableStatement.getObject</code> method, was introduced additional attributes to the
+				<code>&lt;sql-parameter-definition/&gt;</code> with OUT-direction: <emphasis>type-name</emphasis>
+				and <emphasis>return-type</emphasis>. For more information see <xref linkend="stored-procedures"/>.
+			</para>
+		</section>
 
 	</section>
 </chapter>

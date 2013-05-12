@@ -16,9 +16,11 @@
 
 package org.springframework.integration.jdbc;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.CallableStatement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.junit.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -38,14 +41,23 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.jdbc.config.JdbcTypesEnum;
 import org.springframework.integration.jdbc.storedproc.User;
+import org.springframework.integration.json.JsonInboundMessageMapper;
+import org.springframework.integration.json.JsonOutboundMessageMapper;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlReturnType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -60,6 +72,18 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 	@Autowired
 	@Qualifier("startChannel")
 	DirectChannel channel;
+
+	@Autowired
+	DirectChannel getMessageChannel;
+
+	@Autowired
+	PollableChannel output2Channel;
+
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	SqlReturnType clobSqlReturnType;
 
 	@Test
 	@DirtiesContext
@@ -119,6 +143,27 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 
 		Assert.fail("Expected a MessageHandlingException to be thrown.");
 
+	}
+
+	@Test
+	@Transactional
+	public void testInt2865SqlReturnType() throws Exception {
+		Message<String> testMessage = MessageBuilder.withPayload("TEST").setHeader("FOO", "BAR").build();
+		String messageId = testMessage.getHeaders().getId().toString();
+		String jsonMessage = new JsonOutboundMessageMapper().fromMessage(testMessage);
+
+		this.jdbcTemplate.update("INSERT INTO json_message VALUES (?,?)", messageId, jsonMessage);
+
+		this.getMessageChannel.send(new GenericMessage<String>(messageId));
+		Message<?> resultMessage = this.output2Channel.receive(1000);
+		assertNotNull(resultMessage);
+		Object resultPayload = resultMessage.getPayload();
+		assertTrue(resultPayload instanceof String);
+		Message<?> message = new JsonInboundMessageMapper(String.class).toMessage((String) resultPayload);
+		assertEquals(testMessage.getPayload(), message.getPayload());
+		assertEquals(testMessage.getHeaders().get("FOO"), message.getHeaders().get("FOO"));
+		Mockito.verify(clobSqlReturnType).getTypeValue(Mockito.any(CallableStatement.class),
+				Mockito.eq(2), Mockito.eq(JdbcTypesEnum.CLOB.getCode()), Mockito.eq((String) null));
 	}
 
 	static class Counter {

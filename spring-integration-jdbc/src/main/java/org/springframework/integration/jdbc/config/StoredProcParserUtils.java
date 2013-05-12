@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.w3c.dom.Element;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.1
  */
 public final class StoredProcParserUtils {
@@ -68,6 +69,18 @@ public final class StoredProcParserUtils {
 			String sqlType     = childElement.getAttribute("type");
 			String direction   = childElement.getAttribute("direction");
 			String scale       = childElement.getAttribute("scale");
+			String typeName    = childElement.getAttribute("type-name");
+			String returnType  = childElement.getAttribute("return-type");
+
+			if (StringUtils.hasText(typeName) && StringUtils.hasText(scale)) {
+				parserContext.getReaderContext().error("'type-name' and 'scale' attributes are mutually exclusive " +
+						"for 'sql-parameter-definition' element.", storedProcComponent);
+			}
+
+			if (StringUtils.hasText(returnType) && StringUtils.hasText(scale)) {
+				parserContext.getReaderContext().error("'returnType' and 'scale' attributes are mutually exclusive " +
+						"for 'sql-parameter-definition' element.", storedProcComponent);
+			}
 
 			final BeanDefinitionBuilder parameterBuilder;
 
@@ -79,6 +92,10 @@ public final class StoredProcParserUtils {
 			}
 			else {
 				parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SqlParameter.class);
+				if (StringUtils.hasText(returnType)) {
+					parserContext.getReaderContext().error("'return-type' attribute can't be provided " +
+							"for IN 'sql-parameter-definition' element.", storedProcComponent);
+				}
 			}
 
 			if (StringUtils.hasText(name)) {
@@ -105,8 +122,18 @@ public final class StoredProcParserUtils {
 				parameterBuilder.addConstructorArgValue(Types.VARCHAR);
 			}
 
-			if (StringUtils.hasText(scale)) {
+			if (StringUtils.hasText(typeName)) {
+				parameterBuilder.addConstructorArgValue(typeName);
+			}
+			else if (StringUtils.hasText(scale)) {
 				parameterBuilder.addConstructorArgValue(new TypedStringValue(scale, Integer.class));
+			}
+			else {
+				parameterBuilder.addConstructorArgValue(null);
+			}
+
+			if (StringUtils.hasText(returnType)) {
+				parameterBuilder.addConstructorArgReference(returnType);
 			}
 
 			sqlParameterList.add(parameterBuilder.getBeanDefinition());
@@ -187,16 +214,6 @@ public final class StoredProcParserUtils {
 
 			String name       = childElement.getAttribute("name");
 			String rowMapperAsString = childElement.getAttribute("row-mapper");
-
-			if (!StringUtils.hasText(name)) {
-				parserContext.getReaderContext().error(
-						"The 'name' attribute must be set for the 'returning-resultset' element.", storedProcComponent);
-			}
-
-			if (!StringUtils.hasText(rowMapperAsString)) {
-				parserContext.getReaderContext().error(
-						"The 'row-mapper' attribute must be set for the 'returning-resultset' element.", storedProcComponent);
-			}
 
 			BeanDefinitionBuilder rowMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(rowMapperAsString);
 

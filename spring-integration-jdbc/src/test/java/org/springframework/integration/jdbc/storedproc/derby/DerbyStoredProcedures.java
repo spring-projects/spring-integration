@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.jdbc.storedproc.derby;
 
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -26,6 +27,7 @@ import org.springframework.jdbc.support.JdbcUtils;
 /**
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public final class DerbyStoredProcedures {
@@ -72,6 +74,18 @@ public final class DerbyStoredProcedures {
 			JdbcUtils.closeConnection(conn);
 		}
 
+	}
+
+	public static void getMessage(String messageId, Clob[] returnedData) throws SQLException {
+
+		Connection conn = DriverManager.getConnection("jdbc:default:connection");
+
+		PreparedStatement stmt = conn.prepareStatement("select MESSAGE_JSON from JSON_MESSAGE where MESSAGE_ID = ?");
+		stmt.setString( 1, messageId);
+		ResultSet results = stmt.executeQuery();
+		if (results.next()) {
+			returnedData[0] = results.getClob(1);
+		}
 	}
 
 }
