@@ -191,6 +191,21 @@
 				For more information see <xref linkend="chain"/>.
 			</para>
 		</section>
-
+		<section id="3.0-stored-proc-sql-return-type">
+			<title>SqlReturnType support for Stored Procedure components</title>
+			<para>
+				For more complex database-specific types, not supported by the standard
+				<code>CallableStatement.getObject</code> method, 2 new additional
+				attributes were introduced to the <code>&lt;sql-parameter-definition/&gt;</code>
+				element with OUT-direction:
+			</para>
+			<itemizedlist>
+				<listitem><emphasis>type-name</emphasis></listitem>
+				<listitem><emphasis>return-type</emphasis></listitem>
+			</itemizedlist>
+			<para>
+				For more information see <xref linkend="stored-procedures"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
