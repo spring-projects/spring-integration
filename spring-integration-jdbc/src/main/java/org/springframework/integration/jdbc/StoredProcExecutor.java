@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -59,6 +59,7 @@ import com.google.common.cache.LoadingCache;
  * provides the core functionality to execute those.
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.1
  *
  */
@@ -170,6 +171,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 				expressionSourceFactory.setStaticParameters(ProcedureParameter.convertStaticParameters(procedureParameters));
 				expressionSourceFactory.setParameterExpressions(ProcedureParameter.convertExpressions(procedureParameters));
+				expressionSourceFactory.setBeanFactory(this.beanFactory);
 
 				this.sqlParameterSourceFactory = expressionSourceFactory;
 
