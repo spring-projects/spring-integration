@@ -45,18 +45,18 @@ import com.gemstone.gemfire.cache.Cache;
 public class GemfireMessageStoreTests {
 
 	private Cache cache;
-	
+
 	@Test
 	public void addAndGetMessage() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());
 		assertEquals(message, retrieved);
 	}
-	
+
 	@Test
 	public void testRegionConstructor() throws Exception {
 		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>();
@@ -66,20 +66,20 @@ public class GemfireMessageStoreTests {
 
 		GemfireMessageStore store = new GemfireMessageStore(region.getObject());
 		store.afterPropertiesSet();
-		assertSame(region.getObject(),TestUtils.getPropertyValue(store, "messageStoreRegion"));
+		assertSame(region.getObject(), TestUtils.getPropertyValue(store, "messageStoreRegion"));
 	}
-	
+
 	@Test
-	public void testWithMessageHistory() throws Exception{	
+	public void testWithMessageHistory() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		Message<?> message = new GenericMessage<String>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
 		barChannel.setBeanName("barChannel");
-		
+
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
 		store.addMessage(message);
@@ -93,14 +93,13 @@ public class GemfireMessageStoreTests {
 	}
 
 	@Before
-	public void init() throws Exception{
+	public void init() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		this.cache = (Cache)cacheFactoryBean.getObject();
+		this.cache = cacheFactoryBean.getObject();
 	}
-	
+
 	@After
-	public void cleanup(){
+	public void cleanup() {
 		this.cache.close();
 		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
 	}

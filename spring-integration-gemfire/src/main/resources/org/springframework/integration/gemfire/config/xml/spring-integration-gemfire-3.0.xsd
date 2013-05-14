@@ -7,10 +7,10 @@
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"
-		schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.1.xsd" />
+		schemaLocation="http://www.springframework.org/schema/beans/spring-beans.xsd" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration.xsd" />
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
 	Defines the core configuration elements for Spring Integration GemFire Support.

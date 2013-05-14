@@ -43,8 +43,7 @@ public class CacheWritingMessageHandlerTests {
 	@Test
 	public void mapPayloadWritesToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = (Cache)cacheFactoryBean.getObject();
+		Cache cache = cacheFactoryBean.getObject();
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.mapPayloadWritesToCache");
 		regionFactoryBean.setCache(cache);
@@ -63,8 +62,7 @@ public class CacheWritingMessageHandlerTests {
 	@Test
 	public void ExpressionsWriteToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = (Cache)cacheFactoryBean.getObject();
+		Cache cache = cacheFactoryBean.getObject();
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.expressionsWriteToCache");
 		regionFactoryBean.setCache(cache);

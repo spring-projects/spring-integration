@@ -53,14 +53,15 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
+ * @author David Turanski
  *
  */
 public class GemfireGroupStoreTests {
-	
+
 	private Cache cache;
 
 	@Test
-	public void testNonExistingEmptyMessageGroup() throws Exception{	
+	public void testNonExistingEmptyMessageGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -68,103 +69,102 @@ public class GemfireGroupStoreTests {
 		assertTrue(messageGroup instanceof SimpleMessageGroup);
 		assertEquals(0, messageGroup.size());
 	}
-	
+
 	@Test
-	public void testMessageGroupWithAddedMessage() throws Exception{	
+	public void testMessageGroupWithAddedMessage() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(1, message);
 		assertEquals(1, messageGroup.size());
-		
+
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(1, messageGroup.size());
 	}
-	
+
 	@Test
-	public void testRemoveMessageFromTheGroup() throws Exception{	
+	public void testRemoveMessageFromTheGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("2");
-		
+
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(1, messageGroup.size());
 		Thread.sleep(1); //since it adds to a local region some times CREATED_DATE ends up to be the same
 		// Unrealistic in a real scenario
-		
+
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
 		Thread.sleep(1);
-		
+
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("3"));
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(3, messageGroup.size());
-		
+
 		messageGroup = store.removeMessageFromGroup(messageGroup.getGroupId(), message);
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
-		
+
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
 
 	}
-	
+
 	@Test
-	public void testRemoveMessageGroup() throws Exception{	
+	public void testRemoveMessageGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
 		assertEquals(1, messageGroup.size());
-		
+
 		store.removeMessageGroup(1);
 		MessageGroup messageGroupA = store.getMessageGroup(1);
 		assertNotSame(messageGroup, messageGroupA);
 		assertEquals(0, messageGroupA.getMessages().size());
 		assertEquals(0, messageGroupA.size());
-		
+
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		messageGroup = store.getMessageGroup(1);
-		
+
 		assertEquals(0, messageGroup.getMessages().size());
 		assertEquals(0, messageGroup.size());
 	}
-	
+
 	@Test
-	public void testRemoveNonExistingMessageFromTheGroup() throws Exception{	
+	public void testRemoveNonExistingMessageFromTheGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
 		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
 	}
-	
+
 	@Test
-	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception{	
+	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
 	}
-	
-	
+
 	@Test
-	public void testCompleteMessageGroup() throws Exception{	
+	public void testCompleteMessageGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -174,9 +174,9 @@ public class GemfireGroupStoreTests {
 		messageGroup = store.getMessageGroup(1);
 		assertTrue(messageGroup.isComplete());
 	}
-	
+
 	@Test
-	public void testLastReleasedSequenceNumber() throws Exception{	
+	public void testLastReleasedSequenceNumber() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
@@ -186,48 +186,48 @@ public class GemfireGroupStoreTests {
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
 	}
-	
+
 	@Test
-	public void testMultipleInstancesOfGroupStore() throws Exception{	
+	public void testMultipleInstancesOfGroupStore() throws Exception {
 		GemfireMessageStore store1 = new GemfireMessageStore(this.cache);
 		store1.afterPropertiesSet();
-		
+
 		GemfireMessageStore store2 = new GemfireMessageStore(this.cache);
 		store2.afterPropertiesSet();
-		
+
 		Message<?> message = new GenericMessage<String>("1");
 		store1.addMessageToGroup(1, message);
 		MessageGroup messageGroup = store2.addMessageToGroup(1, new GenericMessage<String>("2"));
-		
+
 		assertEquals(2, messageGroup.getMessages().size());
-		
+
 		GemfireMessageStore store3 = new GemfireMessageStore(this.cache);
 		store3.afterPropertiesSet();
-		
+
 		messageGroup = store3.removeMessageFromGroup(1, message);
-		
+
 		assertEquals(1, messageGroup.getMessages().size());
 	}
-	
+
 	@Test
-	public void testWithMessageHistory() throws Exception{	
+	public void testWithMessageHistory() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
-		
+
 		store.getMessageGroup(1);
-		
+
 		Message<?> message = new GenericMessage<String>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
 		barChannel.setBeanName("barChannel");
-		
+
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
 		store.addMessageToGroup(1, message);
-		
+
 		message = store.getMessageGroup(1).getMessages().iterator().next();
-		
+
 		MessageHistory messageHistory = MessageHistory.read(message);
 		assertNotNull(messageHistory);
 		assertEquals(2, messageHistory.size());
@@ -235,19 +235,19 @@ public class GemfireGroupStoreTests {
 		assertEquals("fooChannel", fooChannelHistory.get("name"));
 		assertEquals("channel", fooChannelHistory.get("type"));
 	}
-	
+
 	@Test
-	public void testIteratorOfMessageGroups() throws Exception{	
+	public void testIteratorOfMessageGroups() throws Exception {
 		GemfireMessageStore store1 = new GemfireMessageStore(this.cache);
 		store1.afterPropertiesSet();
 		GemfireMessageStore store2 = new GemfireMessageStore(this.cache);
 		store2.afterPropertiesSet();
-		
+
 		store1.addMessageToGroup(1, new GenericMessage<String>("1"));
 		store2.addMessageToGroup(2, new GenericMessage<String>("2"));
 		store1.addMessageToGroup(3, new GenericMessage<String>("3"));
 		store2.addMessageToGroup(3, new GenericMessage<String>("3A"));
-		
+
 		Iterator<MessageGroup> messageGroups = store1.iterator();
 		int counter = 0;
 		while (messageGroups.hasNext()) {
@@ -255,9 +255,9 @@ public class GemfireGroupStoreTests {
 			counter++;
 		}
 		assertEquals(3, counter);
-		
+
 		store2.removeMessageGroup(3);
-		
+
 		messageGroups = store1.iterator();
 		counter = 0;
 		while (messageGroups.hasNext()) {
@@ -266,80 +266,86 @@ public class GemfireGroupStoreTests {
 		}
 		assertEquals(2, counter);
 	}
-	
+
 	@Test
 	@Ignore
-	public void testConcurrentModifications() throws Exception{	
-	
+	public void testConcurrentModifications() throws Exception {
+
 		final GemfireMessageStore store1 = new GemfireMessageStore(this.cache);
 		store1.afterPropertiesSet();
 		final GemfireMessageStore store2 = new GemfireMessageStore(this.cache);
 		store2.afterPropertiesSet();
-		
-		final Message<?> message = new GenericMessage<String>("1"); 
+
+		final Message<?> message = new GenericMessage<String>("1");
 
 		ExecutorService executor = null;
-		
+
 		final List<Object> failures = new ArrayList<Object>();
-		
+
 		for (int i = 0; i < 100; i++) {
 			executor = Executors.newCachedThreadPool();
-			
-			executor.execute(new Runnable() {	
-				public void run() {			
+
+			executor.execute(new Runnable() {
+				public void run() {
 					MessageGroup group = store1.addMessageToGroup(1, message);
-					if (group.getMessages().size() != 1){
+					if (group.getMessages().size() != 1) {
 						failures.add("ADD");
 						throw new AssertionFailedError("Failed on ADD");
-					}	
+					}
 				}
 			});
-			executor.execute(new Runnable() {	
+			executor.execute(new Runnable() {
 				public void run() {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
-					if (group.getMessages().size() != 0){
+					if (group.getMessages().size() != 0) {
 						failures.add("REMOVE");
 						throw new AssertionFailedError("Failed on Remove");
-					}	
+					}
 				}
 			});
-			
+
 			executor.shutdown();
 			executor.awaitTermination(10, TimeUnit.SECONDS);
 			store2.removeMessageFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
 		}
 		assertTrue(failures.size() == 0);
 	}
-	
+
 	@Test
-	public void testWithAggregatorWithShutdown(){	
-		
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("gemfire-aggregator-config.xml", this.getClass());
+	public void testWithAggregatorWithShutdown() {
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("gemfire-aggregator-config.xml",
+				this.getClass());
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
-		
-		Message<?> m1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setSequenceSize(3).setCorrelationId(1).build();
-		Message<?> m2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setSequenceSize(3).setCorrelationId(1).build();
+
+		Message<?> m1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setSequenceSize(3).setCorrelationId(1)
+				.build();
+		Message<?> m2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setSequenceSize(3).setCorrelationId(1)
+				.build();
 		input.send(m1);
 		assertNull(output.receive(1000));
 		input.send(m2);
 		assertNull(output.receive(1000));
-		
+
 		context = new ClassPathXmlApplicationContext("gemfire-aggregator-config-a.xml", this.getClass());
 		MessageChannel inputA = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel outputA = context.getBean("outputChannel", QueueChannel.class);
-		
-		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
+
+		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1)
+				.build();
 		inputA.send(m3);
 		assertNotNull(outputA.receive(1000));
 	}
+
 	@Test
-	public void testQueue() throws Exception{
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("gemfire-queue-config.xml", this.getClass());
-		
+	public void testQueue() throws Exception {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("gemfire-queue-config.xml",
+				this.getClass());
+
 		QueueChannel gemfireQueue = context.getBean("gemfireQueue", QueueChannel.class);
 		QueueChannel outputQueue = context.getBean("outputQueue", QueueChannel.class);
-		
+
 		for (int i = 0; i < 20; i++) {
 			gemfireQueue.send(new GenericMessage<String>("Hello"));
 			Thread.sleep(1);
@@ -349,18 +355,17 @@ public class GemfireGroupStoreTests {
 		}
 		assertNull(outputQueue.receive(1));
 	}
-	
+
 	@Before
-	public void init() throws Exception{
+	public void init() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		this.cache = (Cache)cacheFactoryBean.getObject();
+		this.cache = cacheFactoryBean.getObject();
 	}
-	
+
 	@After
-	public void cleanup(){
+	public void cleanup() {
 		this.cache.close();
 		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
 	}
-	
+
 }

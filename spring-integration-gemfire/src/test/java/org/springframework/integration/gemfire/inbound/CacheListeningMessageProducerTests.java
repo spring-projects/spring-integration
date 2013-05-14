@@ -39,14 +39,13 @@ public class CacheListeningMessageProducerTests {
 	@Test
 	public void receiveNewValuePayloadForCreateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = (Cache)cacheFactoryBean.getObject();
-		
+		Cache cache = cacheFactoryBean.getObject();
+
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
-			
+
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -65,14 +64,13 @@ public class CacheListeningMessageProducerTests {
 	@Test
 	public void receiveNewValuePayloadForUpdateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = (Cache)cacheFactoryBean.getObject();
-		
+		Cache cache = cacheFactoryBean.getObject();
+
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveNewValuePayloadForUpdateEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
-		
+
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -89,20 +87,19 @@ public class CacheListeningMessageProducerTests {
 		region.put("x", "xyz");
 		Message<?> message2 = channel.receive(0);
 		assertNotNull(message2);
-		assertEquals("xyz", message2.getPayload());		
+		assertEquals("xyz", message2.getPayload());
 	}
 
 	@Test
 	public void receiveOldValuePayloadForDestroyEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = (Cache)cacheFactoryBean.getObject();
-		
+		Cache cache = cacheFactoryBean.getObject();
+
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
-		
+
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -118,20 +115,19 @@ public class CacheListeningMessageProducerTests {
 		region.destroy("foo");
 		Message<?> message2 = channel.receive(0);
 		assertNotNull(message2);
-		assertEquals("abc", message2.getPayload());		
+		assertEquals("abc", message2.getPayload());
 	}
 
 	@Test
 	public void receiveOldValuePayloadForInvalidateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = (Cache)cacheFactoryBean.getObject();
-		
+		Cache cache = cacheFactoryBean.getObject();
+
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
 		this.setRegionAttributes(regionFactoryBean);
-		
+
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -147,13 +143,12 @@ public class CacheListeningMessageProducerTests {
 		region.invalidate("foo");
 		Message<?> message2 = channel.receive(0);
 		assertNotNull(message2);
-		assertEquals("foo was abc", message2.getPayload());		
+		assertEquals("foo was abc", message2.getPayload());
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	private void setRegionAttributes(RegionFactoryBean<String, String> regionFactoryBean) throws Exception{
+	private void setRegionAttributes(RegionFactoryBean<String, String> regionFactoryBean) throws Exception {
 		RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
-		attributesFactoryBean.setIgnoreJTA(true);
 		attributesFactoryBean.afterPropertiesSet();
 		regionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 	}
