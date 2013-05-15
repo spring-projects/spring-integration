@@ -32,7 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
- * @since 3.0
+ * @since 1.0
  *
  */
 @ContextConfiguration

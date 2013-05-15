@@ -27,6 +27,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 /**
  * Creates a default {@link MqttClient} and a set of options as configured.
  * @author Gary Russell
+ * @author Gunnar Hillert
  * @since 1.0
  *
  */
@@ -78,6 +79,11 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		this.userName = userName;
 	}
 
+	/**
+	 * Will be used to set the "Last Will and Testament" (LWT) for the connection.
+	 *
+	 * @see MqttConnectOptions
+	 */
 	public void setWill(Will will) {
 		this.will = will;
 	}

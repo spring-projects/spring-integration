@@ -32,7 +32,7 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 
 /**
  * @author Gary Russell
- * @since 3.0
+ * @since 1.0
  *
  */
 public class BrokerRunning extends TestWatcher {

@@ -31,7 +31,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
- * @since 3.0
+ * @since 1.0
  *
  */
 public class BackTobackAdapterTests {
