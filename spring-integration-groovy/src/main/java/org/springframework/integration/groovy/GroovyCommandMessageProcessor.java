@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,6 +18,8 @@ import groovy.lang.GString;
 
 import java.util.Map;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
@@ -34,11 +36,14 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Stefan Reuter
  * @since 2.0
  */
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
 	private volatile GroovyObjectCustomizer customizer;
+    private volatile ClassLoader beanClassLoader;
+    private volatile BeanFactory beanFactory;
 
 	private Binding binding;
 
@@ -87,7 +92,17 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		this.customizer = customizer;
 	}
 
-	@Override
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.beanClassLoader = classLoader;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
+    @Override
 	protected ScriptSource getScriptSource(Message<?> message) {
 		Object payload = message.getPayload();
 		Assert.isInstanceOf(String.class, payload, "Payload must be a String containing a Groovy script.");
@@ -108,6 +123,12 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 			customizerDecorator.setVariables(variables);
 		}
 		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), customizerDecorator);
+        if (this.beanClassLoader != null) {
+            factory.setBeanClassLoader(beanClassLoader);
+        }
+        if (this.beanFactory != null) {
+            factory.setBeanFactory(beanFactory);
+        }
 		Object result = factory.getScriptedObject(scriptSource, null);
 		return (result instanceof GString) ? result.toString() : result;
 	}

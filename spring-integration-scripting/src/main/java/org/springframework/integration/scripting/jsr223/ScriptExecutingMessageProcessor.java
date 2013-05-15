@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,8 @@ package org.springframework.integration.scripting.jsr223;
 
 import java.util.Map;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
@@ -24,6 +26,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author David Turanski
+ * @author Stefan Reuter
  * @since 2.1
  */
 public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
@@ -66,8 +69,17 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 		this.scriptExecutor = scriptExecutor; 
 	}
 
-	
-	@Override
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+
+    }
+
+    @Override
 	protected ScriptSource getScriptSource(Message<?> message) {
 		return this.scriptSource;
 	}

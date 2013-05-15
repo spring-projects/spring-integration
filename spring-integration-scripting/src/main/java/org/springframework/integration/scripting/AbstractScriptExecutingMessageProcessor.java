@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,6 +15,8 @@ package org.springframework.integration.scripting;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.MessageProcessor;
@@ -25,9 +27,11 @@ import org.springframework.util.Assert;
  * Base {@link MessageProcessor} for scripting implementations to extend.
  * 
  * @author Mark Fisher
+ * @author Stefan Reuter
  * @since 2.0
  */
-public abstract class AbstractScriptExecutingMessageProcessor<T> implements MessageProcessor<T> {
+public abstract class AbstractScriptExecutingMessageProcessor<T> implements MessageProcessor<T>, BeanFactoryAware, BeanClassLoaderAware
+{
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
