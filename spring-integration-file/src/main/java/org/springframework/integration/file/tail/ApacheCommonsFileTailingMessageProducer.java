@@ -32,14 +32,34 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 
 	private volatile long pollingDelay = 1000;
 
-	private volatile long missingFileDelay = 5000;
+	private volatile boolean end = true;
 
+	private volatile boolean reopen = false;
+
+	/**
+	 * The delay between checks of the file for new content in milliseconds.
+	 * @param pollingDelay The delay.
+	 */
 	public void setPollingDelay(long pollingDelay) {
 		this.pollingDelay = pollingDelay;
 	}
 
-	public void setMissingFileDelay(long missingFileDelay) {
-		this.missingFileDelay = missingFileDelay;
+	/**
+	 * If true, tail from the end of the file, otherwise
+	 * include all lines from the beginning. Default true.
+	 * @param end true or false
+	 */
+	public void setEnd(boolean end) {
+		this.end = end;
+	}
+
+	/**
+	 * If true, close and reopen the file between reading chunks;
+	 * default false.
+	 * @param reopen true or false.
+	 */
+	public void setReopen(boolean reopen) {
+		this.reopen = reopen;
 	}
 
 	@Override
@@ -50,7 +70,7 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStart() {
 		super.doStart();
-		Tailer tailer = new Tailer(this.getFile(), this, this.pollingDelay);
+		Tailer tailer = new Tailer(this.getFile(), this, this.pollingDelay, this.end, this.reopen);
 		this.getTaskExecutor().execute(tailer);
 		this.tailer = tailer;
 	}
@@ -69,7 +89,7 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	public void fileNotFound() {
 		this.publish("File not found:" + this.getFile().getAbsolutePath());
 		try {
-			Thread.sleep(this.missingFileDelay);
+			Thread.sleep(this.getMissingFileDelay());
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

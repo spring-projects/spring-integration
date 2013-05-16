@@ -231,7 +231,7 @@ Only files matching this regular expression will be picked up by this adapter.
                     <xsd:documentation>
                         Configures the adapter to exec 'tail' with these options (appended by the file name).
                         Default: "-F -n 0" (follow the filename and emit no
-                        existing lines). This attribute is not allowed if 'delay' or 'file-delay' is
+                        existing lines). This attribute is not allowed if 'delay' 'end' or 'reopen' is
                         specified, which cause the Apache commons-io 'Tailer' class to be used instead of
                         using a native 'tail' command.
                     </xsd:documentation>
@@ -247,14 +247,42 @@ Only files matching this regular expression will be picked up by this adapter.
             <xsd:attribute name="task-executor" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A reference to a TaskExecutor; default is a SimpleAsyncTaskExecutor; the
-                        native adapter uses two threads - one for stdout the other for stderr.
+                        A reference to a TaskExecutor; the default is a SimpleAsyncTaskExecutor; the
+                        native adapter uses three threads - one for reading stdout, one for
+                        reading stderr and one for monitoring the process.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
                         </tool:annotation>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="task-scheduler" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A reference to a TaskScheduler; the default is the 'taskScheduler' bean
+                        which is automatically configured for all Spring Integration applications.
+                        The scheduler is used by the native adapter to reschedule
+                        the 'tail' process after a failure according to the 'file-delay'.
+                        This attribute is not allowed when using the Apache adapter.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="file-delay" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The delay in milliseconds between attempts to open the file when no file was found (Apache adapter).
+                        For the native adapter, this is used as a delay before starting a new process after process failures.
+                        On some platforms, when the file doesn't exist, the 'tail' process is suspended until the file
+                        appears; on other platforms, the 'tail' process exits immediately if the file doesn't exist.
+                        Default 5000.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="delay" type="xsd:string">
@@ -266,14 +294,31 @@ Only files matching this regular expression will be picked up by this adapter.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="file-delay" type="xsd:string">
+            <xsd:attribute name="end">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Does not apply to the native adapter - the delay in milliseconds between attempts to open
-                        the file when no file was found. Default 5000. Note: Setting this option forces the use of the Apache
+                        Does not apply to the native adapter.
+                        Set to 'true' to tail from the end of the file, 'false' to tail from the beginning of the file.
+                        Default 'true'. Note: Setting this option forces the use of the Apache
                         Tailer implementation instead of the native 'tail' command.
                     </xsd:documentation>
                 </xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+            </xsd:attribute>
+            <xsd:attribute name="reopen">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Does not apply to the native adapter.
+                        If 'true', close and reopen the file between reading chunks.
+                        Default 'false'. Note: Setting this option forces the use of the Apache
+                        Tailer implementation instead of the native 'tail' command.
+                    </xsd:documentation>
+                </xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
             </xsd:attribute>
             <xsd:attribute name="auto-startup" type="xsd:string" default="true">
                 <xsd:annotation>

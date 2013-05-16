@@ -27,6 +27,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -43,6 +44,9 @@ import org.springframework.integration.file.tail.FileTailingMessageProducerSuppo
  */
 public class FileTailingMessageProducerTests {
 
+	@Rule
+	public TailRule tailRule = new TailRule();
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
@@ -57,16 +61,18 @@ public class FileTailingMessageProducerTests {
 	}
 
 	@Test
+	@TailAvailable
 	public void testOS() throws Exception {
 		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
+		adapter.setOptions("-F -n 99999999");
 		testGuts(adapter, "reader");
 	}
 
 	@Test
 	public void testApache() throws Exception {
 		ApacheCommonsFileTailingMessageProducer adapter = new ApacheCommonsFileTailingMessageProducer();
-		adapter.setMissingFileDelay(500);
 		adapter.setPollingDelay(100);
+		adapter.setEnd(false);
 		testGuts(adapter, "tailer");
 	}
 
@@ -84,6 +90,7 @@ public class FileTailingMessageProducerTests {
 		adapter.setFile(new File(testDir, "foo"));
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
+		adapter.setTailAttemptsDelay(500);
 		adapter.afterPropertiesSet();
 		File file = new File(testDir, "foo");
 		File renamed = new File(testDir, "bar");

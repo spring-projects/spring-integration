@@ -24,6 +24,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
 import org.springframework.integration.file.tail.FileTailingMessageProducerSupport;
 import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageProducer;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -40,9 +41,15 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	private volatile TaskExecutor taskExecutor;
 
+	private volatile TaskScheduler taskScheduler;
+
 	private volatile Long delay;
 
 	private volatile Long fileDelay;
+
+	private volatile Boolean end;
+
+	private volatile Boolean reopen;
 
 	private volatile FileTailingMessageProducerSupport adapter;
 
@@ -66,12 +73,24 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		this.taskExecutor = taskExecutor;
 	}
 
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		this.taskScheduler = taskScheduler;
+	}
+
 	public void setDelay(long delay) {
 		this.delay = delay;
 	}
 
 	public void setFileDelay(long fileDelay) {
 		this.fileDelay = fileDelay;
+	}
+
+	public void setEnd(Boolean end) {
+		this.end = end;
+	}
+
+	public void setReopen(Boolean reopen) {
+		this.reopen = reopen;
 	}
 
 	@Override
@@ -99,24 +118,33 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	@Override
 	protected FileTailingMessageProducerSupport createInstance() throws Exception {
 		FileTailingMessageProducerSupport adapter;
-		if (this.delay == null && this.fileDelay == null) {
+		if (this.delay == null && this.end == null && this.reopen == null) {
 			adapter = new OSDelegatingFileTailingMessageProducer();
 			if (this.nativeOptions != null) {
 				((OSDelegatingFileTailingMessageProducer) adapter).setOptions(this.nativeOptions);
 			}
 		}
 		else {
-			Assert.isNull(this.nativeOptions, "Cannot have 'delay' or 'file-delay' with a native adapter");
+			Assert.isNull(this.nativeOptions, "Cannot have 'delay', 'end' or 'reopen' with a native adapter");
 			adapter = new ApacheCommonsFileTailingMessageProducer();
 			if (this.delay != null) {
 				((ApacheCommonsFileTailingMessageProducer) adapter).setPollingDelay(this.delay);
 			}
-			if (this.fileDelay != null) {
-				((ApacheCommonsFileTailingMessageProducer) adapter).setMissingFileDelay(this.fileDelay);
+			if (this.end != null) {
+				((ApacheCommonsFileTailingMessageProducer) adapter).setEnd(this.end);
+			}
+			if (this.reopen != null) {
+				((ApacheCommonsFileTailingMessageProducer) adapter).setReopen(this.reopen);
 			}
 		}
 		adapter.setFile(this.file);
 		adapter.setTaskExecutor(this.taskExecutor);
+		if (this.taskScheduler != null) {
+			adapter.setTaskScheduler(this.taskScheduler);
+		}
+		if (this.fileDelay != null) {
+			adapter.setTailAttemptsDelay(this.fileDelay);
+		}
 		adapter.setOutputChannel(outputChannel);
 		adapter.setBeanName(this.beanName);
 		if (this.autoStartup != null) {

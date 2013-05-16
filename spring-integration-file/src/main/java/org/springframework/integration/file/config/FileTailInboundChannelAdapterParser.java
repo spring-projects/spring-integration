@@ -35,10 +35,16 @@ public class FileTailInboundChannelAdapterParser extends AbstractChannelAdapterP
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(FileTailInboundChannelAdapterFactoryBean.class);
 
-		if (element.hasAttribute("native-command")) {
-			if (element.hasAttribute("delay") || element.hasAttribute("file-delay")) {
+		if (element.hasAttribute("delay") || element.hasAttribute("end") || element.hasAttribute("reopen")) {
+			if (element.hasAttribute("native-options")) {
 				parserContext.getReaderContext().error(
-						"You cannot have 'delay' or 'file-delay' if 'native-command' is provided", element);
+						"You cannot have 'native-options' if one or more of " +
+						"'delay', 'end' or 'reopen' is provided", element);
+			}
+			if (element.hasAttribute("task-scheduler")) {
+				parserContext.getReaderContext().error(
+						"You cannot have 'task-scheduler' one or more of " +
+						"'delay', 'end' or 'reopen' is provided", element);
 			}
 		}
 
@@ -48,8 +54,11 @@ public class FileTailInboundChannelAdapterParser extends AbstractChannelAdapterP
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "native-options");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-scheduler");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delay");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file-delay");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "end");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reopen");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 

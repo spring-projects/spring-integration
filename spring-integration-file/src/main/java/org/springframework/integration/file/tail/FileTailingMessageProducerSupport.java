@@ -44,12 +44,17 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 
 	private volatile TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
+	private volatile long tailAttemptsDelay = 5000;
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.eventPublisher = applicationEventPublisher;
 	}
 
+	/**
+	 * The name of the file you wish to tail.
+	 * @param file The absolute path of the file.
+	 */
 	public void setFile(File file) {
 		Assert.notNull("'file' cannot be null");
 		this.file = file;
@@ -62,9 +67,27 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		return this.file;
 	}
 
+	/**
+	 * A task executor; default is a {@link SimpleAsyncTaskExecutor}.
+	 * @param taskExecutor
+	 */
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		Assert.notNull("'taskExecutor' cannot be null");
 		this.taskExecutor = taskExecutor;
+	}
+
+	/**
+	 * The delay in milliseconds between attempts to tail a non-existent file,
+	 * or between attempts to execute a process if it fails for any reason.
+	 * @param missingFileDelay the delay.
+	 */
+	public void setTailAttemptsDelay(long tailAttemptsDelay) {
+		Assert.isTrue(tailAttemptsDelay > 0, "'tailAttemptsDelay' must be > 0");
+		this.tailAttemptsDelay = tailAttemptsDelay;
+	}
+
+	protected long getMissingFileDelay() {
+		return tailAttemptsDelay;
 	}
 
 	protected TaskExecutor getTaskExecutor() {

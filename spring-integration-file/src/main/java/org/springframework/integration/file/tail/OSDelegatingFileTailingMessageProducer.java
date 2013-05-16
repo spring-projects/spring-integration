@@ -18,8 +18,11 @@ package org.springframework.integration.file.tail;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Date;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -41,6 +44,8 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	private volatile String command = "ADAPTER_NOT_INITIALIZED";
 
 	private volatile BufferedReader reader;
+
+	private volatile TaskScheduler scheduler;
 
 	public void setOptions(String options) {
 		if (options == null) {
@@ -67,7 +72,13 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	protected void doStart() {
 		super.doStart();
 		destroyProcess();
-		this.runExec();
+		this.getTaskExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				runExec();
+			}
+		});
 	}
 
 	@Override
@@ -77,8 +88,9 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	}
 
 	private void destroyProcess() {
-		if (this.process != null) {
-			this.process.destroy();
+		Process process = this.process;
+		if (process != null) {
+			process.destroy();
 			this.process = null;
 		}
 	}
@@ -87,12 +99,16 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 * Exec the native tail process.
 	 */
 	private void runExec() {
+		this.destroyProcess();
+		if (logger.isInfoEnabled()) {
+			logger.info("Starting tail process");
+		}
 		try {
 			Process process = Runtime.getRuntime().exec(this.command);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			this.process = process;
-			this.startStatusReader();
 			this.startProcessMonitor();
+			this.startStatusReader();
 			this.reader = reader;
 			this.getTaskExecutor().execute(this);
 		}
@@ -101,6 +117,18 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		}
 	}
 
+	private TaskScheduler getRequiredTaskScheduler() {
+		if (this.scheduler == null) {
+			TaskScheduler taskScheduler = super.getTaskScheduler();
+			if (taskScheduler == null) {
+				ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+				scheduler.initialize();
+				taskScheduler = scheduler;
+			}
+			this.scheduler = taskScheduler;
+		}
+		return this.scheduler;
+	}
 	/**
 	 * Runs a thread that waits for the Process result.
 	 */
@@ -109,8 +137,19 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 
 			@Override
 			public void run() {
+				Process process = OSDelegatingFileTailingMessageProducer.this.process;
+				if (process == null) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Process destroyed before starting process monitor");
+					}
+					return;
+				}
+
 				int result = Integer.MIN_VALUE;
 				try {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Monitoring process " + process);
+					}
 					result = process.waitFor();
 					if (logger.isInfoEnabled()) {
 						logger.info("tail process terminated with value " + result);
@@ -122,14 +161,19 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 					stop();
 				}
 				finally {
-					if (process != null) {
-						process.destroy();
-						process = null;
-					}
+					destroyProcess();
 				}
 				if (isRunning()) {
-					logger.info("Restarting tail process");
-					runExec();
+					if (logger.isInfoEnabled()) {
+						logger.info("Restarting tail process in " + getMissingFileDelay() + " milliseconds");
+					}
+					getRequiredTaskScheduler().schedule(new Runnable() {
+
+						@Override
+						public void run() {
+							runExec();
+						}
+					}, new Date(System.currentTimeMillis() + getMissingFileDelay()));
 				}
 			}
 		});
@@ -140,12 +184,22 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 * (file not available, rotations etc) are sent to stderr.
 	 */
 	private void startStatusReader() {
-		final BufferedReader errorReader = new BufferedReader(new InputStreamReader(this.process.getErrorStream()));
+		Process process = this.process;
+		if (process == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Process destroyed before starting stderr reader");
+			}
+			return;
+		}
+		final BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 		this.getTaskExecutor().execute(new Runnable() {
 
 			@Override
 			public void run() {
 				String statusMessage;
+				if (logger.isDebugEnabled()) {
+					logger.debug("Reading stderr");
+				}
 				try {
 					while ((statusMessage = errorReader.readLine()) != null) {
 						publish(statusMessage);
@@ -176,20 +230,22 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	public void run() {
 		String line;
 		try {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Reading stdout");
+			}
 			while ((line = this.reader.readLine()) != null) {
 				this.send(line);
 			}
 		}
 		catch (IOException e) {
-			logger.error("Exception on tail error reader", e);
+			logger.error("Exception on tail reader", e);
 			try {
 				this.reader.close();
 			}
 			catch (IOException e1) {
 
 			}
-			this.process.destroy();
-			process = null;
+			this.destroyProcess();
 		}
 	}
 

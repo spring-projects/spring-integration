@@ -20,11 +20,13 @@
 		channel="input"
 		native-options="-F -n 6"
 		task-executor="exec"
+		task-scheduler="sched"
+		file-delay="456"
 		file="/tmp/foo"
 		auto-startup="false"
 		phase="123" />
 
-	<int-file:tail-inbound-channel-adapter id="apache"
+	<int-file:tail-inbound-channel-adapter id="apacheDefault"
 		channel="input"
 		task-executor="exec"
 		file="/tmp/bar"
@@ -33,7 +35,20 @@
 		auto-startup="false"
 		phase="123" />
 	
+	<int-file:tail-inbound-channel-adapter id="apacheEndReopen"
+		channel="input"
+		task-executor="exec"
+		file="/tmp/qux"
+		delay="2000"
+		file-delay="10000"
+		end="false"
+		reopen="true"
+		auto-startup="false"
+		phase="123" />
+
 	<int:channel id="input" />
 	
 	<task:executor id="exec" />
+
+	<task:scheduler id="sched" />
 </beans>
