@@ -12,6 +12,15 @@ buildscript {
 	}
 }
 
+ext {
+	linkHomepage = 'http://www.springintegration.org/'
+	linkCi       = 'https://build.springsource.org/browse/INT'
+	linkIssue    = 'https://jira.springsource.org/browse/INT'
+	linkScmUrl           = 'https://github.com/SpringSource/spring-integration'
+	linkScmConnection    = 'https://github.com/SpringSource/spring-integration.git'
+	linkScmDevConnection = 'git@github.com:SpringSource/spring-integration.git'
+}
+
 allprojects {
 	group = 'org.springframework.integration'
 
@@ -595,38 +604,18 @@ reference {
 	sourceDir = file('src/reference/docbook')
 }
 
-apply plugin: 'sonar'
+apply plugin: 'sonar-runner'
 
-sonar {
-
-	if (rootProject.hasProperty('sonarHostUrl')) {
-		server.url = rootProject.sonarHostUrl
+sonarRunner {
+	sonarProperties {
+		property "sonar.jacoco.reportPath", "${buildDir.name}/jacoco.exec"
+		property "sonar.links.homepage", linkHomepage
+		property "sonar.links.ci", linkCi
+		property "sonar.links.issue", linkIssue
+		property "sonar.links.scm", linkScmUrl
+		property "sonar.links.scm_dev", linkScmDevConnection
+		property "sonar.java.coveragePlugin", "jacoco"
 	}
-
-	database {
-		if (rootProject.hasProperty('sonarJdbcUrl')) {
-			url = rootProject.sonarJdbcUrl
-		}
-		if (rootProject.hasProperty('sonarJdbcDriver')) {
-			driverClassName = rootProject.sonarJdbcDriver
-		}
-		if (rootProject.hasProperty('sonarJdbcUsername')) {
-			username = rootProject.sonarJdbcUsername
-		}
-		if (rootProject.hasProperty('sonarJdbcPassword')) {
-			password = rootProject.sonarJdbcPassword
-		}
-	}
-
-	project {
-		dynamicAnalysis  = "reuseReports"
-		withProjectProperties { props ->
-			props["sonar.core.codeCoveragePlugin"] = "jacoco"
-			props["sonar.jacoco.reportPath"]       = "${buildDir.name}/jacoco.exec"
-		}
-	}
-
-	logger.info("Sonar parameters used: server.url='${server.url}'; database.url='${database.url}'; database.driverClassName='${database.driverClassName}'; database.username='${database.username}'")
 }
 
 task api(type: Javadoc) {
@@ -769,5 +758,5 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '1.5'
+	gradleVersion = '1.6'
 }
