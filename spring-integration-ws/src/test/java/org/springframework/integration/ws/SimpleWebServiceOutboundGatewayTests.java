@@ -34,6 +34,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -56,11 +58,16 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 	private static final String response = "<response><name>Test Name</name></response>";
 
-	private static final String responseSoapMessage = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
+	public static final String responseSoapMessage = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
 			"<soap:Body> " +
 			response +
 			"</soap:Body> " +
 			"</soap:Envelope>";
+
+	public static final String responseEmptyBodySoapMessage = "<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+			"<SOAP:Header/>\n" +
+			"<SOAP:Body/>\n" +
+			"</SOAP:Envelope>";
 
 	@Test // INT-1051
 	public void soapActionAndCustomCallback() {
@@ -99,7 +106,16 @@ public class SimpleWebServiceOutboundGatewayTests {
 		assertThat(replyMessage.getPayload().toString(), Matchers.endsWith(response));
 	}
 
-	public static WebServiceMessageSender createMockMessageSender() throws Exception {
+	@Test(expected = ReplyRequiredException.class)
+	public void testInt3022EmptyResponseBody() throws Exception {
+		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway("http://testInt3022");
+		gateway.setRequiresReply(true);
+		WebServiceMessageSender messageSender = createMockMessageSender(responseEmptyBodySoapMessage);
+		gateway.setMessageSender(messageSender);
+		gateway.handleMessage(new GenericMessage<String>("<test>foo</test>"));
+	}
+
+	public static WebServiceMessageSender createMockMessageSender(final String mockResponseMessage) throws Exception {
 		WebServiceMessageSender messageSender = Mockito.mock(WebServiceMessageSender.class);
 		WebServiceConnection wsConnection = Mockito.mock(WebServiceConnection.class);
 		Mockito.when(messageSender.createConnection(Mockito.any(URI.class))).thenReturn(wsConnection);
@@ -109,7 +125,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 			public Object answer(InvocationOnMock invocation) throws Exception{
 				Object[] args = invocation.getArguments();
 				WebServiceMessageFactory factory = (WebServiceMessageFactory) args[0];
-				return factory.createWebServiceMessage(new ByteArrayInputStream(responseSoapMessage.getBytes()));
+				return factory.createWebServiceMessage(new ByteArrayInputStream(mockResponseMessage.getBytes()));
 			}}).when(wsConnection).receive(Mockito.any(WebServiceMessageFactory.class));
 
 		return messageSender;

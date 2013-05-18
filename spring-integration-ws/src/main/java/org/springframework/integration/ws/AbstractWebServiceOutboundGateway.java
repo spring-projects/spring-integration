@@ -61,6 +61,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -251,10 +252,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 			Object resultObject = this.doExtractData(message);
 
-            if (message instanceof SoapMessage){
-				Map<String, Object> mappedMessageHeaders = headerMapper.toHeadersFromReply((SoapMessage) message);
-				Message<?> siMessage = MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
-				return siMessage;
+			if (resultObject != null && message instanceof SoapMessage){
+				Map<String, Object> mappedMessageHeaders =
+						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
+				return MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
 			}
 			else {
 				return resultObject;
