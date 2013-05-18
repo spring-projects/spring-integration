@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,12 +40,13 @@ import org.springframework.xml.transform.TransformerObjectSupport;
 
 /**
  * An outbound Messaging Gateway for invoking a Web Service.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
-	
+
 	private final SourceExtractor<?> sourceExtractor;
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
@@ -85,23 +86,22 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		else if (requestPayload instanceof Document) {
 			responseResultInstance = new DOMResult();
 		}
-		Object reply = this.getWebServiceTemplate().sendAndReceive(uri,
+		return this.getWebServiceTemplate().sendAndReceive(uri,
 				new SimpleRequestMessageCallback(requestCallback, requestMessage), new SimpleResponseMessageExtractor(responseResultInstance));
-		return reply;
 	}
 
 	private class SimpleRequestMessageCallback extends RequestMessageCallback {
-		
+
 		public SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
 			super(requestCallback, requestMessage);
 		}
-		
+
 		@Override
 		public void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException, TransformerException {
 			Source source = this.extractSource(payload);
 			this.transform(source, message.getPayloadResult());
 		}
-		
+
 		private Source extractSource(Object requestPayload) throws IOException, TransformerException{
 			Source source = null;
 
@@ -123,15 +123,16 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 						"', and '" + Document.class.getName() + "'. Consider either using the '"
 						+ MarshallingWebServiceOutboundGateway.class.getName() + "' or a Message Transformer.");
 			}
-			
+
 			return source;
-		}		
+		}
+
 	}
-	
+
 	private class SimpleResponseMessageExtractor extends ResponseMessageExtractor {
-		
+
 		private final Result result;
-		
+
 		public SimpleResponseMessageExtractor(Result result){
 			super();
 			this.result = result;
@@ -140,28 +141,26 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		@Override
 		public Object doExtractData(WebServiceMessage message) throws IOException, TransformerException{
 			Source payloadSource = message.getPayloadSource();
-			Object payload = null;
-			
-			if (this.result != null){
+
+			if (payloadSource != null && this.result != null) {
 				this.transform(payloadSource, this.result);
 				if (this.result instanceof StringResult){
-					payload = this.result.toString();
+					return this.result.toString();
 				}
 				else if (this.result instanceof DOMResult){
-					payload = ((DOMResult)this.result).getNode();
+					return  ((DOMResult)this.result).getNode();
 				}
 				else {
-					payload = this.result;
+					return this.result;
 				}
 			}
-			else {
-				payload = payloadSource;
-			}
-			return payload;
+
+			return payloadSource;
 		}
+
 	}
 
-	
+
 	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor<DOMSource> {
 
 		public DOMSource extractData(Source source) throws IOException, TransformerException {
@@ -172,5 +171,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			this.transform(source, result);
 			return new DOMSource(result.getNode());
 		}
+
 	}
+
 }
