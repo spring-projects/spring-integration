@@ -237,7 +237,7 @@ public class ChainElementsFailureTests {
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().contains("BeanDefinition is already registered for given " +
-					"beanName: 'foo$child.bar' within current <chain>."));
+					"beanName: 'foo$child.bar.handler' within current <chain>."));
 		}
 	}
 

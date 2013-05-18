@@ -128,23 +128,24 @@
 			<listitem>
 				The <code>&lt;service-activator&gt;</code> doesn't provide Messaging Endpoint (<classname>PollingConsumer</classname>
 				or <classname>EventDrivenConsumer</classname>) within <code>&lt;chain&gt;</code> - it is just one of
-				<interfacename>MessageHandler</interfacename>s in the <code>&lt;chain&gt;</code> black box. So, in this case,
-				'fooService' <emphasis>id</emphasis> is involved in the generation of <classname>ServiceActivatingHandler</classname>'s
-				bean alias - 'fooService.handler', as it is for root components.
+				<interfacename>MessageHandler</interfacename>s inside the <code>&lt;chain&gt;</code> black box. So, in this case,
+				'fooService' <emphasis>id</emphasis> with the <emphasis>id</emphasis> of the <code>&lt;chain&gt;</code>
+				is involved in the generation of <classname>ServiceActivatingHandler</classname>'s
+				<emphasis>beanName</emphasis> - 'fooChain$child.fooService.handler', to allow simplify identify this handler
+				within <interfacename>BeanFactory</interfacename>.
 			</listitem>
 			<listitem>
-			    From other side <classname>ServiceActivatingHandler</classname>'s bean name is based on <code>&lt;chain&gt;</code>
-				element <emphasis>id</emphasis> and its own <emphasis>id</emphasis> and this bean name shows relationship inside
-				<code>&lt;chain&gt;</code> black box. Here it looks like 'fooChain$child.fooService'. The same value is applied
-				to the <classname>ServiceActivatingHandler</classname>'s component name.
+			    The <emphasis>componentName</emphasis> of this <classname>ServiceActivatingHandler</classname> takes the
+				same value, but without '.handler' suffix - 'fooChain$child.fooService'.
 			</listitem>
 			<listitem>
 				The last <code>&lt;chain&gt;</code> sub-component, <code>&lt;object-to-json-transformer&gt;</code>, doesn't have
 				an <emphasis>id</emphasis> attribute. However, it has precise <emphasis>order</emphasis>
 				in the <code>&lt;chain&gt;</code>'s handler list. So, this order is involved in the generation of
-				<classname>MessageTransformingHandler</classname>'s bean name and component name. Here it looks like
-				'fooChain$child#1'. This transformer doesn't get bean alias, because it isn't registered as a bean within
-				application context.
+				<classname>MessageTransformingHandler</classname>'s <emphasis>componentName</emphasis>.
+				Here it looks like 'fooChain$child#1'. Note, this transformer isn't registered as a bean within application context,
+				so, it doesn't get a <emphasis>beanName</emphasis>, however its <emphasis>componentName</emphasis> has
+				a value within <code>&lt;chain&gt;</code> black box.
 			</listitem>
 		</itemizedlist>
 	</para>
@@ -153,9 +154,13 @@
 		<link linkend='jmx-mbean-exporter'>JMX export</link> and they are trackable via <link linkend='message-history'>Message History</link>.
 		By the bean alias, using suffix '.handler', <code>&lt;chain&gt;</code> sub-components <interfacename>MessageHandler</interfacename>s
 		can be accessed from <interfacename>BeanFactory</interfacename>.
-		<note>It is preferable to provide an explicit <emphasis>id</emphasis> attribute on the <code>&lt;chain&gt;</code>
-		to make easier identification of sub-components in logs etc.</note>
 	</para>
+	<important>
+		<para>
+			It is strongly recommended to provide an explicit <emphasis>id</emphasis> attribute on the <code>&lt;chain&gt;</code>
+			to make easier identification of sub-components in logs, access to them within<interfacename>BeanFactory</interfacename> etc.
+		</para>
+	</important>
 	<para><emphasis>Calling a Chain from within a Chain</emphasis></para>
 
 	<para>

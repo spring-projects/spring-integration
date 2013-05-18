@@ -23,12 +23,12 @@
 		<queue/>
 	</channel>
 
-	<chain input-channel="filterInput" output-channel="output">
+	<chain id="filterChain" input-channel="filterInput" output-channel="output">
 		<filter id="filterWithinChain" ref="typeSelector"/>
 		<service-activator id="serviceActivatorWithinChain" ref="testHandler"/>
 	</chain>
 
-	<chain input-channel="headerEnricherInput">
+	<chain id="headerEnricherChain" input-channel="headerEnricherInput">
 		<header-enricher id="headerEnricherWithinChain">
 			<reply-channel ref="replyOutput"/>
 			<correlation-id value="ABC"/>
@@ -56,7 +56,7 @@
 				class="org.springframework.integration.config.ChainParserTests$StubHandler"/>
 	</chain>
 
-	<chain input-channel="aggregatorInput" output-channel="output">
+	<chain id="aggregatorChain" input-channel="aggregatorInput" output-channel="output">
 		<aggregator id="aggregatorWithinChain" ref="aggregatorBean" method="aggregate"/>
 		<chain id="nestedChain">
 			<filter ref="typeSelector"/>
@@ -64,14 +64,14 @@
 		</chain>
 	</chain>
 
-	<chain input-channel="payloadTypeRouterInput">
+	<chain id="payloadTypeRouterChain" input-channel="payloadTypeRouterInput">
 		<payload-type-router id="payloadTypeRouterWithinChain">
 			<mapping type="java.lang.String" channel="strings"/>
 			<mapping type="java.lang.Number" channel="numbers"/>
 		</payload-type-router>
 	</chain>
 
-	<chain input-channel="headerValueRouterInput">
+	<chain id="headerValueRouterChain" input-channel="headerValueRouterInput">
 		<header-value-router id="headerValueRouterWithinChain" header-name="routingHeader"/>
 	</chain>
 
@@ -97,7 +97,7 @@
 		<service-activator ref="testHandler"/>
 	</chain>
 
-	<chain input-channel="outboundChannelAdapterChannel">
+	<chain id="outboundChain" input-channel="outboundChannelAdapterChannel">
 		<outbound-channel-adapter id="outboundChannelAdapterWithinChain" ref="testConsumer"/>
 	</chain>
 
@@ -128,14 +128,14 @@
 		<router id="routerWithinChain" expression="foo"/>
 	</chain>
 
-	<chain input-channel="subComponentsIdSupport2Channel">
+	<chain id="exceptionTypeRouterChain" input-channel="subComponentsIdSupport2Channel">
 		<exception-type-router id="exceptionTypeRouterWithinChain">
 			<mapping channel="numbers" exception-type="org.springframework.integration.MessageRejectedException"/>
 		</exception-type-router>
 	</chain>
 
-	<chain input-channel="subComponentsIdSupport3Channel">
-		<recipient-list-router id="recipientListRouterWithinChain">
+	<chain id="recipientListRouterChain" input-channel="subComponentsIdSupport3Channel">
+	<recipient-list-router id="recipientListRouterWithinChain">
 			<recipient channel="strings"/>
 			<recipient channel="numbers"/>
 		</recipient-list-router>

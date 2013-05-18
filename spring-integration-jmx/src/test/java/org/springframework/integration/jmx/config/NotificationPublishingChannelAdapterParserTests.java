@@ -113,7 +113,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 
 	@Test //INT-2275
 	public void publishStringMessageWithinChain() throws Exception {
-		assertNotNull(this.beanFactory.getBean("jmx-notification-publishing-channel-adapter-within-chain.handler",
+		assertNotNull(this.beanFactory.getBean("chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain.handler",
 				MessageHandler.class));
 		assertNull(listener.lastNotification);
 		Message<?> message = MessageBuilder.withPayload("XYZ")
@@ -126,7 +126,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertNull(notification.getUserData());
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("org.springframework.integration:type=MessageHandler," +
-						"name=chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain,bean=handler")
+						"name=chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain.handler,*")
 				, null);
 		assertEquals(1, names.size());
 	}

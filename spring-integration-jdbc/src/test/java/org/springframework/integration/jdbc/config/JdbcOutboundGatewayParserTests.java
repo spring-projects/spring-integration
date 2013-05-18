@@ -204,7 +204,10 @@ public class JdbcOutboundGatewayParserTests {
 	@Test //INT-1029
 	public void testOutboundGatewayInsideChain() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("handlingMapPayloadJdbcOutboundGatewayTest.xml", getClass());
-		assertNotNull(context.getBean("jdbc-outbound-gateway-within-chain.handler", JdbcOutboundGateway.class));
+		//INT-2755
+		assertNotNull(context.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child.jdbc-outbound-gateway-within-chain.handler",
+				JdbcOutboundGateway.class));
+
 		MessageChannel channel = context.getBean("jdbcOutboundGatewayInsideChain", MessageChannel.class);
 		channel.send(MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build());
 

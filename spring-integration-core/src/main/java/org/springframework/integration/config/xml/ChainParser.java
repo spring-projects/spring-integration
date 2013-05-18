@@ -122,7 +122,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 
 		String id = element.getAttribute(ID_ATTRIBUTE);
 		boolean hasId = StringUtils.hasText(id);
-		String handlerBeanName = chainHandlerId + "$child" + (hasId ? "." + id : "#" + order);
+		String handlerComponentName = chainHandlerId + "$child" + (hasId ? "." + id : "#" + order);
 
 		if ("bean".equals(element.getLocalName())) {
 			holder = parserContext.getDelegate().parseBeanDefinitionElement(element, parentDefinition);
@@ -137,12 +137,11 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				return null;
 			}
 			else {
-				String[] handlerAlias = IntegrationNamespaceUtils.generateAlias(element);
-				holder = new BeanDefinitionHolder(beanDefinition, handlerBeanName, handlerAlias);
+				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationNamespaceUtils.HANDLER_ALIAS_SUFFIX);
 			}
 		}
 
-		holder.getBeanDefinition().getPropertyValues().add("componentName", handlerBeanName);
+		holder.getBeanDefinition().getPropertyValues().add("componentName", handlerComponentName);
 
 		if (hasId) {
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());

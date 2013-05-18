@@ -113,7 +113,7 @@ public class MailSendingMessageHandlerContextTests {
 
 	@Test //INT-2275
 	public void mailOutboundChannelAdapterWithinChain() {
-		assertNotNull(this.beanFactory.getBean("mail-outbound-channel-adapter-within-chain.handler"));
+		assertNotNull(this.beanFactory.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child.mail-outbound-channel-adapter-within-chain.handler"));
 		this.sendMailOutboundChainChannel.send(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent", 0, this.mailSender.getSentMimeMessages().size());

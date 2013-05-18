@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -49,16 +50,21 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.json.ParameterizedTypeReference;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageMatcher;
+import org.springframework.integration.router.ErrorMessageExceptionTypeRouter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
@@ -339,33 +345,46 @@ public class ChainParserTests {
 
 	@Test
 	public void testInt2755SubComponentsIdSupport() {
-		assertNotNull(this.beanFactory.getBean("subComponentsIdSupport1.handler"));
-		assertNotNull(this.beanFactory.getBean("filterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("serviceActivatorWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("headerEnricherWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("aggregatorWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("nestedChain.handler"));
-		assertNotNull(this.beanFactory.getBean("payloadTypeRouterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("headerValueRouterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("claimCheckInWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("claimCheckOutWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("outboundChannelAdapterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("transformerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("loggingChannelAdapterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("splitterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("resequencerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("enricherWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("headerFilterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("payloadSerializingTransformerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("payloadDeserializingTransformerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("gatewayWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("objectToStringTransformerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("objectToMapTransformerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("mapToObjectTransformerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("controlBusWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("routerWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("exceptionTypeRouterWithinChain.handler"));
-		assertNotNull(this.beanFactory.getBean("recipientListRouterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1.handler"));
+		assertTrue(this.beanFactory.containsBean("filterChain$child.filterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("filterChain$child.serviceActivatorWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("aggregatorChain$child.aggregatorWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("aggregatorChain$child.nestedChain.handler"));
+		assertTrue(this.beanFactory.containsBean("payloadTypeRouterChain$child.payloadTypeRouterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("headerValueRouterChain$child.headerValueRouterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("chainWithClaimChecks$child.claimCheckInWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("chainWithClaimChecks$child.claimCheckOutWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("outboundChain$child.outboundChannelAdapterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("logChain$child.transformerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("logChain$child.loggingChannelAdapterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.splitterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.resequencerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.enricherWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.headerFilterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.payloadSerializingTransformerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.payloadDeserializingTransformerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.gatewayWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToStringTransformerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToMapTransformerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.mapToObjectTransformerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.controlBusWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.routerWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("exceptionTypeRouterChain$child.exceptionTypeRouterWithinChain.handler"));
+		assertTrue(this.beanFactory.containsBean("recipientListRouterChain$child.recipientListRouterWithinChain.handler"));
+
+		MessageHandlerChain chain = this.beanFactory.getBean("headerEnricherChain.handler", MessageHandlerChain.class);
+		List handlers = TestUtils.getPropertyValue(chain, "handlers", List.class);
+
+		assertTrue(handlers.get(0) instanceof MessageTransformingHandler);
+		assertEquals("headerEnricherChain$child.headerEnricherWithinChain", TestUtils.getPropertyValue(handlers.get(0), "componentName"));
+		assertEquals("headerEnricherChain$child.headerEnricherWithinChain.handler", TestUtils.getPropertyValue(handlers.get(0), "beanName"));
+		assertTrue(this.beanFactory.containsBean("headerEnricherChain$child.headerEnricherWithinChain.handler"));
+
+		assertTrue(handlers.get(1) instanceof ServiceActivatingHandler);
+		assertEquals("headerEnricherChain$child#1", TestUtils.getPropertyValue(handlers.get(1), "componentName"));
+		assertNull(TestUtils.getPropertyValue(handlers.get(1), "beanName"));
+		assertFalse(this.beanFactory.containsBean("headerEnricherChain$child#1.handler"));
+
 	}
 
 	@Test

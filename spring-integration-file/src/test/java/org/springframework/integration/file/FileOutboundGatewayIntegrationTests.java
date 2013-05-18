@@ -153,8 +153,7 @@ public class FileOutboundGatewayIntegrationTests {
 	@Test //INT-1029
 	public void moveInsideTheChain() throws Exception {
 		// INT-2755
-		Object bean = this.beanFactory.getBean("file-outbound-gateway-within-chain.handler");
-		assertNotNull(bean);
+		Object bean = this.beanFactory.getBean("org.springframework.integration.handler.MessageHandlerChain#0$child.file-outbound-gateway-within-chain.handler");
 		assertTrue(bean instanceof FileWritingMessageHandler);
 
 		fileOutboundGatewayInsideChain.send(message);
