@@ -106,7 +106,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		bridge(tapChannel, channel);
 	}
 
-	private synchronized <T extends AbstractMessageChannel> T lookupOrCreateSharedChannel(String name, Class<T> requiredType) {
+	protected synchronized <T extends AbstractMessageChannel> T lookupOrCreateSharedChannel(String name, Class<T> requiredType) {
 		T channel = null;
 		if (applicationContext.containsBean(name)) {
 			try {
@@ -123,7 +123,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		return channel;
 	}
 
-	private <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {
+	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {
 		try {
 			T channel = requiredType.newInstance();
 			channel.setComponentName(name);
@@ -157,7 +157,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		}
 	}
 
-	private BridgeHandler bridge(SubscribableChannel from, MessageChannel to) {
+	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to) {
 		BridgeHandler handler = new BridgeHandler();
 		handler.setOutputChannel(to);
 		handler.afterPropertiesSet();
