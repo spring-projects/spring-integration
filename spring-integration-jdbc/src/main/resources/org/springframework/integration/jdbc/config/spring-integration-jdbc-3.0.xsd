@@ -1296,12 +1296,32 @@
 				<xsd:union memberTypes="sqlType xsd:string"/>
 			</xsd:simpleType>
 		</xsd:attribute>
-			<xsd:attribute name="scale" type="xsd:integer" use="optional">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-						The scale of the Sql parameter. Only used for numeric and decimal
-						parameters.
-					]]></xsd:documentation>
+		<xsd:attribute name="scale" type="xsd:integer" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					The scale of the Sql parameter. Only used for numeric and decimal
+					parameters.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="type-name" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Used for types that are user-named like:
+					STRUCT, DISTINCT, JAVA_OBJECT, named array types.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="return-type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+						Reference to a custom value handler for complex type.
+					</xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.jdbc.core.SqlReturnType" />
+					</tool:annotation>
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
