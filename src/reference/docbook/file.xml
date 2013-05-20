@@ -149,6 +149,78 @@
         <para>
             This gives you full freedom to choose the ordering, listing and locking strategies.
         </para>
+        <section id="file-tailing">
+          <title>'Tail'ing Files</title>
+          <para>
+            Another popular use case is to get 'lines' from the end (or tail) of a file. Two implementations are provided;
+            the first, <classname>OSDelegatingFileTailingMessageProducer</classname>, uses the native <code>tail</code>
+            command (on operating systems that have one). This is likely the most efficient implementation on those
+            platforms. For operating systems that do not have a <code>tail</code> command, the second implementation
+            <classname>ApacheCommonsFileTailingMessageProducer</classname> which uses the Apache <code>commons-io
+            Tailer</code> class.
+          </para>
+          <para>
+            In both cases, file system events, such as files being unavailable etc, are published as
+            <interfacename>ApplicationEvent</interfacename>s using the normal Spring event publishing mechanism.
+            Examples of such events are:
+          </para>
+          <para><code>
+          [message=tail: cannot open `/tmp/foo' for reading:
+               No such file or directory, file=/tmp/foo]
+          </code></para>
+          <para><code>
+          [message=tail: `/tmp/foo' has become accessible, file=/tmp/foo]
+          </code></para>
+          <para><code>
+          [message=tail: `/tmp/foo' has become inaccessible:
+               No such file or directory, file=/tmp/foo]
+           </code></para>
+           <para><code>
+          [message=tail: `/tmp/foo' has appeared;
+               following end of new file, file=/tmp/foo]
+          </code></para>
+          <para>
+            This sequence of events might occur, for example, when a file is rotated.
+          </para>
+          <note>
+            Not all platforms supporting a <code>tail</code> command provide these status messages.
+          </note>
+          <para>
+            Example configurations:
+          </para>
+          <programlisting language="xml"><![CDATA[<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	task-executor="exec"
+	file="/tmp/foo"/>]]></programlisting>
+          <para>
+            This creates a native adapter with default '-F -n 0' options (follow the file name from the current end).
+          </para>
+          <programlisting language="xml"><![CDATA[<int-file:tail-inbound-channel-adapter id="native"
+	channel="input"
+	native-options="-F -n 6"
+	task-executor="exec"
+	file-delay=10000
+	file="/tmp/foo"/>]]></programlisting>
+          <para>
+            This creates a native adapter with '-F -n 6' options (follow the file name, emit up to 6 lines before the current end).
+            If the tail command fails (on some platforms, a missing file causes the <code>tail</code> to fail, even with
+            <code>-F</code> specified), the command will be retried every 10 seconds.
+          </para>
+          <programlisting language="xml"><![CDATA[<int-file:tail-inbound-channel-adapter id="apache"
+	channel="input"
+	task-executor="exec"
+	file="/tmp/bar"
+	delay="2000"
+	end="false"
+	reopen="true"
+	file-delay="10000"/>]]></programlisting>
+          <para>
+            This creates a commons-io <classname>Tailer</classname> adapter that examines the file for new lines every
+            2 seconds, and checks for existence of a missing file every 10 seconds. The file will be tailed from the
+            beginning (<code>end="false"</code>) instead of the end (which is the default). The file will be
+            reopened for each chunk (the default is to keep the file open).
+          </para>
+        </section>
   </section>
 	<section id="file-writing">
 		<title>Writing files</title>

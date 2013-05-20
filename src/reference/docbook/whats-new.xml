@@ -60,6 +60,14 @@
 				<xref linkend="syslog"/>.
 			</para>
 		</section>
+		<section id="3.0-tail">
+			<title>'Tail' Support</title>
+			<para>
+				File 'tail'ing inbound channel adapters are now provided to generate messages when
+				lines are added to the end of text files.
+				<xref linkend="file-tailing"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">
