@@ -15,13 +15,15 @@
  */
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.ByteArrayInputStream;
 import java.util.Properties;
 
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -236,8 +238,8 @@ public class ChainElementsFailureTests {
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
-			assertTrue(e.getMessage().contains("BeanDefinition is already registered for given " +
-					"beanName: 'foo$child.bar.handler' within current <chain>."));
+			assertTrue(e.getMessage().contains("A bean definition is already registered for " +
+					"beanName: 'foo$child.bar' within the current <chain>."));
 		}
 	}
 

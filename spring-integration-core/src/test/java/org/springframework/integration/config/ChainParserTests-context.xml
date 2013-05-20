@@ -59,7 +59,18 @@
 	<chain id="aggregatorChain" input-channel="aggregatorInput" output-channel="output">
 		<aggregator id="aggregatorWithinChain" ref="aggregatorBean" method="aggregate"/>
 		<chain id="nestedChain">
-			<filter ref="typeSelector"/>
+			<filter id="filterWithinNestedChain" ref="typeSelector"/>
+			<service-activator ref="testHandler"/>
+			<chain id="doubleNestedChain">
+				<filter id="filterWithinDoubleNestedChain" ref="typeSelector"/>
+			</chain>
+		</chain>
+	</chain>
+
+	<chain id="aggregatorChain2" input-channel="aggregatorInput" output-channel="output">
+		<aggregator id="aggregatorWithinChain" ref="aggregatorBean" method="aggregate"/>
+		<chain id="nestedChain">
+			<filter id="filterWithinNestedChain" ref="typeSelector"/>
 			<service-activator ref="testHandler"/>
 		</chain>
 	</chain>

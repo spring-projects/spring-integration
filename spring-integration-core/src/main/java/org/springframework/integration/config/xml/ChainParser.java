@@ -23,10 +23,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
@@ -46,6 +46,12 @@ import org.springframework.util.xml.DomUtils;
  */
 public class ChainParser extends AbstractConsumerEndpointParser {
 
+	/*
+	 * BD attribute used to pass down the current bean id for nested chains, allowing full
+	 * qualification of 'named' handlers within nested chains.
+	 */
+	private static final String SI_CHAIN_NESTED_ID_ATRIBUTE = "SI.ChainParser.NestedId";
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
@@ -53,14 +59,21 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
 
 		if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
-			logger.info("It is preferable to provide an explicit 'id' attribute on 'chain' " +
-					"to make easier identification of child elements in logs etc.");
+			logger.info("It is preferable to provide an explicit 'id' attribute on 'chain' elements " +
+					"to simplify the identification of child elements in logs etc.");
 		}
 
 		String chainHandlerId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
 		List<BeanMetadataElement> handlerList = new ManagedList<BeanMetadataElement>();
 		Set<String> handlerBeanNameSet = new HashSet<String>();
 		NodeList children = element.getChildNodes();
+		BeanDefinition containingBeanDefinition = parserContext.getContainingBeanDefinition();
+		if (containingBeanDefinition != null) {
+			String nestedChainId = (String) containingBeanDefinition.getAttribute(SI_CHAIN_NESTED_ID_ATRIBUTE);
+			if (StringUtils.hasText(nestedChainId)) {
+				chainHandlerId = nestedChainId + "$child." + chainHandlerId;
+			}
+		}
 		int childOrder = 0;
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
@@ -70,8 +83,8 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				if (childBeanMetadata instanceof RuntimeBeanReference) {
 					String handlerBeanName = ((RuntimeBeanReference) childBeanMetadata).getBeanName();
 					if (!handlerBeanNameSet.add(handlerBeanName)) {
-						parserContext.getReaderContext().error("BeanDefinition is already registered for given " +
-								"beanName: '" + handlerBeanName + "' within current <chain>.",
+						parserContext.getReaderContext().error("A bean definition is already registered for " +
+								"beanName: '" + handlerBeanName + "' within the current <chain>.",
 								element);
 						return null;
 					}
@@ -124,6 +137,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		boolean hasId = StringUtils.hasText(id);
 		String handlerComponentName = chainHandlerId + "$child" + (hasId ? "." + id : "#" + order);
 
+		parentDefinition.setAttribute(SI_CHAIN_NESTED_ID_ATRIBUTE, chainHandlerId);
 		if ("bean".equals(element.getLocalName())) {
 			holder = parserContext.getDelegate().parseBeanDefinitionElement(element, parentDefinition);
 		}
@@ -140,6 +154,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationNamespaceUtils.HANDLER_ALIAS_SUFFIX);
 			}
 		}
+		parentDefinition.removeAttribute(SI_CHAIN_NESTED_ID_ATRIBUTE);
 
 		holder.getBeanDefinition().getPropertyValues().add("componentName", handlerComponentName);
 
