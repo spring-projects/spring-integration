@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,11 @@ import groovy.lang.GString;
 
 import java.util.Map;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
@@ -33,9 +38,10 @@ import org.springframework.util.CollectionUtils;
  * @author Dave Syer
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Stefan Reuter
  * @since 2.0
  */
-public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
+public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> implements InitializingBean {
 
 	private final GroovyScriptFactory scriptFactory;
 
@@ -90,4 +96,13 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		}
 	}
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (getBeanClassLoader() != null) {
+			this.scriptFactory.setBeanClassLoader(getBeanClassLoader());
+		}
+		if (getBeanFactory() != null) {
+			this.scriptFactory.setBeanFactory(getBeanFactory());
+		}
+	}
 }
