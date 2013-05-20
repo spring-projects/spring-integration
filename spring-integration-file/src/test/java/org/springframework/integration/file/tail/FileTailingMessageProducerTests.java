@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,14 +45,18 @@ import org.springframework.integration.file.tail.FileTailingMessageProducerSuppo
  */
 public class FileTailingMessageProducerTests {
 
+	private static final String TAIL_OPTIONS_FOLLOW_NAME_MANY_LINES = "-F -n 99999999";
+
 	@Rule
-	public TailRule tailRule = new TailRule();
+	public TailRule tailRule = new TailRule(TAIL_OPTIONS_FOLLOW_NAME_MANY_LINES);
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
 
 	private File testDir;
+
+	private FileTailingMessageProducerSupport adapter;
 
 	@Before
 	public void setup() {
@@ -60,11 +65,18 @@ public class FileTailingMessageProducerTests {
 		this.testDir = f;
 	}
 
+	@After
+	public void tearDown() {
+		if (this.adapter != null) {
+			adapter.stop();
+		}
+	}
+
 	@Test
 	@TailAvailable
 	public void testOS() throws Exception {
 		OSDelegatingFileTailingMessageProducer adapter = new OSDelegatingFileTailingMessageProducer();
-		adapter.setOptions("-F -n 99999999");
+		adapter.setOptions(TAIL_OPTIONS_FOLLOW_NAME_MANY_LINES);
 		testGuts(adapter, "reader");
 	}
 
@@ -78,6 +90,7 @@ public class FileTailingMessageProducerTests {
 
 	private void testGuts(FileTailingMessageProducerSupport adapter, String field)
 			throws Exception {
+		this.adapter = adapter;
 		final List<FileTailingEvent> events = new ArrayList<FileTailingEvent>();
 		adapter.setApplicationEventPublisher(new ApplicationEventPublisher() {
 			@Override
@@ -105,7 +118,7 @@ public class FileTailingMessageProducerTests {
 		foo.flush();
 		for (int i = 0; i < 50; i++) {
 			Message<?> message = outputChannel.receive(5000);
-			assertNotNull(message);
+			assertNotNull("expected a non-null message", message);
 			assertEquals("hello" + i, message.getPayload());
 		}
 		file.renameTo(renamed);
@@ -120,11 +133,10 @@ public class FileTailingMessageProducerTests {
 		foo.flush();
 		for (int i = 50; i < 100; i++) {
 			Message<?> message = outputChannel.receive(3000);
-			assertNotNull(message);
+			assertNotNull("expected a non-null message", message);
 			assertEquals("hello" + i, message.getPayload());
 		}
 		foo.close();
-		adapter.stop();
 	}
 
 	private void waitForField(FileTailingMessageProducerSupport adapter, String field) throws Exception {

@@ -35,15 +35,17 @@ public class FileTailInboundChannelAdapterParser extends AbstractChannelAdapterP
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(FileTailInboundChannelAdapterFactoryBean.class);
 
-		if (element.hasAttribute("delay") || element.hasAttribute("end") || element.hasAttribute("reopen")) {
-			if (element.hasAttribute("native-options")) {
+		if (StringUtils.hasText(element.getAttribute("delay")) ||
+				StringUtils.hasText(element.getAttribute("end")) ||
+				StringUtils.hasText(element.getAttribute("reopen"))) {
+			if (StringUtils.hasText(element.getAttribute("native-options"))) {
 				parserContext.getReaderContext().error(
 						"You cannot have 'native-options' if one or more of " +
 						"'delay', 'end' or 'reopen' is provided", element);
 			}
-			if (element.hasAttribute("task-scheduler")) {
+			if (StringUtils.hasText(element.getAttribute("task-scheduler"))) {
 				parserContext.getReaderContext().error(
-						"You cannot have 'task-scheduler' one or more of " +
+						"You cannot have 'task-scheduler' if one or more of " +
 						"'delay', 'end' or 'reopen' is provided", element);
 			}
 		}

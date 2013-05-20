@@ -15,17 +15,30 @@
  */
 package org.springframework.integration.file.tail;
 
+import static org.junit.Assert.assertFalse;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 /**
+ * Ignores tests annotated with {@link TailAvailable} if 'tail' with the requested options
+ * does not work on this platform.
  * @author Gary Russell
  * @since 3.0
  *
@@ -36,13 +49,16 @@ public class TailRule extends TestWatcher {
 
 	private static final String tmpDir = System.getProperty("java.io.tmpdir");
 
-	private static Boolean tailWorks = tailWorksOnThisMachine();
+	private final String commandToTest;
 
+	public TailRule(String optionsToTest) {
+		this.commandToTest = "tail " + optionsToTest + " ";
+	}
 
 	@Override
 	public Statement apply(Statement base, Description description) {
 		if (description.getAnnotation(TailAvailable.class) != null) {
-			if (!tailWorks) {
+			if (!tailWorksOnThisMachine()) {
 				return new Statement() {
 
 					@Override
@@ -54,17 +70,54 @@ public class TailRule extends TestWatcher {
 		return super.apply(base, description);
 	}
 
-	private static boolean tailWorksOnThisMachine() {
+	private boolean tailWorksOnThisMachine() {
+		if (tmpDir.contains(":")) {
+			return false;
+		}
 		File testDir = new File(tmpDir, "FileTailingMessageProducerTests");
 		testDir.mkdir();
-		File file = new File(testDir, "foo");
+		final File file = new File(testDir, "foo");
 		int result = -99;
 		try {
 			OutputStream fos = new FileOutputStream(file);
 			fos.write("foo".getBytes());
 			fos.close();
-			Process process = Runtime.getRuntime().exec("tail " + file.getAbsolutePath());
-			result = process.waitFor();
+			final AtomicReference<Integer> c = new AtomicReference<Integer>();
+			final CountDownLatch latch = new CountDownLatch(1);
+			Future<Process> future = Executors.newSingleThreadExecutor().submit(new Callable<Process>() {
+
+				@Override
+				public Process call() throws Exception {
+					final Process process = Runtime.getRuntime().exec(commandToTest + " " + file.getAbsolutePath());
+					Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+						@Override
+						public void run() {
+							try {
+								c.set(process.getInputStream().read());
+								latch.countDown();
+							}
+							catch (IOException e) {
+								logger.error("Error reading test stream", e);
+							}
+						}
+					});
+					return process;
+				}
+			});
+			try {
+				Process process = future.get(10, TimeUnit.SECONDS);
+				if (latch.await(10, TimeUnit.SECONDS)) {
+					Integer read = c.get();
+					if (read != null && read == 'f') {
+						result = 0;
+					}
+				}
+				process.destroy();
+			}
+			catch (ExecutionException e) {
+				result = -999;
+			}
 			file.delete();
 		}
 		catch (Exception e) {
@@ -76,4 +129,12 @@ public class TailRule extends TestWatcher {
 		return result == 0;
 	}
 
+	public static class TestRule {
+
+		@Test
+		public void test1() {
+			TailRule rule = new TailRule("-BLAH");
+			assertFalse(rule.tailWorksOnThisMachine());
+		}
+	}
 }
