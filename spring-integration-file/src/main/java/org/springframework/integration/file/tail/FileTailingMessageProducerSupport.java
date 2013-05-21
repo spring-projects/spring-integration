@@ -79,7 +79,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	/**
 	 * The delay in milliseconds between attempts to tail a non-existent file,
 	 * or between attempts to execute a process if it fails for any reason.
-	 * @param missingFileDelay the delay.
+	 * @param tailAttemptsDelay the delay.
 	 */
 	public void setTailAttemptsDelay(long tailAttemptsDelay) {
 		Assert.isTrue(tailAttemptsDelay > 0, "'tailAttemptsDelay' must be > 0");

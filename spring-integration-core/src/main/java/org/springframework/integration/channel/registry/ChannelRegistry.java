@@ -42,7 +42,7 @@ public interface ChannelRegistry {
 
 	/**
 	 * Create a tap on an already registered inbound channel
-	 * @param the registered name
+	 * @param name the registered name
 	 * @param channel the channel that will receive messages from the tap
 	 */
 	void tap(String name, MessageChannel channel);

@@ -116,13 +116,14 @@ public class FileTailingMessageProducerTests {
 			foo.write(("hello" + i + "\n").getBytes());
 		}
 		foo.flush();
+		foo.close();
 		for (int i = 0; i < 50; i++) {
 			Message<?> message = outputChannel.receive(5000);
 			assertNotNull("expected a non-null message", message);
 			assertEquals("hello" + i, message.getPayload());
 		}
 		file.renameTo(renamed);
-		foo.close();
+		file = new File(testDir, "foo");
 		foo = new FileOutputStream(file);
 		if (adapter instanceof ApacheCommonsFileTailingMessageProducer) {
 			Thread.sleep(1000);
@@ -131,12 +132,12 @@ public class FileTailingMessageProducerTests {
 			foo.write(("hello" + i + "\n").getBytes());
 		}
 		foo.flush();
+		foo.close();
 		for (int i = 50; i < 100; i++) {
-			Message<?> message = outputChannel.receive(3000);
+			Message<?> message = outputChannel.receive(10000);
 			assertNotNull("expected a non-null message", message);
 			assertEquals("hello" + i, message.getPayload());
 		}
-		foo.close();
 	}
 
 	private void waitForField(FileTailingMessageProducerSupport adapter, String field) throws Exception {

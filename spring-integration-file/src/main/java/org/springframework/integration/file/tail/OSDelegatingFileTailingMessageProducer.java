@@ -209,14 +209,18 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 					}
 				}
 				catch (IOException e) {
-					logger.error("Exception on tail error reader", e);
+					if (logger.isDebugEnabled()) {
+						logger.debug("Exception on tail error reader", e);
+					}
 				}
 				finally {
 					try {
 						errorReader.close();
 					}
 					catch (IOException e) {
-						logger.error("Exception while closing stderr", e);
+						if (logger.isDebugEnabled()) {
+							logger.debug("Exception while closing stderr", e);
+						}
 					}
 				}
 			}
@@ -238,12 +242,16 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			}
 		}
 		catch (IOException e) {
-			logger.error("Exception on tail reader", e);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Exception on tail reader", e);
+			}
 			try {
 				this.reader.close();
 			}
 			catch (IOException e1) {
-
+				if (logger.isDebugEnabled()) {
+					logger.debug("Exception while closing stdout", e);
+				}
 			}
 			this.destroyProcess();
 		}
