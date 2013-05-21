@@ -144,7 +144,11 @@
 			are bound to the SpEL Evaluation Context, giving you full access to
 			the incoming Message.
 	    </para>
-
+		<tip>
+			For more examples for configuring header enrichers, see
+			<ulink url="https://github.com/SpringSource/spring-integration/wiki/Header-Enricher-Advanced-Configuration">
+			Header Enricher Advanced Configuration</ulink>.
+		</tip>
     </section>
 
     <section id="payload-enricher">
