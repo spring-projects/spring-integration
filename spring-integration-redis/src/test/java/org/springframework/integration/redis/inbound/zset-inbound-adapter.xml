@@ -44,7 +44,7 @@
 			<int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
-	
+
 	<int:transaction-synchronization-factory id="syncFactory">
 		 <int:after-commit expression="payload.removeByScore(18, 18)"/>
 	</int:transaction-synchronization-factory>
@@ -58,9 +58,9 @@
 	</int:channel>
 
 	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="7379"/>
+		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
-	
+
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans>

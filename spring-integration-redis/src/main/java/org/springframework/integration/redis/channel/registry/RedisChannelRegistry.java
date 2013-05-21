@@ -1,19 +1,18 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2007-2013 the original author or authors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
  */
-
 package org.springframework.integration.redis.channel.registry;
 
 import java.util.ArrayList;
@@ -21,21 +20,29 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.registry.ChannelRegistry;
+import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
-import org.springframework.integration.redis.inbound.RedisQueueInboundChannelAdapter;
+import org.springframework.integration.redis.inbound.RedisQueueMessageSource;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
+import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
 /**
@@ -45,7 +52,7 @@ import org.springframework.util.Assert;
  * @author Gunnar Hillert
  * @since 3.0
  */
-public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
+public class RedisChannelRegistry implements ChannelRegistry, DisposableBean, BeanFactoryAware, BeanClassLoaderAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -53,6 +60,9 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 
 	private final List<Lifecycle> lifecycleBeans = new ArrayList<Lifecycle>();
 
+	private volatile ConfigurableBeanFactory beanFactory;
+
+	private volatile ClassLoader beanClassLoader;
 
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -60,14 +70,51 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		this.redisTemplate.afterPropertiesSet();
 	}
 
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		Assert.isInstanceOf(ConfigurableBeanFactory.class, beanFactory,
+				"a ConfigurableBeanFactory is required");
+		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
+	}
 
 	@Override
 	public void inbound(final String name, MessageChannel channel) {
-		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name, this.redisTemplate.getConnectionFactory());
-		adapter.setOutputChannel(channel);
+
+		RedisQueueMessageSource adapter = new RedisQueueMessageSource("queue." + name, this.redisTemplate.getConnectionFactory());
 		adapter.afterPropertiesSet();
-		this.lifecycleBeans.add(adapter);
-		adapter.start();
+
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(1);
+		pollerMetadata.setTrigger(new PeriodicTrigger(0));
+
+		SourcePollingChannelAdapterFactoryBean fb = new SourcePollingChannelAdapterFactoryBean();
+
+		fb.setSource(adapter);
+		fb.setOutputChannel(channel);
+		fb.setPollerMetadata(pollerMetadata);
+		fb.setBeanClassLoader(beanClassLoader);
+		fb.setAutoStartup(false);
+		fb.setBeanFactory(beanFactory);
+
+		try {
+			fb.afterPropertiesSet();
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+
+		SourcePollingChannelAdapter sourcePollingChannelAdapter;
+		try {
+			sourcePollingChannelAdapter = fb.getObject();
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		this.lifecycleBeans.add(sourcePollingChannelAdapter);
+		sourcePollingChannelAdapter.start();
 	}
 
 	@Override
@@ -105,7 +152,6 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 			}
 		}
 	}
-
 
 	private static class CompositeHandler extends AbstractMessageHandler {
 

@@ -62,7 +62,7 @@
 											  collection-type="PROPERTIES"/>
 
 	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="7379"/>
+		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
 
 </beans>

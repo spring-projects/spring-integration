@@ -30,6 +30,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
@@ -73,7 +74,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 	@RedisAvailable
 	public void testInboundChannelAdapterMessaging() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
+		connectionFactory.setPort(RedisAvailableRule.REDIS_PORT);
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
 		Thread.sleep(1000);

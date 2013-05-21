@@ -30,12 +30,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisAccessor;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.ReflectionUtils;
@@ -51,7 +53,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests{
 	@RedisAvailable
 	public void pubSubChanneTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
+		connectionFactory.setPort(RedisAvailableRule.REDIS_PORT);
 		connectionFactory.afterPropertiesSet();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel");
@@ -73,7 +75,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests{
 	@RedisAvailable
 	public void dispatcherHasNoSubscribersTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
+		connectionFactory.setPort(RedisAvailableRule.REDIS_PORT);
 		connectionFactory.afterPropertiesSet();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel.no.subs");

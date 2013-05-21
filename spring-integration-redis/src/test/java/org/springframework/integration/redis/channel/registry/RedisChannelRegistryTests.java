@@ -19,9 +19,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
@@ -29,21 +29,22 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gunnar Hillert
  * @since 3.0
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
 public class RedisChannelRegistryTests extends RedisAvailableTests {
 
+	@Autowired
 	private RedisChannelRegistry registry;
-
-	@Before
-	public void setUp() {
-
-		final JedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
-		registry = new RedisChannelRegistry(connectionFactory);
-	}
 
 	@Test
 	@RedisAvailable
