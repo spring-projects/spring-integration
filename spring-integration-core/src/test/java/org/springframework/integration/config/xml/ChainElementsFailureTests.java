@@ -239,7 +239,7 @@ public class ChainElementsFailureTests {
 		}
 		catch (BeanDefinitionParsingException e) {
 			assertTrue(e.getMessage().contains("A bean definition is already registered for " +
-					"beanName: 'foo$child.bar' within the current <chain>."));
+					"beanName: 'foo$child.bar.handler' within the current <chain>."));
 		}
 	}
 
@@ -259,7 +259,7 @@ public class ChainElementsFailureTests {
 		return ac;
 	}
 
-	public static class Sampleservice {
+	public static class SampleService {
 		public String echo(String value){
 			return value;
 		}

@@ -19,6 +19,8 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -46,11 +48,12 @@ import org.springframework.util.xml.DomUtils;
  */
 public class ChainParser extends AbstractConsumerEndpointParser {
 
-	/*
-	 * BD attribute used to pass down the current bean id for nested chains, allowing full
+	/**
+	 * {@link BeanDefinition} attribute used to pass down the current bean id for nested chains, allowing full
 	 * qualification of 'named' handlers within nested chains.
+	 *
 	 */
-	private static final String SI_CHAIN_NESTED_ID_ATRIBUTE = "SI.ChainParser.NestedId";
+	private static final String SI_CHAIN_NESTED_ID_ATTRIBUTE = "SI.ChainParser.NestedId.Prefix";
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -67,13 +70,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		List<BeanMetadataElement> handlerList = new ManagedList<BeanMetadataElement>();
 		Set<String> handlerBeanNameSet = new HashSet<String>();
 		NodeList children = element.getChildNodes();
-		BeanDefinition containingBeanDefinition = parserContext.getContainingBeanDefinition();
-		if (containingBeanDefinition != null) {
-			String nestedChainId = (String) containingBeanDefinition.getAttribute(SI_CHAIN_NESTED_ID_ATRIBUTE);
-			if (StringUtils.hasText(nestedChainId)) {
-				chainHandlerId = nestedChainId + "$child." + chainHandlerId;
-			}
-		}
+
 		int childOrder = 0;
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
@@ -107,25 +104,18 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		return builder;
 	}
 
-	private void validateChild(Element element, ParserContext parserContext) {
-
-		final Object source = parserContext.extractSource(element);
-
-		final String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
-
-		if (StringUtils.hasText(order)) {
-			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
-					"an 'order' attribute when used within a chain.", source);
+	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
+		String id = super.resolveId(element, definition, parserContext);
+		BeanDefinition containingBeanDefinition = parserContext.getContainingBeanDefinition();
+		if (containingBeanDefinition != null) {
+			String nestedChainIdPrefix = (String) containingBeanDefinition.getAttribute(SI_CHAIN_NESTED_ID_ATTRIBUTE);
+			if (StringUtils.hasText(nestedChainIdPrefix)) {
+				id = nestedChainIdPrefix + "$child." + id;
+			}
 		}
-
-		final List<Element> pollerChildElements = DomUtils
-				.getChildElementsByTagName(element, "poller");
-
-		if (!pollerChildElements.isEmpty()) {
-			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
-					"a 'poller' sub-element when used within a chain.", source);
-		}
-
+		definition.setAttribute(SI_CHAIN_NESTED_ID_ATTRIBUTE, id);
+		return id;
 	}
 
 	private BeanMetadataElement parseChild(String chainHandlerId, Element element, int order, ParserContext parserContext,
@@ -137,7 +127,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		boolean hasId = StringUtils.hasText(id);
 		String handlerComponentName = chainHandlerId + "$child" + (hasId ? "." + id : "#" + order);
 
-		parentDefinition.setAttribute(SI_CHAIN_NESTED_ID_ATRIBUTE, chainHandlerId);
+
 		if ("bean".equals(element.getLocalName())) {
 			holder = parserContext.getDelegate().parseBeanDefinitionElement(element, parentDefinition);
 		}
@@ -154,7 +144,6 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				holder = new BeanDefinitionHolder(beanDefinition, handlerComponentName + IntegrationNamespaceUtils.HANDLER_ALIAS_SUFFIX);
 			}
 		}
-		parentDefinition.removeAttribute(SI_CHAIN_NESTED_ID_ATRIBUTE);
 
 		holder.getBeanDefinition().getPropertyValues().add("componentName", handlerComponentName);
 
@@ -164,6 +153,25 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		}
 
 		return holder;
+	}
+
+	private void validateChild(Element element, ParserContext parserContext) {
+
+		final Object source = parserContext.extractSource(element);
+
+		final String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
+
+		if (StringUtils.hasText(order)) {
+			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
+					"an 'order' attribute when used within a chain.", source);
+		}
+
+		final List<Element> pollerChildElements = DomUtils.getChildElementsByTagName(element, "poller");
+
+		if (!pollerChildElements.isEmpty()) {
+			parserContext.getReaderContext().error(IntegrationNamespaceUtils.createElementDescription(element) + " must not define " +
+					"a 'poller' sub-element when used within a chain.", source);
+		}
 	}
 
 }
