@@ -1,6 +1,5 @@
-package org.springframework.integration.config.xml;
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +13,17 @@ package org.springframework.integration.config.xml;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.config.xml;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.util.Properties;
 
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -35,6 +37,7 @@ import org.springframework.core.io.InputStreamResource;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class ChainElementsFailureTests {
@@ -227,12 +230,25 @@ public class ChainElementsFailureTests {
 		}
 	}
 
+	@Test
+	public void testInt2755DetectDuplicateHandlerId() throws Exception {
+
+		try {
+			this.bootStrap("duplicate-handler-id");
+			fail("Expected a BeanDefinitionParsingException to be thrown.");
+		}
+		catch (BeanDefinitionParsingException e) {
+			assertTrue(e.getMessage().contains("A bean definition is already registered for " +
+					"beanName: 'foo$child.bar.handler' within the current <chain>."));
+		}
+	}
+
 	private ApplicationContext bootStrap(String configProperty) throws Exception {
 		PropertiesFactoryBean pfb = new PropertiesFactoryBean();
 		pfb.setLocation(new ClassPathResource("org/springframework/integration/config/xml/chain-elements-config.properties"));
 		pfb.afterPropertiesSet();
 		Properties prop = pfb.getObject();
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder buffer = new StringBuilder();
 		buffer.append(prop.getProperty("xmlheaders")).append(prop.getProperty(configProperty)).append(prop.getProperty("xmlfooter"));
 		ByteArrayInputStream stream = new ByteArrayInputStream(buffer.toString().getBytes());
 		GenericApplicationContext ac = new GenericApplicationContext();
@@ -243,7 +259,7 @@ public class ChainElementsFailureTests {
 		return ac;
 	}
 
-	public static class Sampleservice {
+	public static class SampleService {
 		public String echo(String value){
 			return value;
 		}

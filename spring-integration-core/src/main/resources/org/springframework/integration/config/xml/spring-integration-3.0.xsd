@@ -727,6 +727,7 @@
 				Defines a Messaging Gateway to be used within a chain.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="request-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -1048,6 +1049,7 @@
 		<xsd:all>
 			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 		</xsd:all>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="service-activator">
@@ -1067,7 +1069,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -1090,6 +1092,15 @@
 				Base type for Message-handling endpoints.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					'id' value:
+					- Identifies the underlying Spring bean definition (AbstractEndpoint)
+					- as MessageHandler bean alias together with suffix '.handler'
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="ref" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -1166,7 +1177,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="enricher-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1301,6 +1312,7 @@
                 ]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:complexType name="propertySubElementType">
@@ -1370,17 +1382,6 @@
 			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:choice>
-		<xsd:attribute name="id" type="xsd:string" use="required">
-			<xsd:annotation>
-				<xsd:documentation>
-					'id' value is used:
-					- as the 'AbstractEndpoint' bean 'id' if this tag is defined as root element.
-					- as the DelayHandler bean alias together with suffix '.handler'
-					- as the 'messageGroupId' property of DelayHandler together with suffix '.messageGroupId'
-					  in the operations of the MessageGroupStore for scheduling delayed messages.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="default-delay" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -1437,6 +1438,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" use="required" />
 	</xsd:complexType>
 
 	<xsd:element name="bridge">
@@ -1452,7 +1454,8 @@
 				<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
 				<xsd:element ref="poller" />
 			</xsd:choice>
-			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+			<xsd:attributeGroup ref="inputOutputChannelGroup" />
+			<xsd:attribute name="id" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -1468,7 +1471,7 @@
 				<xsd:element name="poller" type="basePollerType" minOccurs="0"/>
 				<xsd:group ref="chain-elements-group" maxOccurs="unbounded"/>
 			</xsd:choice>
-			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+			<xsd:attributeGroup ref="inputOutputChannelGroup" />
 			<xsd:attribute name="phase" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -1479,6 +1482,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="id" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -1519,6 +1523,7 @@
 							<xsd:sequence>
 								<xsd:group ref="chain-elements-group"/>
 							</xsd:sequence>
+							<xsd:attribute name="id" type="xsd:string" />
 						</xsd:complexType>
 					</xsd:element>
 				</xsd:choice>
@@ -1710,7 +1715,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="header-enricher-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1855,6 +1860,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:complexType name="userDefinedHeaderType">
@@ -1970,7 +1976,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="header-filter-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1998,6 +2004,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="transformer">
@@ -2009,7 +2016,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2026,7 +2033,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="specialized-transformer-charset-aware-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2040,7 +2047,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="specialized-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2054,7 +2061,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="map-to-object-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2085,6 +2092,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="object-to-json-transformer">
@@ -2096,7 +2104,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="object-to-json-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2139,6 +2147,7 @@
 				</xsd:appinfo>-->
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="json-to-object-transformer">
@@ -2150,7 +2159,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="json-to-object-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2185,6 +2194,7 @@
 				</xsd:appinfo>-->
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="payload-serializing-transformer">
@@ -2196,7 +2206,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="payload-serializing-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2220,6 +2230,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="payload-deserializing-transformer">
@@ -2231,7 +2242,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="payload-deserializing-transformer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2255,6 +2266,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="syslog-to-map-transformer">
@@ -2264,7 +2276,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+			<xsd:attributeGroup ref="inputOutputChannelGroup" />
+			<xsd:attribute name="id" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -2285,7 +2298,7 @@
                 <xsd:sequence minOccurs="0" maxOccurs="1">
                     <xsd:element ref="poller" />
                 </xsd:sequence>
-                <xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+                <xsd:attributeGroup ref="inputOutputChannelGroup" />
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -2313,7 +2326,7 @@
                 <xsd:sequence minOccurs="0" maxOccurs="1">
                     <xsd:element ref="poller" />
                 </xsd:sequence>
-                <xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+                <xsd:attributeGroup ref="inputOutputChannelGroup" />
 			</xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -2346,6 +2359,7 @@
     </xsd:complexType>
 
 	<xsd:complexType name="commonClaimCheckType">
+		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="message-store" default="messageStore">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -2367,6 +2381,7 @@
 			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
 			<xsd:element ref="poller" />
 		</xsd:choice>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:complexType name="specialized-transformer-charset-aware-type">
@@ -2394,7 +2409,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="filter-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2946,16 +2961,6 @@
     -->
 
     <xsd:attributeGroup name="topLevelRouterAttributeGroup">
-        <xsd:attribute name="id" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[Identifies the underlying Spring bean
-				      definition which in case of Routers is an instance of
-				      EventDrivenConsumer or PollingConsumer depending on whether
-				      the Router's "input-channel" is a "SubscribableChannel" or
-                      "PollableChannel", respectively. This is an "optional" attribute.
-				    ]]></xsd:documentation>
-			</xsd:annotation>
-        </xsd:attribute>
         <xsd:attribute name="auto-startup" default="true">
             <xsd:annotation>
                 <xsd:documentation>
@@ -2998,6 +3003,16 @@
     -->
 
 	<xsd:complexType name="abstractRouterType" abstract="true">
+		<xsd:attribute name="id" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[Identifies the underlying Spring bean
+				      definition which in case of Routers is an instance of
+				      EventDrivenConsumer or PollingConsumer depending on whether
+				      the Router's "input-channel" is a "SubscribableChannel" or
+                      "PollableChannel", respectively. This is an "optional" attribute.
+				    ]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
         <xsd:attribute name="default-output-channel" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
@@ -3099,7 +3114,7 @@ is provided, the return value is expected to match a channel name exactly.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="splitter-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3149,7 +3164,7 @@ is provided, the return value is expected to match a channel name exactly.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="aggregator-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3318,7 +3333,7 @@ is provided, the return value is expected to match a channel name exactly.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="resequencer-type">
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3787,7 +3802,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 					<xsd:all minOccurs="0" maxOccurs="1">
 						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
-					<xsd:attributeGroup ref="inputOutputChannelGroupWithId" />
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -3805,6 +3820,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				   3) get/set or shutdown methods on configurable TaskExecutors or TaskSchedulers
 			]]></xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="inputOutputChannelGroup">
@@ -3862,19 +3878,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
             </xsd:simpleType>
         </xsd:attribute>
-	</xsd:attributeGroup>
-
-	<xsd:attributeGroup name="inputOutputChannelGroupWithId">
-		<xsd:attribute name="id" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					'id' value:
-					- Identifies the underlying Spring bean definition (AbstractEndpoint)
-					- as MessageHandler bean alias together with suffix '.handler'
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attributeGroup ref="inputOutputChannelGroup"/>
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="subscribersAttributeGroup">

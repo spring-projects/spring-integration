@@ -17,4 +17,8 @@
 
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$TestBean"/>
 
+	<chain id="transformerChain" input-channel="transformerChainInput">
+		<transformer expression="null"/>
+	</chain>
+
 </beans:beans>

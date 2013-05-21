@@ -135,7 +135,7 @@
 				please see <xref linkend="jdbc-message-store-generic"/>.
 			</para>
 		</section>
-		<section>
+		<section id="3.0-json-transformers">
 			<title>Jackson Support (JSON)</title>
 			<para>
 				A new abstraction for JSON conversion has been introduced. Implementations for Jackson 1.x
@@ -168,6 +168,18 @@
 				or set them appropriately. The headers affected by the <classname>SimpleMessageConverter</classname>
 				are <code>content-type</code> and <code>content-encoding</code>. Custom message converters
 				may set other headers.
+			</para>
+		</section>
+		<section id="3.0-id-for-chain-sub-components">
+			<title>Chain sub-components 'id' attribute</title>
+			<para>
+				Previously, the <emphasis>id</emphasis> attribute for <code>&lt;chain&gt;</code> sub-components was
+				ignored and prevented for components from core module. Now the <emphasis>id</emphasis> attribute is provided
+				for all components within <code>&lt;chain&gt;</code> and has almost the same identification role as for root beans:
+				with the <emphasis>id</emphasis> of the <code>&lt;chain&gt;</code> it is involved in the handler's
+				<emphasis>beanName</emphasis> (e.g. 'fooChain$child.fooTransformer.handler') and
+				provides a <emphasis>componentName</emphasis> (e.g. 'fooChain$child.fooTransformer').
+				For more info see the <xref linkend="chain"/>.
 			</para>
 		</section>
 

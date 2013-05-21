@@ -1,78 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="pollableInput1">
-		<queue />
+		<queue/>
 	</channel>
 
 	<channel id="pollableInput2">
-		<queue />
+		<queue/>
 	</channel>
 
 	<channel id="output">
-		<queue />
+		<queue/>
 	</channel>
 
 	<channel id="replyOutput">
-		<queue />
+		<queue/>
 	</channel>
 
-	<chain input-channel="filterInput" output-channel="output">
-		<filter ref="typeSelector" />
-		<service-activator ref="testHandler" />
+	<chain id="filterChain" input-channel="filterInput" output-channel="output">
+		<filter id="filterWithinChain" ref="typeSelector"/>
+		<service-activator id="serviceActivatorWithinChain" ref="testHandler"/>
 	</chain>
 
-	<chain input-channel="headerEnricherInput">
-		<header-enricher>
+	<chain id="headerEnricherChain" input-channel="headerEnricherInput">
+		<header-enricher id="headerEnricherWithinChain">
 			<reply-channel ref="replyOutput"/>
 			<correlation-id value="ABC"/>
-			<header name="testValue" value="XYZ" />
-			<header name="testRef" ref="testHeaderValue" />
+			<header name="testValue" value="XYZ"/>
+			<header name="testRef" ref="testHeaderValue"/>
 		</header-enricher>
-		<service-activator ref="testHandler" />
+		<service-activator ref="testHandler"/>
 	</chain>
 
 	<chain input-channel="pollableInput1" output-channel="output">
-		<filter ref="typeSelector" />
-		<poller fixed-delay="10000" />
-		<service-activator ref="testHandler" />
+		<filter ref="typeSelector"/>
+		<poller fixed-delay="10000"/>
+		<service-activator ref="testHandler"/>
 	</chain>
 
 	<chain input-channel="pollableInput2" output-channel="output">
-		<service-activator ref="testHandler" />
+		<service-activator ref="testHandler"/>
 		<poller ref="topLevelPoller"/>
 	</chain>
 
-	<poller id="topLevelPoller" fixed-delay="5000" />
+	<poller id="topLevelPoller" fixed-delay="5000"/>
 
 	<chain input-channel="beanInput" output-channel="output">
 		<beans:bean
-			class="org.springframework.integration.config.ChainParserTests$StubHandler" />
+				class="org.springframework.integration.config.ChainParserTests$StubHandler"/>
 	</chain>
 
-	<chain input-channel="aggregatorInput" output-channel="output">
-		<aggregator ref="aggregatorBean" method="aggregate" />
-		<chain>
-			<filter ref="typeSelector" />
-			<service-activator ref="testHandler" />
+	<chain id="aggregatorChain" input-channel="aggregatorInput" output-channel="output">
+		<aggregator id="aggregatorWithinChain" ref="aggregatorBean" method="aggregate"/>
+		<chain id="nestedChain">
+			<filter id="filterWithinNestedChain" ref="typeSelector"/>
+			<service-activator ref="testHandler"/>
+			<chain id="doubleNestedChain">
+				<filter id="filterWithinDoubleNestedChain" ref="typeSelector"/>
+			</chain>
 		</chain>
 	</chain>
 
-	<chain input-channel="payloadTypeRouterInput">
-		<payload-type-router>
+	<chain id="aggregatorChain2" input-channel="aggregatorInput" output-channel="output">
+		<aggregator id="aggregatorWithinChain" ref="aggregatorBean" method="aggregate"/>
+		<chain id="nestedChain">
+			<filter id="filterWithinNestedChain" ref="typeSelector"/>
+			<service-activator ref="testHandler"/>
+		</chain>
+	</chain>
+
+	<chain id="payloadTypeRouterChain" input-channel="payloadTypeRouterInput">
+		<payload-type-router id="payloadTypeRouterWithinChain">
 			<mapping type="java.lang.String" channel="strings"/>
 			<mapping type="java.lang.Number" channel="numbers"/>
 		</payload-type-router>
 	</chain>
 
-	<chain input-channel="headerValueRouterInput">
-		<header-value-router header-name="routingHeader"/>
+	<chain id="headerValueRouterChain" input-channel="headerValueRouterInput">
+		<header-value-router id="headerValueRouterWithinChain" header-name="routingHeader"/>
 	</chain>
 
 	<chain input-channel="headerValueRouterWithMappingInput">
@@ -82,31 +93,74 @@
 		</header-value-router>
 	</chain>
 
-  <chain id="chainWithClaimChecks" input-channel="claimCheckInput" output-channel="claimCheckOutput">
-     <claim-check-in/>
-     <claim-check-out/>
-  </chain>
-
-  <channel id="claimCheckOutput">
-    <queue/>
-  </channel>
-
-	<chain id="chainWithSendTimeout" input-channel="chainWithSendTimeoutInput" output-channel="output" send-timeout="9876">
-		<filter ref="typeSelector" />
-		<service-activator ref="testHandler" />
+	<chain id="chainWithClaimChecks" input-channel="claimCheckInput" output-channel="claimCheckOutput">
+		<claim-check-in id="claimCheckInWithinChain"/>
+		<claim-check-out id="claimCheckOutWithinChain"/>
 	</chain>
 
-	<chain input-channel="outboundChannelAdapterChannel">
-		<outbound-channel-adapter ref="testConsumer"/>
+	<channel id="claimCheckOutput">
+		<queue/>
+	</channel>
+
+	<chain id="chainWithSendTimeout" input-channel="chainWithSendTimeoutInput" output-channel="output"
+		   send-timeout="9876">
+		<filter ref="typeSelector"/>
+		<service-activator ref="testHandler"/>
+	</chain>
+
+	<chain id="outboundChain" input-channel="outboundChannelAdapterChannel">
+		<outbound-channel-adapter id="outboundChannelAdapterWithinChain" ref="testConsumer"/>
 	</chain>
 
 	<chain id="logChain" input-channel="loggingChannelAdapterChannel">
 		<object-to-string-transformer charset="cp1251"/>
-		<transformer expression="payload.toUpperCase()"/>
-		<logging-channel-adapter level="WARN"/>
+		<transformer id="transformerWithinChain" expression="payload.toUpperCase()"/>
+		<logging-channel-adapter id="loggingChannelAdapterWithinChain" level="WARN"/>
 	</chain>
 
-	<beans:bean id="testConsumer" class="org.springframework.integration.config.TestConsumer" />
+	<chain id="subComponentsIdSupport1" input-channel="subComponentsIdSupport1Channel">
+		<splitter id="splitterWithinChain"/>
+		<resequencer id="resequencerWithinChain"/>
+		<enricher id="enricherWithinChain" requires-reply="false">
+			<property name="foo" value="bar"/>
+		</enricher>
+		<header-filter id="headerFilterWithinChain" header-names="foo"/>
+		<payload-serializing-transformer id="payloadSerializingTransformerWithinChain"/>
+		<payload-deserializing-transformer id="payloadDeserializingTransformerWithinChain"/>
+		<gateway id="gatewayWithinChain" request-channel="strings"/>
+		<object-to-string-transformer id="objectToStringTransformerWithinChain"/>
+		<object-to-map-transformer id="objectToMapTransformerWithinChain"/>
+		<map-to-object-transformer id="mapToObjectTransformerWithinChain"
+								   type="org.springframework.integration.config.ChainParserTests$FooPojo"/>
+		<object-to-json-transformer id="objectToJsonTransformerWithinChain"/>
+		<json-to-object-transformer id="jsonToObjectTransformerWithinChain"
+									type="org.springframework.integration.config.ChainParserTests$FooPojo"/>
+		<control-bus id="controlBusWithinChain"/>
+		<router id="routerWithinChain" expression="foo"/>
+	</chain>
+
+	<chain id="exceptionTypeRouterChain" input-channel="subComponentsIdSupport2Channel">
+		<exception-type-router id="exceptionTypeRouterWithinChain">
+			<mapping channel="numbers" exception-type="org.springframework.integration.MessageRejectedException"/>
+		</exception-type-router>
+	</chain>
+
+	<chain id="recipientListRouterChain" input-channel="subComponentsIdSupport3Channel">
+	<recipient-list-router id="recipientListRouterWithinChain">
+			<recipient channel="strings"/>
+			<recipient channel="numbers"/>
+		</recipient-list-router>
+	</chain>
+
+	<chain id="chainReplayRequired" input-channel="chainReplayRequiredChannel">
+		<transformer id="transformerReplayRequired" expression="null"/>
+	</chain>
+
+	<chain id="chainMessageRejectedException" input-channel="chainMessageRejectedExceptionChannel">
+		<filter id="filterMessageRejectedException" expression="false" throw-exception-on-rejection="true"/>
+	</chain>
+
+	<beans:bean id="testConsumer" class="org.springframework.integration.config.TestConsumer"/>
 
 	<channel id="strings">
 		<queue/>
@@ -117,21 +171,21 @@
 	</channel>
 
 	<beans:bean id="aggregatorBean"
-		class="org.springframework.integration.config.ChainParserTests$StubAggregator" />
+				class="org.springframework.integration.config.ChainParserTests$StubAggregator"/>
 
 	<beans:bean id="testHeaderValue" class="java.lang.Integer">
-		<beans:constructor-arg value="123" />
+		<beans:constructor-arg value="123"/>
 	</beans:bean>
 
 	<beans:bean id="typeSelector"
-		class="org.springframework.integration.selector.PayloadTypeSelector">
-		<beans:constructor-arg value="java.lang.String" />
+				class="org.springframework.integration.selector.PayloadTypeSelector">
+		<beans:constructor-arg value="java.lang.String"/>
 	</beans:bean>
 
 	<beans:bean id="testHandler"
-		class="org.springframework.integration.config.TestHandler">
-		<beans:constructor-arg value="1" />
-		<beans:property name="replyMessageText" value="foo" />
+				class="org.springframework.integration.config.TestHandler">
+		<beans:constructor-arg value="1"/>
+		<beans:property name="replyMessageText" value="foo"/>
 	</beans:bean>
 
 	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
