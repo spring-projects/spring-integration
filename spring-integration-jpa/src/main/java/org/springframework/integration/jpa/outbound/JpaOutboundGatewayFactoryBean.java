@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
  * @author Amol Nayak
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -68,6 +69,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	private int order;
 
 	private long replyTimeout;
+
+	private volatile String componentName;
 
 	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
@@ -114,6 +117,16 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	public void setReplyTimeout(long replyTimeout) {
 		this.replyTimeout = replyTimeout;
 	}
+
+	/**
+	 * Sets the name of the handler component.
+	 *
+	 * @param componentName
+	 */
+	public void setComponentName(String componentName) {
+		this.componentName = componentName;
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return MessageHandler.class;
@@ -128,6 +141,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		jpaOutboundGateway.setOutputChannel(this.outputChannel);
 		jpaOutboundGateway.setOrder(this.order);
 		jpaOutboundGateway.setSendTimeout(replyTimeout);
+		jpaOutboundGateway.setComponentName(this.componentName);
 		if (this.adviceChain != null) {
 			jpaOutboundGateway.setAdviceChain(this.adviceChain);
 		}

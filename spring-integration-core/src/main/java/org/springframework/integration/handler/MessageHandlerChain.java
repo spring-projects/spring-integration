@@ -175,34 +175,6 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		}
 	}
 
-	@Override
-	public void setComponentName(String componentName) {
-		super.setComponentName(componentName);
-		int i = 0;
-		if (this.handlers != null) {
-			for (MessageHandler messageHandler : this.handlers) {
-				try {
-					MessageHandler targetHandler = messageHandler;
-					if (AopUtils.isAopProxy(targetHandler)) {
-						Object target = ((Advised) targetHandler).getTargetSource().getTarget();
-						if (target instanceof MessageHandler) {
-							targetHandler = (MessageHandler) target;
-						}
-					}
-					if (targetHandler instanceof IntegrationObjectSupport) {
-						((IntegrationObjectSupport) targetHandler).setComponentName(componentName + ".handler#" + i);
-					}
-				} catch (Exception e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Could not set component name for handler "
-								+ messageHandler + " for " + componentName + " :" + e.getMessage());
-					}
-				}
-				i++; // increment, regardless of whether we assigned a component name
-			}
-		}
-	}
-
 	/**
 	 * SmartLifecycle implementation (delegates to the {@link #handlers})
 	 */

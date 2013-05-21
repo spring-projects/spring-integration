@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context
 			http://www.springframework.org/schema/context/spring-context.xsd
@@ -24,15 +24,16 @@
 			object-name="test.publisher:name=publisher"
 			default-notification-type="default.type">
 		<jmx:request-handler-advice-chain>
-			<bean class="org.springframework.integration.jmx.config.NotificationPublishingChannelAdapterParserTests$FooADvice" />
+			<bean class="org.springframework.integration.jmx.config.NotificationPublishingChannelAdapterParserTests$FooADvice"/>
 		</jmx:request-handler-advice-chain>
 	</jmx:notification-publishing-channel-adapter>
 
 
-	<si:chain input-channel="publishingWithinChainChannel">
+	<si:chain id="chainWithJmxNotificationPublishing" input-channel="publishingWithinChainChannel">
 		<jmx:notification-publishing-channel-adapter
-		object-name="test.publisher:name=publisher-chain"
-		default-notification-type="default.type"/>
+				id="jmx-notification-publishing-channel-adapter-within-chain"
+				object-name="test.publisher:name=publisher-chain"
+				default-notification-type="default.type"/>
 	</si:chain>
 
 	<bean id="testListener" class="org.springframework.integration.jmx.config.TestListener"/>

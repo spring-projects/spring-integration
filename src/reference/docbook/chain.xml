@@ -53,7 +53,7 @@
   </section>
 
   <section id="chain-namespace">
-    <title>Configuring Chain</title>
+    <title>Configuring a Chain</title>
     <para>
       The &lt;chain&gt; element provides an <code>input-channel</code> attribute, and if the last element in the chain is capable
       of producing reply messages (optional), it also supports an <code>output-channel</code> attribute. The sub-elements are then
@@ -106,22 +106,62 @@
 			attributes and elements.
 		</para>
 	</important>
+	<para><emphasis>'id' Attribute</emphasis></para>
 	<para>
-		The <emphasis>id</emphasis> attribute, however, is allowed to be specified.
-		In fact, the <link linkend='delayer'><emphasis>Delayer</emphasis></link>
-		component actually requires the <emphasis>id</emphasis> attribute to be present.
+		Beginning with Spring Integration 3.0, if a chain element is given an <emphasis>id</emphasis>, the
+		bean name for the element is a combination of the chain's <emphasis>id</emphasis> and the <emphasis>id</emphasis>
+		of the element itself. Elements without an <emphasis>id</emphasis> are not registered
+		as beans, but they are given <code>componentName</code>s that include the chain id. For example:
+		<programlisting language="xml"><![CDATA[<int:chain id="fooChain" input-channel="input">
+    <int:service-activator id="fooService" ref="someService" method="someMethod"/>
+    <int:object-to-json-transformer/>
+</int:chain>]]></programlisting>
+		<itemizedlist>
+			<listitem>
+				The <code>&lt;chain&gt;</code> root element has an <emphasis>id</emphasis> 'fooChain'. So, the
+				<classname>AbstractEndpoint</classname> implementation (<classname>PollingConsumer</classname> or
+				<classname>EventDrivenConsumer</classname>, depending on the <emphasis>input-channel</emphasis> type)
+				bean takes this value as it's bean name.
+			</listitem>
+			<listitem>
+				The <classname>MessageHandlerChain</classname> bean acquires a bean alias 'fooChain.handler', which allows
+				direct access to this bean from the <interfacename>BeanFactory</interfacename>.
+			</listitem>
+			<listitem>
+				The <code>&lt;service-activator&gt;</code> is not a fully-fledged Messaging Endpoint (<classname>PollingConsumer</classname>
+				or <classname>EventDrivenConsumer</classname>) - it is simply a
+				<interfacename>MessageHandler</interfacename> within the <code>&lt;chain&gt;</code>. In this case,
+				the bean name registered with the <interfacename>BeanFactory</interfacename>
+				is 'fooChain$child.fooService.handler'.
+			</listitem>
+			<listitem>
+			    The <emphasis>componentName</emphasis> of this <classname>ServiceActivatingHandler</classname> takes the
+				same value, but without the '.handler' suffix - 'fooChain$child.fooService'.
+			</listitem>
+			<listitem>
+				The last <code>&lt;chain&gt;</code> sub-component, <code>&lt;object-to-json-transformer&gt;</code>, doesn't have
+				an <emphasis>id</emphasis> attribute. Its <emphasis>componentName</emphasis> is based on its
+				position in the <code>&lt;chain&gt;</code>. In this case, it is 'fooChain$child#1'.
+				(The final element of the name is the order within the chain, beginning with '#0').
+				Note, this transformer isn't registered as a bean within the application context,
+				so, it doesn't get a <emphasis>beanName</emphasis>, however its <emphasis>componentName</emphasis> has
+				a value which is useful for logging etc.
+			</listitem>
+		</itemizedlist>
 	</para>
 	<para>
-		In most other cases, the <emphasis>id</emphasis> will generally be
-		ignored but may still add value for documentation purposes, and may also
-		be  used for providing more meaningful log messages.
+		The <emphasis>id</emphasis> attribute for <code>&lt;chain&gt;</code> elements allows them to be eligible for
+		<link linkend='jmx-mbean-exporter'>JMX export</link> and they are trackable via <link linkend='message-history'>Message History</link>.
+		They can also be accessed from the <interfacename>BeanFactory</interfacename> using the appropriate bean name
+		as discussed above.
 	</para>
-	<note>
-		Currently, the XML Schema of the <emphasis>Spring Integration</emphasis> Core module
-		prevents you from setting the <emphasis>id</emphasis> attribute for
-		Core components within a Message Handler Chain. This may be relaxed in future,
-		to provide the benefits described above.
-	</note>
+	<tip>
+		<para>
+			It is useful to provide an explicit <emphasis>id</emphasis> attribute on <code>&lt;chain&gt;</code>s
+			to simplify the identification of sub-components in logs, and to provide
+			access to them from the <interfacename>BeanFactory</interfacename> etc.
+		</para>
+	</tip>
 	<para><emphasis>Calling a Chain from within a Chain</emphasis></para>
 
 	<para>

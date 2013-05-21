@@ -28,6 +28,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -60,6 +61,9 @@ public class FileOutboundChannelAdapterInsideChainTests {
 
 	@Autowired
 	private MessageChannel outboundChainChannel;
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	private static File workDir;
 
