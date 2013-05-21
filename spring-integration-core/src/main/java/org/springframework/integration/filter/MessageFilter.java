@@ -84,7 +84,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	/**
-	 * Set to 'true' if you wish the discard processing to occur within of any
+	 * Set to 'true' if you wish the discard processing to occur within any
 	 * request handler advice applied to this filter. Also applies to
 	 * throwing an exception on rejection. Default: true.
 	 */
