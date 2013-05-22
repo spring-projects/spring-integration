@@ -18,11 +18,14 @@ package org.springframework.integration.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -41,8 +44,10 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Josh Long
  * @author Stefan Ferstl
+ * @author Gary Russell
  */
-public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent, BeanFactoryAware, InitializingBean {
+public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent,
+		ApplicationContextAware, BeanFactoryAware, InitializingBean {
 
 	/**
 	 * Logger that is available to subclasses
@@ -59,6 +64,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private volatile ConversionService conversionService;
 
+	private volatile ApplicationContext applicationContext;
 
 	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
@@ -89,8 +95,13 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	public final void setBeanFactory(BeanFactory beanFactory) {
-		Assert.notNull(beanFactory, "beanFactory must not be null");
+		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.beanFactory = beanFactory;
+	}
+
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		Assert.notNull(applicationContext, "'applicationContext' must not be null");
+		this.applicationContext = applicationContext;
 	}
 
 	public final void afterPropertiesSet() {
@@ -145,6 +156,15 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	protected void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
+	}
+
+	/**
+	 * Returns the {@link ApplicationContext#getId()} if the
+	 * {@link ApplicationContext} is available.
+	 * @return The id, or null if there is no application context.
+	 */
+	public String getApplicationContextId() {
+		return this.applicationContext == null ? null : this.applicationContext.getId();
 	}
 
 	@Override

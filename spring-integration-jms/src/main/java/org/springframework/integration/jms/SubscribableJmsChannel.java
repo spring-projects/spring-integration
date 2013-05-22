@@ -37,7 +37,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -89,7 +88,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 		this.configureDispatcher(isPubSub);
 		MessageListener listener = new DispatchingMessageListener(
 				this.getJmsTemplate(), this.dispatcher,
-				this.getComponentName(), isPubSub);
+				this, isPubSub);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -118,16 +117,16 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 		private final MessageDispatcher dispatcher;
 
-		private final String channelName;
+		private final SubscribableJmsChannel channel;
 
 		private final boolean isPubSub;
 
 
 		private DispatchingMessageListener(JmsTemplate jmsTemplate,
-				MessageDispatcher dispatcher, String channelName, boolean isPubSub) {
+				MessageDispatcher dispatcher, SubscribableJmsChannel channel, boolean isPubSub) {
 			this.jmsTemplate = jmsTemplate;
 			this.dispatcher = dispatcher;
-			this.channelName = channelName;
+			this.channel = channel;
 			this.isPubSub = isPubSub;
 		}
 
@@ -146,9 +145,8 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 				}
 			}
 			catch (MessageDispatchingException e) {
-				String channelName = StringUtils.hasText(this.channelName) ? this.channelName : "unknown";
-				String exceptionMessage = e.getMessage() + " for jms-channel "
-						+ channelName + ".";
+				String exceptionMessage = e.getMessage() + " for jms-channel '"
+						+ this.channel.getFullChannelName() + "'.";
 				if (this.isPubSub) {
 					// log only for backwards compatibility with pub/sub
 					if (logger.isWarnEnabled()) {
