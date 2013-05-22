@@ -204,7 +204,7 @@ project('spring-integration-file') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-context:$springVersion"
-		compile("commons-io:commons-io:$commonsIoVersion", optional)
+		compile "commons-io:commons-io:$commonsIoVersion"
 		testCompile project(":spring-integration-test")
 	}
 }
