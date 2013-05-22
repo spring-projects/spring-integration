@@ -19,6 +19,9 @@ import java.io.File;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
@@ -33,7 +36,7 @@ import org.springframework.util.StringUtils;
  *
  */
 public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBean<FileTailingMessageProducerSupport>
-		implements BeanNameAware {
+		implements BeanNameAware, SmartLifecycle, ApplicationEventPublisherAware {
 
 	private volatile String nativeOptions;
 
@@ -60,6 +63,8 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	private volatile Boolean autoStartup;
 
 	private volatile Integer phase;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	public void setNativeOptions(String nativeOptions) {
 		this.nativeOptions = nativeOptions;
@@ -111,6 +116,56 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 	}
 
 	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	@Override
+	public void start() {
+		if (this.adapter != null) {
+			this.adapter.start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.adapter != null) {
+			this.adapter.stop();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		if (this.adapter != null) {
+			return this.adapter.isRunning();
+		}
+		return false;
+	}
+
+	@Override
+	public int getPhase() {
+		if (this.adapter != null) {
+			return this.adapter.getPhase();
+		}
+		return 0;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		if (this.adapter != null) {
+			return this.adapter.isAutoStartup();
+		}
+		return false;
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		if (this.adapter != null) {
+			this.adapter.stop(callback);
+		}
+	}
+
+	@Override
 	public Class<?> getObjectType() {
 		return this.adapter == null ? FileTailingMessageProducerSupport.class : this.adapter.getClass();
 	}
@@ -140,7 +195,9 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 			}
 		}
 		adapter.setFile(this.file);
-		adapter.setTaskExecutor(this.taskExecutor);
+		if (this.taskExecutor != null) {
+			adapter.setTaskExecutor(this.taskExecutor);
+		}
 		if (this.taskScheduler != null) {
 			adapter.setTaskScheduler(this.taskScheduler);
 		}
@@ -154,6 +211,9 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 		}
 		if (this.phase != null) {
 			adapter.setPhase(this.phase);
+		}
+		if (this.applicationEventPublisher != null) {
+			adapter.setApplicationEventPublisher(this.applicationEventPublisher);
 		}
 		adapter.afterPropertiesSet();
 		this.adapter = adapter;
