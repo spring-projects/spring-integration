@@ -46,8 +46,8 @@ def customizePom(pom, gradleProject) {
 
 			scm {
 				url = linkScmUrl
-				connection = linkScmConnection
-				developerConnection = linkScmDevConnection
+				connection = 'scm:git:' + linkScmConnection
+				developerConnection = 'scm:git:' + linkScmDevConnection
 			}
 
 			developers {
