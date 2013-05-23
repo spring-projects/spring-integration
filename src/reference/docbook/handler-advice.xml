@@ -458,4 +458,20 @@ protected abstract Object doInvoke(ExecutionCallback callback, Object target, Me
 			</para>
 		</note>
 	</section>
+	<section id="advising-filters">
+		<title>Advising Filters</title>
+		<para>
+			There is an additional consideration when advising <classname>Filter</classname>s. By default, any discard
+			actions (when the filter returns false) are performed <emphasis>within</emphasis> the scope of the
+			advice chain. This could include all the flow downstream of the <emphasis>discard channel</emphasis>.
+			So, for example if an element downstream of the <emphasis>discard-channel</emphasis> throws an exception,
+			and there is a retry advice, the process will be retried. This is also the case if
+			<emphasis>throwExceptionOnRejection</emphasis> is set to true (the exception is thrown within the
+			scope of the advice).
+		</para>
+		<para>
+			Setting <emphasis>discard-within-advice</emphasis> to "false" modifies this behavior and the discard
+			(or exception) occurs after the advice chain is called.
+		</para>
+	</section>
 </section>

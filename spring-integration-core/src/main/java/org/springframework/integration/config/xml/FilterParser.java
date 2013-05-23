@@ -19,6 +19,7 @@ package org.springframework.integration.config.xml;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.FilterFactoryBean;
+import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -43,6 +44,11 @@ public class FilterParser extends AbstractDelegatingConsumerEndpointParser {
 	void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "throw-exception-on-rejection");
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element,
+				IntegrationNamespaceUtils.REQUEST_HANDLER_ADVICE_CHAIN);
+		if (adviceChainElement != null) {
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, adviceChainElement, "discard-within-advice");
+		}
 	}
 
 }
