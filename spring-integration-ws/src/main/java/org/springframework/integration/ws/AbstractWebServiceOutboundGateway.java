@@ -228,7 +228,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 			Object resultObject = this.doExtractData(message);
 
-			if (message instanceof SoapMessage){
+			if (resultObject != null && message instanceof SoapMessage){
 				Map<String, Object> mappedMessageHeaders =
 						AbstractWebServiceOutboundGateway.this.headerMapper.toHeadersFromReply((SoapMessage) message);
 				return MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
