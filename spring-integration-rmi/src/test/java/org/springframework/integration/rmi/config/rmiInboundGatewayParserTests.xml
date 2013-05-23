@@ -14,12 +14,15 @@
 
 	<channel id="testChannel"/>
 
+	<channel id="testErrorChannel"/>
+
 	<rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
 
 	<rmi:inbound-gateway id="gatewayWithCustomProperties" request-channel="testChannel"
 			expect-reply="false" request-timeout="123" reply-timeout="456"/>
 
-	<rmi:inbound-gateway id="gatewayWithHost" request-channel="testChannel" registry-host="localhost"/>
+	<rmi:inbound-gateway id="gatewayWithHostAndErrorChannel" request-channel="testChannel" registry-host="localhost"
+		error-channel="testErrorChannel"/>
 
 	<rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel" registry-port="1234"/>
 

@@ -35,6 +35,7 @@ import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.remoting.RemoteLookupFailureException;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 
@@ -44,7 +45,9 @@ import org.springframework.remoting.rmi.RmiServiceExporter;
  */
 public class RmiOutboundGatewayTests {
 
-	private final RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/testRemoteHandler");
+	private final static int port = SocketUtils.findAvailableServerSocket(11099);
+
+	private final RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:" + port + "/testRemoteHandler");
 
 	private final QueueChannel output = new QueueChannel(1);
 
@@ -59,6 +62,7 @@ public class RmiOutboundGatewayTests {
 		exporter.setService(new TestExchanger());
 		exporter.setServiceInterface(RequestReplyExchanger.class);
 		exporter.setServiceName("testRemoteHandler");
+		exporter.setRegistryPort(port);
 		exporter.afterPropertiesSet();
 	}
 
