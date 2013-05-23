@@ -54,8 +54,10 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
@@ -850,6 +852,77 @@ public class AdvisedMessageHandlerTests {
 		assertNotNull(logMessage.get());
 		assertTrue(logMessage.get().endsWith("can only be used for MessageHandlers; " +
 				"an attempt to advise method 'call' in 'java.util.concurrent.Callable' is ignored"));
+	}
+
+	public void filterDiscardNoAdvice() {
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
+			@Override
+			public boolean accept(Message<?> message) {
+				return false;
+			}
+		});
+		QueueChannel discardChannel = new QueueChannel();
+		filter.setDiscardChannel(discardChannel);
+		filter.handleMessage(new GenericMessage<String>("foo"));
+		assertNotNull(discardChannel.receive(0));
+	}
+
+	@Test
+	public void filterDiscardWithinAdvice() {
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
+			@Override
+			public boolean accept(Message<?> message) {
+				return false;
+			}
+		});
+		final QueueChannel discardChannel = new QueueChannel();
+		filter.setDiscardChannel(discardChannel);
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<Message<?>>();
+		adviceChain.add(new AbstractRequestHandlerAdvice() {
+			@Override
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+				Object result = callback.execute();
+				discardedWithinAdvice.set(discardChannel.receive(0));
+				return result;
+			}
+		});
+		filter.setAdviceChain(adviceChain);
+		filter.afterPropertiesSet();
+		filter.handleMessage(new GenericMessage<String>("foo"));
+		assertNotNull(discardedWithinAdvice.get());
+		assertNull(discardChannel.receive(0));
+	}
+
+	@Test
+	public void filterDiscardOutsideAdvice() {
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
+			@Override
+			public boolean accept(Message<?> message) {
+				return false;
+			}
+		});
+		final QueueChannel discardChannel = new QueueChannel();
+		filter.setDiscardChannel(discardChannel);
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<Message<?>>();
+		final AtomicBoolean adviceCalled = new AtomicBoolean();
+		adviceChain.add(new AbstractRequestHandlerAdvice() {
+			@Override
+			protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+				Object result = callback.execute();
+				discardedWithinAdvice.set(discardChannel.receive(0));
+				adviceCalled.set(true);
+				return result;
+			}
+		});
+		filter.setAdviceChain(adviceChain);
+		filter.setDiscardWithinAdvice(false);
+		filter.afterPropertiesSet();
+		filter.handleMessage(new GenericMessage<String>("foo"));
+		assertTrue(adviceCalled.get());
+		assertNull(discardedWithinAdvice.get());
+		assertNotNull(discardChannel.receive(0));
 	}
 
 	private interface Bar {
