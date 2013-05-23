@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.rmi.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
@@ -27,9 +28,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.rmi.RmiInboundGateway;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RmiInboundGatewayParserTests {
 
@@ -71,9 +74,11 @@ public class RmiInboundGatewayParserTests {
 	public void gatewayWithHost() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiInboundGatewayParserTests.xml", this.getClass());
-		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithHost");
+		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithHostAndErrorChannel");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals("localhost", accessor.getPropertyValue("registryHost"));
+		assertSame(context.getBean("testErrorChannel"),
+				TestUtils.getPropertyValue(gateway, "errorChannel"));
 	}
 
 	@Test
