@@ -53,7 +53,7 @@ import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
+import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcTemplate;

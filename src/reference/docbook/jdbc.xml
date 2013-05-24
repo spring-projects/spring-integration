@@ -343,7 +343,7 @@
 				the precise FIFO order when polling from such a MySQL Message Store.
 			</para>
 			<para>
-				Therefore, starting with <emphasis>Spring Integration 3.0</emphasis>,
+				Therefore, starting with <emphasis>Spring Integration 2.2.4</emphasis>,
 				we provide an additional set of DDL scripts for MySQL version
 				<emphasis>5.6.4</emphasis> or higher:
 			</para>
