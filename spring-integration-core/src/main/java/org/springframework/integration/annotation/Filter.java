@@ -47,8 +47,8 @@ public @interface Filter {
 
 	String outputChannel() default "";
 
-	String adviceChain() default "";
+	String[] adviceChain() default {};
 
-	String discardWithinAdvice() default "";
+	boolean discardWithinAdvice() default true;
 
 }

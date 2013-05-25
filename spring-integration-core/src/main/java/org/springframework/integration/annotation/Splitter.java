@@ -49,6 +49,6 @@ public @interface Splitter {
 
 	String outputChannel() default "";
 
-	String adviceChain() default "";
+	String[] adviceChain() default {};
 
 }

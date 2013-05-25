@@ -50,16 +50,7 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		if (StringUtils.hasText(outputChannelName)) {
 			filter.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
 		}
-		String discardWithinAdvice = annotation.discardWithinAdvice();
-		if (StringUtils.hasText(discardWithinAdvice)) {
-			if (discardWithinAdvice.trim().equalsIgnoreCase("false")) {
-				filter.setDiscardWithinAdvice(false);
-			}
-			else {
-				Assert.isTrue(discardWithinAdvice.trim().equalsIgnoreCase("true"),
-						"'discardWithinAdvice' attribute must be 'true' or 'false' if provided");
-			}
-		}
+		filter.setDiscardWithinAdvice(annotation.discardWithinAdvice());
 		return filter;
 	}
 

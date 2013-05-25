@@ -50,6 +50,6 @@ public @interface ServiceActivator {
 
 	String outputChannel() default "";
 
-	String adviceChain() default "";
+	String[] adviceChain() default {};
 
 }

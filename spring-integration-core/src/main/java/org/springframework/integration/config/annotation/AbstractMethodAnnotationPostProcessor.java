@@ -18,8 +18,9 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
@@ -87,27 +88,33 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 
 	protected final void setAdviceChainIfPresent(String beanName, T annotation, MessageHandler handler) {
-		String adviceChainName = (String) AnnotationUtils.getValue(annotation, ADVICE_CHAIN_ATTRIBUTE);
-		if (StringUtils.hasText(adviceChainName)) {
-			Object adviceChainBean = this.beanFactory.getBean(adviceChainName);
-			Advice[] adviceChain;
-			if (adviceChainBean instanceof Advice) {
-				adviceChain = new Advice[] {(Advice) adviceChainBean};
-			}
-			else if (adviceChainBean instanceof Advice[]) {
-				adviceChain = (Advice[]) adviceChainBean;
-			}
-			else if(adviceChainBean instanceof Collection) {
-				@SuppressWarnings("unchecked")
-				Collection<Advice> collection = (Collection<Advice>) adviceChainBean;
-				adviceChain = collection.toArray(new Advice[collection.size()]);
-			}
-			else {
-				throw new IllegalArgumentException("Invalid advice chain type:" +
-					adviceChainName.getClass().getName() + " for bean '" + beanName + "'");
+		String[] adviceChainNames = (String[]) AnnotationUtils.getValue(annotation, ADVICE_CHAIN_ATTRIBUTE);
+		if (adviceChainNames != null && adviceChainNames.length > 0) {
+			List<Advice> adviceChain = new ArrayList<Advice>();
+			for (String adviceChainName : adviceChainNames) {
+				Object adviceChainBean = this.beanFactory.getBean(adviceChainName);
+				if (adviceChainBean instanceof Advice) {
+					adviceChain.add((Advice) adviceChainBean);
+				}
+				else if (adviceChainBean instanceof Advice[]) {
+					for (Advice advice : (Advice[]) adviceChainBean) {
+						adviceChain.add(advice);
+					}
+				}
+				else if (adviceChainBean instanceof Collection) {
+					@SuppressWarnings("unchecked")
+					Collection<Advice> adviceChainEntries = (Collection<Advice>) adviceChainBean;
+					for (Advice advice : adviceChainEntries) {
+						adviceChain.add(advice);
+					}
+				}
+				else {
+					throw new IllegalArgumentException("Invalid advice chain type:" +
+						adviceChainName.getClass().getName() + " for bean '" + beanName + "'");
+				}
 			}
 			if (handler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) handler).setAdviceChain(Arrays.asList(adviceChain));
+				((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
 			}
 			else {
 				throw new IllegalArgumentException("Cannot apply advice chain to " + handler.getClass().getName());
