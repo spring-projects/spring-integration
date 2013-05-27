@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.integration.Message;
@@ -52,7 +53,7 @@ public class ParentContextTests {
 	 */
 	@Test
 	public void testSpelBeanReferencesInChildAndParent() {
-		ApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml", this.getClass());
+		AbstractApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml", this.getClass());
 		assertEquals(2, evalContexts.size());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(parent);
 		child.setConfigLocation("org/springframework/integration/expression/ChildContext-context.xml");
@@ -60,8 +61,8 @@ public class ParentContextTests {
 		assertEquals(3, evalContexts.size());
 		assertSame(evalContexts.get(0).getBeanResolver(), evalContexts.get(1).getBeanResolver());
 		assertNotSame(evalContexts.get(1).getBeanResolver(), evalContexts.get(2).getBeanResolver());
-		assertSame(parent, TestUtils.getPropertyValue(evalContexts.get(0).getBeanResolver(), "beanFactory"));
-		assertSame(child, TestUtils.getPropertyValue(evalContexts.get(2).getBeanResolver(), "beanFactory"));
+		assertSame(parent.getBeanFactory(), TestUtils.getPropertyValue(evalContexts.get(0).getBeanResolver(), "beanFactory"));
+		assertSame(child.getBeanFactory(), TestUtils.getPropertyValue(evalContexts.get(2).getBeanResolver(), "beanFactory"));
 
 		// Test transformer expressions
 		child.getBean("input", MessageChannel.class).send(new GenericMessage<String>("baz"));

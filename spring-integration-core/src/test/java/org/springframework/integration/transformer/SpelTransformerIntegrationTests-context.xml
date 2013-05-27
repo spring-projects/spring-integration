@@ -15,11 +15,15 @@
 
 	<transformer input-channel="beanResolvingInput" expression="@testBean.foo + payload.toUpperCase()" output-channel="output"/>
 
+	<transformer input-channel="spelFunctionInput" expression="#trim(payload)" output-channel="output"/>
+
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$TestBean"/>
 
 	<chain id="transformerChain" input-channel="transformerChainInput">
 		<transformer expression="null"/>
 	</chain>
+
+	<spel-function id="trim" class="org.springframework.util.StringUtils" method="trimWhitespace"/>
 
 	<beans:bean id="integrationEvaluationContext" class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
 		<beans:property name="propertyAccessors">
@@ -36,8 +40,11 @@
 	</beans:bean>
 
 	<channel id="fooin" />
+
 	<transformer id="foo" input-channel="fooin" expression="payload.bar" />
 
 	<channel id="functionIn" />
+
 	<transformer id="bar" input-channel="functionIn" expression="#bar(#root)" />
+
 </beans:beans>
