@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ package org.springframework.integration.http.support;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,9 +32,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -58,6 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean{
@@ -239,6 +246,14 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	public static final String HTTP_RESPONSE_HEADER_NAME_PATTERN = "HTTP_RESPONSE_HEADERS";
 
+	// Copy of 'org.springframework.http.HttpHeaders#DATE_FORMATS'
+	private static final String[] DATE_FORMATS = new String[] {
+			"EEE, dd MMM yyyy HH:mm:ss zzz",
+			"EEE, dd-MMM-yy HH:mm:ss zzz",
+			"EEE MMM dd HH:mm:ss yyyy"
+	};
+
+	private static TimeZone GMT = TimeZone.getTimeZone("GMT");
 
 	private volatile String[] outboundHeaderNames = new String[0];
 
@@ -636,7 +651,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				target.setDate(((Number) value).longValue());
 			}
 			else if (value instanceof String) {
-				target.setDate(Long.parseLong((String) value));
+				try {
+					target.setDate(Long.parseLong((String) value));
+				}
+				catch (NumberFormatException e) {
+					target.setDate(this.getFirstDate((String) value, DATE));
+				}
 			}
 			else {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
@@ -662,7 +682,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				target.setExpires(((Number) value).longValue());
 			}
 			else if (value instanceof String) {
-				target.setExpires(Long.parseLong((String) value));
+				try {
+					target.setExpires(Long.parseLong((String) value));
+				}
+				catch (NumberFormatException e) {
+					target.setExpires(this.getFirstDate((String) value, EXPIRES));
+				}
 			}
 			else {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
@@ -678,13 +703,42 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				target.setIfModifiedSince(((Number) value).longValue());
 			}
 			else if (value instanceof String) {
-				target.setIfModifiedSince(Long.parseLong((String) value));
+				try {
+					target.setIfModifiedSince(Long.parseLong((String) value));
+				}
+				catch (NumberFormatException e) {
+					target.setIfModifiedSince(this.getFirstDate((String) value, IF_MODIFIED_SINCE));
+				}
 			}
 			else {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
 				throw new IllegalArgumentException(
 						"Expected Date, Number, or String value for 'If-Modified-Since' header value, but received: " + clazz);
 			}
+		}
+		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
+			String ifUnmodifiedSinceValue = null;
+			if (value instanceof Date) {
+				ifUnmodifiedSinceValue = this.formatDate(((Date) value).getTime());
+			}
+			else if (value instanceof Number) {
+				ifUnmodifiedSinceValue = this.formatDate(((Number) value).longValue());
+			}
+			else if (value instanceof String) {
+				try {
+					ifUnmodifiedSinceValue = this.formatDate(Long.parseLong((String) value));
+				}
+				catch (NumberFormatException e) {
+					long longValue = this.getFirstDate((String) value, IF_UNMODIFIED_SINCE);
+					ifUnmodifiedSinceValue = this.formatDate(longValue);
+				}
+			}
+			else {
+				Class<?> clazz = (value != null) ? value.getClass() : null;
+				throw new IllegalArgumentException(
+						"Expected Date, Number, or String value for 'If-Unmodified-Since' header value, but received: " + clazz);
+			}
+			target.set(IF_UNMODIFIED_SINCE, ifUnmodifiedSinceValue);
 		}
 		else if (IF_NONE_MATCH.equalsIgnoreCase(name)) {
 			if (value instanceof String) {
@@ -720,7 +774,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 				target.setLastModified(((Number) value).longValue());
 			}
 			else if (value instanceof String) {
-				target.setLastModified(Long.parseLong((String) value));
+				try {
+					target.setLastModified(Long.parseLong((String) value));
+				}
+				catch (NumberFormatException e) {
+					target.setLastModified(this.getFirstDate((String) value, LAST_MODIFIED));
+				}
 			}
 			else {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
@@ -832,9 +891,13 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		else if (IF_NONE_MATCH.equalsIgnoreCase(name)) {
 			return source.getIfNoneMatch();
 		}
+		else if (IF_MODIFIED_SINCE.equalsIgnoreCase(name)) {
+			long modifiedSince = source.getIfNotModifiedSince();
+			return (modifiedSince > -1) ? modifiedSince : null;
+		}
 		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
-			long unmodifiedSince = source.getIfNotModifiedSince();
-			return (unmodifiedSince > -1) ? unmodifiedSince : null;
+			String unmodifiedSince = source.getFirst(IF_UNMODIFIED_SINCE);
+			return unmodifiedSince != null ? this.getFirstDate(unmodifiedSince, IF_UNMODIFIED_SINCE) : null;
 		}
 		else if (LAST_MODIFIED.equalsIgnoreCase(name)) {
 			long lastModified = source.getLastModified();
@@ -886,6 +949,27 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		return null;
 	}
 
+	// Utility methods
+
+	private long getFirstDate(String headerValue, String headerName) {
+		for (String dateFormat : DATE_FORMATS) {
+			DateFormat simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.US);
+			simpleDateFormat.setTimeZone(GMT);
+			try {
+				return simpleDateFormat.parse(headerValue).getTime();
+			}
+			catch (ParseException e) {
+				// ignore
+			}
+		}
+		throw new IllegalArgumentException("Cannot parse date value '" + headerValue +"' for '" + headerName + "' header");
+	}
+
+	private String formatDate(long date) {
+		DateFormat dateFormat = new SimpleDateFormat(DATE_FORMATS[0], Locale.US);
+		dateFormat.setTimeZone(GMT);
+		return dateFormat.format(new Date(date));
+	}
 
 	/**
 	 * Factory method for creating a basic outbound mapper instance.
@@ -912,4 +996,5 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		mapper.setExcludedInboundStandardResponseHeaderNames(HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS);
 		return mapper;
 	}
+
 }

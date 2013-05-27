@@ -191,6 +191,15 @@
 				For more information see <xref linkend="chain"/>.
 			</para>
 		</section>
-
+		<section id="3.0-http-header-mapper">
+			<title>DefaultHttpHeaderMapper and 'If-(Un)Modified-Since' HTTP headers</title>
+			<para>
+				Previously, 'If-Modified-Since' and 'If-Unmodified-Since' HTTP headers were incorrectly processed
+				within from/to HTTP headers mapping in the <classname>DefaultHttpHeaderMapper</classname>.
+				Now, in addition to the fix of that issue, <classname>DefaultHttpHeaderMapper</classname> provides date parsing
+				from formatted strings for HTTP headers, which accept date-time values.
+				For more information see <xref linkend="http"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

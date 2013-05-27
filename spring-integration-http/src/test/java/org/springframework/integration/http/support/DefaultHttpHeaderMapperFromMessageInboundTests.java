@@ -25,6 +25,7 @@ import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageInboundTests {
@@ -549,12 +551,26 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
         HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
         HttpHeaders headers = new HttpHeaders();
         // suppressed in response on inbound, by default
-        headers.put("Content-Length", Arrays.asList(new String[] {"3"}));
+        headers.put("Content-Length", Arrays.asList("3"));
         Map<String, Object> messageHeaders = mapper.toHeaders(headers);
         headers = new HttpHeaders();
         mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
         assertNull(headers.get("Content-Length"));
     }
+
+	@Test
+	public void testInt2995IfModifiedSince() throws Exception{
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		Date ifModifiedSince = new Date();
+		long ifModifiedSinceTime = ifModifiedSince.getTime();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setIfModifiedSince(ifModifiedSinceTime);
+		Map<String, ?> result = mapper.toHeaders(headers);
+		Calendar c = Calendar.getInstance();
+		c.setTime(ifModifiedSince);
+		c.set(Calendar.MILLISECOND, 0);
+		assertEquals(c.getTimeInMillis(), result.get("If-Modified-Since"));
+	}
 
 	public static class TestClass {
 
