@@ -17,4 +17,8 @@
 
 	<bean class="org.springframework.integration.expression.ParentContextTests$Foo" />
 
+	<int:spel-function id="bar" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
+
+	<int:spel-function id="barChild" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
+
 </beans>

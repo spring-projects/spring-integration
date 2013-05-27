@@ -30,6 +30,9 @@
 			properties (using getters and setters). This is how the <interfacename>Message</interfacename> headers
 			and payload properties are accessible.
 		</para>
+	</section>
+	<section id="spel-customization">
+		<title>SpEL Evaluation Context Customization</title>
 		<para>
 			Starting with Spring Integration 3.0, it is possible to add additional
 			<interfacename>PropertyAccessor</interfacename>s to the SpEL evaluation context.
@@ -58,8 +61,7 @@
 	</property>
 	<property name="functions">
 		<map>
-			<entry key="barcalc"
-				value="#{T(foo.MyFunctions).getMethod('calc', T(foo.MyBar))}"/>
+			<entry key="barcalc" value="#{T(foo.MyFunctions).getMethod('calc', T(foo.MyBar))}"/>
 		</map>
 	</property>
 </bean>]]></programlisting>
@@ -83,6 +85,65 @@
 			from a <classname>MyFoo</classname> so you could write
 			and configure a custom property accessor to do so. So, your final expression might be
 			<code>"#barcalc(payload.myBar)"</code>.
+		</para>
+	</section>
+	<section id="spel-functions">
+		<title>SpEL Functions</title>
+		<para>
+			Namespace support is provided for easy addition of SpEL custom functions.
+			You can specify <code>&lt;spel-function/&gt;</code> components to provide
+			<ulink url="http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-ref-functions">
+			custom SpEL functions</ulink> to the <interfacename>EvaluationContext</interfacename> used throughout the framework.
+			Instead of configuring the factory bean above, simply add one or more of these components
+			and the framework will automatically add them to the default <emphasis>integrationEvaluationContext</emphasis>
+			factory bean.
+		</para>
+		<para>For example, assuming we have a useful static method to evaluate XPath:</para>
+		<programlisting language="xml"><![CDATA[<int:spel-function id="xpath"
+	class="com.foo.test.XPathUtils" method="evaluate(java.lang.String, java.lang.Object)"/>
+
+<int:transformer input-channel="in" output-channel="out"
+		 expression="#xpath('//foo/@bar', payload)" />
+		]]></programlisting>
+		<para>
+			With this sample:
+			<itemizedlist>
+				<listitem>
+					The default <classname>IntegrationEvaluationContextFactoryBean</classname> bean with id
+					<emphasis>integrationEvaluationContext</emphasis> is registered with the application
+					context.
+				</listitem>
+				<listitem>
+					The <code>&lt;spel-function/&gt;</code> is parsed and added to the <code>functions</code>
+					Map of <emphasis>integrationEvaluationContext</emphasis> as map entry with <code>id</code> as the key
+					and the static <classname>Method</classname> as the value.
+				</listitem>
+				<listitem>
+					The <emphasis>integrationEvaluationContext</emphasis> factory bean creates a new
+					<classname>StandardEvaluationContext</classname> instance,
+					and it is configured with the default
+					<interfacename>PropertyAccessor</interfacename>s, <interfacename>BeanResolver</interfacename>
+					and the custom function.
+				</listitem>
+				<listitem>
+					That <interfacename>EvaluationContext</interfacename> instance is injected into the
+					<classname>ExpressionEvaluatingTransformer</classname> bean.
+				</listitem>
+			</itemizedlist>
+		</para>
+		<para>
+			<note>
+				SpEL functions declared in a parent context are also made available in any child context(s). Each
+				context has its own instance of the <emphasis>integrationEvaluationContext</emphasis> factory bean
+				because each needs a different <interfacename>BeanResolver</interfacename>, but the function
+				declarations are inherited (and can be overridden if needed by declaring a SpEL function with
+				the same name. The functions themselves are processed by the framework - they do not appear
+				as beans in the application context.
+			</note>
+			<note>
+				At this time, <interfacename>PropertyAccessor</interfacename>s are not inherited and must be
+				declared as described above in each context.
+			</note>
 		</para>
 	</section>
 </appendix>
