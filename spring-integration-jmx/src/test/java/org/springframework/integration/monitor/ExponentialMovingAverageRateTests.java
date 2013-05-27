@@ -19,6 +19,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.test.util.TestUtils;
+
 /**
  * @author Dave Syer
  * 
@@ -26,6 +28,13 @@ import org.junit.Test;
 public class ExponentialMovingAverageRateTests {
 
 	private ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(1., 10., 10);
+
+	@Test
+	public void testWindow() {
+		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1., 10., 20);
+		double decay = TestUtils.getPropertyValue(rate, "rates.decay", Double.class);
+		assertEquals(95, (int) (decay * 100.));
+	}
 
 	@Test
 	public void testGetCount() {
