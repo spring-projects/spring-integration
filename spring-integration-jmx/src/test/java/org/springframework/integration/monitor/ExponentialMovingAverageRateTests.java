@@ -21,6 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.test.util.TestUtils;
+
 /**
  * @author Dave Syer
  * @author Gary Russell
@@ -31,6 +33,13 @@ public class ExponentialMovingAverageRateTests {
 	private final static Log logger = LogFactory.getLog(ExponentialMovingAverageRateTests.class);
 
 	private final ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(1., 10., 10);
+
+	@Test
+	public void testWindow() {
+		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1., 10., 20);
+		double decay = TestUtils.getPropertyValue(rate, "rates.decay", Double.class);
+		assertEquals(95, (int) (decay * 100.));
+	}
 
 	@Test
 	public void testGetCount() {
