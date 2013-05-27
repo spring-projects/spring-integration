@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ package org.springframework.integration.config.xml;
  * @author Oleg Zhurakousky
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
@@ -74,6 +75,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("control-bus", new ControlBusParser());
 		registerBeanDefinitionParser("wire-tap", new GlobalWireTapParser());
 		registerBeanDefinitionParser("transaction-synchronization-factory", new TransactionSynchronizationFactoryParser());
+		registerBeanDefinitionParser("spel-function", new SpelFunctionParser());
 	}
 
 }

@@ -138,7 +138,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		this.taskScheduler = taskScheduler;
 	}
 
-	protected final ConversionService getConversionService() {
+	public final ConversionService getConversionService() {
 		if (this.conversionService == null && this.beanFactory != null) {
 			synchronized (this) {
 				if (this.conversionService == null) {
