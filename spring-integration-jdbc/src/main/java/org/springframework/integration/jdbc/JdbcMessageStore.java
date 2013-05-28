@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -31,6 +31,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -75,6 +76,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Matt Stine
  * @author Gunnar Hillert
+ * @author Will Schipp
  *
  * @since 2.0
  */
@@ -418,10 +420,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 
 		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region }, mapper);
-
-		if (messages.size() == 0){
-			return new SimpleMessageGroup(groupId);
-		}
 
 		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key},
 				new RowCallbackHandler() {

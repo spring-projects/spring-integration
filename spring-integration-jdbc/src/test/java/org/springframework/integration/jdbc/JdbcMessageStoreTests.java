@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Will Schipp
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -424,9 +425,49 @@ public class JdbcMessageStoreTests {
 		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId() + "; Sequence #: " + messageFromGroup1.getHeaders().getSequenceNumber());
 		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId() + "; Sequence #: " + messageFromGroup2.getHeaders().getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), (Integer) messageFromGroup1.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), (Integer) messageFromGroup2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(1), messageFromGroup1.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), messageFromGroup2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
 
+	}
+
+	@Test
+	@Transactional
+	public void testCompletedNotExpiredGroupINT3037() throws Exception {
+		/*
+		 * based on the aggregator scenario as follows;
+		 *
+		 * send three messages in
+		 * 1 of 2
+		 * 2 of 2
+		 * 2 of 2 (last again)
+		 *
+		 * expected behavior is that the LAST message (2 of 2 repeat) should be on the discard channel
+		 * (discard behavior performed by the AbstractCorrelatingMessageHandler.handleMessageInternal)
+		 */
+		final JdbcMessageStore messageStore = new JdbcMessageStore(dataSource);
+		//init
+		String groupId = "group";
+		//build the messages
+		Message<?> oneOfTwo = MessageBuilder.withPayload("hello").setSequenceNumber(1).setSequenceSize(2).setCorrelationId(groupId).build();
+		Message<?> twoOfTwo = MessageBuilder.withPayload("world").setSequenceNumber(2).setSequenceSize(2).setCorrelationId(groupId).build();
+		//add to the messageStore
+		messageStore.addMessageToGroup(groupId, oneOfTwo);
+		messageStore.addMessageToGroup(groupId, twoOfTwo);
+		//check that 2 messages are there
+		assertTrue(messageStore.getMessageGroupCount() == 1);
+		assertTrue(messageStore.getMessageCount() == 2);
+		//retrieve the group (like in the aggregator)
+		MessageGroup messageGroup = messageStore.getMessageGroup(groupId);
+		//'complete' the group
+		messageStore.completeGroup(messageGroup.getGroupId());
+		//now clear the messages
+		for (Message<?> message : messageGroup.getMessages()) {
+			messageStore.removeMessageFromGroup(groupId, message);
+		}//end for
+		//'add' the other message --> emulated by getting the messageGroup
+		messageGroup = messageStore.getMessageGroup(groupId);
+		//should be marked 'complete' --> old behavior it would not
+		assertTrue(messageGroup.isComplete());
 	}
 
 }
