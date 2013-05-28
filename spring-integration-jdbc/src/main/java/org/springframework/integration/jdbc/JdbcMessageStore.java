@@ -75,6 +75,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Matt Stine
  * @author Gunnar Hillert
+ * @author Will Schipp
  *
  * @since 2.0
  */
@@ -421,9 +422,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region }, mapper);
 
-		if (messages.size() == 0){
-			return new SimpleMessageGroup(groupId);
-		}
+		//removed size logic to support completed groups
+//		if (messages.size() == 0){
+//			return new SimpleMessageGroup(groupId);
+//		}
 
 		jdbcTemplate.query(getQuery(Query.GET_GROUP_INFO), new Object[] { key, region},
 				new RowCallbackHandler() {
