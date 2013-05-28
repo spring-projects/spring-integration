@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Will Schipp
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -137,12 +138,14 @@ public class JdbcMessageStoreTests {
 	public void testSerializer() throws Exception {
 		// N.B. these serializers are not realistic (just for test purposes)
 		messageStore.setSerializer(new Serializer<Message<?>>() {
+			@Override
 			public void serialize(Message<?> object, OutputStream outputStream) throws IOException {
 				outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
 				outputStream.flush();
 			}
 		});
 		messageStore.setDeserializer(new Deserializer<GenericMessage<String>>() {
+			@Override
 			public GenericMessage<String> deserialize(InputStream inputStream) throws IOException {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				return new GenericMessage<String>(reader.readLine());
@@ -320,6 +323,7 @@ public class JdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
@@ -343,6 +347,7 @@ public class JdbcMessageStoreTests {
 		messageStore.setTimeoutOnIdle(true);
 		messageStore.addMessageToGroup(groupId, message);
 		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			@Override
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
@@ -424,8 +429,8 @@ public class JdbcMessageStoreTests {
 		LOG.info("messageFromGroup1: " + messageFromGroup1.getHeaders().getId() + "; Sequence #: " + messageFromGroup1.getHeaders().getSequenceNumber());
 		LOG.info("messageFromGroup2: " + messageFromGroup2.getHeaders().getId() + "; Sequence #: " + messageFromGroup2.getHeaders().getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), (Integer) messageFromGroup1.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), (Integer) messageFromGroup2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(1), messageFromGroup1.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), messageFromGroup2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
 
 	}
 
@@ -466,8 +471,51 @@ public class JdbcMessageStoreTests {
 		LOG.info("messageFromRegion1: " + messageFromRegion1.getHeaders().getId() + "; Sequence #: " + messageFromRegion1.getHeaders().getSequenceNumber());
 		LOG.info("messageFromRegion2: " + messageFromRegion2.getHeaders().getId() + "; Sequence #: " + messageFromRegion2.getHeaders().getSequenceNumber());
 
-		assertEquals(Integer.valueOf(1), (Integer) messageFromRegion1.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
-		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(1), messageFromRegion1.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
+		assertEquals(Integer.valueOf(2), messageFromRegion2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
 
 	}
+
+	@Test
+	@Transactional
+	public void testCompletedNotExpiredGroupINT3037() throws Exception {
+		/*
+		 * based on the aggregator scenario as follows;
+		 *
+		 * send three messages in
+		 * 1 of 2
+		 * 2 of 2
+		 * 2 of 2 (last again)
+		 *
+		 * expected behavior is that the LAST message (2 of 2 repeat) should be on the discard channel
+		 * (discard behavior performed by the AbstractCorrelatingMessageHandler.handleMessageInternal)
+		 */
+		final JdbcMessageStore messageStore = new JdbcMessageStore(dataSource);
+		//init
+		String groupId = "group";
+		//build the messages
+		Message<?> oneOfTwo = MessageBuilder.withPayload("hello").setSequenceNumber(1).setSequenceSize(2).setCorrelationId(groupId).build();
+		Message<?> twoOfTwo = MessageBuilder.withPayload("world").setSequenceNumber(2).setSequenceSize(2).setCorrelationId(groupId).build();
+		//add to the messageStore
+		messageStore.addMessageToGroup(groupId, oneOfTwo);
+		messageStore.addMessageToGroup(groupId, twoOfTwo);
+		//check that 2 messages are there
+		assertTrue(messageStore.getMessageGroupCount() == 1);
+		assertTrue(messageStore.getMessageCount() == 2);
+		//retrieve the group (like in the aggregator)
+		MessageGroup messageGroup = messageStore.getMessageGroup(groupId);
+		//'complete' the group
+		messageStore.completeGroup(messageGroup.getGroupId());
+		//now clear the messages
+		for (Message<?> message : messageGroup.getMessages()) {
+			messageStore.removeMessageFromGroup(groupId, message);
+		}//end for
+		//'add' the other message --> emulated by getting the messageGroup
+		messageGroup = messageStore.getMessageGroup(groupId);
+		//should be marked 'complete' --> old behavior it would not
+		assertTrue(messageGroup.isComplete());
+	}
+
+
+
 }
