@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Will Schipp
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -470,4 +471,32 @@ public class JdbcMessageStoreTests {
 		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
 
 	}
+	
+	@Test
+	@Transactional
+	public void testCompletedNotExpiredGroup() throws Exception {
+		/*
+		 * send three messages in
+		 * 1 of 2
+		 * 2 of 2
+		 * 2 of 2 (last again)
+		 * 
+		 * expected behavior is that the LAST message (2 of 2 repeat) should be on the discard channel
+		 */
+		final JdbcMessageStore messageStore = new JdbcMessageStore(dataSource);
+		//build the messages
+		Message<?> oneOfTwo = MessageBuilder.withPayload("hello").setSequenceNumber(1).setSequenceSize(2).setCorrelationId("group").build();
+		Message<?> twoOfTwo = MessageBuilder.withPayload("world").setSequenceNumber(2).setSequenceSize(2).setCorrelationId("group").build();
+		//add to the messageStore
+		messageStore.addMessageToGroup(oneOfTwo.getHeaders().getCorrelationId(), oneOfTwo);
+		messageStore.addMessageToGroup(twoOfTwo.getHeaders().getCorrelationId(), twoOfTwo);
+		//'complete' the group
+		messageStore.completeGroup(oneOfTwo.getHeaders().getCorrelationId());
+		//'add' the other message
+		MessageGroup messageGroup = messageStore.getMessageGroup(twoOfTwo.getHeaders().getCorrelationId());
+		//should be marked 'complete'
+		assertTrue(messageGroup.isComplete());
+	}
+	
+	
 }
