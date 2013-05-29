@@ -471,17 +471,20 @@ public class JdbcMessageStoreTests {
 		assertEquals(Integer.valueOf(2), (Integer) messageFromRegion2.getHeaders().get(MessageHeaders.SEQUENCE_NUMBER));
 
 	}
-	
+
 	@Test
 	@Transactional
 	public void testCompletedNotExpiredGroup() throws Exception {
 		/*
+		 * based on the aggregator scenario as follows;
+		 *
 		 * send three messages in
 		 * 1 of 2
 		 * 2 of 2
 		 * 2 of 2 (last again)
-		 * 
+		 *
 		 * expected behavior is that the LAST message (2 of 2 repeat) should be on the discard channel
+		 * (discard behavior performed by the AbstractCorrelatingMessageHandler.handleMessageInternal)
 		 */
 		final JdbcMessageStore messageStore = new JdbcMessageStore(dataSource);
 		//build the messages
@@ -492,11 +495,12 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessageToGroup(twoOfTwo.getHeaders().getCorrelationId(), twoOfTwo);
 		//'complete' the group
 		messageStore.completeGroup(oneOfTwo.getHeaders().getCorrelationId());
-		//'add' the other message
+		//'add' the other message --> emulated by getting the messageGroup
 		MessageGroup messageGroup = messageStore.getMessageGroup(twoOfTwo.getHeaders().getCorrelationId());
-		//should be marked 'complete'
+		//should be marked 'complete' --> old behavior it would not
 		assertTrue(messageGroup.isComplete());
 	}
-	
-	
+
+
+
 }
