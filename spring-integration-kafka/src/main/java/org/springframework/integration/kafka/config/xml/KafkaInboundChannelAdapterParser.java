@@ -28,22 +28,23 @@ import org.w3c.dom.Element;
  * The Kafka Inbound Channel adapter parser
  *
  * @author Soby Chacko
+ * @since 0.5
  *
  */
 public class KafkaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
-    @Override
-    protected BeanMetadataElement parseSource(final Element element, final ParserContext parserContext) {
-        final BeanDefinitionBuilder highLevelConsumerMessageSourceBuilder =
-                        BeanDefinitionBuilder.genericBeanDefinition(KafkaHighLevelConsumerMessageSource.class);
+	@Override
+	protected BeanMetadataElement parseSource(final Element element, final ParserContext parserContext) {
+		final BeanDefinitionBuilder highLevelConsumerMessageSourceBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(KafkaHighLevelConsumerMessageSource.class);
 
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(highLevelConsumerMessageSourceBuilder, element, "kafka-decoder");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(highLevelConsumerMessageSourceBuilder, element, "kafka-decoder");
 
-        final String kafkaConsumerContext = element.getAttribute("kafka-consumer-context-ref");
+		final String kafkaConsumerContext = element.getAttribute("kafka-consumer-context-ref");
 
-        if (StringUtils.hasText(kafkaConsumerContext)) {
-            highLevelConsumerMessageSourceBuilder.addConstructorArgReference(kafkaConsumerContext);
-        }
+		if (StringUtils.hasText(kafkaConsumerContext)) {
+			highLevelConsumerMessageSourceBuilder.addConstructorArgReference(kafkaConsumerContext);
+		}
 
-        return highLevelConsumerMessageSourceBuilder.getBeanDefinition();
+		return highLevelConsumerMessageSourceBuilder.getBeanDefinition();
 	}
 }

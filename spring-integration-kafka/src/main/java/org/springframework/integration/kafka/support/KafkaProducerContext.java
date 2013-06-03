@@ -26,38 +26,39 @@ import java.util.Map;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class KafkaProducerContext implements BeanFactoryAware {
-    private Map<String, ProducerConfiguration> topicsConfiguration;
+	private Map<String, ProducerConfiguration> topicsConfiguration;
 
-    @SuppressWarnings("unchecked")
-    public void send(final Message<?> message) throws Exception {
-        final ProducerConfiguration producerConfiguration =
-                        getTopicConfiguration(message.getHeaders().get("topic", String.class));
+	@SuppressWarnings("unchecked")
+	public void send(final Message<?> message) throws Exception {
+		final ProducerConfiguration producerConfiguration =
+						getTopicConfiguration(message.getHeaders().get("topic", String.class));
 
-        if (producerConfiguration != null) {
-            producerConfiguration.send(message);
-        }
-    }
+		if (producerConfiguration != null) {
+			producerConfiguration.send(message);
+		}
+	}
 
-    private ProducerConfiguration getTopicConfiguration(final String topic){
-        final Collection<ProducerConfiguration> topics = topicsConfiguration.values();
+	private ProducerConfiguration getTopicConfiguration(final String topic){
+		final Collection<ProducerConfiguration> topics = topicsConfiguration.values();
 
-        for (final ProducerConfiguration producerConfiguration : topics){
-            if (producerConfiguration.getProducerMetadata().getTopic().equals(topic)){
-                return producerConfiguration;
-            }
-        }
+		for (final ProducerConfiguration producerConfiguration : topics){
+			if (producerConfiguration.getProducerMetadata().getTopic().equals(topic)){
+				return producerConfiguration;
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public Map<String, ProducerConfiguration> getTopicsConfiguration() {
-        return topicsConfiguration;
-    }
+	public Map<String, ProducerConfiguration> getTopicsConfiguration() {
+		return topicsConfiguration;
+	}
 
-    @Override
-    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
-        topicsConfiguration = ((ListableBeanFactory)beanFactory).getBeansOfType(ProducerConfiguration.class);
-    }
+	@Override
+	public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
+		topicsConfiguration = ((ListableBeanFactory)beanFactory).getBeansOfType(ProducerConfiguration.class);
+	}
 }

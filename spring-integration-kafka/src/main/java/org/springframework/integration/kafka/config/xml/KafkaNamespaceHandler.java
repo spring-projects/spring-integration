@@ -21,18 +21,19 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * The namespace handler for the Kafka namespace
  *
  * @author Soby Chacko
+ * @since 0.5
  *
  */
 public class KafkaNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 	/* (non-Javadoc)
 	 * @see org.springframework.beans.factory.xml.NamespaceHandler#init()
 	 */
-	 @Override
+	@Override
 	public void init() {
-        registerBeanDefinitionParser("zookeeper-connect", new ZookeeperConnectParser());
+		registerBeanDefinitionParser("zookeeper-connect", new ZookeeperConnectParser());
 		registerBeanDefinitionParser("inbound-channel-adapter",  new KafkaInboundChannelAdapterParser());
-        registerBeanDefinitionParser("outbound-channel-adapter",  new KafkaOutboundChannelAdapterParser());
-        registerBeanDefinitionParser("producer-context",  new KafkaProducerContextParser());
-        registerBeanDefinitionParser("consumer-context",  new KafkaConsumerContextParser());
+		registerBeanDefinitionParser("outbound-channel-adapter",  new KafkaOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("producer-context",  new KafkaProducerContextParser());
+		registerBeanDefinitionParser("consumer-context",  new KafkaConsumerContextParser());
 	}
 }

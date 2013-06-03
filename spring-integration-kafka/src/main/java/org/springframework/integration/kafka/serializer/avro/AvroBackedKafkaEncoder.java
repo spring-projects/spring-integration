@@ -25,28 +25,29 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class AvroBackedKafkaEncoder<T> implements Encoder<T> {
-    private static final Log LOG = LogFactory.getLog(AvroBackedKafkaEncoder.class);
+	private static final Log LOG = LogFactory.getLog(AvroBackedKafkaEncoder.class);
 
-    private final Class clazz;
+	private final Class clazz;
 
-    public AvroBackedKafkaEncoder(final Class clazz) {
-        this.clazz = clazz;
-    }
+	public AvroBackedKafkaEncoder(final Class clazz) {
+		this.clazz = clazz;
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public byte[] toBytes(final T source) {
-        final Schema schema = ReflectData.get().getSchema(clazz);
-        final AvroSerializer avroSerializer = new AvroSerializer();
+	@Override
+	@SuppressWarnings("unchecked")
+	public byte[] toBytes(final T source) {
+		final Schema schema = ReflectData.get().getSchema(clazz);
+		final AvroSerializer avroSerializer = new AvroSerializer();
 
-        try {
-            return avroSerializer.serialize(source, schema);
-        } catch (IOException e) {
-            LOG.error("Failed to encode source for schema: " + schema.getFullName());
-        }
+		try {
+			return avroSerializer.serialize(source, schema);
+		} catch (IOException e) {
+			LOG.error("Failed to encode source for schema: " + schema.getFullName());
+		}
 
-        return null;
-    }
+		return null;
+	}
 }

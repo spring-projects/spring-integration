@@ -18,14 +18,15 @@ package org.springframework.integration.kafka.core;
 /**
  *
  * @author Soby Chacko
+ * @since 0.5
  *
  */
-public class ZookeeperConnectDefaults {
-    public static final String ZK_CONNECT = "localhost:2181";
-    public static final String ZK_CONNECTION_TIMEOUT = "6000";
-    public static final String ZK_SESSION_TIMEOUT = "6000";
-    public static final String ZK_SYNC_TIME = "2000";
+public final class ZookeeperConnectDefaults {
+	public static final String ZK_CONNECT = "localhost:2181";
+	public static final String ZK_CONNECTION_TIMEOUT = "6000";
+	public static final String ZK_SESSION_TIMEOUT = "6000";
+	public static final String ZK_SYNC_TIME = "2000";
 
-    private ZookeeperConnectDefaults() {
-    }
+	private ZookeeperConnectDefaults() {
+	}
 }

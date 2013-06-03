@@ -15,21 +15,25 @@
  */
 package org.springframework.integration.kafka.test.utils;
 
+/**
+ * @author Soby Chacko
+ * @since 0.5
+ */
 public class NonSerializableTestKey {
-    private final String keyPart1;
-    private final String keyPart2;
+	private final String keyPart1;
+	private final String keyPart2;
 
-    public NonSerializableTestKey(final String keyPart1, final String keyPart2) {
-        this.keyPart1 = keyPart1;
-        this.keyPart2 = keyPart2;
-    }
+	public NonSerializableTestKey(final String keyPart1, final String keyPart2) {
+		this.keyPart1 = keyPart1;
+		this.keyPart2 = keyPart2;
+	}
 
-    public String getKeyPart1() {
-        return keyPart1;
-    }
+	public String getKeyPart1() {
+		return keyPart1;
+	}
 
-    public String getKeyPart2() {
-        return keyPart2;
-    }
+	public String getKeyPart2() {
+		return keyPart2;
+	}
 
 }

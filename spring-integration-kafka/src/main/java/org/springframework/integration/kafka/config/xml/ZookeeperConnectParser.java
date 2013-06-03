@@ -25,22 +25,23 @@ import org.w3c.dom.Element;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class ZookeeperConnectParser extends AbstractSimpleBeanDefinitionParser {
-    @Override
-    protected Class<?> getBeanClass(final Element element) {
-        return ZookeeperConnect.class;
-    }
+	@Override
+	protected Class<?> getBeanClass(final Element element) {
+		return ZookeeperConnect.class;
+	}
 
-    @Override
-    protected void doParse(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
-        super.doParse(element, parserContext, builder);
+	@Override
+	protected void doParse(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		super.doParse(element, parserContext, builder);
 
-        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-                BeanDefinitionParserDelegate.SCOPE_ATTRIBUTE);
-        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-connect");
-        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-connection-timeout");
-        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-session-timeout");
-        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-sync-time");
-    }
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				BeanDefinitionParserDelegate.SCOPE_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-connect");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-connection-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-session-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "zk-sync-time");
+	}
 }

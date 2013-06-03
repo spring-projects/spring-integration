@@ -26,20 +26,21 @@ import org.w3c.dom.Element;
 /**
  *
  * @author Soby Chacko
+ * @since 0.5
  *
  */
 public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-    @Override
-    protected AbstractBeanDefinition parseConsumer(final Element element, final ParserContext parserContext) {
-        final BeanDefinitionBuilder kafkaProducerMessageHandlerBuilder =
-                                BeanDefinitionBuilder.genericBeanDefinition(KafkaProducerMessageHandler.class);
+	@Override
+	protected AbstractBeanDefinition parseConsumer(final Element element, final ParserContext parserContext) {
+		final BeanDefinitionBuilder kafkaProducerMessageHandlerBuilder =
+								BeanDefinitionBuilder.genericBeanDefinition(KafkaProducerMessageHandler.class);
 
-        final String kafkaServerBeanName = element.getAttribute("kafka-producer-context-ref");
+		final String kafkaServerBeanName = element.getAttribute("kafka-producer-context-ref");
 
-        if (StringUtils.hasText(kafkaServerBeanName)) {
-            kafkaProducerMessageHandlerBuilder.addConstructorArgReference(kafkaServerBeanName);
-        }
+		if (StringUtils.hasText(kafkaServerBeanName)) {
+			kafkaProducerMessageHandlerBuilder.addConstructorArgReference(kafkaServerBeanName);
+		}
 
-        return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
-    }
+		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
+	}
 }
