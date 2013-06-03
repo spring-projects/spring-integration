@@ -32,58 +32,59 @@ import org.w3c.dom.Element;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionParser {
-    @Override
-    protected Class<?> getBeanClass(final Element element) {
-        return KafkaProducerContext.class;
-    }
+	@Override
+	protected Class<?> getBeanClass(final Element element) {
+		return KafkaProducerContext.class;
+	}
 
-    @Override
-    protected void doParse(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
-        super.doParse(element, parserContext, builder);
+	@Override
+	protected void doParse(final Element element, final ParserContext parserContext, final BeanDefinitionBuilder builder) {
+		super.doParse(element, parserContext, builder);
 
-        final Element topics = DomUtils.getChildElementByTagName(element, "producer-configurations");
-        parseProducerConfigurations(topics, parserContext);
-    }
+		final Element topics = DomUtils.getChildElementByTagName(element, "producer-configurations");
+		parseProducerConfigurations(topics, parserContext);
+	}
 
-    private void parseProducerConfigurations(final Element topics, final ParserContext parserContext) {
-        for (final Element producerConfiguration : DomUtils.getChildElementsByTagName(topics, "producer-configuration")){
-            final BeanDefinitionBuilder producerConfigurationBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProducerConfiguration.class);
+	private void parseProducerConfigurations(final Element topics, final ParserContext parserContext) {
+		for (final Element producerConfiguration : DomUtils.getChildElementsByTagName(topics, "producer-configuration")){
+			final BeanDefinitionBuilder producerConfigurationBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProducerConfiguration.class);
 
-            final BeanDefinitionBuilder producerMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProducerMetadata.class);
-            producerMetadataBuilder.addConstructorArgValue(producerConfiguration.getAttribute("topic"));
-            IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "value-encoder");
-            IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "key-encoder");
-            IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "key-class-type");
-            IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "value-class-type");
-            IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "partitioner");
-            IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "compression-codec");
-            IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "async");
-            IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "batch-num-messages");
+			final BeanDefinitionBuilder producerMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProducerMetadata.class);
+			producerMetadataBuilder.addConstructorArgValue(producerConfiguration.getAttribute("topic"));
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "value-encoder");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "key-encoder");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "key-class-type");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "value-class-type");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "partitioner");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "compression-codec");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "async");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(producerMetadataBuilder, producerConfiguration, "batch-num-messages");
 
-            final BeanDefinition producerMetadataBeanDef = producerMetadataBuilder.getBeanDefinition();
-            registerBeanDefinition(new BeanDefinitionHolder(producerMetadataBeanDef, "producerMetadata_" + producerConfiguration.getAttribute("topic")),
-                                        parserContext.getRegistry());
+			final BeanDefinition producerMetadataBeanDef = producerMetadataBuilder.getBeanDefinition();
+			registerBeanDefinition(new BeanDefinitionHolder(producerMetadataBeanDef, "producerMetadata_" + producerConfiguration.getAttribute("topic")),
+										parserContext.getRegistry());
 
-            final BeanDefinitionBuilder producerFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProducerFactoryBean.class);
-            producerFactoryBuilder.addConstructorArgReference("producerMetadata_" + producerConfiguration.getAttribute("topic"));
+			final BeanDefinitionBuilder producerFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProducerFactoryBean.class);
+			producerFactoryBuilder.addConstructorArgReference("producerMetadata_" + producerConfiguration.getAttribute("topic"));
 
-            final String brokerList = producerConfiguration.getAttribute("broker-list");
-            if (StringUtils.hasText(brokerList)) {
-                producerFactoryBuilder.addConstructorArgValue(producerConfiguration.getAttribute("broker-list"));
-            }
+			final String brokerList = producerConfiguration.getAttribute("broker-list");
+			if (StringUtils.hasText(brokerList)) {
+				producerFactoryBuilder.addConstructorArgValue(producerConfiguration.getAttribute("broker-list"));
+			}
 
-            final BeanDefinition producerfactoryBeanDefinition = producerFactoryBuilder.getBeanDefinition();
-            registerBeanDefinition(new BeanDefinitionHolder(producerfactoryBeanDefinition, "prodFactory_" + producerConfiguration.getAttribute("topic")), parserContext.getRegistry());
+			final BeanDefinition producerfactoryBeanDefinition = producerFactoryBuilder.getBeanDefinition();
+			registerBeanDefinition(new BeanDefinitionHolder(producerfactoryBeanDefinition, "prodFactory_" + producerConfiguration.getAttribute("topic")), parserContext.getRegistry());
 
-            producerConfigurationBuilder.addConstructorArgReference("producerMetadata_" + producerConfiguration.getAttribute("topic"));
-            producerConfigurationBuilder.addConstructorArgReference("prodFactory_" + producerConfiguration.getAttribute("topic"));
+			producerConfigurationBuilder.addConstructorArgReference("producerMetadata_" + producerConfiguration.getAttribute("topic"));
+			producerConfigurationBuilder.addConstructorArgReference("prodFactory_" + producerConfiguration.getAttribute("topic"));
 
-            final AbstractBeanDefinition producerConfigurationBeanDefinition = producerConfigurationBuilder.getBeanDefinition();
-            final String producerConfigurationBeanName = "producerConfiguration_" + producerConfiguration.getAttribute("topic");
-            registerBeanDefinition(new BeanDefinitionHolder(producerConfigurationBeanDefinition, producerConfigurationBeanName),
-                    parserContext.getRegistry());
-        }
-    }
+			final AbstractBeanDefinition producerConfigurationBeanDefinition = producerConfigurationBuilder.getBeanDefinition();
+			final String producerConfigurationBeanName = "producerConfiguration_" + producerConfiguration.getAttribute("topic");
+			registerBeanDefinition(new BeanDefinitionHolder(producerConfigurationBeanDefinition, producerConfigurationBeanName),
+					parserContext.getRegistry());
+		}
+	}
 }

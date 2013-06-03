@@ -30,47 +30,48 @@ import java.util.Map;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class KafkaConsumerContext implements BeanFactoryAware {
-    private Map<String, ConsumerConfiguration> consumerConfigurations;
-    private String consumerTimeout = KafkaConsumerDefaults.CONSUMER_TIMEOUT;
-    private ZookeeperConnect zookeeperConnect;
+	private Map<String, ConsumerConfiguration> consumerConfigurations;
+	private String consumerTimeout = KafkaConsumerDefaults.CONSUMER_TIMEOUT;
+	private ZookeeperConnect zookeeperConnect;
 
-    public Collection<ConsumerConfiguration> getConsumerConfigurations() {
-        return consumerConfigurations.values();
-    }
+	public Collection<ConsumerConfiguration> getConsumerConfigurations() {
+		return consumerConfigurations.values();
+	}
 
-    @Override
-    public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
-        consumerConfigurations = ((ListableBeanFactory) beanFactory).getBeansOfType(ConsumerConfiguration.class);
-    }
+	@Override
+	public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
+		consumerConfigurations = ((ListableBeanFactory) beanFactory).getBeansOfType(ConsumerConfiguration.class);
+	}
 
-    public Message<Map<String, Map<Integer, List<Object>>>> receive() {
-        final Map<String, Map<Integer, List<Object>>> consumedData = new HashMap<String, Map<Integer, List<Object>>>();
+	public Message<Map<String, Map<Integer, List<Object>>>> receive() {
+		final Map<String, Map<Integer, List<Object>>> consumedData = new HashMap<String, Map<Integer, List<Object>>>();
 
-        for (final ConsumerConfiguration consumerConfiguration : getConsumerConfigurations()) {
-            final Map<String, Map<Integer, List<Object>>> messages = consumerConfiguration.receive();
+		for (final ConsumerConfiguration consumerConfiguration : getConsumerConfigurations()) {
+			final Map<String, Map<Integer, List<Object>>> messages = consumerConfiguration.receive();
 
-            if (messages != null){
-                consumedData.putAll(messages);
-            }
-        }
-        return MessageBuilder.withPayload(consumedData).build();
-    }
+			if (messages != null){
+				consumedData.putAll(messages);
+			}
+		}
+		return MessageBuilder.withPayload(consumedData).build();
+	}
 
-    public String getConsumerTimeout() {
-        return consumerTimeout;
-    }
+	public String getConsumerTimeout() {
+		return consumerTimeout;
+	}
 
-    public void setConsumerTimeout(final String consumerTimeout) {
-        this.consumerTimeout = consumerTimeout;
-    }
+	public void setConsumerTimeout(final String consumerTimeout) {
+		this.consumerTimeout = consumerTimeout;
+	}
 
-    public ZookeeperConnect getZookeeperConnect() {
-        return zookeeperConnect;
-    }
+	public ZookeeperConnect getZookeeperConnect() {
+		return zookeeperConnect;
+	}
 
-    public void setZookeeperConnect(final ZookeeperConnect zookeeperConnect) {
-        this.zookeeperConnect = zookeeperConnect;
-    }
+	public void setZookeeperConnect(final ZookeeperConnect zookeeperConnect) {
+		this.zookeeperConnect = zookeeperConnect;
+	}
 }

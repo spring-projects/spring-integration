@@ -15,24 +15,28 @@
  */
 package org.springframework.integration.kafka.test.utils;
 
+/**
+ * @author Soby Chacko
+ * @since 0.5
+ */
 public class TestObject {
-    public String testData1;
-    public int testData2;
+	public String testData1;
+	public int testData2;
 
-    public String getTestData1() {
-        return testData1;
-    }
+	public String getTestData1() {
+		return testData1;
+	}
 
-    public void setTestData1(final String testData1) {
-        this.testData1 = testData1;
-    }
+	public void setTestData1(final String testData1) {
+		this.testData1 = testData1;
+	}
 
-    public int getTestData2() {
-        return testData2;
-    }
+	public int getTestData2() {
+		return testData2;
+	}
 
-    public void setTestData2(final int testData2) {
-        this.testData2 = testData2;
-    }
+	public void setTestData2(final int testData2) {
+		this.testData2 = testData2;
+	}
 
 }

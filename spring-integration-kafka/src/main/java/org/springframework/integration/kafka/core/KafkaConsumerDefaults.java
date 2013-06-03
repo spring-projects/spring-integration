@@ -19,22 +19,23 @@ package org.springframework.integration.kafka.core;
  * Kafka adapter specific message headers.
  *
  * @author Soby Chacko
+ * @since 0.5
  */
-public class KafkaConsumerDefaults {
-    //High level consumer
-    public static final String GROUP_ID = "groupid";
-    public static final String SOCKET_TIMEOUT = "30000";
-    public static final String SOCKET_BUFFER_SIZE = "64*1024";
-    public static final String FETCH_SIZE = "300 * 1024";
-    public static final String BACKOFF_INCREMENT = "1000";
-    public static final String QUEUED_CHUNKS_MAX = "100";
-    public static final String AUTO_COMMIT_ENABLE = "true";
-    public static final String AUTO_COMMIT_INTERVAL = "10000";
-    public static final String AUTO_OFFSET_RESET = "smallest";
-    //Overriding the default value of -1, which will make the consumer to wait indefinitely
-    public static final String CONSUMER_TIMEOUT = "5000";
-    public static final String REBALANCE_RETRIES_MAX = "4";
+public final class KafkaConsumerDefaults {
+	//High level consumer
+	public static final String GROUP_ID = "groupid";
+	public static final String SOCKET_TIMEOUT = "30000";
+	public static final String SOCKET_BUFFER_SIZE = "64*1024";
+	public static final String FETCH_SIZE = "300 * 1024";
+	public static final String BACKOFF_INCREMENT = "1000";
+	public static final String QUEUED_CHUNKS_MAX = "100";
+	public static final String AUTO_COMMIT_ENABLE = "true";
+	public static final String AUTO_COMMIT_INTERVAL = "10000";
+	public static final String AUTO_OFFSET_RESET = "smallest";
+	//Overriding the default value of -1, which will make the consumer to wait indefinitely
+	public static final String CONSUMER_TIMEOUT = "5000";
+	public static final String REBALANCE_RETRIES_MAX = "4";
 
 	private KafkaConsumerDefaults() {
-    }
+	}
 }

@@ -25,23 +25,24 @@ import java.util.Map;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  *
  */
 public class KafkaHighLevelConsumerMessageSource extends IntegrationObjectSupport implements MessageSource<Map<String, Map<Integer, List<Object>>>> {
 
-    private final KafkaConsumerContext kafkaConsumerContext;
+	private final KafkaConsumerContext kafkaConsumerContext;
 
-    public KafkaHighLevelConsumerMessageSource(final KafkaConsumerContext kafkaConsumerContext) {
-        this.kafkaConsumerContext = kafkaConsumerContext;
-    }
+	public KafkaHighLevelConsumerMessageSource(final KafkaConsumerContext kafkaConsumerContext) {
+		this.kafkaConsumerContext = kafkaConsumerContext;
+	}
 
-    @Override
-    public Message<Map<String, Map<Integer, List<Object>>>> receive() {
-        return kafkaConsumerContext.receive();
-    }
+	@Override
+	public Message<Map<String, Map<Integer, List<Object>>>> receive() {
+		return kafkaConsumerContext.receive();
+	}
 
-    @Override
-    public String getComponentType() {
-        return "kafka:inbound-channel-adapter";
-    }
+	@Override
+	public String getComponentType() {
+		return "kafka:inbound-channel-adapter";
+	}
 }

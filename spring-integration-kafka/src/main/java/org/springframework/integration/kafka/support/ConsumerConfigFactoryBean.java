@@ -22,38 +22,39 @@ import java.util.Properties;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class ConsumerConfigFactoryBean implements FactoryBean<ConsumerConfig> {
 
-    private final ConsumerMetadata consumerMetadata;
-    private final ZookeeperConnect zookeeperConnect;
+	private final ConsumerMetadata consumerMetadata;
+	private final ZookeeperConnect zookeeperConnect;
 
-    public ConsumerConfigFactoryBean(final ConsumerMetadata consumerMetadata,
-                                     final ZookeeperConnect zookeeperConnect){
-        this.consumerMetadata = consumerMetadata;
-        this.zookeeperConnect = zookeeperConnect;
-    }
+	public ConsumerConfigFactoryBean(final ConsumerMetadata consumerMetadata,
+									 final ZookeeperConnect zookeeperConnect){
+		this.consumerMetadata = consumerMetadata;
+		this.zookeeperConnect = zookeeperConnect;
+	}
 
-    @Override
-    public ConsumerConfig getObject() throws Exception {
-        final Properties properties = new Properties();
-        properties.put("zookeeper.connect", zookeeperConnect.getZkConnect());
-        properties.put("zookeeper.session.timeout.ms", zookeeperConnect.getZkSessionTimeout());
-        properties.put("zookeeper.sync.time.ms", zookeeperConnect.getZkSyncTime());
-        properties.put("auto.commit.interval.ms", consumerMetadata.getAutoCommitInterval());
-        properties.put("consumer.timeout.ms", consumerMetadata.getConsumerTimeout());
-        properties.put("group.id", consumerMetadata.getGroupId());
+	@Override
+	public ConsumerConfig getObject() throws Exception {
+		final Properties properties = new Properties();
+		properties.put("zookeeper.connect", zookeeperConnect.getZkConnect());
+		properties.put("zookeeper.session.timeout.ms", zookeeperConnect.getZkSessionTimeout());
+		properties.put("zookeeper.sync.time.ms", zookeeperConnect.getZkSyncTime());
+		properties.put("auto.commit.interval.ms", consumerMetadata.getAutoCommitInterval());
+		properties.put("consumer.timeout.ms", consumerMetadata.getConsumerTimeout());
+		properties.put("group.id", consumerMetadata.getGroupId());
 
-        return new ConsumerConfig(properties);
-    }
+		return new ConsumerConfig(properties);
+	}
 
-    @Override
-    public Class<?> getObjectType() {
-        return ConsumerConfig.class;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return ConsumerConfig.class;
+	}
 
-    @Override
-    public boolean isSingleton() {
-        return true;
-    }
+	@Override
+	public boolean isSingleton() {
+		return true;
+	}
 }

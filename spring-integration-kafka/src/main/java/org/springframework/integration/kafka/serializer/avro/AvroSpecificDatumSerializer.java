@@ -30,23 +30,24 @@ import java.io.IOException;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class AvroSpecificDatumSerializer<T> {
-    public T deserialize(final byte[] bytes, final Schema schema) throws IOException {
-        final Decoder decoder = DecoderFactory.get().binaryDecoder(bytes, null);
-        final DatumReader<T> reader = new SpecificDatumReader<T>(schema);
+	public T deserialize(final byte[] bytes, final Schema schema) throws IOException {
+		final Decoder decoder = DecoderFactory.get().binaryDecoder(bytes, null);
+		final DatumReader<T> reader = new SpecificDatumReader<T>(schema);
 
-        return reader.read(null, decoder);
-    }
+		return reader.read(null, decoder);
+	}
 
-    public byte[] serialize(final T input, final Schema schema) throws IOException {
-        final DatumWriter<T> writer = new SpecificDatumWriter<T>(schema);
-        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+	public byte[] serialize(final T input, final Schema schema) throws IOException {
+		final DatumWriter<T> writer = new SpecificDatumWriter<T>(schema);
+		final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-        final Encoder encoder = EncoderFactory.get().binaryEncoder(stream, null);
-        writer.write(input, encoder);
-        encoder.flush();
+		final Encoder encoder = EncoderFactory.get().binaryEncoder(stream, null);
+		writer.write(input, encoder);
+		encoder.flush();
 
-        return stream.toByteArray();
-    }
+		return stream.toByteArray();
+	}
 }

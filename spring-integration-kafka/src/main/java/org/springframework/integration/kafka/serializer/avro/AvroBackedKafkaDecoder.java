@@ -26,29 +26,30 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class AvroBackedKafkaDecoder<T> implements Decoder<T> {
-    private static final Log LOG = LogFactory.getLog(AvroBackedKafkaDecoder.class);
+	private static final Log LOG = LogFactory.getLog(AvroBackedKafkaDecoder.class);
 
-    private final Class clazz;
+	private final Class clazz;
 
-    public AvroBackedKafkaDecoder(final Class clazz) {
-        this.clazz = clazz;
-    }
+	public AvroBackedKafkaDecoder(final Class clazz) {
+		this.clazz = clazz;
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public T fromBytes(final byte[] bytes) {
-        final Schema schema = ReflectData.get().getSchema(clazz);
-        final AvroSerializer avroSerializer = new AvroSerializer();
+	@Override
+	@SuppressWarnings("unchecked")
+	public T fromBytes(final byte[] bytes) {
+		final Schema schema = ReflectData.get().getSchema(clazz);
+		final AvroSerializer avroSerializer = new AvroSerializer();
 
-        try {
-            return (T) avroSerializer.deserialize(bytes, schema);
-        } catch (IOException e) {
-            LOG.error("Failed to decode byte array for schema: " + schema.getFullName(), e);
-        }
+		try {
+			return (T) avroSerializer.deserialize(bytes, schema);
+		} catch (IOException e) {
+			LOG.error("Failed to decode byte array for schema: " + schema.getFullName(), e);
+		}
 
-        return null;
-    }
+		return null;
+	}
 }
 

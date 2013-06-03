@@ -19,42 +19,43 @@ import org.springframework.integration.kafka.core.ZookeeperConnectDefaults;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class ZookeeperConnect {
-    private String zkConnect = ZookeeperConnectDefaults.ZK_CONNECT;
-    private String zkConnectionTimeout = ZookeeperConnectDefaults.ZK_CONNECTION_TIMEOUT;
-    private String zkSessionTimeout = ZookeeperConnectDefaults.ZK_SESSION_TIMEOUT;
-    private String zkSyncTime = ZookeeperConnectDefaults.ZK_SYNC_TIME;
+	private String zkConnect = ZookeeperConnectDefaults.ZK_CONNECT;
+	private String zkConnectionTimeout = ZookeeperConnectDefaults.ZK_CONNECTION_TIMEOUT;
+	private String zkSessionTimeout = ZookeeperConnectDefaults.ZK_SESSION_TIMEOUT;
+	private String zkSyncTime = ZookeeperConnectDefaults.ZK_SYNC_TIME;
 
-    public String getZkConnect() {
-        return zkConnect;
-    }
+	public String getZkConnect() {
+		return zkConnect;
+	}
 
-    public void setZkConnect(final String zkConnect) {
-        this.zkConnect = zkConnect;
-    }
+	public void setZkConnect(final String zkConnect) {
+		this.zkConnect = zkConnect;
+	}
 
-    public String getZkConnectionTimeout() {
-        return zkConnectionTimeout;
-    }
+	public String getZkConnectionTimeout() {
+		return zkConnectionTimeout;
+	}
 
-    public void setZkConnectionTimeout(final String zkConnectionTimeout) {
-        this.zkConnectionTimeout = zkConnectionTimeout;
-    }
+	public void setZkConnectionTimeout(final String zkConnectionTimeout) {
+		this.zkConnectionTimeout = zkConnectionTimeout;
+	}
 
-    public String getZkSessionTimeout() {
-        return zkSessionTimeout;
-    }
+	public String getZkSessionTimeout() {
+		return zkSessionTimeout;
+	}
 
-    public void setZkSessionTimeout(final String zkSessionTimeout) {
-        this.zkSessionTimeout = zkSessionTimeout;
-    }
+	public void setZkSessionTimeout(final String zkSessionTimeout) {
+		this.zkSessionTimeout = zkSessionTimeout;
+	}
 
-    public String getZkSyncTime() {
-        return zkSyncTime;
-    }
+	public String getZkSyncTime() {
+		return zkSyncTime;
+	}
 
-    public void setZkSyncTime(final String zkSyncTime) {
-        this.zkSyncTime = zkSyncTime;
-    }
+	public void setZkSyncTime(final String zkSyncTime) {
+		this.zkSyncTime = zkSyncTime;
+	}
 }

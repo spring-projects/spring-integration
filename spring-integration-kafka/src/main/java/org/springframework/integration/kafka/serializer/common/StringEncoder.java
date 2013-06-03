@@ -22,20 +22,21 @@ import java.util.Properties;
 
 /**
  * @author Soby Chacko
+ * @since 0.5
  */
 public class StringEncoder implements Encoder {
-    private String encoding = "UTF8";
+	private String encoding = "UTF8";
 
-    public void setEncoding(final String encoding){
-        this.encoding = encoding;
-    }
+	public void setEncoding(final String encoding){
+		this.encoding = encoding;
+	}
 
-    @Override
-    public byte[] toBytes(final Object o) {
-        final Properties props = new Properties();
-        props.put("serializer.encoding", encoding);
+	@Override
+	public byte[] toBytes(final Object o) {
+		final Properties props = new Properties();
+		props.put("serializer.encoding", encoding);
 
-        final VerifiableProperties verifiableProperties = new VerifiableProperties(props);
-        return new kafka.serializer.StringEncoder(verifiableProperties).toBytes((String)o);
-    }
+		final VerifiableProperties verifiableProperties = new VerifiableProperties(props);
+		return new kafka.serializer.StringEncoder(verifiableProperties).toBytes((String)o);
+	}
 }
