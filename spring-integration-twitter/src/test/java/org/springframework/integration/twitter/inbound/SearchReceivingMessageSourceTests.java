@@ -31,15 +31,18 @@ import java.util.Properties;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.social.twitter.api.SearchMetadata;
 import org.springframework.social.twitter.api.SearchOperations;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.SearchParameters;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 
@@ -81,7 +84,7 @@ public class SearchReceivingMessageSourceTests {
 	@Test
 	public void testSearchReceivingMessageSourceInit() {
 
-		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(new TwitterTemplate());
+		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(new TwitterTemplate("test"));
 		messageSource.setComponentName("twitterSearchMessageSource");
 
 		final Object metadataStore = TestUtils.getPropertyValue(messageSource, "metadataStore");
@@ -115,10 +118,10 @@ public class SearchReceivingMessageSourceTests {
 	public void testPollForTweetsNullResults() {
 
 		final TwitterTemplate twitterTemplate = mock(TwitterTemplate.class);
-        final SearchOperations so = mock(SearchOperations.class);
+		final SearchOperations so = mock(SearchOperations.class);
 
 		when(twitterTemplate.searchOperations()).thenReturn(so);
-	    when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 1, 20, 0, 0)).thenReturn(null);
+		when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 20, 0, 0)).thenReturn(null);
 
 		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
 		messageSource.setQuery(SEARCH_QUERY);
@@ -130,9 +133,8 @@ public class SearchReceivingMessageSourceTests {
 
 		final List<Tweet> tweets = messageSource.pollForTweets(0);
 
-        assertNotNull(tweets);
-        assertTrue(tweets.isEmpty());
-
+		assertNotNull(tweets);
+		assertTrue(tweets.isEmpty());
 	}
 
 	/**
@@ -155,12 +157,13 @@ public class SearchReceivingMessageSourceTests {
 		tweets.add(tweet2);
 		tweets.add(tweet3);
 
-		final SearchResults results = new SearchResults(tweets, 111, 111);
+		final SearchResults results = new SearchResults(tweets, new SearchMetadata(111, 111));
 
 		twitterTemplate = mock(TwitterTemplate.class);
 
 		when(twitterTemplate.searchOperations()).thenReturn(so);
-        when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 1, 20, 0, 0)).thenReturn(results);
+		SearchParameters params = new SearchParameters(SEARCH_QUERY).count(20).sinceId(0);
+		when(twitterTemplate.searchOperations().search(params)).thenReturn(results);
 
 		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
 
@@ -168,9 +171,8 @@ public class SearchReceivingMessageSourceTests {
 
 		final List<Tweet> tweetSearchResults = messageSource.pollForTweets(0);
 
-        assertNotNull(tweetSearchResults);
-        assertTrue(tweetSearchResults.size() == 3);
-
+		assertNotNull(tweetSearchResults);
+		assertEquals(3, tweetSearchResults.size());
 	}
 
 }
