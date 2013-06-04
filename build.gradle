@@ -50,7 +50,7 @@ subprojects { subproject ->
     springDataRedisVersion = '1.0.0.RELEASE'
     springGemfireVersion = '1.1.0.RELEASE'
     springSecurityVersion = '3.1.0.RELEASE'
-    springSocialTwitterVersion = '1.0.1.RELEASE'
+    springSocialTwitterVersion = '1.0.4.RELEASE'
     springWsVersion = '2.0.3.RELEASE'
 
     eclipse {
@@ -768,7 +768,7 @@ project('spring-integration-twitter') {
             'org.springframework.beans.*;version="[3.0.5, 4.0.0)"',
             'org.springframework.context;version="[3.0.5, 4.0.0)"',
             'org.springframework.core.*;version="[3.0.5, 4.0.0)"',
-            'org.springframework.social.*;version="[1.0.0, 1.1.0)"',
+			'org.springframework.social.twitter.*;version="[1.0.4, 1.1.0)"',
             'org.springframework.security.crypto.*;version="[3.1.0, 3.2.0)"',
             'org.springframework.scheduling.*;version="[3.0.5, 4.0.0)"',
             'org.springframework.util;version="[3.0.5, 4.0.0)"',
