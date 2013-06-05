@@ -36,6 +36,7 @@ import org.springframework.social.twitter.api.SearchOperations;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.SearchParameters;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 
@@ -156,7 +157,8 @@ public class SearchReceivingMessageSourceTests {
 		twitterTemplate = mock(TwitterTemplate.class);
 
 		when(twitterTemplate.searchOperations()).thenReturn(so);
-		when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 20, 0, 0)).thenReturn(results);
+		SearchParameters params = new SearchParameters(SEARCH_QUERY).count(20).sinceId(0);
+		when(twitterTemplate.searchOperations().search(params)).thenReturn(results);
 
 		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
 
@@ -165,7 +167,7 @@ public class SearchReceivingMessageSourceTests {
 		final List<Tweet> tweetSearchResults = messageSource.pollForTweets(0);
 
 		assertNotNull(tweetSearchResults);
-		assertTrue(tweetSearchResults.size() == 3);
+		assertEquals(3, tweetSearchResults.size());
 
 	}
 
