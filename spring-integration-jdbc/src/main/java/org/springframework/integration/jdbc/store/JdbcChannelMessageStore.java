@@ -18,12 +18,16 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.sql.DataSource;
 
@@ -89,13 +93,21 @@ import org.springframework.util.StringUtils;
  * </p
  * >
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  */
 @ManagedResource
 public class JdbcChannelMessageStore extends AbstractMessageGroupStore implements InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(JdbcChannelMessageStore.class);
-	private final Set<String> idCache = Collections.newSetFromMap(new ConcurrentHashMap<String,Boolean>());
+
+	private final Set<String> idCache = new HashSet<String>();
+
+	private final ReadWriteLock idCacheLock = new ReentrantReadWriteLock();
+
+	private final Lock idCacheReadLock = idCacheLock.readLock();
+
+	private final Lock idCacheWriteLock = idCacheLock.writeLock();
 
 	/**
 	 * Default value for the table prefix property.
@@ -444,16 +456,22 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 
 		final String query;
 
-		synchronized (idCache) {
+		final List<Message<?>> messages;
+
+		this.idCacheReadLock.lock();
+		try {
 			if (this.usingIdCache && !this.idCache.isEmpty()) {
 				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
 				parameters.addValue("message_ids", idCache);
 			} else {
 				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
 			}
+			messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
+		}
+		finally {
+			this.idCacheReadLock.unlock();
 		}
 
-		final List<Message<?>> messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
 
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0){
@@ -462,11 +480,16 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 			final String messageId = message.getHeaders().getId().toString();
 
 			if (this.usingIdCache) {
+				this.idCacheWriteLock.lock();
+				try {
+					boolean added = this.idCache.add(messageId);
 
-				boolean added = this.idCache.add(messageId);
-
-				if (logger.isDebugEnabled()) {
-					logger.debug(String.format("Polled message with id '%s' added: '%s'.", messageId, added));
+					if (logger.isDebugEnabled()) {
+						logger.debug(String.format("Polled message with id '%s' added: '%s'.", messageId, added));
+					}
+				}
+				finally {
+					this.idCacheWriteLock.unlock();
 				}
 			}
 
@@ -611,7 +634,13 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		if (logger.isDebugEnabled()) {
 			logger.debug("Removing Message Id:" + messageId);
 		}
-		this.idCache.remove(messageId);
+		this.idCacheWriteLock.lock();
+		try {
+			this.idCache.remove(messageId);
+		}
+		finally {
+			this.idCacheWriteLock.unlock();
+		}
 	}
 
 	/**
