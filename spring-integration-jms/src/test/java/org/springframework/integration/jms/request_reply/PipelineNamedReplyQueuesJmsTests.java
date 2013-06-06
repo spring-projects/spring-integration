@@ -24,7 +24,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -35,10 +41,18 @@ import org.springframework.integration.message.GenericMessage;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Ali Moghadam
  */
 public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
+
+	private static final Log logger = LogFactory.getLog(PipelineJmsTests.class);
+
+	@Before
+	public void setLogLevel() {
+		LogManager.getLogger(getClass()).setLevel(Level.INFO);
+	}
 
 	int requests = 50;
 
@@ -175,10 +189,10 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 			return timeoutCounter.get();
 		}
 		finally {
-			System.out.println(contextConfig);
-			System.out.println("Success: " + successCounter.get());
-			System.out.println("Timeout: " + timeoutCounter.get());
-			System.out.println("Failure: " + failureCounter.get());
+			logger.info("Test config: " + contextConfig);
+			logger.info("Success: " + successCounter.get());
+			logger.info("Timeout: " + timeoutCounter.get());
+			logger.info("Failure: " + failureCounter.get());
 			context.destroy();
 		}
 	}
