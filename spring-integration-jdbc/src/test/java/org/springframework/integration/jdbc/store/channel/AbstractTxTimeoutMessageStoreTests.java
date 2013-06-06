@@ -12,6 +12,15 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import org.junit.Assert;
@@ -19,20 +28,22 @@ import org.junit.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- *
  * @author Gunnar Hillert
- *
+ * @author Artem Bilan
  */
 abstract class AbstractTxTimeoutMessageStoreTests {
 
@@ -87,6 +98,63 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(jdbcChannelMessageStore.getSizeOfIdCache()));
 		Assert.assertEquals(Integer.valueOf(maxMessages), Integer.valueOf(testService.getSeenMessages().size()));
 		Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(testService.getDuplicateMessagesCount()));
+	}
+
+	public void testInt2993IdCacheConcurrency() throws InterruptedException, ExecutionException {
+		final String groupId = "testInt2993Group";
+		for (int i = 0; i < 100; i++) {
+			this.jdbcChannelMessageStore.addMessageToGroup(groupId, new GenericMessage<String>("testInt2993Message"));
+		}
+
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executorService);
+
+		final int concurrency = 5;
+
+		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+		for (int i = 0; i < concurrency; i++) {
+			completionService.submit(new Callable<Boolean>() {
+				@Override
+				public Boolean call() throws Exception {
+					for (int i = 0; i < 100; i++) {
+						boolean result = transactionTemplate.execute(new TransactionCallback<Boolean>() {
+							@Override
+							public Boolean doInTransaction(TransactionStatus status) {
+								Message<?> message = null;
+								try {
+									message = jdbcChannelMessageStore.pollMessageFromGroup(groupId);
+								}
+								catch (Exception e) {
+									log.error("IdCache race condition.", e);
+									return false;
+								}
+								try {
+									Thread.sleep(10);
+								}
+								catch (InterruptedException e) {
+									log.error(e);
+								}
+								if (message != null) {
+									jdbcChannelMessageStore.removeFromIdCache(message.getHeaders().getId().toString());
+								}
+								return true;
+							}
+						});
+						if (!result) return false;
+					}
+
+					return true;
+				}
+			});
+		}
+
+		for (int j = 0; j < concurrency; j++) {
+			assertTrue(completionService.take().get());
+		}
+
+		executorService.shutdown();
+		assertTrue(executorService.awaitTermination(5, TimeUnit.SECONDS));
 	}
 
 }
