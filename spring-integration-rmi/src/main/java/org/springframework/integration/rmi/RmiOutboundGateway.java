@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.io.Serializable;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
@@ -29,8 +30,9 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
  * An outbound Messaging Gateway for RMI-based remoting.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -61,6 +63,9 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 				reply = MessageBuilder.fromMessage(reply).copyHeadersIfAbsent(message.getHeaders()).build();
 			}
 			return reply;
+		}
+		catch (MessagingException e) {
+			throw new MessageHandlingException(message, e);
 		}
 		catch (RemoteAccessException e) {
 			throw new MessageHandlingException(message, "remote failure in RmiOutboundGateway", e);
