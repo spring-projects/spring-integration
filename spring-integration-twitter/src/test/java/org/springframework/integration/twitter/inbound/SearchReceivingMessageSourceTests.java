@@ -16,13 +16,8 @@
 
 package org.springframework.integration.twitter.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,10 +31,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.social.twitter.api.SearchMetadata;
 import org.springframework.social.twitter.api.SearchOperations;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.SearchParameters;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 
@@ -118,7 +115,7 @@ public class SearchReceivingMessageSourceTests {
         final SearchOperations so = mock(SearchOperations.class);
 
 		when(twitterTemplate.searchOperations()).thenReturn(so);
-	    when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 1, 20, 0, 0)).thenReturn(null);
+	    when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 20, 0, 0)).thenReturn(null);
 
 		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
 		messageSource.setQuery(SEARCH_QUERY);
@@ -155,12 +152,13 @@ public class SearchReceivingMessageSourceTests {
 		tweets.add(tweet2);
 		tweets.add(tweet3);
 
-		final SearchResults results = new SearchResults(tweets, 111, 111);
+		final SearchResults results = new SearchResults(tweets, new SearchMetadata(111, 111));
 
 		twitterTemplate = mock(TwitterTemplate.class);
 
 		when(twitterTemplate.searchOperations()).thenReturn(so);
-        when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 1, 20, 0, 0)).thenReturn(results);
+		SearchParameters params = new SearchParameters(SEARCH_QUERY).count(20).sinceId(0);
+		when(twitterTemplate.searchOperations().search(params)).thenReturn(results);
 
 		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
 
@@ -168,8 +166,8 @@ public class SearchReceivingMessageSourceTests {
 
 		final List<Tweet> tweetSearchResults = messageSource.pollForTweets(0);
 
-        assertNotNull(tweetSearchResults);
-        assertTrue(tweetSearchResults.size() == 3);
+		assertNotNull(tweetSearchResults);
+		assertEquals(3, tweetSearchResults.size());
 
 	}
 

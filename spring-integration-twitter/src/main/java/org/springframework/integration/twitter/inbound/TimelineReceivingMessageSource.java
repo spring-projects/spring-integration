@@ -43,7 +43,7 @@ public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource
 
 	@Override
 	protected List<Tweet> pollForTweets(long sinceId) {
-		return this.getTwitter().timelineOperations().getHomeTimeline(1, 20, sinceId, 0);
+		return this.getTwitter().timelineOperations().getHomeTimeline(20, sinceId, 0);
 	}
 
 }

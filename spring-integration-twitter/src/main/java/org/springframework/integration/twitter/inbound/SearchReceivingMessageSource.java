@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.SearchParameters;
 import org.springframework.util.Assert;
 
 /**
@@ -51,7 +52,8 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 
 	@Override
 	protected List<Tweet> pollForTweets(long sinceId) {
-		SearchResults results = this.getTwitter().searchOperations().search(query, 1, 20, sinceId, 0);
+		SearchParameters searchParameters = new SearchParameters(query).count(20).sinceId(sinceId);
+		SearchResults results = this.getTwitter().searchOperations().search(searchParameters);
 		return (results != null) ? results.getTweets() : Collections.<Tweet>emptyList();
 	}
 
