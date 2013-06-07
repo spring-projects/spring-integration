@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.springframework.integration.rmi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.rmi.RemoteException;
 
@@ -27,8 +29,10 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.remoting.RemoteLookupFailureException;
@@ -36,13 +40,13 @@ import org.springframework.remoting.rmi.RmiServiceExporter;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RmiOutboundGatewayTests {
 
 	private final RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/testRemoteHandler");
 
 	private final QueueChannel output = new QueueChannel(1);
-
 
 	@Before
 	public void initializeGateway() {
@@ -65,6 +69,19 @@ public class RmiOutboundGatewayTests {
 		Message<?> replyMessage = output.receive(0);
 		assertNotNull(replyMessage);
 		assertEquals("TEST", replyMessage.getPayload());
+	}
+
+	@Test
+	public void failedMessage() throws RemoteException {
+		GenericMessage<String> message = new GenericMessage<String>("fail");
+		try {
+			gateway.handleMessage(message);
+			fail("Exception expected");
+		}
+		catch (MessagingException e) {
+			assertSame(message, e.getFailedMessage());
+			assertEquals("bar", ((MessagingException) e.getCause()).getFailedMessage().getPayload());
+		}
 	}
 
 	@Test
@@ -140,6 +157,15 @@ public class RmiOutboundGatewayTests {
 	private static class TestExchanger implements RequestReplyExchanger {
 
 		public Message<?> exchange(Message<?> message) {
+			if (message.getPayload().equals("fail")) {
+				new AbstractReplyProducingMessageHandler() {
+
+					@Override
+					protected Object handleRequestMessage(Message<?> requestMessage) {
+						throw new RuntimeException("foo");
+					}
+				}.handleMessage(new GenericMessage<String>("bar"));
+			}
 			return new GenericMessage<String>(message.getPayload().toString().toUpperCase(), message.getHeaders());
 		}
 	}
