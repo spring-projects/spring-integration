@@ -64,7 +64,7 @@ subprojects { subproject ->
 		springDataRedisVersion = '1.0.2.RELEASE'
 		springGemfireVersion = '1.3.1.RELEASE'
 		springSecurityVersion = '3.1.3.RELEASE'
-		springSocialTwitterVersion = '1.0.1.RELEASE'
+		springSocialTwitterVersion = '1.0.4.RELEASE'
 		springWsVersion = '2.1.1.RELEASE'
 		springRetryVersion = '1.0.2.RELEASE'
 	}
