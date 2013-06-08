@@ -23,7 +23,7 @@
 		</request-handler-advice-chain>
 	</outbound-gateway>
 
-	<si:chain id="chainWithJdbcOutboundGateway" input-channel="jdbcOutboundGatewayInsideChain" output-channel="replyChannel">
+	<si:chain input-channel="jdbcOutboundGatewayInsideChain" output-channel="replyChannel">
 		<outbound-gateway id="jdbc-outbound-gateway-within-chain" query="select * from foos where id=:headers[id]"
 						  update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
 						  data-source="dataSource" requires-reply="false"/>

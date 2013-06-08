@@ -71,7 +71,10 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	private long replyTimeout;
 
 	private volatile boolean requiresReply = false;
-	private volatile String componentName;	/**
+
+	private volatile String componentName;
+
+	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
 	 *
 	 * @param jpaExecutor Must not be null
@@ -120,6 +123,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	public void setRequiresReply(boolean requiresReply) {
 		this.requiresReply = requiresReply;
 	}
+
 	/**
 	 * Sets the name of the handler component.
 	 *
@@ -128,6 +132,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	public void setComponentName(String componentName) {
 		this.componentName = componentName;
 	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return MessageHandler.class;
