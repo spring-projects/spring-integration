@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +60,7 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -514,6 +516,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			if (this.replyContainerProperties.getSessionAcknowledgeMode() != null) {
 				container.setSessionAcknowledgeMode(this.replyContainerProperties.getSessionAcknowledgeMode());
+			}
+			if (this.replyContainerProperties.getTaskExecutor() != null) {
+				container.setTaskExecutor(this.replyContainerProperties.getTaskExecutor());
+			}
+			else {
+				// set the beanName so the default TE threads get a meaningful name
+				String containerBeanName = this.getComponentName();
+				containerBeanName = ((!StringUtils.hasText(containerBeanName)
+						? "JMS_OutboundGateway@" + ObjectUtils.getIdentityHexString(this)
+						: containerBeanName) + ".replyListener");
+				container.setBeanName(containerBeanName);
 			}
 		}
 	}
@@ -1096,6 +1109,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		private volatile Integer idleTaskExecutionLimit;
 
+		private volatile Executor taskExecutor;
+
 		public Boolean isSessionTransacted() {
 			return sessionTransacted;
 		}
@@ -1174,6 +1189,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		public void setIdleTaskExecutionLimit(Integer idleTaskExecutionLimit) {
 			this.idleTaskExecutionLimit = idleTaskExecutionLimit;
+		}
+
+		public void setTaskExecutor(Executor taskExecutor) {
+			this.taskExecutor = taskExecutor;
+		}
+
+		public Executor getTaskExecutor() {
+			return taskExecutor;
 		}
 	}
 }

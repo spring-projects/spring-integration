@@ -24,6 +24,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+
 import org.w3c.dom.Element;
 
 /**
@@ -123,6 +124,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-consumer-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-task-execution-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "cache-level");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 
 		gatewayBuilder.addPropertyValue("replyContainerProperties", builder.getBeanDefinition());
 	}

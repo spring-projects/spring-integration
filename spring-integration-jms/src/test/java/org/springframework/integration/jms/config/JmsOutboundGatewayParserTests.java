@@ -30,6 +30,7 @@ import javax.jms.DeliveryMode;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -80,6 +81,7 @@ public class JmsOutboundGatewayParserTests {
 		assertEquals(2, TestUtils.getPropertyValue(container, "idleTaskExecutionLimit"));
 		assertEquals(3, TestUtils.getPropertyValue(container, "cacheLevel"));
 		assertTrue(container.isSessionTransacted());
+		assertSame(context.getBean("exec"), TestUtils.getPropertyValue(container, "taskExecutor"));
 	}
 
 	@Test
