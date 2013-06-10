@@ -21,10 +21,12 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
-
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -45,6 +47,34 @@ public class UriVariableExpressionTests {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
 		SpelExpressionParser parser = new SpelExpressionParser();
 		handler.setUriVariableExpressions(Collections.singletonMap("foo", parser.parseExpression("payload")));
+		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
+			@Override
+			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+				uriHolder.set(uri);
+				throw new RuntimeException("intentional");
+			}
+		});
+		Message<?> message = new GenericMessage<Object>("bar");
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		assertEquals("http://test/bar", uriHolder.get().toString());
+	}
+
+	@Test
+	public void testFromMessageWithSuperfluousExpressions() throws Exception {
+		final AtomicReference<URI> uriHolder = new AtomicReference<URI>();
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
+		SpelExpressionParser parser = new SpelExpressionParser();
+		Map<String, Expression> multipleExpressions = new HashMap<String, Expression>();
+		multipleExpressions.put("foo", parser.parseExpression("payload"));
+		multipleExpressions.put("extra-to-be-ignored", parser.parseExpression("headers.extra"));
+		handler.setUriVariableExpressions(multipleExpressions);
 		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
 			@Override
 			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
