@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Dave Syer
  * @author Mark Fisher
+ * @author Wallace Wadge
  * @since 2.0
  */
 public class UriVariableExpressionTests {
@@ -65,9 +66,10 @@ public class UriVariableExpressionTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		assertEquals("http://test/bar", uriHolder.get().toString());
 	}
-
+	
+	/** Test for INT-3054: Do not break if there are extra uri variables defined in the http outbound gateway. */
 	@Test
-	public void testFromMessageWithSuperfluousExpressions() throws Exception {
+	public void testFromMessageWithSuperfluousExpressionsInt3054() throws Exception {
 		final AtomicReference<URI> uriHolder = new AtomicReference<URI>();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
 		SpelExpressionParser parser = new SpelExpressionParser();

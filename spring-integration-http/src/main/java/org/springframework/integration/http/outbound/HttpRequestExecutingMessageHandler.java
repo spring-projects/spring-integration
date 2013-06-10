@@ -81,6 +81,7 @@ import org.springframework.web.util.UriTemplate;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Wallace Wadge
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
@@ -346,6 +347,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		Assert.notNull(uri, "URI Expression evaluation cannot result in null");
 		List<String> uriVariableNames = new UriTemplate(uri).getVariableNames();
 		
+		if (logger.isWarnEnabled() && this.uriVariableExpressions.size() != uriVariableNames.size()){
+			logger.warn("The number of URI variables expecting resolution in the provided uri do not match those in the provided variables");
+		}
 		try {
 			Map<String, Object> uriVariables = new HashMap<String, Object>();
 			for (String var : uriVariableNames) {
@@ -353,7 +357,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				if (exp != null){
 					Object value = exp.getValue(this.evaluationContext, requestMessage, String.class);
 					uriVariables.put(var, value);
-				}
+				} 
 			}
 
 			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
