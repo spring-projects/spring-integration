@@ -19,10 +19,12 @@
 	<xsd:complexType name="Jsr223Script">
 		<xsd:complexContent>
 			<xsd:extension base="ScriptType">
-				<xsd:attribute name="lang" use="required">
+				<xsd:attribute name="lang" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							The script language or JSR 223 scripting engine name
+							The script language or JSR 223 scripting engine name. Required only for inline scripts. If a script location is
+							referenced, the language may be derived from the file extension
+							(.rb: ruby, .groovy, js: javascript (ECMAScript), .py: python).
 					</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
