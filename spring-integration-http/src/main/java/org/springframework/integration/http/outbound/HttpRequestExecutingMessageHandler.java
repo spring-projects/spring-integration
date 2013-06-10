@@ -63,6 +63,7 @@ import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
 
 /**
  * A {@link MessageHandler} implementation that executes HTTP requests by delegating
@@ -79,6 +80,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Wallace Wadge
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
@@ -337,11 +339,19 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String uri = this.uriExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(uri, "URI Expression evaluation cannot result in null");
+		List<String> uriVariableNames = new UriTemplate(uri).getVariableNames();
+
+		if (logger.isWarnEnabled() && this.uriVariableExpressions.size() != uriVariableNames.size()){
+			logger.warn("The number of URI variables expecting resolution in the provided uri do not match those in the provided variables");
+		}
 		try {
 			Map<String, Object> uriVariables = new HashMap<String, Object>();
-			for (Map.Entry<String, Expression> entry : this.uriVariableExpressions.entrySet()) {
-				Object value = entry.getValue().getValue(this.evaluationContext, requestMessage, String.class);
-				uriVariables.put(entry.getKey(), value);
+			for (String var : uriVariableNames) {
+				Expression exp = this.uriVariableExpressions.get(var);
+				if (exp != null){
+					Object value = exp.getValue(this.evaluationContext, requestMessage, String.class);
+					uriVariables.put(var, value);
+				}
 			}
 
 			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
