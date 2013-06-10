@@ -760,6 +760,20 @@
 						</xsd:attribute>
 						<xsd:attributeGroup ref="dmlcAttributeGroup" />
 						<xsd:attribute name="receive-timeout" type="xsd:string"/>
+						<xsd:attribute name="task-executor" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation><![CDATA[
+		A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for receiving
+		the replies and handing them over to the sending thread.
+		Default is a SimpleAsyncTaskExecutor.
+								]]></xsd:documentation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="java.util.concurrent.Executor"/>
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:choice>
