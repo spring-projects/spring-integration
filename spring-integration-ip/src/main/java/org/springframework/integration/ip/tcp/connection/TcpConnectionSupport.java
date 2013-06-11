@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -121,7 +122,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		}
 		this.publishConnectionOpenEvent();
 		if (logger.isDebugEnabled()) {
-			logger.debug("New connection " + this);
+			logger.debug("New connection " + this.getConnectionId());
 		}
 	}
 
