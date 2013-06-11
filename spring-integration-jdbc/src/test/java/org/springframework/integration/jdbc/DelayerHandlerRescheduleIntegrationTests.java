@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -133,7 +134,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		input.send(MessageBuilder.withPayload("test").build());
 
-		Thread.sleep(100);
+		Thread.sleep(1000);
 
 		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
 
