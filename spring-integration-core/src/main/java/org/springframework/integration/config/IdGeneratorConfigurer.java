@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.config;
 
 import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,30 +37,35 @@ import org.springframework.util.ReflectionUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0.4
  */
 public final class IdGeneratorConfigurer implements ApplicationListener<ApplicationContextEvent> {
 
-	private static volatile String generatorContextId;
+	private static final Set<String> generatorContextId = new HashSet<String>();
+
+	private static volatile IdGenerator theIdGenerator;
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	public void onApplicationEvent(ApplicationContextEvent event) {
+	public synchronized void onApplicationEvent(ApplicationContextEvent event) {
 		ApplicationContext context = event.getApplicationContext();
 		if (event instanceof ContextRefreshedEvent) {
 			boolean contextHasIdGenerator = context.getBeanNamesForType(IdGenerator.class).length > 0;
 			if (contextHasIdGenerator) {
 				if (this.setIdGenerator(context)) {
-					IdGeneratorConfigurer.generatorContextId = context.getId();
+					IdGeneratorConfigurer.generatorContextId.add(context.getId());
 				}
 			}
 		}
 		else if (event instanceof ContextClosedEvent) {
-			if (context.getId().equals(IdGeneratorConfigurer.generatorContextId)) {
-				this.unsetIdGenerator();
-				IdGeneratorConfigurer.generatorContextId = null;
+			if (IdGeneratorConfigurer.generatorContextId.contains(context.getId())) {
+				if (IdGeneratorConfigurer.generatorContextId.size() == 1) {
+					this.unsetIdGenerator();
+				}
+				IdGeneratorConfigurer.generatorContextId.remove(context.getId());
 			}
-		}	
+		}
 	}
 
 	private boolean setIdGenerator(ApplicationContext context) {
@@ -76,19 +83,34 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 					return false;
 				}
 				else {
-					// different instance has been set, not legal
-					throw new BeanDefinitionStoreException("'MessageHeaders.idGenerator' has already been set and can not be set again");
+					if (IdGeneratorConfigurer.theIdGenerator.getClass() == idGeneratorBean.getClass()) {
+						if (logger.isWarnEnabled()) {
+							logger.warn("Another instance of " + idGeneratorBean.getClass() +
+									" has already been established; ignoring");
+						}
+						return true;
+					}
+					else {
+						// different instance has been set, not legal
+						throw new BeanDefinitionStoreException("'MessageHeaders.idGenerator' has already been set and can not be set again");
+					}
 				}
 			}
 			if (logger.isInfoEnabled()) {
 				logger.info("Message IDs will be generated using custom IdGenerator [" + idGeneratorBean.getClass() + "]");
 			}
 			ReflectionUtils.setField(idGeneratorField, null, idGeneratorBean);
+			IdGeneratorConfigurer.theIdGenerator = idGeneratorBean;
 		}
 		catch (NoSuchBeanDefinitionException e) {
 			// No custom IdGenerator. We will use the default.
-			if (logger.isDebugEnabled()) {
-				logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use default: UUID.randomUUID()");
+			int idBeans = context.getBeansOfType(IdGenerator.class).size();
+			if (idBeans > 1 && logger.isWarnEnabled()) {
+				logger.warn("Found too many 'IdGenerator' beans (" + idBeans + ") " +
+						"Will use the existing UUID strategy.");
+			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use the existing UUID strategy.");
 			}
 			return false;
 		}
@@ -96,7 +118,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			// thrown from ReflectionUtils
 			if (logger.isWarnEnabled()) {
 				logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders." +
-						" Will use default: UUID.randomUUID()", e);
+						" Will use the existing UUID strategy.", e);
 			}
 			return false;
 		}
@@ -108,6 +130,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 			ReflectionUtils.makeAccessible(idGeneratorField);
 			idGeneratorField.set(null, null);
+			IdGeneratorConfigurer.theIdGenerator = null;
 		}
 		catch (Exception e) {
 			if (logger.isWarnEnabled()) {

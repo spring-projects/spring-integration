@@ -191,6 +191,16 @@
 				For more information see <xref linkend="chain"/>.
 			</para>
 		</section>
+		<section id="3.0-message-id">
+			<title>Message ID Generation</title>
+			<para>
+				Previously, message ids were generated using the JDK <code>UUID.randomUUID()</code> method. With this
+				release, the default mechanism has been changed to use the <code>com.eaio.uuid</code> package which
+				generates Type 1 UUIDs, and is significantly faster. In addition, the ability to change
+				the strategy used to generate message ids has been added.
+				For more information see <xref linkend="message-id-generation"/>.
+			</para>
+		</section>
 
 	</section>
 </chapter>
