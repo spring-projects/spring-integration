@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.eaio.uuid.UUIDGen;
 
 /**
  * The headers for a {@link Message}.<br>
@@ -97,8 +100,9 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
-		if (MessageHeaders.idGenerator == null){
-			this.headers.put(ID, UUID.randomUUID());
+		if (MessageHeaders.idGenerator == null) {
+			UUID uuid = new UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode());
+			this.headers.put(ID, uuid);
 		}
 		else {
 			this.headers.put(ID, MessageHeaders.idGenerator.generateId());
@@ -271,4 +275,31 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	public static interface IdGenerator {
 		UUID generateId();
 	}
+
+	public static class JdkIdGenerator implements IdGenerator {
+
+		@Override
+		public UUID generateId() {
+			return UUID.randomUUID();
+		}
+
+	}
+
+	public static class SimpleIncrementingIdGenerator implements IdGenerator {
+
+		private final AtomicLong topBits = new AtomicLong();
+
+		private final AtomicLong bottomBits = new AtomicLong();
+
+		@Override
+		public UUID generateId() {
+			long bottomBits = this.bottomBits.incrementAndGet();
+			if (bottomBits == 0) {
+				this.topBits.incrementAndGet();
+			}
+			return new UUID(this.topBits.get(), bottomBits);
+		}
+
+	}
+
 }
