@@ -27,6 +27,7 @@ allprojects {
 	repositories {
 		maven { url 'http://repo.springsource.org/libs-milestone' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
+		mavenCentral()
 	}
 }
 
@@ -55,6 +56,7 @@ subprojects { subproject ->
 		junitVersion = '4.11'
 		log4jVersion = '1.2.12'
 		mockitoVersion = '1.9.5'
+		eaioUUIDVersion = '3.2'
 
 		springVersionDefault = '3.1.4.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
@@ -180,6 +182,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
+		compile "com.eaio.uuid:uuid:$eaioUUIDVersion"
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"

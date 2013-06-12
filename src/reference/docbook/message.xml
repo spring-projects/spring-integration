@@ -116,6 +116,43 @@
       Many inbound and outbound adapter implementations will also provide and/or expect certain headers, and additional
       user-defined headers can also be configured.
     </para>
+    <section id="message-id-generation">
+        <title>Message ID Generation</title>
+        <para>
+          When a message transitions through an application, each time it is
+          mutated (e.g. by a transformer) a new message id is assigned. The message id is
+          a <code>UUID</code>. Beginning with Spring Integration 3.0, the default strategy
+          used for id generation is to use the <code>com.eaio.uuid</code> package to
+          generate Type 1 UUIDs. This is much more efficient than the previous
+          <code>java.util.UUID.randomUUID()</code> implementation.
+        </para>
+        <para>
+          A different UUID generation strategy can be selected by declaring a bean that implements
+          <interfacename>MessageHeaders.IdGenerator</interfacename> in the application context.
+        </para>
+        <important>
+          Only one UUID generation strategy can be used in a classloader. This means that if
+          two or more application contexts are running in the same classloader, they will share
+          the same strategy. If one of the contexts changes the strategy, it will be used by
+          all contexts. If two or more contexts in the same classloader declare a bean of type
+          <interfacename>MessageHeaders.IdGenerator</interfacename>, they must all be an instance
+          of the same class, otherwise the context attempting to replace a custom strategy will
+          fail to initialize. If the strategy is the same, but parameterized, the strategy in the
+          first context to initialize will be used.
+        </important>
+        <para>
+          In addition to the default strategy, two additional <interfacename>IdGenerators</interfacename>
+          are provided; <classname>MessageHeaders.JdkIdGenerator</classname> uses the previous
+          <code>UUID.randomUUID()</code> mechanism; <classname>MessageHeaders.SimpleIncrementingIdGenerator</classname>
+          can be used in cases where a UUID is not really needed and a simple incrementing
+          value is sufficient.
+        </para>
+        <important>
+          The default strategy of creating Type 1 UUIDs may present security concerns for some users
+          because the UUID contains the MAC address of a network interface on the platform. For these
+          users, an alternate strategy should be selected.
+        </important>
+    </section>
   </section>
 
   <section id="message-implementations">
