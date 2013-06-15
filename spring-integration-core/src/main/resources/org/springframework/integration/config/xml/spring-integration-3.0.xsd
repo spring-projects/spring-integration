@@ -1359,8 +1359,8 @@
 			<xsd:documentation>
 				Defines an endpoint that passes a Message to the output-channel after a
 				delay. The delay may
-				be
-				retrieved from a Message header or else fallback to the
+				be dynamically determined by evaluating an expression
+				(such as a Message header) or fallback to the
 				'default-delay' of this endpoint.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1384,6 +1384,14 @@
 					to proxy DelayHandler's 'release Message task'.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" >
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify the SpEL expression that evaluates to the delay value in milliseconds,
+						or a java.util.Date.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:choice>
@@ -1393,22 +1401,40 @@
 					Specify the default delay in milliseconds. This value can be set to 0
 					if the only Messages
 					that
-					should be delayed are those with a particular header (in that
-					case, be sure to provide
-					a value for the
-					'delay-header-name' attribute).
+					should be delayed are those with a particular expression evaluation result.
 					</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify the SpEL expression that evaluates to the delay value in milliseconds,
+					or a java.util.Date.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="ignore-expression-failures" type="xsd:string" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify whether Exceptions thrown by 'expression' evaluation should be
+					ignored (only logged). In this case case the delayer will fall back to the
+					 to the 'default-delay'. Default behaviour.
+					If this attribute is specified as 'false', any
+					'expression' evaluation Exception will be thrown to the caller without
+					falling back to the to the 'default-delay'.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="delay-header-name" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify the name of the header that should contain the delay value.
+					[DEPRECATED]Specify the name of the header that should contain the delay value.
 					This value can either
 					represent the number of milliseconds to delay counting from the current
 					time or it can be an
 					absolute Date until
 					which the Message should be delayed.
+					This attribute is deprecated in favor of an 'expression' attribute or sub-element.
 					</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

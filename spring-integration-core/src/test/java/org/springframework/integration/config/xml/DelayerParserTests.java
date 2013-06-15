@@ -32,6 +32,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
+import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -58,19 +59,16 @@ public class DelayerParserTests {
 
 	@Test
 	public void defaultScheduler() {
-		Object endpoint = context.getBean("delayerWithDefaultScheduler");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
-		assertEquals(DelayHandler.class, handler.getClass());
-		DelayHandler delayHandler = (DelayHandler) handler;
+		DelayHandler delayHandler = context.getBean("delayerWithDefaultScheduler.handler", DelayHandler.class);
 		assertEquals(99, delayHandler.getOrder());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
-		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
-		assertEquals(new Long(1234), accessor.getPropertyValue("defaultDelay"));
-		assertEquals("foo", accessor.getPropertyValue("delayHeaderName"));
-		assertEquals(new Long(987), new DirectFieldAccessor(
-				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
-		assertNull(accessor.getPropertyValue("taskScheduler"));
+		assertEquals(context.getBean("output"), TestUtils.getPropertyValue(delayHandler, "outputChannel"));
+		assertEquals(new Long(1234), TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class));
+		assertEquals("foo", TestUtils.getPropertyValue(delayHandler, "delayHeaderName"));
+		//INT-2243
+		assertNotNull(TestUtils.getPropertyValue(delayHandler, "delayExpression"));
+		assertEquals("headers['foo']", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
+		assertEquals(new Long(987), TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class));
+		assertNull(TestUtils.getPropertyValue(delayHandler, "taskScheduler"));
 	}
 
 	@Test
@@ -132,6 +130,21 @@ public class DelayerParserTests {
 		assertEquals(NameMatchTransactionAttributeSource.class, transactionAttributeSource.getClass());
 		HashMap<?, ?> nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
 		assertEquals("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}", nameMap.toString());
+	}
+
+	@Test
+	public void testInt2243Expression() {
+		DelayHandler delayHandler = context.getBean("delayerWithExpression.handler", DelayHandler.class);
+		assertNull(TestUtils.getPropertyValue(delayHandler, "delayHeaderName"));
+		assertEquals("100", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
+		assertFalse(TestUtils.getPropertyValue(delayHandler, "ignoreExpressionFailures", Boolean.class));
+	}
+
+	@Test
+	public void testInt2243ExpressionSubElement() {
+		DelayHandler delayHandler = context.getBean("delayerWithExpressionSubElement.handler", DelayHandler.class);
+		assertNull(TestUtils.getPropertyValue(delayHandler, "delayHeaderName"));
+		assertEquals("headers.timestamp + 1000", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
 	}
 
 }
