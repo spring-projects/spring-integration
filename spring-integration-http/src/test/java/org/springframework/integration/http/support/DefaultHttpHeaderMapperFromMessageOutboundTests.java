@@ -25,23 +25,28 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.CollectionUtils;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageOutboundTests {
@@ -658,4 +663,21 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
         mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
         assertNull(headers.get("Content-Length"));
     }
+
+	@Test
+	public void testInt2995IfModifiedSince() throws Exception{
+		Date ifModifiedSince = new Date();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy", Locale.US);
+		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		String value = dateFormat.format(ifModifiedSince);
+		Message testMessage = MessageBuilder.withPayload("foo").setHeader("If-Modified-Since", value).build();
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(testMessage.getHeaders(), headers);
+		Calendar c = Calendar.getInstance();
+		c.setTime(ifModifiedSince);
+		c.set(Calendar.MILLISECOND, 0);
+		assertEquals(c.getTimeInMillis(), headers.getIfNotModifiedSince());
+	}
+
 }
