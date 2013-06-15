@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean{
@@ -826,8 +827,17 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			return (StringUtils.hasText(eTag)) ? eTag : null;
 		}
 		else if (EXPIRES.equalsIgnoreCase(name)) {
-			long expires = source.getExpires();
-			return (expires > -1) ? expires : null;
+			try {
+				long expires = source.getExpires();
+				return (expires > -1) ? expires : null;
+			}
+			catch (Exception e) {
+				if(logger.isDebugEnabled()) {
+					logger.debug(e.getMessage());
+				}
+				// According to RFC 2616
+				return null;
+			}
 		}
 		else if (IF_NONE_MATCH.equalsIgnoreCase(name)) {
 			return source.getIfNoneMatch();
