@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.integration.http.support;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageHeaders;
@@ -41,6 +42,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageOutboundTests {
@@ -657,4 +659,13 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
         mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
         assertNull(headers.get("Content-Length"));
     }
+
+	@Test
+	public void testInt3063InvalidExpiresHeader() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Expires", "-1");
+		Map<String, Object> messageHeaders = DefaultHttpHeaderMapper.outboundMapper().toHeaders(headers);
+		assertEquals(0, messageHeaders.size());
+	}
+
 }
