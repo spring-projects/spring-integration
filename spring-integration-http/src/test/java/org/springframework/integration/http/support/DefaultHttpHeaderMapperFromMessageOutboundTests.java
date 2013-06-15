@@ -42,6 +42,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageOutboundTests {
@@ -658,4 +659,13 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
         mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
         assertNull(headers.get("Content-Length"));
     }
+
+	@Test
+	public void testInt3063InvalidExpiresHeader() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Expires", "-1");
+		Map<String, Object> messageHeaders = DefaultHttpHeaderMapper.outboundMapper().toHeaders(headers);
+		assertEquals(0, messageHeaders.size());
+	}
+
 }
