@@ -33,10 +33,10 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -75,7 +75,8 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
 		assertEquals(0, messageStore.getMessageGroupCount());
-		input.send(MessageBuilder.withPayload("test1").build());
+		Message<String> message1 = MessageBuilder.withPayload("test1").build();
+		input.send(message1);
 		input.send(MessageBuilder.withPayload("test2").build());
 
 		// Emulate restart and check DB state before next start
@@ -101,8 +102,10 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
 		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
 		Object payload = messageInStore.getPayload();
-		assertEquals("DelayedMessageWrapper", payload.getClass().getSimpleName());
-		assertEquals("test1", TestUtils.getPropertyValue(payload, "original.payload"));
+
+		//INT-3049
+		assertTrue(payload instanceof DelayHandler.DelayedMessageWrapper);
+		assertEquals(message1, ((DelayHandler.DelayedMessageWrapper) payload).getOriginal());
 
 		context.refresh();
 

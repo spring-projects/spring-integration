@@ -25,10 +25,16 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -73,9 +79,13 @@ import org.springframework.util.CollectionUtils;
 @ManagedResource
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement, ApplicationListener<ContextRefreshedEvent> {
 
+	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
 	private final String messageGroupId;
 
 	private volatile long defaultDelay;
+
+	private Expression delayExpression;
 
 	private volatile String delayHeaderName;
 
@@ -86,6 +96,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	private volatile MessageHandler releaseHandler = new ReleaseMessageHandler();
+
+	private EvaluationContext evaluationContext;
 
 	/**
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
@@ -122,9 +134,20 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Specify the name of the header that should be checked for a delay period
 	 * (in milliseconds) or a Date to delay until. If this property is set, any
 	 * such header value will take precedence over this handler's default delay.
+	 * @deprecated in favor of {@link #delayExpression}
 	 */
+	@Deprecated
 	public void setDelayHeaderName(String delayHeaderName) {
 		this.delayHeaderName = delayHeaderName;
+	}
+
+	/**
+	 * Specify the {@link Expression} that should be checked for a delay period
+	 * (in milliseconds) or a Date to delay until. If this property is set, valid
+	 * result of expression evaluation will take precedence over this handler's default delay.
+	 */
+	public void setDelayExpression(Expression delayExpression) {
+		this.delayExpression = delayExpression;
 	}
 
 	/**
@@ -161,7 +184,18 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		else {
 			Assert.isInstanceOf(MessageStore.class, this.messageStore);
 		}
-
+		if (this.delayHeaderName != null) {
+			logger.warn("'delayHeaderName' is deprecated in favor of 'delayExpression'");
+			if (this.delayExpression == null) {
+				this.delayExpression = expressionParser.parseExpression("headers['" + this.delayHeaderName + "']");
+			}
+		}
+		if (this.getBeanFactory() != null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		}
+		else {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+		}
 		this.releaseHandler = this.createReleaseMessageTask();
 	}
 
@@ -210,19 +244,19 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 	private long determineDelayForMessage(Message<?> message) {
 		long delay = this.defaultDelay;
-		if (this.delayHeaderName != null) {
-			Object headerValue = message.getHeaders().get(this.delayHeaderName);
-			if (headerValue instanceof Date) {
-				delay = ((Date) headerValue).getTime() - new Date().getTime();
+		if (this.delayExpression != null) {
+			Object delayValue = this.delayExpression.getValue(this.evaluationContext, message);
+			if (delayValue instanceof Date) {
+				delay = ((Date) delayValue).getTime() - new Date().getTime();
 			}
-			else if (headerValue != null) {
+			else if (delayValue != null) {
 				try {
-					delay = Long.valueOf(headerValue.toString());
+					delay = Long.valueOf(delayValue.toString());
 				}
 				catch (NumberFormatException e) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to parse delay from header value '" + headerValue.toString() +
-								"', will fall back to default delay: " + this.defaultDelay);
+						logger.debug("Failed to parse delay from 'delayExpression'," +
+								" will fall back to default delay: " + this.defaultDelay);
 					}
 				}
 			}
@@ -333,7 +367,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 
-	private static final class DelayedMessageWrapper implements Serializable {
+	public static final class DelayedMessageWrapper implements Serializable {
 
 		private static final long serialVersionUID = -4739802369074947045L;
 
@@ -341,7 +375,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 		private final Message<?> original;
 
-		public DelayedMessageWrapper(Message<?> original) {
+		private DelayedMessageWrapper(Message<?> original) {
 			this.original = original;
 		}
 

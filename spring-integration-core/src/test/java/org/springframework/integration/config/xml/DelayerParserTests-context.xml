@@ -57,6 +57,21 @@
 		</advice-chain>
 	</delayer>
 
+	<delayer id="delayerWithExpression"
+			 input-channel="input"
+			 output-channel="output"
+			 expression="100"/>
+
+	<beans:bean id="delayerSource"
+		  class="org.springframework.integration.expression.ReloadableResourceBundleExpressionSource"
+		  p:basename="org/springframework/integration/config/xml/delayer-expression"/>
+
+	<delayer id="delayerWithExpressionSubElement"
+			 input-channel="input"
+			 output-channel="output">
+		<expression key="delay" source="delayerSource"/>
+	</delayer>
+
 	<beans:bean id="testScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"
 				p:poolSize="7"
 				p:waitForTasksToCompleteOnShutdown="true"/>

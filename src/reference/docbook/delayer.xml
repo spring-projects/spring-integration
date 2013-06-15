@@ -21,22 +21,21 @@
     <para>
       The <code>&lt;delayer&gt;</code> element is used to delay the Message flow between two Message Channels.
       As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes,
-      but the delayer also has 'default-delay' and 'delay-header-name' attributes that are used to
-      determine the number of milliseconds
-      that each Message should be delayed. The following delays all messages by 3 seconds:
+      but the delayer also has 'default-delay' and 'expression' attributes (or 'expression' sub-element) that are used to
+      determine the number of milliseconds that each Message should be delayed. The following delays all messages by 3 seconds:
       <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input"
              default-delay="3000" output-channel="output"/>]]></programlisting>
-      If you need per-Message determination of the delay, then you can also provide the name of a header
-      using the 'delay-header-name' attribute:
+      If you need per-Message determination of the delay, then you can also provide the SpEL expression
+      using the 'expression' attribute:
       <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
-             default-delay="3000" delay-header-name="delay"/>]]></programlisting>
-      In the example above the 3 second delay would only apply in the case that the header value is
-      not present for a given inbound Message. If you only want to apply a delay to Messages that have
-      an explicit header value, then you can set the 'default-delay' to 0 or don't use it at all (by default it is 0).
+             default-delay="3000" expression="headers.delay"/>]]></programlisting>
+      In the example above the 3 second delay would only apply in the case that the expression evaluation is resulted to
+      <emphasis>null</emphasis> for a given inbound Message. If you only want to apply a delay to Messages that have
+      a valid result of expression evaluation, then you can set the 'default-delay' to 0 or don't use it at all (by default it is 0).
       For any Message that has a delay of 0 (or less), the Message will be sent directly. In fact, if there is not a positive delay
       value for a Message, it will be sent to the output channel on the calling Thread.
       <tip>
-        The delay handler supports header values that represent an interval in milliseconds (any
+        The delay handler supports expression evaluation results that represent an interval in milliseconds (any
         Object whose <methodname>toString()</methodname> method produces a value that can be parsed into a
         Long) as well as <classname>java.util.Date</classname> instances representing an absolute time.
         In the first case, the milliseconds will be counted from the current time (e.g. a value of 5000
@@ -44,7 +43,7 @@
         With a Date instance, the Message will not be released until that Date
         occurs. In either case, a value that equates to a non-positive delay, or a Date in the past, will
         not result in any delay. Instead, it will be sent directly to the output channel on the original
-        sender's Thread. If the header is not a Date, and can not be parsed as a Long, the default
+        sender's Thread. If the expression evaluation result is not a Date, and can not be parsed as a Long, the default
         delay (if any) will be applied.
       </tip>
     </para>
@@ -55,7 +54,7 @@
       If you want to delegate to a different scheduler, you can provide a reference through the delayer element's
       'scheduler' attribute:
       <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
-    delay-header-name="delay"
+    expression="headers.delay"
     scheduler="exampleTaskScheduler"/>
 
 <task:scheduler id="exampleTaskScheduler" pool-size="3"/>]]></programlisting>
@@ -106,7 +105,7 @@
       <interfacename>org.aopalliance.aop.Advice</interfacename> implementation within the <code>&lt;advice-chain&gt;</code>.
       A sample configuration of the <code>&lt;delayer&gt;</code> may look like this:
       <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
-    delay-header-name="delay"
+    expression="headers.delay"
     message-store="jdbcMessageStore">
     <int:advice-chain>
         <beans:ref bean="customAdviceBean"/>
