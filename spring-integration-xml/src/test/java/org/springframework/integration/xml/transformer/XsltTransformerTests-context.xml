@@ -53,6 +53,12 @@
                               xsl-resource="classpath:org/springframework/integration/xml/transformer/transform-tostring.xsl">
     </int-xml:xslt-transformer>
 
+	<int-xml:xslt-transformer id="outputFileAsString"
+							  input-channel="outputFileAsStringChannel"
+							  output-channel="output" result-transformer="resultToStringTransformer"
+							  xsl-resource="classpath:org/springframework/integration/xml/transformer/transform-tostring.xsl">
+	</int-xml:xslt-transformer>
+
     <bean id="resultToStringTransformer" class="org.springframework.integration.xml.transformer.ResultToStringTransformer" />
 
 

@@ -727,6 +727,22 @@
 			<classname>String</classname>, the resulting payload will be of type
 			<classname><ulink url="http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html">Document</ulink></classname>.
 		</para>
+		<para><emphasis>XsltPayloadTransformer and &lt;xsl:output method="text"/&gt;</emphasis></para>
+		<para><code>&lt;xsl:output method="text"/&gt;</code> tells the XSLT
+		template to only produce text content from the input source.
+		In this particuliar case there is no reason to have a
+		<classname>DomResult</classname>. Therefore, the
+		<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html">XsltPayloadTransformer</ulink></classname>
+		defaults to <classname>StringResult</classname> if the
+		<ulink url="http://docs.oracle.com/javase/7/docs/api/javax/xml/transform/Transformer.html#getOutputProperties()">output property</ulink>
+		called <code>method</code> of the underlying
+		<classname>javax.xml.transform.Transformer</classname> returns <code>"text"</code>.
+		This coercion is performed independent from the inbound payload type. Keep
+		in mind that this <quote>smart</quote> behavior is only available, if the
+		<code>result-type</code> or <code>result-factory</code> attributes
+		aren't provided for the respective <code>&lt;int-xml:xslt-transformer&gt;</code>
+		component.
+		</para>
 	</section>
 </section>
   <section id="xml-xpath-transformer">
