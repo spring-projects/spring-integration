@@ -20,6 +20,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -41,6 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Oleg Zhurakousky
  * @author Jonas Partner
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -126,6 +130,17 @@ public class XsltTransformerTests {
         assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
         String stringPayload = (String)resultMessage.getPayload();
         assertEquals("Wrong content of payload", "hello world text",stringPayload.trim());
+    }
+
+	@Test
+    public void testInt3067OutputFileAsString() throws IOException {
+        MessageChannel input = applicationContext.getBean("outputFileAsStringChannel", MessageChannel.class);
+        Message<?> message = MessageBuilder.withPayload(new ClassPathResource("org/springframework/integration/xml/transformer/xsl-text-file.xml").getFile()).build();
+        input.send(message);
+        Message<?> resultMessage = output.receive();
+        assertEquals("Wrong payload type", String.class, resultMessage.getPayload().getClass());
+        String stringPayload = (String) resultMessage.getPayload();
+        assertEquals("Wrong content of payload", "hello world text", stringPayload.trim());
     }
 
 }
