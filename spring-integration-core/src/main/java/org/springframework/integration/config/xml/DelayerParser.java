@@ -58,9 +58,9 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 					.error("The 'default-delay' or 'delay-header-name', or 'expression' attributes, or 'expression' sub-element should be provided.", element);
 		}
 
-		if (hasExpression & hasExpressionElement) {
+		if ((hasDelayHeaderName & (hasExpression | hasExpressionElement)) | (hasExpression & hasExpressionElement)) {
 			parserContext.getReaderContext()
-					.error("'expression' attribute and 'expression' sub-element are mutually exclusive.", element);
+					.error("'delay-header-name', 'expression' attribute and 'expression' sub-element are mutually exclusive.", element);
 		}
 
 		builder.addConstructorArgValue(id + ".messageGroupId");
