@@ -23,7 +23,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -33,10 +39,18 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Ali Moghadam
  */
 public class PipelineJmsTests extends ActiveMQMultiContextTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
+
+	private static final Log logger = LogFactory.getLog(PipelineJmsTests.class);
+
+	@Before
+	public void setLogLevel() {
+		LogManager.getLogger(getClass()).setLevel(Level.INFO);
+	}
 
 	int requests = 50;
 
@@ -159,9 +173,10 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 			latch.await();
 		}
 		finally {
-			System.out.println("Success: " + successCounter.get());
-			System.out.println("Timeout: " + timeoutCounter.get());
-			System.out.println("Failure: " + failureCounter.get());
+			logger.info("Test config: " + contextConfig);
+			logger.info("Success: " + successCounter.get());
+			logger.info("Timeout: " + timeoutCounter.get());
+			logger.info("Failure: " + failureCounter.get());
 			// technically all we care that its > 0,
 			// but reality of this test it has to be something more then 0
 			assertTrue(successCounter.get() > 10);
