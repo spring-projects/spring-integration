@@ -210,11 +210,12 @@
 		<section id="3.0-dalay-expression">
 			<title>Delayer: delay expression</title>
 			<para>
-				Previously, the <code>&lt;delayer&gt;</code> provided only <code>delay-header-name</code> attribute
-				to determine the <emphasis>delay</emphasis> value at runtime. In complex cases there was need
-				to precede the <code>&lt;delayer&gt;</code> with <code>&lt;header-enricher&gt;</code>.
-				Spring Integration 3.0 introduced <code>expression</code> attribute and <code>expression</code>
-				sub-element for dinamic expression. <code>delay-header-name</code> attribute was deprecated.
+				Previously, the <code>&lt;delayer&gt;</code> provided a <code>delay-header-name</code> attribute
+				to determine the <emphasis>delay</emphasis> value at runtime. In complex cases it was necessary
+				to precede the <code>&lt;delayer&gt;</code> with a <code>&lt;header-enricher&gt;</code>.
+				Spring Integration 3.0 introduced the <code>expression</code> attribute and <code>expression</code>
+				sub-element for dynamic delay determination. The <code>delay-header-name</code> attribute is now deprecated
+				because a header can be specified in the <code>expression</code>.
 				For more information see <xref linkend="delayer"/>.
 			</para>
 		</section>	</section>

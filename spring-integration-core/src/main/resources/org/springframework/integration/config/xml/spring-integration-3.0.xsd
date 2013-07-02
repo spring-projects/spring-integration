@@ -1354,8 +1354,8 @@
 			<xsd:documentation>
 				Defines an endpoint that passes a Message to the output-channel after a
 				delay. The delay may
-				be
-				retrieved from a Message header or else fallback to the
+				be dynamically determined by evaluating an expression
+				(such as a Message header) or fallback to the
 				'default-delay' of this endpoint.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1382,7 +1382,8 @@
 			<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" >
 				<xsd:annotation>
 					<xsd:documentation>
-						Specify the SpEL expression to evaluate the delay value.
+						Specify the SpEL expression to evaluate the delay value in milliseconds,
+						or a java.util.Date.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -1402,7 +1403,8 @@
 		<xsd:attribute name="expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify the SpEL expression to evaluate the delay value.
+					Specify the SpEL expression to evaluate the delay value in milliseconds,
+					or a java.util.Date.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

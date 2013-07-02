@@ -29,19 +29,18 @@
       using the 'expression' attribute:
       <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
              default-delay="3000" expression="headers.delay"/>]]></programlisting>
-      In the example above the 3 second delay would only apply in the case that the expression evaluation is resulted to
+      In the example above, the 3 second delay would only apply when the expression evaluates to
       <emphasis>null</emphasis> for a given inbound Message. If you only want to apply a delay to Messages that have
-      a valid result of expression evaluation, then you can set the 'default-delay' to 0 or don't use it at all (by default it is 0).
-      For any Message that has a delay of 0 (or less), the Message will be sent directly. In fact, if there is not a positive delay
-      value for a Message, it will be sent to the output channel on the calling Thread.
+      a valid result of the expression evaluation, then you can use a 'default-delay' of 0 (the default).
+      For any Message that has a delay of 0 (or less), the Message will be sent immediately, on the calling Thread.
       <tip>
         The delay handler supports expression evaluation results that represent an interval in milliseconds (any
         Object whose <methodname>toString()</methodname> method produces a value that can be parsed into a
         Long) as well as <classname>java.util.Date</classname> instances representing an absolute time.
         In the first case, the milliseconds will be counted from the current time (e.g. a value of 5000
         would delay the Message for at least 5 seconds from the time it is received by the Delayer).
-        With a Date instance, the Message will not be released until that Date
-        occurs. In either case, a value that equates to a non-positive delay, or a Date in the past, will
+        With a Date instance, the Message will not be released until the time represented by that Date object.
+        In either case, a value that equates to a non-positive delay, or a Date in the past, will
         not result in any delay. Instead, it will be sent directly to the output channel on the original
         sender's Thread. If the expression evaluation result is not a Date, and can not be parsed as a Long, the default
         delay (if any) will be applied.
