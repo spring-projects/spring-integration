@@ -26,6 +26,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -49,7 +50,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * A {@link MessageHandler} that is capable of delaying the continuation of a
- * Message flow based on the presence of a delay header on an inbound Message
+ * Message flow based on the result of evaluation {@code delayExpression} on an inbound {@link Message}
  * or a default delay value configured on this handler. Note that the
  * continuation of the flow is delegated to a {@link TaskScheduler}, and
  * therefore, the calling thread does not block. The advantage of this approach
@@ -61,15 +62,15 @@ import org.springframework.util.CollectionUtils;
  * is a side-effect of passing the Message to the output channel after the
  * delay with a different Thread in control.
  * <p>
- * When this handler's 'delayHeaderName' property is configured, that value, if
- * present on a Message, will take precedence over the handler's 'defaultDelay'
- * value. The actual header value may be a long, a String that can be parsed
+ * When this handler's {@code delayExpression} property is configured, that evaluation result value
+ * will take precedence over the handler's {@code defaultDelay} value.
+ * The actual evaluation result value may be a long, a String that can be parsed
  * as a long, or a Date. If it is a long, it will be interpreted as the length
  * of time to delay in milliseconds counting from the current time (e.g. a
  * value of 5000 indicates that the Message can be released as soon as five
  * seconds from the current time). If the value is a Date, it will be
  * delayed at least until that Date occurs (i.e. the delay in that case is
- * equivalent to <code>headerDate.getTime() - new Date().getTime()</code>).
+ * equivalent to {@code headerDate.getTime() - new Date().getTime()}).
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -77,7 +78,8 @@ import org.springframework.util.CollectionUtils;
  */
 
 @ManagedResource
-public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement, ApplicationListener<ContextRefreshedEvent> {
+public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
+		ApplicationListener<ContextRefreshedEvent> {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -121,10 +123,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Set the default delay in milliseconds. If no 'delayHeaderName' property
+	 * Set the default delay in milliseconds. If no {@code delayExpression} property
 	 * has been provided, the default delay will be applied to all Messages. If
-	 * a delay should <em>only</em> be applied to Messages with a
-	 * header, then set this value to 0.
+	 * a delay should <em>only</em> be applied to Messages with evaluation result from
+	 * @code delayExpression}, then set this value to 0.
 	 */
 	public void setDefaultDelay(long defaultDelay) {
 		this.defaultDelay = defaultDelay;
@@ -219,7 +221,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * and if {@code delay > 0} schedules 'releaseMessage' task after 'delay'.
 	 *
 	 * @param requestMessage - the Message which may be delayed.
-	 * @return - <code>null</code> if 'requestMessage' is delayed,
+	 * @return - {@code null} if 'requestMessage' is delayed,
 	 *         otherwise - 'payload' from 'requestMessage'.
 	 *
 	 * @see #releaseMessage
@@ -245,7 +247,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	private long determineDelayForMessage(Message<?> message) {
 		long delay = this.defaultDelay;
 		if (this.delayExpression != null) {
-			Object delayValue = this.delayExpression.getValue(this.evaluationContext, message);
+			String delayValueExceptionMessage = null;
+			Object delayValue = null;
+			try {
+				delayValue = this.delayExpression.getValue(this.evaluationContext, message);
+			}
+			catch (EvaluationException e) {
+				delayValueExceptionMessage = e.getMessage();
+			}
 			if (delayValue instanceof Date) {
 				delay = ((Date) delayValue).getTime() - new Date().getTime();
 			}
@@ -254,11 +263,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 					delay = Long.valueOf(delayValue.toString());
 				}
 				catch (NumberFormatException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to parse delay from 'delayExpression'," +
-								" will fall back to default delay: " + this.defaultDelay);
-					}
+					delayValueExceptionMessage = e.getMessage();
 				}
+			}
+			if (delayValueExceptionMessage != null && logger.isWarnEnabled()) {
+				logger.warn("Failed to get delay value from 'delayExpression': " + delayValueExceptionMessage +
+						". Will fall back to default delay: " + this.defaultDelay);
 			}
 		}
 		return delay;
@@ -311,7 +321,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	/**
 	 * Used for reading persisted Messages in the 'messageStore'
 	 * to reschedule them e.g. upon application restart.
-	 * The logic is based on iteration over 'messageGroup.getMessages()'
+	 * The logic is based on iteration over {@code messageGroup.getMessages()}
 	 * and schedules task about 'delay' logic.
 	 * This behavior is dictated by the avoidance of invocation thread overload.
 	 */
