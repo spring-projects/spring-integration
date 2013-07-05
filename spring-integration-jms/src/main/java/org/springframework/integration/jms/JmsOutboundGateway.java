@@ -1030,8 +1030,19 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.replyDestination instanceof TemporaryQueue) {
 				return "Temporary queue:" + this.replyDestination.toString();
 			}
+			else if (super.getDestination() != null){
+				try {
+					return super.getDestinationDescription();
+				}
+				catch (Exception e) {
+					if (logger.isWarnEnabled()) {
+						logger.warn("Unexpected error obtaining destination description: " + e.getMessage());
+					}
+					return null;
+				}
+			}
 			else {
-				return super.getDestinationDescription();
+				return null;
 			}
 		}
 
@@ -1044,9 +1055,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private class TimedReply {
 
-		private long timeStamp = System.currentTimeMillis();
+		private final long timeStamp = System.currentTimeMillis();
 
-		private javax.jms.Message reply;
+		private final javax.jms.Message reply;
 
 		public TimedReply(javax.jms.Message reply) {
 			this.reply = reply;
