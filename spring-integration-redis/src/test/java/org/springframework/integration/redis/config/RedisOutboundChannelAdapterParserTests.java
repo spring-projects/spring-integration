@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -40,6 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -67,9 +70,10 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 	public void testOutboundChannelAdapterMessaging() throws Exception{
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		sendChannel.send(new GenericMessage<String>("Hello Redis"));
-		Thread.sleep(1000);
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
-		assertEquals("Hello Redis", receiveChannel.receive(1000).getPayload());
+		Message<?> message = receiveChannel.receive(5000);
+		assertNotNull(message);
+		assertEquals("Hello Redis", message.getPayload());
 	}
 
 	@Test //INT-2275
@@ -77,9 +81,10 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 	public void testOutboundChannelAdapterWithinChain() throws Exception{
 		MessageChannel sendChannel = context.getBean("redisOutboudChain", MessageChannel.class);
 		sendChannel.send(new GenericMessage<String>("Hello Redis from chain"));
-		Thread.sleep(1000);
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
-		assertEquals("Hello Redis from chain", receiveChannel.receive(1000).getPayload());
+		Message<?> message = receiveChannel.receive(5000);
+		assertNotNull(message);
+		assertEquals("Hello Redis from chain", message.getPayload());
 	}
 
 

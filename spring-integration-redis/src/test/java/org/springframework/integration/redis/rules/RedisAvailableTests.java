@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.redis.rules;
 import java.util.UUID;
 
 import org.junit.Rule;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -43,6 +44,7 @@ public class RedisAvailableTests {
 		jcf.afterPropertiesSet();
 		RedisTemplate rt = new RedisTemplate<UUID, Object>();
 		rt.setConnectionFactory(jcf);
+		rt.afterPropertiesSet();
 		rt.execute(new RedisCallback() {
 
 			public Object doInRedis(RedisConnection connection)
