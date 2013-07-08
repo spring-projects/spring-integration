@@ -161,7 +161,6 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	}
 
 	public void stop() {
-		this.connectionFactory.getConnection().discard();
 		if (this.container != null) {
 			this.container.stop();
 		}
