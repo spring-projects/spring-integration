@@ -282,7 +282,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			messageWrapper = (DelayedMessageWrapper) message.getPayload();
 		}
 		else {
-			messageWrapper = new DelayedMessageWrapper(message);
+			messageWrapper = new DelayedMessageWrapper(message, System.currentTimeMillis());
 			delayedMessage = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
@@ -381,12 +381,13 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 		private static final long serialVersionUID = -4739802369074947045L;
 
-		private final long requestDate = System.currentTimeMillis();
+		private final long requestDate;
 
 		private final Message<?> original;
 
-		private DelayedMessageWrapper(Message<?> original) {
+		DelayedMessageWrapper(Message<?> original, long requestDate) {
 			this.original = original;
+			this.requestDate = requestDate;
 		}
 
 		public long getRequestDate() {
