@@ -26,6 +26,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -42,7 +43,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	@Test 
+	@Test
 	@RedisAvailable
 	public void testRedisInboundChannelAdapter() throws Exception {
 		for (int iteration = 0; iteration < 10; iteration ++) {
@@ -56,7 +57,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		QueueChannel channel = new QueueChannel();
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
+		connectionFactory.setPort(RedisAvailableRule.REDIS_PORT);
 		connectionFactory.afterPropertiesSet();
 
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(connectionFactory);

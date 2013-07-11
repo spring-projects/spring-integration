@@ -28,6 +28,7 @@ import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -39,7 +40,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 
-	@Test 
+	@Test
 	@RedisAvailable
 	public void testRedisPublishingMessageHandler() throws Exception {
 		int numToTest = 10;
@@ -47,7 +48,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 		final CountDownLatch latch = new CountDownLatch(numToTest);
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
+		connectionFactory.setPort(RedisAvailableRule.REDIS_PORT);
 		connectionFactory.afterPropertiesSet();
 
 		MessageListenerAdapter listener = new MessageListenerAdapter();
