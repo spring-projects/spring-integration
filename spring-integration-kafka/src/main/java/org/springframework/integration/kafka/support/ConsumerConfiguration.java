@@ -182,10 +182,11 @@ public class ConsumerConfiguration {
 
 	@SuppressWarnings("unchecked")
 	public Map<String, List<KafkaStream<byte[], byte[]>>> getConsumerMapWithMessageStreams() {
-		if (consumerMetadata.getValueDecoder() != null) {
+		if (consumerMetadata.getValueDecoder() != null &&
+		    consumerMetadata.getKeyDecoder()   != null) {
 			return getConsumerConnector().createMessageStreams(
 					consumerMetadata.getTopicStreamMap(),
-					consumerMetadata.getValueDecoder(),
+					consumerMetadata.getKeyDecoder(),
 					consumerMetadata.getValueDecoder());
 		}
 
