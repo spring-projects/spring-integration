@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,13 @@ public class DelayerUsageTests {
 	@Autowired @Qualifier("outputB1")
 	private PollableChannel outputB1;
 
+	@Autowired
+	private MessageChannel inputC;
+
+	@Autowired
+	private PollableChannel outputC;
+
+
 	@Test
 	public void testDelayWithDefaultScheduler(){
 		long start = System.currentTimeMillis();
@@ -107,6 +114,16 @@ public class DelayerUsageTests {
 		assertNotNull(message);
 		assertTrue((System.currentTimeMillis() - start) >= 1000);
 		assertEquals("hello", message.getPayload());
+	}
+
+	@Test
+	public void testInt2243DelayerExpression() {
+		long start = System.currentTimeMillis();
+		this.inputC.send(new GenericMessage<String>("test"));
+		Message<?> message = this.outputC.receive(10000);
+		assertNotNull(message);
+		assertTrue((System.currentTimeMillis() - start) >= 1000);
+		assertEquals("test", message.getPayload());
 	}
 
 	public static class SampleService{

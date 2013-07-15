@@ -30,10 +30,14 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -50,6 +54,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 1.0.3
  */
 public class DelayHandlerTests {
@@ -80,6 +85,11 @@ public class DelayHandlerTests {
 		output.subscribe(resultHandler);
 	}
 
+	private void setDelayExpression() {
+		Expression expression = new SpelExpressionParser().parseExpression("headers.delay");
+		this.delayHandler.setDelayExpression(expression);
+	}
+
 	private void startDelayerHandler() {
 		delayHandler.afterPropertiesSet();
 		delayHandler.onApplicationEvent(new ContextRefreshedEvent(TestUtils.createTestApplicationContext()));
@@ -108,7 +118,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", 100).build();
@@ -121,7 +131,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsNegativeAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", -7000).build();
@@ -134,7 +144,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsInvalidFallsBackToDefaultDelay() throws Exception {
 		delayHandler.setDefaultDelay(5);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", "not a number").build();
@@ -147,7 +157,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsDateInTheFutureAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", new Date(new Date().getTime() + 150)).build();
@@ -160,7 +170,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsDateInThePastAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
@@ -172,7 +182,7 @@ public class DelayHandlerTests {
 
 	@Test
 	public void delayHeaderIsNullDateAndDefaultDelayIsZero() throws Exception {
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Date nullDate = null;
 		Message<?> message = MessageBuilder.withPayload("test")
@@ -185,7 +195,7 @@ public class DelayHandlerTests {
 
 	@Test(expected = TestTimedOutException.class)
 	public void delayHeaderIsFutureDateAndTimesOut() throws Exception {
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Date future = new Date(new Date().getTime() + 60 * 1000);
 		Message<?> message = MessageBuilder.withPayload("test")
@@ -199,7 +209,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsValidStringAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 			.setHeader("delay", "20").build();
@@ -275,7 +285,7 @@ public class DelayHandlerTests {
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 		errorHandler.setDefaultErrorChannel(errorChannel);
 		taskScheduler.setErrorHandler(errorHandler);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
@@ -308,7 +318,7 @@ public class DelayHandlerTests {
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 		errorHandler.setBeanFactory(context);
 		taskScheduler.setErrorHandler(errorHandler);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
@@ -339,7 +349,7 @@ public class DelayHandlerTests {
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 		errorHandler.setBeanFactory(context);
 		taskScheduler.setErrorHandler(errorHandler);
-		delayHandler.setDelayHeaderName("delay");
+		this.setDelayExpression();
 		this.startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
@@ -359,7 +369,6 @@ public class DelayHandlerTests {
 		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
-
 
 	@Test //INT-1132
 	public void testReschedulePersistedMessagesOnStartup() throws Exception {
@@ -414,6 +423,14 @@ public class DelayHandlerTests {
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		Mockito.verify(this.delayHandler, Mockito.times(1)).reschedulePersistedMessages();
+	}
+
+	@Test(expected = MessageHandlingException.class)
+	public void testInt2243IgnoreExpressionFailuresAsFalse() throws Exception {
+		this.setDelayExpression();
+		this.delayHandler.setIgnoreExpressionFailures(false);
+		this.startDelayerHandler();
+		this.delayHandler.handleMessage(new GenericMessage<String>("test"));
 	}
 
 	private void waitForLatch(long timeout) {

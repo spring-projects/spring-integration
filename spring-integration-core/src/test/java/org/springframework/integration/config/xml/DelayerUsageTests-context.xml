@@ -55,4 +55,15 @@
 
 	<beans:bean id="sampleHandler" class="org.springframework.integration.config.xml.DelayerUsageTests$SampleService"/>
 
+	<channel id="inputC"/>
+
+	<channel id="outputC">
+		<queue/>
+	</channel>
+
+	<beans:bean id="time" class="java.util.Calendar" factory-method="getInstance"/>
+
+	<delayer id="delayerExpression" input-channel="inputC" output-channel="outputC" expression="new java.util.Date(@time.timeInMillis + 5000)"/>
+
+
 </beans:beans>
