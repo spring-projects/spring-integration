@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 the original author or authors
+ * Copyright 2007-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -14,6 +14,12 @@
  *     limitations under the License.
  */
 package org.springframework.integration.mongodb.store;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 import java.util.Properties;
@@ -35,14 +41,9 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
@@ -74,7 +75,7 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		Message<?> retrievedMessage = store.getMessage(messageA.getHeaders().getId());
 		assertNotNull(retrievedMessage);
 		assertEquals(retrievedMessage.getHeaders().getId(), messageA.getHeaders().getId());
-		// ensure that 'message_group' header that is only used internally is not propagated 
+		// ensure that 'message_group' header that is only used internally is not propagated
 		assertNull(retrievedMessage.getHeaders().get("message_group"));
 	}
 
@@ -113,6 +114,99 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		store.addMessageToGroup(1, messageA);
 		store.addMessageToGroup(1, messageB);
 		assertEquals(2, store.messageGroupSize(1));
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testPollMessages() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+
+		Message<?> messageA = new GenericMessage<String>("A");
+		Message<?> messageB = new GenericMessage<String>("B");
+		store.addMessageToGroup(1, messageA);
+		store.addMessageToGroup(1, messageB);
+		assertEquals(2, store.messageGroupSize(1));
+		Message<?> out = store.pollMessageFromGroup(1);
+		assertEquals("A", out.getPayload());
+		assertEquals(1, store.messageGroupSize(1));
+		out = store.pollMessageFromGroup(1);
+		assertEquals("B", out.getPayload());
+		assertEquals(0, store.messageGroupSize(1));
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testSameMessageMultipleGroupsPoll() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+
+		Message<?> messageA = new GenericMessage<String>("A");
+		store.addMessageToGroup(1, messageA);
+		store.addMessageToGroup(2, messageA);
+		store.addMessageToGroup(3, messageA);
+		store.addMessageToGroup(4, messageA);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(1, store.messageGroupSize(2));
+		assertEquals(1, store.messageGroupSize(3));
+		assertEquals(1, store.messageGroupSize(4));
+		store.pollMessageFromGroup(3);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(1, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(1, store.messageGroupSize(4));
+		store.pollMessageFromGroup(4);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(1, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(0, store.messageGroupSize(4));
+		store.pollMessageFromGroup(2);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(0, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(0, store.messageGroupSize(4));
+		store.pollMessageFromGroup(1);
+		assertEquals(0, store.messageGroupSize(1));
+		assertEquals(0, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(0, store.messageGroupSize(4));
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testSameMessageMultipleGroupsRemove() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+
+		Message<?> messageA = new GenericMessage<String>("A");
+		store.addMessageToGroup(1, messageA);
+		store.addMessageToGroup(2, messageA);
+		store.addMessageToGroup(3, messageA);
+		store.addMessageToGroup(4, messageA);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(1, store.messageGroupSize(2));
+		assertEquals(1, store.messageGroupSize(3));
+		assertEquals(1, store.messageGroupSize(4));
+		store.removeMessageFromGroup(3, messageA);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(1, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(1, store.messageGroupSize(4));
+		store.removeMessageFromGroup(4, messageA);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(1, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(0, store.messageGroupSize(4));
+		store.removeMessageFromGroup(2, messageA);
+		assertEquals(1, store.messageGroupSize(1));
+		assertEquals(0, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(0, store.messageGroupSize(4));
+		store.removeMessageFromGroup(1, messageA);
+		assertEquals(0, store.messageGroupSize(1));
+		assertEquals(0, store.messageGroupSize(2));
+		assertEquals(0, store.messageGroupSize(3));
+		assertEquals(0, store.messageGroupSize(4));
 	}
 
 	@Test
@@ -297,7 +391,7 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 //		final MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
 //		final MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
 //
-//		final Message<?> message = new GenericMessage<String>("1"); 
+//		final Message<?> message = new GenericMessage<String>("1");
 //
 //		ExecutorService executor = null;
 //

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.mongodb.BasicDBList;
@@ -71,6 +70,8 @@ import com.mongodb.DBObject;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Sean Brandt
+ * @author Jodie StJohn
+ * @author Gary Russell
  * @since 2.1
  */
 public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
@@ -205,7 +206,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-		this.removeMessage(messageToRemove.getHeaders().getId());
+		this.template.findAndRemove(whereMessageIdIsAndGroupIdIs(
+				messageToRemove.getHeaders().getId(), groupId), MessageWrapper.class, this.collectionName);
 		this.updateGroup(groupId);
 		return this.getMessageGroup(groupId);
 	}
@@ -245,12 +247,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIsOrdered(groupId), MessageWrapper.class, this.collectionName);
+		MessageWrapper messageWrapper = this.template.findAndRemove(whereGroupIdIsOrdered(groupId), MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
-
-		if (!CollectionUtils.isEmpty(messageWrappers)){
-			message = messageWrappers.get(0).getMessage();
-			this.removeMessageFromGroup(groupId, message);
+		if (messageWrapper != null) {
+			message = messageWrapper.getMessage();
 		}
 		this.updateGroup(groupId);
 		return message;
@@ -268,6 +268,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private static Query whereMessageIdIs(UUID id) {
 		return new Query(where("headers.id._value").is(id.toString()));
+	}
+
+	private static Query whereMessageIdIsAndGroupIdIs(UUID id, Object groupId) {
+		return new Query(where("headers.id._value").is(id.toString()).and(GROUP_ID_KEY).is(groupId));
 	}
 
 	private static Query whereGroupIdIs(Object groupId) {
