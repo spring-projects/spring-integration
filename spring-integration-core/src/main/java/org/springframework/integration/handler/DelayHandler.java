@@ -32,6 +32,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
@@ -88,6 +89,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	private volatile long defaultDelay;
 
 	private Expression delayExpression;
+
+	private volatile boolean ignoreExpressionFailures = true;
 
 	private volatile String delayHeaderName;
 
@@ -150,6 +153,20 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	public void setDelayExpression(Expression delayExpression) {
 		this.delayExpression = delayExpression;
+	}
+
+	/**
+	 * Specify whether {@code Exceptions} thrown by {@link #delayExpression} evaluation should be
+	 * ignored (only logged). In this case case the delayer makes fallback to the
+	 * to the {@link #defaultDelay}.
+	 * If this property is specified as {@code false}, any {@link #delayExpression} evaluation
+	 * {@code Exception} will be thrown to the caller without fallback to the to the {@link #defaultDelay}.
+	 * Default is {@code true}.
+	 *
+	 * @see #determineDelayForMessage
+	 */
+	public void setIgnoreExpressionFailures(boolean ignoreExpressionFailures) {
+		this.ignoreExpressionFailures = ignoreExpressionFailures;
 	}
 
 	/**
@@ -247,13 +264,13 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	private long determineDelayForMessage(Message<?> message) {
 		long delay = this.defaultDelay;
 		if (this.delayExpression != null) {
-			String delayValueExceptionMessage = null;
+			Exception delayValueException = null;
 			Object delayValue = null;
 			try {
 				delayValue = this.delayExpression.getValue(this.evaluationContext, message);
 			}
 			catch (EvaluationException e) {
-				delayValueExceptionMessage = e.getMessage();
+				delayValueException = e;
 			}
 			if (delayValue instanceof Date) {
 				delay = ((Date) delayValue).getTime() - new Date().getTime();
@@ -263,12 +280,20 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 					delay = Long.valueOf(delayValue.toString());
 				}
 				catch (NumberFormatException e) {
-					delayValueExceptionMessage = e.getMessage();
+					delayValueException = e;
 				}
 			}
-			if (delayValueExceptionMessage != null && logger.isWarnEnabled()) {
-				logger.warn("Failed to get delay value from 'delayExpression': " + delayValueExceptionMessage +
-						". Will fall back to default delay: " + this.defaultDelay);
+			if (delayValueException != null) {
+				if (this.ignoreExpressionFailures) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Failed to get delay value from 'delayExpression': " + delayValueException.getMessage() +
+								". Will fall back to default delay: " + this.defaultDelay);
+					}
+				}
+				else {
+					throw new MessageHandlingException(message, "Error occurred during 'delay' value determination", delayValueException);
+				}
+
 			}
 		}
 		return delay;

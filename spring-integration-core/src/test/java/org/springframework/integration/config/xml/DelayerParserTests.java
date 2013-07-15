@@ -137,6 +137,7 @@ public class DelayerParserTests {
 		DelayHandler delayHandler = context.getBean("delayerWithExpression.handler", DelayHandler.class);
 		assertNull(TestUtils.getPropertyValue(delayHandler, "delayHeaderName"));
 		assertEquals("100", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
+		assertFalse(TestUtils.getPropertyValue(delayHandler, "ignoreExpressionFailures", Boolean.class));
 	}
 
 	@Test

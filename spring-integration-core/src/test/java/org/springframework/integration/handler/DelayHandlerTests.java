@@ -37,6 +37,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -82,6 +83,11 @@ public class DelayHandlerTests {
 		delayHandler.setOutputChannel(output);
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
+	}
+
+	private void setDelayExpression() {
+		Expression expression = new SpelExpressionParser().parseExpression("headers.delay");
+		this.delayHandler.setDelayExpression(expression);
 	}
 
 	private void startDelayerHandler() {
@@ -364,12 +370,6 @@ public class DelayHandlerTests {
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
 
-	private void setDelayExpression() {
-		Expression expression = new SpelExpressionParser().parseExpression("headers.delay");
-		this.delayHandler.setDelayExpression(expression);
-	}
-
-
 	@Test //INT-1132
 	public void testReschedulePersistedMessagesOnStartup() throws Exception {
 		MessageGroupStore messageGroupStore = new SimpleMessageStore();
@@ -423,6 +423,14 @@ public class DelayHandlerTests {
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		Mockito.verify(this.delayHandler, Mockito.times(1)).reschedulePersistedMessages();
+	}
+
+	@Test(expected = MessageHandlingException.class)
+	public void testInt2243IgnoreExpressionFailuresAsFalse() throws Exception {
+		this.setDelayExpression();
+		this.delayHandler.setIgnoreExpressionFailures(false);
+		this.startDelayerHandler();
+		this.delayHandler.handleMessage(new GenericMessage<String>("test"));
 	}
 
 	private void waitForLatch(long timeout) {

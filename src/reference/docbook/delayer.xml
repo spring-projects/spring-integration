@@ -28,7 +28,7 @@
       If you need per-Message determination of the delay, then you can also provide the SpEL expression
       using the 'expression' attribute:
       <programlisting language="xml"><![CDATA[<int:delayer id="delayer" input-channel="input" output-channel="output"
-             default-delay="3000" expression="headers.delay"/>]]></programlisting>
+             default-delay="3000" expression="headers['delay']"/>]]></programlisting>
       In the example above, the 3 second delay would only apply when the expression evaluates to
       <emphasis>null</emphasis> for a given inbound Message. If you only want to apply a delay to Messages that have
       a valid result of the expression evaluation, then you can use a 'default-delay' of 0 (the default).
@@ -45,7 +45,32 @@
         sender's Thread. If the expression evaluation result is not a Date, and can not be parsed as a Long, the default
         delay (if any) will be applied.
       </tip>
+      <important>
+        The expression evaluation may not just result to non-valid delay value. It may throws an evaluation Exception
+        in cases the Message is not valid or the system is in some inconsistent state (if you are using some scoped beans from
+        'expression'). Do not ignore similar exceptions and don't fallback to the default delay and just throw those
+        exceptions to the caller, along with 'expression' support, was introduced <code>ignore-expression-failures</code> attribute.
+        By default this attribute has value <code>true</code> and the Delayer behaviour is as described above.
+        However, if there is a reason do not ignore expression evaluation exceptions and throw them to the delayer's caller,
+        it is necessary to set <code>ignore-expression-failures</code> attribute to <code>false</code>.
+      </important>
     </para>
+	  <tip>
+		  If you noticed above the delay expression is specified as <code>headers['delay']</code>.
+		  It is SpEL <emphasis>Indexer</emphasis> syntax. In case of <interfacename>Map</interfacename> expression variable
+		  (as it is for <classname>MessageHeaders</classname>), it is equals to: <code>headers.get("delay");</code>.
+		  There is another shortcut trick - SpEL <emphasis>dot accessor</emphasis> syntax, where, the mention above header expression,
+		  can be specify as <code>headers.delay</code>. But, on the background, the SpEL engine uses other APIs to get the value of that
+		  expression evaluation, and, if there is no similar map entry in the 'headers' Map variable, the evaluation ends up with
+		  something like this:
+		  <programlisting language="java"><![CDATA[ org.springframework.expression.spel.SpelEvaluationException: EL1008E:(pos 8):
+		   Field or property 'delay' cannot be found on object of type 'org.springframework.integration.MessageHeaders']]></programlisting>
+		  So, if you don't interested in similar exceptions and getting the <code>null</code> value from 'headers'
+		  (or any other Map expression variable) for specified <code>key</code> is appropriate, it's recommended to use
+		  <emphasis>Indexer</emphasis> syntax instead of <emphasis>dot property accessor</emphasis> syntax. It's especially
+		  valuable for Delayer, when it does fallback to the default 'delay', if the expression evaluation results to the <code>null</code>:
+		  it won't be so expensive, than catch '<emphasis>property not found</emphasis>' SpEL Exception.
+	  </tip>
     <para>
       The delayer delegates to an instance of Spring's <interfacename>TaskScheduler</interfacename> abstraction.
       The default scheduler used by the delayer is the <classname>ThreadPoolTaskScheduler</classname> instance

@@ -60,7 +60,8 @@
 	<delayer id="delayerWithExpression"
 			 input-channel="input"
 			 output-channel="output"
-			 expression="100"/>
+			 expression="100"
+			 ignore-expression-failures="false"/>
 
 	<beans:bean id="delayerSource"
 		  class="org.springframework.integration.expression.ReloadableResourceBundleExpressionSource"

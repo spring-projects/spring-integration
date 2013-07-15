@@ -98,6 +98,7 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-store");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-expression-failures");
 
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");

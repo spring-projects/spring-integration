@@ -1408,6 +1408,18 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="ignore-expression-failures" type="xsd:string" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify whether Exceptions thrown by 'expression' evaluation should be
+					ignored (only logged). In this case case the delayer makes fallback to the
+					 to the 'default-delay'. Default behaviour.
+					If this attribute is specified as 'false', any
+					'expression' evaluation Exception will be thrown to the caller without
+					fallback to the to the 'default-delay'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="delay-header-name" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>

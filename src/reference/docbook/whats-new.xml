@@ -191,7 +191,7 @@
 				For more information see <xref linkend="chain"/>.
 			</para>
 		</section>
-<section id="3.0-stored-proc-sql-return-type">
+		<section id="3.0-stored-proc-sql-return-type">
 			<title>SqlReturnType support for Stored Procedure components</title>
 			<para>
 				For more complex database-specific types, not supported by the standard
@@ -210,13 +210,15 @@
 		<section id="3.0-dalay-expression">
 			<title>Delayer: delay expression</title>
 			<para>
-				Previously, the <code>&lt;delayer&gt;</code> provided a <code>delay-header-name</code> attribute
+				Previously, the <code>&lt;delayer&gt;</code> provided a <code>delay-header-name</code> attribute only
 				to determine the <emphasis>delay</emphasis> value at runtime. In complex cases it was necessary
 				to precede the <code>&lt;delayer&gt;</code> with a <code>&lt;header-enricher&gt;</code>.
 				Spring Integration 3.0 introduced the <code>expression</code> attribute and <code>expression</code>
 				sub-element for dynamic delay determination. The <code>delay-header-name</code> attribute is now deprecated
-				because a header can be specified in the <code>expression</code>.
+				because the header evaluation can be specified in the <code>expression</code>. In addition to power of
+				<code>expression</code> support was introduced an <code>ignore-expression-failures</code> boolean attribute.
 				For more information see <xref linkend="delayer"/>.
 			</para>
-		</section>	</section>
+		</section>
+	</section>
 </chapter>
