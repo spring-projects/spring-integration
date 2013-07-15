@@ -810,10 +810,13 @@
                 attribute.
             </para>
 
-            <programlisting language="xml"><![CDATA[<int-jdbc:sql-parameter-definition name=""         ]]><co id="sp-parameter-definition-xml01-co" linkends="sp-parameter-definition-xml01" /><![CDATA[
-                                   direction="IN"  ]]><co id="sp-parameter-definition-xml02-co" linkends="sp-parameter-definition-xml02" /><![CDATA[
-                                   type="STRING"   ]]><co id="sp-parameter-definition-xml03-co" linkends="sp-parameter-definition-xml03" /><![CDATA[
-                                   scale=""/>      ]]><co id="sp-parameter-definition-xml04-co" linkends="sp-parameter-definition-xml04" /></programlisting>
+            <programlisting language="xml"><![CDATA[<int-jdbc:sql-parameter-definition
+                                   name=""                          ]]><co id="sp-parameter-definition-xml01-co" linkends="sp-parameter-definition-xml01" /><![CDATA[
+                                   direction="IN"                   ]]><co id="sp-parameter-definition-xml02-co" linkends="sp-parameter-definition-xml02" /><![CDATA[
+                                   type="STRING"                    ]]><co id="sp-parameter-definition-xml03-co" linkends="sp-parameter-definition-xml03" /><![CDATA[
+                                   scale="5"                        ]]><co id="sp-parameter-definition-xml04-co" linkends="sp-parameter-definition-xml04" /><![CDATA[
+                                   type-name="FOO_STRUCT"           ]]><co id="sp-parameter-definition-xml05-co" linkends="sp-parameter-definition-xml05" /><![CDATA[
+                                   return-type="fooSqlReturnType"/> ]]><co id="sp-parameter-definition-xml06-co" linkends="sp-parameter-definition-xml06" /></programlisting>
             <para>
 	            <calloutlist>
                     <callout arearefs="sp-parameter-definition-xml01-co" id="sp-parameter-definition-xml01">
@@ -850,6 +853,23 @@
 	                        <emphasis>Optional</emphasis>.
 	                    </para>
 	                </callout>
+                    <callout arearefs="sp-parameter-definition-xml05-co" id="sp-parameter-definition-xml05">
+                        <para>
+                            The typeName for types that are user-named like: STRUCT, DISTINCT, JAVA_OBJECT, named array types.
+                            This attribute is mutually exclusive with the <emphasis>scale</emphasis> attribute.
+                            <emphasis>Optional</emphasis>.
+                        </para>
+                    </callout>
+                    <callout arearefs="sp-parameter-definition-xml06-co" id="sp-parameter-definition-xml06">
+                        <para>
+                            The reference to a custom value handler for complex types. An implementation of
+							<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/jdbc/core/SqlReturnType.html"
+									>SqlReturnType</ulink>.
+                            This attribute is mutually exclusive with the <emphasis>scale</emphasis> attribute
+                            and is applicable for OUT(INOUT)-parameters only.
+                            <emphasis>Optional</emphasis>.
+                        </para>
+                    </callout>
 				</calloutlist>
 			</para>
 

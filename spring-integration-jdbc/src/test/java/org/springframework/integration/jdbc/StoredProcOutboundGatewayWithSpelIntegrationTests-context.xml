@@ -38,8 +38,31 @@
 	<int:channel id="outputChannel"/>
 
 	<int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
+
 	<bean id="consumer" class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithSpelIntegrationTests$Consumer"/>
 
 	<int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
+
+	<int:channel id="output2Channel">
+		<int:queue/>
+	</int:channel>
+
+	<int-jdbc:stored-proc-outbound-gateway request-channel="getMessageChannel"
+										   data-source="dataSource"
+										   stored-procedure-name="GET_MESSAGE"
+										   ignore-column-meta-data="true"
+										   expect-single-result="true"
+										   reply-channel="output2Channel">
+		<int-jdbc:sql-parameter-definition name="message_id"/>
+		<int-jdbc:sql-parameter-definition name="message_json" type="CLOB" direction="OUT" type-name="" return-type="clobSqlReturnType"/>
+		<int-jdbc:parameter name="message_id" expression="payload"/>
+	</int-jdbc:stored-proc-outbound-gateway>
+
+	<bean id="clobSqlReturnType" class="org.mockito.Mockito" factory-method="spy">
+		<constructor-arg>
+			<bean class="org.springframework.integration.jdbc.storedproc.ClobSqlReturnType"/>
+		</constructor-arg>
+	</bean>
+
 
 </beans>
