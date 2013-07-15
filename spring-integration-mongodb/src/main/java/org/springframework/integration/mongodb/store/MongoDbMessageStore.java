@@ -146,6 +146,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
 	}
 
+	public Message<?> removeMessage(UUID id, Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(id, "'id' must not be null");
+		MessageWrapper messageWrapper =  this.template.findAndRemove(whereMessageIdIsAndGroupIdIs(id, groupId), MessageWrapper.class, this.collectionName);
+		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
+	}
+
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
@@ -205,7 +212,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-		this.removeMessage(messageToRemove.getHeaders().getId());
+		this.removeMessage(messageToRemove.getHeaders().getId(), groupId);
 		this.updateGroup(groupId);
 		return this.getMessageGroup(groupId);
 	}
@@ -268,6 +275,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private static Query whereMessageIdIs(UUID id) {
 		return new Query(where("headers.id._value").is(id.toString()));
+	}
+
+	private static Query whereMessageIdIsAndGroupIdIs(UUID id, Object groupId) {
+		return new Query(where("headers.id._value").is(id.toString()).and(GROUP_ID_KEY).is(groupId));
 	}
 
 	private static Query whereGroupIdIs(Object groupId) {
