@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,39 @@
 
 package org.springframework.integration.file;
 
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.util.FileCopyUtils;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Alex Peters
+ * @author Gary Russell
  */
 public class FileWritingMessageHandlerTests {
 
@@ -50,6 +61,7 @@ public class FileWritingMessageHandlerTests {
 
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder() {
+		@Override
 		public void create() throws IOException {
 			super.create();
 			outputDirectory = temp.newFolder("outputDirectory");
@@ -219,14 +231,72 @@ public class FileWritingMessageHandlerTests {
 		assertThat(result.getName(), is(anyFilename));
 	}
 
+	@Test
+	public void existingFileIgnored() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
+		QueueChannel output = new QueueChannel();
+		File outFile = temp.newFile("/outputDirectory/" + message.getHeaders().getId().toString() + ".msg");
+		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(outFile));
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.setFileExistsMode(FileExistsMode.IGNORE);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, "foo");
+	}
+
+	@Test
+	public void existingWritingFileIgnored() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
+		QueueChannel output = new QueueChannel();
+		File outFile = temp.newFile("/outputDirectory/" + message.getHeaders().getId().toString() + ".msg.writing");
+		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(outFile));
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.setFileExistsMode(FileExistsMode.IGNORE);
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		File destFile = (File) result.getPayload();
+		assertNotSame(destFile, sourceFile);
+		assertThat(destFile.exists(), is(false));
+		assertThat(outFile.exists(), is(true));
+	}
+
+	@Test
+	public void existingWritingFileNotIgnoredIfEmptySuffix() throws Exception {
+		Message<?> message = MessageBuilder.withPayload(SAMPLE_CONTENT).build();
+		QueueChannel output = new QueueChannel();
+		File outFile = temp.newFile("/outputDirectory/" + message.getHeaders().getId().toString() + ".msg.writing");
+		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(outFile));
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.setFileExistsMode(FileExistsMode.IGNORE);
+		handler.setTemporaryFileSuffix("");
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		File destFile = (File) result.getPayload();
+		assertNotSame(destFile, sourceFile);
+		assertFileContentIsMatching(result);
+		assertThat(outFile.exists(), is(true));
+		assertFileContentIs(outFile, "foo");
+	}
+
 	void assertFileContentIsMatching(Message<?> result) throws IOException, UnsupportedEncodingException {
+		assertFileContentIs(result, SAMPLE_CONTENT);
+	}
+
+	void assertFileContentIs(Message<?> result, String expected) throws IOException, UnsupportedEncodingException {
 		assertThat(result, is(notNullValue()));
 		assertThat(result.getPayload(), is(instanceOf(File.class)));
 		File destFile = (File) result.getPayload();
+		assertFileContentIs(destFile, expected);
+	}
+
+	void assertFileContentIs(File destFile, String expected) throws IOException, UnsupportedEncodingException {
 		assertNotSame(destFile, sourceFile);
 		assertThat(destFile.exists(), is(true));
 		byte[] destFileContent = FileCopyUtils.copyToByteArray(destFile);
-		assertThat(new String(destFileContent, DEFAULT_ENCODING), is(SAMPLE_CONTENT));
+		assertThat(new String(destFileContent, DEFAULT_ENCODING), is(expected));
 	}
 
 }
