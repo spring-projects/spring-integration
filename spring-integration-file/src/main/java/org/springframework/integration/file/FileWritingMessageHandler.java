@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -43,6 +44,7 @@ import org.springframework.integration.util.PassThruLockRegistry;
 import org.springframework.integration.util.WhileLockedProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link MessageHandler} implementation that writes the Message payload to a
@@ -68,6 +70,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
@@ -268,7 +271,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					"The destination file already exists at '" + resultFile.getAbsolutePath() + "'.");
 		}
 
-		final boolean ignore = FileExistsMode.IGNORE.equals(this.fileExistsMode) && resultFile.exists();
+		final boolean ignore = FileExistsMode.IGNORE.equals(this.fileExistsMode) &&
+				(resultFile.exists() ||
+						(StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists()));
 
 		if (!ignore) {
 
@@ -413,7 +418,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException{
-		if (!FileExistsMode.APPEND.equals(this.fileExistsMode)) {
+		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && StringUtils.hasText(this.temporaryFileSuffix)) {
 			this.renameTo(fileToWriteTo, resultFile);
 		}
 
