@@ -23,15 +23,15 @@ import org.springframework.integration.kafka.support.KafkaProducerContext;
  * @author Soby Chacko
  * @since 0.5
  */
-public class KafkaProducerMessageHandler extends AbstractMessageHandler {
+public class KafkaProducerMessageHandler<K,V> extends AbstractMessageHandler {
 
-	private final KafkaProducerContext kafkaProducerContext;
+	private final KafkaProducerContext<K,V> kafkaProducerContext;
 
-	public KafkaProducerMessageHandler(final KafkaProducerContext kafkaProducerContext) {
+	public KafkaProducerMessageHandler(final KafkaProducerContext<K,V> kafkaProducerContext) {
 		this.kafkaProducerContext = kafkaProducerContext;
 	}
 
-	public KafkaProducerContext getKafkaProducerContext() {
+	public KafkaProducerContext<K,V> getKafkaProducerContext() {
 		return kafkaProducerContext;
 	}
 

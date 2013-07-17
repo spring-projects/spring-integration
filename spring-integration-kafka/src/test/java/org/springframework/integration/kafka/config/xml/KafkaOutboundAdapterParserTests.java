@@ -32,18 +32,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class KafkaOutboundAdapterParserTests {
+public class KafkaOutboundAdapterParserTests<K,V> {
 
 	@Autowired
 	private ApplicationContext appContext;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testOutboundAdapterConfiguration(){
 		final PollingConsumer pollingConsumer = appContext.getBean("kafkaOutboundChannelAdapter", PollingConsumer.class);
-		final KafkaProducerMessageHandler messageHandler = appContext.getBean(KafkaProducerMessageHandler.class);
+		final KafkaProducerMessageHandler<K,V> messageHandler = appContext.getBean(KafkaProducerMessageHandler.class);
 		Assert.assertNotNull(pollingConsumer);
 		Assert.assertNotNull(messageHandler);
-		final KafkaProducerContext producerContext = messageHandler.getKafkaProducerContext();
+		final KafkaProducerContext<K,V> producerContext = messageHandler.getKafkaProducerContext();
 		Assert.assertNotNull(producerContext);
 		Assert.assertEquals(producerContext.getTopicsConfiguration().size(), 2);
 	}

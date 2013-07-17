@@ -23,7 +23,7 @@
 
     <task:executor id="taskExecutor" pool-size="5" keep-alive="120" queue-capacity="500"/>
 
-    <bean id="kafkaEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroBackedKafkaEncoder">
+    <bean id="kafkaEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder">
         <constructor-arg value="java.lang.String" />
     </bean>
 

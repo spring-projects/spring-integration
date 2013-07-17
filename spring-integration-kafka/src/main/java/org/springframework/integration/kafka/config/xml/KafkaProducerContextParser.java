@@ -30,11 +30,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Soby Chacko
  * @since 0.5
  */
 public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionParser {
+
 	@Override
 	protected Class<?> getBeanClass(final Element element) {
 		return KafkaProducerContext.class;
@@ -48,6 +52,7 @@ public class KafkaProducerContextParser extends AbstractSimpleBeanDefinitionPars
 		parseProducerConfigurations(topics, parserContext);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void parseProducerConfigurations(final Element topics, final ParserContext parserContext) {
 		for (final Element producerConfiguration : DomUtils.getChildElementsByTagName(topics, "producer-configuration")){
 			final BeanDefinitionBuilder producerConfigurationBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProducerConfiguration.class);

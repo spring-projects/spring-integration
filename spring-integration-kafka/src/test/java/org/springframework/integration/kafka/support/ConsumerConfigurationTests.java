@@ -45,34 +45,34 @@ import org.mockito.stubbing.Answer;
  * @author Gunnar Hillert
  * @since 0.5
  */
-public class ConsumerConfigurationTests {
+public class ConsumerConfigurationTests<K,V> {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testReceiveMessageForSingleTopicFromSingleStream() {
-		final ConsumerMetadata consumerMetadata = mock(ConsumerMetadata.class);
+		final ConsumerMetadata<K,V> consumerMetadata = mock(ConsumerMetadata.class);
 		final ConsumerConnectionProvider consumerConnectionProvider =
 				mock(ConsumerConnectionProvider.class);
-		final MessageLeftOverTracker messageLeftOverTracker = mock(MessageLeftOverTracker.class);
+		final MessageLeftOverTracker<K,V> messageLeftOverTracker = mock(MessageLeftOverTracker.class);
 		final ConsumerConnector consumerConnector = mock(ConsumerConnector.class);
 
 		when(consumerConnectionProvider.getConsumerConnector()).thenReturn(consumerConnector);
 
-		final ConsumerConfiguration consumerConfiguration = new ConsumerConfiguration(consumerMetadata,
+		final ConsumerConfiguration<K,V> consumerConfiguration = new ConsumerConfiguration<K,V>(consumerMetadata,
 				consumerConnectionProvider, messageLeftOverTracker);
 		consumerConfiguration.setMaxMessages(1);
 
-		final KafkaStream stream = mock(KafkaStream.class);
-		final List<KafkaStream<byte[], byte[]>> streams = new ArrayList<KafkaStream<byte[], byte[]>>();
+		final KafkaStream<K,V> stream = mock(KafkaStream.class);
+		final List<KafkaStream<K,V>> streams = new ArrayList<KafkaStream<K,V>>();
 		streams.add(stream);
-		final Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = new HashMap<String, List<KafkaStream<byte[], byte[]>>>();
+		final Map<String, List<KafkaStream<K,V>>> messageStreams = new HashMap<String, List<KafkaStream<K,V>>>();
 		messageStreams.put("topic", streams);
 
 		when(consumerConfiguration.getConsumerMapWithMessageStreams()).thenReturn(messageStreams);
-		final ConsumerIterator iterator = mock(ConsumerIterator.class);
+		final ConsumerIterator<K,V> iterator = mock(ConsumerIterator.class);
 		when(stream.iterator()).thenReturn(iterator);
-		final MessageAndMetadata messageAndMetadata = mock(MessageAndMetadata.class);
+		final MessageAndMetadata<K,V> messageAndMetadata = mock(MessageAndMetadata.class);
 		when(iterator.next()).thenReturn(messageAndMetadata);
-		when(messageAndMetadata.message()).thenReturn("got message");
+		when(messageAndMetadata.message()).thenReturn((V) "got message");
 		when(messageAndMetadata.topic()).thenReturn("topic");
 		when(messageAndMetadata.partition()).thenReturn(1);
 
@@ -90,54 +90,54 @@ public class ConsumerConfigurationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testReceiveMessageForSingleTopicFromMultipleStreams() {
-		final ConsumerMetadata consumerMetadata = mock(ConsumerMetadata.class);
+		final ConsumerMetadata<K,V> consumerMetadata = mock(ConsumerMetadata.class);
 		final ConsumerConnectionProvider consumerConnectionProvider =
 				mock(ConsumerConnectionProvider.class);
-		final MessageLeftOverTracker messageLeftOverTracker = mock(MessageLeftOverTracker.class);
+		final MessageLeftOverTracker<K,V> messageLeftOverTracker = mock(MessageLeftOverTracker.class);
 
 		final ConsumerConnector consumerConnector = mock(ConsumerConnector.class);
 
 		when(consumerConnectionProvider.getConsumerConnector()).thenReturn(consumerConnector);
 
-		final ConsumerConfiguration consumerConfiguration = new ConsumerConfiguration(consumerMetadata,
+		final ConsumerConfiguration<K,V> consumerConfiguration = new ConsumerConfiguration<K,V>(consumerMetadata,
 				consumerConnectionProvider, messageLeftOverTracker);
 		consumerConfiguration.setMaxMessages(3);
 
-		final KafkaStream stream1 = mock(KafkaStream.class);
-		final KafkaStream stream2 = mock(KafkaStream.class);
-		final KafkaStream stream3 = mock(KafkaStream.class);
-		final List<KafkaStream<byte[], byte[]>> streams = new ArrayList<KafkaStream<byte[], byte[]>>();
+		final KafkaStream<K,V> stream1 = mock(KafkaStream.class);
+		final KafkaStream<K,V> stream2 = mock(KafkaStream.class);
+		final KafkaStream<K,V> stream3 = mock(KafkaStream.class);
+		final List<KafkaStream<K,V>> streams = new ArrayList<KafkaStream<K,V>>();
 		streams.add(stream1);
 		streams.add(stream2);
 		streams.add(stream3);
-		final Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = new HashMap<String, List<KafkaStream<byte[], byte[]>>>();
+		final Map<String, List<KafkaStream<K,V>>> messageStreams = new HashMap<String, List<KafkaStream<K,V>>>();
 		messageStreams.put("topic", streams);
 
 		when(consumerConfiguration.getConsumerMapWithMessageStreams()).thenReturn(messageStreams);
-		final ConsumerIterator iterator1 = mock(ConsumerIterator.class);
-		final ConsumerIterator iterator2 = mock(ConsumerIterator.class);
-		final ConsumerIterator iterator3 = mock(ConsumerIterator.class);
+		final ConsumerIterator<K,V> iterator1 = mock(ConsumerIterator.class);
+		final ConsumerIterator<K,V> iterator2 = mock(ConsumerIterator.class);
+		final ConsumerIterator<K,V> iterator3 = mock(ConsumerIterator.class);
 
 		when(stream1.iterator()).thenReturn(iterator1);
 		when(stream2.iterator()).thenReturn(iterator2);
 		when(stream3.iterator()).thenReturn(iterator3);
-		final MessageAndMetadata messageAndMetadata1 = mock(MessageAndMetadata.class);
-		final MessageAndMetadata messageAndMetadata2 = mock(MessageAndMetadata.class);
-		final MessageAndMetadata messageAndMetadata3 = mock(MessageAndMetadata.class);
+		final MessageAndMetadata<K,V> messageAndMetadata1 = mock(MessageAndMetadata.class);
+		final MessageAndMetadata<K,V> messageAndMetadata2 = mock(MessageAndMetadata.class);
+		final MessageAndMetadata<K,V> messageAndMetadata3 = mock(MessageAndMetadata.class);
 
 		when(iterator1.next()).thenReturn(messageAndMetadata1);
 		when(iterator2.next()).thenReturn(messageAndMetadata2);
 		when(iterator3.next()).thenReturn(messageAndMetadata3);
 
-		when(messageAndMetadata1.message()).thenReturn("got message");
+		when(messageAndMetadata1.message()).thenReturn((V)"got message");
 		when(messageAndMetadata1.topic()).thenReturn("topic");
 		when(messageAndMetadata1.partition()).thenReturn(1);
 
-		when(messageAndMetadata2.message()).thenReturn("got message");
+		when(messageAndMetadata2.message()).thenReturn((V)"got message");
 		when(messageAndMetadata2.topic()).thenReturn("topic");
 		when(messageAndMetadata2.partition()).thenReturn(2);
 
-		when(messageAndMetadata3.message()).thenReturn("got message");
+		when(messageAndMetadata3.message()).thenReturn((V)"got message");
 		when(messageAndMetadata3.topic()).thenReturn("topic");
 		when(messageAndMetadata3.partition()).thenReturn(3);
 
@@ -157,56 +157,56 @@ public class ConsumerConfigurationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testReceiveMessageForMultipleTopicsFromMultipleStreams() {
-		final ConsumerMetadata consumerMetadata = mock(ConsumerMetadata.class);
+		final ConsumerMetadata<K,V> consumerMetadata = mock(ConsumerMetadata.class);
 		final ConsumerConnectionProvider consumerConnectionProvider =
 				mock(ConsumerConnectionProvider.class);
-		final MessageLeftOverTracker messageLeftOverTracker = mock(MessageLeftOverTracker.class);
+		final MessageLeftOverTracker<K,V> messageLeftOverTracker = mock(MessageLeftOverTracker.class);
 
 		final ConsumerConnector consumerConnector = mock(ConsumerConnector.class);
 
 		when(consumerConnectionProvider.getConsumerConnector()).thenReturn(consumerConnector);
 
-		final ConsumerConfiguration consumerConfiguration = new ConsumerConfiguration(consumerMetadata,
+		final ConsumerConfiguration<K,V> consumerConfiguration = new ConsumerConfiguration<K,V>(consumerMetadata,
 				consumerConnectionProvider, messageLeftOverTracker);
 		consumerConfiguration.setMaxMessages(9);
 
-		final KafkaStream stream1 = mock(KafkaStream.class);
-		final KafkaStream stream2 = mock(KafkaStream.class);
-		final KafkaStream stream3 = mock(KafkaStream.class);
-		final List<KafkaStream<byte[], byte[]>> streams = new ArrayList<KafkaStream<byte[], byte[]>>();
+		final KafkaStream<K,V> stream1 = mock(KafkaStream.class);
+		final KafkaStream<K,V> stream2 = mock(KafkaStream.class);
+		final KafkaStream<K,V> stream3 = mock(KafkaStream.class);
+		final List<KafkaStream<K,V>> streams = new ArrayList<KafkaStream<K,V>>();
 		streams.add(stream1);
 		streams.add(stream2);
 		streams.add(stream3);
-		final Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = new HashMap<String, List<KafkaStream<byte[], byte[]>>>();
+		final Map<String, List<KafkaStream<K,V>>> messageStreams = new HashMap<String, List<KafkaStream<K,V>>>();
 		messageStreams.put("topic1", streams);
 		messageStreams.put("topic2", streams);
 		messageStreams.put("topic3", streams);
 
 		when(consumerConfiguration.getConsumerMapWithMessageStreams()).thenReturn(messageStreams);
-		final ConsumerIterator iterator1 = mock(ConsumerIterator.class);
-		final ConsumerIterator iterator2 = mock(ConsumerIterator.class);
-		final ConsumerIterator iterator3 = mock(ConsumerIterator.class);
+		final ConsumerIterator<K,V> iterator1 = mock(ConsumerIterator.class);
+		final ConsumerIterator<K,V> iterator2 = mock(ConsumerIterator.class);
+		final ConsumerIterator<K,V> iterator3 = mock(ConsumerIterator.class);
 
 		when(stream1.iterator()).thenReturn(iterator1);
 		when(stream2.iterator()).thenReturn(iterator2);
 		when(stream3.iterator()).thenReturn(iterator3);
-		final MessageAndMetadata messageAndMetadata1 = mock(MessageAndMetadata.class);
-		final MessageAndMetadata messageAndMetadata2 = mock(MessageAndMetadata.class);
-		final MessageAndMetadata messageAndMetadata3 = mock(MessageAndMetadata.class);
+		final MessageAndMetadata<K,V> messageAndMetadata1 = mock(MessageAndMetadata.class);
+		final MessageAndMetadata<K,V> messageAndMetadata2 = mock(MessageAndMetadata.class);
+		final MessageAndMetadata<K,V> messageAndMetadata3 = mock(MessageAndMetadata.class);
 
 		when(iterator1.next()).thenReturn(messageAndMetadata1);
 		when(iterator2.next()).thenReturn(messageAndMetadata2);
 		when(iterator3.next()).thenReturn(messageAndMetadata3);
 
-		when(messageAndMetadata1.message()).thenReturn("got message1");
+		when(messageAndMetadata1.message()).thenReturn((V)"got message1");
 		when(messageAndMetadata1.topic()).thenReturn("topic1");
 		when(messageAndMetadata1.partition()).thenAnswer(getAnswer());
 
-		when(messageAndMetadata2.message()).thenReturn("got message2");
+		when(messageAndMetadata2.message()).thenReturn((V)"got message2");
 		when(messageAndMetadata2.topic()).thenReturn("topic2");
 		when(messageAndMetadata1.partition()).thenAnswer(getAnswer());
 
-		when(messageAndMetadata3.message()).thenReturn("got message3");
+		when(messageAndMetadata3.message()).thenReturn((V)"got message3");
 		when(messageAndMetadata3.topic()).thenReturn("topic3");
 		when(messageAndMetadata1.partition()).thenAnswer(getAnswer());
 
@@ -244,39 +244,39 @@ public class ConsumerConfigurationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testReceiveMessageAndVerifyMessageLeftoverFromPreviousPollAreTakenFirst() {
-		final ConsumerMetadata consumerMetadata = mock(ConsumerMetadata.class);
+		final ConsumerMetadata<K,V> consumerMetadata = mock(ConsumerMetadata.class);
 		final ConsumerConnectionProvider consumerConnectionProvider =
 				mock(ConsumerConnectionProvider.class);
-		final MessageLeftOverTracker messageLeftOverTracker = mock(MessageLeftOverTracker.class);
+		final MessageLeftOverTracker<K,V> messageLeftOverTracker = mock(MessageLeftOverTracker.class);
 		final ConsumerConnector consumerConnector = mock(ConsumerConnector.class);
 
 		when(messageLeftOverTracker.getCurrentCount()).thenReturn(3);
-		final MessageAndMetadata m1 = new MessageAndMetadata("key1", "value1", "topic1", 1, 1L);
-		final MessageAndMetadata m2 = new MessageAndMetadata("key2", "value2", "topic2", 1, 1L);
-		final MessageAndMetadata m3 = new MessageAndMetadata("key1", "value3", "topic3", 1, 1L);
+		final MessageAndMetadata<String, String> m1 = new MessageAndMetadata<String, String>("key1", "value1", "topic1", 1, 1L);
+		final MessageAndMetadata<String, String> m2 = new MessageAndMetadata<String, String>("key2", "value2", "topic2", 1, 1L);
+		final MessageAndMetadata<String, String> m3 = new MessageAndMetadata<String, String>("key1", "value3", "topic3", 1, 1L);
 
-		final List<MessageAndMetadata> mList = new ArrayList<MessageAndMetadata>();
+		final List<MessageAndMetadata<String, String>> mList = new ArrayList<MessageAndMetadata<String, String>>();
 		mList.add(m1);
 		mList.add(m2);
 		mList.add(m3);
 
-		when(messageLeftOverTracker.getMessageLeftOverFromPreviousPoll()).thenReturn(mList);
+		when((List<MessageAndMetadata<String, String>>) (Object) messageLeftOverTracker.getMessageLeftOverFromPreviousPoll()).thenReturn(mList);
 
 		when(consumerConnectionProvider.getConsumerConnector()).thenReturn(consumerConnector);
 
-		final ConsumerConfiguration consumerConfiguration = new ConsumerConfiguration(consumerMetadata,
+		final ConsumerConfiguration<K,V> consumerConfiguration = new ConsumerConfiguration<K,V>(consumerMetadata,
 				consumerConnectionProvider, messageLeftOverTracker);
 		consumerConfiguration.setMaxMessages(5);
 
-		final KafkaStream stream = mock(KafkaStream.class);
-		final List<KafkaStream<byte[], byte[]>> streams = new ArrayList<KafkaStream<byte[], byte[]>>();
+		final KafkaStream<K,V> stream = mock(KafkaStream.class);
+		final List<KafkaStream<K,V>> streams = new ArrayList<KafkaStream<K,V>>();
 		streams.add(stream);
-		final Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = new HashMap<String, List<KafkaStream<byte[], byte[]>>>();
+		final Map<String, List<KafkaStream<K,V>>> messageStreams = new HashMap<String, List<KafkaStream<K,V>>>();
 		messageStreams.put("topic1", streams);
 
 		when(consumerConfiguration.getConsumerMapWithMessageStreams()).thenReturn(messageStreams);
 		final ConsumerIterator<String, String> iterator = mock(ConsumerIterator.class);
-		when(stream.iterator()).thenReturn(iterator);
+		when(stream.iterator()).thenReturn((ConsumerIterator<K,V>) iterator);
 		final MessageAndMetadata<String, String> messageAndMetadata = mock(MessageAndMetadata.class);
 		when(iterator.next()).thenReturn(messageAndMetadata);
 		when(messageAndMetadata.message()).thenReturn("got message");
@@ -306,9 +306,10 @@ public class ConsumerConfigurationTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testGetConsumerMapWithMessageStreamsWithNullDecoders() {
 
-		final ConsumerMetadata<?,?> mockedConsumerMetadata = mock(ConsumerMetadata.class);
+		final ConsumerMetadata<K,V> mockedConsumerMetadata = mock(ConsumerMetadata.class);
 
 		assertNull(mockedConsumerMetadata.getKeyDecoder());
 		assertNull(mockedConsumerMetadata.getValueDecoder());
@@ -317,25 +318,26 @@ public class ConsumerConfigurationTests {
 		when(mockedConsumerMetadata.getTopicStreamMap()).thenReturn(topicsStreamMap);
 
 		final ConsumerConnectionProvider mockedConsumerConnectionProvider = mock(ConsumerConnectionProvider.class);
-		final MessageLeftOverTracker mockedMessageLeftOverTracker = mock(MessageLeftOverTracker.class);
+		final MessageLeftOverTracker<K,V> mockedMessageLeftOverTracker = mock(MessageLeftOverTracker.class);
 		final ConsumerConnector mockedConsumerConnector = mock(ConsumerConnector.class);
 
 		when(mockedConsumerConnectionProvider.getConsumerConnector()).thenReturn(mockedConsumerConnector);
 
-		final Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = new HashMap<String, List<KafkaStream<byte[],byte[]>>>();
-		when(mockedConsumerConnector.createMessageStreams(topicsStreamMap)).thenReturn(messageStreams);
+		final Map<String, List<KafkaStream<K,V>>> messageStreams = new HashMap<String, List<KafkaStream<K,V>>>();
+		when((Map<String, List<KafkaStream<K,V>>>) (Object) mockedConsumerConnector.createMessageStreams(topicsStreamMap)).thenReturn(messageStreams);
 
-		final ConsumerConfiguration consumerConfiguration = new ConsumerConfiguration(mockedConsumerMetadata,
+		final ConsumerConfiguration<K,V> consumerConfiguration = new ConsumerConfiguration<K,V>(mockedConsumerMetadata,
 				mockedConsumerConnectionProvider, mockedMessageLeftOverTracker);
 
 		consumerConfiguration.getConsumerMapWithMessageStreams();
 
 		verify(mockedConsumerMetadata, atLeast(1)).getTopicStreamMap();
-		verify(mockedConsumerConnector, atLeast(1)).createMessageStreams(topicsStreamMap);
-		verify(mockedConsumerConnector, atMost(0)).createMessageStreams(topicsStreamMap, null, null);
+		verify(mockedConsumerConnector, atLeast(1)).createMessageStreams(topicsStreamMap, null, null);
+		//verify(mockedConsumerConnector, atMost(0)).createMessageStreams(topicsStreamMap, null, null);
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testGetConsumerMapWithMessageStreamsWithDecoders() {
 
 		@SuppressWarnings("unchecked")
@@ -355,7 +357,7 @@ public class ConsumerConfigurationTests {
 
 		final ConsumerConnectionProvider mockedConsumerConnectionProvider =
 				mock(ConsumerConnectionProvider.class);
-		final MessageLeftOverTracker mockedMessageLeftOverTracker = mock(MessageLeftOverTracker.class);
+		final MessageLeftOverTracker<String, String> mockedMessageLeftOverTracker = mock(MessageLeftOverTracker.class);
 		final ConsumerConnector mockedConsumerConnector = mock(ConsumerConnector.class);
 
 		when(mockedConsumerConnectionProvider.getConsumerConnector()).thenReturn(mockedConsumerConnector);
@@ -363,7 +365,7 @@ public class ConsumerConfigurationTests {
 		final Map<String, List<KafkaStream<byte[], byte[]>>> messageStreams = new HashMap<String, List<KafkaStream<byte[],byte[]>>>();
 		when(mockedConsumerConnector.createMessageStreams(topicsStreamMap)).thenReturn(messageStreams);
 
-		final ConsumerConfiguration consumerConfiguration = new ConsumerConfiguration(mockedConsumerMetadata,
+		final ConsumerConfiguration<String, String> consumerConfiguration = new ConsumerConfiguration<String, String>(mockedConsumerMetadata,
 				mockedConsumerConnectionProvider, mockedMessageLeftOverTracker);
 
 		consumerConfiguration.getConsumerMapWithMessageStreams();

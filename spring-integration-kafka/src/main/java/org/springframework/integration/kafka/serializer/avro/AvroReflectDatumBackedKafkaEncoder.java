@@ -16,10 +16,8 @@
 package org.springframework.integration.kafka.serializer.avro;
 
 import kafka.serializer.Encoder;
-import org.apache.avro.Schema;
-import org.apache.avro.reflect.ReflectData;
-
-import java.io.IOException;
+import org.apache.avro.io.DatumWriter;
+import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -27,27 +25,18 @@ import org.apache.commons.logging.LogFactory;
  * @author Soby Chacko
  * @since 0.5
  */
-public class AvroBackedKafkaEncoder<T> implements Encoder<T> {
-	private static final Log LOG = LogFactory.getLog(AvroBackedKafkaEncoder.class);
+public class AvroReflectDatumBackedKafkaEncoder<T> extends AvroDatumSupport<T> implements Encoder<T> {
+	private static final Log LOG = LogFactory.getLog(AvroReflectDatumBackedKafkaEncoder.class);
 
-	private final Class clazz;
+	private final DatumWriter<T> writer;
 
-	public AvroBackedKafkaEncoder(final Class clazz) {
-		this.clazz = clazz;
+	public AvroReflectDatumBackedKafkaEncoder(final Class<T> clazz) {
+		this.writer = new ReflectDatumWriter<T>(clazz);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public byte[] toBytes(final T source) {
-		final Schema schema = ReflectData.get().getSchema(clazz);
-		final AvroSerializer avroSerializer = new AvroSerializer();
-
-		try {
-			return avroSerializer.serialize(source, schema);
-		} catch (IOException e) {
-			LOG.error("Failed to encode source for schema: " + schema.getFullName());
-		}
-
-		return null;
+		return toBytes(source, writer);
 	}
 }

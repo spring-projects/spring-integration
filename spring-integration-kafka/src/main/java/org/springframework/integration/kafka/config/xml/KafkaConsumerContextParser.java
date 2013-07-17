@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.kafka.config.xml;
 
+import kafka.serializer.DefaultDecoder;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -32,7 +33,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,6 +57,7 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 		parseConsumerConfigurations(consumerConfigurations, parserContext, builder, element);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void parseConsumerConfigurations(final Element consumerConfigurations, final ParserContext parserContext,
 											 final BeanDefinitionBuilder builder, final Element parentElem) {
 		for (final Element consumerConfiguration : DomUtils.getChildElementsByTagName(consumerConfigurations, "consumer-configuration")) {

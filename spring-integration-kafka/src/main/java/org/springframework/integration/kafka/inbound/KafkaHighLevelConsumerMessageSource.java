@@ -28,11 +28,11 @@ import java.util.Map;
  * @since 0.5
  *
  */
-public class KafkaHighLevelConsumerMessageSource extends IntegrationObjectSupport implements MessageSource<Map<String, Map<Integer, List<Object>>>> {
+public class KafkaHighLevelConsumerMessageSource<K,V> extends IntegrationObjectSupport implements MessageSource<Map<String, Map<Integer, List<Object>>>> {
 
-	private final KafkaConsumerContext kafkaConsumerContext;
+	private final KafkaConsumerContext<K,V> kafkaConsumerContext;
 
-	public KafkaHighLevelConsumerMessageSource(final KafkaConsumerContext kafkaConsumerContext) {
+	public KafkaHighLevelConsumerMessageSource(final KafkaConsumerContext<K,V> kafkaConsumerContext) {
 		this.kafkaConsumerContext = kafkaConsumerContext;
 	}
 

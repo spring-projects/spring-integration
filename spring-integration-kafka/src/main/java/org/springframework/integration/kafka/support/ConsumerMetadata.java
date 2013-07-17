@@ -16,6 +16,8 @@
 package org.springframework.integration.kafka.support;
 
 import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
 
 import java.util.Map;
@@ -24,7 +26,7 @@ import java.util.Map;
  * @author Soby Chacko
  * @since 0.5
  */
-public class ConsumerMetadata<K,V> {
+public class ConsumerMetadata<K,V> implements InitializingBean {
 
 	//High level consumer defaults
 	private String groupId = KafkaConsumerDefaults.GROUP_ID;
@@ -171,5 +173,17 @@ public class ConsumerMetadata<K,V> {
 
 	public void setTopicStreamMap(final Map<String, Integer> topicStreamMap) {
 		this.topicStreamMap = topicStreamMap;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void afterPropertiesSet() throws Exception {
+		if (valueDecoder == null) {
+			setValueDecoder((Decoder<V>) new DefaultDecoder(null));
+		}
+
+		if (keyDecoder == null) {
+			setKeyDecoder((Decoder<K>) getValueDecoder());
+		}
 	}
 }

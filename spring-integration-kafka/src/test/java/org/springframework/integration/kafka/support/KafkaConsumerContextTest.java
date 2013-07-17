@@ -30,20 +30,22 @@ import java.util.Map;
  * @author Soby Chacko
  * @since 0.5
  */
-public class KafkaConsumerContextTest {
+public class KafkaConsumerContextTest<K,V> {
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMergeResultsFromMultipleConsumerConfiguration() {
-		final KafkaConsumerContext kafkaConsumerContext = new KafkaConsumerContext();
+		final KafkaConsumerContext<K,V> kafkaConsumerContext = new KafkaConsumerContext<K,V>();
 		final ListableBeanFactory beanFactory = Mockito.mock(ListableBeanFactory.class);
-		final ConsumerConfiguration consumerConfiguration1 = Mockito.mock(ConsumerConfiguration.class);
-		final ConsumerConfiguration consumerConfiguration2 = Mockito.mock(ConsumerConfiguration.class);
+		final ConsumerConfiguration<K,V> consumerConfiguration1 = Mockito.mock(ConsumerConfiguration.class);
+		final ConsumerConfiguration<K,V> consumerConfiguration2 = Mockito.mock(ConsumerConfiguration.class);
 
-		final Map<String, ConsumerConfiguration> map = new HashMap<String, ConsumerConfiguration>();
+		final Map<String, ConsumerConfiguration<K,V>> map = new HashMap<String, ConsumerConfiguration<K,V>>();
 		map.put("config1", consumerConfiguration1);
 		map.put("config2", consumerConfiguration2);
 
-		Mockito.when(beanFactory.getBeansOfType(ConsumerConfiguration.class)).thenReturn(map);
+		Mockito.when((Map<String, ConsumerConfiguration<K,V>>) (Object) beanFactory.getBeansOfType(ConsumerConfiguration.class)).thenReturn(
+				map);
 		kafkaConsumerContext.setBeanFactory(beanFactory);
 
 		final Map<String, Map<Integer, List<Object>>> result1 = new HashMap<String, Map<Integer, List<Object>>>();

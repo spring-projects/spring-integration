@@ -31,7 +31,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class KafkaConsumerContextParserTests {
+public class KafkaConsumerContextParserTests<K,V> {
 
 	@Autowired
 	private ApplicationContext appContext;
@@ -39,10 +39,10 @@ public class KafkaConsumerContextParserTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testConsumerContextConfiguration() {
-		final KafkaConsumerContext consumerContext = appContext.getBean("consumerContext", KafkaConsumerContext.class);
+		final KafkaConsumerContext<K,V> consumerContext = appContext.getBean("consumerContext", KafkaConsumerContext.class);
 		Assert.assertNotNull(consumerContext);
 
-		final ConsumerMetadata cm = appContext.getBean("consumerMetadata_default1", ConsumerMetadata.class);
+		final ConsumerMetadata<K,V> cm = appContext.getBean("consumerMetadata_default1", ConsumerMetadata.class);
 		Assert.assertNotNull(cm);
 	}
 }
