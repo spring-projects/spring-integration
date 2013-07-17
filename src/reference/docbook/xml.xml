@@ -727,6 +727,13 @@
 			<classname>String</classname>, the resulting payload will be of type
 			<classname><ulink url="http://docs.oracle.com/javase/6/docs/api/org/w3c/dom/Document.html">Document</ulink></classname>.
 		</para>
+		<para><emphasis>XsltPayloadTransformer and &lt;xsl:output method="text"/&gt;</emphasis></para>
+		<para>&lt;xsl:output method="text"/&gt; says to XSLT template to produce just only text content from source.
+		In this case there is no reason to have any <classname>DomResult</classname>. So <classname>XsltPayloadTransformer</classname>
+		makes coercion to <classname>StringResult</classname>, if output method of <classname>javax.xml.transform.Transformer</classname>
+		is equal to <code>"text"</code> value, independently of inbound payload type. This 'smart' behaviour is available, if
+		<code>result-type</code> or <code>result-factory</code> attributes aren't provided for the <code>&lt;int-xml:xslt-transformer&gt;</code>
+		component.</para>
 	</section>
 </section>
   <section id="xml-xpath-transformer">
