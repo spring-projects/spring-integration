@@ -24,14 +24,14 @@ import java.util.List;
  * @author Soby Chacko
  * @since 0.5
  */
-public class MessageLeftOverTracker {
-	private final List<MessageAndMetadata> messageLeftOverFromPreviousPoll = new ArrayList<MessageAndMetadata>();
+public class MessageLeftOverTracker<K,V> {
+	private final List<MessageAndMetadata<K,V>> messageLeftOverFromPreviousPoll = new ArrayList<MessageAndMetadata<K,V>>();
 
-	public void addMessageAndMetadata(final MessageAndMetadata messageAndMetadata){
+	public void addMessageAndMetadata(final MessageAndMetadata<K,V> messageAndMetadata){
 		messageLeftOverFromPreviousPoll.add(messageAndMetadata);
 	}
 
-	public List<MessageAndMetadata> getMessageLeftOverFromPreviousPoll(){
+	public List<MessageAndMetadata<K,V>> getMessageLeftOverFromPreviousPoll(){
 		return messageLeftOverFromPreviousPoll;
 	}
 

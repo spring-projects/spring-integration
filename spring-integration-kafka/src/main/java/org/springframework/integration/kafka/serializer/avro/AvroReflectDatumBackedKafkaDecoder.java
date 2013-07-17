@@ -15,12 +15,9 @@
  */
 package org.springframework.integration.kafka.serializer.avro;
 
-
 import kafka.serializer.Decoder;
-import org.apache.avro.Schema;
-import org.apache.avro.reflect.ReflectData;
-
-import java.io.IOException;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.reflect.ReflectDatumReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,28 +25,19 @@ import org.apache.commons.logging.LogFactory;
  * @author Soby Chacko
  * @since 0.5
  */
-public class AvroBackedKafkaDecoder<T> implements Decoder<T> {
-	private static final Log LOG = LogFactory.getLog(AvroBackedKafkaDecoder.class);
+public class AvroReflectDatumBackedKafkaDecoder<T> extends AvroDatumSupport<T> implements Decoder<T> {
+	private static final Log LOG = LogFactory.getLog(AvroReflectDatumBackedKafkaDecoder.class);
 
-	private final Class clazz;
+	private final DatumReader<T> reader;
 
-	public AvroBackedKafkaDecoder(final Class clazz) {
-		this.clazz = clazz;
+	public AvroReflectDatumBackedKafkaDecoder(final Class<T> clazz) {
+		this.reader = new ReflectDatumReader<T>(clazz);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public T fromBytes(final byte[] bytes) {
-		final Schema schema = ReflectData.get().getSchema(clazz);
-		final AvroSerializer avroSerializer = new AvroSerializer();
-
-		try {
-			return (T) avroSerializer.deserialize(bytes, schema);
-		} catch (IOException e) {
-			LOG.error("Failed to decode byte array for schema: " + schema.getFullName(), e);
-		}
-
-		return null;
+		return fromBytes(bytes, reader);
 	}
 }
 

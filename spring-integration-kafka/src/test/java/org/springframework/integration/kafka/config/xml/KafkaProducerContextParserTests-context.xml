@@ -20,7 +20,7 @@
         </int-kafka:producer-configurations>
     </int-kafka:producer-context>
 
-    <bean id="valueEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroBackedKafkaEncoder">
+    <bean id="valueEncoder" class="org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaEncoder">
             <constructor-arg value="java.lang.String" />
     </bean>
 </beans>

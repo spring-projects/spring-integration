@@ -28,12 +28,12 @@ import java.util.Map;
  * @author Soby Chacko
  * @since 0.5
  */
-public class KafkaProducerContext implements BeanFactoryAware {
-	private Map<String, ProducerConfiguration> topicsConfiguration;
+public class KafkaProducerContext<K,V> implements BeanFactoryAware {
+	private Map<String, ProducerConfiguration<K,V>> topicsConfiguration;
 
 	@SuppressWarnings("unchecked")
 	public void send(final Message<?> message) throws Exception {
-		final ProducerConfiguration producerConfiguration =
+		final ProducerConfiguration<K,V> producerConfiguration =
 						getTopicConfiguration(message.getHeaders().get("topic", String.class));
 
 		if (producerConfiguration != null) {
@@ -41,10 +41,10 @@ public class KafkaProducerContext implements BeanFactoryAware {
 		}
 	}
 
-	private ProducerConfiguration getTopicConfiguration(final String topic){
-		final Collection<ProducerConfiguration> topics = topicsConfiguration.values();
+	private ProducerConfiguration<K,V> getTopicConfiguration(final String topic){
+		final Collection<ProducerConfiguration<K,V>> topics = topicsConfiguration.values();
 
-		for (final ProducerConfiguration producerConfiguration : topics){
+		for (final ProducerConfiguration<K,V> producerConfiguration : topics){
 			if (producerConfiguration.getProducerMetadata().getTopic().equals(topic)){
 				return producerConfiguration;
 			}
@@ -53,12 +53,15 @@ public class KafkaProducerContext implements BeanFactoryAware {
 		return null;
 	}
 
-	public Map<String, ProducerConfiguration> getTopicsConfiguration() {
+	public Map<String, ProducerConfiguration<K,V>> getTopicsConfiguration() {
 		return topicsConfiguration;
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
-		topicsConfiguration = ((ListableBeanFactory)beanFactory).getBeansOfType(ProducerConfiguration.class);
+		topicsConfiguration =
+				(Map<String, ProducerConfiguration<K,V>>) (Object)
+				((ListableBeanFactory)beanFactory).getBeansOfType(ProducerConfiguration.class);
 	}
 }

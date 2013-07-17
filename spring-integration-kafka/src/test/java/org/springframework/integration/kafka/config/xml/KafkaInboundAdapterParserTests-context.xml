@@ -20,7 +20,7 @@
         <int:poller fixed-delay="10" time-unit="MILLISECONDS" max-messages-per-poll="5"/>
     </int-kafka:inbound-channel-adapter>
 
-    <bean id="valueDecoder" class="org.springframework.integration.kafka.serializer.avro.AvroBackedKafkaDecoder">
+    <bean id="valueDecoder" class="org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaDecoder">
         <constructor-arg type="java.lang.Class" value="java.lang.String" />
     </bean>
 

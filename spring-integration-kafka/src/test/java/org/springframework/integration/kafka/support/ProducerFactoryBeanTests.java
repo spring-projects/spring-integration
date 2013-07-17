@@ -24,14 +24,14 @@ import org.mockito.Mockito;
  * @author Soby Chacko
  * @since 0.5
  */
-public class ProducerFactoryBeanTests {
+public class ProducerFactoryBeanTests<K,V> {
 
 	@Test
 	public void createProducerWithDefaultMetadata() throws Exception {
 		final ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<byte[], byte[]>("test");
 		final ProducerMetadata<byte[], byte[]> tm = Mockito.spy(producerMetadata);
 		final ProducerFactoryBean<byte[], byte[]> producerFactoryBean = new ProducerFactoryBean<byte[], byte[]>(tm, "localhost:9092");
-		final Producer producer = producerFactoryBean.getObject();
+		final Producer<byte[], byte[]> producer = producerFactoryBean.getObject();
 
 		Assert.assertTrue(producer != null);
 
@@ -50,7 +50,7 @@ public class ProducerFactoryBeanTests {
 		producerMetadata.setBatchNumMessages("300");
 		final ProducerMetadata<byte[], byte[]> tm = Mockito.spy(producerMetadata);
 		final ProducerFactoryBean<byte[], byte[]> producerFactoryBean = new ProducerFactoryBean<byte[], byte[]>(tm, "localhost:9092");
-		final Producer producer = producerFactoryBean.getObject();
+		final Producer<byte[], byte[]> producer = producerFactoryBean.getObject();
 
 		Assert.assertTrue(producer != null);
 

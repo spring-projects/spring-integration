@@ -24,7 +24,7 @@ import java.util.Properties;
  * @author Soby Chacko
  * @since 0.5
  */
-public class StringEncoder implements Encoder {
+public class StringEncoder<T> implements Encoder<T> {
 	private String encoding = "UTF8";
 
 	public void setEncoding(final String encoding){

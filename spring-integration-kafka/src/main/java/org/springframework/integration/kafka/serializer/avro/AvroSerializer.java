@@ -15,15 +15,12 @@
  */
 package org.springframework.integration.kafka.serializer.avro;
 
-import org.apache.avro.Schema;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.reflect.ReflectDatumReader;
-import org.apache.avro.reflect.ReflectDatumWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,15 +30,13 @@ import java.io.IOException;
  * @since 0.5
  */
 public class AvroSerializer<T> {
-	public T deserialize(final byte[] bytes, final Schema schema) throws IOException {
-		final Decoder decoder = DecoderFactory.get().binaryDecoder(bytes, null);
-		final DatumReader<T> reader = new ReflectDatumReader<T>(schema);
 
+	public T deserialize(final byte[] bytes, final DatumReader<T> reader) throws IOException {
+		final Decoder decoder = DecoderFactory.get().binaryDecoder(bytes, null);
 		return reader.read(null, decoder);
 	}
 
-	public byte[] serialize(final T input, final Schema schema) throws IOException {
-		final DatumWriter<T> writer = new ReflectDatumWriter<T>(schema);
+	public byte[] serialize(final T input, final DatumWriter<T> writer) throws IOException {
 		final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
 		final Encoder encoder = EncoderFactory.get().binaryEncoder(stream, null);

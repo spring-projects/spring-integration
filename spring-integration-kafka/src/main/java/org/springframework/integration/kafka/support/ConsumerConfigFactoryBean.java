@@ -24,12 +24,12 @@ import java.util.Properties;
  * @author Soby Chacko
  * @since 0.5
  */
-public class ConsumerConfigFactoryBean implements FactoryBean<ConsumerConfig> {
+public class ConsumerConfigFactoryBean<K,V> implements FactoryBean<ConsumerConfig> {
 
-	private final ConsumerMetadata consumerMetadata;
+	private final ConsumerMetadata<K,V> consumerMetadata;
 	private final ZookeeperConnect zookeeperConnect;
 
-	public ConsumerConfigFactoryBean(final ConsumerMetadata consumerMetadata,
+	public ConsumerConfigFactoryBean(final ConsumerMetadata<K,V> consumerMetadata,
 									 final ZookeeperConnect zookeeperConnect){
 		this.consumerMetadata = consumerMetadata;
 		this.zookeeperConnect = zookeeperConnect;

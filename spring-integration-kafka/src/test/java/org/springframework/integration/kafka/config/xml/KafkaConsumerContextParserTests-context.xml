@@ -10,7 +10,7 @@
                                  zk-sync-time="2000"/>
 
 
-    <bean id="valueDecoder" class="org.springframework.integration.kafka.serializer.avro.AvroBackedKafkaDecoder">
+    <bean id="valueDecoder" class="org.springframework.integration.kafka.serializer.avro.AvroReflectDatumBackedKafkaDecoder">
         <constructor-arg type="java.lang.Class" value="java.lang.String"/>
     </bean>
 

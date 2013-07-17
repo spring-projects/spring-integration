@@ -32,24 +32,26 @@ import java.util.Map;
  * @author Soby Chacko
  * @since 0.5
  */
-public class KafkaConsumerContext implements BeanFactoryAware {
-	private Map<String, ConsumerConfiguration> consumerConfigurations;
+public class KafkaConsumerContext<K,V>  implements BeanFactoryAware {
+	private Map<String, ConsumerConfiguration<K,V>> consumerConfigurations;
 	private String consumerTimeout = KafkaConsumerDefaults.CONSUMER_TIMEOUT;
 	private ZookeeperConnect zookeeperConnect;
 
-	public Collection<ConsumerConfiguration> getConsumerConfigurations() {
+	public Collection<ConsumerConfiguration<K,V>> getConsumerConfigurations() {
 		return consumerConfigurations.values();
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void setBeanFactory(final BeanFactory beanFactory) throws BeansException {
-		consumerConfigurations = ((ListableBeanFactory) beanFactory).getBeansOfType(ConsumerConfiguration.class);
+		consumerConfigurations = (Map<String, ConsumerConfiguration<K,V>>)
+				(Object) ((ListableBeanFactory) beanFactory).getBeansOfType(ConsumerConfiguration.class);
 	}
 
 	public Message<Map<String, Map<Integer, List<Object>>>> receive() {
 		final Map<String, Map<Integer, List<Object>>> consumedData = new HashMap<String, Map<Integer, List<Object>>>();
 
-		for (final ConsumerConfiguration consumerConfiguration : getConsumerConfigurations()) {
+		for (final ConsumerConfiguration<K,V> consumerConfiguration : getConsumerConfigurations()) {
 			final Map<String, Map<Integer, List<Object>>> messages = consumerConfiguration.receive();
 
 			if (messages != null){
