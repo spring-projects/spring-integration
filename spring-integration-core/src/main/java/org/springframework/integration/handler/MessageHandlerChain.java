@@ -16,25 +16,22 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A composite {@link MessageHandler} implementation that invokes a chain of

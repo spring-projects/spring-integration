@@ -19,11 +19,11 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.util.Assert;
 

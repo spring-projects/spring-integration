@@ -18,9 +18,9 @@ package org.springframework.integration.transformer;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.util.Assert;
 
 /**

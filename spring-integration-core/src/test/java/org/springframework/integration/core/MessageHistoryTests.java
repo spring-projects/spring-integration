@@ -25,10 +25,10 @@ import java.util.Properties;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.context.NamedComponent;
 
 /**
  * @author Mark Fisher

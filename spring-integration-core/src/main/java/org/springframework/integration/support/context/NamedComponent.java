@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context;
+package org.springframework.integration.support.context;
 
 /**
  * @author Mark Fisher

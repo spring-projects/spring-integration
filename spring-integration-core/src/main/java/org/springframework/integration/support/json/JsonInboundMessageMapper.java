@@ -47,7 +47,7 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 
 	public JsonInboundMessageMapper(Type payloadType, JsonMessageParser<?> messageParser) {
 		super(payloadType);
-		Assert.notNull(this.messageParser, "'messageParser' must not be null");
+		Assert.notNull(messageParser, "'messageParser' must not be null");
 		this.messageParser = messageParser;
 	}
 

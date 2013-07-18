@@ -16,7 +16,7 @@
 
 package org.springframework.integration.history;
 
-import org.springframework.integration.context.NamedComponent;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 

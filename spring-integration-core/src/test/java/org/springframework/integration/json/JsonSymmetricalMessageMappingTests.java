@@ -23,10 +23,10 @@ import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.json.JacksonJsonParserProvider;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
