@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -56,11 +57,11 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.context.NamedComponent;
 
 /**
  * @author Oleg Zhurakousky

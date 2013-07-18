@@ -24,6 +24,7 @@ import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.hamcrest.Matcher;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.BeanFactory;
@@ -39,11 +40,11 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;

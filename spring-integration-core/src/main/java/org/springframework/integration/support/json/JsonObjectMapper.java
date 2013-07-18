@@ -14,43 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
 
 /**
- * Simple {@linkplain JsonObjectMapper} adapter implementation, if there is no need
- * to provide entire operations implementation.
+ * Strategy interface to convert an Object to/from the JSON representation.
  *
  * @author Artem Bilan
  * @since 3.0
+ *
  */
-public abstract class JsonObjectMapperAdapter<P> implements JsonObjectMapper<P> {
+public interface JsonObjectMapper<P> {
 
-	@Override
-	public String toJson(Object value) throws Exception {
-		return null;
-	}
+	String toJson(Object value) throws Exception;
 
-	@Override
-	public void toJson(Object value, Writer writer) throws Exception {
-	}
+	void toJson(Object value, Writer writer) throws Exception;
 
-	@Override
-	public <T> T fromJson(String json, Class<T> valueType) throws Exception {
-		return null;
-	}
+	<T> T fromJson(String json, Class<T> valueType) throws Exception;
 
-	@Override
-	public <T> T fromJson(Reader json, Class<T> valueType) throws Exception {
-		return null;
-	}
+	<T> T fromJson(Reader json, Class<T> valueType) throws Exception;
 
-	@Override
-	public <T> T fromJson(P parser, Type valueType) throws Exception {
-		return null;
-	}
+	<T> T fromJson(P parser, Type valueType) throws Exception;
 
 }

@@ -13,34 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.json;
 
-import java.io.Reader;
-import java.io.Writer;
-import java.lang.reflect.Type;
+import org.springframework.integration.support.json.JacksonJsonMessageParser;
+import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 
 /**
- * Strategy interface to convert an Object to/from the JSON representation.
- *
- * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  *
- * @see JsonToObjectTransformer
- * @see ObjectToJsonTransformer
- * @see JacksonJsonObjectMapper
- * @see Jackson2JsonObjectMapper
  */
-public interface JsonObjectMapper<P> {
+public class JacksonJsonInboundMessageMapperTests extends AbstractJsonInboundMessageMapperTests {
 
-	String toJson(Object value) throws Exception;
-
-	void toJson(Object value, Writer writer) throws Exception;
-
-	<T> T fromJson(String json, Class<T> valueType) throws Exception;
-
-	<T> T fromJson(Reader json, Class<T> valueType) throws Exception;
-
-	<T> T fromJson(P parser, Type valueType) throws Exception;
+	@Override
+	protected JsonMessageParser<?> getParser() {
+		return new JacksonJsonMessageParser();
+	}
 
 }

@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -44,10 +44,11 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.jdbc.config.JdbcTypesEnum;
 import org.springframework.integration.jdbc.storedproc.User;
-import org.springframework.integration.json.JsonInboundMessageMapper;
-import org.springframework.integration.json.JsonOutboundMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.Jackson2JsonMessageParser;
+import org.springframework.integration.support.json.JsonInboundMessageMapper;
+import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlReturnType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -159,7 +160,7 @@ public class StoredProcOutboundGatewayWithSpelIntegrationTests {
 		assertNotNull(resultMessage);
 		Object resultPayload = resultMessage.getPayload();
 		assertTrue(resultPayload instanceof String);
-		Message<?> message = new JsonInboundMessageMapper(String.class).toMessage((String) resultPayload);
+		Message<?> message = new JsonInboundMessageMapper(String.class, new Jackson2JsonMessageParser()).toMessage((String) resultPayload);
 		assertEquals(testMessage.getPayload(), message.getPayload());
 		assertEquals(testMessage.getHeaders().get("FOO"), message.getHeaders().get("FOO"));
 		Mockito.verify(clobSqlReturnType).getTypeValue(Mockito.any(CallableStatement.class),

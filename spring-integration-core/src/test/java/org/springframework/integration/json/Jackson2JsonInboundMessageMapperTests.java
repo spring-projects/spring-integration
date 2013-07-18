@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.json;
 
-package org.springframework.integration.history;
-
-import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.integration.support.json.Jackson2JsonMessageParser;
+import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 
 /**
- * @author Mark Fisher
- * @since 2.0
+ * @author Gary Russell
+ * @since 3.0
+ *
  */
-@ManagedResource
-public interface TrackableComponent extends NamedComponent {
+public class Jackson2JsonInboundMessageMapperTests extends AbstractJsonInboundMessageMapperTests {
 
-	@ManagedOperation
-	void setShouldTrack(boolean shouldTrack);
+	@Override
+	protected JsonMessageParser<?> getParser() {
+		return new Jackson2JsonMessageParser();
+	}
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.Map;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.JsonMappingException;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -35,9 +35,9 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 3.0
  */
-class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
+public class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
-	JacksonJsonMessageParser() {
+	public JacksonJsonMessageParser() {
 		super(new JacksonJsonObjectMapper());
 	}
 
@@ -63,13 +63,7 @@ class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonPars
 			}
 			else if (isPayloadToken) {
 				parser.nextToken();
-				try {
-					payload = this.readPayload(parser);
-				}
-				catch (JsonMappingException ex) {
-					throw new IllegalArgumentException("Mapping payload of JSON message " + jsonMessage +
-							" to payload type " + messageMapper.getPayloadType() + " failed.", ex);
-				}
+				payload = this.readPayload(parser, jsonMessage);
 			}
 		}
 		Assert.notNull(headers, error);
@@ -81,15 +75,8 @@ class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonPars
 		while (parser.nextToken() != JsonToken.END_OBJECT) {
 			String headerName = parser.getCurrentName();
 			parser.nextToken();
-			Class<?> headerType = this.messageMapper.getHeaderTypes().containsKey(headerName) ?
-					this.messageMapper.getHeaderTypes().get(headerName) : Object.class;
-			try {
-				headers.put(headerName, this.objectMapper.fromJson(parser, headerType));
-			}
-			catch (JsonMappingException ex) {
-				throw new IllegalArgumentException("Mapping header \"" + headerName + "\" of JSON message " +
-						jsonMessage + " to header type " + messageMapper.getPayloadType() + " failed.", ex);
-			}
+			Object headerValue = this.readHeader(parser, headerName, jsonMessage);
+			headers.put(headerName, headerValue);
 		}
 		return headers;
 	}

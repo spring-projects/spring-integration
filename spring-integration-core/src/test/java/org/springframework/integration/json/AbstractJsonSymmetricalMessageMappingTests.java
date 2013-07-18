@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,22 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.json.JsonInboundMessageMapper;
+import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
+import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 
 
 /**
  * @author Jeremy Grelle
+ * @author Gary Russell
  */
-public class JsonSymmetricalMessageMappingTests {
+public abstract class AbstractJsonSymmetricalMessageMappingTests {
 
 	@Factory
 	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> operand) {
@@ -48,13 +53,13 @@ public class JsonSymmetricalMessageMappingTests {
 
 		String outboundJson = outboundMapper.fromMessage(testMessage);
 
-		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class, getParser());
 		Message<?> result = inboundMapper.toMessage(outboundJson);
 
 		assertThat(result, sameExceptImmutableHeaders(testMessage));
-
-		outboundJson = outboundMapper.fromMessage(result);
 	}
+
+	protected abstract JsonMessageParser<?> getParser();
 
 	private static class TestNamedComponent implements NamedComponent {
 

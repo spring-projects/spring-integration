@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.context.NamedComponent;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityMetadataSource;
 import org.springframework.util.Assert;

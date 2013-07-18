@@ -32,11 +32,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.context.NamedComponent;
 
 /**
  * @author Oleg Zhurakousky

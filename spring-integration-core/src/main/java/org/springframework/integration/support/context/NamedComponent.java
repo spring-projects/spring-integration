@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.history;
-
-import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
+package org.springframework.integration.support.context;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
-@ManagedResource
-public interface TrackableComponent extends NamedComponent {
+public interface NamedComponent {
 
-	@ManagedOperation
-	void setShouldTrack(boolean shouldTrack);
+	String getComponentName();
+
+	String getComponentType();
 
 }

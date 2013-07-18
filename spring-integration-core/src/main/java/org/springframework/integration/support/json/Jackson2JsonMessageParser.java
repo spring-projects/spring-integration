@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 
 /**
  * {@link JsonInboundMessageMapper.JsonMessageParser} implementation that parses JSON messages
@@ -37,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 3.0
  */
-class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
+public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
 	public Jackson2JsonMessageParser() {
 		super(new Jackson2JsonObjectMapper());
@@ -51,11 +50,11 @@ class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonPar
 	@Override
 	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage) throws Exception {
 		String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
-		Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
+		Assert.isTrue(JsonToken.START_OBJECT == parser.nextToken(), error);
 		Map<String, Object> headers = null;
 		Object payload = null;
-		while (parser.nextToken() != JsonToken.END_OBJECT) {
-			Assert.isTrue(parser.getCurrentToken() == JsonToken.FIELD_NAME, error);
+		while (JsonToken.END_OBJECT != parser.nextToken()) {
+			Assert.isTrue(JsonToken.FIELD_NAME == parser.getCurrentToken(), error);
 			boolean isHeadersToken = "headers".equals(parser.getCurrentName());
 			boolean isPayloadToken = "payload".equals(parser.getCurrentName());
 			Assert.isTrue(isHeadersToken || isPayloadToken, error);
@@ -65,13 +64,7 @@ class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonPar
 			}
 			else if (isPayloadToken) {
 				parser.nextToken();
-				try {
-					payload = this.readPayload(parser);
-				}
-				catch (JsonMappingException ex) {
-					throw new IllegalArgumentException("Mapping payload of JSON message " + jsonMessage +
-							" to payload type " + messageMapper.getPayloadType() + " failed.", ex);
-				}
+				payload = this.readPayload(parser, jsonMessage);
 			}
 		}
 		Assert.notNull(headers, error);
@@ -80,18 +73,11 @@ class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonPar
 
 	private Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception {
 		Map<String, Object> headers = new LinkedHashMap<String, Object>();
-		while (parser.nextToken() != JsonToken.END_OBJECT) {
+		while (JsonToken.END_OBJECT != parser.nextToken()) {
 			String headerName = parser.getCurrentName();
 			parser.nextToken();
-			Class<?> headerType = this.messageMapper.getHeaderTypes().containsKey(headerName) ?
-					this.messageMapper.getHeaderTypes().get(headerName) : Object.class;
-			try {
-				headers.put(headerName, this.objectMapper.fromJson(parser, headerType));
-			}
-			catch (JsonMappingException ex) {
-				throw new IllegalArgumentException("Mapping header \"" + headerName + "\" of JSON message " +
-						jsonMessage + " to header type " + messageMapper.getPayloadType() + " failed.", ex);
-			}
+			Object headerValue = this.readHeader(parser, headerName, jsonMessage);
+			headers.put(headerName, headerValue);
 		}
 		return headers;
 	}

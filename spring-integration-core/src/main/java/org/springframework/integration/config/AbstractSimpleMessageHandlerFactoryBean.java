@@ -16,6 +16,7 @@ package org.springframework.integration.config;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -24,7 +25,6 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
