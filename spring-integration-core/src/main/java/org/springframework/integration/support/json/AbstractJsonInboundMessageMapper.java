@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;

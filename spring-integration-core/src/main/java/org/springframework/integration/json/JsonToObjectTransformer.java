@@ -16,6 +16,9 @@
 
 package org.springframework.integration.json;
 
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;

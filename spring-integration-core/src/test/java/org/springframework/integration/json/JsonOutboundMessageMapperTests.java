@@ -32,6 +32,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 
 /**
  * @author Jeremy Grelle

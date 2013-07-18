@@ -21,11 +21,15 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonParserProvider;
+import org.springframework.integration.support.json.JsonInboundMessageMapper;
+import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 
 
 /**
@@ -48,7 +52,7 @@ public class JsonSymmetricalMessageMappingTests {
 
 		String outboundJson = outboundMapper.fromMessage(testMessage);
 
-		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		Message<?> result = inboundMapper.toMessage(outboundJson);
 
 		assertThat(result, sameExceptImmutableHeaders(testMessage));

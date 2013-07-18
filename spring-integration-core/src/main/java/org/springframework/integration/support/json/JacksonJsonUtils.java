@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 import org.springframework.util.ClassUtils;
 
 /**
- * Simple factory to provide {@linkplain Jackson2JsonObjectMapper} or {@linkplain JacksonJsonObjectMapper}
- * instances dependently of jackson-databind or jackson-mapper-asl libs in the classpath.
- * If there are both libs in the classpath, it prefers Jackson 2 JSON-processor implementation.
- * If there is no any of them, {@linkplain IllegalStateException} will be thrown.
+ * Utility methods for Jackson.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  *
- * @see Jackson2JsonObjectMapper
- * @see JacksonJsonObjectMapper
- * @see JsonToObjectTransformer
- * @see ObjectToJsonTransformer
  */
-public final class JacksonJsonObjectMapperProvider {
+public final class JacksonJsonUtils {
 
-	private static final ClassLoader classLoader = JacksonJsonObjectMapperProvider.class.getClassLoader();
+	private static final ClassLoader classLoader = JacksonJsonUtils.class.getClassLoader();
 
 	private static final boolean jackson2Present =
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader) &&
@@ -47,24 +41,15 @@ public final class JacksonJsonObjectMapperProvider {
 	private static final IllegalStateException NO_JACKSON_LIB_EXCEPTION =
 			new IllegalStateException("Neither jackson-databind.jar, nor jackson-mapper-asl.jar aren't presented in the classpath.");
 
-	public static JsonObjectMapper<?> newInstance() {
-		if (jackson2Present) {
-			return new Jackson2JsonObjectMapper();
-		}
-		if(jacksonPresent) {
-			return new JacksonJsonObjectMapper();
-		}
-		throw NO_JACKSON_LIB_EXCEPTION;
+	public static boolean isJackson2Present() {
+		return jackson2Present;
 	}
 
-	public static JsonInboundMessageMapper.JsonMessageParser<?> newJsonMessageParser() {
-		if (jackson2Present) {
-			return new Jackson2JsonMessageParser();
-		}
-		if(jacksonPresent) {
-			return new Jackson2JsonMessageParser();
-		}
-		throw NO_JACKSON_LIB_EXCEPTION;
+	public static boolean isJacksonPresent() {
+		return jacksonPresent;
 	}
 
+	public static IllegalStateException getNoJacksonLibException() {
+		return NO_JACKSON_LIB_EXCEPTION;
+	}
 }

@@ -22,6 +22,8 @@ import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
+import org.springframework.integration.support.json.JacksonJsonObjectMapper;
+
 /**
  * @author Mark Fisher
  * @author Artem Bilan

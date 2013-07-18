@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;

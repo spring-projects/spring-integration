@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -44,10 +44,10 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.jdbc.config.JdbcTypesEnum;
 import org.springframework.integration.jdbc.storedproc.User;
-import org.springframework.integration.json.JsonInboundMessageMapper;
-import org.springframework.integration.json.JsonOutboundMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JsonInboundMessageMapper;
+import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlReturnType;
 import org.springframework.test.annotation.DirtiesContext;

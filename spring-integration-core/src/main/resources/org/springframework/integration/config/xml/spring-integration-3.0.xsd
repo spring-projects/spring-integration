@@ -2150,7 +2150,7 @@
 				<!-- TODO: Revert in the Spring Integration 3.1 or above after removing Jackson 1 backward compatibility
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.json.JsonObjectMapper" />
+						<tool:expected-type type="org.springframework.integration.support.json.JsonObjectMapper" />
 					</tool:annotation>
 				</xsd:appinfo>-->
 			</xsd:annotation>
@@ -2197,7 +2197,7 @@
 				<!-- TODO: Revert in the Spring Integration 3.1 or above after removing Jackson 1 backward compatibility
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.json.JsonObjectMapper" />
+						<tool:expected-type type="org.springframework.integration.support.json.JsonObjectMapper" />
 					</tool:annotation>
 				</xsd:appinfo>-->
 			</xsd:annotation>

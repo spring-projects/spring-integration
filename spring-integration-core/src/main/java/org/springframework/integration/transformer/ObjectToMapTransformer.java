@@ -20,8 +20,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.json.JacksonJsonObjectMapperProvider;
-import org.springframework.integration.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 

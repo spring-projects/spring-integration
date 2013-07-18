@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 import java.lang.reflect.Type;
 import java.util.Map;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
+import org.springframework.util.Assert;
 
 /**
  * {@link org.springframework.integration.mapping.InboundMessageMapper} implementation that maps incoming JSON messages
@@ -32,19 +34,12 @@ import org.springframework.integration.Message;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
-public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<JsonInboundMessageMapper.JsonMessageParser<?>> {
+public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<JsonMessageParser<?>> {
 
 	private volatile JsonMessageParser<?> messageParser;
-
-	public JsonInboundMessageMapper(Class<?> payloadType) {
-		this((Type) payloadType);
-	}
-
-	public JsonInboundMessageMapper(Type payloadType) {
-		this(payloadType, null);
-	}
 
 	public JsonInboundMessageMapper(Class<?> payloadType, JsonMessageParser<?> messageParser) {
 		this((Type) payloadType, messageParser);
@@ -52,7 +47,8 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 
 	public JsonInboundMessageMapper(Type payloadType, JsonMessageParser<?> messageParser) {
 		super(payloadType);
-		this.messageParser = messageParser != null ? messageParser : JacksonJsonObjectMapperProvider.newJsonMessageParser();
+		Assert.notNull(this.messageParser, "'messageParser' must not be null");
+		this.messageParser = messageParser;
 	}
 
 	public boolean isMapToPayload() {

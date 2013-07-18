@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.support.json;
 
 import java.io.Reader;
 import java.io.Writer;

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
-
+package org.springframework.integration.support.json;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.JsonMappingException;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
@@ -32,15 +31,15 @@ import org.springframework.util.Assert;
 /**
  * {@link JsonInboundMessageMapper.JsonMessageParser} implementation that parses JSON messages
  * and builds a {@link Message} with the specified payload type from provided {@link JsonInboundMessageMapper}.
- * Uses Jackson 2 JSON-processor (@link https://github.com/FasterXML).
+ * Uses Jackson JSON-processor (@link http://jackson.codehaus.org).
  *
  * @author Artem Bilan
  * @since 3.0
  */
-class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
+class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
-	public Jackson2JsonMessageParser() {
-		super(new Jackson2JsonObjectMapper());
+	JacksonJsonMessageParser() {
+		super(new JacksonJsonObjectMapper());
 	}
 
 	@Override

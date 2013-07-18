@@ -29,9 +29,14 @@ import java.util.UUID;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JacksonJsonParserProvider;
+import org.springframework.integration.support.json.JsonInboundMessageMapper;
+import org.springframework.integration.support.json.JsonObjectMapper;
 
 /**
  * @author Jeremy Grelle
@@ -54,7 +59,7 @@ public class JsonInboundMessageMapperTests {
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"},\"payload\":\"myPayloadStuff\"}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader("foo", 123).setHeader("bar", "abc").build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
@@ -63,7 +68,7 @@ public class JsonInboundMessageMapperTests {
 	public void testToMessageWithStringPayload() throws Exception {
 		String jsonMessage = "\"myPayloadStuff\"";
 		String expected = "myPayloadStuff";
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		mapper.setMapToPayload(true);
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertEquals(expected, result.getPayload());
@@ -75,7 +80,7 @@ public class JsonInboundMessageMapperTests {
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"},\"payload\":" + getBeanAsJson(bean) + "}";
 		Message<TestBean> expected = MessageBuilder.withPayload(bean).setHeader("foo", 123).setHeader("bar", "abc").build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class, JacksonJsonParserProvider.newJsonMessageParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
@@ -84,7 +89,7 @@ public class JsonInboundMessageMapperTests {
 	public void testToMessageWithBeanPayload() throws Exception {
 		TestBean expected = new TestBean();
 		String jsonMessage = getBeanAsJson(expected);
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class, JacksonJsonParserProvider.newJsonMessageParser());
 		mapper.setMapToPayload(true);
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertEquals(expected, result.getPayload());
@@ -96,7 +101,7 @@ public class JsonInboundMessageMapperTests {
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\", \"myHeader\":" + getBeanAsJson(bean) + "},\"payload\":\"myPayloadStuff\"}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader("myHeader", bean).build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		Map<String, Class<?>> headerTypes = new HashMap<String, Class<?>>();
 		headerTypes.put("myHeader", TestBean.class);
 		mapper.setHeaderTypes(headerTypes);
@@ -110,7 +115,8 @@ public class JsonInboundMessageMapperTests {
 		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"},\"payload\":[\"myPayloadStuff1\",\"myPayloadStuff2\",\"myPayloadStuff3\"]}";
 		List<String> expectedList = Arrays.asList("myPayloadStuff1", "myPayloadStuff2", "myPayloadStuff3");
 		Message<List<String>> expected = MessageBuilder.withPayload(expectedList).setHeader("foo", 123).setHeader("bar", "abc").build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<String>>(){}.getType());
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<String>>(){}.getType(),
+				JacksonJsonParserProvider.newJsonMessageParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
@@ -123,7 +129,8 @@ public class JsonInboundMessageMapperTests {
 		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"},\"payload\":[" + getBeanAsJson(bean1) + "," + getBeanAsJson(bean2) + "]}";
 		List<TestBean> expectedList = Arrays.asList(bean1, bean2);
 		Message<List<TestBean>> expected = MessageBuilder.withPayload(expectedList).setHeader("foo", 123).setHeader("bar", "abc").build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<TestBean>>(){}.getType());
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new ParameterizedTypeReference<List<TestBean>>(){}.getType(),
+				JacksonJsonParserProvider.newJsonMessageParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
@@ -133,7 +140,7 @@ public class JsonInboundMessageMapperTests {
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"payload\":\"myPayloadStuff\",\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"}}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader("foo", 123).setHeader("bar", "abc").build();
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
@@ -141,7 +148,7 @@ public class JsonInboundMessageMapperTests {
 	@Test
 	public void testToMessageInvalidFormatPayloadNoHeaders() throws Exception {
 		String jsonMessage = "{\"payload\":\"myPayloadStuff\"}";
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
@@ -155,7 +162,7 @@ public class JsonInboundMessageMapperTests {
 	public void testToMessageInvalidFormatHeadersNoPayload() throws Exception {
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"}}";
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
@@ -169,7 +176,7 @@ public class JsonInboundMessageMapperTests {
 	public void testToMessageInvalidFormatHeadersAndStringPayloadWithMapToPayload() throws Exception {
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":\"myPayloadStuff\"}";
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		mapper.setMapToPayload(true);
 		try {
 			mapper.toMessage(jsonMessage);
@@ -185,7 +192,7 @@ public class JsonInboundMessageMapperTests {
 		TestBean bean = new TestBean();
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":" + getBeanAsJson(bean) + "}";
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class, JacksonJsonParserProvider.newJsonMessageParser());
 		mapper.setMapToPayload(true);
 		try {
 			mapper.toMessage(jsonMessage);
@@ -201,7 +208,7 @@ public class JsonInboundMessageMapperTests {
 		TestBean bean = new TestBean();
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":" + getBeanAsJson(bean) + "}";
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(Long.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(Long.class, JacksonJsonParserProvider.newJsonMessageParser());
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
@@ -216,7 +223,7 @@ public class JsonInboundMessageMapperTests {
 		TestBean bean = new TestBean();
 		UUID id = UUID.randomUUID();
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\",\"myHeader\":" + getBeanAsJson(bean) + "},\"payload\":\"myPayloadStuff\"}";
-		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
 		Map<String, Class<?>> headerTypes = new HashMap<String, Class<?>>();
 		headerTypes.put("myHeader", Long.class);
 		mapper.setHeaderTypes(headerTypes);
