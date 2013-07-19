@@ -15,7 +15,10 @@
  */
 package org.springframework.integration.kafka.config.xml;
 
-import kafka.serializer.DefaultDecoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -29,17 +32,14 @@ import org.springframework.integration.kafka.support.ConsumerConnectionProvider;
 import org.springframework.integration.kafka.support.ConsumerMetadata;
 import org.springframework.integration.kafka.support.KafkaConsumerContext;
 import org.springframework.integration.kafka.support.MessageLeftOverTracker;
+import org.springframework.integration.kafka.support.TopicFilterConfiguration;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Soby Chacko
+ * @author Rajasekar Elango
  * @since 0.5
  */
 public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionParser {
@@ -57,7 +57,6 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 		parseConsumerConfigurations(consumerConfigurations, parserContext, builder, element);
 	}
 
-	@SuppressWarnings("unchecked")
 	private void parseConsumerConfigurations(final Element consumerConfigurations, final ParserContext parserContext,
 											 final BeanDefinitionBuilder builder, final Element parentElem) {
 		for (final Element consumerConfiguration : DomUtils.getChildElementsByTagName(consumerConfigurations, "consumer-configuration")) {
@@ -75,14 +74,24 @@ public class KafkaConsumerContextParser extends AbstractSingleBeanDefinitionPars
 
 			final Map<String, Integer> topicStreamsMap = new HashMap<String, Integer>();
 
-			for (final Element topicConfiguration : DomUtils.getChildElementsByTagName(consumerConfiguration, "topic")) {
-				final String topic = topicConfiguration.getAttribute("id");
-				final String streams = topicConfiguration.getAttribute("streams");
-				final Integer streamsInt = Integer.valueOf(streams);
-				topicStreamsMap.put(topic, streamsInt);
+			final List<Element> topicConfigurations = DomUtils.getChildElementsByTagName(consumerConfiguration, "topic");
+
+			if (topicConfigurations != null){
+				for (final Element topicConfiguration : topicConfigurations) {
+					final String topic = topicConfiguration.getAttribute("id");
+					final String streams = topicConfiguration.getAttribute("streams");
+					final Integer streamsInt = Integer.valueOf(streams);
+					topicStreamsMap.put(topic, streamsInt);
+				}
+				consumerMetadataBuilder.addPropertyValue("topicStreamMap", topicStreamsMap);
 			}
 
-			consumerMetadataBuilder.addPropertyValue("topicStreamMap", topicStreamsMap);
+			final Element topicFilter = DomUtils.getChildElementByTagName(consumerConfiguration, "topic-filter");
+
+			if (topicFilter != null){
+				final TopicFilterConfiguration topicFilterConfiguration = new TopicFilterConfiguration(topicFilter.getAttribute("pattern"),Integer.valueOf(topicFilter.getAttribute("streams")), Boolean.valueOf(topicFilter.getAttribute("exclude")));
+				consumerMetadataBuilder.addPropertyValue("topicFilterConfiguration", topicFilterConfiguration);
+			}
 
 			final BeanDefinition consumerMetadataBeanDef = consumerMetadataBuilder.getBeanDefinition();
 			registerBeanDefinition(new BeanDefinitionHolder(consumerMetadataBeanDef, "consumerMetadata_" + consumerConfiguration.getAttribute("group-id")),

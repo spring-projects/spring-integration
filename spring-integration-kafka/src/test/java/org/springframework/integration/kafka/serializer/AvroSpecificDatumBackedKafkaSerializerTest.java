@@ -13,7 +13,6 @@ import org.springframework.integration.kafka.test.utils.User;
 public class AvroSpecificDatumBackedKafkaSerializerTest {
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testEncodeDecodeFromSpecificDatumSchema() {
 		final AvroSpecificDatumBackedKafkaEncoder<User> avroBackedKafkaEncoder = new AvroSpecificDatumBackedKafkaEncoder<User>(User.class);
 

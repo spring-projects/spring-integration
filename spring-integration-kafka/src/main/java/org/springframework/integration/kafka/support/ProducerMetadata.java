@@ -18,12 +18,14 @@ package org.springframework.integration.kafka.support;
 import kafka.producer.Partitioner;
 import kafka.serializer.DefaultEncoder;
 import kafka.serializer.Encoder;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
  * @author Soby Chacko
+ * @author Rajasekar Elango
  * @since 0.5
  */
 public class ProducerMetadata<K,V> implements InitializingBean {
@@ -136,5 +138,15 @@ public class ProducerMetadata<K,V> implements InitializingBean {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ProducerMetadata [keyEncoder=").append(keyEncoder).append(", valueEncoder=")
+				.append(valueEncoder).append(", topic=").append(topic).append(", compressionCodec=")
+				.append(compressionCodec).append(", partitioner=").append(partitioner).append(", async=").append(async)
+				.append(", batchNumMessages=").append(batchNumMessages).append("]");
+		return builder.toString();
 	}
 }

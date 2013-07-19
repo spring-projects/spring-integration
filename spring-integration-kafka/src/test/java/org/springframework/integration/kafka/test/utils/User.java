@@ -46,7 +46,6 @@ public class User extends org.apache.avro.specific.SpecificRecordBase implements
 	}
 
 	// Used by DatumReader.  Applications should not call.
-	@SuppressWarnings(value = "unchecked")
 	public void put(int field$, java.lang.Object value$) {
 		switch (field$) {
 			case 0:
@@ -92,5 +91,3 @@ public class User extends org.apache.avro.specific.SpecificRecordBase implements
 		this.lastName = value;
 	}
 }
-
-

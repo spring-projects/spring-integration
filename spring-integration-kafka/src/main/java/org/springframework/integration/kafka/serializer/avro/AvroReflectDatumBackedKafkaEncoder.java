@@ -16,17 +16,15 @@
 package org.springframework.integration.kafka.serializer.avro;
 
 import kafka.serializer.Encoder;
+
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.reflect.ReflectDatumWriter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Soby Chacko
  * @since 0.5
  */
 public class AvroReflectDatumBackedKafkaEncoder<T> extends AvroDatumSupport<T> implements Encoder<T> {
-	private static final Log LOG = LogFactory.getLog(AvroReflectDatumBackedKafkaEncoder.class);
 
 	private final DatumWriter<T> writer;
 
@@ -35,7 +33,6 @@ public class AvroReflectDatumBackedKafkaEncoder<T> extends AvroDatumSupport<T> i
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public byte[] toBytes(final T source) {
 		return toBytes(source, writer);
 	}
