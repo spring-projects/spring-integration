@@ -21,7 +21,6 @@ public abstract class AvroDatumSupport<T> {
 		this.avroSerializer = new AvroSerializer<T>();
 	}
 
-	@SuppressWarnings("unchecked")
 	public byte[] toBytes(final T source, final DatumWriter<T> writer) {
 		try {
 			return avroSerializer.serialize(source, writer);
@@ -31,7 +30,6 @@ public abstract class AvroDatumSupport<T> {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	public T fromBytes(final byte[] bytes, final DatumReader<T> reader) {
 		try {
 			return avroSerializer.deserialize(bytes, reader);

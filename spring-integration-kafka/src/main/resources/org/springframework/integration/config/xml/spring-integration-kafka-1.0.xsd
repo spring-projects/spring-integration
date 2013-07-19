@@ -232,14 +232,56 @@
                                 ]]></xsd:documentation>
                                 </xsd:annotation>
                                 <xsd:complexType>
-                                    <xsd:sequence>
+                                    <xsd:choice>
                                         <xsd:element name="topic" maxOccurs="unbounded">
                                             <xsd:complexType>
                                                 <xsd:attribute name="id" type="xsd:string" use="required"/>
                                                 <xsd:attribute name="streams" type="xsd:string" use="required"/>
                                             </xsd:complexType>
                                         </xsd:element>
-                                    </xsd:sequence>
+                                        <xsd:element name="topic-filter" maxOccurs="1">
+                                            <xsd:complexType>
+                                                <xsd:attribute name="pattern" type="xsd:string" use="required">
+                                                     <xsd:annotation>
+			                                            <xsd:documentation><![CDATA[
+			                                                   Regex pattern to match topic
+			                                           ]]></xsd:documentation>
+			                                            <xsd:appinfo>
+			                                                <tool:annotation kind="direct">
+			                                                    <tool:expected-type type="java.lang.String"/>
+			                                                </tool:annotation>
+			                                            </xsd:appinfo>
+                                                     </xsd:annotation>
+                                                </xsd:attribute>
+                                                <xsd:attribute name="streams" type="xsd:string" use="required">
+                                                    <xsd:annotation>
+			                                            <xsd:documentation><![CDATA[
+			                                                   Number of streams (threads) to use to consume messages
+			                                           ]]></xsd:documentation>
+			                                            <xsd:appinfo>
+			                                                <tool:annotation kind="direct">
+			                                                    <tool:expected-type type="java.lang.String"/>
+			                                                </tool:annotation>
+			                                            </xsd:appinfo>
+                                                     </xsd:annotation>
+                                                </xsd:attribute>
+                                                <xsd:attribute name="exclude" type="xsd:boolean" use="optional" default="false">
+                                                    <xsd:annotation>
+			                                            <xsd:documentation><![CDATA[
+			                                                   If exclude is false, it uses whitelist to include topics matching given pattern.
+			                                                   If exclude is true, it uses blacklist to exclude topics matching given patttern.
+			                                                   Default value is false.
+			                                           ]]></xsd:documentation>
+			                                            <xsd:appinfo>
+			                                                <tool:annotation kind="direct">
+			                                                    <tool:expected-type type="java.lang.String"/>
+			                                                </tool:annotation>
+			                                            </xsd:appinfo>
+                                                    </xsd:annotation>
+                                                </xsd:attribute>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:choice>
                                     <xsd:attribute name="max-messages" use="optional">
                                         <xsd:annotation>
                                             <xsd:documentation><![CDATA[

@@ -15,23 +15,24 @@
  */
 package org.springframework.integration.kafka.support;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.integration.Message;
-
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.*;
+import org.springframework.integration.Message;
+
 /**
  * @author Soby Chacko
+ * @author Rajasekar Elango
  * @since 0.5
  */
 public class KafkaProducerContext<K,V> implements BeanFactoryAware {
+	private static final Log LOGGER = LogFactory.getLog(KafkaProducerContext.class);
 	private Map<String, ProducerConfiguration<K,V>> topicsConfiguration;
 
-	@SuppressWarnings("unchecked")
 	public void send(final Message<?> message) throws Exception {
 		final ProducerConfiguration<K,V> producerConfiguration =
 						getTopicConfiguration(message.getHeaders().get("topic", String.class));
@@ -41,15 +42,15 @@ public class KafkaProducerContext<K,V> implements BeanFactoryAware {
 		}
 	}
 
-	private ProducerConfiguration<K,V> getTopicConfiguration(final String topic){
+	public ProducerConfiguration<K, V> getTopicConfiguration(final String topic) {
 		final Collection<ProducerConfiguration<K,V>> topics = topicsConfiguration.values();
 
 		for (final ProducerConfiguration<K,V> producerConfiguration : topics){
-			if (producerConfiguration.getProducerMetadata().getTopic().equals(topic)){
+			if (topic.matches(producerConfiguration.getProducerMetadata().getTopic())){
 				return producerConfiguration;
 			}
 		}
-
+		LOGGER.error("No is producer-configuration defined for topic " + topic + ". cannot send message");
 		return null;
 	}
 

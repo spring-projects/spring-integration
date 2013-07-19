@@ -26,8 +26,8 @@ import org.springframework.integration.kafka.test.utils.TestObject;
  * @since 0.5
  */
 public class AvroReflectDatumBackedKafkaSerializerTest {
+
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testDecodePlainSchema() {
 		final AvroReflectDatumBackedKafkaEncoder<TestObject> avroBackedKafkaEncoder = new AvroReflectDatumBackedKafkaEncoder<TestObject>(TestObject.class);
 
@@ -45,7 +45,6 @@ public class AvroReflectDatumBackedKafkaSerializerTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void anotherTest() {
 		final AvroReflectDatumBackedKafkaEncoder<String> avroBackedKafkaEncoder = new AvroReflectDatumBackedKafkaEncoder<String>(java.lang.String.class);
 		final String testString = "Testing Avro";

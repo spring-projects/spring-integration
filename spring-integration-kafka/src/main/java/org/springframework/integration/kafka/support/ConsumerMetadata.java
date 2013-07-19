@@ -15,15 +15,16 @@
  */
 package org.springframework.integration.kafka.support;
 
+import java.util.Map;
+
 import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.kafka.core.KafkaConsumerDefaults;
 
-import java.util.Map;
-
 /**
  * @author Soby Chacko
+ * @author Rajasekar Elango
  * @since 0.5
  */
 public class ConsumerMetadata<K,V> implements InitializingBean {
@@ -46,6 +47,7 @@ public class ConsumerMetadata<K,V> implements InitializingBean {
 	private Decoder<V> valueDecoder;
 	private Decoder<K> keyDecoder;
 	private Map<String, Integer> topicStreamMap;
+	private TopicFilterConfiguration topicFilterConfiguration;
 
 	public String getGroupId() {
 		return groupId;
@@ -186,4 +188,14 @@ public class ConsumerMetadata<K,V> implements InitializingBean {
 			setKeyDecoder((Decoder<K>) getValueDecoder());
 		}
 	}
+
+	public TopicFilterConfiguration getTopicFilterConfiguration() {
+		return topicFilterConfiguration;
+	}
+
+	public void setTopicFilterConfiguration(
+			TopicFilterConfiguration topicFilterConfiguration) {
+		this.topicFilterConfiguration = topicFilterConfiguration;
+	}
+
 }
