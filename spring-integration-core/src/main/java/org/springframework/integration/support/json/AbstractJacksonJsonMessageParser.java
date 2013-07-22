@@ -30,9 +30,9 @@ import org.springframework.integration.support.MessageBuilder;
  */
 abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessageMapper.JsonMessageParser<P> {
 
-	protected final JsonObjectMapper<P> objectMapper;
+	private final JsonObjectMapper<P> objectMapper;
 
-	protected volatile JsonInboundMessageMapper messageMapper;
+	private volatile JsonInboundMessageMapper messageMapper;
 
 	protected AbstractJacksonJsonMessageParser(JsonObjectMapper<P> objectMapper) {
 		this.objectMapper = objectMapper;
@@ -44,22 +44,36 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 			this.messageMapper = messageMapper;
 		}
 		P parser = this.createJsonParser(jsonMessage);
+
 		if (messageMapper.isMapToPayload()) {
-			try {
-				return MessageBuilder.withPayload(this.readPayload(parser)).build();
-			}
-			catch (Exception ex) {
-					throw new IllegalArgumentException("Mapping of JSON message " + jsonMessage +
-							" directly to payload of type " + messageMapper.getPayloadType() + " failed.", ex);
-			}
+			Object payload = this.readPayload(parser, jsonMessage);
+			return MessageBuilder.withPayload(payload).build();
 		}
 		else {
 			return this.parseWithHeaders(parser, jsonMessage);
 		}
 	}
 
-	protected Object readPayload(P parser) throws Exception {
-		return objectMapper.fromJson(parser, this.messageMapper.getPayloadType());
+	protected Object readPayload(P parser, String jsonMessage) throws Exception {
+		try {
+			return objectMapper.fromJson(parser, this.messageMapper.getPayloadType());
+		}
+		catch (Exception e) {
+			throw new IllegalArgumentException("Mapping of JSON message '" + jsonMessage +
+					"' to payload type '" + messageMapper.getPayloadType() + "' failed.", e);
+		}
+	}
+
+	protected Object readHeader(P parser, String headerName, String jsonMessage) throws Exception {
+		Class<?> headerType = this.messageMapper.getHeaderTypes().containsKey(headerName) ?
+				this.messageMapper.getHeaderTypes().get(headerName) : Object.class;
+		try {
+			return this.objectMapper.fromJson(parser, headerType);
+		}
+		catch (Exception e) {
+			throw new IllegalArgumentException("Mapping header '" + headerName + "' of JSON message '" +
+					jsonMessage + "' to header type '" + headerType + "' failed.", e);
+		}
 	}
 
 	protected abstract Message<?> parseWithHeaders(P parser, String jsonMessage) throws Exception;

@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
-import org.springframework.util.Assert;
 
 /**
  * {@link org.springframework.integration.mapping.InboundMessageMapper} implementation that maps incoming JSON messages
@@ -41,14 +40,21 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 
 	private volatile JsonMessageParser<?> messageParser;
 
+	public JsonInboundMessageMapper(Class<?> payloadType) {
+		this((Type) payloadType);
+	}
+
+	public JsonInboundMessageMapper(Type payloadType) {
+		this(payloadType, null);
+	}
+
 	public JsonInboundMessageMapper(Class<?> payloadType, JsonMessageParser<?> messageParser) {
 		this((Type) payloadType, messageParser);
 	}
 
 	public JsonInboundMessageMapper(Type payloadType, JsonMessageParser<?> messageParser) {
 		super(payloadType);
-		Assert.notNull(messageParser, "'messageParser' must not be null");
-		this.messageParser = messageParser;
+		this.messageParser = messageParser != null ? messageParser : JacksonJsonParserProvider.newJsonMessageParser();
 	}
 
 	public boolean isMapToPayload() {
@@ -78,7 +84,6 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 		//No-op
 		return null;
 	}
-
 
 	public static interface JsonMessageParser<P> {
 

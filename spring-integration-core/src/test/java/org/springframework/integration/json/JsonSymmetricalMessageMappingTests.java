@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.json.JacksonJsonParserProvider;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 
@@ -52,12 +51,10 @@ public class JsonSymmetricalMessageMappingTests {
 
 		String outboundJson = outboundMapper.fromMessage(testMessage);
 
-		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class, JacksonJsonParserProvider.newJsonMessageParser());
+		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class);
 		Message<?> result = inboundMapper.toMessage(outboundJson);
 
 		assertThat(result, sameExceptImmutableHeaders(testMessage));
-
-		outboundJson = outboundMapper.fromMessage(result);
 	}
 
 	private static class TestNamedComponent implements NamedComponent {

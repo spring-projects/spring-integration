@@ -30,7 +30,7 @@ import org.springframework.integration.support.json.JsonInboundMessageMapper.Jso
  * @since 3.0
  *
  */
-public final class JacksonJsonParserProvider {
+final class JacksonJsonParserProvider {
 
 	public static JsonMessageParser<?> newJsonMessageParser() {
 		if (JacksonJsonUtils.isJackson2Present()) {
