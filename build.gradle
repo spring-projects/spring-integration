@@ -101,7 +101,8 @@ subprojects { subproject ->
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '0.4.0'
 		postgresVersion = '9.1-901-1.jdbc4'
-		reactorVersion = '1.1.2.RELEASE'
+		reactorVersion = '1.1.4.RELEASE'
+		reactorSpringVersion = '1.1.3.RELEASE'
 		romeToolsVersion = '1.5.0'
 		romeVersion = '1.0.0'
 		saajApiVersion = '1.3.5'
@@ -243,6 +244,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile "org.projectreactor:reactor-core:$reactorVersion"
+		compile("org.projectreactor.spring:reactor-spring-context:$reactorSpringVersion", optional)
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion", optional)

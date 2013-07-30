@@ -484,7 +484,7 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
     <emphasis>async-gateway</emphasis></ulink> sample distributed within the Spring Integration samples.
     </para>
 
-    <para><emphasis>Asynchronous Gateway and AsyncTaskExecutor</emphasis></para>
+    <para><emphasis role="bold">Asynchronous Gateway and AsyncTaskExecutor</emphasis></para>
     <para>
      By default <classname>GatewayProxyFactoryBean</classname> uses <classname>org.springframework.core.task.SimpleAsyncTaskExecutor</classname>
      when submitting internal <classname>AsyncInvocationTask</classname> instances for any gateway method whose
@@ -492,6 +492,72 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
      <literal>&lt;gateway/&gt;</literal> element's configuration allows you to provide a reference to any implementation of
      <classname>java.util.concurrent.Executor</classname> available within the Spring application context.
     </para>
+	<para><emphasis role="bold">Asynchronous Gateway and Reactor Promise</emphasis></para>
+	<para>
+		Starting with <emphasis>version 4.1</emphasis>, the <classname>GatewayProxyFactoryBean</classname> allows the
+		use of a <classname>Reactor</classname> with gateway interface methods, utilizing a
+		<ulink url="https://github.com/reactor/reactor/wiki/Promises"><classname>Promise&lt;?&gt;</classname></ulink>
+		return type. The internal <classname>AsyncInvocationTask</classname> is wrapped in a
+		<interfacename>reactor.function.Supplier</interfacename> with the provided <code>reactorEnvironment</code>, using
+		a default <interfacename>RingBufferDispatcher</interfacename> for the <classname>Promise</classname>
+		consumption. Note, a <code>reactorEnvironment</code> reference is required whenever a service interface
+		has at least one method with a <classname>Promise&lt;?&gt;</classname> return type. (Only those methods run
+		on the reactor's dispatcher).
+	</para>
+    <para>
+	   A <classname>Promise</classname> can be used to retrieve the result later (similar to a
+	   <classname>Future&lt;?&gt;</classname>) or you can consume from it with the dispatcher invoking
+	   your <interfacename>Consumer</interfacename> when the result is returned to the gateway.
+	</para>
+	<para>
+		<important>
+			The <classname>Promise</classname> isn't <emphasis>flushed</emphasis> immediately by the framework.
+			Hence the underlying message flow won't be started before the gateway method returns (as it is with
+			<classname>Future&lt;?&gt;</classname> <classname>Executor</classname> task).
+			The flow will be started when the <classname>Promise</classname> is <emphasis>flushed</emphasis> or via
+			<code>Promise.await()</code>. Alternatively, the <classname>Promise</classname> (being a
+			<interfacename>Composable</interfacename>) might be a part of Reactor <classname>Stream&lt;?&gt;</classname>,
+			when the <code>flush()</code> is related to the entire <classname>Stream</classname>. For example:
+		</important>
+		<programlisting language="java">@MessagingGateway(reactorEnvironment = "reactorEnv")
+public static interface TestGateway {
+
+	@Gateway(requestChannel = "promiseChannel")
+	Promise&lt;Integer&gt; multiply(Integer value);
+
+	}
+
+	    ...
+
+	@ServiceActivator(inputChannel = "promiseChannel")
+	public Integer multiply(Integer value) {
+			return value * 2;
+	}
+
+		...
+
+	Streams.defer(Arrays.asList("1", "2", "3", "4", "5"))
+			.env(this.environment)
+			.get()
+			.map(Integer::parseInt)
+			.mapMany(integer -> testGateway.multiply(integer))
+			.collect()
+			.consume(integers -> ...)
+			.flush();</programlisting>
+	</para>
+    <para>
+	   Another example is a simple callback scenario:
+	   <programlisting language="java"><![CDATA[Promise<Invoice> promise = service.process(myOrder);
+
+promise.consume(new Consumer<Invoice>() {
+	@Override
+	public void accept(Invoice invoice) {
+		handleInvoice(invoice);
+	}
+})
+.flush();]]></programlisting>
+    The calling thread continues, with <code>handleInvoice()</code> being called when the flow completes.
+  </para>
   </section>
   <section>
     <title>Gateway behavior when no response arrives</title>

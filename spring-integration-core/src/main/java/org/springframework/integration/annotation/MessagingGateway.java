@@ -36,14 +36,12 @@ public @interface MessagingGateway {
 	/**
 	 * The value may indicate a suggestion for a logical component name,
 	 * to be turned into a Spring bean in case of an autodetected component.
-	 *
 	 * @return the suggested component name, if any
 	 */
 	String name() default "";
 
 	/**
 	 * Identifies default channel the messages will be sent to upon invocation of methods of the gateway proxy.
-	 *
 	 * @return the suggested channel name, if any
 	 */
 	String defaultRequestChannel() default "";
@@ -51,7 +49,6 @@ public @interface MessagingGateway {
 	/**
 	 * Identifies default channel the gateway proxy will subscribe to to receive reply {@code Message}s, which will then be
 	 * converted to the return type of the method signature.
-	 *
 	 * @return the suggested channel name, if any
 	 */
 	String defaultReplyChannel() default "";
@@ -61,7 +58,6 @@ public @interface MessagingGateway {
 	 * gateway's proxy invocation. If no {@code errorChannel} reference is provided, the gateway will
 	 * propagate {@code Exception}s to the caller. To completely suppress {@code Exception}s, provide a
 	 * reference to the {@code nullChannel} here.
-	 *
 	 * @return the suggested channel name, if any
 	 */
 	String errorChannel() default "";
@@ -70,7 +66,6 @@ public @interface MessagingGateway {
 	 * Provides the amount of time dispatcher would wait to send a {@code Message}.
 	 * This timeout would only apply if there is a potential to block in the send call.
 	 * For example if this gateway is hooked up to a {@code QueueChannel}. 
-	 *
 	 * @return the suggested timeout in milliseconds, if any
 	 */
 	long defaultRequestTimeout() default Long.MIN_VALUE;
@@ -79,7 +74,6 @@ public @interface MessagingGateway {
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
 	 * before returning. By default it will wait indefinitely. {@code null} is returned
 	 if the gateway times out.
-	 *
 	 * @return the suggested timeout in milliseconds, if any
 	 */
 	long defaultReplyTimeout() default Long.MIN_VALUE;
@@ -89,7 +83,6 @@ public @interface MessagingGateway {
 	 * to use for any of the interface methods that have a {@link java.util.concurrent.Future} return type.
 	 * This {@code Executor} will only be used for those async methods; the sync methods
 	 * will be invoked in the caller's thread.
-	 *
 	 * @return the suggested executor bean name, if any
 	 */
 	String asyncExecutor() default "";
@@ -99,7 +92,6 @@ public @interface MessagingGateway {
 	 * unless explicitly overridden by a method declaration. Variables include {@code #args}, {@code #methodName},
 	 * {@code #methodString} and {@code #methodObject};
 	 * a bean resolver is also available, enabling expressions like {@code @someBean(#args)}.
-	 *
 	 * @return the suggested payload expression, if any
 	 */
 	String defaultPayloadExpression() default "";
@@ -107,7 +99,6 @@ public @interface MessagingGateway {
 	/**
 	 * Provides custom message headers. These default headers are created for
 	 * all methods on the service-interface (unless overridden by a specific method).
-	 *
 	 * @return the suggested payload expression, if any
 	 */
 	GatewayHeader[] defaultHeaders() default {};
@@ -117,9 +108,19 @@ public @interface MessagingGateway {
 	 * to map the method arguments to a {@link org.springframework.messaging.Message}. When this
 	 * is provided, no {@code payload-expression}s or {@code header}s are allowed; the custom mapper is
 	 * responsible for creating the message.
-	 *
 	 * @return the suggested mapper bean name, if any
 	 */
 	String mapper() default "";
+
+	/**
+	 * Provide a reference to an {@link reactor.core.Environment}
+	 * to use for any of the interface methods that have a {@link reactor.core.composable.Promise} return type.
+	 * This {@code reactor.core.Environment} will only be used for those async methods; the sync methods
+	 * will be invoked in the caller's thread.
+	 * <p> This attribute is required in case of {@link reactor.core.composable.Promise} usage.
+	 * @return the suggested reactor Environment bean name.
+	 * @since 4.1
+	 */
+	String reactorEnvironment() default "";
 
 }

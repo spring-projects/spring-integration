@@ -778,6 +778,20 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="reactor-environment" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+					Provide a reference to 'reactor.core.Environment'
+					to use for any of the interface methods that have a 'reactor.core.composable.Promise' return type.
+					The Reactor's Environment will only be used for those async methods; the sync methods
+					will be invoked in the caller's thread.
+					This attribute is required if any 'service-interface' methods
+					have a 'reactor.core.composable.Promise' return type.
+							]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -1462,7 +1476,7 @@
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 					The expression to be evaluated, when the underlying enricher sub-flow returns null.
-					The evaluation context root object is requestMessage. 
+					The evaluation context root object is requestMessage.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

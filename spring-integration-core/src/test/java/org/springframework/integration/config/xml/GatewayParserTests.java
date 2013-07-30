@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,26 +24,39 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.gateway.TestService;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.gateway.TestService;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import reactor.core.composable.Promise;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GatewayParserTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
 	public void testOneWay() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
 		TestService service = (TestService) context.getBean("oneWay");
 		service.oneWay("foo");
 		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
@@ -53,7 +66,6 @@ public class GatewayParserTests {
 
 	@Test
 	public void testSolicitResponse() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("replyChannel");
 		channel.send(new GenericMessage<String>("foo"));
 		TestService service = (TestService) context.getBean("solicitResponse");
@@ -63,18 +75,16 @@ public class GatewayParserTests {
 
 	@Test
 	public void testRequestReply() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
 		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = (TestService) context.getBean("requestReply");
 		String result = service.requestReply("foo");
-		assertEquals("foo", result);		
+		assertEquals("foo", result);
 	}
 
 	@Test
 	public void testAsyncGateway() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
 		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		this.startResponder(requestChannel, replyChannel);
@@ -85,6 +95,16 @@ public class GatewayParserTests {
 		assertEquals("testExecutor", reply.getHeaders().get("executor"));
 	}
 
+	@Test
+	public void testPromiseGateway() throws Exception {
+		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
+		MessageChannel replyChannel = context.getBean("replyChannel", MessageChannel.class);
+		this.startResponder(requestChannel, replyChannel);
+		TestService service = context.getBean("promise", TestService.class);
+		Promise<Message<?>> result = service.promise("foo");
+		Message<?> reply = result.await(1, TimeUnit.SECONDS);
+		assertEquals("foo", reply.getPayload());
+	}
 
 	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -123,6 +143,7 @@ public class GatewayParserTests {
 				throw new IllegalStateException("unexpected exception in testExecutor", e);
 			}
 		}
+
 	}
 
 }

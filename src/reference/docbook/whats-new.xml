@@ -9,6 +9,16 @@
 		in more details, please see the Issue Tracker tickets that
 		were resolved as part of the 4.1 development process.
 	</para>
+	<section id="4.1-new-components">
+	<title>New Components</title>
+	<section id="4.1-promise-gateway">
+		<title>Promise&lt;?&gt; Gateway</title>
+		<para>
+			A Reactor <classname>Promise</classname> return type is now supported for Messaging Gateway methods.
+			See <xref linkend="async-gateway"/>.
+		</para>
+	</section>
+	</section>
 	<section id="4.1-general">
 		<title>General Changes</title>
 		<section id="4.1-amqp-inbound-missing-queues">

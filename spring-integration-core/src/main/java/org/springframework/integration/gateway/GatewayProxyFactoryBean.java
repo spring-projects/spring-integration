@@ -62,6 +62,11 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
+import reactor.core.Environment;
+import reactor.core.composable.Promise;
+import reactor.core.composable.spec.Promises;
+import reactor.function.Functions;
+
 /**
  * Generates a proxy for the provided service interface to enable interaction
  * with messaging components without application code being aware of them allowing
@@ -75,7 +80,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class GatewayProxyFactoryBean extends AbstractEndpoint implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
+public class GatewayProxyFactoryBean extends AbstractEndpoint
+		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -104,6 +110,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<Method, MethodInvocationGateway>();
 
 	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
+
+	private volatile Environment reactorEnvironment;
 
 	private volatile boolean initialized;
 
@@ -225,6 +233,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		this.globalMethodMetadata = globalMethodMetadata;
 	}
 
+	/**
+	 * Set the Reactor {@link Environment} to be used for processing methods with a
+	 * {@link Promise} return type. (Required when any such methods are declared on the
+	 * service interface).
+	 * @param reactorEnvironment the Reactor Environment.
+	 * @since 4.1
+	 */
+	public void setReactorEnvironment(Environment reactorEnvironment) {
+		this.reactorEnvironment = reactorEnvironment;
+	}
+
 	@Override
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
@@ -289,8 +308,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	@Override
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
-		if (Future.class.isAssignableFrom(invocation.getMethod().getReturnType())) {
+		final Class<?> returnType = invocation.getMethod().getReturnType();
+		if (Future.class.isAssignableFrom(returnType)) {
 			return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
+		}
+		if (Promise.class.isAssignableFrom(returnType)) {
+			if (this.reactorEnvironment == null) {
+				throw new IllegalStateException("'reactorEnvironment' is required in case of 'Promise' return type.");
+			}
+			return Promises.<Object>task(Functions.supplier(new AsyncInvocationTask(invocation)))
+					.env(this.reactorEnvironment)
+					.get();
 		}
 		return this.doInvoke(invocation);
 	}
@@ -317,7 +345,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		MethodInvocationGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
 		boolean shouldReturnMessage = Message.class.isAssignableFrom(returnType)
-				|| hasFutureParameterizedWithMessage(method);
+				|| hasReturnParameterizedWithMessage(method);
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
@@ -510,6 +538,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		if (Future.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
+		if (Promise.class.isAssignableFrom(expectedReturnType)) {
+			return (T) source;
+		}
 		if (this.getConversionService() != null) {
 			return this.getConversionService().convert(source, expectedReturnType);
 		}
@@ -518,8 +549,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		}
 	}
 
-	private static boolean hasFutureParameterizedWithMessage(Method method) {
-		if (Future.class.isAssignableFrom(method.getReturnType())) {
+	private static boolean hasReturnParameterizedWithMessage(Method method) {
+		if (Future.class.isAssignableFrom(method.getReturnType()) || Promise.class.isAssignableFrom(method.getReturnType())) {
 			Type returnType = method.getGenericReturnType();
 			if (returnType instanceof ParameterizedType) {
 				Type[] typeArgs = ((ParameterizedType) returnType).getActualTypeArguments();
