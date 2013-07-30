@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,30 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
+import reactor.core.composable.Promise;
+import reactor.function.Consumer;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class AsyncGatewayTests {
@@ -106,6 +110,100 @@ public class AsyncGatewayTests {
 	}
 
 
+	@Test
+	public void promiseWithMessageReturned() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Promise<Message<?>> promise = service.returnMessagePromise("foo");
+		long start = System.currentTimeMillis();
+		Object result = promise.await(1, TimeUnit.SECONDS);
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue(elapsed >= 200);
+		assertEquals("foobar", ((Message<?>) result).getPayload());
+	}
+
+	@Test
+	public void promiseWithPayloadReturned() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Promise<String> promise = service.returnStringPromise("foo");
+		long start = System.currentTimeMillis();
+		Object result = promise.await(1, TimeUnit.SECONDS);
+		long elapsed = System.currentTimeMillis() - start;
+
+		assertTrue(elapsed >= 200 - safety);
+		assertEquals("foobar", result);
+	}
+
+	@Test
+	public void promiseWithWildcardReturned() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Promise<?> promise = service.returnSomethingPromise("foo");
+		long start = System.currentTimeMillis();
+		Object result = promise.await(1, TimeUnit.SECONDS);
+		long elapsed = System.currentTimeMillis() - start;
+
+		assertTrue(elapsed >= 200 - safety);
+		assertTrue(result instanceof String);
+		assertEquals("foobar", result);
+	}
+
+	@Test
+	public void promiseWithConsumer() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.afterPropertiesSet();
+		TestEchoService service = (TestEchoService) proxyFactory.getObject();
+		Promise<String> promise = service.returnStringPromise("foo");
+		long start = System.currentTimeMillis();
+
+		final AtomicReference<String> result = new AtomicReference<String>();
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		promise.consume(new Consumer<String>() {
+			@Override
+			public void accept(String s) {
+				result.set(s);
+				latch.countDown();
+			}
+		})
+		.flush();
+
+		latch.await(1, TimeUnit.SECONDS);
+		long elapsed = System.currentTimeMillis() - start;
+
+		assertTrue(elapsed >= 200 - safety);
+		assertEquals("foobar", result.get());
+	}
+
+
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(new Runnable() {
 			public void run() {
@@ -131,6 +229,12 @@ public class AsyncGatewayTests {
 		Future<Message<?>> returnMessage(String s);
 
 		Future<?> returnSomething(String s);
+
+		Promise<String> returnStringPromise(String s);
+
+		Promise<Message<?>> returnMessagePromise(String s);
+
+		Promise<?> returnSomethingPromise(String s);
 
 	}
 

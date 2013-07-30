@@ -20,6 +20,7 @@ import java.util.concurrent.Future;
 
 import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.Payload;
+import reactor.core.composable.Promise;
 
 /**
  * @author Mark Fisher
@@ -28,7 +29,7 @@ import org.springframework.integration.annotation.Payload;
 public interface TestService {
 
 	String requestReply(String input);
-	
+
 	byte[] requestReplyInBytes(String input);
 
 	void oneWay(String input);
@@ -45,5 +46,7 @@ public interface TestService {
 	String requestReplyWithPayloadAnnotation();
 
 	Future<Message<?>> async(String s);
+
+	Promise<Message<?>> promise(String s);
 
 }

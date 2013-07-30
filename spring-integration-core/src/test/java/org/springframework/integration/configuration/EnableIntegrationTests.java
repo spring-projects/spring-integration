@@ -16,7 +16,7 @@
 
 package org.springframework.integration.configuration;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -26,12 +26,14 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +46,14 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.Environment;
+import reactor.core.composable.Composable;
+import reactor.core.composable.Promise;
+import reactor.core.composable.Stream;
+import reactor.core.composable.spec.Streams;
+import reactor.function.Consumer;
+import reactor.function.Function;
+import reactor.spring.context.config.EnableReactor;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -541,6 +551,44 @@ public class EnableIntegrationTests {
 		assertNull(replyChannel.receive(10));
 	}
 
+	@Autowired
+	private Environment environment;
+
+	@Test
+	public void testPromiseGateway() throws InterruptedException {
+		final CountDownLatch latch = new CountDownLatch(1);
+		final List<Integer> integers = new ArrayList<Integer>();
+
+		Streams.defer(Arrays.asList("1", "2", "3", "4", "5"))
+				.env(this.environment)
+				.get()
+				.map(new Function<String, Integer>() {
+					@Override
+					public Integer apply(String s) {
+						return Integer.parseInt(s);
+					}
+				})
+				.mapMany(new Function<Integer, Composable<Integer>>() {
+					@Override
+					public Composable<Integer> apply(Integer integer) {
+						return testGateway.multiply(integer);
+					}
+				})
+				.consume(new Consumer<Integer>() {
+					@Override
+					public void accept(Integer integer) {
+						integers.add(integer);
+						latch.countDown();
+					}
+				})
+				.flush();
+
+
+		latch.await(2, TimeUnit.SECONDS);
+
+		assertThat(integers, Matchers.<Integer>contains(2, 4, 6, 8, 10));
+	}
+
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
@@ -775,6 +823,7 @@ public class EnableIntegrationTests {
 	@EnableMessageHistory("${message.history.tracked.components}")
 	@EnablePublisher("publishedChannel")
 	@EnableAsync
+	@EnableReactor
 	public static class ContextConfiguration2 {
 
 		@Bean
@@ -871,6 +920,11 @@ public class EnableIntegrationTests {
 		@IntegrationConverter
 		public SerializingConverter serializingConverter() {
 			return new SerializingConverter();
+		}
+
+		@Bean
+		public DirectChannel promiseChannel() {
+			return new DirectChannel();
 		}
 
 	}
@@ -1038,6 +1092,10 @@ public class EnableIntegrationTests {
 		/*@BridgeFrom("")
 		public void invalidBridgeAnnotationMethod(Object payload) {}*/
 
+		@ServiceActivator(inputChannel = "promiseChannel")
+		public Integer multiply(Integer value) {
+			return value * 2;
+		}
 	}
 
 	@TestMessagingGateway
@@ -1049,6 +1107,9 @@ public class EnableIntegrationTests {
 		@Gateway(requestChannel = "sendAsyncChannel")
 		@Async
 		void sendAsync(String payload);
+
+		@Gateway(requestChannel = "promiseChannel")
+		Promise<Integer> multiply(Integer value);
 
 	}
 
@@ -1062,7 +1123,7 @@ public class EnableIntegrationTests {
 
 	@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
-	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
+	@MessagingGateway(defaultRequestChannel = "gatewayChannel", reactorEnvironment = "reactorEnv",
 			defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 	public static @interface TestMessagingGateway {
 
