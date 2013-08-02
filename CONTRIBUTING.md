@@ -1,21 +1,39 @@
 Contributor Guidelines
 ======================
 
+Have something you'd like to contribute to **Spring Integration**? We welcome pull requests, but ask that you carefully read this document first to understand how best to submit them; what kind of changes are likely to be accepted; and what to expect from the Spring team when evaluating your submission.
+
+Please refer back to this document as a checklist before issuing any pull request; this will save time for everyone!
+
+## Understand the basics
+
+Not sure what a *pull request* is, or how to submit one?  Take a look at GitHub's excellent [help documentation][] first.
+
+## Search JIRA first; create an issue if necessary
+
+Is there already an issue that addresses your concern?  Do a bit of searching in our [JIRA issue tracker][] to see if you can find something similar. If not, please create a new issue before submitting a pull request unless the change is truly trivial, e.g. typo fixes, removing compiler warnings, etc.
+
 ## Sign the contributor license agreement
 
-Very important, before we can accept any Spring Integration contributions, we will need you to sign the S2 contributor license agreement (CLA). Signing the contributor's agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. In order to read and sign the CLA, please go to:
+Very important, before we can accept any *Spring Integration contributions*, we will need you to sign the contributor license agreement (CLA). Signing the CLA does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. In order to read and sign the CLA, please go to:
 
 * [https://support.springsource.com/spring_committer_signup](https://support.springsource.com/spring_committer_signup)
 
 For **Project**, please select **Spring Integration**. The **Project Lead** is **Mark Fisher**.
 
+Once you've completed the web form, simply add the following in a comment on your pull request:
+
+    I have signed and agree to the terms of the SpringSource Individual
+    Contributor License Agreement.
 
 ## Fork the Repository
-1. go to [https://github.com/SpringSource/spring-integration](https://github.com/SpringSource/spring-integration)
-2. hit the "fork" button and choose your own github account as the target
-3. for more detail see [http://help.github.com/fork-a-repo/](http://help.github.com/fork-a-repo/)
+
+1. Go to [https://github.com/SpringSource/spring-integration](https://github.com/SpringSource/spring-integration)
+2. Hit the "fork" button and choose your own github account as the target
+3. For more detail see [http://help.github.com/fork-a-repo/](http://help.github.com/fork-a-repo/)
 
 ## Setup your Local Development Environment
+
 1. `git clone --recursive git@github.com:<your-github-username>/spring-integration.git`
 2. `cd spring-integration`
 3. `git remote show`
@@ -28,8 +46,9 @@ _you should now see 'upstream' in addition to 'origin' where 'upstream' is the S
 _you should see branches on origin as well as upstream, including 'master' and 'maint'_
 
 ## A Day in the Life of a Contributor
-* _Always_ work on topic branches.
-* For example, to create and switch to a new branch for issue INT-123: `git checkout -b INT-123`
+
+* _Always_ work on topic branches (Typically use the Jira ticket ID as the branch name).
+  - For example, to create and switch to a new branch for issue INT-123: `git checkout -b INT-123`
 * You might be working on several different topic branches at any given time, but when at a stopping point for one of those branches, commit (a local operation).
 * Please follow the "Commit Guidelines" described in this chapter of Pro Git: [http://progit.org/book/ch5-2.html](http://progit.org/book/ch5-2.html)
 * Then to begin working on another issue (say INT-101): `git checkout INT-101`. The _-b_ flag is not needed if that branch already exists in your local repository.
@@ -57,3 +76,146 @@ _you should see branches on origin as well as upstream, including 'master' and '
 * Assuming your pull request is merged into the 'upstream' master, you will actually end up pulling that change into your own master eventually, and at that time, you may decide to delete the topic branch from your local repository and your fork (origin) if you pushed it there.
     - to delete the local branch: `git branch -d INT-123`
     - to delete the branch from your origin: `git push origin :INT-123`
+
+## Maintain a linear commit history
+
+When issuing pull requests, please ensure that your commit history is linear. From the command line you can check this using:
+
+````
+log --graph --pretty=oneline
+````
+
+As this may cause lots of typing, we recommend creating a global alias, e.g. `git logg` for this:
+
+````
+git config --global alias.logg 'log --graph --pretty=oneline'
+````
+
+This command, will provide the following output, which in this case shows a nice linear history:
+
+````
+* c129a02e6c752b49bacd4a445092a44f66c2a1e9 INT-2721 Increase Timers on JDBC Delayer Tests
+* 14e556ce23d49229c420632cef608630b1d82e7d INT-2620 Fix Debug Log
+*   af35733b20fa97a5df123a155362f9b5781ac4b6 Merge pull request #814 from willschipp/INT-3037
+|\  
+| * 6140aa7b2cfb6ae309c55a157e94b44e5d0bea4f INT-3037 Fix JDBC MS Discard After Completion
+|/  
+* 077f2b24ea871a3937c513e08241d1c6cb9c9179 Update Spring Social Twitter to 1.0.5
+*   cc5bcf64a68bb7b6e59132cc675c36be694e174a Merge pull request #819 from garyrussell/INT-3053
+|\  
+| * 6d4f2b46d859c903881a561c35aa28df68f8faf3 INT-3053 Allow task-executor on <reply-listener/>
+|/  
+*   1a27d8194158572f59622f1618de17b99dfb52f0 Merge pull request #816 from habuma
+|\  
+| * 56f9581b85a8a40bbcf2461ffc0753212669a68d Update Spring Social Twitter version to 1.0.4
+|/  
+````
+If you see intersecting lines, that usually means that you forgot to rebase you branch. As mentioned earlier, **please rebase against master** before issueing a pull request.
+
+## Mind the whitespace
+
+Please carefully follow the whitespace and formatting conventions already present in the framework.
+
+1. Tabs, not spaces
+2. Unix (LF), not DOS (CRLF) line endings
+3. Eliminate all trailing whitespace
+4. Wrap Javadoc at 90 characters
+5. Aim to wrap code at 90 characters, but favor readability over wrapping
+6. Preserve existing formatting; i.e. do not reformat code for its own sake
+7. Search the codebase using `git grep` and other tools to discover common
+   naming conventions, etc.
+8. Latin-1 (ISO-8859-1) encoding for Java sources; use `native2ascii` to convert
+   if necessary
+
+## Add Apache license header to all new classes
+
+```java
+/*
+ * Copyright 2002-2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ...;
+```
+
+## Update license header to modified files as necessary
+
+Always check the date range in the Apache license header. For example, if you've modified a file in 2013 whose header still reads
+
+```java
+ * Copyright 2002-2011 the original author or authors.
+```
+
+then be sure to update it to 2013 appropriately
+
+```java
+ * Copyright 2002-2013 the original author or authors.
+```
+
+## Use @since tags
+
+Use @since tags for newly-added public API types and methods e.g.
+
+```java
+/**
+ * ...
+ *
+ * @author First Last
+ * @since 3.0
+ * @see ...
+ */
+```
+
+## Submit JUnit test cases for all behavior changes
+
+Search the codebase to find related unit tests and add additional @Test methods within. It is also acceptable to submit test cases on a per JIRA issue basis.
+
+## Squash commits
+
+Use `git rebase --interactive`, `git add --patch` and other tools to "squash" multiple commits into atomic changes. In addition to the man pages for git, there are many resources online to help you understand how these tools work. Here is one: http://book.git-scm.com/4_interactive_rebasing.html.
+
+## Use your real name in git commits
+
+Please configure git to use your real first and last name for any commits you intend to submit as pull requests. For example, this is not acceptable:
+
+    Author: Nickname <user@mail.com>
+
+Rather, please include your first and last name, properly capitalized, as submitted against the SpringSource contributor license agreement:
+
+    Author: First Last <user@mail.com>
+
+This helps ensure traceability against the CLA, and also goes a long way to ensuring useful output from tools like `git shortlog` and others.
+
+You can configure this globally via the account admin area GitHub (useful for fork-and-edit cases); globally with
+
+    git config --global user.name "First Last"
+    git config --global user.email user@mail.com
+
+or locally for the *spring-integration* repository only by omitting the '--global' flag:
+
+    cd spring-integration
+    git config user.name "First Last"
+    git config user.email user@mail.com
+
+## Run all tests prior to submission
+
+See the [checking out and building][] section of the README for instructions. Make sure that all tests pass prior to submitting your pull request.
+
+## Mention your pull request on the associated JIRA issue
+
+Add a comment to the associated JIRA issue(s) linking to your new pull request.
+
+[help documentation]: http://help.github.com/send-pull-requests
+[JIRA issue tracker]: https://jira.springsource.org/browse/INT
+[checking out and building]: https://github.com/SpringSource/spring-framework#checking-out-and-building
