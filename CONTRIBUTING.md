@@ -218,4 +218,4 @@ Add a comment to the associated JIRA issue(s) linking to your new pull request.
 
 [help documentation]: http://help.github.com/send-pull-requests
 [JIRA issue tracker]: https://jira.springsource.org/browse/INT
-[checking out and building]: https://github.com/SpringSource/spring-framework#checking-out-and-building
+[checking out and building]: https://github.com/SpringSource/spring-integration#checking-out-and-building
