@@ -851,7 +851,8 @@ public class AdvisedMessageHandlerTests {
 		assertFalse(called.get());
 		assertNotNull(logMessage.get());
 		assertTrue(logMessage.get().endsWith("can only be used for MessageHandlers; " +
-				"an attempt to advise method 'call' in 'java.util.concurrent.Callable' is ignored"));
+				"an attempt to advise method 'call' in " +
+				"'org.springframework.integration.endpoint.AbstractPollingEndpoint$1' is ignored"));
 	}
 
 	public void filterDiscardNoAdvice() {
