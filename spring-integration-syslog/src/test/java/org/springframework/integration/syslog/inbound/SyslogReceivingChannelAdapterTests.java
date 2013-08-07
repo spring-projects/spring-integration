@@ -17,15 +17,26 @@ package org.springframework.integration.syslog.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -70,6 +81,17 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setPort(port);
 		PollableChannel outputChannel = new QueueChannel();
 		factory.setOutputChannel(outputChannel);
+		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+		final CountDownLatch latch = new CountDownLatch(2);
+		doAnswer(new Answer<Object>() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				latch.countDown();
+				return null;
+			}
+		}).when(publisher).publishEvent(any(ApplicationEvent.class));
+		factory.setApplicationEventPublisher(publisher);
 		factory.afterPropertiesSet();
 		factory.start();
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
@@ -82,6 +104,7 @@ public class SyslogReceivingChannelAdapterTests {
 		assertNotNull(message);
 		assertEquals("WEBERN", message.getHeaders().get("syslog_HOST"));
 		adapter.stop();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 	}
 
 }
