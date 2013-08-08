@@ -1068,23 +1068,31 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+				<xsd:extension base="serviceActivatorType">
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
-					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specify whether the service method must return a non-null value. This value will be
-								FALSE by
-								default, but if set to TRUE, a MessageHandlingException will be thrown when
-								the underlying service method (or
-								expression) returns a NULL value.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+
+	<xsd:complexType name="serviceActivatorType">
+		<xsd:complexContent>
+			<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+				<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specify whether the service method must return a non-null value. This value will be
+							FALSE by
+							default, but if set to TRUE, a MessageHandlingException will be thrown when
+							the underlying service method (or
+							expression) returns a NULL value.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:complexType name="handlerEndpointType">
 		<xsd:annotation>
@@ -1491,7 +1499,7 @@
 				<xsd:choice minOccurs="0" maxOccurs="unbounded">
 					<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded"/>
 
-					<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware"/>
+					<xsd:element name="service-activator" type="serviceActivatorType"/>
 					<xsd:element name="splitter" type="splitter-type"/>
 					<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware"/>
 					<xsd:element name="header-enricher" type="header-enricher-type"/>
