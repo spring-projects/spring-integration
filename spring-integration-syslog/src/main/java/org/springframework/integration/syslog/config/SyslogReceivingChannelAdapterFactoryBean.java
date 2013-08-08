@@ -17,6 +17,8 @@ package org.springframework.integration.syslog.config;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -34,7 +36,7 @@ import org.springframework.util.Assert;
  *
  */
 public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBean<SyslogReceivingChannelAdapterSupport>
-		 implements SmartLifecycle, BeanNameAware {
+		 implements SmartLifecycle, BeanNameAware, ApplicationEventPublisherAware {
 
 	public enum Protocol { udp, tcp };
 
@@ -61,6 +63,8 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 	private volatile MessageConverter converter;
 
 	private volatile String beanName;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * Instantiates a factory bean that creates a {@link UdpSyslogReceivingChannelAdapter}
@@ -107,6 +111,11 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	public void setConverter(MessageConverter converter) {
 		this.converter = converter;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -167,6 +176,9 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 			if (this.connectionFactory != null) {
 				Assert.isNull(this.port, "Cannot specify both 'port' and 'connectionFactory'");
 				((TcpSyslogReceivingChannelAdapter) adapter).setConnectionFactory(this.connectionFactory);
+			}
+			else if (this.applicationEventPublisher != null) {
+				((TcpSyslogReceivingChannelAdapter) adapter).setApplicationEventPublisher(this.applicationEventPublisher);
 			}
 			Assert.isNull(this.udpAdapter, "Cannot specifiy 'udp-attributes' when the protocol is 'tcp'");
 		}

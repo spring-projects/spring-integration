@@ -31,6 +31,7 @@ import javax.net.SocketFactory;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -139,6 +140,7 @@ public class SyslogReceivingChannelAdapterParserTests {
 		Message<?> message = bar.receive(10000);
 		assertNotNull(message);
 		adapter2.stop();
+		assertNotNull(TestUtils.getPropertyValue(adapter2, "connectionFactory.applicationEventPublisher"));
 	}
 
 	@Test

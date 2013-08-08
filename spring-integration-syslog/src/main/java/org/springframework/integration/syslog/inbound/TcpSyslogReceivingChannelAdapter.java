@@ -16,6 +16,8 @@
 package org.springframework.integration.syslog.inbound;
 
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
@@ -30,9 +32,11 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer;
  *
  */
 public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdapterSupport
-		implements TcpListener {
+		implements TcpListener, ApplicationEventPublisherAware {
 
 	private volatile AbstractServerConnectionFactory connectionFactory;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * @param connectionFactory
@@ -42,11 +46,19 @@ public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	}
 
 	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
+	@Override
 	protected void onInit() {
 		super.onInit();
 		if (this.connectionFactory == null) {
 			this.connectionFactory = new TcpNioServerConnectionFactory(this.getPort());
 			this.connectionFactory.setDeserializer(new ByteArrayLfSerializer());
+			if (this.applicationEventPublisher != null) {
+				this.connectionFactory.setApplicationEventPublisher(this.applicationEventPublisher);
+			}
 		}
 		this.connectionFactory.registerListener(this);
 	}
