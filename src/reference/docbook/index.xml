@@ -71,12 +71,14 @@
       </author>
     </authorgroup>
 
-		<copyright>
+    <copyright>
       <year>2009</year>
       <year>2010</year>
       <year>2011</year>
       <year>2012</year>
-      <holder>VMware, Inc. All rights reserved. VMware is a registered trademark or trademark of VMware, Inc. in the United States and/or other jurisdictions. All other marks and names mentioned herein may be trademarks of their respective companies.
+      <year>2013</year>
+      <holder>
+          GoPivotal, Inc. All Rights Reserved.
       </holder>
     </copyright>
   </bookinfo>
