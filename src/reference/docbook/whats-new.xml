@@ -223,7 +223,9 @@
 			<para>
 				For more information see <xref linkend="stored-procedures"/>.
 			</para>
-		</section>			<title>'requires-reply' attribute for Outbound Gateways</title>
+		</section>
+		<section id="3.0-outbound-gateway-requires-reply">
+			<title>'requires-reply' attribute for Outbound Gateways</title>
 			<para>
 				All Outbound Gateways (e.g. <code>&lt;ftp:outbound-gateway/&gt;</code> or <code>&lt;jms:outbound-gateway/&gt;</code>)
 				are designed for 'request-reply' scenario. In this case we are expecting that response from external service
@@ -260,6 +262,5 @@
 				the strategy used to generate message ids has been added.
 				For more information see <xref linkend="message-id-generation"/>.
 			</para>
-		</section>
-	</section>
+		</section>	</section>
 </chapter>

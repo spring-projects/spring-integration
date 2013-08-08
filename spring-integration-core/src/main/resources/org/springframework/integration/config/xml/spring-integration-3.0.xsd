@@ -1075,7 +1075,6 @@
 		</xsd:complexType>
 	</xsd:element>
 
-
 	<xsd:complexType name="serviceActivatorType">
 		<xsd:complexContent>
 			<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
@@ -1083,8 +1082,8 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specify whether the service method must return a non-null value. This value will be
-								'false' by default, but if set to 'true', a ReplyRequiredException will be thrown when
-								the underlying service method (or expression) returns a null value.
+							'false' by default, but if set to 'true', a ReplyRequiredException will be thrown when
+							the underlying service method (or expression) returns a null value.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
