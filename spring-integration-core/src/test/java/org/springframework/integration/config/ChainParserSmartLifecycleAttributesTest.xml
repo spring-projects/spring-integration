@@ -12,7 +12,7 @@
 		   auto-startup="false"
 		   phase="256"
 		   send-timeout="3000">
-		<service-activator expression="payload"/>
+		<service-activator id="sa-within-chain" expression="payload" requires-reply="true"/>
 	</chain>
 
 </beans:beans>

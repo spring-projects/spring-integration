@@ -339,6 +339,9 @@ public class ChainParserTests {
 		assertEquals(256, handlerChain.getPhase());
 		assertEquals(3000L, TestUtils.getPropertyValue(handlerChain, "sendTimeout"));
 		assertEquals(false, TestUtils.getPropertyValue(handlerChain, "running"));
+		//INT-3108
+		MessageHandler serviceActivator = ctx.getBean("chain$child.sa-within-chain.handler", MessageHandler.class);
+		assertTrue(TestUtils.getPropertyValue(serviceActivator, "requiresReply", Boolean.class));
 	}
 
 	@Test
