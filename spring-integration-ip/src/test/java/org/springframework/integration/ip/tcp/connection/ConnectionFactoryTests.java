@@ -32,11 +32,13 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.SocketUtils;
 
@@ -98,12 +100,12 @@ public class ConnectionFactoryTests {
 		assertEquals(0, clients.size());
 		assertEquals(6, events.size()); // OPEN, CLOSE, EXCEPTION for each side
 
-		FooEvent event = new FooEvent(client, TcpConnectionEventType.OPEN, "foo");
+		FooEvent event = new FooEvent(client, "foo");
 		client.publishEvent(event);
 		assertEquals(7, events.size());
 
 		try {
-			event = new FooEvent(mock(TcpConnectionSupport.class), TcpConnectionEventType.OPEN, "foo");
+			event = new FooEvent(mock(TcpConnectionSupport.class), "foo");
 			client.publishEvent(event);
 			fail("Expected exception");
 		}
@@ -113,10 +115,10 @@ public class ConnectionFactoryTests {
 	}
 
 	@SuppressWarnings("serial")
-	private class FooEvent extends TcpConnectionEvent {
+	private class FooEvent extends TcpConnectionOpenEvent {
 
-		public FooEvent(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
-			super(connection, type, connectionFactoryName);
+		public FooEvent(TcpConnectionSupport connection, String connectionFactoryName) {
+			super(connection, connectionFactoryName);
 		}
 
 	}

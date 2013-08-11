@@ -36,6 +36,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
@@ -53,8 +54,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.Expression;
@@ -64,6 +68,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -610,6 +615,29 @@ public class ImapMailReceiverTests {
 		assertNotNull(channel.receive(5000));
 		assertTrue(idles.await(5, TimeUnit.SECONDS));
 		adapter.stop();
+	}
+
+	@Test
+	public void testConnectionException() throws Exception {
+		ImapMailReceiver mailReceiver = new ImapMailReceiver("imap:foo");
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
+		final AtomicReference<ImapIdleExceptionEvent> theEvent = new AtomicReference<ImapIdleExceptionEvent>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		adapter.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				assertNull("only one event expected", theEvent.get());
+				theEvent.set((ImapIdleExceptionEvent) event);
+				latch.countDown();
+			}
+		});
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertTrue(theEvent.get().toString().endsWith("cause=java.lang.IllegalStateException: Failure in 'idle' task. Will resubmit.]"));
 	}
 
 	@Test // see INT-1801

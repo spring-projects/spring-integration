@@ -457,15 +457,17 @@
       attribute, which is a list of class names for events that should be sent. This can be used
       if an application subclasses <classname>TcpConnectionEvent</classname> for some reason, and wishes
       to only receive those events. Omitting this attribute will mean that all
-      <classname>TcpConnectionEvent</classname>s will be sent.
+      <classname>TcpConnectionEvent</classname>s will be sent. You can also use this to limit which
+      <classname>TcpConnectionEvent</classname>s you are interested in (
+      <classname>TcpConnectionOpenEvent</classname>, <classname>TcpConnectionCloseEvent</classname>,
+      or <classname>TcpConnectionExceptionEvent</classname>).
     </para>
     <para>
       <classname>TcpConnectionEvents</classname> contain:
       <itemizedlist>
-        <listitem>Event type (OPEN, CLOSE, EXCEPTION)</listitem>.
         <listitem>Connection Id (which can be used in a message header to send data to the connection)</listitem>
         <listitem>Connection Factory Name (the bean name of the connection factory the connection belongs to)</listitem>
-        <listitem>The <classname>Throwable</classname> (for EXCEPTION event types only)</listitem>
+        <listitem>The <classname>Throwable</classname> (for <classname>TcpConnectionExceptionEvent</classname> events only)</listitem>
       </itemizedlist>
     </para>
   </section>

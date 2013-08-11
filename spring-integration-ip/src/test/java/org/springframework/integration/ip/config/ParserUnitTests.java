@@ -30,6 +30,7 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,8 +56,6 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionEventListeningMessageProducer;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
@@ -67,6 +66,8 @@ import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpSSLContextSupport;
 import org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.TcpSocketSupport;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
@@ -668,7 +669,7 @@ public class ParserUnitTests {
 				DirectChannel.class).getComponentName());
 
 		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
-		TcpConnectionEvent event = new TcpConnectionEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		TcpConnectionEvent event = new TcpConnectionOpenEvent(connection, "foo");
 		this.eventAdapter.setEventTypes(new Class[] {TcpConnectionEvent.class});
 		this.eventAdapter.onApplicationEvent(event);
 		assertNull(this.eventChannel.receive(0));
@@ -692,16 +693,16 @@ public class ParserUnitTests {
 	@SuppressWarnings("serial")
 	public static class EventSubclass1 extends TcpConnectionEvent {
 
-		public EventSubclass1(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
-			super(connection, type, connectionFactoryName);
+		public EventSubclass1(TcpConnectionSupport connection, String connectionFactoryName) {
+			super(connection, connectionFactoryName);
 		}
 	}
 
 	@SuppressWarnings("serial")
 	public static class EventSubclass2 extends TcpConnectionEvent {
 
-		public EventSubclass2(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
-			super(connection, type, connectionFactoryName);
+		public EventSubclass2(TcpConnectionSupport connection, String connectionFactoryName) {
+			super(connection, connectionFactoryName);
 		}
 	}
 }

@@ -224,5 +224,15 @@
 				For more information see <xref linkend="stored-procedures"/>.
 			</para>
 		</section>
+		<section id="3.0-event-for-imap-idle">
+			<title>IMAP Idle Connection Exceptions</title>
+			<para>
+				Previously, if an IMAP idle connection failed, it was logged but there was no mechanism to
+				inform an application. Such exceptions now generate <classname>ApplicationEvent</classname>s.
+				Applications can obtain these events using an <code>&lt;int-event:inbound-channel-adapter&gt;</code>
+				or any <interfacename>ApplicationListener</interfacename> configured to receive an
+				<classname>ImapIdleExceptionEvent</classname> or one of its super classes.
+			</para>
+		</section>
 	</section>
 </chapter>

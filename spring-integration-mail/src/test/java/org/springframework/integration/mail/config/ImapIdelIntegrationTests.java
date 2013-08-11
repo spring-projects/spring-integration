@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.mail.config;
 
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -44,13 +45,13 @@ import org.springframework.util.ReflectionUtils;
 public class ImapIdelIntegrationTests {
 
 	@Test
-	//@Ignore
 	public void testWithTransactionSynchronization() throws Exception{
 		final AtomicBoolean block = new AtomicBoolean(false);
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("imap-idle-mock-integration-config.xml", this.getClass());
 		PostTransactionProcessor processor = context.getBean("syncProcessor", PostTransactionProcessor.class);
 		ImapIdleChannelAdapter adapter = context.getBean("customAdapter", ImapIdleChannelAdapter.class);
+		assertNotNull(TestUtils.getPropertyValue(adapter, "applicationEventPublisher"));
 		ImapMailReceiver receiver = TestUtils.getPropertyValue(adapter, "mailReceiver", ImapMailReceiver.class);
 
 		// setup mock scenario
