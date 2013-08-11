@@ -31,6 +31,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -53,8 +55,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.Expression;
@@ -64,6 +69,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -610,6 +616,29 @@ public class ImapMailReceiverTests {
 		assertNotNull(channel.receive(5000));
 		assertTrue(idles.await(5, TimeUnit.SECONDS));
 		adapter.stop();
+	}
+
+	@Test
+	public void testConnectionException() throws Exception {
+		ImapMailReceiver mailReceiver = new ImapMailReceiver("imap:foo");
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
+		final List<ImapIdleExceptionEvent> events = new ArrayList<ImapIdleExceptionEvent>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		adapter.setApplicationEventPublisher(new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+				events.add((ImapIdleExceptionEvent) event);
+				latch.countDown();
+			}
+		});
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertEquals(1, events.size());
+		assertEquals("ImapIdleExceptionEvent [exception=Failure in 'idle' task. Will resubmit.]", events.get(0).toString());
 	}
 
 	@Test // see INT-1801

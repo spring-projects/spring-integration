@@ -21,6 +21,7 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;

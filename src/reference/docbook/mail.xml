@@ -230,12 +230,19 @@ In the above example instead of relying on the default <classname>SearchTermStra
                      overwrite="false"/>]]></programlisting>
     </para>
     <para>
-      Finally, the &lt;imap-idle-channel-adapter/&gt; also accepts the 'error-channel' attribute.
+      The &lt;imap-idle-channel-adapter/&gt; also accepts the 'error-channel' attribute.
       If a downstream exception is thrown and an 'error-channel' is specified,
       a MessagingException message containing the failed message and original exception, will be sent to this channel.
       Otherwise, if the downstream channels are synchronous, any such exception will simply be logged as a
       warning by the channel adapter.
     </para>
+    <note>
+      Beginning with the 3.0 release, the IMAP idle adapter emits application events (specifically <classname>
+      ImapIdleExceptionEvent</classname>s) when exceptions occur. This allows applications to detect and act on those
+      exceptions. The events can be obtained using an <code>&lt;int-event:inbound-channel-adapter&gt;</code>
+      or any <interfacename>ApplicationListener</interfacename> configured to receive an
+      <classname>ImapIdleExceptionEvent</classname> or one of its super classes.
+    </note>
   </section>
 
   <section id="mail-filtering">

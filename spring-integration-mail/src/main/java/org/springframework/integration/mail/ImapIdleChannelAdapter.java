@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,13 @@ import javax.mail.MessagingException;
 import javax.mail.Store;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.mail.event.IntegrationMailApplicationEvent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
@@ -54,7 +58,8 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public class ImapIdleChannelAdapter extends MessageProducerSupport implements BeanClassLoaderAware {
+public class ImapIdleChannelAdapter extends MessageProducerSupport implements BeanClassLoaderAware,
+		ApplicationEventPublisherAware {
 
 	private final IdleTask idleTask = new IdleTask();
 
@@ -81,6 +86,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
 
 	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
+
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
 		Assert.notNull(mailReceiver, "'mailReceiver' must not be null");
@@ -124,6 +131,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/*
@@ -174,6 +186,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			catch (Exception e) { //run again after a delay
 				logger.warn("Failed to execute IDLE task. Will attempt to resubmit in " + reconnectDelay + " milliseconds.", e);
 				receivingTaskTrigger.delayNextExecution();
+				ImapIdleChannelAdapter.this.publishException(e);
 			}
 		}
 	}
@@ -256,6 +269,17 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		return sendingTask;
 	}
 
+	private void publishException(Exception e) {
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new ImapIdleExceptionEvent(e));
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("No application event publisher for exception: " + e.getMessage());
+			}
+		}
+	}
+
 	private class PingTask implements Runnable {
 
 		public void run() {
@@ -288,5 +312,27 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		public void delayNextExecution() {
 			this.delayNextExecution = true;
 		}
+	}
+
+	public class ImapIdleExceptionEvent extends IntegrationMailApplicationEvent {
+
+		private static final long serialVersionUID = -3386695771075479882L;
+
+		private final Exception exception;
+
+		public ImapIdleExceptionEvent(Exception e) {
+			super(ImapIdleChannelAdapter.this);
+			this.exception = e;
+		}
+
+		public Exception getException() {
+			return exception;
+		}
+
+		@Override
+		public String toString() {
+			return "ImapIdleExceptionEvent [exception=" + exception.getMessage() + "]";
+		}
+
 	}
 }

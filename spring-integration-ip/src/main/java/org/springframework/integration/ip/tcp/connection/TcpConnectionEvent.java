@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.context.ApplicationEvent;
+import org.springframework.integration.ip.event.IntegrationIpApplicationEvent;
 
 /**
  * ApplicationEvent representing certain operations on a {@link TcpConnection}.
@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationEvent;
  * @since 3.0
  *
  */
-public class TcpConnectionEvent extends ApplicationEvent {
+public class TcpConnectionEvent extends IntegrationIpApplicationEvent {
 
 	private static final long serialVersionUID = 5323436446362192129L;
 
