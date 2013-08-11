@@ -28,13 +28,15 @@ import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
+import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
 
 
 /**
  * @author Jeremy Grelle
+ * @author Gary Russell
  */
-public class JsonSymmetricalMessageMappingTests {
+public abstract class AbstractJsonSymmetricalMessageMappingTests {
 
 	@Factory
 	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> operand) {
@@ -51,11 +53,13 @@ public class JsonSymmetricalMessageMappingTests {
 
 		String outboundJson = outboundMapper.fromMessage(testMessage);
 
-		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class);
+		JsonInboundMessageMapper inboundMapper = new JsonInboundMessageMapper(String.class, getParser());
 		Message<?> result = inboundMapper.toMessage(outboundJson);
 
 		assertThat(result, sameExceptImmutableHeaders(testMessage));
 	}
+
+	protected abstract JsonMessageParser<?> getParser();
 
 	private static class TestNamedComponent implements NamedComponent {
 

@@ -35,9 +35,9 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 3.0
  */
-class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
+public class JacksonJsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
-	JacksonJsonMessageParser() {
+	public JacksonJsonMessageParser() {
 		super(new JacksonJsonObjectMapper());
 	}
 

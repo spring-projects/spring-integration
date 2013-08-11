@@ -20,13 +20,13 @@ package org.springframework.integration.support.json;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 
 /**
  * {@link JsonInboundMessageMapper.JsonMessageParser} implementation that parses JSON messages
@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @since 3.0
  */
-class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
+public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
 
 	public Jackson2JsonMessageParser() {
 		super(new Jackson2JsonObjectMapper());
