@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,15 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;message-driven-channel-adapter&gt; element and the
  * &lt;inbound-gateway&gt; element of the 'jms' namespace.
- * 
+ *
  * @author Mark Fisher
+ * @author Michael Bannister
  */
 public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinitionParser {
 
@@ -60,7 +62,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		"receive-timeout", "recovery-interval",
 		"idle-consumer-limit", "idle-task-execution-limit",
 		"cache-level", "subscription-durable", "durable-subscription-name",
-		"client-id"
+		"client-id", "task-executor"
 	};
 
 
@@ -74,7 +76,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.jms.JmsMessageDrivenEndpoint";
+		return JmsMessageDrivenEndpoint.class.getName();
 	}
 
 	@Override
@@ -141,6 +143,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
@@ -203,7 +206,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
 		BeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
-		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName); 
+		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName);
 		parserContext.registerBeanComponent(component);
 		return beanName;
 	}

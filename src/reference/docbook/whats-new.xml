@@ -191,6 +191,16 @@
 				For more information see <xref linkend="chain"/>.
 			</para>
 		</section>
+		<section id="3.0-jms-mdca-te">
+			<title>JMS Message Driven Channel Adapter</title>
+			<para>
+				Previously, when configuring a <code>&lt;message-driven-channel-adapter/&gt;</code>, if you wished to
+				use a specific <interfacename>TaskExecutor</interfacename>, it was necessary to declare a container
+				bean and provide it to the adapter using the <code>container</code> attribute. The
+				<code>task-executor</code> is now provided, allowing it to be set directly on the adapter. This is
+				in addition to several other container attributes that were already available.
+			</para>
+		</section>
 		<section id="3.0-stored-proc-sql-return-type">
 			<title>SqlReturnType support for Stored Procedure components</title>
 			<para>
