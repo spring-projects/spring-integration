@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 import java.util.Properties;
 
@@ -82,6 +83,17 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	}
 
 	@Test
+	public void adapterWithTaskExecutor() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithTaskExecutor.xml", this.getClass());
+		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(endpoint, "listenerContainer",
+				DefaultMessageListenerContainer.class);
+		assertSame(context.getBean("exec"), TestUtils.getPropertyValue(container, "taskExecutor"));
+		endpoint.stop();
+	}
+
+	@Test
 	public void testGatewayWithReceiveTimeout() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
@@ -129,5 +141,5 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
 		gateway.stop();
 	}
-
+	
 }

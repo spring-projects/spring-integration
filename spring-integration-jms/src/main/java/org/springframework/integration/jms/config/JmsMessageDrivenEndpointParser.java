@@ -60,7 +60,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		"receive-timeout", "recovery-interval",
 		"idle-consumer-limit", "idle-task-execution-limit",
 		"cache-level", "subscription-durable", "durable-subscription-name",
-		"client-id"
+		"client-id", "task-executor"
 	};
 
 
@@ -141,6 +141,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
