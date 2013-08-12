@@ -24,7 +24,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileHeaders;
-import org.springframework.integration.file.event.IntegrationFileApplicationEvent;
+import org.springframework.integration.file.event.FileIntegrationEvent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -116,7 +116,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 		}
 	}
 
-	public static class FileTailingEvent extends IntegrationFileApplicationEvent {
+	public static class FileTailingEvent extends FileIntegrationEvent {
 
 		private static final long serialVersionUID = -3382255736225946206L;
 

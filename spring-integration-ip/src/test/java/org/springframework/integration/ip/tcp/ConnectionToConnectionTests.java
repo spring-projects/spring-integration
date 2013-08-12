@@ -16,10 +16,10 @@
 
 package org.springframework.integration.ip.tcp;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
@@ -38,8 +38,10 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionCloseEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionExceptionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
@@ -115,21 +117,21 @@ public class ConnectionToConnectionTests {
 		while ((eventMessage = (Message<TcpConnectionEvent>) events.receive(1000)) != null) {
 			TcpConnectionEvent event = eventMessage.getPayload();
 			if ("client".equals(event.getConnectionFactoryName())) {
-				if (TcpConnectionEventType.OPEN == event.getType()) {
+				if (event instanceof TcpConnectionOpenEvent) {
 					clientOpens++;
 				}
-				else if (TcpConnectionEventType.CLOSE == event.getType()) {
+				else if (event instanceof TcpConnectionCloseEvent) {
 					clientCloses++;
 				}
-				else if (TcpConnectionEventType.EXCEPTION == event.getType()) {
+				else if (event instanceof TcpConnectionExceptionEvent) {
 					clientExceptions++;
 				}
 			}
 			else if ("server".equals(event.getConnectionFactoryName())) {
-				if (TcpConnectionEventType.OPEN == event.getType()) {
+				if (event instanceof TcpConnectionOpenEvent) {
 					serverOpens++;
 				}
-				else if (TcpConnectionEventType.CLOSE == event.getType()) {
+				else if (event instanceof TcpConnectionCloseEvent) {
 					serverCloses++;
 				}
 			}

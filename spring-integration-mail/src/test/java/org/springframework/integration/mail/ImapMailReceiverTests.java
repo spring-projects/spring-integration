@@ -31,13 +31,12 @@ import static org.mockito.Mockito.when;
 
 import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
@@ -622,13 +621,14 @@ public class ImapMailReceiverTests {
 	public void testConnectionException() throws Exception {
 		ImapMailReceiver mailReceiver = new ImapMailReceiver("imap:foo");
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(mailReceiver);
-		final List<ImapIdleExceptionEvent> events = new ArrayList<ImapIdleExceptionEvent>();
+		final AtomicReference<ImapIdleExceptionEvent> theEvent = new AtomicReference<ImapIdleExceptionEvent>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		adapter.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
 			@Override
 			public void publishEvent(ApplicationEvent event) {
-				events.add((ImapIdleExceptionEvent) event);
+				assertNull("only one event expected", theEvent.get());
+				theEvent.set((ImapIdleExceptionEvent) event);
 				latch.countDown();
 			}
 		});
@@ -637,8 +637,7 @@ public class ImapMailReceiverTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals(1, events.size());
-		assertEquals("ImapIdleExceptionEvent [exception=Failure in 'idle' task. Will resubmit.]", events.get(0).toString());
+		assertTrue(theEvent.get().toString().endsWith("cause=java.lang.IllegalStateException: Failure in 'idle' task. Will resubmit.]"));
 	}
 
 	@Test // see INT-1801

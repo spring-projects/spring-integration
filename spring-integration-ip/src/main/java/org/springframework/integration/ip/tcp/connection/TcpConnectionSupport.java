@@ -30,7 +30,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionCloseEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionExceptionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.util.Assert;
 
@@ -304,20 +307,20 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	protected void publishConnectionOpenEvent() {
-		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEventType.OPEN,
+		TcpConnectionEvent event = new TcpConnectionOpenEvent(this,
 				this.connectionFactoryName);
 		doPublish(event);
 	}
 
 	protected void publishConnectionCloseEvent() {
-		TcpConnectionEvent event = new TcpConnectionEvent(this, TcpConnectionEventType.CLOSE,
+		TcpConnectionEvent event = new TcpConnectionCloseEvent(this,
 				this.connectionFactoryName);
 		doPublish(event);
 	}
 
 	protected void publishConnectionExceptionEvent(Throwable t) {
-		TcpConnectionEvent event = new TcpConnectionEvent(this, t,
-				this.connectionFactoryName);
+		TcpConnectionEvent event = new TcpConnectionExceptionEvent(this,
+				this.connectionFactoryName, t);
 		doPublish(event);
 	}
 

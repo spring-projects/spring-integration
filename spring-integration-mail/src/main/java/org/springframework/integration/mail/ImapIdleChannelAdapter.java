@@ -35,7 +35,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.mail.event.IntegrationMailApplicationEvent;
+import org.springframework.integration.mail.event.MailIntegrationEvent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
@@ -314,24 +314,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		}
 	}
 
-	public class ImapIdleExceptionEvent extends IntegrationMailApplicationEvent {
+	public class ImapIdleExceptionEvent extends MailIntegrationEvent {
 
-		private static final long serialVersionUID = -3386695771075479882L;
-
-		private final Exception exception;
+		private static final long serialVersionUID = -5875388810251967741L;
 
 		public ImapIdleExceptionEvent(Exception e) {
-			super(ImapIdleChannelAdapter.this);
-			this.exception = e;
-		}
-
-		public Exception getException() {
-			return exception;
-		}
-
-		@Override
-		public String toString() {
-			return "ImapIdleExceptionEvent [exception=" + exception.getMessage() + "]";
+			super(ImapIdleChannelAdapter.this, e);
 		}
 
 	}

@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mail.event;
+package org.springframework.integration.ip.tcp.connection.event;
 
-import org.springframework.integration.event.IntegrationApplicationEvent;
+import org.springframework.integration.ip.tcp.connection.TcpConnection;
 
 /**
  * @author Gary Russell
  * @since 3.0
  *
  */
-@SuppressWarnings("serial")
-public abstract class IntegrationMailApplicationEvent extends IntegrationApplicationEvent {
+public class TcpConnectionCloseEvent extends TcpConnectionEvent {
 
-	public IntegrationMailApplicationEvent(Object source) {
-		super(source);
+	private static final long serialVersionUID = 7237316997596598287L;
+
+	public TcpConnectionCloseEvent(TcpConnection connection, String connectionFactoryName) {
+		super(connection, connectionFactoryName);
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + " **CLOSED**";
 	}
 
 }

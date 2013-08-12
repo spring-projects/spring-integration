@@ -24,7 +24,8 @@ import org.mockito.Mockito;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 
 /**
  * @author Gary Russell
@@ -41,11 +42,11 @@ public class TcpConnectionEventListenerTests {
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
 		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);
-		TcpConnectionEvent event1 = new TcpConnectionEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		TcpConnectionEvent event1 = new TcpConnectionOpenEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event1);
-		FooEvent event2 = new FooEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		FooEvent event2 = new FooEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event2);
-		BarEvent event3 = new BarEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		BarEvent event3 = new BarEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event3);
 		Message<?> message = outputChannel.receive(0);
 		assertNotNull(message);
@@ -70,11 +71,11 @@ public class TcpConnectionEventListenerTests {
 		eventProducer.afterPropertiesSet();
 		eventProducer.start();
 		TcpConnectionSupport connection = Mockito.mock(TcpConnectionSupport.class);
-		TcpConnectionEvent event1 = new TcpConnectionEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		TcpConnectionEvent event1 = new TcpConnectionOpenEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event1);
-		FooEvent event2 = new FooEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		FooEvent event2 = new FooEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event2);
-		BarEvent event3 = new BarEvent(connection, TcpConnectionEventType.OPEN, "foo");
+		BarEvent event3 = new BarEvent(connection, "foo");
 		eventProducer.onApplicationEvent(event3);
 		Message<?> message = outputChannel.receive(0);
 		assertNotNull(message);
@@ -87,19 +88,19 @@ public class TcpConnectionEventListenerTests {
 	}
 
 	@SuppressWarnings("serial")
-	private class FooEvent extends TcpConnectionEvent {
+	private class FooEvent extends TcpConnectionOpenEvent {
 
-		public FooEvent(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
-			super(connection, type, connectionFactoryName);
+		public FooEvent(TcpConnectionSupport connection, String connectionFactoryName) {
+			super(connection, connectionFactoryName);
 		}
 
 	}
 
 	@SuppressWarnings("serial")
-	private class BarEvent extends TcpConnectionEvent {
+	private class BarEvent extends TcpConnectionOpenEvent {
 
-		public BarEvent(TcpConnectionSupport connection, EventType type, String connectionFactoryName) {
-			super(connection, type, connectionFactoryName);
+		public BarEvent(TcpConnectionSupport connection, String connectionFactoryName) {
+			super(connection, connectionFactoryName);
 		}
 
 	}

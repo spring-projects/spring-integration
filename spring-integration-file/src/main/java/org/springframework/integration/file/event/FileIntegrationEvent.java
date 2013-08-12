@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.event;
+package org.springframework.integration.file.event;
 
-import org.springframework.context.ApplicationEvent;
-
+import org.springframework.integration.event.IntegrationEvent;
 
 /**
  * @author Gary Russell
@@ -24,10 +23,14 @@ import org.springframework.context.ApplicationEvent;
  *
  */
 @SuppressWarnings("serial")
-public abstract class IntegrationApplicationEvent extends ApplicationEvent {
+public abstract class FileIntegrationEvent extends IntegrationEvent {
 
-	public IntegrationApplicationEvent(Object source) {
+	public FileIntegrationEvent(Object source) {
 		super(source);
+	}
+
+	private FileIntegrationEvent(Object source, Throwable cause) {
+		super(source, cause);
 	}
 
 }

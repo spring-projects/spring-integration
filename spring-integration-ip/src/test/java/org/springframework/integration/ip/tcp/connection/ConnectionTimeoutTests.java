@@ -32,7 +32,8 @@ import org.junit.Test;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.tcp.connection.TcpConnectionEvent.TcpConnectionEventType;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionCloseEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
@@ -261,7 +262,7 @@ public class ConnectionTimeoutTests {
 			@Override
 			public void publishEvent(ApplicationEvent event) {
 				TcpConnectionEvent tcpEvent = (TcpConnectionEvent) event;
-				if (tcpEvent.getType() == TcpConnectionEventType.CLOSE) {
+				if (tcpEvent instanceof TcpConnectionCloseEvent) {
 					clientClosedLatch.countDown();
 				}
 			}

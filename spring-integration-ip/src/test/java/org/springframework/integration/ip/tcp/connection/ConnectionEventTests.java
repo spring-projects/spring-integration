@@ -15,9 +15,9 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -32,6 +32,9 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionExceptionEvent;
+import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 import org.springframework.integration.message.GenericMessage;
 
 /**
@@ -52,7 +55,8 @@ public class ConnectionEventTests {
 			}
 		}, "foo");
 		assertNotNull(theEvent.get());
-		assertEquals("TcpConnectionEvent [type=OPEN, factory=foo, connectionId=" + conn.getConnectionId() + "]", theEvent.get().toString());
+		assertTrue(theEvent.get() instanceof TcpConnectionOpenEvent);
+		assertTrue(theEvent.get().toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **OPENED**"));
 		@SuppressWarnings("unchecked")
 		Serializer<Object> serializer = mock(Serializer.class);
 		RuntimeException toBeThrown = new RuntimeException("foo");
@@ -65,13 +69,15 @@ public class ConnectionEventTests {
 		}
 		catch (Exception e) {}
 		assertNotNull(theEvent.get());
-		assertEquals("TcpConnectionEvent [type=EXCEPTION, factory=foo, connectionId=" + conn.getConnectionId() +
-				", Exception=java.lang.RuntimeException: foo]", theEvent.get().toString());
-		assertNotNull(theEvent.get().getThrowable());
-		assertSame(toBeThrown, theEvent.get().getThrowable());
+		assertTrue(theEvent.get() instanceof TcpConnectionExceptionEvent);
+		assertTrue(theEvent.get().toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
+		assertTrue(theEvent.get().toString().contains("cause=java.lang.RuntimeException: foo]"));
+		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get();
+		assertNotNull(event.getCause());
+		assertSame(toBeThrown, event.getCause());
 		conn.close();
 		assertNotNull(theEvent.get());
-		assertEquals("TcpConnectionEvent [type=CLOSE, factory=foo, connectionId=" + conn.getConnectionId() + "]", theEvent.get().toString());
+		assertTrue(theEvent.get().toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **CLOSED**"));
 	}
 
 }

@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.ip.event;
 
-import org.springframework.integration.event.IntegrationApplicationEvent;
+import org.springframework.integration.event.IntegrationEvent;
 
 /**
  * @author Gary Russell
@@ -23,10 +23,14 @@ import org.springframework.integration.event.IntegrationApplicationEvent;
  *
  */
 @SuppressWarnings("serial")
-public abstract class IntegrationIpApplicationEvent extends IntegrationApplicationEvent {
+public abstract class IpIntegrationEvent extends IntegrationEvent {
 
-	public IntegrationIpApplicationEvent(Object source) {
+	public IpIntegrationEvent(Object source) {
 		super(source);
+	}
+
+	public IpIntegrationEvent(Object source, Throwable cause) {
+		super(source, cause);
 	}
 
 }

@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.file.event;
+package org.springframework.integration.ip.tcp.connection.event;
 
-import org.springframework.integration.event.IntegrationApplicationEvent;
+import org.springframework.integration.ip.tcp.connection.TcpConnection;
 
 /**
+ * ApplicationEvent representing exceptions on a {@link TcpConnection}.
  * @author Gary Russell
  * @since 3.0
  *
  */
-@SuppressWarnings("serial")
-public abstract class IntegrationFileApplicationEvent extends IntegrationApplicationEvent {
+public class TcpConnectionExceptionEvent extends TcpConnectionEvent {
 
-	public IntegrationFileApplicationEvent(Object source) {
-		super(source);
+	private static final long serialVersionUID = 1335560439854592185L;
+
+	public TcpConnectionExceptionEvent(TcpConnection connection,
+			String connectionFactoryName, Throwable cause) {
+		super(connection, connectionFactoryName, cause);
 	}
 
 }
