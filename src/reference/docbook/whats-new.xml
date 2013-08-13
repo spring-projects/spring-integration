@@ -201,6 +201,13 @@
 				in addition to several other container attributes that were already available.
 			</para>
 		</section>
+		<section id="3.0-rmi-ec">
+			<title>RMI Inbound Gateway</title>
+			<para>
+				The RMI Inbound Gateway now supports an <code>error-channel</code> attribute. See
+				<xref linkend="rmi-inbound"/>.
+			</para>
+		</section>
 		<section id="3.0-stored-proc-sql-return-type">
 			<title>SqlReturnType support for Stored Procedure components</title>
 			<para>
