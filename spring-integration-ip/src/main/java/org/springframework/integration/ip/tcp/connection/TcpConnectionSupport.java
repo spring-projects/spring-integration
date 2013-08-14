@@ -90,13 +90,13 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	/**
-	 * Creates a {@link TcpConnectionSupport} object and publishes a {@link TcpConnectionEvent}
-	 * with {@link TcpConnectionEventType#OPEN}, if so configured.
+	 * Creates a {@link TcpConnectionSupport} object and publishes a
+	 * {@link TcpConnectionOpenEvent}, if an event publisher is provided.
 	 * @param socket the underlying socket.
 	 * @param server true if this connection is a server connection
 	 * @param lookupHost true if reverse lookup of the host name should be performed,
 	 * otherwise, the ip address will be used for identification purposes.
-	 * @param applicationEventPublisher the publisher to which OPEN, CLOSE and EXCEPTION events will
+	 * @param applicationEventPublisher the publisher to which open, close and exception events will
 	 * be sent; may be null if event publishing is not required.
 	 * @param connectionFactoryName the name of the connection factory creating this connection; used
 	 * during event publishing, may be null, in which case "unknown" will be used.
