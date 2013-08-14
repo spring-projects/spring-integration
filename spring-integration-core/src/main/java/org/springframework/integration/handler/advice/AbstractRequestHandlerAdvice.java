@@ -50,11 +50,15 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 		boolean isMessageMethod = (method.getName().equals("handleRequestMessage") || method.getName().equals("handleMessage"))
 				&& (arguments.length == 1 && arguments[0] instanceof Message);
 
+		Object invocationThis = invocation.getThis();
 		if (!isMessageMethod) {
-			if (logger.isWarnEnabled()) {
+			boolean isMessageHandler = invocationThis != null
+					&& MessageHandler.class.isAssignableFrom(invocationThis.getClass());
+			if (!isMessageHandler && logger.isWarnEnabled()) {
+				String clazzName = invocationThis == null ? method.getDeclaringClass().getName() : invocationThis.getClass().getName();
 				logger.warn("This advice " + this.getClass().getName() +
 						" can only be used for MessageHandlers; an attempt to advise method '" + method.getName() +
-						"' in '" + method.getDeclaringClass().getName() + "' is ignored");
+						"' in '" + clazzName + "' is ignored");
 			}
 			return invocation.proceed();
 		}
@@ -91,7 +95,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 							throw new ThrowableHolderException(e);
 						}
 					}
-				}, invocation.getThis(), message);
+				}, invocationThis, message);
 			}
 			catch (Exception e) {
 				if (e instanceof ThrowableHolderException) {
