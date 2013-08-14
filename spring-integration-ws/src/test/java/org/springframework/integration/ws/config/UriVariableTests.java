@@ -17,12 +17,13 @@
 package org.springframework.integration.ws.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
+import java.util.concurrent.atomic.AtomicReference;
 import javax.jms.BytesMessage;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -32,26 +33,34 @@ import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
 
+import org.hamcrest.Matchers;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.WebServiceIOException;
-import org.springframework.ws.client.WebServiceTransportException;
+import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.core.WebServiceMessageExtractor;
+import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.context.MessageContext;
-import org.springframework.ws.soap.SoapMessageCreationException;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
 import org.springframework.ws.transport.context.TransportContext;
@@ -66,6 +75,10 @@ import org.springframework.ws.transport.mail.MailSenderConnection;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class UriVariableTests {
+
+	@Autowired
+	@Qualifier("httpOutboundGateway.handler")
+	private MessageHandler httpOutboundGateway;
 
 	@Autowired
 	private TestClientInterceptor interceptor;
@@ -95,7 +108,24 @@ public class UriVariableTests {
 	private Int2720EmailTestClientInterceptor emailInterceptor;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testHttpUriVariables() {
+		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(this.httpOutboundGateway, "webServiceTemplate", WebServiceTemplate.class);
+		webServiceTemplate = Mockito.spy(webServiceTemplate);
+		final AtomicReference<String> uri = new AtomicReference<String>();
+		Mockito.doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				uri.set((String) invocation.getArguments()[0]);
+				throw new WebServiceIOException("intentional");
+			}
+		}).when(webServiceTemplate)
+				.sendAndReceive(Mockito.anyString(),
+						Mockito.any(WebServiceMessageCallback.class),
+						(WebServiceMessageExtractor<Object>) Mockito.any(WebServiceMessageExtractor.class));
+
+		new DirectFieldAccessor(this.httpOutboundGateway).setPropertyValue("webServiceTemplate", webServiceTemplate);
+
 		Message<?> message = MessageBuilder.withPayload("<spring/>")
 				.setHeader("x", "integration")
 				.setHeader("param", "test1 & test2")
@@ -105,11 +135,9 @@ public class UriVariableTests {
 		}
 		catch (MessageHandlingException e) {
 			// expected
-			Class<?> causeType = e.getCause().getClass();
-			assertTrue(WebServiceIOException.class.equals(causeType) // offline
-					|| SoapMessageCreationException.class.equals(causeType));
+			assertThat(e.getCause(), Matchers.is(Matchers.instanceOf(WebServiceIOException.class))); // offline
 		}
-		assertEquals("http://test.org/spring-integration?param=test1%20%26%20test2", this.interceptor.getLastUri().toString());
+		assertEquals("http://localhost/spring-integration?param=test1%20%26%20test2", uri.get());
 	}
 
 	@Test
@@ -170,7 +198,7 @@ public class UriVariableTests {
 		catch (MessageHandlingException e) {
 			// expected
 			Class<?> causeType = e.getCause().getClass();
-			assertTrue(WebServiceTransportException.class.equals(causeType)); // offline
+			assertTrue(WebServiceIOException.class.equals(causeType)); // offline
 		}
 		WebServiceConnection webServiceConnection = this.emailInterceptor.getLastWebServiceConnection();
 		assertEquals(testEmailTo, TestUtils.getPropertyValue(webServiceConnection, "to").toString());
@@ -252,7 +280,8 @@ public class UriVariableTests {
 				throw new IllegalStateException("expected MailSenderConnection in the TransportContext");
 			}
 
-			return super.handleRequest(messageContext);
+			super.handleRequest(messageContext);
+			throw new WebServiceIOException("intentional");
 		}
 	}
 
