@@ -149,6 +149,14 @@
         <para>
             This gives you full freedom to choose the ordering, listing and locking strategies.
         </para>
+        <important>
+            It is important to understand that filters (including patterns, regex, prevent-duplicates etc) and lockers,
+            are actually used by the scanner. Any of these attributes set on the adapter are subsequently injected into the
+            scanner. For this reason, if you need to provide a custom scanner and you have multiple file inbound adapters
+            in the same application context, each adapter must be provided with its own instance of the scanner, either
+            by declaring separate beans, or declaring <code>scope="prototype"</code> on the scanner bean so that the
+            context will create a new instance for each use.
+        </important>
         <section id="file-tailing">
           <title>'Tail'ing Files</title>
           <para>
