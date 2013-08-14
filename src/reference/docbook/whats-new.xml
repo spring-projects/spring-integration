@@ -106,8 +106,23 @@
 				URI-schemes supported by Spring Web Services. For more information see <xref linkend="outbound-uri"/>.
 			</para>
 		</section>
+		<section id="3.0-ftp-cache-changes">
+			<title>FTP, SFTP and FTPS Cached Sessions</title>
+		    <para>
+		        The FTP, SFTP and FTPS endpoints no longer cache sessions by default.
+		    </para>
+			<para>
+			    The deprecated <code>cached-sessions</code> attribute has been removed from all endpoints.
+			    Previously, the embedded caching mechanism controlled by this attribute's value didn't
+			    provide a way to limit the size of the cache, which could
+			    grow indefinitely. The <classname>CachingConnectionFactory</classname> was introduced in
+			    release 2.1 and it became the preferred (and is now the only) way to cache sessions.
+			    For more information, see
+			    <xref linkend="ftp-session-caching"/> and <xref linkend="sftp-session-caching"/>.
+			</para>
+		</section>
 		<section id="3.0-xFTP-ib">
-			<title>(S)FTP(S) Inbound Adapters</title>
+			<title>FTP, SFTP and FTPS Inbound Adapters</title>
 			<para>
 				Previously, there was no way to override the default filter used to process files retrieved
 				from a remote server. The <code>filter</code> attribute determines which files are retrieved
@@ -128,7 +143,7 @@
 			</para>
 		</section>
 		<section id="3.0-xFTP-gw">
-			<title>(S)FTP(S) Gateways</title>
+			<title>FTP, SFTP and FTPS Gateways</title>
 			<para>
 				The gateways now support the <code>mv</code> command, enabling the renaming of remote
 				files.

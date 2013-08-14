@@ -17,22 +17,19 @@
 		<property name="user" value="oleg"/>
 	</bean>
 
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="sftpSessionFactory"/>
+	</bean>
+
 	<int:publish-subscribe-channel id="inputChannel"/>
 
-	<int-sftp:outbound-channel-adapter id="defaultAdapter"
-				session-factory="sftpSessionFactory"
-				channel="inputChannel"
-				remote-directory="foo/bar"/>
-
 	<int-sftp:outbound-channel-adapter id="cachingAdapter"
-				session-factory="sftpSessionFactory"
-				cache-sessions="true"
+				session-factory="csf"
 				channel="inputChannel"
 				remote-directory="foo/bar"/>
 
 	<int-sftp:outbound-channel-adapter id="nonCachingAdapter"
 				session-factory="sftpSessionFactory"
-				cache-sessions="false"
 				channel="inputChannel"
 				remote-directory="foo/bar"/>
 

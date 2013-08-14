@@ -22,6 +22,7 @@ import java.io.OutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.util.SimplePool;
 
@@ -44,10 +45,23 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	private final SimplePool<Session<F>> pool;
 
+	/**
+	 * Create a CachingSessionFactory with an unlimited number of sessions.
+	 * @param sessionFactory the underlying session factory.
+	 */
 	public CachingSessionFactory(SessionFactory<F> sessionFactory) {
 		this(sessionFactory, 0);
 	}
 
+	/**
+	 * Create a CachingSessionFactory with the specified session limit. By default, if
+	 * no sessions are available in the cache, and the size limit has been reached,
+	 * calling threads will block until a session is available.
+	 * @see #setSessionWaitTimeout(long)
+	 * @see #setPoolSize(int)
+	 * @param sessionFactory the underlying session factory.
+	 * @param sessionCacheSize the maximum cache size.
+	 */
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
 		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
@@ -75,14 +89,24 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		this.pool.setWaitTimeout(sessionWaitTimeout);
 	}
 
+	/**
+	 * Modify the target session pool size; the actual pool size will adjust up/down
+	 * to this size as and when sessions are requested or retrieved.
+	 */
 	public void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
 	}
 
+	/**
+	 * Get a session from the pool (or block if none available).
+	 */
 	public Session<F> getSession() {
 		return new CachedSession(this.pool.getItem());
 	}
 
+	/**
+	 * Remove (close) any unused sessions in the pool.
+	 */
 	public void destroy() {
 		this.pool.removeAllIdleItems();
 	}

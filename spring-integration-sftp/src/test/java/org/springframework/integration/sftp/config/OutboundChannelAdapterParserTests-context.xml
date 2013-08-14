@@ -17,10 +17,14 @@
 		<property name="user" value="oleg"/>
 	</bean>
 
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="sftpSessionFactory"/>
+	</bean>
+
 	<int:publish-subscribe-channel id="inputChannel"/>
 
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
-				session-factory="sftpSessionFactory"
+				session-factory="csf"
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-filename-generator="fileNameGenerator"

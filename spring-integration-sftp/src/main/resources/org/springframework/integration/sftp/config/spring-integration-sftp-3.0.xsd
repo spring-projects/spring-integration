@@ -527,14 +527,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="cache-sessions" type="xsd:string"
-			default="true">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-		[DEPRECATED] Consider wrapping your SessionFactory in an instance of org.springframework.integration.file.remote.session.CachingSessionFactory.
-		]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="auto-startup" type="xsd:string"
 			default="true">
 			<xsd:annotation>

@@ -16,8 +16,8 @@
 
 package org.springframework.integration.sftp.config;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Properties;
 
@@ -34,31 +34,23 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class InboundChannelAdapterParserCachingTests {
 
-	@Autowired private Object defaultAdapter;
-
 	@Autowired private Object cachingAdapter;
 
 	@Autowired private Object nonCachingAdapter;
-
-
-	@Test
-	public void defaultAdapter() {
-		Object sessionFactory = TestUtils.getPropertyValue(defaultAdapter, "source.synchronizer.sessionFactory");
-		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
-		Properties sessionConfig = TestUtils.getPropertyValue(sessionFactory, "sessionFactory.sessionConfig", Properties.class);
-		assertNotNull(sessionConfig);
-		assertEquals("no", sessionConfig.getProperty("StrictHostKeyChecking"));
-	}
 
 	@Test
 	public void cachingAdapter() {
 		Object sessionFactory = TestUtils.getPropertyValue(cachingAdapter, "source.synchronizer.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
+		Properties sessionConfig = TestUtils.getPropertyValue(sessionFactory, "sessionFactory.sessionConfig", Properties.class);
+		assertNotNull(sessionConfig);
+		assertEquals("no", sessionConfig.getProperty("StrictHostKeyChecking"));
 	}
 
 	@Test

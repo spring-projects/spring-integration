@@ -19,7 +19,6 @@
 	<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
 				session-factory="ftpSessionFactory"
-				cache-sessions="false"
 				remote-directory="foo/bar"
 				temporary-remote-directory="baz/abc"
 				charset="UTF-8"

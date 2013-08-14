@@ -15,13 +15,13 @@
  */
 package org.springframework.integration.file.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.file.remote.session.SessionFactoryFactoryBean;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
@@ -41,12 +41,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getGatewayClassName());
 
-		// build the SessionFactory and provide it as a constructor argument
-		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(SessionFactoryFactoryBean.class);
-		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
-		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
-
-		builder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+		builder.addConstructorArgReference(element.getAttribute("session-factory"));
 
 		builder.addConstructorArgValue(element.getAttribute("command"));
 		builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
