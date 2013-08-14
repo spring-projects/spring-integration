@@ -431,6 +431,10 @@
 			<para>
 				If the target file exists, the message payload is silently
 				ignored.
+				<note>
+					When using a temporary file suffix (default: <code>.writing</code>), the <emphasis>IGNORE</emphasis>
+					mode will apply if the final file name exists, or the temporary file name exists.
+				</note>
 			</para>
 		</section>
 		<section id="file-outbound-channel-adapter">
