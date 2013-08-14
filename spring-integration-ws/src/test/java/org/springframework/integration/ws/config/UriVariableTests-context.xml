@@ -10,9 +10,8 @@
 	<bean id="interceptor" class="org.springframework.integration.ws.config.UriVariableTests$TestClientInterceptor"/>
 
 	<!--HTTP Transport-->
-	<ws:outbound-gateway request-channel="inputHttp"
-						 uri="http://test.org/{foo}-{bar}?param={param}"
-						 interceptor="interceptor">
+	<ws:outbound-gateway id="httpOutboundGateway" request-channel="inputHttp"
+						 uri="http://localhost/{foo}-{bar}?param={param}">
 		<ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
 		<ws:uri-variable name="bar" expression="headers.x"/>
 		<ws:uri-variable name="param" expression="headers.param"/>
