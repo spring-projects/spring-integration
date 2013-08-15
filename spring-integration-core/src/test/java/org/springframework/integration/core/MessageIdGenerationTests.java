@@ -27,7 +27,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
@@ -139,49 +138,6 @@ public class MessageIdGenerationTests {
 		parent.close();
 		childB.close();
 		this.assertDestroy();
-	}
-
-	// should fail because both parent and child define IdGenerator instances
-	@Test(expected=BeanDefinitionStoreException.class)
-	public void testCustomIdGenerationWithParentChildIndependentCreation() throws Exception{
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
-
-		GenericXmlApplicationContext child = new GenericXmlApplicationContext();
-		try {
-			child.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
-			child.setParent(parent);
-			child.refresh();
-		}
-		finally {
-			child.close();
-			parent.close();
-			this.assertDestroy();
-		}
-	}
-
-	// should fail because second child attempts to register another instance of IdGenerator
-	@Test(expected=BeanDefinitionStoreException.class)
-	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrars() throws Exception{
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-
-		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
-		GenericXmlApplicationContext childB = new GenericXmlApplicationContext();
-
-		try {
-			childA.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
-			childA.setParent(parent);
-			childA.refresh();
-
-			childB.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
-			childB.setParent(parent);
-			childB.refresh();
-		}
-		finally {
-			childA.close();
-			childB.close();
-			parent.close();
-			this.assertDestroy();
-		}
 	}
 
 	@Test
