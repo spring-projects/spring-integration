@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp.connection.event;
+package org.springframework.integration.ip.tcp.connection;
 
 import org.springframework.integration.ip.event.IpIntegrationEvent;
-import org.springframework.integration.ip.tcp.connection.TcpConnection;
 
 /**
  * ApplicationEvent representing normal operations on a {@link TcpConnection}.

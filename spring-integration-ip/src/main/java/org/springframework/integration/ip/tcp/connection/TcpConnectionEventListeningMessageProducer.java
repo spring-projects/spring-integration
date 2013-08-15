@@ -22,7 +22,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;

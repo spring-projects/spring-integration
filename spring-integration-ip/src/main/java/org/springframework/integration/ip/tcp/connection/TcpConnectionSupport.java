@@ -30,10 +30,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.tcp.connection.event.TcpConnectionCloseEvent;
-import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
-import org.springframework.integration.ip.tcp.connection.event.TcpConnectionExceptionEvent;
-import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.util.Assert;
 

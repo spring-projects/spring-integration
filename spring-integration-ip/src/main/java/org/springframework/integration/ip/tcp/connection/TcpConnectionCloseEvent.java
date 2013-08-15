@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp.connection.event;
+package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.integration.ip.tcp.connection.TcpConnection;
 
 /**
  * @author Gary Russell
  * @since 3.0
  *
  */
-public class TcpConnectionOpenEvent extends TcpConnectionEvent {
+public class TcpConnectionCloseEvent extends TcpConnectionEvent {
 
 	private static final long serialVersionUID = 7237316997596598287L;
 
-	public TcpConnectionOpenEvent(TcpConnection connection, String connectionFactoryName) {
+	public TcpConnectionCloseEvent(TcpConnection connection, String connectionFactoryName) {
 		super(connection, connectionFactoryName);
 	}
 
 	@Override
 	public String toString() {
-		return super.toString() + " **OPENED**";
+		return super.toString() + " **CLOSED**";
 	}
 
 }

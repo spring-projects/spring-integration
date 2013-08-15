@@ -24,8 +24,6 @@ import org.mockito.Mockito;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.ip.tcp.connection.event.TcpConnectionEvent;
-import org.springframework.integration.ip.tcp.connection.event.TcpConnectionOpenEvent;
 
 /**
  * @author Gary Russell
