@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,14 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.jmx.config.DynamicRouterTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 
 /**
+ * See DynamicRouterTests for additional tests where the MBean is registered by the Spring exporter.
+ * @see DynamicRouterTests
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -82,7 +85,7 @@ public class OperationInvokingMessageHandlerTests {
 		assertNotNull(reply);
 		assertEquals("foobar", reply.getPayload());
 	}
-	
+
 	@Test
 	public void invocationWithPayloadNoReturnValue() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
@@ -95,7 +98,7 @@ public class OperationInvokingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		handler.handleMessage(message);
 	}
-	
+
 	@Test(expected=MessagingException.class)
 	public void invocationWithMapPayloadNotEnoughParameters() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
@@ -136,7 +139,7 @@ public class OperationInvokingMessageHandlerTests {
 		String x(String s1, String s2);
 
 		String x(String s, Integer i);
-		
+
 		void y(String s);
 	}
 
@@ -150,7 +153,7 @@ public class OperationInvokingMessageHandlerTests {
 		public String x(String s, Integer i) {
 			return s + i;
 		}
-		
+
 		public void y(String s){}
 	}
 
