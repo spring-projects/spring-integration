@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class OperationInvokingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
@@ -127,6 +128,14 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 						String signature[] = new String[paramInfoArray.length];
 						for (MBeanParameterInfo paramInfo : paramInfoArray) {
 							Object value = paramsFromMessage.get(paramInfo.getName());
+							if (value == null) {
+								/*
+								 * With Spring 3.2.3 and greater, the parameter names are
+								 * registered instead of the JVM's default p1, p2 etc.
+								 * Fall back to that naming style if not found.
+								 */
+								value = paramsFromMessage.get("p" + (index + 1));
+							}
 							if (value != null && value.getClass().getName().equals(paramInfo.getType())) {
 								values[index] = value;
 								signature[index] = paramInfo.getType();
