@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.transform.TransformerException;
 
 import org.springframework.expression.Expression;
@@ -33,7 +32,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -115,6 +113,11 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	@Deprecated
 	public void setIgnoreEmptyResponses(boolean ignoreEmptyResponses) {
 		//No-op
+		if (logger.isWarnEnabled()) {
+			logger.warn("'ignoreEmptyResponses' is no longer supported. " +
+					"Use 'requiresReply = true' instead. " +
+					"If it is necessary, configure some downstream Filter to skip empty string payloads.");
+		}
 	}
 
 	public void setMessageFactory(WebServiceMessageFactory messageFactory) {
