@@ -20,6 +20,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.Map;
@@ -27,9 +29,13 @@ import java.util.Map;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.converter.MapMessageConverter;
 
 /**
  * @author Gary Russell
@@ -205,6 +211,74 @@ public class TcpMessageMapperTests {
 		String out = (String) mapper.fromMessage(message);
 		assertEquals(s, out);
 
+	}
+
+	@Test
+	public void testMapMessageConvertingOutboundJson() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader("bar", "baz")
+				.build();
+		MapMessageConverter converter = new MapMessageConverter();
+		converter.setHeaderNames("bar");
+		MessageConvertingTcpMessageMapper mapper = new MessageConvertingTcpMessageMapper(converter);
+		Map<?, ?> map = (Map<?, ?>) mapper.fromMessage(message);
+		MapJsonSerializer serializer = new MapJsonSerializer();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		serializer.serialize(map, baos);
+		assertEquals("{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n", new String(baos.toByteArray(), "UTF-8"));
+	}
+
+	@Test
+	public void testMapMessageConvertingInboundJson() throws Exception {
+		String json = "{\"headers\":{\"bar\":\"baz\"},\"payload\":\"foo\"}\n";
+		MapMessageConverter converter = new MapMessageConverter();
+		MessageConvertingTcpMessageMapper mapper = new MessageConvertingTcpMessageMapper(converter);
+		MapJsonSerializer deserializer = new MapJsonSerializer();
+		Map<?, ?> map = deserializer.deserialize(new ByteArrayInputStream(json.getBytes("UTF-8")));
+
+		TcpConnection connection = mock(TcpConnection.class);
+		when(connection.getPayload()).thenReturn(map);
+		when(connection.getHostName()).thenReturn("someHost");
+		when(connection.getHostAddress()).thenReturn("1.1.1.1");
+		when(connection.getPort()).thenReturn(1234);
+		when(connection.getConnectionId()).thenReturn("someId");
+		Message<?> message = mapper.toMessage(connection);
+		assertEquals("foo", message.getPayload());
+		assertEquals("baz", message.getHeaders().get("bar"));
+		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
+	}
+
+	@Test
+	public void testMapMessageConvertingBothWaysJava() throws Exception {
+		Message<String> outMessage = MessageBuilder.withPayload("foo")
+				.setHeader("bar", "baz")
+				.build();
+		MapMessageConverter converter = new MapMessageConverter();
+		converter.setHeaderNames("bar");
+		MessageConvertingTcpMessageMapper mapper = new MessageConvertingTcpMessageMapper(converter);
+		Map<?, ?> map = (Map<?, ?>) mapper.fromMessage(outMessage);
+		DefaultSerializer serializer = new DefaultSerializer();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		serializer.serialize(map, baos);
+
+		DefaultDeserializer deserializer = new DefaultDeserializer();
+		map = (Map<?, ?>) deserializer.deserialize(new ByteArrayInputStream(baos.toByteArray()));
+		TcpConnection connection = mock(TcpConnection.class);
+		when(connection.getPayload()).thenReturn(map);
+		when(connection.getHostName()).thenReturn("someHost");
+		when(connection.getHostAddress()).thenReturn("1.1.1.1");
+		when(connection.getPort()).thenReturn(1234);
+		when(connection.getConnectionId()).thenReturn("someId");
+		Message<?> message = mapper.toMessage(connection);
+		assertEquals("foo", message.getPayload());
+		assertEquals("baz", message.getHeaders().get("bar"));
+		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
 	}
 
 }

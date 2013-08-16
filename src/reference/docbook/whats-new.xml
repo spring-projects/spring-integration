@@ -259,5 +259,18 @@
 				For more information see <xref linkend="message-id-generation"/>.
 			</para>
 		</section>
+		<section id="3.0-tcp-headers">
+			<title>Message Headers and TCP</title>
+			<para>
+				The TCP connection factories now enable the configuration of a flexible mechanism to
+				transfer selected headers (as well as the payload) over TCP. A new
+				<classname>TcpMessageMapper</classname>
+				enables the selection of the headers, and an appropriate (de)serializer needs to be
+				configured to write the resulting <interfacename>Map</interfacename> to the
+				TCP stream. A <classname>MapJsonSerializer</classname> is provided as a convenient
+				mechanism to transfer headers and payload over TCP.
+				For more information see <xref linkend="ip-headers"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
