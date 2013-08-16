@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.util.StringUtils;
  * Base class for url-based outbound gateway parsers.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public abstract class AbstractOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -45,6 +46,7 @@ public abstract class AbstractOutboundGatewayParser extends AbstractConsumerEndp
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addPropertyReference("replyChannel", replyChannel);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		this.postProcessGateway(builder, element, parserContext);
 		return builder;
 	}

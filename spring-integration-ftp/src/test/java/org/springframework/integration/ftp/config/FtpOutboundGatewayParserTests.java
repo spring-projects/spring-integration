@@ -84,6 +84,7 @@ public class FtpOutboundGatewayParserTests {
 
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 		assertEquals(Long.valueOf(777), sendTimeout);
+		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 	}
 
 	@Test
@@ -101,6 +102,7 @@ public class FtpOutboundGatewayParserTests {
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
 		assertTrue(options.contains(Option.PRESERVE_TIMESTAMP));
 		gateway.handleMessage(new GenericMessage<String>("foo"));
+		assertFalse(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		assertEquals(1, adviceCalled);
 	}
 

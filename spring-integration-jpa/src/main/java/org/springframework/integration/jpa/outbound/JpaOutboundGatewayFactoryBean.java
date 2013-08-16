@@ -70,6 +70,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 
 	private long replyTimeout;
 
+	private volatile boolean requiresReply = false;
+
 	private volatile String componentName;
 
 	/**
@@ -118,6 +120,10 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		this.replyTimeout = replyTimeout;
 	}
 
+	public void setRequiresReply(boolean requiresReply) {
+		this.requiresReply = requiresReply;
+	}
+
 	/**
 	 * Sets the name of the handler component.
 	 *
@@ -140,7 +146,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		jpaOutboundGateway.setProducesReply(this.producesReply);
 		jpaOutboundGateway.setOutputChannel(this.outputChannel);
 		jpaOutboundGateway.setOrder(this.order);
-		jpaOutboundGateway.setSendTimeout(replyTimeout);
+		jpaOutboundGateway.setSendTimeout(this.replyTimeout);
+		jpaOutboundGateway.setRequiresReply(this.requiresReply);
 		jpaOutboundGateway.setComponentName(this.componentName);
 		if (this.adviceChain != null) {
 			jpaOutboundGateway.setAdviceChain(this.adviceChain);

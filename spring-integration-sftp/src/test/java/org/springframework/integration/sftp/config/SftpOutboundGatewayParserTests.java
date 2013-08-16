@@ -73,6 +73,7 @@ public class SftpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
+		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
 		assertEquals(Command.LS, TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")
@@ -95,6 +96,7 @@ public class SftpOutboundGatewayParserTests {
 		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertEquals(Command.GET, TestUtils.getPropertyValue(gateway, "command"));
+		assertFalse(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		@SuppressWarnings("unchecked")
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
 		assertTrue(options.contains(Option.PRESERVE_TIMESTAMP));

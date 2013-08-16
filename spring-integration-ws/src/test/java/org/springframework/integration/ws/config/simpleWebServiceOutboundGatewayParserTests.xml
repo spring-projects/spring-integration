@@ -31,10 +31,11 @@
 	                     mapped-request-headers="testRequest"
 	                     mapped-reply-headers="testReply"/>
 
-	<ws:outbound-gateway id="gatewayWithIgnoreEmptyResponsesFalse"
+	<ws:outbound-gateway id="gatewayWithRequiresReplyTrue"
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
-	                     ignore-empty-responses="false"/>
+	                     ignore-empty-responses="false"
+                         requires-reply="true"/>
 
 	<ws:outbound-gateway id="gatewayWithDefaultSourceExtractor"
 		                 request-channel="inputChannel"

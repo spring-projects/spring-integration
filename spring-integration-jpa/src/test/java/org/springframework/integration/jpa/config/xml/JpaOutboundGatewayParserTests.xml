@@ -23,7 +23,8 @@
 		max-number-of-results="55"
 		request-channel="in"
 		reply-channel="out"
-		reply-timeout="100"/>
+		reply-timeout="100"
+		requires-reply="false"/>
 
 	<int-jpa:updating-outbound-gateway id="updatingJpaOutboundGateway"
 		entity-manager-factory="entityManagerFactory"
@@ -34,7 +35,8 @@
 		order="2"
 		request-channel="in"
 		reply-channel="out"
-		reply-timeout="100"/>
+		reply-timeout="100"
+		requires-reply="false"/>
 
 	<int-jpa:updating-outbound-gateway id="advised"
 		entity-manager-factory="entityManagerFactory"
@@ -48,8 +50,14 @@
 		reply-timeout="100">
 		<int-jpa:transactional/>
 		<int-jpa:request-handler-advice-chain>
-			<bean class="org.springframework.integration.jpa.config.xml.JpaOutboundGatewayParserTests$FooAdvice"/>
+			<ref bean="jpaFooAdvice"/>
 		</int-jpa:request-handler-advice-chain>
 	</int-jpa:updating-outbound-gateway>
+
+	<bean  id="jpaFooAdvice" class="org.mockito.Mockito" factory-method="spy">
+		<constructor-arg>
+			<bean class="org.springframework.integration.jpa.config.xml.JpaOutboundGatewayParserTests$FooAdvice"/>
+		</constructor-arg>
+	</bean>
 
 </beans>

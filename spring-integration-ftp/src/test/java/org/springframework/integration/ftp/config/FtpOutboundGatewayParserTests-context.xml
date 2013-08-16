@@ -43,6 +43,7 @@
 		command-options="-P"
 		expression="payload"
 		order="2"
+		requires-reply="false"
 		>
 		<int-ftp:request-handler-advice-chain>
 			<bean class="org.springframework.integration.ftp.config.FtpOutboundGatewayParserTests$FooAdvice" />

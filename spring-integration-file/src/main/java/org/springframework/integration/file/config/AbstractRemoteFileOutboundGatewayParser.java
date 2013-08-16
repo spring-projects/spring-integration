@@ -27,6 +27,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.1
  */
@@ -54,8 +55,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rename-expression");
-		return builder;
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rename-expression");		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");		return builder;
 	}
 
 	protected void configureFilter(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {

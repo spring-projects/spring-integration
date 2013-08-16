@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -65,6 +66,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 
 		String deliveryPersistent = element.getAttribute("delivery-persistent");
 		if (StringUtils.hasText(deliveryPersistent)) {
@@ -119,7 +121,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.ReplyContainerProperties.class);
 		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
 		if (acknowledgeMode != null) {
-			if (acknowledgeMode.intValue() == JmsAdapterParserUtils.SESSION_TRANSACTED) {
+			if (JmsAdapterParserUtils.SESSION_TRANSACTED == acknowledgeMode) {
 				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
 			}
 			else {

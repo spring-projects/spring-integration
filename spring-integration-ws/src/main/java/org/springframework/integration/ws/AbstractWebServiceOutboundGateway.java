@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.transform.TransformerException;
 
 import org.springframework.expression.Expression;
@@ -33,7 +32,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -69,8 +67,6 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	private volatile  StandardEvaluationContext evaluationContext;
 
 	private volatile WebServiceMessageCallback requestCallback;
-
-	private volatile boolean ignoreEmptyResponses = true;
 
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
@@ -111,12 +107,17 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	/**
-	 * Specify whether empty String response payloads should be ignored.
-	 * The default is <code>true</code>. Set this to <code>false</code> if
-	 * you want to send empty String responses in reply Messages.
+	 * Backward compatibility - with no op.
+	 * @deprecated in favor of {@link #setRequiresReply(boolean)}
 	 */
+	@Deprecated
 	public void setIgnoreEmptyResponses(boolean ignoreEmptyResponses) {
-		this.ignoreEmptyResponses = ignoreEmptyResponses;
+		//No-op
+		if (logger.isWarnEnabled()) {
+			logger.warn("'ignoreEmptyResponses' is no longer supported. " +
+					"Use 'requiresReply = true' instead. " +
+					"If it is necessary, configure some downstream Filter to skip empty string payloads.");
+		}
 	}
 
 	public void setMessageFactory(WebServiceMessageFactory messageFactory) {
@@ -167,15 +168,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
 					"Web Service request in outbound gateway: " + this.getComponentName());
 		}
-		Object responsePayload = this.doHandle(uri.toString(), requestMessage, this.requestCallback);
-		if (responsePayload != null) {
-			boolean shouldIgnore = (this.ignoreEmptyResponses
-					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));
-			if (!shouldIgnore) {
-				return responsePayload;
-			}
-		}
-		return null;
+		return this.doHandle(uri.toString(), requestMessage, this.requestCallback);
 	}
 
 	protected abstract Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback);

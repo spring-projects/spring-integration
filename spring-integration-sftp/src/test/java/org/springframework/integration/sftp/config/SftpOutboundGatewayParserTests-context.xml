@@ -43,6 +43,7 @@
 		command-options="-P"
 		expression="payload"
 		order="2"
+		requires-reply="false"
 		/>
 
 	<int-sftp:outbound-gateway id="gateway3"
@@ -66,6 +67,7 @@
 		command="get"
 		command-options="-P"
 		expression="payload"
+		requires-reply="false"
 		order="2">
 		<int-sftp:request-handler-advice-chain>
 			<bean class="org.springframework.integration.sftp.config.SftpOutboundGatewayParserTests$FooAdvice" />
