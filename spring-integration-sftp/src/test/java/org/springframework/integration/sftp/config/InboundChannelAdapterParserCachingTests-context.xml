@@ -32,21 +32,16 @@
 		<beans:property name="sessionConfig" ref="sessionConfig"/>
 	</beans:bean>
 
+	<beans:bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<beans:constructor-arg ref="sftpSessionFactory"/>
+	</beans:bean>
+
 	<util:properties id="sessionConfig">
 		<beans:prop key="StrictHostKeyChecking">no</beans:prop>
 	</util:properties>
-	<sftp:inbound-channel-adapter id="defaultAdapter"
-			session-factory="sftpSessionFactory"
-			channel="requestChannel"
-			remote-directory="/foo"
-			local-directory="file:local-test-dir"
-			auto-startup="false">
-		<poller fixed-rate="1000"/>
-	</sftp:inbound-channel-adapter>
 
 	<sftp:inbound-channel-adapter id="cachingAdapter"
-			session-factory="sftpSessionFactory"
-			cache-sessions="true"
+			session-factory="csf"
 			channel="requestChannel"
 			remote-directory="/foo"
 			local-directory="file:local-test-dir"
@@ -56,7 +51,6 @@
 
 	<sftp:inbound-channel-adapter id="nonCachingAdapter"
 			session-factory="sftpSessionFactory"
-			cache-sessions="false"
 			channel="requestChannel"
 			remote-directory="/foo"
 			local-directory="file:local-test-dir"

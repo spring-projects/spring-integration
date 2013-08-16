@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
@@ -30,23 +31,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class OutboundChannelAdapterParserCachingTests {
 
-	@Autowired private Object defaultAdapter;
-
 	@Autowired private Object cachingAdapter;
 
 	@Autowired private Object nonCachingAdapter;
 
-
-	@Test
-	public void defaultAdapter() {
-		Object sessionFactory = TestUtils.getPropertyValue(defaultAdapter, "handler.sessionFactory");
-		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
-	}
 
 	@Test
 	public void cachingAdapter() {

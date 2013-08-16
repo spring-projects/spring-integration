@@ -26,13 +26,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
-import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpsSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 public class FtpsOutboundChannelAdapterParserTests {
@@ -48,8 +48,7 @@ public class FtpsOutboundChannelAdapterParserTests {
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
-		CachingSessionFactory<?> cacheSf = TestUtils.getPropertyValue(handler, "sessionFactory", CachingSessionFactory.class);
-		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(cacheSf, "sessionFactory", DefaultFtpsSessionFactory.class);
+		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(handler, "sessionFactory", DefaultFtpsSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(sf, "port"));
 	}

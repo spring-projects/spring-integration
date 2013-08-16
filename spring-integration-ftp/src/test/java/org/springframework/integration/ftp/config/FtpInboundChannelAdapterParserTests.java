@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -84,10 +85,10 @@ public class FtpInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void cachingSessionFactoryByDefault() throws Exception{
+	public void cachingSessionFactory() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext(
 				"FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
-		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapter", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapterWithCachedSessions", SourcePollingChannelAdapter.class);
 		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
 		FtpInboundFileSynchronizer fisync =

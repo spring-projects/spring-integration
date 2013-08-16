@@ -10,10 +10,13 @@
 	<bean id="ftpSessionFactory" 
 		class="org.springframework.integration.ftp.config.FtpInboundChannelAdapterParserTests.TestSessionFactoryBean"/>
 
+	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="ftpSessionFactory"/>
+	</bean>
+	
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel" 
 				session-factory="ftpSessionFactory"
-				cache-sessions="false"
 				charset="UTF-8"
 				auto-create-local-directory="true"
 				auto-startup="false"
@@ -58,9 +61,9 @@
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
 
-	<int-ftp:inbound-channel-adapter id="simpleAdapter"
+	<int-ftp:inbound-channel-adapter id="simpleAdapterWithCachedSessions"
 				channel="ftpChannel" 
-				session-factory="ftpSessionFactory"
+				session-factory="csf"
 				local-directory="."
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000"/>

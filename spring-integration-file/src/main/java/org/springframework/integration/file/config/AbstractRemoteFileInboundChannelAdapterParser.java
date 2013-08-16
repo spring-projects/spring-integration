@@ -16,15 +16,15 @@
 
 package org.springframework.integration.file.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.file.remote.session.SessionFactoryFactoryBean;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Abstract base class for parsing remote file inbound channel adapters.
@@ -41,11 +41,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				this.getInboundFileSynchronizerClassname());
 
-		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(SessionFactoryFactoryBean.class);
-		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
-		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
-
-		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+		synchronizerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 
 		// configure the InboundFileSynchronizer properties
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
