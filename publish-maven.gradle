@@ -61,7 +61,7 @@ def customizePom(pom, gradleProject) {
 					id = 'markfisher'
 					name = 'Mark Fisher'
 					email = 'markfisher@gopivotal.com'
-					roles = ["project lead emeritus"]
+					roles = ["project founder and lead emeritus"]
 				}
 				developer {
 					id = 'ghillert'
