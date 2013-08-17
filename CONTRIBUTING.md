@@ -19,7 +19,7 @@ Very important, before we can accept any *Spring Integration contributions*, we 
 
 * [https://support.springsource.com/spring_committer_signup](https://support.springsource.com/spring_committer_signup)
 
-For **Project**, please select **Spring Integration**. The **Project Lead** is **Mark Fisher**.
+For **Project**, please select **Spring Integration**. The **Project Lead** is **Gary Russell**.
 
 Once you've completed the web form, simply add the following in a comment on your pull request:
 
