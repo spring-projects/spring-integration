@@ -76,6 +76,7 @@ import org.springframework.xml.transform.StringSource;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class XsltPayloadTransformer extends AbstractTransformer {
 
@@ -92,6 +93,8 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	private volatile SourceFactory sourceFactory = new DomSourceFactory();
 
 	private volatile ResultFactory resultFactory = new DomResultFactory();
+
+	private volatile boolean resultFactoryExplicitlySet;
 
 	private volatile boolean alwaysUseSourceFactory = false;
 
@@ -135,6 +138,7 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	public void setResultFactory(ResultFactory resultFactory) {
 		Assert.notNull(sourceFactory, "ResultFactory must not be null");
 		this.resultFactory = resultFactory;
+		this.resultFactoryExplicitlySet = true;
 	}
 
 	/**
@@ -214,7 +218,13 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	}
 
 	private Object transformSource(Source source, Object payload, Transformer transformer) throws TransformerException {
-		Result result = this.resultFactory.createResult(payload);
+		Result result;
+		if (!this.resultFactoryExplicitlySet && "text".equals(transformer.getOutputProperties().getProperty("method"))) {
+			result = new StringResult();
+		}
+		else {
+			result = this.resultFactory.createResult(payload);
+		}
 		transformer.transform(source, result);
 		if (this.resultTransformer != null) {
 			return this.resultTransformer.transformResult(result);
