@@ -474,4 +474,24 @@ protected abstract Object doInvoke(ExecutionCallback callback, Object target, Me
 			(or exception) occurs after the advice chain is called.
 		</para>
 	</section>
+	<section id="advising-with-annotations">
+		<title>Advising Endpoints Using Annotations</title>
+		<para>
+			When configuring certain endpoints using annotations (<code>@Filter</code>, <code>@ServiceActivator</code>,
+			<code>@Splitter</code>, and <code>@Transformer</code>), you can supply a bean name for the advice
+			chain in the <code>adviceChain</code> attribute. In addition, the <code>@Filter</code> annotation
+			also has the <code>discardWithinAdvice</code> attribute, which can be used to configure the discard
+			behavior as discussed in <xref linkend="advising-filters"/>. An example with the discard being
+			performed after the advice is shown below.
+		</para>
+		<programlisting language="java"><![CDATA[@MessageEndpoint
+public class MyAdvisedFilter {
+
+	@Filter(inputChannel="input", outputChannel="output",
+			adviceChain="adviceChain", discardWithinAdvice="false")
+	public boolean filter(String s) {
+		return s.contains("good");
+	}
+}]]></programlisting>
+	</section>
 </section>

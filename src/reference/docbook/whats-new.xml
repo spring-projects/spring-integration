@@ -92,6 +92,13 @@
 				be performed after the advice chain completes. See <xref linkend="advising-filters"/>.
 			</para>
 		</section>
+		<section id="3.0-annotation-advice">
+			<title>Advising Endpoints using Annotations</title>
+			<para>
+				Request Handler Advice Chains can now be configured using annotations. See
+				<xref linkend="advising-with-annotations"/>.
+			</para>
+		</section>
 		<section id="3.0-o-t-s-t">
 			<title>ObjectToStringTransformer Improvements</title>
 			<para>
