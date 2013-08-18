@@ -17,8 +17,6 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.util.concurrent.Executor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
@@ -33,8 +31,6 @@ import org.springframework.integration.util.SimplePool;
  *
  */
 public class CachingClientConnectionFactory extends AbstractClientConnectionFactory {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final AbstractClientConnectionFactory targetConnectionFactory;
 
@@ -164,6 +160,10 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 					.build());
 			close(); // return to pool after response is received
 			return true; // true so the single-use connection doesn't close itself
+		}
+
+		private void physicallyClose() {
+			this.getTheConnection().close();
 		}
 
 	}
@@ -361,6 +361,16 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	@Override
 	public boolean isLookupHost() {
 		return targetConnectionFactory.isLookupHost();
+	}
+
+
+	@Override
+	public void forceClose(TcpConnection connection) {
+		if (connection instanceof CachedConnection) {
+			((CachedConnection) connection).physicallyClose();
+		}
+		// will be returned to pool but stale, so will be re-established
+		super.forceClose(connection);
 	}
 
 	@Override
