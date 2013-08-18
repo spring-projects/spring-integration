@@ -88,6 +88,25 @@
       </note>
     </para>
     <para>
+      When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
+      This simplifies the application of the headers mentioned above to any Message prior to sending to the
+      Mail Outbound Channel Adapter.
+    </para>
+      <programlisting language="xml"><![CDATA[<header-enricher input-channel="expressionsInput" default-overwrite="false">
+	<to expression="payload.to"/>
+	<cc expression="payload.cc"/>
+	<bcc expression="payload.bcc"/>
+	<from expression="payload.from"/>
+	<reply-to expression="payload.replyTo"/>
+	<subject expression="payload.subject" overwrite="true"/>
+</header-enricher>]]></programlisting>
+    <para>
+      This example assumes the payload is a JavaBean with appropriate getters for the specified properties, but
+      any SpEL expression can be used. Alternatively, use the <code>value</code> attribute to specify a
+      literal. Notice also that you can specify <code>default-overwrite</code> and individual
+      <code>overwrite</code> attributes to control the behavior with existing headers.
+    </para>
+    <para>
       To configure an Inbound Channel Adapter, you have the choice between polling or event-driven (assuming your
       mail server supports IMAP IDLE - if not, then polling is the only option). A polling Channel Adapter simply
       requires the store URI and the channel to send inbound Messages to. The URI may begin with "pop3" or "imap":
@@ -217,18 +236,6 @@ In the above example instead of relying on the default <classname>SearchTermStra
       </para>
     </important>
 
-    <para>
-      When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
-      This simplifies the application of the headers mentioned above to any Message prior to sending to the
-      Mail-sending Channel Adapter.
-      <programlisting language="xml"><![CDATA[<int-mail:header-enricher subject="Example Mail"
-                     to="to@example.org"
-                     cc="cc@example.org"
-                     bcc="bcc@example.org"
-                     from="from@example.org"
-                     reply-to="replyTo@example.org"
-                     overwrite="false"/>]]></programlisting>
-    </para>
     <para>
       The &lt;imap-idle-channel-adapter/&gt; also accepts the 'error-channel' attribute.
       If a downstream exception is thrown and an 'error-channel' is specified,
