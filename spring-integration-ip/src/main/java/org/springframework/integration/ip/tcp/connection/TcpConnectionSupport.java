@@ -19,6 +19,8 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,7 +32,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -79,6 +83,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	private final ApplicationEventPublisher applicationEventPublisher;
 
 	private final AtomicBoolean closePublished = new AtomicBoolean();
+
+	private final AtomicBoolean exceptionSent = new AtomicBoolean();
 
 	public TcpConnectionSupport() {
 		this.server = false;
@@ -300,6 +306,15 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	public String getConnectionId() {
 		return this.connectionId;
+	}
+
+	protected final void sendExceptionToListener(Exception e) {
+		if (!this.exceptionSent.getAndSet(true) && this.getListener() != null) {
+			Map<String, Object> headers = Collections.singletonMap(IpHeaders.CONNECTION_ID,
+					(Object) this.getConnectionId());
+			ErrorMessage errorMessage = new ErrorMessage(e, headers);
+			this.getListener().onMessage(errorMessage);
+		}
 	}
 
 	protected void publishConnectionOpenEvent() {

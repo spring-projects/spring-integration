@@ -28,6 +28,7 @@ import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
 import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -68,6 +69,13 @@ public class TcpReceivingChannelAdapter
 			}
 		}
 		else {
+			if (message instanceof ErrorMessage) {
+				/*
+				 * Socket errors are sent here so they can be conveyed to any waiting thread.
+				 * There's not one here; simply ignore.
+				 */
+				return false;
+			}
 			this.activeCount.incrementAndGet();
 			try {
 				sendMessage(message);

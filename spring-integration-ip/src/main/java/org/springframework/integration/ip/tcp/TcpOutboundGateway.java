@@ -33,7 +33,9 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
+import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -163,8 +165,17 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		AsyncReply reply = pendingReplies.get(connectionId);
 		if (reply == null) {
-			logger.error("Cannot correlate response - no pending reply");
-			return false;
+			if (message instanceof ErrorMessage) {
+				/*
+				 * Socket errors are sent here so they can be conveyed to any waiting thread.
+				 * If there's not one, simply ignore.
+				 */
+				return false;
+			}
+			else {
+				logger.error("Cannot correlate response - no pending reply");
+				return false;
+			}
 		}
 		reply.setReply(message);
 		return false;
@@ -248,10 +259,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 		private final CountDownLatch latch;
 
+		private final CountDownLatch secondChanceLatch;
+
 		private volatile Message<?> reply;
 
 		public AsyncReply() {
 			this.latch = new CountDownLatch(1);
+			this.secondChanceLatch = new CountDownLatch(1);
 		}
 
 		/**
@@ -268,12 +282,41 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
+			boolean waitForMessageAfterError = connectionFactory instanceof TcpNioClientConnectionFactory;
+			while (reply instanceof ErrorMessage) {
+				if (waitForMessageAfterError) {
+					/*
+					 * Possible race condition with NIO; we might have received the close
+					 * before the reply, on a different thread.
+					 */
+					logger.debug("second chance");
+					this.secondChanceLatch.await(2, TimeUnit.SECONDS);
+					waitForMessageAfterError = false;
+				}
+				else if (reply.getPayload() instanceof MessagingException) {
+					throw (MessagingException) reply.getPayload();
+				}
+				else {
+					throw new MessagingException("Exception while awaiting reply", (Throwable) reply.getPayload());
+				}
+			}
 			return this.reply;
 		}
 
+		/**
+		 * We have a race condition when a socket is closed right after the reply is received. The close "error"
+		 * might arrive before the actual reply. Overwrite an error with a good reply, but not vice-versa.
+		 * @param reply
+		 */
 		public void setReply(Message<?> reply) {
-			this.reply = reply;
-			this.latch.countDown();
+			if (this.reply == null) {
+				this.reply = reply;
+				this.latch.countDown();
+			}
+			else if (this.reply instanceof ErrorMessage) {
+				this.reply = reply;
+				this.secondChanceLatch.countDown();
+			}
 		}
 	}
 

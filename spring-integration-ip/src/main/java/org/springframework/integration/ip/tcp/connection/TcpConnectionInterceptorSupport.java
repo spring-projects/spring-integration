@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.message.ErrorMessage;
 
 /**
  * Base class for TcpConnectionIntercepters; passes all method calls through
@@ -131,7 +132,12 @@ public abstract class TcpConnectionInterceptorSupport extends TcpConnectionSuppo
 
 	public boolean onMessage(Message<?> message) {
 		if (this.tcpListener == null) {
-			throw new NoListenerException("No listener registered for message reception");
+			if (message instanceof ErrorMessage) {
+				return false;
+			}
+			else {
+				throw new NoListenerException("No listener registered for message reception");
+			}
 		}
 		return this.tcpListener.onMessage(message);
 	}

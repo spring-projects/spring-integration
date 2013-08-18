@@ -32,6 +32,7 @@ import org.springframework.integration.ip.tcp.connection.ClientModeConnectionMan
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -53,7 +54,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 
 	private volatile AbstractClientConnectionFactory clientConnectionFactory;
 
-	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
+	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
 
 	private volatile boolean isClientMode;
 
@@ -76,6 +77,13 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements
 			}
 		}
 		else {
+			if (message instanceof ErrorMessage) {
+				/*
+				 * Socket errors are sent here so they can be conveyed to any waiting thread.
+				 * There's not one here; simply ignore.
+				 */
+				return false;
+			}
 			this.activeCount.incrementAndGet();
 			try {
 				return doOnMessage(message);
