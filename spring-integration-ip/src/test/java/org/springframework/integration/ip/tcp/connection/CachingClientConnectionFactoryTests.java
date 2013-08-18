@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -350,4 +352,44 @@ public class CachingClientConnectionFactoryTests {
 
 		okToRun.set(false);
 	}
+
+	@Test
+	public void testCachedFailover() throws Exception {
+		// Failover
+		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
+		AbstractClientConnectionFactory factory2 = mock(AbstractClientConnectionFactory.class);
+		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		factories.add(factory1);
+		factories.add(factory2);
+		TcpConnectionSupport mockConn1 = makeMockConnection();
+		TcpConnectionSupport mockConn2 = makeMockConnection();
+		when(factory1.getConnection()).thenReturn(mockConn1);
+		when(factory2.getConnection()).thenReturn(mockConn2);
+		when(factory1.isActive()).thenReturn(true);
+		when(factory2.isActive()).thenReturn(true);
+		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return null;
+			}
+		}).when(mockConn2).send(Mockito.any(Message.class));
+		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
+		failoverFactory.start();
+
+		// Cache
+		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(failoverFactory, 2);
+		cachingFactory.start();
+		TcpConnection conn1 = cachingFactory.getConnection();
+		GenericMessage<String> message = new GenericMessage<String>("foo");
+		conn1 = cachingFactory.getConnection();
+		conn1.send(message);
+		Mockito.verify(mockConn2).send(message);
+	}
+
+	public TcpConnectionSupport makeMockConnection() {
+		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
+		when(connection.isOpen()).thenReturn(true);
+		return connection;
+	}
+
 }

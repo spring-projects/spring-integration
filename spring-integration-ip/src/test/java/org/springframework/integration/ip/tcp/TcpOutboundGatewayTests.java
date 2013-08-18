@@ -20,6 +20,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -45,16 +49,21 @@ import javax.net.ServerSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
@@ -178,6 +187,7 @@ public class TcpOutboundGatewayTests {
 			assertTrue(replies.remove("Reply" + i));
 		}
 		done.set(true);
+		gateway.stop();
 	}
 
 	@Test
@@ -256,6 +266,7 @@ public class TcpOutboundGatewayTests {
 			assertTrue(replies.remove("Reply" + i));
 		}
 		done.set(true);
+		gateway.stop();
 	}
 
 	@Test
@@ -390,6 +401,171 @@ public class TcpOutboundGatewayTests {
 		assertEquals(lastReceived.get().replace("Test", "Reply"), replies.get(0));
 		done.set(true);
 		assertEquals(0, TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size());
+		gateway.stop();
+	}
+
+	@Test
+	public void testCachingFailover() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		final CountDownLatch serverLatch = new CountDownLatch(1);
+
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					while (!done.get()) {
+						Socket socket = server.accept();
+						while (!socket.isClosed()) {
+							try {
+								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+								String request = (String) ois.readObject();
+								logger.debug("Read " + request);
+								ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+								oos.writeObject("bar");
+								logger.debug("Replied to " + request);
+								serverLatch.countDown();
+							}
+							catch (IOException e) {
+								logger.debug("error on write " + e.getClass().getSimpleName());
+								socket.close();
+							}
+						}
+					}
+				}
+				catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+
+		// Failover
+		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
+		TcpConnectionSupport mockConn1 = makeMockConnection();
+		when(factory1.getConnection()).thenReturn(mockConn1);
+		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
+
+		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port);
+		factory2.setSerializer(new DefaultSerializer());
+		factory2.setDeserializer(new DefaultDeserializer());
+		factory2.setSoTimeout(10000);
+		factory2.setSingleUse(false);
+
+		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		factories.add(factory1);
+		factories.add(factory2);
+		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
+		failoverFactory.start();
+
+		// Cache
+		CachingClientConnectionFactory cachingFactory = new CachingClientConnectionFactory(failoverFactory, 2);
+		cachingFactory.start();
+		TcpOutboundGateway gateway = new TcpOutboundGateway();
+		gateway.setConnectionFactory(cachingFactory);
+		PollableChannel outputChannel = new QueueChannel();
+		gateway.setOutputChannel(outputChannel);
+		gateway.afterPropertiesSet();
+		gateway.start();
+
+		GenericMessage<String> message = new GenericMessage<String>("foo");
+		gateway.handleMessage(message);
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals("bar", reply.getPayload());
+		done.set(true);
+		gateway.stop();
+		verify(mockConn1).send(Mockito.any(Message.class));
+	}
+
+	@Test
+	public void testFailoverCached() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		final CountDownLatch serverLatch = new CountDownLatch(1);
+
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					while (!done.get()) {
+						Socket socket = server.accept();
+						while (!socket.isClosed()) {
+							try {
+								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+								String request = (String) ois.readObject();
+								logger.debug("Read " + request);
+								ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+								oos.writeObject("bar");
+								logger.debug("Replied to " + request);
+								serverLatch.countDown();
+							}
+							catch (IOException e) {
+								logger.debug("error on write " + e.getClass().getSimpleName());
+								socket.close();
+							}
+						}
+					}
+				}
+				catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+
+		// Cache
+		AbstractClientConnectionFactory factory1 = mock(AbstractClientConnectionFactory.class);
+		TcpConnectionSupport mockConn1 = makeMockConnection();
+		when(factory1.getConnection()).thenReturn(mockConn1);
+		doThrow(new IOException("fail")).when(mockConn1).send(Mockito.any(Message.class));
+		CachingClientConnectionFactory cachingFactory1 = new CachingClientConnectionFactory(factory1, 1);
+
+		AbstractClientConnectionFactory factory2 = new TcpNetClientConnectionFactory("localhost", port);
+		factory2.setSerializer(new DefaultSerializer());
+		factory2.setDeserializer(new DefaultDeserializer());
+		factory2.setSoTimeout(10000);
+		factory2.setSingleUse(false);
+		CachingClientConnectionFactory cachingFactory2 = new CachingClientConnectionFactory(factory2, 1);
+
+		// Failover
+		List<AbstractClientConnectionFactory> factories = new ArrayList<AbstractClientConnectionFactory>();
+		factories.add(cachingFactory1);
+		factories.add(cachingFactory2);
+		FailoverClientConnectionFactory failoverFactory = new FailoverClientConnectionFactory(factories);
+		failoverFactory.start();
+
+		TcpOutboundGateway gateway = new TcpOutboundGateway();
+		gateway.setConnectionFactory(failoverFactory);
+		PollableChannel outputChannel = new QueueChannel();
+		gateway.setOutputChannel(outputChannel);
+		gateway.afterPropertiesSet();
+		gateway.start();
+
+		GenericMessage<String> message = new GenericMessage<String>("foo");
+		gateway.handleMessage(message);
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals("bar", reply.getPayload());
+		done.set(true);
+		gateway.stop();
+		verify(mockConn1).send(Mockito.any(Message.class));
+	}
+
+	public TcpConnectionSupport makeMockConnection() {
+		TcpConnectionSupport connection = mock(TcpConnectionSupport.class);
+		when(connection.isOpen()).thenReturn(true);
+		return connection;
 	}
 
 }
