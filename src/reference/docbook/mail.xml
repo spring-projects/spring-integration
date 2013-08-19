@@ -92,14 +92,14 @@
       This simplifies the application of the headers mentioned above to any Message prior to sending to the
       Mail Outbound Channel Adapter.
     </para>
-      <programlisting language="xml"><![CDATA[<header-enricher input-channel="expressionsInput" default-overwrite="false">
-	<to expression="payload.to"/>
-	<cc expression="payload.cc"/>
-	<bcc expression="payload.bcc"/>
-	<from expression="payload.from"/>
-	<reply-to expression="payload.replyTo"/>
-	<subject expression="payload.subject" overwrite="true"/>
-</header-enricher>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int-mail:header-enricher input-channel="expressionsInput" default-overwrite="false">
+	<int-mail:to expression="payload.to"/>
+	<int-mail:cc expression="payload.cc"/>
+	<int-mail:bcc expression="payload.bcc"/>
+	<int-mail:from expression="payload.from"/>
+	<int-mail:reply-to expression="payload.replyTo"/>
+	<int-mail:subject expression="payload.subject" overwrite="true"/>
+</int-mail:header-enricher>]]></programlisting>
     <para>
       This example assumes the payload is a JavaBean with appropriate getters for the specified properties, but
       any SpEL expression can be used. Alternatively, use the <code>value</code> attribute to specify a
