@@ -45,12 +45,15 @@ import javax.net.ServerSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
@@ -255,15 +258,39 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 	}
 
+	@Test
+	public void testGoodNetGWTimeout() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractClientConnectionFactory ccf = buildCF(port);
+		ccf.start();
+		testGoodNetGWTimeoutGuts(port, ccf);
+	}
+
+	@Test
+	public void testGoodNetGWTimeoutCached() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractClientConnectionFactory ccf = buildCF(port);
+		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(ccf, 1);
+		cccf.start();
+		testGoodNetGWTimeoutGuts(port, cccf);
+	}
+
+	private AbstractClientConnectionFactory buildCF(final int port) {
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
+		ccf.setSoTimeout(10000);
+		ccf.setSingleUse(false);
+		return ccf;
+	}
+
 	/**
 	 * Sends 2 concurrent messages on a shared connection. The GW single threads
 	 * these requests. The first will timeout; the second should receive its
 	 * own response, not that for the first.
 	 * @throws Exception
 	 */
-	@Test
-	public void testGoodNetGWTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+	private void testGoodNetGWTimeoutGuts(final int port, AbstractConnectionFactory ccf) throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		/*
@@ -298,23 +325,19 @@ public class TcpOutboundGatewayTests {
 								serverLatch.countDown();
 							}
 							catch (IOException e) {
+								logger.debug("error on write " + e.getClass().getSimpleName());
 								socket.close();
 							}
 						}
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
 				}
 			}
 		});
-		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		ccf.setSerializer(new DefaultSerializer());
-		ccf.setDeserializer(new DefaultDeserializer());
-		ccf.setSoTimeout(10000);
-		ccf.setSingleUse(false);
-		ccf.start();
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
@@ -349,10 +372,12 @@ public class TcpOutboundGatewayTests {
 				String reply = (String) replyChannel.receive(1000).getPayload();
 				logger.debug(i + " got " + result + " " + reply);
 				replies.add(reply);
-			} catch (ExecutionException e) {
+			}
+			catch (ExecutionException e) {
 				if (timeouts >= 2) {
 					fail("Unexpected " + e.getMessage());
-				} else {
+				}
+				else {
 					assertNotNull(e.getCause());
 					assertTrue(e.getCause() instanceof MessageTimeoutException);
 				}
