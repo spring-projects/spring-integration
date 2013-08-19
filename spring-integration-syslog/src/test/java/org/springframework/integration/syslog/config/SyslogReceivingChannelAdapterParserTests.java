@@ -39,7 +39,6 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.syslog.MessageConverter;
 import org.springframework.integration.syslog.inbound.TcpSyslogReceivingChannelAdapter;
@@ -131,7 +130,10 @@ public class SyslogReceivingChannelAdapterParserTests {
 
 	@Test
 	public void testSimplestTcp() throws Exception {
-		int port = TestUtils.getPropertyValue(adapter2, "connectionFactory", AbstractConnectionFactory.class).getPort();
+		AbstractServerConnectionFactory connectionFactory = TestUtils.getPropertyValue(adapter2, "connectionFactory",
+				AbstractServerConnectionFactory.class);
+		int port = connectionFactory.getPort();
+		waitListening(connectionFactory, 10000L);
 		byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE\n".getBytes("UTF-8");
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 		Thread.sleep(1000);
@@ -209,4 +211,36 @@ public class SyslogReceivingChannelAdapterParserTests {
 		}
 
 	}
+
+	/**
+	 * Wait for a server connection factory to actually start listening before
+	 * starting a test. Waits for up to 10 seconds by default.
+	 * @param serverConnectionFactory The server connection factory.
+	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
+	 * @throws IllegalStateException
+	 */
+	private void waitListening(AbstractServerConnectionFactory serverConnectionFactory, Long delay)
+		throws IllegalStateException {
+		if (delay == null) {
+			delay = 100L;
+		}
+		else {
+			delay = delay / 100;
+		}
+		int n = 0;
+		while (!serverConnectionFactory.isListening()) {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e1);
+			}
+
+			if (n++ > delay) {
+				throw new IllegalStateException("Server didn't start listening.");
+			}
+		}
+	}
+
 }
