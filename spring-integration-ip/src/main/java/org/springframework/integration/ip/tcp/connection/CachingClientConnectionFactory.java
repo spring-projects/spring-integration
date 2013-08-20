@@ -109,23 +109,22 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		@Override
 		public synchronized void close() {
-			/**
-			 * If the delegate is stopped, actually close
-			 * the connection.
-			 */
-			if (!isRunning()) {
-				if (logger.isDebugEnabled()){
-					logger.debug("Factory not running - closing " + this.getConnectionId());
-				}
-				pool.releaseItem(null); // just open up a permit
-				super.close();
-			}
-			else if(this.released) {
+			if(this.released) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Connection " + this.getConnectionId() + " has already been released");
 				}
 			}
 			else  {
+				/**
+				 * If the delegate is stopped, actually close the connection, but still release
+				 * it to the pool, it will be discarded/renewed the next time it is retrieved.
+				 */
+				if (!isRunning()) {
+					if (logger.isDebugEnabled()){
+						logger.debug("Factory not running - closing " + this.getConnectionId());
+					}
+					super.close();
+				}
 				pool.releaseItem(this.getTheConnection());
 				this.released = true;
 			}

@@ -16,29 +16,39 @@
 
 package org.springframework.integration.file.remote.handler;
 
-import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.SimplePool;
 
 /**
  * @author Oleg Zhurakousky
@@ -149,4 +159,40 @@ public class FileTransferringMessageHandlerTests {
 		verify(session, times(0)).rename(Mockito.anyString(), Mockito.anyString());
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test
+	public <F> void testServerException() throws Exception{
+		SessionFactory<F> sf = mock(SessionFactory.class);
+		CachingSessionFactory<F> csf = new CachingSessionFactory<F>(sf, 2);
+		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(csf);
+		Session<F> session1 = newSession();
+		Session<F> session2 = newSession();
+		Session<F> session3 = newSession();
+		when(sf.getSession()).thenReturn(session1, session2, session3);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("foo"));
+		handler.afterPropertiesSet();
+		for (int i = 0; i < 3; i++) {
+			try {
+				handler.handleMessage(new GenericMessage<String>("hello"));
+			}
+			catch (Exception e) {
+				assertEquals("test", e.getCause().getCause().getMessage());
+			}
+		}
+		verify(session1, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+		verify(session2, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+		verify(session3, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+		SimplePool<?> pool = TestUtils.getPropertyValue(csf, "pool", SimplePool.class);
+		assertEquals(1, pool.getAllocatedCount());
+		assertEquals(1, pool.getIdleCount());
+		assertSame(session3, TestUtils.getPropertyValue(pool, "allocated", Set.class).iterator().next());
+	}
+
+	private <F> Session<F> newSession() throws IOException {
+		@SuppressWarnings("unchecked")
+		Session<F> session = mock(Session.class);
+		doThrow(new IOException("test")).when(session).write(any(InputStream.class), anyString());
+		when(session.isOpen()).thenReturn(false);
+		return session;
+	}
 }

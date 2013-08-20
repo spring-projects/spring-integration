@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,13 @@ import static org.junit.Assert.fail;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
+
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
@@ -51,6 +54,7 @@ public class SimplePoolTests {
 		s3 = pool.getItem();
 		assertNotSame(s1, s3);
 		assertFalse(strings.remove(s1));
+		assertEquals(2, pool.getAllocatedCount());
 	}
 
 	@Test
@@ -127,6 +131,22 @@ public class SimplePoolTests {
 		pool.getItem();
 		pool.releaseItem("Hello, world!");
 	}
+
+	@Test
+	public void testDoubleReturn() {
+		final Set<String> strings = new HashSet<String>();
+		final AtomicBoolean stale = new AtomicBoolean();
+		SimplePool<String> pool = stringPool(2, strings, stale);
+		Semaphore permits = TestUtils.getPropertyValue(pool, "permits", Semaphore.class);
+		assertEquals(2, permits.availablePermits());
+		String s1 = pool.getItem();
+		assertEquals(1, permits.availablePermits());
+		pool.releaseItem(s1);
+		assertEquals(2, permits.availablePermits());
+		pool.releaseItem(s1);
+		assertEquals(2, permits.availablePermits());
+	}
+
 
 	private SimplePool<String> stringPool(int size, final Set<String> strings,
 			final AtomicBoolean stale) {

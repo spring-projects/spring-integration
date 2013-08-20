@@ -53,6 +53,8 @@ public class SimplePool<T> implements Pool<T> {
 
 	private final Set<T> allocated = Collections.synchronizedSet(new HashSet<T>());
 
+	private final Set<T> inUse = Collections.synchronizedSet(new HashSet<T>());
+
 	private final PoolItemCallback<T> callback;
 
 	/**
@@ -124,7 +126,7 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	public int getActiveCount() {
-		return this.getAllocatedCount() - this.getIdleCount();
+		return this.inUse.size();
 	}
 
 	public int getAllocatedCount() {
@@ -187,32 +189,42 @@ public class SimplePool<T> implements Pool<T> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Received a stale item, will attempt to get a new one.");
 			}
+			doRemoveItem(item);
 			item = doGetItem();
 		}
+		this.inUse.add(item);
 		return item;
 	}
 
 	/**
-	 * Returns an item to the pool. Item may be null, in which case a subsequent getItem()
-	 * will return a new instance.
+	 * Returns an item to the pool.
 	 */
 	public synchronized void releaseItem(T item) {
-		Assert.isTrue(item == null || this.allocated.contains(item),
+		Assert.notNull(item, "Item cannot be null");
+		Assert.isTrue(this.allocated.contains(item),
 				"You can only release items that were obtained from the pool");
-		if (this.poolSize.get() > targetPoolSize.get()) {
-			poolSize.decrementAndGet();
-			if (item != null) {
-				doRemoveItem(item);
+		if (this.inUse.contains(item)) {
+			if (this.poolSize.get() > targetPoolSize.get()) {
+				poolSize.decrementAndGet();
+				if (item != null) {
+					doRemoveItem(item);
+				}
+			}
+			else {
+				if (logger.isDebugEnabled()){
+					logger.debug("Releasing " + item + " back to the pool");
+				}
+				if (item != null) {
+					this.available.add(item);
+					this.inUse.remove(item);
+				}
+				permits.release();
 			}
 		}
 		else {
 			if (logger.isDebugEnabled()){
-				logger.debug("Releasing " + item + " back to the pool");
+				logger.debug("Ignoring release of " + item + " back to the pool - not in use");
 			}
-			if (item != null) {
-				available.add(item);
-			}
-			permits.release();
 		}
 	}
 
@@ -225,6 +237,7 @@ public class SimplePool<T> implements Pool<T> {
 
 	private void doRemoveItem(T item) {
 		this.allocated.remove(item);
+		this.inUse.remove(item);
 		this.callback.removedFromPool(item);
 	}
 
