@@ -350,6 +350,9 @@ Order generateOrder(String productId, @Header("customerName") String customer) {
     return new Order(productId, customer);
 }</programlisting>
     </para>
+    <para>
+        Also see <xref linkend="advising-with-annotations"/>.
+    </para>
   </section>
 
   </section>

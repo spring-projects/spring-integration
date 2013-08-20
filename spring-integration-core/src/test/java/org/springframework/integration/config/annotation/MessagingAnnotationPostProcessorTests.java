@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -46,6 +47,7 @@ import org.springframework.integration.test.util.TestUtils.TestApplicationContex
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MessagingAnnotationPostProcessorTests {
 
@@ -82,9 +84,16 @@ public class MessagingAnnotationPostProcessorTests {
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-		inputChannel.send(new GenericMessage<String>("world"));
+		GenericMessage<String> messageToSend = new GenericMessage<String>("world");
+		inputChannel.send(messageToSend);
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
+
+		inputChannel = context.getBean("advisedIn", MessageChannel.class);
+		outputChannel = context.getBean("advisedOut", PollableChannel.class);
+		inputChannel.send(messageToSend);
+		message = outputChannel.receive(1000);
+		assertEquals("hello world advised", message.getPayload());
 		context.stop();
 	}
 
@@ -301,7 +310,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 		private String messageText;
 
-		private CountDownLatch latch;
+		private final CountDownLatch latch;
 
 
 		public OutboundOnlyTestBean(CountDownLatch latch) {
@@ -313,7 +322,6 @@ public class MessagingAnnotationPostProcessorTests {
 		}
 
 		@ServiceActivator(inputChannel="testChannel")
-		@SuppressWarnings("unused")
 		public void countdown(String input) {
 			this.messageText = input;
 			latch.countDown();
@@ -343,7 +351,6 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class ServiceActivatorAnnotatedBean {
 
-		@SuppressWarnings("unused")
 		@ServiceActivator(inputChannel="inputChannel")
 		public String test(String s) {
 			return s + s;
@@ -355,11 +362,18 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TransformerAnnotationTestBean {
 
-		@SuppressWarnings("unused")
 		@Transformer(inputChannel="inputChannel", outputChannel="outputChannel")
 		public String transformBefore(String input) {
 			return input.toUpperCase();
 		}
 	}
 
+	public static class ServiceActivatorAdvice extends AbstractRequestHandlerAdvice {
+
+		@Override
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+			return callback.execute() + " advised";
+		}
+
+	}
 }
