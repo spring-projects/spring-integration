@@ -86,7 +86,6 @@ public class ScriptParser extends AbstractScriptParser {
 		engine = engineManager.getEngineByExtension(extension);
 
 		Assert.notNull(engine, "No suitable scripting engine found for extension " + extension);
-
-		return extension;
+		return engine.getFactory().getLanguageName();
 	}
 }

@@ -36,7 +36,7 @@ public class DeriveLanguageFromExtensionTests {
 
 	@Test
 	public void testParseLanguage() {
-		String langs[] = { "rb", "groovy", "js", "py" };
+		String langs[] = { "ruby", "Groovy", "ECMAScript", "python" };
 
 		Map<String, ScriptExecutingMessageProcessor> scriptProcessors = ctx
 				.getBeansOfType(ScriptExecutingMessageProcessor.class);
@@ -44,11 +44,11 @@ public class DeriveLanguageFromExtensionTests {
 
 		for (int i = 0; i < 4; i++) {
 
-			ScriptExecutingMessageProcessor ruby = ctx.getBean(
+			ScriptExecutingMessageProcessor processor = ctx.getBean(
 					"org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor#" + i,
 					ScriptExecutingMessageProcessor.class);
 
-			AbstractScriptExecutor executor = (AbstractScriptExecutor) TestUtils.getPropertyValue(ruby,
+			AbstractScriptExecutor executor = (AbstractScriptExecutor) TestUtils.getPropertyValue(processor,
 					"scriptExecutor");
 			assertEquals(langs[i], executor.language);
 		}
