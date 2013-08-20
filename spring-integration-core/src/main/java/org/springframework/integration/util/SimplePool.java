@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.MessagingException;
 import org.springframework.util.Assert;
 
@@ -92,18 +93,20 @@ public class SimplePool<T> implements Pool<T> {
 			this.poolSize.addAndGet(delta);
 			this.permits.release(delta);
 		}
-		else while (delta < 0) {
-			if (!this.permits.tryAcquire()) {
-				break;
+		else {
+			while (delta < 0) {
+				if (!this.permits.tryAcquire()) {
+					break;
+				}
+				T item = this.available.poll();
+				if (item == null) {
+					this.permits.release();
+					break;
+				}
+				doRemoveItem(item);
+				this.poolSize.decrementAndGet();
+				delta++;
 			}
-			T item = this.available.poll();
-			if (item == null) {
-				this.permits.release();
-				break;
-			}
-			doRemoveItem(item);
-			this.poolSize.decrementAndGet();
-			delta++;
 		}
 		if (delta < 0 && logger.isDebugEnabled()) {
 			logger.debug(String.format("Pool is overcommitted by %d; items will be removed when returned", -delta));
