@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -238,7 +239,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 			messageWrapper = (DelayedMessageWrapper) message.getPayload();
 		}
 		else {
-			messageWrapper = new DelayedMessageWrapper(message);
+			messageWrapper = new DelayedMessageWrapper(message, System.currentTimeMillis());
 			delayedMessage = MessageBuilder.withPayload(messageWrapper).copyHeaders(message.getHeaders()).build();
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
@@ -333,16 +334,17 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 
-	private static final class DelayedMessageWrapper implements Serializable {
+	public static final class DelayedMessageWrapper implements Serializable {
 
 		private static final long serialVersionUID = -4739802369074947045L;
 
-		private final long requestDate = System.currentTimeMillis();
+		private final long requestDate;
 
 		private final Message<?> original;
 
-		public DelayedMessageWrapper(Message<?> original) {
+		DelayedMessageWrapper(Message<?> original, long requestDate) {
 			this.original = original;
+			this.requestDate = requestDate;
 		}
 
 		public long getRequestDate() {
@@ -355,8 +357,12 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
 
 			DelayedMessageWrapper that = (DelayedMessageWrapper) o;
 
