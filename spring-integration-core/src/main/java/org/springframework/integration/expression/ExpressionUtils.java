@@ -16,7 +16,11 @@
 
 package org.springframework.integration.expression;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
@@ -42,7 +46,7 @@ public abstract class ExpressionUtils {
 	 * @return the evaluation context.
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext() {
-		return createStandardEvaluationContext(null, null);
+		return createStandardEvaluationContext((BeanResolver) null, null);
 	}
 
 	/**
@@ -64,7 +68,7 @@ public abstract class ExpressionUtils {
 	 * @return the evaluation context.
 	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService) {
-		return createStandardEvaluationContext(null, conversionService);
+		return createStandardEvaluationContext((BeanResolver) null, conversionService);
 	}
 
 	/**
@@ -89,15 +93,41 @@ public abstract class ExpressionUtils {
 		return evaluationContext;
 	}
 
-	/**
-	 * Creates {@link BeanFactoryResolver}, extracts {@link ConversionService} and delegates to
-	 * {@link #createStandardEvaluationContext(BeanResolver, ConversionService)}
-	 *
-	 * @param beanFactory the beanFactory.
-	 * @return the evaluation context.
-	 */
-	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
-		return createStandardEvaluationContext(new BeanFactoryResolver(beanFactory),
-				IntegrationContextUtils.getConversionService(beanFactory));
+	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory,
+			ConversionService conversionService) {
+		StandardEvaluationContext context = null;
+		if (beanFactory != null) {
+			context = IntegrationContextUtils.getEvaluationContext(beanFactory);
+			if (context != null) {
+				configureSpelFunctions(context, beanFactory);
+				if (conversionService != null) {
+					context.setTypeConverter(new StandardTypeConverter(conversionService));
+				}
+			}
+		}
+		 if (context == null) {
+			 context = createStandardEvaluationContext(conversionService);
+		 }
+
+		return context;
 	}
+
+	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
+		return createStandardEvaluationContext(beanFactory, IntegrationContextUtils.getConversionService(beanFactory));
+	}
+
+	public static Collection<SpelFunction> getSpelFunctions(BeanFactory beanFactory) {
+		if (beanFactory instanceof ListableBeanFactory) {
+			return ((ListableBeanFactory) beanFactory).getBeansOfType(SpelFunction.class).values();
+		}
+		return Collections.emptyList();
+	}
+
+	public static void configureSpelFunctions(StandardEvaluationContext context, BeanFactory beanFactory) {
+		Collection<SpelFunction> functions = getSpelFunctions(beanFactory);
+		for (SpelFunction function : functions) {
+			context.registerFunction(function.getName(), function.getMethod());
+		}
+	}
+
 }

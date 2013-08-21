@@ -39,6 +39,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -138,14 +139,28 @@ public class ApplicationEventListeningMessageProducerTests {
 		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
 		adapter.setPayloadExpression("'received: ' + source");
 		adapter.setOutputChannel(channel);
-		adapter.start();
+
+		GenericApplicationContext ctx = TestUtils.createTestApplicationContext();
+		ConfigurableListableBeanFactory beanFactory = ctx.getBeanFactory();
+		beanFactory.registerSingleton(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME,
+				new SimpleApplicationEventMulticaster(beanFactory));
+
+		adapter.setBeanFactory(beanFactory);
+		beanFactory.registerSingleton("testListenerMessageProducer", adapter);
+		adapter.afterPropertiesSet();
+
+		ctx.refresh();
+
 		Message<?> message1 = channel.receive(0);
-		assertNull(message1);
+		// ContextRefreshedEvent
+		assertNotNull(message1);
+		assertTrue(message1.getPayload().toString()
+				.contains("org.springframework.integration.test.util.TestUtils$TestApplicationContext"));
+
 		adapter.onApplicationEvent(new TestApplicationEvent1());
 		adapter.onApplicationEvent(new TestApplicationEvent2());
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
-		assertEquals("received: event1", message2.getPayload());
 		Message<?> message3 = channel.receive(20);
 		assertNotNull(message3);
 		assertEquals("received: event2", message3.getPayload());

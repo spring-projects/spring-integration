@@ -15,10 +15,14 @@
 
 	<transformer input-channel="beanResolvingInput" expression="@testBean.foo + payload.toUpperCase()" output-channel="output"/>
 
+	<transformer input-channel="spelFunctionInput" expression="#trim(payload)" output-channel="output"/>
+
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$TestBean"/>
 
 	<chain id="transformerChain" input-channel="transformerChainInput">
 		<transformer expression="null"/>
 	</chain>
+
+	<spel-function id="trim" class="org.springframework.util.StringUtils" method="trimWhitespace"/>
 
 </beans:beans>

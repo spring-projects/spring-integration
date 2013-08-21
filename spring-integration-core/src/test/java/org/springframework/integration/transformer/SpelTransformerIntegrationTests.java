@@ -54,6 +54,8 @@ public class SpelTransformerIntegrationTests {
 	@Autowired
 	private MessageChannel transformerChainInput;
 
+	@Autowired
+	private MessageChannel spelFunctionInput;
 
 	@Test
 	public void simple() {
@@ -81,6 +83,13 @@ public class SpelTransformerIntegrationTests {
 		}
 	}
 
+	@Test
+	public void testInt1639SpelFunction() {
+		Message<?> message = MessageBuilder.withPayload("  foo   ").build();
+		this.spelFunctionInput.send(message);
+		Message<?> result = output.receive(0);
+		assertEquals("foo", result.getPayload());
+	}
 
 	static class TestBean {
 
