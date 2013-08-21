@@ -18,13 +18,13 @@ import java.io.StringWriter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.expression.MapAccessor;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -54,7 +54,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	private volatile Level level;
 
-	private final EvaluationContext evaluationContext;
+	private volatile EvaluationContext evaluationContext;
 
 	private volatile Log messageLogger = this.logger;
 
@@ -74,9 +74,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 					+ "'. The (case-insensitive) supported values are: "
 					+ StringUtils.arrayToCommaDelimitedString(Level.values()));
 		}
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		evaluationContext.addPropertyAccessor(new MapAccessor());
-		this.evaluationContext = evaluationContext;
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
 		this.expression = EXPRESSION_PARSER.parseExpression("payload");
 	}
 
@@ -121,6 +119,12 @@ public class LoggingHandler extends AbstractMessageHandler {
 	@Override
 	public String getComponentType() {
 		return "logging-channel-adapter";
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 
 	@Override

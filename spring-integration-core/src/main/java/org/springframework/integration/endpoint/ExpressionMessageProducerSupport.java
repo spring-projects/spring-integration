@@ -12,9 +12,11 @@
  */
 package org.springframework.integration.endpoint;
 
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 
 /**
  * A {@link MessageProducerSupport} sub-class that provides {@linkplain #payloadExpression}
@@ -22,14 +24,17 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
  *
  * @author David Turanski
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  *
  */
-public abstract class ExpressionMessageProducerSupport extends MessageProducerSupport {
+public abstract class ExpressionMessageProducerSupport extends MessageProducerSupport implements IntegrationEvaluationContextAware {
 
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 
 	private volatile Expression payloadExpression;
+
+	private volatile EvaluationContext evaluationContext;
 
 	public void setPayloadExpression(String payloadExpression) {
 		if (payloadExpression == null) {
@@ -40,10 +45,23 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 		}
 	}
 
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		}
+	}
+
 	protected Object evaluatePayloadExpression(Object payload){
 		Object evaluationResult = payload;
 		if (payloadExpression != null) {
-			evaluationResult = payloadExpression.getValue(payload);
+			evaluationResult = payloadExpression.getValue(this.evaluationContext, payload);
 		}
 		return evaluationResult;
 	}

@@ -24,7 +24,7 @@
 				filename-pattern="*.txt"
 				local-directory="."
 				remote-file-separator=""
-				local-filename-generator-expression="#this.toUpperCase() + '.a'"
+				local-filename-generator-expression="#this.toUpperCase() + '.a' + @fooString"
 				comparator="comparator"
 				temporary-file-suffix=".foo"
 				local-filter="acceptAllFilter"
@@ -33,6 +33,10 @@
 				<int:transactional synchronization-factory="syncFactory"/>
 			</int:poller>
 	</int-ftp:inbound-channel-adapter>
+
+	<bean id="fooString" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
 
 	<bean id="acceptAllFilter" class="org.springframework.integration.file.filters.AcceptAllFileListFilter" />
 	

@@ -29,6 +29,7 @@ import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
@@ -189,14 +190,14 @@ public class FileOutboundChannelAdapterParserTests {
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
+		assertEquals(4, adviceCalled);
+		testFile.delete();
 	}
 
 	@Test
 	public void adapterUsageWithFailMode() throws Exception{
 
-		String expectedFileContent = "Initial File Content:String content:byte[] content:File content";
-
-		File testFile = new File("test/fileToAppend.txt");
+		File testFile = new File("test/fileToFail.txt");
 		if (testFile.exists()){
 			testFile.delete();
 		}
@@ -207,15 +208,12 @@ public class FileOutboundChannelAdapterParserTests {
 			usageChannelWithFailMode.send(new GenericMessage<String>("String content:"));
 		}
 		catch (MessagingException e) {
-
+			assertTrue(e.getMessage().contains("The destination file already exists at"));
+			testFile.delete();
 			return;
 		}
 
 		Assert.fail("Was expecting an Exception to be thrown.");
-
-
-		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
-		assertEquals(expectedFileContent, actualFileContent);
 	}
 
 	@Test
@@ -224,7 +222,7 @@ public class FileOutboundChannelAdapterParserTests {
 
 		String expectedFileContent = "Initial File Content:";
 
-		File testFile = new File("test/fileToAppend.txt");
+		File testFile = new File("test/fileToIgnore.txt");
 		if (testFile.exists()){
 			testFile.delete();
 		}
@@ -234,6 +232,7 @@ public class FileOutboundChannelAdapterParserTests {
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
+		testFile.delete();
 
 	}
 

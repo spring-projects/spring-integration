@@ -24,6 +24,10 @@ import javax.mail.URLName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.expression.Expression;
@@ -40,7 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 1.0.3
  */
-public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean {
+public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean, BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -70,6 +74,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	private volatile SearchTermStrategy searchTermStrategy;
 
+	private volatile BeanFactory beanFactory;
 
 	public void setStoreUri(String storeUri) {
 		this.storeUri = storeUri;
@@ -113,6 +118,11 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	public void setSearchTermStrategy(SearchTermStrategy searchTermStrategy) {
 		this.searchTermStrategy = searchTermStrategy;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
 	public MailReceiver getObject() throws Exception {
@@ -183,6 +193,9 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		}
 		else if (isImap) {
 			((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
+		}
+		if (this.beanFactory != null) {
+			receiver.setBeanFactory(this.beanFactory);
 		}
 		receiver.afterPropertiesSet();
 		return receiver;

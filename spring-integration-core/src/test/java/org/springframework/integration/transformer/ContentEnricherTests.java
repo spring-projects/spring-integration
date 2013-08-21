@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -52,28 +53,29 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
- * 
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class ContentEnricherTests {
 
-	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-	
+	private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+
 	@Before
 	public void init() throws Exception {
 		taskScheduler.setPoolSize(2);
 		taskScheduler.afterPropertiesSet();
 	}
-	
+
 	/**
-	 * In this test a {@link Target} message is passed into an {@link ContentEnricher}. 
-	 * The Enricher passes the message to a "request-channel" that is backed by a 
-	 * {@link QueueChannel}. The consumer of the "request-channel" takes a long 
-	 * time to execute, longer actually than the specified "replyTimeout" set on 
+	 * In this test a {@link Target} message is passed into a {@link ContentEnricher}.
+	 * The Enricher passes the message to a "request-channel" that is backed by a
+	 * {@link QueueChannel}. The consumer of the "request-channel" takes a long
+	 * time to execute, longer actually than the specified "replyTimeout" set on
 	 * the {@link ContentEnricher}.
-	 * 
+	 *
 	 * Due to the occurring replyTimeout, a Null replyMessage is returned and because
-	 * "requiresReply" is set to "true" on the {@link ContentEnricher}, a 
+	 * "requiresReply" is set to "true" on the {@link ContentEnricher}, a
 	 * {@link ReplyRequiredException} is raised.
 	 */
 	@Test
@@ -81,26 +83,26 @@ public class ContentEnricherTests {
 
 		final long requestTimeout = 500L;
 		final long replyTimeout   = 700L;
-		
+
 		final DirectChannel replyChannel   = new DirectChannel();
 		final QueueChannel requestChannel = new QueueChannel(1);
-		
+
 		final ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
 		enricher.setReplyChannel(replyChannel);
-		
-		enricher.setOutputChannel(new NullChannel());	
+
+		enricher.setOutputChannel(new NullChannel());
 		enricher.setRequestTimeout(requestTimeout);
 		enricher.setReplyTimeout(replyTimeout);
-		
+
 		final ExpressionFactoryBean expressionFactoryBean = new ExpressionFactoryBean("payload");
 		expressionFactoryBean.setSingleton(false);
 		expressionFactoryBean.afterPropertiesSet();
-		
+
 		final Map<String, Expression> expressions = new HashMap<String, Expression>();
 		expressions.put("name", new LiteralExpression("cartman"));
 		expressions.put("child.name", expressionFactoryBean.getObject());
-		
+
 		enricher.setPropertyExpressions(expressions);
 		enricher.setRequiresReply(true);
 		enricher.setBeanName("Enricher");
@@ -117,45 +119,45 @@ public class ContentEnricherTests {
 				}
 				return new Target("child");
 			}
-			
+
 		};
-		
+
 		handler.afterPropertiesSet();
-		
+
 		final PollingConsumer consumer = new PollingConsumer(requestChannel, handler);
 		final TestErrorHandler errorHandler = new TestErrorHandler();
-		
+
 		consumer.setTrigger(new PeriodicTrigger(0));
 		consumer.setErrorHandler(errorHandler);
 		consumer.setTaskScheduler(taskScheduler);
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
 		consumer.start();
-		
+
 		final Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
-		
+
 		try {
 		    enricher.handleMessage(requestMessage);
 		} catch (ReplyRequiredException e) {
 			assertEquals("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.", e.getMessage());
 			return;
 		}
-		
+
 		fail("ReplyRequiredException expected.");
 
 	}
-	
+
 	@Test
 	public void requestChannelSendTimingOut() {
-		
+
 		final String requestChannelName = "Request_Channel";
 		final long requestTimeout = 200L;
-		
+
 		QueueChannel replyChannel   = new QueueChannel();
 		QueueChannel requestChannel = new RendezvousChannel();
 		requestChannel.setBeanName(requestChannelName);
-		
+
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
 		enricher.setRequestTimeout(requestTimeout);
@@ -163,17 +165,17 @@ public class ContentEnricherTests {
 
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
-		
+
 		try {
 		    enricher.handleMessage(requestMessage);
 		} catch (MessageDeliveryException e) {
-			assertEquals("failed to send message to channel '" + requestChannelName 
+			assertEquals("failed to send message to channel '" + requestChannelName
 					   + "' within timeout: " + requestTimeout, e.getMessage());
 			return;
 		}
 
 	}
-	
+
 	@Test
 	public void simpleProperty() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -203,52 +205,52 @@ public class ContentEnricherTests {
 
 	@Test
 	public void setReplyChannelWithoutRequestChannel() {
-		
+
 		QueueChannel replyChannel   = new QueueChannel();
-		
+
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(replyChannel);
-		
-		try { 
+
+		try {
 		    enricher.afterPropertiesSet();
 		} catch (IllegalArgumentException e) {
 			assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
 			return;
 		}
-		
+
 		fail("Expected an exception.");
 	}
-	
+
 	@Test
 	public void setNullReplyTimeout() {
-		
+
 		ContentEnricher enricher = new ContentEnricher();
-		
+
 		try {
 		    enricher.setReplyTimeout(null);
 		} catch (IllegalArgumentException e) {
 			assertEquals("replyTimeout must not be null", e.getMessage());
 			return;
 		}
-		
+
 		fail("Expected an exception.");
 	}
-	
+
 	@Test
 	public void setNullRequestTimeout() {
-		
+
 		ContentEnricher enricher = new ContentEnricher();
-		
+
 		try {
 		    enricher.setRequestTimeout(null);
 		} catch (IllegalArgumentException e) {
 			assertEquals("requestTimeout must not be null", e.getMessage());
 			return;
 		}
-		
+
 		fail("Expected an exception.");
 	}
-	
+
 	@Test
 	public void testSimplePropertyWithoutUsingRequestChannel() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -257,6 +259,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("'just a static string'"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.afterPropertiesSet();
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		enricher.handleMessage(requestMessage);
@@ -490,6 +493,7 @@ public class ContentEnricherTests {
 			this.child = child;
 		}
 
+		@Override
 		public Object clone() {
 			Target clone = new Target(this.name);
 			clone.setChild(this.child);
@@ -531,6 +535,7 @@ public class ContentEnricherTests {
 			this.name = name;
 		}
 
+		@Override
 		public Object clone() {
 			throw new IllegalStateException("Cloning not possible");
 		}

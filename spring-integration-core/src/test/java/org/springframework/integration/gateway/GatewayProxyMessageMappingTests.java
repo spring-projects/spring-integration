@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,12 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class GatewayProxyMessageMappingTests {
@@ -52,6 +55,11 @@ public class GatewayProxyMessageMappingTests {
 		factoryBean.setServiceInterface(TestGateway.class);
 		factoryBean.setDefaultRequestChannel(channel);
 		factoryBean.setBeanName("testGateway");
+		GenericApplicationContext context = new GenericApplicationContext();
+		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
+		context.refresh();
+		factoryBean.setBeanFactory(context);
 		factoryBean.afterPropertiesSet();
 		this.gateway = (TestGateway) factoryBean.getObject();
 	}
@@ -136,6 +144,8 @@ public class GatewayProxyMessageMappingTests {
 		gatewayDefinition.getPropertyValues().add("serviceInterface", TestGateway.class);
 		context.registerBeanDefinition("testGateway", gatewayDefinition);
 		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
+		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
 		context.refresh();
 		TestGateway gateway = context.getBean("testGateway", TestGateway.class);
 		gateway.payloadAnnotationAtMethodLevelUsingBeanResolver("foo");
@@ -160,6 +170,8 @@ public class GatewayProxyMessageMappingTests {
 		gatewayDefinition.getPropertyValues().add("serviceInterface", TestGateway.class);
 		context.registerBeanDefinition("testGateway", gatewayDefinition);
 		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
+		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
 		context.refresh();
 		TestGateway gateway = context.getBean("testGateway", TestGateway.class);
 		gateway.payloadAnnotationWithExpressionUsingBeanResolver("foo");

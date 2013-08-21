@@ -16,6 +16,17 @@
 
 package org.springframework.integration.ftp.inbound;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -32,23 +43,14 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 public class FtpInboundRemoteFileSystemSynchronizerTests {
@@ -80,6 +82,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new FtpRegexPatternFileListFilter(".*\\.test$"));
+		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
 
 		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = expressionParser.parseExpression("#this.toUpperCase() + '.a'");

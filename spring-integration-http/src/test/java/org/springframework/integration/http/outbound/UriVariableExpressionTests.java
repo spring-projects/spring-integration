@@ -52,6 +52,7 @@ public class UriVariableExpressionTests {
 				throw new RuntimeException("intentional");
 			}
 		});
+		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<Object>("bar");
 		Exception exception = null;
 		try {

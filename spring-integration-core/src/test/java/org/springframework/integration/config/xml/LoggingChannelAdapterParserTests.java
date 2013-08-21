@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,6 +69,7 @@ public class LoggingChannelAdapterParserTests {
 		assertEquals(Ordered.LOWEST_PRECEDENCE, TestUtils.getPropertyValue(loggingHandler, "order"));
 		assertEquals("INFO", TestUtils.getPropertyValue(loggingHandler, "level").toString());
 		assertEquals("payload.foo", TestUtils.getPropertyValue(loggingHandler, "expression.expression"));
+		assertNotNull(TestUtils.getPropertyValue(loggingHandler, "evaluationContext.beanResolver"));
 	}
 
 	@Test

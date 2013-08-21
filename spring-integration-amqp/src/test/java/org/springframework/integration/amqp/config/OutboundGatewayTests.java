@@ -22,15 +22,20 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
@@ -60,20 +65,27 @@ public class OutboundGatewayTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testExpressionsBeanResolver() {
-		BeanFactory bf = mock(BeanFactory.class);
+	public void testExpressionsBeanResolver() throws Exception {
+		ApplicationContext context = mock(ApplicationContext.class);
 		doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return invocation.getArguments()[0] + "bar";
 			}
-		}).when(bf).getBean(anyString());
+		}).when(context).getBean(anyString());
+		when(context.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)).thenReturn(true);
+		IntegrationEvaluationContextFactoryBean integrationEvaluationContextFactoryBean = new IntegrationEvaluationContextFactoryBean();
+		integrationEvaluationContextFactoryBean.setApplicationContext(context);
+		integrationEvaluationContextFactoryBean.afterPropertiesSet();
+		StandardEvaluationContext evalContext = integrationEvaluationContextFactoryBean.getObject();
+		when(context.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class))
+			.thenReturn(evalContext);
 		RabbitTemplate template = mock(RabbitTemplate.class);
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(template);
 		endpoint.setRoutingKeyExpression("@foo");
 		endpoint.setExchangeNameExpression("@bar");
 		endpoint.setConfirmCorrelationExpression("@baz");
-		endpoint.setBeanFactory(bf);
+		endpoint.setBeanFactory(context);
 		endpoint.afterPropertiesSet();
 		Message<?> message = new GenericMessage<String>("Hello, world!");
 		assertEquals("foobar", TestUtils.getPropertyValue(endpoint, "routingKeyGenerator", MessageProcessor.class)

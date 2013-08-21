@@ -44,8 +44,10 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -90,6 +92,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, String> form = new LinkedHashMap<String, String>();
 		form.put("a", "1");
 		form.put("b", "2");
@@ -122,6 +126,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		form.put("a", new City("Philadelphia"));
 		form.put("b", new City("Ambler"));
@@ -153,6 +159,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<Object, Object> form = new LinkedHashMap<Object, Object>();
 		form.put(1, new City("Philadelphia"));
 		form.put(2, new City("Ambler"));
@@ -185,6 +193,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		form.put("a", new String[] { "1", "2", "3" });
 		form.put("b", "4");
@@ -230,6 +240,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		form.put("a", new int[]{1,2,3});
 		form.put("b", "4");
@@ -277,6 +289,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		form.put("a", new Object[]{null, 4, null});
 		form.put("b", "4");
@@ -318,6 +332,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		List<Object> list = new ArrayList<Object>();
 		list.add(null);
@@ -363,6 +379,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		List<Object> list = new ArrayList<Object>();
 		list.add(null);
@@ -403,6 +421,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		List<String> listA = new ArrayList<String>();
 		listA.add("1");
@@ -446,6 +466,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		List<Object> listA = new ArrayList<Object>();
 		listA.add(new City("Philadelphia"));
@@ -489,6 +511,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		form.put("a", null);
 		form.put("b", "foo");
@@ -524,6 +548,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 
 		byte[] bytes = "Hello World".getBytes();
 		Message<?> message = MessageBuilder.withPayload(bytes).build();
@@ -538,7 +564,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertTrue(body instanceof byte[]);
-		assertEquals("Hello World", new String((byte[])bytes));
+		assertEquals("Hello World", new String(bytes));
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM, request.getHeaders().getContentType());
 	}
 
@@ -548,6 +574,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
 		Exception exception = null;
@@ -573,6 +601,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
 		handler.setExtractPayload(true);
+		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
 		// should not see  a warn message since 'setExtractPayload' is not set explicitly
@@ -581,6 +610,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
+		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
 		// should not see  a warn message since HTTP method is not GET
@@ -590,6 +620,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.POST);
 		handler.setExtractPayload(true);
+		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 	}
 
@@ -600,6 +631,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
 		Exception exception = null;
@@ -705,6 +738,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler(
 				new SpelExpressionParser().parseExpression("headers['foo']"),
 				restTemplate);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		String theURL = "http://bar/baz?foo#bar";
 		Message<?> message = MessageBuilder.withPayload("").setHeader("foo", theURL).build();
 		try {
@@ -721,6 +756,8 @@ public class HttpRequestExecutingMessageHandlerTests {
 				new SpelExpressionParser().parseExpression("'http://my.RabbitMQ.com/api/' + payload"),
 				restTemplate);
 		handler.setEncodeUri(false);
+		setBeanFactory(handler);
+		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("queues/%2f/si.test.queue?foo#bar").build();
 		try {
 			handler.handleRequestMessage(message);
@@ -779,6 +816,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
 		converters.add(new SerializingHttpMessageConverter());
 		handler.setMessageConverters(converters);
+		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
 		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);
@@ -813,6 +851,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
 		converters.add(new SerializingHttpMessageConverter());
 		handler.setMessageConverters(converters);
+		setBeanFactory(handler);
 		handler.afterPropertiesSet();
 
 		RestTemplate restTemplate = TestUtils.getPropertyValue(handler, "restTemplate", RestTemplate.class);
@@ -834,6 +873,10 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertTrue(accept != null && accept.size() > 0);
 		assertEquals("application", accept.get(0).getType());
 		assertEquals("x-java-serialized-object", accept.get(0).getSubtype());
+	}
+
+	private void setBeanFactory(HttpRequestExecutingMessageHandler handler) {
+		handler.setBeanFactory(mock(BeanFactory.class));
 	}
 
 	private HttpHeaders setUpMocksToCaptureSentHeaders(RestTemplate restTemplate) throws IOException {

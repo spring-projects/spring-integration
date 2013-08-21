@@ -17,7 +17,9 @@
 package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -25,14 +27,22 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.expression.AccessException;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.PropertyAccessor;
+import org.springframework.expression.TypedValue;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -53,6 +63,12 @@ public class SpelTransformerIntegrationTests {
 
 	@Autowired
 	private MessageChannel transformerChainInput;
+
+	@Autowired @Qualifier("foo.handler")
+	private AbstractReplyProducingMessageHandler fooHandler;
+
+	@Autowired @Qualifier("bar.handler")
+	private AbstractReplyProducingMessageHandler barHandler;
 
 
 	@Test
@@ -81,12 +97,90 @@ public class SpelTransformerIntegrationTests {
 		}
 	}
 
+	@Test
+	public void testCustomAccessor() {
+		QueueChannel outputChannel = new QueueChannel();
+		fooHandler.setOutputChannel(outputChannel);
+		Foo foo = new Foo("baz");
+		fooHandler.handleMessage(new GenericMessage<Foo>(foo));
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
+		assertTrue(reply.getPayload() instanceof String);
+		assertEquals("baz", reply.getPayload());
+	}
+
+	@Test
+	public void testCustomFunction() {
+		QueueChannel outputChannel = new QueueChannel();
+		barHandler.setOutputChannel(outputChannel);
+		barHandler.handleMessage(new GenericMessage<String>("foo"));
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals("bar", reply.getPayload());
+	}
 
 	static class TestBean {
 
 		public String getFoo() {
 			return "test";
 		}
+
 	}
 
+	public static class Foo {
+		private String bar;
+
+		public Foo(String bar) {
+			this.bar = bar;
+		}
+
+		public String obtainBar() {
+			return bar;
+		}
+
+		public void updateBar(String bar) {
+			this.bar = bar;
+		}
+
+	}
+
+	public static class FooAccessor implements PropertyAccessor {
+
+		@Override
+		public Class<?>[] getSpecificTargetClasses() {
+			return new Class[] {Foo.class};
+		}
+
+		@Override
+		public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
+			return "bar".equals(name);
+		}
+
+		@Override
+		public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
+			Assert.isInstanceOf(Foo.class, target);
+			return  new TypedValue(((Foo) target).obtainBar(), TypeDescriptor.valueOf(String.class));
+		}
+
+		@Override
+		public boolean canWrite(EvaluationContext context, Object target, String name) throws AccessException {
+			return "bar".equals(name);
+		}
+
+		@Override
+		public void write(EvaluationContext context, Object target, String name, Object newValue)
+				throws AccessException {
+			Assert.isInstanceOf(Foo.class, target);
+			Assert.isInstanceOf(String.class, newValue);
+			((Foo) target).updateBar((String) newValue);
+		}
+
+	}
+
+	public static class BarFunction {
+
+		public static String bar(Message<?> message) {
+			return "bar";
+		}
+	}
 }

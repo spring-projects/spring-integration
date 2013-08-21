@@ -33,10 +33,12 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -75,7 +77,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private volatile Authenticator javaMailAuthenticator;
 
-	private final StandardEvaluationContext context = new StandardEvaluationContext();
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile Expression selectorExpression;
 
@@ -312,7 +314,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		for (int i = 0; i < messages.length; i++) {
 			MimeMessage message = (MimeMessage) messages[i];
 			if (this.selectorExpression != null) {
-				if (this.selectorExpression.getValue(this.context, message, Boolean.class)){
+				if (this.selectorExpression.getValue(this.evaluationContext, message, Boolean.class)) {
 					filteredMessages.add(message);
 				}
 				else {
@@ -381,6 +383,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.folderOpenMode = Folder.READ_WRITE;
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		this.initialized = true;
 	}
 

@@ -26,14 +26,14 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.BeanResolver;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -60,13 +60,15 @@ import com.google.common.cache.LoadingCache;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  *
  */
 @ManagedResource
 public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private volatile EvaluationContext evaluationContext;
+
 	private volatile BeanFactory beanFactory = null;
 
 	private volatile int jdbcCallOperationsCacheSize = 10;
@@ -220,11 +222,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 			this.jdbcCallOperationsCache.put(storedProcedureName, simpleJdbcCall);
 		}
 
-		this.evaluationContext.addPropertyAccessor(new MapAccessor());
-
-		if (this.beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(this.beanFactory));
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 
 	}
 

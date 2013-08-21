@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
@@ -549,14 +548,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		return httpStatus;
 	}
 
-	protected StandardEvaluationContext createEvaluationContext(){
-		if (this.getBeanFactory() != null) {
-			return ExpressionUtils.createStandardEvaluationContext(new BeanFactoryResolver(this.getBeanFactory()),
-					this.getConversionService());
-		}
-		else {
-			return ExpressionUtils.createStandardEvaluationContext(this.getConversionService());
-		}
+	protected StandardEvaluationContext createEvaluationContext() {
+		return ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 
 	private void validateSupportedMethods() {

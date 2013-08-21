@@ -142,13 +142,8 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 
 	@Override
 	protected void onInit() throws Exception {
-		if (this.getBeanFactory() != null){
-			this.evaluationContext =
+		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		}
-		else {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		}
 	}
 
 	public RedisStore getResource() {

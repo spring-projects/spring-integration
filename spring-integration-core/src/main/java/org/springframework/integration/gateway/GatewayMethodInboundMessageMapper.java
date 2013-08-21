@@ -28,11 +28,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.expression.BeanResolver;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -42,6 +40,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -87,9 +86,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<String, Expression>();
 
-	private final StandardEvaluationContext staticEvaluationContext = new StandardEvaluationContext();
+	private volatile StandardEvaluationContext payloadExpressionEvaluationContext;
 
-	private volatile BeanResolver beanResolver;
+	private volatile BeanFactory beanFactory;
 
 
 	public GatewayMethodInboundMessageMapper(Method method) {
@@ -111,8 +110,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
-			this.beanResolver = new BeanFactoryResolver(beanFactory);
-			this.staticEvaluationContext.setBeanResolver(beanResolver);
+			this.beanFactory = beanFactory;
+			this.payloadExpressionEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		}
 	}
 
@@ -209,12 +208,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	private StandardEvaluationContext createMethodInvocationEvaluationContext(Object[] arguments) {
-		StandardEvaluationContext context = new StandardEvaluationContext();
+		StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		context.setVariable("args", arguments);
 		context.setVariable("method", this.method.getName());
-		if (this.beanResolver != null) {
-			context.setBeanResolver(this.beanResolver);
-		}
 		return context;
 	}
 
@@ -224,7 +220,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			expression = PARSER.parseExpression(expressionString);
 			this.parameterPayloadExpressions.put(expressionString, expression);
 		}
-		return expression.getValue(this.staticEvaluationContext, argumentValue);
+		return expression.getValue(this.payloadExpressionEvaluationContext, argumentValue);
 	}
 
 	private Annotation findMappingAnnotation(Annotation[] annotations) {

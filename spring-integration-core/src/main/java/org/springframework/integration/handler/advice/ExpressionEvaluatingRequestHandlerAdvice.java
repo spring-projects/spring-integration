@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.handler.advice;
 
-import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -172,13 +171,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 	}
 
 	protected StandardEvaluationContext createEvaluationContext(){
-		if (this.getBeanFactory() != null) {
-			return ExpressionUtils.createStandardEvaluationContext(new BeanFactoryResolver(this.getBeanFactory()),
-					this.getConversionService());
-		}
-		else {
-			return ExpressionUtils.createStandardEvaluationContext(this.getConversionService());
-		}
+		return ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -31,6 +29,8 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
@@ -46,17 +46,18 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
-public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle {
+public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle, IntegrationEvaluationContextAware {
 
 	private final Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private final StandardEvaluationContext sourceEvaluationContext = new StandardEvaluationContext();
+	private EvaluationContext sourceEvaluationContext;
 
-	private final StandardEvaluationContext targetEvaluationContext = new StandardEvaluationContext();
+	private EvaluationContext targetEvaluationContext;
 
 	private volatile boolean shouldClonePayload = false;
 
@@ -69,7 +70,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	private volatile Gateway gateway = null;
 
 	private volatile Long requestTimeout;
-	
+
 	private volatile Long replyTimeout;
 
 	/**
@@ -111,20 +112,20 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Set the timeout value for sending request messages. If not explicitly 
+	 * Set the timeout value for sending request messages. If not explicitly
 	 * configured, the default is one second.
-	 * 
+	 *
 	 * @param requestTimeout the timeout value in milliseconds. Must not be null.
 	 */
 	public void setRequestTimeout(Long requestTimeout) {
 		Assert.notNull(requestTimeout, "requestTimeout must not be null");
 		this.requestTimeout = requestTimeout;
 	}
-	
+
 	/**
-	 * Set the timeout value for receiving reply messages. If not explicitly 
+	 * Set the timeout value for receiving reply messages. If not explicitly
 	 * configured, the default is one second.
-	 * 
+	 *
 	 * @param replyTimeout the timeout value in milliseconds. Must not be null.
 	 */
 	public void setReplyTimeout(Long replyTimeout) {
@@ -168,6 +169,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		this.shouldClonePayload = shouldClonePayload;
 	}
 
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.sourceEvaluationContext = evaluationContext;
+	}
 
     /**
      * Initializes the Content Enricher. Will instantiate an internal Gateway if
@@ -182,28 +187,33 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		if (this.requestChannel != null) {
 		    this.gateway = new Gateway();
 		    this.gateway.setRequestChannel(requestChannel);
-		    
+
 		    if (this.requestTimeout != null) {
 		    	this.gateway.setRequestTimeout(this.requestTimeout);
 		    }
-		    
+
 		    if (this.replyTimeout != null) {
 		    	this.gateway.setReplyTimeout(this.replyTimeout);
 		    }
-		    
+
 			if (replyChannel != null) {
 				this.gateway.setReplyChannel(replyChannel);
 			}
-			
+
 			this.gateway.afterPropertiesSet();
 		}
-		this.sourceEvaluationContext.addPropertyAccessor(new MapAccessor());
-		this.targetEvaluationContext.addPropertyAccessor(new MapAccessor());
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (beanFactory != null) {
-			this.sourceEvaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+
+		if (this.sourceEvaluationContext == null) {
+			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		}
+
+		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		// bean resolution is NOT allowed for the target of the enrichment
+		targetContext.setBeanResolver(null);
+		this.targetEvaluationContext = targetContext;
+
 	}
+
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
@@ -249,7 +259,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		return targetPayload;
 	}
 
-
 	/**
 	 * Lifecycle implementation. If no requestChannel is defined, this method
 	 * has no effect as in that case no Gateway is initialized.
@@ -282,7 +291,6 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			return true;
 		}
 	}
-
 
 	/**
 	 * Internal gateway implementation for request/reply handling.

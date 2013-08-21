@@ -146,12 +146,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	@Override
 	public void onInit() {
 		super.onInit();
-		if (this.getBeanFactory() != null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		}
-		else {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		Assert.state(this.destinationProvider == null || CollectionUtils.isEmpty(this.uriVariableExpressions),
 				"uri variables are not supported when a DestinationProvider is supplied.");
 	}
