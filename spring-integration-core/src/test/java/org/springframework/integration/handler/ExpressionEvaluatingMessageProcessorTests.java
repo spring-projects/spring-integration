@@ -21,12 +21,13 @@ import java.util.Arrays;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
@@ -38,6 +39,8 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -69,7 +72,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testProcessMessageWithParameterCoercion() {
+	public void testProcessMessageWithParameterCoercion() throws Exception {
 		@SuppressWarnings("unused")
 		class TestTarget {
 			public String stringify(int number) {
@@ -78,6 +81,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		Expression expression = expressionParser.parseExpression("#target.stringify(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
+		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
 		evaluationContext.setVariable("target", new TestTarget());
 		assertEquals("2", processor.processMessage(new GenericMessage<String>("2")));
@@ -85,7 +89,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testProcessMessageWithVoidResult() {
+	public void testProcessMessageWithVoidResult() throws Exception {
 		@SuppressWarnings("unused")
 		class TestTarget {
 			public void ping(String input) {
@@ -93,6 +97,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		Expression expression = expressionParser.parseExpression("#target.ping(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
+		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
 		evaluationContext.setVariable("target", new TestTarget());
 		assertEquals(null, processor.processMessage(new GenericMessage<String>("2")));
@@ -100,7 +105,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testProcessMessageWithParameterCoercionToNonPrimitive() {
+	public void testProcessMessageWithParameterCoercionToNonPrimitive() throws Exception {
 		class TestTarget {
 			@SuppressWarnings("unused")
 			public String find(Resource[] resources) {
@@ -110,7 +115,13 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		Expression expression = expressionParser.parseExpression("#target.find(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		processor.setBeanFactory(new GenericApplicationContext().getBeanFactory());
+		ConfigurableListableBeanFactory beanFactory = new GenericApplicationContext().getBeanFactory();
+		processor.setBeanFactory(beanFactory);
+		IntegrationEvaluationContextFactoryBean factoryBean = new IntegrationEvaluationContextFactoryBean();
+		factoryBean.setBeanFactory(beanFactory);
+		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				factoryBean.getObject());
+		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
 		evaluationContext.setVariable("target", new TestTarget());
 		String result = (String) processor.processMessage(new GenericMessage<String>("classpath*:*.properties"));
@@ -146,28 +157,34 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testProcessMessageWithBeanAsMethodArgument() {
+	public void testProcessMessageWithBeanAsMethodArgument() throws Exception {
 		StaticApplicationContext context = new StaticApplicationContext();
 		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
 		context.registerBeanDefinition("testString", beanDefinition);
+		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
 		Expression expression = expressionParser.parseExpression("payload.concat(@testString)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(context);
+		processor.afterPropertiesSet();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals("foobar", processor.processMessage(message));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	public void testProcessMessageWithMethodCallOnBean() {
+	public void testProcessMessageWithMethodCallOnBean() throws Exception {
 		StaticApplicationContext context = new StaticApplicationContext();
 		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
+		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
 		context.registerBeanDefinition("testString", beanDefinition);
 		Expression expression = expressionParser.parseExpression("@testString.concat(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(context);
+		processor.afterPropertiesSet();
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals("barfoo", processor.processMessage(message));
 	}

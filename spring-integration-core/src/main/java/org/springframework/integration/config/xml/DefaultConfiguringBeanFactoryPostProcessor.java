@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,18 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
 
 /**
  * A {@link BeanFactoryPostProcessor} implementation that provides default beans for the error handling and task
  * scheduling if those beans have not already been explicitly defined within the registry. It also registers a single
  * null channel with the bean name "nullChannel".
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
@@ -61,6 +64,10 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 				this.registerTaskScheduler(registry);
 			}
 			this.registerIdGeneratorConfigurer(registry);
+			if (!beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
+				this.registerIntegrationEvaluationContext(registry);
+				beanFactory.addBeanPostProcessor(new IntegrationEvaluationContextAwareBeanPostProcessor(beanFactory));
+			}
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
@@ -69,6 +76,16 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 					+ " Also, any custom IdGenerator implementation configured in this BeanFactory"
 					+ " will not be recognized.");
 		}
+	}
+
+	private void registerIntegrationEvaluationContext(BeanDefinitionRegistry registry) {
+		BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationEvaluationContextFactoryBean.class);
+		integrationEvaluationContextBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		BeanDefinitionHolder integrationEvaluationContextHolder = new BeanDefinitionHolder(
+				integrationEvaluationContextBuilder.getBeanDefinition(),
+				IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+		BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder, registry);
 	}
 
 	private void registerIdGeneratorConfigurer(BeanDefinitionRegistry registry) {
@@ -113,7 +130,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	}
 
 	/**
-	 * Register an error channel in the given BeanDefinitionRegistry. 
+	 * Register an error channel in the given BeanDefinitionRegistry.
 	 */
 	private void registerErrorChannel(BeanDefinitionRegistry registry) {
 		if (logger.isInfoEnabled()) {
@@ -139,7 +156,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	}
 
 	/**
-	 * Register a TaskScheduler in the given BeanDefinitionRegistry. 
+	 * Register a TaskScheduler in the given BeanDefinitionRegistry.
 	 */
 	private void registerTaskScheduler(BeanDefinitionRegistry registry) {
 		if (logger.isInfoEnabled()) {

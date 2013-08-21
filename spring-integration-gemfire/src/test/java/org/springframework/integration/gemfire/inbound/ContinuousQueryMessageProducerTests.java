@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -17,11 +17,13 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.expression.ExpressionUtils;
 
 import com.gemstone.gemfire.cache.Operation;
 import com.gemstone.gemfire.cache.query.CqEvent;
@@ -30,6 +32,7 @@ import com.gemstone.gemfire.cache.query.internal.CqQueryImpl;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  */
 public class ContinuousQueryMessageProducerTests {
@@ -45,6 +48,7 @@ public class ContinuousQueryMessageProducerTests {
 		cqMessageProducer = new ContinuousQueryMessageProducer(queryListenerContainer, "");
 		DirectChannel outputChannel = new DirectChannel();
 		cqMessageProducer.setOutputChannel(outputChannel);
+		cqMessageProducer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
 		handler = new CqMessageHandler();
 		outputChannel.subscribe(handler);
 	}
@@ -140,7 +144,7 @@ public class ContinuousQueryMessageProducerTests {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see
 		 * org.springframework.integration.core.MessageHandler#handleMessage
 		 * (org.springframework.integration.Message)
