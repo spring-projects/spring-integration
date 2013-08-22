@@ -100,7 +100,9 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		if (connection != null && connection.isOpen()) {
 			return connection;
 		}
-		return new FailoverTcpConnection(this.factories);
+		FailoverTcpConnection failoverTcpConnection = new FailoverTcpConnection(this.factories);
+		failoverTcpConnection.registerListener(this.getListener());
+		return failoverTcpConnection;
 	}
 
 	@Override
@@ -280,11 +282,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 		@Override
-		public void registerListener(TcpListener listener) {
-			this.delegate.registerListener(listener);
-		}
-
-		@Override
 		public void registerSender(TcpSender sender) {
 			this.delegate.registerSender(sender);
 		}
@@ -335,11 +332,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		}
 
 		@Override
-		public TcpListener getListener() {
-			return this.delegate.getListener();
-		}
-
-		@Override
 		public long incrementAndGetConnectionSequence() {
 			return this.delegate.incrementAndGetConnectionSequence();
 		}
@@ -351,10 +343,13 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * purposes.
 		 */
 		public boolean onMessage(Message<?> message) {
-			return FailoverClientConnectionFactory.this.getListener().onMessage(MessageBuilder.fromMessage(message)
-					.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId())
-					.setHeader(IpHeaders.ACTUAL_CONNECTION_ID, message.getHeaders().get(IpHeaders.CONNECTION_ID))
-					.build());
+			MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message)
+					.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+			if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
+				messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
+						message.getHeaders().get(IpHeaders.CONNECTION_ID));
+			}
+			return this.getListener().onMessage(messageBuilder.build());
 		}
 
 	}

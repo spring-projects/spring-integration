@@ -36,8 +36,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	private final SimplePool<TcpConnectionSupport> pool;
 
-	private volatile TcpListener listener;
-
 	public CachingClientConnectionFactory(AbstractClientConnectionFactory target, int poolSize) {
 		super("", 0);
 		// override single-use to true to force "close" after use
@@ -89,7 +87,9 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 	@Override
 	public TcpConnectionSupport obtainConnection() throws Exception {
-		return new CachedConnection(this.pool.getItem());
+		CachedConnection cachedConnection = new CachedConnection(this.pool.getItem());
+		cachedConnection.registerListener(this.getListener());
+		return cachedConnection;
 	}
 
 	private class CachedConnection extends TcpConnectionInterceptorSupport {
@@ -134,11 +134,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 			return this.getConnectionId();
 		}
 
-		@Override
-		public TcpListener getListener() {
-			return CachingClientConnectionFactory.this.listener;
-		}
-
 		/**
 		 * We have to intercept the message to replace the connectionId header with
 		 * ours so the listener can correlate a response with a request. We supply
@@ -147,10 +142,13 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		 */
 		@Override
 		public boolean onMessage(Message<?> message) {
-			CachingClientConnectionFactory.this.listener.onMessage(MessageBuilder.fromMessage(message)
-					.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId())
-					.setHeader(IpHeaders.ACTUAL_CONNECTION_ID, message.getHeaders().get(IpHeaders.CONNECTION_ID))
-					.build());
+			MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message)
+					.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+			if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
+				messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
+						message.getHeaders().get(IpHeaders.CONNECTION_ID));
+			}
+			this.getListener().onMessage(messageBuilder.build());
 			close(); // return to pool after response is received
 			return true; // true so the single-use connection doesn't close itself
 		}
@@ -274,11 +272,6 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 	}
 
 	@Override
-	public TcpListener getListener() {
-		return targetConnectionFactory.getListener();
-	}
-
-	@Override
 	public TcpSender getSender() {
 		return targetConnectionFactory.getSender();
 	}
@@ -298,10 +291,35 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		return targetConnectionFactory.getMapper();
 	}
 
+	/**
+	 * Delegate TCP Client Connection factories that are used to receive
+	 * data need a Listener to send the messages to.
+	 * This applies to client factories used for outbound gateways
+	 * or for a pair of collaborating channel adapters.
+	 * <p>
+	 * During initialization, if a factory detects it has no listener
+	 * it's listening logic (active thread) is terminated.
+	 * <p>
+	 * The listener registered with a factory is provided to each
+	 * connection it creates so it can call the onMessage() method.
+	 * <p>
+	 * This code satisfies the first requirement in that this
+	 * listener signals to the factory that it needs to run
+	 * its listening logic.
+	 * <p>
+	 * When we wrap actual connections with CachedConnections,
+	 * the connection is given the wrapper as a listener, so it
+	 * can enhance the headers in onMessage(); the wrapper then invokes
+	 * the real listener supplied here, with the modified message.
+	 */
 	@Override
 	public void registerListener(TcpListener listener) {
-		this.listener = listener;
-		targetConnectionFactory.registerListener(listener);
+		super.registerListener(listener);
+		targetConnectionFactory.registerListener(new TcpListener() {
+			public boolean onMessage(Message<?> message) {
+				throw new UnsupportedOperationException("This should never be called");
+			}
+		});
 	}
 
 	@Override
