@@ -26,9 +26,18 @@
 			<util:list>
 				<beans:bean class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
 			</util:list>
-		</beans:property>	
+		</beans:property>
+		<beans:property name="functions">
+			<util:map>
+				<beans:entry key="bar"
+					value="#{T(org.springframework.integration.transformer.SpelTransformerIntegrationTests$BarFunction).getMethod('bar', T(org.springframework.integration.Message))}"/>
+			</util:map>
+		</beans:property>
 	</beans:bean>
-	
+
 	<channel id="fooin" />
 	<transformer id="foo" input-channel="fooin" expression="payload.bar" />
+
+	<channel id="functionIn" />
+	<transformer id="bar" input-channel="functionIn" expression="#bar(#root)" />
 </beans:beans>

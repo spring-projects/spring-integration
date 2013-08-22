@@ -67,6 +67,9 @@ public class SpelTransformerIntegrationTests {
 	@Autowired @Qualifier("foo.handler")
 	private AbstractReplyProducingMessageHandler fooHandler;
 
+	@Autowired @Qualifier("bar.handler")
+	private AbstractReplyProducingMessageHandler barHandler;
+
 
 	@Test
 	public void simple() {
@@ -104,7 +107,16 @@ public class SpelTransformerIntegrationTests {
 		assertNotNull(reply);
 		assertTrue(reply.getPayload() instanceof String);
 		assertEquals("baz", reply.getPayload());
+	}
 
+	@Test
+	public void testCustomFunction() {
+		QueueChannel outputChannel = new QueueChannel();
+		barHandler.setOutputChannel(outputChannel);
+		barHandler.handleMessage(new GenericMessage<String>("foo"));
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals("bar", reply.getPayload());
 	}
 
 	static class TestBean {
@@ -165,4 +177,10 @@ public class SpelTransformerIntegrationTests {
 
 	}
 
+	public static class BarFunction {
+
+		public static String bar(Message<?> message) {
+			return "bar";
+		}
+	}
 }
