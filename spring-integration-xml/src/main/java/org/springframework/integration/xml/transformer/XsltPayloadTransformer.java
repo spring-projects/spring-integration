@@ -32,16 +32,15 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.w3c.dom.Document;
 
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
@@ -84,7 +83,7 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 
 	private final Templates templates;
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private StandardEvaluationContext evaluationContext;
 
 	private Map<String, Expression> xslParameterMappings;
 
@@ -120,7 +119,6 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
 		this.templates = templates;
 		this.resultTransformer = resultTransformer;
-		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
 
 
@@ -163,8 +161,16 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 		this.xsltParamHeaders = xsltParamHeaders;
 	}
 
+	@Override
 	public String getComponentType() {
 		return "xml:xslt-transformer";
+	}
+
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 
 	@Override

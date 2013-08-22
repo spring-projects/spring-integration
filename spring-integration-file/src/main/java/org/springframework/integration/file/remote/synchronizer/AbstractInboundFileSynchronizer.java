@@ -27,10 +27,14 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -48,13 +52,15 @@ import org.springframework.util.ObjectUtils;
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
-public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
+public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer,
+		InitializingBean, BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private StandardEvaluationContext evaluationContext;
 
 	private volatile String remoteFileSeparator = "/";
 
@@ -86,6 +92,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 */
 	private volatile boolean deleteRemoteFiles;
 
+	private volatile BeanFactory beanFactory;
 
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
@@ -125,8 +132,14 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.deleteRemoteFiles = deleteRemoteFiles;
 	}
 
+	@Override
+	public final void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
 	public final void afterPropertiesSet() {
 		Assert.notNull(this.remoteDirectory, "remoteDirectory must not be null");
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 	}
 
 	protected final List<F> filterFiles(F[] files) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.aop.support.AopUtils;
-import org.springframework.context.expression.MapAccessor;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationException;
@@ -37,6 +39,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
@@ -47,11 +50,11 @@ import org.springframework.util.StringUtils;
  * payload of the published Message can be derived from arguments or any return
  * value or exception resulting from the method invocation. That mapping is the
  * responsibility of the EL expression provided by the {@link PublisherMetadataSource}.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
-public class MessagePublishingInterceptor implements MethodInterceptor {
+public class MessagePublishingInterceptor implements MethodInterceptor, BeanFactoryAware {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -60,6 +63,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private volatile ChannelResolver channelResolver;
+
+	private volatile BeanFactory beanFactory;
 
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
@@ -83,10 +88,14 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		this.channelResolver = channelResolver;
 	}
 
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
 		Assert.notNull(this.metadataSource, "PublisherMetadataSource is required.");
-		final StandardEvaluationContext context = new StandardEvaluationContext();
-		context.addPropertyAccessor(new MapAccessor());
+		final StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		final Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		String[] argumentNames = this.resolveArgumentNames(method);

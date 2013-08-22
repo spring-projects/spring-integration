@@ -210,12 +210,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 				this.delayExpression = expressionParser.parseExpression("headers['" + this.delayHeaderName + "']");
 			}
 		}
-		if (this.getBeanFactory() != null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		}
-		else {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		this.releaseHandler = this.createReleaseMessageTask();
 	}
 

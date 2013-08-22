@@ -26,15 +26,13 @@ import java.nio.charset.Charset;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
@@ -84,7 +82,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private StandardEvaluationContext evaluationContext;
 
 	private final Expression destinationDirectoryExpression;
 
@@ -220,13 +218,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		super.onInit();
 
-		this.evaluationContext.addPropertyAccessor(new MapAccessor());
-
-		final BeanFactory beanFactory = this.getBeanFactory();
-
-		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 
 		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
 			final File directory = new File(this.destinationDirectoryExpression.getValue(

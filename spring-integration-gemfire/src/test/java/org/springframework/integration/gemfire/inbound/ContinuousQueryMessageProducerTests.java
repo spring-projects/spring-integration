@@ -48,7 +48,7 @@ public class ContinuousQueryMessageProducerTests {
 		cqMessageProducer = new ContinuousQueryMessageProducer(queryListenerContainer, "");
 		DirectChannel outputChannel = new DirectChannel();
 		cqMessageProducer.setOutputChannel(outputChannel);
-		cqMessageProducer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
+		cqMessageProducer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext(null));
 		handler = new CqMessageHandler();
 		outputChannel.subscribe(handler);
 	}

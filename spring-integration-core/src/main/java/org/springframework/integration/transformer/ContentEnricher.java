@@ -25,6 +25,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
@@ -203,11 +204,14 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 
 		if (this.sourceEvaluationContext == null) {
-			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory(),
-					this.getConversionService());
+			this.sourceEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		}
 
-		this.targetEvaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getConversionService());
+		StandardEvaluationContext targetContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		// bean resolution is NOT allowed for the target of the enrichment
+		targetContext.setBeanResolver(null);
+		this.targetEvaluationContext = targetContext;
+
 	}
 
 

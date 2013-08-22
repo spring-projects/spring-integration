@@ -28,6 +28,8 @@ import javax.mail.Authenticator;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.xml.sax.SAXParseException;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -45,7 +47,6 @@ import org.springframework.integration.mail.SearchTermStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.xml.sax.SAXParseException;
 
 /**
  * @author Mark Fisher
@@ -132,6 +133,7 @@ public class InboundChannelAdapterParserTests {
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
 		assertTrue(value);
+		assertNotNull(TestUtils.getPropertyValue(receiver, "evaluationContext.beanResolver"));
 	}
 
 	@Test

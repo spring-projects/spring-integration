@@ -37,32 +37,12 @@ public abstract class ExpressionUtils {
 
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
-	 * property accessor property.
-	 * @return the evaluation context.
-	 */
-	public static StandardEvaluationContext createStandardEvaluationContext() {
-		return createStandardEvaluationContext((BeanResolver) null, null);
-	}
-
-	/**
-	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
-	 * property accessor property and the supplied {@link BeanResolver} in its
-	 * beanResolver property.
-	 * @param beanResolver the bean resolver.
-	 * @return the evaluation context.
-	 */
-	public static StandardEvaluationContext createStandardEvaluationContext(BeanResolver beanResolver) {
-		return createStandardEvaluationContext(beanResolver, null);
-	}
-
-	/**
-	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
 	 * property accessor property and the supplied {@link ConversionService} in its
 	 * conversionService property.
 	 * @param conversionService the conversion service.
 	 * @return the evaluation context.
 	 */
-	public static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService) {
+	private static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService) {
 		return createStandardEvaluationContext((BeanResolver) null, conversionService);
 	}
 
@@ -75,7 +55,7 @@ public abstract class ExpressionUtils {
 	 * @param conversionService the conversion service.
 	 * @return the evaluation context.
 	 */
-	public static StandardEvaluationContext createStandardEvaluationContext(BeanResolver beanResolver,
+	private static StandardEvaluationContext createStandardEvaluationContext(BeanResolver beanResolver,
 			ConversionService conversionService) {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
@@ -88,7 +68,7 @@ public abstract class ExpressionUtils {
 		return evaluationContext;
 	}
 
-	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory,
+	private static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory,
 			ConversionService conversionService) {
 		StandardEvaluationContext context = null;
 		if (beanFactory != null) {

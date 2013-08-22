@@ -45,21 +45,29 @@
 								   directory="${java.io.tmpdir}"/>
 
 	<file:outbound-channel-adapter id="usageChannel"
-	                               filename-generator-expression="'fileToAppend.txt'"
+	                               filename-generator-expression="@fooString"
 								   mode="APPEND"
-								   directory="test">
+								   directory-expression="@barString">
 		<file:request-handler-advice-chain>
 			<bean class="org.springframework.integration.file.config.FileOutboundChannelAdapterParserTests$FooAdvice" />
 		</file:request-handler-advice-chain>
 	</file:outbound-channel-adapter>
 
+	<bean id="fooString" class="java.lang.String">
+		<constructor-arg value="fileToAppend.txt"/>
+	</bean>
+
+	<bean id="barString" class="java.lang.String">
+		<constructor-arg value="test"/>
+	</bean>
+
 	<file:outbound-channel-adapter id="usageChannelWithFailMode"
-	                               filename-generator-expression="'fileToAppend.txt'"
+	                               filename-generator-expression="'fileToFail.txt'"
 								   mode="FAIL"
 								   directory="test"/>
 
 	<file:outbound-channel-adapter id="usageChannelWithIgnoreMode"
-								   filename-generator-expression="'fileToAppend.txt'"
+								   filename-generator-expression="'fileToIgnore.txt'"
 								   mode="IGNORE"
 								   directory="test"/>
 

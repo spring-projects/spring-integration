@@ -24,6 +24,7 @@ import org.springframework.integration.expression.IntegrationEvaluationContextAw
  *
  * @author David Turanski
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.1
  *
  */
@@ -33,7 +34,7 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 
 	private volatile Expression payloadExpression;
 
-	private EvaluationContext evaluationContext;
+	private volatile EvaluationContext evaluationContext;
 
 	public void setPayloadExpression(String payloadExpression) {
 		if (payloadExpression == null) {
@@ -53,8 +54,7 @@ public abstract class ExpressionMessageProducerSupport extends MessageProducerSu
 	protected void onInit() {
 		super.onInit();
 		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory(),
-					this.getConversionService());
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		}
 	}
 

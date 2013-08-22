@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.classify.Classifier;
-import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -37,7 +36,7 @@ import org.springframework.util.Assert;
  */
 public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, BeanFactoryAware {
 
-	private final StandardEvaluationContext evaluationContext;
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private final Expression keyExpression;
 
@@ -52,7 +51,7 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 	public SpelExpressionRetryStateGenerator(String keyExpression, String forceRefreshExpression) {
 		Assert.notNull(keyExpression, "keyExpression must not be null");
 		this.keyExpression = new SpelExpressionParser().parseExpression(keyExpression);
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(null);
 		if (forceRefreshExpression == null) {
 			this.forceRefreshExpression = null;
 		}
@@ -62,7 +61,7 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 	}
 
 	public void setClassifier(Classifier<? super Throwable, Boolean> classifier) {

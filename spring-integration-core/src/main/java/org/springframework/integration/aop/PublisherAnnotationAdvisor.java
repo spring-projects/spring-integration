@@ -74,6 +74,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.interceptor.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		this.interceptor.setBeanFactory(beanFactory);
 	}
 
 	public Advice getAdvice() {

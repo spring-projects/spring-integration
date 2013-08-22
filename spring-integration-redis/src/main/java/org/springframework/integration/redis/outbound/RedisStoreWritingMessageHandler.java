@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -199,13 +200,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
 	@Override
 	protected void onInit() throws Exception {
-		if (this.getBeanFactory() != null) {
-			this.evaluationContext =
+		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		}
-		else {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		}
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||
 				(this.collectionType == CollectionType.MAP || this.collectionType == CollectionType.PROPERTIES),
 				"'mapKeyExpression' can only be set for CollectionType.MAP or CollectionType.PROPERTIES");

@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.dom.DOMResult;
@@ -24,8 +25,6 @@ import javax.xml.transform.dom.DOMResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xml.transformer.CustomTestResultFactory;
 import org.w3c.dom.Document;
 
 import org.springframework.context.ApplicationContext;
@@ -34,7 +33,10 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
+import org.springframework.integration.xml.transformer.CustomTestResultFactory;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringResult;
 
@@ -45,12 +47,11 @@ import org.springframework.xml.transform.StringResult;
  */
 public class XsltPayloadTransformerParserTests {
 
-    private String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+    private final String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 
     private ApplicationContext applicationContext;
 
     private PollableChannel output;
-
 
     @Before
     public void setUp() {
@@ -68,6 +69,8 @@ public class XsltPayloadTransformerParserTests {
         assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
         Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
         assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
+        assertNotNull(TestUtils.getPropertyValue(applicationContext.getBean("xsltTransformerWithResource.handler"),
+        		"transformer.evaluationContext.beanResolver"));
     }
 
     @Test

@@ -168,13 +168,8 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 
 	@Override
 	protected void onInit() throws Exception {
-		if (this.getBeanFactory() != null){
-			this.evaluationContext =
+		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		}
-		else {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
-		}
 
 		if (this.mongoTemplate == null){
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mongoConverter);

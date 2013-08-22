@@ -28,8 +28,6 @@ import java.util.Map;
 import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
@@ -50,6 +48,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
@@ -88,7 +87,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final RestTemplate restTemplate;
 
-	private final StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext;
 
 	private final Expression uriExpression;
 
@@ -156,9 +155,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		Assert.notNull(uriExpression, "URI Expression is required");
 		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
 		this.uriExpression = uriExpression;
-		StandardEvaluationContext sec = new StandardEvaluationContext();
-		sec.addPropertyAccessor(new MapAccessor());
-		this.evaluationContext = sec;
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(null);
 	}
 
 	/**
@@ -295,10 +292,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	@Override
 	public void onInit() {
 		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+
 		ConversionService conversionService = this.getConversionService();
 		if (conversionService == null){
 			conversionService = new GenericConversionService();
