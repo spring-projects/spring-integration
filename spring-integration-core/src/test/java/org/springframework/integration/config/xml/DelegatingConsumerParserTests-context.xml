@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:channel id="in" />
+
+	<int:channel id="discard">
+		<int:queue />
+	</int:channel>
+
+	<!-- Filters -->
+
+	<int:filter id="directFilter" input-channel="in"
+			discard-channel="discard" send-timeout="123" throw-exception-on-rejection="true">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyFilter" />
+	</int:filter>
+
+	<int:filter id="refFilter" input-channel="in" ref="myFilter" />
+
+	<bean id="myFilter" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyFilter" />
+
+	<int:filter id="filterWithMessageSelectorThatsAlsoAnARPMH" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MySelectorShouldntBeUsedAsTheHandler" />
+	</int:filter>
+
+	<!-- Routers -->
+
+	<int:router id="directRouter" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyRouter" />
+	</int:router>
+
+	<int:router id="refRouter" input-channel="in" ref="myRouter" />
+
+	<bean id="myRouter" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyRouter" />
+
+	<int:router id="directRouterMH" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyRouterMH" />
+	</int:router>
+
+	<int:router id="refRouterMH" input-channel="in" ref="myRouterMH" />
+
+	<bean id="myRouterMH" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyRouterMH" />
+
+	<int:router id="directRouterARPMH" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyRouterARPMH" />
+	</int:router>
+
+	<int:router id="refRouterARPMH" input-channel="in" ref="myRouterARPMH" />
+
+	<bean id="myRouterARPMH" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyRouterARPMH" />
+
+	<!-- Service Activators -->
+
+	<int:service-activator id="directServiceARPMH" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyServiceARPMH" />
+	</int:service-activator>
+
+	<int:transformer id="refServiceARPMH" input-channel="in" ref="myServiceARPMH"/>
+
+	<bean id="myServiceARPMH" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyServiceARPMH" />
+
+	<!-- Splitters -->
+	
+	<int:splitter id="directSplitter" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MySplitter" />
+	</int:splitter>
+
+	<int:splitter id="refSplitter" input-channel="in" ref="mySplitter"/>
+
+	<bean id="mySplitter" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MySplitter" />
+
+	<int:splitter id="splitterWithARPMH" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MySplitterThatsAnARPMH" />
+	</int:splitter>
+
+	<int:splitter id="splitterWithARPMHWithAtts" input-channel="in" ref="splitterARPMH" send-timeout="123"/> 
+
+	<bean id="splitterARPMH" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MySplitterThatsAnARPMH" />
+
+<!-- 	<int:splitter id="splitterWithARPMHWithSplitterAtts" input-channel="in" ref="splitterARPMH2" method="handleMessage" apply-sequence="false"/>  -->
+
+<!-- 	<bean id="splitterARPMH2" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MySplitterThatsAnARPMH" /> -->
+
+	<!-- Transformers -->
+
+	<int:transformer id="directTransformer" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyTransformer" />
+	</int:transformer>
+
+	<int:transformer id="refTransformer" input-channel="in" ref="myTransformer" />
+
+	<bean id="myTransformer" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyTransformer" />
+
+	<int:transformer id="directTransformerARPMH" input-channel="in">
+		<bean class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyTransformerARPMH" />
+	</int:transformer>
+
+	<int:transformer id="refTransformerARPMH" input-channel="in" ref="myTransformerARPMH"/>
+
+	<bean id="myTransformerARPMH" class="org.springframework.integration.config.xml.DelegatingConsumerParserTests$MyTransformerARPMH" />
+
+</beans>

@@ -21,4 +21,12 @@
 
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.TestBean"/>
 
+	<transformer input-channel="direct" output-channel="output">
+		<beans:bean class="org.springframework.integration.transformer.TransformerContextTests$Bar"/>
+	</transformer>
+
+	<transformer input-channel="directRef" output-channel="output" ref="trans" method="handleMessage"/>
+	
+	<beans:bean id="trans" class="org.springframework.integration.transformer.TransformerContextTests$Bar"/>
+
 </beans:beans>

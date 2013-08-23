@@ -16,6 +16,8 @@ package org.springframework.integration.config;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -40,6 +42,8 @@ import org.springframework.util.CollectionUtils;
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageHandler>
 		implements FactoryBean<MessageHandler>, BeanFactoryAware {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile H handler;
 

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,7 +25,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Base parser class for endpoints that delegate to a method invoker or
