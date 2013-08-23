@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -158,7 +159,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.targetObject = targetObject;
 		this.handlerMethods = Collections.<Class<?>, HandlerMethod> singletonMap(handlerMethod.getTargetParameterType()
 				.getObjectType(), handlerMethod);
-		this.prepareEvaluationContext(this.getEvaluationContext(), method, annotationType);
+		this.prepareEvaluationContext(this.getEvaluationContext(true), method, annotationType);
 		this.setDisplayString(targetObject, method);
 	}
 
@@ -170,7 +171,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.targetObject = targetObject;
 		this.requiresReply = expectedType != null;
 		this.handlerMethods = this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, requiresReply);
-		this.prepareEvaluationContext(this.getEvaluationContext(), methodName, annotationType);
+		this.prepareEvaluationContext(this.getEvaluationContext(true), methodName, annotationType);
 		this.setDisplayString(targetObject, methodName);
 	}
 
