@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -25,8 +27,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * FactoryBean for creating {@link ServiceActivatingHandler} instances.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
@@ -45,10 +48,39 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
-		ServiceActivatingHandler handler = (StringUtils.hasText(targetMethodName))
-				? new ServiceActivatingHandler(targetObject, targetMethodName)
-				: new ServiceActivatingHandler(targetObject);
-		return this.configureHandler(handler);
+		MessageHandler directHandler = null;
+		directHandler = createDirectHandlerIfPossible(targetObject, targetMethodName);
+		if (directHandler != null) {
+			return directHandler;
+		}
+		else {
+			ServiceActivatingHandler handler = (StringUtils.hasText(targetMethodName))
+					? new ServiceActivatingHandler(targetObject, targetMethodName)
+					: new ServiceActivatingHandler(targetObject);
+			return this.configureHandler(handler);
+		}
+	}
+
+	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
+		MessageHandler handler = null;
+		if (targetObject instanceof MessageHandler
+				&& this.isHandleRequestMethod(targetMethodName)) {
+			/*
+			 * Return a reply-producing message handler so that we still get 'produced no reply' messages
+			 * and the super class will inject the advice chain to advise the handler if needed.
+			 */
+			handler = new AbstractReplyProducingMessageHandler() {
+
+				@Override
+				protected Object handleRequestMessage(Message<?> requestMessage) {
+
+					((MessageHandler) targetObject).handleMessage(requestMessage);
+					return null;
+				}
+			};
+
+		}
+		return handler;
 	}
 
 	@Override
@@ -63,14 +95,25 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
-	private ServiceActivatingHandler configureHandler(ServiceActivatingHandler handler) {
+	private AbstractReplyProducingMessageHandler configureHandler(ServiceActivatingHandler handler) {
+		postProcessReplyProducer(handler);
+		return handler;
+	}
+
+
+	@Override
+	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+		return true; // Any ARPMH can be a service
+	}
+
+	@Override
+	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}
 		if (this.requiresReply != null) {
 			handler.setRequiresReply(this.requiresReply);
 		}
-		return handler;
 	}
 
 }

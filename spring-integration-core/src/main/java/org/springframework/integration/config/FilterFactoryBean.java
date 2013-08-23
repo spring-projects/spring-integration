@@ -23,6 +23,8 @@ import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -65,6 +67,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			selector = (MessageSelector) targetObject;
 		}
 		else if (StringUtils.hasText(targetMethodName)) {
+			this.checkForIllegalTarget(targetObject, targetMethodName);
 			selector = new MethodInvokingSelector(targetObject, targetMethodName);
 		}
 		else {
@@ -74,25 +77,67 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
+	protected void checkForIllegalTarget(Object targetObject, String targetMethodName) {
+		if (targetObject instanceof AbstractReplyProducingMessageHandler
+				&& this.isHandleRequestMethod(targetMethodName)) {
+			throw new IllegalArgumentException("You cannot use 'AbstractReplyProducingMessageHandler.handleRequest()' "
+					+ "as a filter - it does not return a result");
+		}
+	}
+
+	@Override
 	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.createFilter(new ExpressionEvaluatingSelector(expression));
 	}
 
 	private MessageFilter createFilter(MessageSelector selector) {
 		MessageFilter filter = new MessageFilter(selector);
+		postProcessReplyProducer(filter);
+		return filter;
+	}
+
+	private void postProcessFilter(MessageFilter filter) {
 		if (this.throwExceptionOnRejection != null) {
 			filter.setThrowExceptionOnRejection(this.throwExceptionOnRejection);
 		}
 		if (this.discardChannel != null) {
 			filter.setDiscardChannel(discardChannel);
 		}
-		if (this.sendTimeout != null) {
-			filter.setSendTimeout(this.sendTimeout.longValue());
-		}
 		if (this.discardWithinAdvice != null) {
 			filter.setDiscardWithinAdvice(this.discardWithinAdvice);
 		}
-		return filter;
 	}
+
+
+	@Override
+	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+		if (this.sendTimeout != null) {
+			handler.setSendTimeout(this.sendTimeout.longValue());
+		}
+		if (!(handler instanceof MessageFilter)) {
+			Assert.isNull(this.throwExceptionOnRejection, "Cannot set throwExceptionOnRejection if the referenced bean is "
+					+ "an AbstractReplyProducingMessageHandler, but not a MessageFilter");
+			Assert.isNull(this.discardChannel, "Cannot set discardChannel if the referenced bean is "
+					+ "an AbstractReplyProducingMessageHandler, but not a MessageFilter");
+			Assert.isNull(this.discardWithinAdvice, "Cannot set discardWithinAdvice if the referenced bean is "
+					+ "an AbstractReplyProducingMessageHandler, but not a MessageFilter");
+		}
+		else {
+			postProcessFilter((MessageFilter) handler);
+		}
+	}
+
+	/**
+	 * MessageFilter is an ARPMH. If a non-MessageFilter ARPMH is also a
+	 * MessageSelector, MesageSelector wins and gets wrapped in a MessageFilter.
+	 */
+	@Override
+	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+		return abstractReplyProducingMessageHandler instanceof MessageFilter
+				|| (!(abstractReplyProducingMessageHandler instanceof MessageSelector)
+						&& this.discardChannel == null && this.throwExceptionOnRejection == null
+						&& this.discardWithinAdvice == null);
+	}
+
 
 }

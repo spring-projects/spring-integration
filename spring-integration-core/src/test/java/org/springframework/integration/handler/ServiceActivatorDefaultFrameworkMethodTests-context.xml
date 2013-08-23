@@ -11,7 +11,32 @@
 
 	<service-activator id="gatewayTestService" input-channel="gatewayTestInputChannel" ref="gateway"/>
 
-	<service-activator id="handlerTestService" input-channel="handlerTestInputChannel" ref="testMessageHandler"/>
+	<service-activator id="replyingHandlerTestService" input-channel="replyingHandlerTestInputChannel">
+		<beans:bean
+			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestReplyingMessageHandler"/>
+	</service-activator>
+
+	<service-activator id="optimizedRefReplyingHandlerTestService"
+		input-channel="optimizedRefReplyingHandlerTestInputChannel" ref="testReplyingMessageHandler"/>
+
+	<service-activator id="replyingHandlerWithStandardMethodTestService"
+		 input-channel="replyingHandlerWithStandardMethodTestInputChannel"
+		 method="handleMessage">
+		 <beans:bean
+			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestReplyingMessageHandler"/>
+	</service-activator>
+
+	<service-activator id="replyingHandlerWithOtherMethodTestService"
+		 input-channel="replyingHandlerWithOtherMethodTestInputChannel"
+		 method="foo">
+		 <beans:bean
+			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestReplyingMessageHandler"/>
+	</service-activator>
+
+	<service-activator id="handlerTestService" input-channel="handlerTestInputChannel">
+		<beans:bean
+			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageHandler"/>
+	</service-activator>
 
 	<service-activator id="processorTestService" input-channel="processorTestInputChannel" ref="testMessageProcessor"/>
 
@@ -25,7 +50,8 @@
 		<queue/>
 	</channel>
 
-	<beans:bean id="testMessageHandler" class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageHandler"/>
+	<beans:bean id="testReplyingMessageHandler"
+		class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestReplyingMessageHandler"/>
 
 	<beans:bean id="testMessageProcessor" class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageProcessor">
 		<beans:property name="prefix" value="foo"/>

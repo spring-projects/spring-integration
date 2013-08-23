@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
@@ -27,17 +28,18 @@ import org.springframework.util.StringUtils;
 
 /**
  * Factory bean for creating a Message Splitter.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
 
-	private volatile boolean requiresReply;
+	private volatile Boolean requiresReply;
 
-	private volatile boolean applySequence = true;
+	private volatile Boolean applySequence;
 
 	private volatile String delimiters;
 
@@ -67,6 +69,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 		Assert.notNull(targetObject, "targetObject must not be null");
 		AbstractMessageSplitter splitter = this.extractTypeIfPossible(targetObject, AbstractMessageSplitter.class);
 		if (splitter == null) {
+			this.checkForIllegalTarget(targetObject, targetMethodName);
 			splitter = this.createMethodInvokingSplitter(targetObject, targetMethodName);
 			this.configureSplitter(splitter);
 		}
@@ -98,17 +101,46 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	private AbstractMessageSplitter configureSplitter(AbstractMessageSplitter splitter) {
-		if (this.sendTimeout != null) {
-			splitter.setSendTimeout(sendTimeout);
-		}
-		if (this.delimiters != null) {
-			Assert.isTrue(splitter instanceof DefaultMessageSplitter, "The 'delimiters' property is only available" +
-					" for a Splitter definition where no 'ref', 'expression', or inner bean has been provided.");
-			((DefaultMessageSplitter) splitter).setDelimiters(this.delimiters);
-		}
-		splitter.setRequiresReply(requiresReply);
-		splitter.setApplySequence(applySequence);
+		this.postProcessReplyProducer(splitter);
 		return splitter;
 	}
+
+	@Override
+	protected boolean canBeUsedDirect(Object targetObject) {
+		return targetObject instanceof AbstractMessageSplitter
+				|| (this.applySequence == null && this.delimiters == null);
+	}
+
+	@Override
+	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
+		if (this.sendTimeout != null) {
+			handler.setSendTimeout(sendTimeout);
+		}
+		if (this.requiresReply != null) {
+			handler.setRequiresReply(requiresReply);
+		}
+		if (!(handler instanceof AbstractMessageSplitter)) {
+			Assert.isNull(this.applySequence, "Cannot set applySequence if the referenced bean is "
+					+ "an AbstractReplyProducingMessageHandler, but not an AbstractMessageSplitter");
+			Assert.isNull(this.delimiters, "Cannot set delimiters if the referenced bean is not an "
+					+ "an AbstractReplyProducingMessageHandler, but not an AbstractMessageSplitter");
+		}
+		else {
+			AbstractMessageSplitter splitter = (AbstractMessageSplitter) handler;
+			if (this.delimiters != null) {
+				Assert.isTrue(splitter instanceof DefaultMessageSplitter, "The 'delimiters' property is only available" +
+						" for a Splitter definition where no 'ref', 'expression', or inner bean has been provided.");
+				((DefaultMessageSplitter) splitter).setDelimiters(this.delimiters);
+			}
+			if (this.applySequence != null) {
+				splitter.setApplySequence(applySequence);
+			}
+			else {
+				splitter.setApplySequence(true);
+			}
+		}
+	}
+
+
 
 }
