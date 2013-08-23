@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -58,7 +59,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  */
 public class ContentEnricherTests {
 
-	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+	private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
 	@Before
 	public void init() throws Exception {
@@ -67,7 +68,7 @@ public class ContentEnricherTests {
 	}
 
 	/**
-	 * In this test a {@link Target} message is passed into an {@link ContentEnricher}.
+	 * In this test a {@link Target} message is passed into a {@link ContentEnricher}.
 	 * The Enricher passes the message to a "request-channel" that is backed by a
 	 * {@link QueueChannel}. The consumer of the "request-channel" takes a long
 	 * time to execute, longer actually than the specified "replyTimeout" set on
@@ -492,6 +493,7 @@ public class ContentEnricherTests {
 			this.child = child;
 		}
 
+		@Override
 		public Object clone() {
 			Target clone = new Target(this.name);
 			clone.setChild(this.child);
@@ -533,6 +535,7 @@ public class ContentEnricherTests {
 			this.name = name;
 		}
 
+		@Override
 		public Object clone() {
 			throw new IllegalStateException("Cloning not possible");
 		}

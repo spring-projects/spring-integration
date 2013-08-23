@@ -39,6 +39,7 @@ import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
@@ -48,11 +49,11 @@ import org.springframework.integration.context.IntegrationContextUtils;
 public class IntegrationEvaluationContextFactoryBean implements FactoryBean<StandardEvaluationContext>,
 		ApplicationContextAware, BeanFactoryAware, InitializingBean {
 
-	private final List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
+	private volatile List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
 
 	private TypeConverter typeConverter = new StandardTypeConverter();
 
-	private final Map<String, Method> functions = new LinkedHashMap<String, Method>();
+	private volatile Map<String, Method> functions = new LinkedHashMap<String, Method>();
 
 	private ApplicationContext applicationContext;
 
@@ -74,7 +75,7 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.beanResolver = new BeanFactoryResolver(this.applicationContext != null ? this.applicationContext : this.beanFactory);
-		this.propertyAccessors.add(new MapAccessor());
+		this.loadDefaultPropertyAccessors(this.propertyAccessors);
 		if (this.applicationContext != null) {
 			ConversionService conversionService = IntegrationContextUtils.getConversionService(this.applicationContext);
 			if (conversionService != null) {
@@ -84,15 +85,26 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 	}
 
 	public void setPropertyAccessors(PropertyAccessor... accessors) {
+		Assert.noNullElements(accessors, "Cannot have null elements in accessors");
+		List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
+		loadDefaultPropertyAccessors(propertyAccessors);
 		for (PropertyAccessor accessor : accessors) {
-			this.propertyAccessors.add(accessor);
+			propertyAccessors.add(accessor);
 		}
+		this.propertyAccessors = propertyAccessors;
 	}
 
-	public void setFunctions(Map<String, Method> functions) {
-		for (Entry<String, Method> function : functions.entrySet()) {
-			this.functions.put(function.getKey(), function.getValue());
+	private void loadDefaultPropertyAccessors(List<PropertyAccessor> propertyAccessors) {
+		propertyAccessors.add(new MapAccessor());
+	}
+
+	public void setFunctions(Map<String, Method> functionsArg) {
+		Map<String, Method> functions = new LinkedHashMap<String, Method>();
+		for (Entry<String, Method> function : functionsArg.entrySet()) {
+			Assert.notNull(function.getValue(), "Method cannot be null");
+			functions.put(function.getKey(), function.getValue());
 		}
+		this.functions = functions;
 	}
 
 	@Override

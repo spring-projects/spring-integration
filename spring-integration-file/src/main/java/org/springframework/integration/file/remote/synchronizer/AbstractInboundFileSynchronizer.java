@@ -27,14 +27,12 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -56,11 +54,11 @@ import org.springframework.util.ObjectUtils;
  * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer,
-		InitializingBean, BeanFactoryAware {
+		InitializingBean, IntegrationEvaluationContextAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private StandardEvaluationContext evaluationContext;
+	private volatile EvaluationContext evaluationContext;
 
 	private volatile String remoteFileSeparator = "/";
 
@@ -133,13 +131,13 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 	@Override
-	public final void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
 	}
 
 	public final void afterPropertiesSet() {
 		Assert.notNull(this.remoteDirectory, "remoteDirectory must not be null");
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		Assert.notNull(this.evaluationContext, "evaluationContext must not be null");
 	}
 
 	protected final List<F> filterFiles(F[] files) {

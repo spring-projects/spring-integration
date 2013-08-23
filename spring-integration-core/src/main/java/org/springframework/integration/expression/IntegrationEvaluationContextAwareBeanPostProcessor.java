@@ -19,11 +19,8 @@ package org.springframework.integration.expression;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.IntegrationObjectSupport;
 
 /**
  * @author Artem Bilan
@@ -40,13 +37,7 @@ public class IntegrationEvaluationContextAwareBeanPostProcessor implements BeanP
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof IntegrationEvaluationContextAware) {
-			StandardEvaluationContext evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);
-			if (bean instanceof IntegrationObjectSupport) {
-				ConversionService conversionService = ((IntegrationObjectSupport) bean).getConversionService();
-				if (conversionService != null) {
-					evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-				}
-			}
+			StandardEvaluationContext evaluationContext = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
 			((IntegrationEvaluationContextAware) bean).setIntegrationEvaluationContext(evaluationContext);
 		}
 		return bean;

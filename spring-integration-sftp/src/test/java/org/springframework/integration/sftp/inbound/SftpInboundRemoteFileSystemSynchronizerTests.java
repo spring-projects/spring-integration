@@ -16,23 +16,6 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Vector;
-
-import org.junit.After;
-import org.junit.Test;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
-import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
-import org.springframework.integration.sftp.session.SftpTestSessionFactory;
-
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.SftpATTRS;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -44,9 +27,28 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Vector;
+
+import org.junit.After;
+import org.junit.Test;
+
+import org.springframework.integration.Message;
+import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
+import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpTestSessionFactory;
+
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpATTRS;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizerTests {
@@ -81,6 +83,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new SftpRegexPatternFileListFilter(".*\\.test$"));
+		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
 
 		SftpInboundFileSynchronizingMessageSource ms =
 				new SftpInboundFileSynchronizingMessageSource(synchronizer);

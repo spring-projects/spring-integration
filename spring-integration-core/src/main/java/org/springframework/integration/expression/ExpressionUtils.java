@@ -16,10 +16,12 @@
 
 package org.springframework.integration.expression;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.expression.BeanResolver;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -35,6 +37,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
  */
 public abstract class ExpressionUtils {
 
+	private static final Log logger = LogFactory.getLog(ExpressionUtils.class);
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
 	 * property accessor property and the supplied {@link ConversionService} in its
@@ -43,49 +46,48 @@ public abstract class ExpressionUtils {
 	 * @return the evaluation context.
 	 */
 	private static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService) {
-		return createStandardEvaluationContext((BeanResolver) null, conversionService);
-	}
-
-	/**
-	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
-	 * property accessor property, the supplied {@link BeanResolver} in its
-	 * beanResolver property, and the supplied {@link ConversionService} in its
-	 * conversionService property.
-	 * @param beanResolver the bean resolver.
-	 * @param conversionService the conversion service.
-	 * @return the evaluation context.
-	 */
-	private static StandardEvaluationContext createStandardEvaluationContext(BeanResolver beanResolver,
-			ConversionService conversionService) {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
-		if (beanResolver != null) {
-			evaluationContext.setBeanResolver(beanResolver);
-		}
 		if (conversionService != null) {
 			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
 		return evaluationContext;
 	}
 
-	private static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory,
-			ConversionService conversionService) {
-		StandardEvaluationContext context = null;
-		if (beanFactory != null) {
-			context = IntegrationContextUtils.getEvaluationContext(beanFactory);
-		}
-		if (context == null) {
-			context = createStandardEvaluationContext(conversionService);
-		}
-		return context;
+	/**
+	 * Used to create a context with no BeanFactory, usually in tests.
+	 * @return The evaluation context.
+	 */
+	public static StandardEvaluationContext createStandardEvaluationContext() {
+		return doCreateContext(null);
 	}
 
+	/**
+	 * Obtains the context from the beanFactory if not null; emits a warning if the beanFactory
+	 * is null.
+	 * @param beanFactory
+	 * @return The evaluation context.
+	 */
 	public static StandardEvaluationContext createStandardEvaluationContext(BeanFactory beanFactory) {
-		ConversionService conversionService = null;
-		if (beanFactory != null) {
-			IntegrationContextUtils.getConversionService(beanFactory);
+		if (beanFactory == null) {
+			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanfactory"));
 		}
-		return createStandardEvaluationContext(beanFactory, conversionService);
+		return doCreateContext(beanFactory);
+	}
+
+	private static StandardEvaluationContext doCreateContext(BeanFactory beanFactory) {
+		ConversionService conversionService = null;
+		StandardEvaluationContext evaluationContext = null;
+		if (beanFactory != null) {
+			evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);
+		}
+		if (evaluationContext == null) {
+			if (beanFactory != null) {
+				conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+			}
+			evaluationContext = createStandardEvaluationContext(conversionService);
+		}
+		return evaluationContext;
 	}
 
 }

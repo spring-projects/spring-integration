@@ -43,7 +43,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private StandardEvaluationContext evaluationContext;
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private final ExpressionParser expressionParser = new SpelExpressionParser();
 
@@ -78,7 +78,9 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	protected StandardEvaluationContext getEvaluationContext() {
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-			this.evaluationContext.setTypeConverter(this.typeConverter);
+			if (this.typeConverter != null) {
+				this.evaluationContext.setTypeConverter(this.typeConverter);
+			}
 		}
 		return this.evaluationContext;
 	}

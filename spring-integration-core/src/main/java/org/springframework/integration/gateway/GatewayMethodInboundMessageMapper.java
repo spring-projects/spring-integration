@@ -86,7 +86,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<String, Expression>();
 
-	private volatile StandardEvaluationContext staticEvaluationContext;
+	private volatile StandardEvaluationContext payloadExpressionEvaluationContext;
 
 	private volatile BeanFactory beanFactory;
 
@@ -111,7 +111,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.beanFactory = beanFactory;
-			this.staticEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
+			this.payloadExpressionEvaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 		}
 	}
 
@@ -220,7 +220,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			expression = PARSER.parseExpression(expressionString);
 			this.parameterPayloadExpressions.put(expressionString, expression);
 		}
-		return expression.getValue(this.staticEvaluationContext, argumentValue);
+		return expression.getValue(this.payloadExpressionEvaluationContext, argumentValue);
 	}
 
 	private Annotation findMappingAnnotation(Annotation[] annotations) {

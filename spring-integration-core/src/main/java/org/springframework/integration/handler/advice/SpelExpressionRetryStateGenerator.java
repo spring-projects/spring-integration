@@ -51,7 +51,7 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 	public SpelExpressionRetryStateGenerator(String keyExpression, String forceRefreshExpression) {
 		Assert.notNull(keyExpression, "keyExpression must not be null");
 		this.keyExpression = new SpelExpressionParser().parseExpression(keyExpression);
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(null);
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
 		if (forceRefreshExpression == null) {
 			this.forceRefreshExpression = null;
 		}

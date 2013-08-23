@@ -82,7 +82,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
-	private StandardEvaluationContext evaluationContext;
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private final Expression destinationDirectoryExpression;
 

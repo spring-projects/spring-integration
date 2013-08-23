@@ -77,7 +77,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private volatile Authenticator javaMailAuthenticator;
 
-	private StandardEvaluationContext evaluationContext;
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile Expression selectorExpression;
 

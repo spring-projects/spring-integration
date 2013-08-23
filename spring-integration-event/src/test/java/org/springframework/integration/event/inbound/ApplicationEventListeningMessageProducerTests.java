@@ -161,6 +161,7 @@ public class ApplicationEventListeningMessageProducerTests {
 		adapter.onApplicationEvent(new TestApplicationEvent2());
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
+		assertEquals("received: event1", message2.getPayload());
 		Message<?> message3 = channel.receive(20);
 		assertNotNull(message3);
 		assertEquals("received: event2", message3.getPayload());

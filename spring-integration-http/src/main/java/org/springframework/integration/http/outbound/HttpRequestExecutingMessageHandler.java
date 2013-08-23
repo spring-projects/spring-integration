@@ -87,7 +87,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final RestTemplate restTemplate;
 
-	private StandardEvaluationContext evaluationContext;
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private final Expression uriExpression;
 
@@ -155,7 +155,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		Assert.notNull(uriExpression, "URI Expression is required");
 		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
 		this.uriExpression = uriExpression;
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(null);
 	}
 
 	/**

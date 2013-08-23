@@ -548,7 +548,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		return httpStatus;
 	}
 
-	protected StandardEvaluationContext createEvaluationContext(){
+	protected StandardEvaluationContext createEvaluationContext() {
 		return ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 	}
 

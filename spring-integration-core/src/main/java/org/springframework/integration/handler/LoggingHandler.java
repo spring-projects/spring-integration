@@ -74,7 +74,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 					+ "'. The (case-insensitive) supported values are: "
 					+ StringUtils.arrayToCommaDelimitedString(Level.values()));
 		}
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(null);
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
 		this.expression = EXPRESSION_PARSER.parseExpression("payload");
 	}
 

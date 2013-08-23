@@ -83,7 +83,7 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 
 	private final Templates templates;
 
-	private StandardEvaluationContext evaluationContext;
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private Map<String, Expression> xslParameterMappings;
 
