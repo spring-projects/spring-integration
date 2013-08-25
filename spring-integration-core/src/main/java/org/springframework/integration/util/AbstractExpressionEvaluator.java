@@ -76,18 +76,17 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	protected StandardEvaluationContext getEvaluationContext() {
-		return this.getEvaluationContext(false);
+		return this.getEvaluationContext(true);
 	}
 
 	/**
-	 * Call this with true to suppress the warning if a beanFactory is not available, but
-	 * not needed.
-	 * @param noBeanFactoryOk true to suppress the warning.
+	 * Emits a WARN log if the beanFactory field is null, unless the argument is false.
+	 * @param beanFactoryRequired set to false to suppress the warning.
 	 * @return The evaluation context.
 	 */
-	protected final StandardEvaluationContext getEvaluationContext(boolean noBeanFactoryOk) {
+	protected final StandardEvaluationContext getEvaluationContext(boolean beanFactoryRequired) {
 		if (this.evaluationContext == null) {
-			if (this.beanFactory == null && noBeanFactoryOk) {
+			if (this.beanFactory == null && !beanFactoryRequired) {
 				this.evaluationContext = ExpressionUtils.createStandardEvaluationContext();
 			}
 			else {

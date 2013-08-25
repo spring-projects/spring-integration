@@ -159,7 +159,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.targetObject = targetObject;
 		this.handlerMethods = Collections.<Class<?>, HandlerMethod> singletonMap(handlerMethod.getTargetParameterType()
 				.getObjectType(), handlerMethod);
-		this.prepareEvaluationContext(this.getEvaluationContext(true), method, annotationType);
+		this.prepareEvaluationContext(this.getEvaluationContext(false), method, annotationType);
 		this.setDisplayString(targetObject, method);
 	}
 
@@ -171,7 +171,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.targetObject = targetObject;
 		this.requiresReply = expectedType != null;
 		this.handlerMethods = this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, requiresReply);
-		this.prepareEvaluationContext(this.getEvaluationContext(true), methodName, annotationType);
+		this.prepareEvaluationContext(this.getEvaluationContext(false), methodName, annotationType);
 		this.setDisplayString(targetObject, methodName);
 	}
 
