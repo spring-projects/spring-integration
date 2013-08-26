@@ -30,7 +30,6 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
-
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -43,6 +42,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
@@ -133,7 +133,9 @@ public class TcpNetConnectionTests {
 		TcpListener listener = new TcpListener() {
 
 			public boolean onMessage(Message<?> message) {
-				inboundMessage.set(message);
+				if (!(message instanceof ErrorMessage)) {
+					inboundMessage.set(message);
+				}
 				return false;
 			}
 		};

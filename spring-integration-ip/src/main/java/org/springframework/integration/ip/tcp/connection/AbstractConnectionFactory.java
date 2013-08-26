@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -596,6 +597,9 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 								if (key.channel().isOpen()) {
 									key.interestOps(SelectionKey.OP_READ);
 									selector.wakeup();
+								}
+								else {
+									connection.sendExceptionToListener(new EOFException("Connection is closed"));
 								}
 							}});
 					}

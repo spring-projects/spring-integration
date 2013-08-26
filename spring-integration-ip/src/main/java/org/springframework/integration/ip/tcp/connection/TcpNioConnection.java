@@ -201,23 +201,28 @@ public class TcpNioConnection extends TcpConnectionSupport {
 					if (message != null) {
 						sendToChannel(message);
 					}
-				} else {
+				}
+				else {
 					this.executionControl.decrementAndGet();
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (logger.isTraceEnabled()) {
 					logger.error("Read exception " +
 							 this.getConnectionId(), e);
-				} else {
+				}
+				else {
 					logger.error("Read exception " +
 								 this.getConnectionId() + " " +
 								 e.getClass().getSimpleName() +
 							     ":" + e.getCause() + ":" + e.getMessage());
 				}
 				this.closeConnection();
+				this.sendExceptionToListener(e);
 				return;
 			}
-		} finally {
+		}
+		finally {
 			if (logger.isTraceEnabled()) {
 				logger.trace(this.getConnectionId() + " Nio message assembler exiting...");
 			}
@@ -228,7 +233,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				if (this.isOpen() && dataAvailable()) {
 					checkForAssembler();
 				}
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				logger.error("Exception when checking for assembler", e);
 			}
 		}
@@ -293,7 +299,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		 */
 		if (this.isSingleUse() && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Closing single use cbannel after inbound message " + this.getConnectionId());
+				logger.debug("Closing single use channel after inbound message " + this.getConnectionId());
 			}
 			this.closeConnection();
 		}
@@ -377,6 +383,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 				// only execute run() if we don't already have one running
 				this.executionControl.set(1);
 				this.taskExecutor.execute(this);
+				logger.debug("Running an assembler");
 			} else {
 				this.executionControl.decrementAndGet();
 			}

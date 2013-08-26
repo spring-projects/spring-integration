@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
@@ -25,12 +26,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +66,7 @@ import org.springframework.integration.ip.tcp.connection.CachingClientConnection
 import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
@@ -87,6 +91,7 @@ public class TcpOutboundGatewayTests {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 100);
 					latch.countDown();
+					List<Socket> sockets = new ArrayList<Socket>();
 					int i = 0;
 					while (true) {
 						Socket socket = server.accept();
@@ -94,6 +99,7 @@ public class TcpOutboundGatewayTests {
 						ois.readObject();
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						oos.writeObject("Reply" + (i++));
+						sockets.add(socket);
 					}
 				} catch (Exception e) {
 					if (!done.get()) {
@@ -568,4 +574,116 @@ public class TcpOutboundGatewayTests {
 		return connection;
 	}
 
+	@Test
+	public void testNetGWPropagatesSocketClose() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
+		ccf.setSoTimeout(10000);
+		ccf.setSingleUse(false);
+		ccf.start();
+		testGWPropagatesSocketCloseGuts(port, ccf);
+	}
+
+	@Test
+	public void testNioGWPropagatesSocketClose() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
+		ccf.setSoTimeout(10000);
+		ccf.setSingleUse(false);
+		ccf.start();
+		testGWPropagatesSocketCloseGuts(port, ccf);
+	}
+
+	@Test
+	public void testCachedGWPropagatesSocketClose() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
+		ccf.setSoTimeout(10000);
+		ccf.setSingleUse(false);
+		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(ccf, 1);
+		cccf.start();
+		testGWPropagatesSocketCloseGuts(port, cccf);
+	}
+
+	@Test
+	public void testFailoverGWPropagatesSocketClose() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
+		ccf.setSoTimeout(10000);
+		ccf.setSingleUse(false);
+		FailoverClientConnectionFactory focf = new FailoverClientConnectionFactory(
+				Collections.singletonList(ccf));
+		focf.start();
+		testGWPropagatesSocketCloseGuts(port, focf);
+	}
+
+	private void testGWPropagatesSocketCloseGuts(final int port, AbstractClientConnectionFactory ccf) throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		final AtomicReference<String> lastReceived = new AtomicReference<String>();
+		final CountDownLatch serverLatch = new CountDownLatch(1);
+
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					int i = 0;
+					while (!done.get()) {
+						Socket socket = server.accept();
+						i++;
+						while (!socket.isClosed()) {
+							try {
+								ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+								String request = (String) ois.readObject();
+								logger.debug("Read " + request + " closing socket");
+								socket.close();
+								lastReceived.set(request);
+								serverLatch.countDown();
+							}
+							catch (IOException e) {
+								socket.close();
+							}
+						}
+					}
+				}
+				catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		final TcpOutboundGateway gateway = new TcpOutboundGateway();
+		gateway.setConnectionFactory(ccf);
+		gateway.setRequestTimeout(Integer.MAX_VALUE);
+		QueueChannel replyChannel = new QueueChannel();
+		gateway.setRequiresReply(true);
+		gateway.setOutputChannel(replyChannel);
+		gateway.setRemoteTimeout(5000);
+		gateway.afterPropertiesSet();
+		gateway.start();
+		try {
+			gateway.handleMessage(MessageBuilder.withPayload("Test").build());
+			fail("expected failure");
+		}
+		catch (Exception e) {
+			assertTrue(e.getCause() instanceof EOFException);
+		}
+		assertEquals(0, TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size());
+		Message<?> reply = replyChannel.receive(0);
+		assertNull(reply);
+		done.set(true);
+		ccf.getConnection();
+	}
 }
