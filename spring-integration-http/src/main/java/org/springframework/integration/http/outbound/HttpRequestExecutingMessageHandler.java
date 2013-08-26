@@ -48,6 +48,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
@@ -79,6 +80,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Wallace Wadge
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
@@ -338,24 +340,23 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		String uri = this.uriExpression.getValue(this.evaluationContext, requestMessage, String.class);
 		Assert.notNull(uri, "URI Expression evaluation cannot result in null");
 		try {
-			Map<String, Object> uriVariables = new HashMap<String, Object>();
-			for (Map.Entry<String, Expression> entry : this.uriVariableExpressions.entrySet()) {
-				Object value = entry.getValue().getValue(this.evaluationContext, requestMessage, String.class);
-				uriVariables.put(entry.getKey(), value);
-			}
-
 			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
 
 			if (!this.shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet){
 				if (logger.isWarnEnabled()){
 					logger.warn("The 'extractPayload' attribute has no relevance for the current request since the HTTP Method is '" +
-		               httpMethod + "', and no request body will be sent for that method.");
+							httpMethod + "', and no request body will be sent for that method.");
 				}
 			}
 
 			Class<?> expectedResponseType = this.determineExpectedResponseType(requestMessage);
 
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
+			Map<String, Object> uriVariables = ExpressionEvalMap
+					.from(this.uriVariableExpressions)
+					.usingEvaluationContext(this.evaluationContext)
+					.withRoot(requestMessage)
+					.build();
 			UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
 			URI realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, expectedResponseType);
@@ -554,6 +555,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return HttpMethod.valueOf(strHttpMethod);
 	}
 
+
 	private Class<?> determineExpectedResponseType(Message<?> requestMessage) throws Exception{
 		Class<?> expectedResponseType = null;
 		String expectedResponseTypeName = null;
@@ -564,5 +566,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			expectedResponseType = ClassUtils.forName(expectedResponseTypeName, ClassUtils.getDefaultClassLoader());
 		}
 		return expectedResponseType;
+
 	}
+
 }
