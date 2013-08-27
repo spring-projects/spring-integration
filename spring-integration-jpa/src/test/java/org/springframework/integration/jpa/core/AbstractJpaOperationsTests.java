@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@ package org.springframework.integration.jpa.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,6 +24,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.junit.Assert;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
@@ -38,6 +41,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -87,7 +91,8 @@ public class AbstractJpaOperationsTests {
 		List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0);
 		Assert.assertTrue(students.size() == 3);
 
-		ParameterSourceFactory requestParameterSourceFactory = new ExpressionEvaluatingParameterSourceFactory();
+		ParameterSourceFactory requestParameterSourceFactory =
+				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdate("update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated "
@@ -108,7 +113,8 @@ public class AbstractJpaOperationsTests {
 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
-		ParameterSourceFactory requestParameterSourceFactory = new ExpressionEvaluatingParameterSourceFactory();
+		ParameterSourceFactory requestParameterSourceFactory =
+				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNamedQuery("updateStudent", source);
@@ -127,7 +133,8 @@ public class AbstractJpaOperationsTests {
 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
-		ParameterSourceFactory requestParameterSourceFactory = new ExpressionEvaluatingParameterSourceFactory();
+		ExpressionEvaluatingParameterSourceFactory requestParameterSourceFactory =
+				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNativeQuery("update Student set lastName = :lastName, lastUpdated = :lastUpdated "
@@ -197,7 +204,8 @@ public class AbstractJpaOperationsTests {
 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
-		ParameterSourceFactory requestParameterSourceFactory = new ExpressionEvaluatingParameterSourceFactory();
+		ParameterSourceFactory requestParameterSourceFactory =
+				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		ParameterSource source = requestParameterSourceFactory.createParameterSource(student);
 
 		int updatedRecords = jpaOperations.executeUpdateWithNamedQuery("updateStudentNativeQuery", source);

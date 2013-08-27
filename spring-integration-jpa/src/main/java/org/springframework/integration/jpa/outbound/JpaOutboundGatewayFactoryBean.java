@@ -19,6 +19,7 @@ package org.springframework.integration.jpa.outbound;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -152,6 +153,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		if (this.adviceChain != null) {
 			jpaOutboundGateway.setAdviceChain(this.adviceChain);
 		}
+		jpaOutboundGateway.setBeanFactory(this.getBeanFactory());
 		jpaOutboundGateway.afterPropertiesSet();
 
 		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {

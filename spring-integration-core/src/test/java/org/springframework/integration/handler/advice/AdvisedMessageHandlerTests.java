@@ -49,6 +49,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
@@ -105,6 +106,7 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpression("'foo'");
@@ -183,6 +185,7 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel successChannel = new QueueChannel();
 		PollableChannel failureChannel = new QueueChannel();
 		ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.setSuccessChannel(successChannel);
 		advice.setFailureChannel(failureChannel);
 		advice.setOnSuccessExpression("1/0");
@@ -657,6 +660,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
+		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
 //		MessagingException / RuntimeException
 		expressionAdvice.setOnFailureExpression("#exception.cause.message");
 		expressionAdvice.setReturnFailureExpressionResult(true);
@@ -704,6 +708,7 @@ public class AdvisedMessageHandlerTests {
 		List<Advice> adviceChain = new ArrayList<Advice>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
+		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
 		expressionAdvice.setOnFailureExpression("#exception.message");
 		expressionAdvice.setFailureChannel(errors);
 

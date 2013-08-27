@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,11 @@ package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -27,6 +30,7 @@ import org.springframework.integration.Message;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageSourceTests {
@@ -37,6 +41,7 @@ public class ExpressionEvaluatingMessageSourceTests {
 		Expression expression = new LiteralExpression("foo");
 		ExpressionEvaluatingMessageSource<String> source =
 				new ExpressionEvaluatingMessageSource<String>(expression, String.class);
+		source.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = source.receive();
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
@@ -47,6 +52,7 @@ public class ExpressionEvaluatingMessageSourceTests {
 		Expression expression = new LiteralExpression("foo");
 		ExpressionEvaluatingMessageSource<Integer> source =
 				new ExpressionEvaluatingMessageSource<Integer>(expression, Integer.class);
+		source.setBeanFactory(mock(BeanFactory.class));
 		source.receive();
 	}
 

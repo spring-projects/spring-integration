@@ -39,6 +39,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
@@ -120,6 +122,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/x/")).thenReturn(files);
@@ -303,6 +306,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "mv", "payload");
+		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
 		doAnswer(new Answer<Object>() {
@@ -329,6 +333,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "mv", "payload");
 		gw.setRenameExpression("payload.substring(1)");
+		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
 		doAnswer(new Answer<Object>() {
@@ -353,6 +358,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "mv", "payload");
 		gw.setRenameExpression("'foo/bar/baz'");
+		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
 		doAnswer(new Answer<Object>() {
@@ -404,6 +410,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
 		gw.setOptions("-f");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/x/")).thenReturn(files);
@@ -423,6 +430,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = new TestLsEntry[0];
 		when(session.list("testremote/")).thenReturn(files);
@@ -439,6 +447,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
 		gw.setOptions("-1");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/")).thenReturn(files);
@@ -457,6 +466,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -f");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/")).thenReturn(files);
@@ -475,6 +485,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -dirs");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/")).thenReturn(files);
@@ -494,6 +505,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -dirs -links");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/")).thenReturn(files);
@@ -514,6 +526,7 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -a -f -dirs -links");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/")).thenReturn(files);
@@ -537,6 +550,7 @@ public class RemoteFileOutboundGatewayTests {
 			(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -a -f -dirs -links");
 		gw.setFilter(new TestPatternFilter("*4"));
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
 		when(session.list("testremote/")).thenReturn(files);
@@ -721,6 +735,7 @@ public class RemoteFileOutboundGatewayTests {
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "rm", "payload");
+		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		when(session.remove("testremote/x/f1")).thenReturn(Boolean.TRUE);
 		@SuppressWarnings("unchecked")
@@ -742,6 +757,7 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 	public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 			String command, String expression) {
 		super(sessionFactory, Command.toCommand(command), expression);
+		this.setBeanFactory(mock(BeanFactory.class));
 	}
 
 	@Override

@@ -62,6 +62,8 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 
 	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
+	private volatile boolean sqlParameterSourceFactorySet;
+
 	private volatile int maxRowsPerPoll = 0;
 
 	/**
@@ -102,6 +104,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 
 	public void setUpdateSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
+		this.sqlParameterSourceFactorySet = true;
 	}
 
 	/**
@@ -122,6 +125,15 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 */
 	public void setMaxRowsPerPoll(int maxRows) {
 		this.maxRowsPerPoll = maxRows;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (!this.sqlParameterSourceFactorySet && this.getBeanFactory() != null) {
+			((ExpressionEvaluatingSqlParameterSourceFactory)this.sqlParameterSourceFactory)
+				.setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	/**
@@ -201,6 +213,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 
 		return payload;
 	}
+	@Override
 	public String getComponentType(){
 		return "jdbc:inbound-channel-adapter";
 	}

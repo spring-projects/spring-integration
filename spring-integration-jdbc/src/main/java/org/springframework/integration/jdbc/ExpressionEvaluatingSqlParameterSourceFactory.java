@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
@@ -31,6 +32,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator implements
@@ -58,7 +60,6 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 */
 	public void setStaticParameters(Map<String, ?> staticParameters) {
 		this.staticParameters = staticParameters;
-		getEvaluationContext().setVariable("staticParameters", staticParameters);
 	}
 
 	/**
@@ -104,6 +105,12 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		SqlParameterSource toReturn = new ExpressionEvaluatingSqlParameterSource(input, staticParameters,
 				parameterExpressions);
 		return toReturn;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
+		this.getEvaluationContext().setVariable("staticParameters", this.staticParameters);
 	}
 
 	private final class ExpressionEvaluatingSqlParameterSource extends AbstractSqlParameterSource {

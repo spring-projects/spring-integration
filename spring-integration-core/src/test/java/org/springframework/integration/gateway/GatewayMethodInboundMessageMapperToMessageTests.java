@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -36,6 +38,7 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class GatewayMethodInboundMessageMapperToMessageTests {
 
@@ -43,6 +46,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithPayload() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
 		assertEquals("test", message.getPayload());
 	}
@@ -51,6 +55,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithTooManyParameters() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.toMessage(new Object[] { "test" , "oops" });
 	}
 
@@ -58,6 +63,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithEmptyParameterArray() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.toMessage(new Object[] {});
 	}
 
@@ -66,6 +72,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
 		assertEquals("test", message.getPayload());
 		assertEquals("bar", message.getHeaders().get("foo"));
@@ -76,6 +83,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.toMessage(new Object[] { "test", null });
 	}
 
@@ -84,6 +92,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndOptionalHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
 		assertEquals("test", message.getPayload());
 		assertEquals("bar", message.getHeaders().get("foo"));
@@ -94,6 +103,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndOptionalHeader", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", null });
 		assertEquals("test", message.getPayload());
 		assertNull(message.getHeaders().get("foo"));
@@ -104,6 +114,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("abc", 123);
 		headers.put("def", 456);
@@ -118,6 +129,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test", null });
 		assertEquals("test", message.getPayload());
 	}
@@ -127,6 +139,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Map<Integer, String> headers = new HashMap<Integer, String>();
 		headers.put(123, "abc");
 		mapper.toMessage(new Object[] { "test", headers });
@@ -136,6 +149,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithMessageParameter() throws Exception {
 		Method method = TestService.class.getMethod("sendMessage", Message.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage });
 		assertEquals("test message", message.getPayload());
@@ -145,6 +159,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithMessageParameterAndHeader() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndHeader", Message.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
 		assertEquals("test message", message.getPayload());
@@ -155,6 +170,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithMessageParameterAndRequiredHeaderButNullValue() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndHeader", Message.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		mapper.toMessage(new Object[] { inputMessage, null });
 	}
@@ -163,6 +179,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithMessageParameterAndOptionalHeaderWithValue() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndOptionalHeader", Message.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
 		assertEquals("test message", message.getPayload());
@@ -173,6 +190,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void toMessageWithMessageParameterAndOptionalHeaderWithNull() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndOptionalHeader", Message.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, null });
 		assertEquals("test message", message.getPayload());
@@ -183,6 +201,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void noArgs() throws Exception {
 		Method method = TestService.class.getMethod("noArgs", new Class<?>[] {});
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.toMessage(new Object[] {});
 	}
 
@@ -190,6 +209,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 	public void onlyHeaders() throws Exception {
 		Method method = TestService.class.getMethod("onlyHeaders", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.toMessage(new Object[] { "abc", "def" });
 	}
 
@@ -201,6 +221,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		headers.put("bar", new SpelExpressionParser().parseExpression("6 * 7"));
 		headers.put("baz", new LiteralExpression("hello"));
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method, headers);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
 		assertEquals("test", message.getPayload());
 		assertEquals("foo", message.getHeaders().get("foo"));
@@ -214,6 +235,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		map.put(1, "One");
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression("'hello'");
 		Message<?> message = mapper.toMessage(new Object[] { map });
 		assertEquals("hello", message.getPayload());
@@ -226,6 +248,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		map.put(1, "One");
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression("#args[0]");
 		Message<?> message = mapper.toMessage(new Object[] { map });
 		assertEquals(map, message.getPayload());
@@ -238,6 +261,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		map.put(1, "One");
 		map.put(2, "Two");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		Message<?> message = mapper.toMessage(new Object[] { map });
 		assertEquals(map, message.getPayload());
 	}
@@ -252,6 +276,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapB.put("1", "ONE");
 		mapB.put("2", "TWO");
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
+		mapper.setBeanFactory(mock(BeanFactory.class));
 		mapper.setPayloadExpression("#args[0]");
 		Message<?> message = mapper.toMessage(new Object[] { mapA, mapB });
 		assertEquals(mapA, message.getPayload());

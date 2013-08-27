@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
@@ -43,10 +44,11 @@ public class MessagePublishingInterceptorTests {
 
 	private final QueueChannel testChannel = new QueueChannel();
 
+	private DefaultListableBeanFactory beanFactory;
 
 	@Before
 	public void setup() {
-		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory = new DefaultListableBeanFactory();
 		channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		beanFactory.registerSingleton("c", testChannel);
 	}
@@ -55,6 +57,7 @@ public class MessagePublishingInterceptorTests {
 	public void returnValue() {
 		PublisherMetadataSource metadataSource = new TestPublisherMetadataSource();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(metadataSource);
+		interceptor.setBeanFactory(beanFactory);
 		interceptor.setChannelResolver(channelResolver);
 		ProxyFactory pf = new ProxyFactory(new TestBeanImpl());
 		pf.addAdvice(interceptor);
@@ -82,6 +85,7 @@ public class MessagePublishingInterceptorTests {
 		metadataSource.setHeaderExpressionMap(headerExpressionMap);
 
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(metadataSource);
+		interceptor.setBeanFactory(beanFactory);
 		interceptor.setChannelResolver(channelResolver);
 		ProxyFactory pf = new ProxyFactory(new TestBeanImpl());
 		pf.addAdvice(interceptor);

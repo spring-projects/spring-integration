@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,6 +32,8 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -41,9 +44,10 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 /**
  * @author Jonas Partner
+ * @author Gary Russell
  */
 public class JdbcPollingChannelAdapterIntegrationTests {
-	
+
 	private static Log logger = LogFactory.getLog(JdbcPollingChannelAdapterIntegrationTests.class);
 
 	private EmbeddedDatabase embeddedDatabase;
@@ -143,6 +147,8 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter
 				.setUpdateSql("update item set status = 10 where id in (:id)");
 		adapter.setRowMapper(new ItemRowMapper());
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
 
 		this.jdbcTemplate.update("insert into item values(1,2)");
 		this.jdbcTemplate.update("insert into item values(2,2)");
@@ -177,6 +183,8 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setUpdateSql("update item set status = 10 where id = :id");
 		adapter.setUpdatePerRow(true);
 		adapter.setRowMapper(new ItemRowMapper());
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
 
 		this.jdbcTemplate.update("insert into item values(1,2)");
 		this.jdbcTemplate.update("insert into item values(2,2)");
@@ -212,6 +220,8 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRowsPerPoll(1);
 		adapter.setRowMapper(new ItemRowMapper());
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
 
 		this.jdbcTemplate.update("insert into item values(1,2)");
 		this.jdbcTemplate.update("insert into item values(2,2)");
@@ -249,6 +259,8 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRowsPerPoll(1);
 		adapter.setRowMapper(new ItemRowMapper());
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.afterPropertiesSet();
 
 		this.jdbcTemplate.update("insert into item values(1,2)");
 		this.jdbcTemplate.update("insert into item values(2,2)");

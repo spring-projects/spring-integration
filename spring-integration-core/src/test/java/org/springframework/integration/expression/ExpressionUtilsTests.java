@@ -75,7 +75,7 @@ public class ExpressionUtilsTests {
 				new RootBeanDefinition(ConversionServiceFactoryBean.class));
 		context.refresh();
 		StandardEvaluationContext evalContext = ExpressionUtils.createStandardEvaluationContext(context);
-		assertNull(evalContext.getBeanResolver());
+		assertNotNull(evalContext.getBeanResolver());
 		TypeConverter typeConverter = evalContext.getTypeConverter();
 		assertNotNull(typeConverter);
 		assertNotSame(TestUtils.getPropertyValue(typeConverter, "defaultConversionService"),

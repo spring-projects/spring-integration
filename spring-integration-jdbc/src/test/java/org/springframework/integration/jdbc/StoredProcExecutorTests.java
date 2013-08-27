@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
@@ -71,6 +73,7 @@ public class StoredProcExecutorTests {
 
 		try {
 			StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
+			storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 			storedProcExecutor.afterPropertiesSet();
 		} catch (IllegalArgumentException e) {
 			assertEquals("You must either provide a "
@@ -108,6 +111,7 @@ public class StoredProcExecutorTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 		storedProcExecutor.afterPropertiesSet();
 
 		assertEquals("headers['stored_procedure_name']", storedProcExecutor.getStoredProcedureNameExpressionAsString());
@@ -120,6 +124,7 @@ public class StoredProcExecutorTests {
 		StoredProcExecutor storedProcExecutor = new StoredProcExecutor(datasource);
 
 		storedProcExecutor.setStoredProcedureName("123");
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 		storedProcExecutor.afterPropertiesSet();
 
 		assertEquals("123", storedProcExecutor.getStoredProcedureName());
@@ -322,6 +327,7 @@ public class StoredProcExecutorTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 
@@ -365,6 +371,7 @@ public class StoredProcExecutorTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 
@@ -403,6 +410,7 @@ public class StoredProcExecutorTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 

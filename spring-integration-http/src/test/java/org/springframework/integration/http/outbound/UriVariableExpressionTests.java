@@ -17,6 +17,7 @@
 package org.springframework.integration.http.outbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.URI;
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpMethod;
@@ -39,6 +41,7 @@ import org.springframework.integration.message.GenericMessage;
  * @author Dave Syer
  * @author Mark Fisher
  * @author Wallace Wadge
+ * @author Gary Russell
  * @since 2.0
  */
 public class UriVariableExpressionTests {
@@ -56,6 +59,7 @@ public class UriVariableExpressionTests {
 				throw new RuntimeException("intentional");
 			}
 		});
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<Object>("bar");
 		Exception exception = null;
@@ -86,6 +90,8 @@ public class UriVariableExpressionTests {
 				throw new RuntimeException("intentional");
 			}
 		});
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<Object>("bar");
 		Exception exception = null;
 		try {

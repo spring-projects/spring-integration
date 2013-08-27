@@ -21,6 +21,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -57,7 +60,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class JpaExecutor implements InitializingBean {
+public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	private volatile JpaOperations      jpaOperations;
 	private volatile List<JpaParameter> jpaParameters;
@@ -87,6 +90,8 @@ public class JpaExecutor implements InitializingBean {
 	 * used for the sqlParameterSourceFactory property.
 	 */
 	private volatile Boolean usePayloadAsParameterSource = null;
+
+	private volatile BeanFactory beanFactory;
 
 	/**
 	 * Constructor taking an {@link EntityManagerFactory} from which the
@@ -132,6 +137,11 @@ public class JpaExecutor implements InitializingBean {
 		this.jpaOperations = jpaOperations;
 	}
 
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
 	/**
 	 *
 	 * Verifies and sets the parameters. E.g. initializes the to be used
@@ -144,7 +154,7 @@ public class JpaExecutor implements InitializingBean {
 
 			if (this.parameterSourceFactory == null) {
 				ExpressionEvaluatingParameterSourceFactory expressionSourceFactory =
-											  new ExpressionEvaluatingParameterSourceFactory();
+							  new ExpressionEvaluatingParameterSourceFactory(this.beanFactory);
 				expressionSourceFactory.setParameters(jpaParameters);
 				this.parameterSourceFactory = expressionSourceFactory;
 

@@ -38,6 +38,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -74,6 +75,7 @@ public class FileTransferringMessageHandlerTests {
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("''"));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
@@ -98,6 +100,7 @@ public class FileTransferringMessageHandlerTests {
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo"));
 		handler.setTemporaryRemoteDirectoryExpression(new LiteralExpression("bar"));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
@@ -122,6 +125,7 @@ public class FileTransferringMessageHandlerTests {
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
@@ -136,6 +140,7 @@ public class FileTransferringMessageHandlerTests {
 		when(sf.getSession()).thenReturn(session);
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
 		handler.setTemporaryFileSuffix(null);
 		handler.onInit();
@@ -153,6 +158,7 @@ public class FileTransferringMessageHandlerTests {
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
 		handler.setUseTemporaryFileName(false);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
@@ -166,6 +172,7 @@ public class FileTransferringMessageHandlerTests {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		CachingSessionFactory<F> csf = new CachingSessionFactory<F>(sf, 2);
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(csf);
+		handler.setBeanFactory(mock(BeanFactory.class));
 		Session<F> session1 = newSession();
 		Session<F> session2 = newSession();
 		Session<F> session3 = newSession();

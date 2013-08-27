@@ -26,6 +26,7 @@ import java.nio.charset.Charset;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -81,6 +82,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+
+	private volatile boolean fileNameGeneratorSet;
 
 	private volatile StandardEvaluationContext evaluationContext;
 
@@ -190,6 +193,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		Assert.notNull(fileNameGenerator, "FileNameGenerator must not be null");
 		this.fileNameGenerator = fileNameGenerator;
+		this.fileNameGeneratorSet = true;
 	}
 
 	/**
@@ -226,6 +230,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 
+		if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	private void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
