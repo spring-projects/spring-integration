@@ -45,6 +45,8 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
+	private volatile boolean sqlParameterSourceFactorySet;
+
 	private volatile boolean keysGenerated;
 
 	private volatile Integer maxRowsPerPoll;
@@ -114,9 +116,14 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 		}
 
 		if (this.handler!= null) {
+			handler.setBeanFactory(this.getBeanFactory());
 			handler.afterPropertiesSet();
 		}
 
+		if (!this.sqlParameterSourceFactorySet && this.getBeanFactory() != null) {
+			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
+					.setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override
@@ -168,11 +175,13 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	public void setRequestSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-		handler.setSqlParameterSourceFactory(sqlParameterSourceFactory);
+		Assert.notNull(this.handler);
+		this.handler.setSqlParameterSourceFactory(sqlParameterSourceFactory);
 	}
 
 	public void setReplySqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
+		this.sqlParameterSourceFactorySet = true;
 	}
 
 	public void setRowMapper(RowMapper<?> rowMapper) {

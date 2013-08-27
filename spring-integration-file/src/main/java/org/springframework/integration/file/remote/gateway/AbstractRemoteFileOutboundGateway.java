@@ -285,6 +285,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		if (this.getBeanFactory() != null) {
 			this.fileNameProcessor.setBeanFactory(this.getBeanFactory());
+			this.renameProcessor.setBeanFactory(this.getBeanFactory());
 		}
 	}
 

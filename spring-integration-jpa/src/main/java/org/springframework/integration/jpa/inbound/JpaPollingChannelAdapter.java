@@ -70,6 +70,7 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 	@Override
 	protected void onInit() throws Exception {
 		 super.onInit();
+		 this.jpaExecutor.setBeanFactory(this.getBeanFactory());
 	}
 
 	/**

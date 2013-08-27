@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2010 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
@@ -32,9 +33,10 @@ import org.springframework.integration.Message;
 /**
  * A MessageProcessor implementation that expects an Expression or expressionString
  * as the Message payload. When processing, it simply evaluates that expression.
- * 
+ *
  * @author Dave Syer
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object> {
@@ -43,9 +45,16 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 	}
 
 	public ExpressionCommandMessageProcessor(MethodFilter methodFilter) {
+		this(methodFilter, null);
+	}
+
+	public ExpressionCommandMessageProcessor(MethodFilter methodFilter, BeanFactory beanFactory) {
+		if (beanFactory != null) {
+			this.setBeanFactory(beanFactory);
+		}
 		if (methodFilter != null) {
 			MethodResolver methodResolver = new ExpressionCommandMethodResolver(methodFilter);
-			this.getEvaluationContext().setMethodResolvers(Collections.singletonList(methodResolver));
+			this.getEvaluationContext(false).setMethodResolvers(Collections.singletonList(methodResolver));
 		}
 	}
 
@@ -54,6 +63,7 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 	 * Evaluates the Message payload expression as a command.
 	 * @throws IllegalArgumentException if the payload is not an Exception or String
 	 */
+	@Override
 	public Object processMessage(Message<?> message) {
 		Object expression = message.getPayload();
 		if (expression instanceof Expression) {
@@ -72,10 +82,11 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 
 
 		private ExpressionCommandMethodResolver(MethodFilter methodFilter) {
-			this.methodFilter = methodFilter; 
+			this.methodFilter = methodFilter;
 		}
 
 
+		@Override
 		public MethodExecutor resolve(EvaluationContext context,
 				Object targetObject, String name, List<TypeDescriptor> argumentTypes) throws AccessException {
 			this.validateMethod(targetObject, name, (argumentTypes != null ? argumentTypes.size() : 0));
@@ -96,7 +107,7 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 			}
 			List<Method> supportedMethods = this.methodFilter.filter(candidates);
 			if (supportedMethods.size() == 0) {
-				String methodDescription = (candidates.size() > 0) ? candidates.get(0).toString() : name; 
+				String methodDescription = (candidates.size() > 0) ? candidates.get(0).toString() : name;
 				throw new EvaluationException("The method '" + methodDescription + "' is not supported by this command processor. " +
 						"If using the Control Bus, consider adding @ManagedOperation or @ManagedAttribute.");
 			}
