@@ -16,21 +16,28 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.springframework.integration.context.IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedSet;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionDecorator;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 /**
  * Base class for NamespaceHandlers that registers a BeanFactoryPostProcessor
@@ -59,6 +66,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.verifySchemaVersion(element, parserContext);
 		this.registerImplicitChannelCreator(parserContext);
+		this.registerIntegrationEvaluationContext(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
@@ -90,8 +98,8 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 		// ChannelInitializer$AutoCreateCandidatesCollector
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
-			// unlike DefaultConfiguringBeanFactoryPostProcessor we need one of these per registry
-			// therefore we need to call containsBeanDefinition(..) which does not consider parent registry
+			// unlike DefaultConfiguringBeanFactoryPostProcessor, we need one of these per registry
+			// therefore we need to call containsBeanDefinition(..) which does not consider the parent registry
 			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).
 					containsBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 		}
@@ -104,6 +112,32 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			BeanDefinitionHolder channelRegistryHolder =
 					new BeanDefinitionHolder(channelRegistryBuilder.getBeanDefinition(), ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(channelRegistryHolder, parserContext.getRegistry());
+		}
+	}
+
+	private void registerIntegrationEvaluationContext(ParserContext parserContext) {
+		boolean alreadyRegistered = false;
+		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
+			// unlike DefaultConfiguringBeanFactoryPostProcessor, we need one of these per registry
+			// therefore we need to call containsBeanDefinition(..) which does not consider the parent registry
+			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBeanDefinition(
+					INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
+			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationEvaluationContextFactoryBean.class);
+			integrationEvaluationContextBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			BeanDefinitionHolder integrationEvaluationContextHolder = new BeanDefinitionHolder(
+					integrationEvaluationContextBuilder.getBeanDefinition(),
+					IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder,
+					parserContext.getRegistry());
+			RootBeanDefinition integrationEvalContextBPP = new RootBeanDefinition(
+					IntegrationEvaluationContextAwareBeanPostProcessor.class);
+			BeanDefinitionReaderUtils.registerWithGeneratedName(integrationEvalContextBPP, parserContext.getRegistry());
 		}
 	}
 
