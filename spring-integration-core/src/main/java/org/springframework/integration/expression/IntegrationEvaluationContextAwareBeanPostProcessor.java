@@ -18,19 +18,22 @@ package org.springframework.integration.expression;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
-public class IntegrationEvaluationContextAwareBeanPostProcessor implements BeanPostProcessor {
+public class IntegrationEvaluationContextAwareBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
-	private final BeanFactory beanFactory;
+	private volatile BeanFactory beanFactory;
 
-	public IntegrationEvaluationContextAwareBeanPostProcessor(BeanFactory beanFactory) {
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 

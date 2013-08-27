@@ -32,9 +32,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
 
 /**
  * A {@link BeanFactoryPostProcessor} implementation that provides default beans for the error handling and task
@@ -44,13 +42,14 @@ import org.springframework.integration.expression.IntegrationEvaluationContextAw
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
 	private static final String ERROR_LOGGER_BEAN_NAME = "_org.springframework.integration.errorLogger";
 
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -64,10 +63,6 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 				this.registerTaskScheduler(registry);
 			}
 			this.registerIdGeneratorConfigurer(registry);
-			if (!beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
-				this.registerIntegrationEvaluationContext(registry);
-				beanFactory.addBeanPostProcessor(new IntegrationEvaluationContextAwareBeanPostProcessor(beanFactory));
-			}
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
@@ -76,16 +71,6 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 					+ " Also, any custom IdGenerator implementation configured in this BeanFactory"
 					+ " will not be recognized.");
 		}
-	}
-
-	private void registerIntegrationEvaluationContext(BeanDefinitionRegistry registry) {
-		BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationEvaluationContextFactoryBean.class);
-		integrationEvaluationContextBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		BeanDefinitionHolder integrationEvaluationContextHolder = new BeanDefinitionHolder(
-				integrationEvaluationContextBuilder.getBeanDefinition(),
-				IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
-		BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder, registry);
 	}
 
 	private void registerIdGeneratorConfigurer(BeanDefinitionRegistry registry) {
