@@ -56,6 +56,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -101,6 +102,7 @@ public class ImapMailReceiverTests {
 			Message msg2) throws NoSuchFieldException, IllegalAccessException, MessagingException {
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
@@ -172,6 +174,7 @@ public class ImapMailReceiverTests {
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
 		receiver.setShouldDeleteMessages(true);
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -216,6 +219,7 @@ public class ImapMailReceiverTests {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -256,6 +260,7 @@ public class ImapMailReceiverTests {
 		((ImapMailReceiver)receiver).setShouldDeleteMessages(true);
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -300,6 +305,7 @@ public class ImapMailReceiverTests {
 	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -347,6 +353,7 @@ public class ImapMailReceiverTests {
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -414,6 +421,7 @@ public class ImapMailReceiverTests {
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
@@ -472,6 +480,7 @@ public class ImapMailReceiverTests {
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		final IMAPFolder folder = mock(IMAPFolder.class);
@@ -556,6 +565,7 @@ public class ImapMailReceiverTests {
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		final IMAPFolder folder = mock(IMAPFolder.class);
@@ -656,6 +666,7 @@ public class ImapMailReceiverTests {
 
 			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
 			df.setPropertyValue("store", store);
+			receiver.setBeanFactory(mock(BeanFactory.class));
 			receiver.afterPropertiesSet();
 
 			new Thread(new Runnable() {
@@ -700,6 +711,7 @@ public class ImapMailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		DirectFieldAccessor df = new DirectFieldAccessor(receiver);
 		df.setPropertyValue("store", store);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
 
 		doAnswer(new Answer<Object> () {

@@ -54,6 +54,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.1
  */
@@ -106,6 +107,7 @@ public class ContentEnricherTests {
 		enricher.setPropertyExpressions(expressions);
 		enricher.setRequiresReply(true);
 		enricher.setBeanName("Enricher");
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
 		final AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
@@ -161,6 +163,7 @@ public class ContentEnricherTests {
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
 		enricher.setRequestTimeout(requestTimeout);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -194,6 +197,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -210,6 +214,7 @@ public class ContentEnricherTests {
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setReplyChannel(replyChannel);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
 		    enricher.afterPropertiesSet();
@@ -225,6 +230,7 @@ public class ContentEnricherTests {
 	public void setNullReplyTimeout() {
 
 		ContentEnricher enricher = new ContentEnricher();
+		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
 		    enricher.setReplyTimeout(null);
@@ -240,6 +246,7 @@ public class ContentEnricherTests {
 	public void setNullRequestTimeout() {
 
 		ContentEnricher enricher = new ContentEnricher();
+		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
 		    enricher.setRequestTimeout(null);
@@ -259,6 +266,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("'just a static string'"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
@@ -272,6 +280,7 @@ public class ContentEnricherTests {
 
 	    ContentEnricher enricher = new ContentEnricher();
 	    enricher.setReplyChannel(new QueueChannel());
+		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		try {
 		    enricher.afterPropertiesSet();
@@ -300,6 +309,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("child.name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("test");
@@ -329,6 +339,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
 		Target target = new Target("replace me");
@@ -358,6 +369,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
 		TargetUser target = new TargetUser();
@@ -390,6 +402,7 @@ public class ContentEnricherTests {
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 		enricher.afterPropertiesSet();
 
 		UncloneableTargetUser target = new UncloneableTargetUser();
@@ -411,6 +424,7 @@ public class ContentEnricherTests {
 	@Test
 	public void testLifeCycleMethodsWithoutRequestChannel() {
 		ContentEnricher enricher = new ContentEnricher();
+		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		enricher.afterPropertiesSet();
 
@@ -432,6 +446,7 @@ public class ContentEnricherTests {
 
 		ContentEnricher enricher = new ContentEnricher();
 		enricher.setRequestChannel(requestChannel);
+		enricher.setBeanFactory(mock(BeanFactory.class));
 
 		enricher.afterPropertiesSet();
 

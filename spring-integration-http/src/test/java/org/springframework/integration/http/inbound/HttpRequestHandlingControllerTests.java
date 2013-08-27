@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpStatus;
@@ -57,6 +59,7 @@ public class HttpRequestHandlingControllerTests {
 	public void sendOnly() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -80,6 +83,7 @@ public class HttpRequestHandlingControllerTests {
 	public void sendOnlyViewExpression() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("'baz'");
 		controller.setViewExpression(viewExpression);
@@ -111,6 +115,7 @@ public class HttpRequestHandlingControllerTests {
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -142,6 +147,7 @@ public class HttpRequestHandlingControllerTests {
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
@@ -171,6 +177,7 @@ public class HttpRequestHandlingControllerTests {
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
@@ -198,6 +205,7 @@ public class HttpRequestHandlingControllerTests {
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setReplyKey("myReply");
@@ -229,6 +237,7 @@ public class HttpRequestHandlingControllerTests {
 		};
 		requestChannel.subscribe(handler);
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setExtractReplyPayload(false);
@@ -259,6 +268,7 @@ public class HttpRequestHandlingControllerTests {
 			}
 		};
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
@@ -295,6 +305,7 @@ public class HttpRequestHandlingControllerTests {
 		};
 		requestChannel.subscribe(handler);
 		final HttpRequestHandlingController controller = new HttpRequestHandlingController(true);
+		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		final MockHttpServletRequest request = new MockHttpServletRequest();

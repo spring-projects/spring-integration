@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -30,19 +31,21 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Alex Peters
- * @author Mark Fisher 
+ * @author Mark Fisher
+ * @author Gary Russell
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	private ExpressionEvaluatingMessageGroupProcessor processor;
-	
+
 	@Mock
 	private MessageGroup group;
 
@@ -62,6 +65,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 	public void testProcessAndSendWithSizeExpressionEvaluated() throws Exception {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root.size()");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
 		Message<?> resultMessage = (Message<?>) result;
@@ -72,8 +76,9 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 	public void testProcessAndCheckHeaders() throws Exception {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
-		assertTrue(result instanceof Message<?>);
+		processor.setBeanFactory(mock(BeanFactory.class));		assertTrue(result instanceof Message<?>);
 		Message<?> resultMessage = (Message<?>) result;
 		assertEquals("bar", resultMessage.getHeaders().get("foo"));
 	}
@@ -82,6 +87,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 	public void testProcessAndSendWithProjectionExpressionEvaluated() throws Exception {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("![payload]");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
 		Message<?> resultMessage = (Message<?>) result;
@@ -99,6 +105,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 	public void testProcessAndSendWithFilterAndProjectionExpressionEvaluated() throws Exception {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("?[payload>2].![payload]");
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
 		Message<?> resultMessage = (Message<?>) result;
@@ -115,6 +122,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor(String.format("T(%s).sum(?[payload>2].![payload])",
 				getClass().getName()));
+		processor.setBeanFactory(mock(BeanFactory.class));
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
 		Message<?> resultMessage = (Message<?>) result;

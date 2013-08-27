@@ -18,12 +18,15 @@ package org.springframework.integration.endpoint;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
@@ -57,6 +60,7 @@ public class PseudoTransactionalMessageSourceTests {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+		syncProcessor.setBeanFactory(mock(BeanFactory.class));
 		PollableChannel queueChannel = new QueueChannel();
 		syncProcessor.setBeforeCommitExpression(new SpelExpressionParser().parseExpression("#bix"));
 		syncProcessor.setBeforeCommitChannel(queueChannel);
@@ -101,6 +105,7 @@ public class PseudoTransactionalMessageSourceTests {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 				new ExpressionEvaluatingTransactionSynchronizationProcessor();
+		syncProcessor.setBeanFactory(mock(BeanFactory.class));
 		PollableChannel queueChannel = new QueueChannel();
 		syncProcessor.setAfterRollbackChannel(queueChannel);
 		syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
@@ -142,6 +147,7 @@ public class PseudoTransactionalMessageSourceTests {
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor =
 						new ExpressionEvaluatingTransactionSynchronizationProcessor();
+				syncProcessor.setBeanFactory(mock(BeanFactory.class));
 				syncProcessor.setBeforeCommitExpression(new SpelExpressionParser().parseExpression("#bix"));
 				syncProcessor.setBeforeCommitChannel(queueChannel);
 				syncProcessor.setAfterCommitChannel(queueChannel);
@@ -187,6 +193,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 					SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 					ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+					syncProcessor.setBeanFactory(mock(BeanFactory.class));
 					syncProcessor.setAfterRollbackChannel(queueChannel);
 					syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
 
@@ -230,6 +237,7 @@ public class PseudoTransactionalMessageSourceTests {
 
 				SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 				ExpressionEvaluatingTransactionSynchronizationProcessor syncProcessor = new ExpressionEvaluatingTransactionSynchronizationProcessor();
+				syncProcessor.setBeanFactory(mock(BeanFactory.class));
 				syncProcessor.setAfterRollbackChannel(queueChannel);
 				syncProcessor.setAfterRollbackExpression(new SpelExpressionParser().parseExpression("#baz"));
 

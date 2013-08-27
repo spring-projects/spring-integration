@@ -17,6 +17,7 @@ package org.springframework.integration.jpa.support.parametersource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.jpa.support.JpaParameter;
 
 /**
@@ -34,7 +37,8 @@ import org.springframework.integration.jpa.support.JpaParameter;
  */
 public class ExpressionEvaluatingParameterSourceFactoryTests {
 
-	private ExpressionEvaluatingParameterSourceFactory factory = new ExpressionEvaluatingParameterSourceFactory();
+	private final ExpressionEvaluatingParameterSourceFactory factory =
+			new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 
 	@Test
 	public void testSetStaticParameters() {

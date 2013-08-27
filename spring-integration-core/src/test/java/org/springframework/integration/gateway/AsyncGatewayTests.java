@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@ package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -33,12 +35,13 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class AsyncGatewayTests {
 
 	// TODO: changed from 0 because of recurrent failure: is this right?
-	private long safety = 100;
+	private final long safety = 100;
 
 	@Test
 	public void futureWithMessageReturned() throws Exception {
@@ -48,6 +51,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<Message<?>> f = service.returnMessage("foo");
@@ -67,6 +71,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<String> f = service.returnString("foo");
@@ -87,6 +92,7 @@ public class AsyncGatewayTests {
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestEchoService service = (TestEchoService) proxyFactory.getObject();
 		Future<?> f = service.returnSomething("foo");

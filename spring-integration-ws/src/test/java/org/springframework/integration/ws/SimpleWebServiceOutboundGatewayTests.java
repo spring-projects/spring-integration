@@ -19,6 +19,7 @@ package org.springframework.integration.ws;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,10 +30,11 @@ import javax.xml.transform.TransformerException;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
-
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -81,6 +83,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 				soapActionFromCallback.set(soapMessage.getSoapAction());
 			}
 		});
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
 		String soapActionHeaderValue = "testAction";
 		String request = "<test>foo</test>";

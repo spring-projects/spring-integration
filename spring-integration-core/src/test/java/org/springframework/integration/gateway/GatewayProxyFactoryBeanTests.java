@@ -18,6 +18,7 @@ package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import java.util.Random;
@@ -28,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -49,6 +52,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class GatewayProxyFactoryBeanTests {
 
@@ -59,6 +63,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
@@ -100,6 +105,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		service.oneWay("test");
@@ -138,6 +144,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Integer result = service.requestReplyWithIntegers(123);
@@ -207,6 +214,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReplyWithMessageParameter(new GenericMessage<String>("foo"));
@@ -221,6 +229,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReplyWithPayloadAnnotation();
@@ -241,6 +250,8 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Message<?> result = service.requestReplyWithMessageReturnValue("foo");
@@ -269,6 +280,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		Object proxy = proxyFactory.getObject();
 		String expected = "gateway proxy for";
@@ -290,6 +302,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setDefaultRequestChannel(channel);
 		proxyFactory.setServiceInterface(TestExceptionThrowingInterface.class);
 		proxyFactory.setBeanName("testGateway");
+		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestExceptionThrowingInterface proxy = (TestExceptionThrowingInterface) proxyFactory.getObject();
 		proxy.throwCheckedException("test");

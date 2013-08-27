@@ -13,13 +13,15 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -35,6 +37,7 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Alex Peters
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class ExpressionEvaluatingCorrelationStrategyTests {
 
@@ -57,6 +60,8 @@ public class ExpressionEvaluatingCorrelationStrategyTests {
 		ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 		Expression expression = parser.parseExpression("payload.substring(0,1)");
 		strategy = new ExpressionEvaluatingCorrelationStrategy(expression);
+		strategy.setBeanFactory(mock(BeanFactory.class));
+		strategy.afterPropertiesSet();
 		Object correlationKey = strategy.getCorrelationKey(new GenericMessage<String>("bla"));
 		assertThat(correlationKey, is(instanceOf(String.class)));
 		assertThat((String) correlationKey, is("b"));

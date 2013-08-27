@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@ package org.springframework.integration.http.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.Map;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
@@ -36,6 +39,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 
@@ -63,6 +67,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setRequestURI("/fname/bill/lname/clinton");
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
 
@@ -93,6 +98,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setRequestURI("/fname/bill/lname/clinton");
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables.f"));
@@ -124,6 +130,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setRequestURI("/fname/bill/lname/clinton");
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables"));

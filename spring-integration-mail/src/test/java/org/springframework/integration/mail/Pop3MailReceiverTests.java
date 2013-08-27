@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 
-import javax.mail.Flags.Flag;
 import javax.mail.Flags;
+import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
@@ -34,10 +34,13 @@ import javax.mail.internet.MimeMessage;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class Pop3MailReceiverTests {
@@ -46,14 +49,15 @@ public class Pop3MailReceiverTests {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(true);
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -67,13 +71,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -89,14 +93,15 @@ public class Pop3MailReceiverTests {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(false);
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -105,13 +110,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -126,14 +131,15 @@ public class Pop3MailReceiverTests {
 	public void receiveAndDontSetDeleteWithUrl() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -142,13 +148,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;
@@ -163,14 +169,15 @@ public class Pop3MailReceiverTests {
 	public void receiveAndDontSetDeleteWithoutUrl() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -179,13 +186,13 @@ public class Pop3MailReceiverTests {
 				return null;
 			}
 		}).when(receiver).openFolder();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return messages;
 			}
 		}).when(receiver).searchForNewMessages();
-		
+
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				return null;

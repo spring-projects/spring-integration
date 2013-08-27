@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,12 @@ import javax.mail.search.SearchTerm;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class ImapMailSearchTermsTests {
@@ -45,13 +47,14 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadNoExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
-		
+		receiver.setBeanFactory(mock(BeanFactory.class));
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
@@ -66,14 +69,15 @@ public class ImapMailSearchTermsTests {
 	public void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
-		
+		receiver.setBeanFactory(mock(BeanFactory.class));
+
 		receiver.afterPropertiesSet();
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
@@ -90,19 +94,20 @@ public class ImapMailSearchTermsTests {
 		siFlags.add(AbstractMailReceiver.SI_USER_FLAG);
 		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(siFlags));
 	}
-	
+
 	@Test
 	public void validateSearchTermsWhenShouldNotMarkAsReadNoExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(false);
+		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
-		
+
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
-		
+
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();

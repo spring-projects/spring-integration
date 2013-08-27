@@ -19,8 +19,11 @@ package org.springframework.integration.gemfire.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
@@ -52,6 +55,7 @@ public class CacheListeningMessageProducerTests {
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setPayloadExpression("key + '=' + newValue");
 		producer.setOutputChannel(channel);
+		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
 		assertNull(channel.receive(0));
@@ -77,6 +81,7 @@ public class CacheListeningMessageProducerTests {
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setPayloadExpression("newValue");
 		producer.setOutputChannel(channel);
+		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
 		assertNull(channel.receive(0));
@@ -107,6 +112,7 @@ public class CacheListeningMessageProducerTests {
 		producer.setSupportedEventTypes(EventType.DESTROYED);
 		producer.setPayloadExpression("oldValue");
 		producer.setOutputChannel(channel);
+		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
 		assertNull(channel.receive(0));
@@ -135,6 +141,7 @@ public class CacheListeningMessageProducerTests {
 		producer.setSupportedEventTypes(EventType.INVALIDATED);
 		producer.setPayloadExpression("key + ' was ' + oldValue");
 		producer.setOutputChannel(channel);
+		producer.setBeanFactory(mock(BeanFactory.class));
 		producer.afterPropertiesSet();
 		producer.start();
 		assertNull(channel.receive(0));

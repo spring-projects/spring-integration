@@ -26,7 +26,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -35,6 +39,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
@@ -53,6 +59,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class FtpOutboundTests {
 
@@ -83,6 +90,7 @@ public class FtpOutboundTests {
 				return "handlerContent.test";
 			}
 		});
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		assertTrue(file.exists());
@@ -102,6 +110,7 @@ public class FtpOutboundTests {
 				return "handlerContent.test";
 			}
 		});
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<byte[]>("hello".getBytes()));
 		assertTrue(file.exists());
@@ -119,6 +128,7 @@ public class FtpOutboundTests {
 				return ((File)message.getPayload()).getName() + ".test";
 			}
 		});
+		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
 		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");

@@ -20,9 +20,10 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.jpa.support.JpaParameter;
@@ -38,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Gunnar Hillert
  * @author Amol Nayak
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -177,7 +179,7 @@ public class JpaExecutorTests {
 	private JpaExecutor getJpaExecutorForMessageAsParamSource(String query) {
 		JpaExecutor executor = new JpaExecutor(entityManager);
 		ExpressionEvaluatingParameterSourceFactory factory =
-				new ExpressionEvaluatingParameterSourceFactory();
+				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		factory.setParameters(
 				Collections.singletonList(new JpaParameter("firstName", null, "payload['firstName']")));
 		executor.setParameterSourceFactory(factory);
@@ -195,7 +197,7 @@ public class JpaExecutorTests {
 	private JpaExecutor getJpaExecutorForPayloadAsParamSource(String query) {
 		JpaExecutor executor = new JpaExecutor(entityManager);
 		ExpressionEvaluatingParameterSourceFactory factory =
-				new ExpressionEvaluatingParameterSourceFactory();
+				new ExpressionEvaluatingParameterSourceFactory(mock(BeanFactory.class));
 		factory.setParameters(
 				Collections.singletonList(new JpaParameter("firstName", null, "#this")));
 		executor.setParameterSourceFactory(factory);
