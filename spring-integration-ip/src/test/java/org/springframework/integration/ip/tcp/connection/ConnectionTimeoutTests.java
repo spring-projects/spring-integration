@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
@@ -121,8 +122,10 @@ public class ConnectionTimeoutTests {
 		client.registerListener(new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				reply.set(message);
-				replyLatch.countDown();
+				if (!(message instanceof ErrorMessage)) {
+					reply.set(message);
+					replyLatch.countDown();
+				}
 				return false;
 			}
 		});
@@ -157,7 +160,9 @@ public class ConnectionTimeoutTests {
 		client.registerListener(new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				reply.set(message);
+				if (!(message instanceof ErrorMessage)) {
+					reply.set(message);
+				}
 				return false;
 			}
 		});
@@ -195,7 +200,9 @@ public class ConnectionTimeoutTests {
 		client.registerListener(new TcpListener() {
 			@Override
 			public boolean onMessage(Message<?> message) {
-				reply.set(message);
+				if (!(message instanceof ErrorMessage)) {
+					reply.set(message);
+				}
 				return false;
 			}
 		});
