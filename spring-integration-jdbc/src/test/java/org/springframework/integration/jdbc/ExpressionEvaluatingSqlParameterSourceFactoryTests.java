@@ -17,38 +17,47 @@ package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 /**
  * @author Dave Syer
- * 
+ *
  */
 public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 
-	private ExpressionEvaluatingSqlParameterSourceFactory factory = new ExpressionEvaluatingSqlParameterSourceFactory();
+	private final ExpressionEvaluatingSqlParameterSourceFactory factory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
 	@Test
-	public void testSetStaticParameters() {
+	public void testSetStaticParameters() throws Exception {
 		factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(null);
 		assertTrue(source.hasValue("foo"));
 		assertEquals("bar", source.getValue("foo"));
 	}
 
 	@Test
-	public void testMapInput() {
+	public void testMapInput() throws Exception {
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertTrue(source.hasValue("foo"));
 		assertEquals("bar", source.getValue("foo"));
 	}
 
 	@Test
-	public void testListOfMapsInput() {
+	public void testListOfMapsInput() throws Exception {
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));
@@ -58,7 +67,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	}
 
 	@Test
-	public void testMapInputWithExpression() {
+	public void testMapInputWithExpression() throws Exception {
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		// This is an illegal parameter name in Spring JDBC so we'd never get this as input
 		assertTrue(source.hasValue("foo.toUpperCase()"));
@@ -66,25 +77,31 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	}
 
 	@Test
-	public void testMapInputWithMappedExpression() {
+	public void testMapInputWithMappedExpression() throws Exception {
 		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
 		assertTrue(source.hasValue("spam"));
 		assertEquals("BAR", source.getValue("spam"));
 	}
 
 	@Test
-	public void testMapInputWithMappedExpressionResolveStatic() {
+	public void testMapInputWithMappedExpressionResolveStatic() throws Exception {
 		factory.setParameterExpressions(Collections.singletonMap("spam", "#staticParameters['foo'].toUpperCase()"));
 		factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
 		assertTrue(source.hasValue("spam"));
 		assertEquals("BAR", source.getValue("spam"));
 	}
 
 	@Test
-	public void testListOfMapsInputWithExpression() {
+	public void testListOfMapsInputWithExpression() throws Exception {
 		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		factory.setBeanFactory(mock(BeanFactory.class));
+		factory.afterPropertiesSet();
 		@SuppressWarnings("unchecked")
 		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
 				Collections.singletonMap("foo", "bucket")));

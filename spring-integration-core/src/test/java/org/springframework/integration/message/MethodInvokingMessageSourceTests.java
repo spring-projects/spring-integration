@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@ package org.springframework.integration.message;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -33,6 +36,7 @@ import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MethodInvokingMessageSourceTests {
 
@@ -53,6 +57,7 @@ public class MethodInvokingMessageSourceTests {
 		headerExpressions.put("foo", new LiteralExpression("abc"));
 		headerExpressions.put("bar", new SpelExpressionParser().parseExpression("new Integer(123)"));
 		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
+		source.setBeanFactory(mock(BeanFactory.class));
 		source.setObject(new TestBean());
 		source.setMethodName("validMethod");
 		source.setHeaderExpressions(headerExpressions);

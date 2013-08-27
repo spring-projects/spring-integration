@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.NullChannel;
@@ -66,6 +68,8 @@ public class FileWritingMessageHandlerTests {
 			super.create();
 			outputDirectory = temp.newFolder("outputDirectory");
 			handler = new FileWritingMessageHandler(outputDirectory);
+			handler.setBeanFactory(mock(BeanFactory.class));
+			handler.afterPropertiesSet();
 			sourceFile = temp.newFile("sourceFile");
 			FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
 				new FileOutputStream(sourceFile, false));

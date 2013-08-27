@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -38,6 +40,7 @@ import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageSourceIntegrationTests {
@@ -58,6 +61,7 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests {
 		factoryBean.afterPropertiesSet();
 		Expression expression = factoryBean.getObject();
 		ExpressionEvaluatingMessageSource<Object> source = new ExpressionEvaluatingMessageSource<Object>(expression, Object.class);
+		source.setBeanFactory(mock(BeanFactory.class));
 		source.setHeaderExpressions(headerExpressions);
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);

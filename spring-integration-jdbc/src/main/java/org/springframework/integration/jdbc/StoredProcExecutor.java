@@ -171,9 +171,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 				ExpressionEvaluatingSqlParameterSourceFactory expressionSourceFactory =
 											  new ExpressionEvaluatingSqlParameterSourceFactory();
 
+				expressionSourceFactory.setBeanFactory(this.beanFactory);
 				expressionSourceFactory.setStaticParameters(ProcedureParameter.convertStaticParameters(procedureParameters));
 				expressionSourceFactory.setParameterExpressions(ProcedureParameter.convertExpressions(procedureParameters));
-				expressionSourceFactory.setBeanFactory(this.beanFactory);
 
 				this.sqlParameterSourceFactory = expressionSourceFactory;
 

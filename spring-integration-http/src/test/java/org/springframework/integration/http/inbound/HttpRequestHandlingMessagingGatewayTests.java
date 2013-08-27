@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.http.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,6 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -59,6 +62,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 	public void getRequestGeneratesMapPayload() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestChannel(requestChannel);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
@@ -77,6 +81,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 	public void stringExpectedWithoutReply() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -105,6 +110,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 			}
 		});
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -131,6 +137,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 			}
 		});
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -155,6 +162,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 			}
 		};
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestChannel(requestChannel);
 		gateway.setConvertExceptions(true);
 		gateway.setMessageConverters(Arrays.<HttpMessageConverter<?>>asList(new TestHttpMessageConverter()));
@@ -171,6 +179,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 	public void multiValueParameterMap() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestChannel(channel);
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/test");
 		request.setParameter("foo", "123");
@@ -197,6 +206,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 	public void serializableRequestBody() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestPayloadType(TestBean.class);
 		gateway.setRequestChannel(channel);
 
@@ -251,6 +261,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		messageConverters.add(messageConverter);
 
 		final HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setMessageConverters(messageConverters);
 		gateway.setRequestChannel(requestChannel);
 
@@ -272,7 +283,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 
 	private class ContentTypeCheckingMockHttpServletResponse extends MockHttpServletResponse {
 
-		private List<String> contentTypeList = new ArrayList<String>();
+		private final List<String> contentTypeList = new ArrayList<String>();
 
 		@Override
 		public void addHeader(String name, String value) {

@@ -19,12 +19,12 @@ package org.springframework.integration.file;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -38,6 +38,7 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)

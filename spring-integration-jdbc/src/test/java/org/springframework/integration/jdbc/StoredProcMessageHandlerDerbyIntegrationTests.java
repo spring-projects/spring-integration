@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,6 +27,8 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
@@ -38,6 +41,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class StoredProcMessageHandlerDerbyIntegrationTests {
 
@@ -66,6 +70,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		StoredProcMessageHandler messageHandler = new StoredProcMessageHandler(storedProcExecutor);
 
 		storedProcExecutor.setStoredProcedureName("CREATE_USER");
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
@@ -92,6 +97,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		final Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
@@ -119,6 +125,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		Expression expression = efb.getObject();
 
 		storedProcExecutor.setStoredProcedureNameExpression(expression);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
@@ -149,6 +156,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		procedureParameters.add(new ProcedureParameter("email",    null, "payload.email.toUpperCase()"));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();
@@ -180,6 +188,7 @@ public class StoredProcMessageHandlerDerbyIntegrationTests {
 		procedureParameters.add(new ProcedureParameter("email",    "static_email"   , null));
 
 		storedProcExecutor.setProcedureParameters(procedureParameters);
+		storedProcExecutor.setBeanFactory(mock(BeanFactory.class));
 
 		storedProcExecutor.afterPropertiesSet();
 		messageHandler.afterPropertiesSet();

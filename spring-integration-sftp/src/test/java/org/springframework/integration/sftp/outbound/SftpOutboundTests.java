@@ -16,9 +16,9 @@
 
 package org.springframework.integration.sftp.outbound;
 
-import static org.mockito.Matchers.anyString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,6 +35,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
@@ -74,8 +76,11 @@ public class SftpOutboundTests {
 		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
+		fGenerator.setBeanFactory(mock(BeanFactory.class));
 		fGenerator.setExpression("payload + '.test'");
 		handler.setFileNameGenerator(fGenerator);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 
 		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp", new File("."));
 		srcFile.deleteOnExit();
@@ -96,9 +101,12 @@ public class SftpOutboundTests {
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
+		fGenerator.setBeanFactory(mock(BeanFactory.class));
 		fGenerator.setExpression("'foo.txt'");
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<String>("hello"));
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
@@ -113,9 +121,12 @@ public class SftpOutboundTests {
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
+		fGenerator.setBeanFactory(mock(BeanFactory.class));
 		fGenerator.setExpression("'foo.txt'");
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<byte[]>("hello".getBytes()));
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
@@ -173,6 +184,8 @@ public class SftpOutboundTests {
 		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		handler.setAutoCreateDirectory(true);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("/foo/bar/baz"));
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {

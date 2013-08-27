@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -45,11 +46,15 @@ public abstract class ExpressionUtils {
 	 * @param conversionService the conversion service.
 	 * @return the evaluation context.
 	 */
-	private static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService) {
+	private static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService,
+			BeanFactory beanFactory) {
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
 		if (conversionService != null) {
 			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
+		if (beanFactory != null) {
+			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
 		return evaluationContext;
 	}
@@ -85,7 +90,7 @@ public abstract class ExpressionUtils {
 			if (beanFactory != null) {
 				conversionService = IntegrationContextUtils.getConversionService(beanFactory);
 			}
-			evaluationContext = createStandardEvaluationContext(conversionService);
+			evaluationContext = createStandardEvaluationContext(conversionService, beanFactory);
 		}
 		return evaluationContext;
 	}
