@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -31,14 +31,15 @@ import org.springframework.util.StringUtils;
 
 /**
  * Factory bean for creating a Message Router.
- * 
+ *
  * @author Mark Fisher
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @author Gary Russell
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
-	
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile Map<String, String> channelMappings;
@@ -52,7 +53,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	private volatile Boolean applySequence;
 
 	private volatile Boolean ignoreSendFailures;
-	
+
 	private volatile ChannelResolver channelResolver;
 
 
@@ -79,7 +80,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	public void setIgnoreSendFailures(Boolean ignoreSendFailures) {
 		this.ignoreSendFailures = ignoreSendFailures;
 	}
-	
+
 	public void setChannelMappings(Map<String, String> channelMappings) {
 		this.channelMappings = channelMappings;
 	}
@@ -89,6 +90,10 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
+			MessageHandler directHandler = createDirectHandlerIfPossible(targetObject, targetMethodName);
+			if (directHandler != null) {
+				return directHandler;
+			}
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
 			this.configureRouter(router);
 		}
@@ -103,13 +108,22 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return router;
 	}
 
+	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
+		MessageHandler handler = null;
+		if (targetObject instanceof MessageHandler && this.canBeUsedDirect(targetObject)
+				&& this.isHandleRequestMethod(targetMethodName)) {
+			handler = (MessageHandler) targetObject;
+		}
+		return handler;
+	}
+
 	@Override
 	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
 	private AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
-		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName)) 
+		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
 		return router;
@@ -141,10 +155,21 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		if (this.resolutionRequired != null) {
 			router.setResolutionRequired(this.resolutionRequired);
 		}
+		else {
+			router.setResolutionRequired(true);
+		}
 		if (this.channelResolver != null) {
 			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
 			router.setChannelResolver(this.channelResolver);
 		}
+	}
+
+	@Override
+	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+		return !(abstractReplyProducingMessageHandler instanceof AbstractMessageRouter)
+				&& this.channelMappings == null && this.defaultOutputChannel == null
+				&& this.timeout == null && this.resolutionRequired == null && this.applySequence == null
+				&& this.ignoreSendFailures == null && this.channelResolver == null;
 	}
 
 }

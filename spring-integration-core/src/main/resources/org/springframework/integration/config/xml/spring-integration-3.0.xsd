@@ -2480,7 +2480,13 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false" />
+				<xsd:attribute name="throw-exception-on-rejection" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+						Throw an exception if the filter rejects the message (default false).
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -3105,7 +3111,7 @@ is provided, the return value is expected to match a channel name exactly.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="ignore-send-failures" default="false">
+		<xsd:attribute name="ignore-send-failures">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 					If set to "true", failures to send to a message channel will
@@ -3124,7 +3130,7 @@ is provided, the return value is expected to match a channel name exactly.
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
             </xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="apply-sequence" default="false">
+		<xsd:attribute name="apply-sequence">
 			<xsd:annotation>
 				<xsd:documentation>
 					Specify whether sequence number and size headers should be added to each
@@ -3135,7 +3141,7 @@ is provided, the return value is expected to match a channel name exactly.
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
             </xsd:simpleType>
 		</xsd:attribute>
-        <xsd:attribute name="resolution-required" default="true">
+        <xsd:attribute name="resolution-required">
             <xsd:annotation>
                 <xsd:documentation>
                     Specify whether channel names must always be successfully resolved

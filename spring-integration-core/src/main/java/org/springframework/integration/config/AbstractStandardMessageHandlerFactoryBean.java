@@ -1,17 +1,20 @@
 /*
- * Copyright 2002-2010 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
 
 package org.springframework.integration.config;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -20,26 +23,32 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Base class for FactoryBeans that create MessageHandler instances.
- * 
+ *
  * @author Mark Fisher
  * @author Alexander Peters
+ * @author Gary Russell
  */
-abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler>{
+abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true,
 			true));
+
+	private static final Set<MessageHandler> referencedReplyProducers = new HashSet<MessageHandler>();
 
 	private volatile Object targetObject;
 
 	private volatile String targetMethodName;
 
 	private volatile Expression expression;
+
+	private volatile String beanName;
 
 	public void setTargetObject(Object targetObject) {
 		this.targetObject = targetObject;
@@ -57,6 +66,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		this.expression = expression;
 	}
 
+	@Override
 	protected MessageHandler createHandler() {
 		MessageHandler handler;
 		if (this.targetObject == null) {
@@ -66,17 +76,52 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		if (this.targetObject != null) {
 			Assert.state(this.expression == null,
 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
+			boolean targetIsDirectReplyProducingHandler = this.extractTypeIfPossible(targetObject,
+										AbstractReplyProducingMessageHandler.class) != null
+							&& this.canBeUsedDirect(targetObject)
+							&& this.isHandleRequestMethod(this.targetMethodName);
 			if (this.targetObject instanceof MessageProcessor<?>) {
 				handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
-			} else {
+			}
+			else if (targetIsDirectReplyProducingHandler) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Wiring handler (" + beanName + ") directly into endpoint");
+				}
+				handler = (MessageHandler) targetObject;
+				this.checkReuse((AbstractReplyProducingMessageHandler) handler);
+				this.postProcessReplyProducer((AbstractReplyProducingMessageHandler) handler);
+			}
+			else {
 				handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);
 			}
-		} else if (this.expression != null) {
+		}
+		else if (this.expression != null) {
 			handler = this.createExpressionEvaluatingHandler(this.expression);
-		} else {
+		}
+		else {
 			handler = this.createDefaultHandler();
 		}
 		return handler;
+	}
+
+	protected void checkForIllegalTarget(Object targetObject, String targetMethodName) {
+		if (targetObject instanceof AbstractReplyProducingMessageHandler
+				&& this.isHandleRequestMethod(targetMethodName)) {
+			/*
+			 * If we allow an ARPMH to be the target of another ARPMH, the reply would
+			 * be attempted to be sent by the inner (no output channel) and a reply would
+			 * never be received by the outer (fails if replyRequired).
+			 */
+			throw new IllegalArgumentException("AbstractReplyProducingMessageHandler.handleMessage() "
+					+ "is not allowed for a MethodInvokingHandler");
+		}
+	}
+
+	private void checkReuse(AbstractReplyProducingMessageHandler replyHandler) {
+		Assert.isTrue(!referencedReplyProducers.contains(targetObject),
+				"An AbstractReplyProducingMessageHandler may only be referenced once (" +
+				replyHandler.getComponentName() + ") - use scope=\"prototype\"");
+		referencedReplyProducers.add(replyHandler);
 	}
 
 	/**
@@ -116,6 +161,18 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 			}
 		}
 		return null;
+	}
+
+	protected boolean isHandleRequestMethod(String targetMethodName) {
+		return (!StringUtils.hasText(targetMethodName)
+				|| "handleMessage".equals(targetMethodName));
+	}
+
+	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+		return false;
+	}
+
+	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
 	}
 
 }

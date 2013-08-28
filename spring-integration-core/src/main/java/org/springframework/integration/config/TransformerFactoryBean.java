@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
@@ -27,8 +28,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Factory bean for creating a Message Transformer.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -45,11 +47,14 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 		if (targetObject instanceof Transformer) {
 			transformer = (Transformer) targetObject;
 		}
-		else if (StringUtils.hasText(targetMethodName)) {
-			transformer = new MethodInvokingTransformer(targetObject, targetMethodName);
-		}
 		else {
-			transformer = new MethodInvokingTransformer(targetObject);
+			this.checkForIllegalTarget(targetObject, targetMethodName);
+			if (StringUtils.hasText(targetMethodName)) {
+				transformer = new MethodInvokingTransformer(targetObject, targetMethodName);
+			}
+			else {
+				transformer = new MethodInvokingTransformer(targetObject);
+			}
 		}
 		return this.createHandler(transformer);
 	}
@@ -62,10 +67,21 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 
 	private MessageTransformingHandler createHandler(Transformer transformer) {
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		this.postProcessReplyProducer(handler);
+		return handler;
+	}
+
+	@Override
+	protected void postProcessReplyProducer(AbstractReplyProducingMessageHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout.longValue());
 		}
-		return handler;
 	}
+
+	@Override
+	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+		return true; // Any ARPMH can be a transformer
+	}
+
 
 }
