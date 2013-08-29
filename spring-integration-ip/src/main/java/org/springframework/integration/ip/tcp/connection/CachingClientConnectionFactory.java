@@ -22,6 +22,7 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.SimplePool;
 
@@ -317,7 +318,10 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 		super.registerListener(listener);
 		targetConnectionFactory.registerListener(new TcpListener() {
 			public boolean onMessage(Message<?> message) {
-				throw new UnsupportedOperationException("This should never be called");
+				if (!(message instanceof ErrorMessage)) {
+					throw new UnsupportedOperationException("This should never be called");
+				}
+				return false;
 			}
 		});
 	}

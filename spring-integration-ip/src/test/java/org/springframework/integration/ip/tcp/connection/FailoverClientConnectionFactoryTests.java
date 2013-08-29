@@ -39,6 +39,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
@@ -296,6 +299,16 @@ public class FailoverClientConnectionFactoryTests {
 		client2.setTaskExecutor(exec);
 		server1.setTaskExecutor(exec);
 		server2.setTaskExecutor(exec);
+		ApplicationEventPublisher pub = new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+			}
+		};
+		client1.setApplicationEventPublisher(pub);
+		client2.setApplicationEventPublisher(pub);
+		server1.setApplicationEventPublisher(pub);
+		server2.setApplicationEventPublisher(pub);
 		TcpInboundGateway gateway1 = new TcpInboundGateway();
 		gateway1.setConnectionFactory(server1);
 		SubscribableChannel channel = new DirectChannel();

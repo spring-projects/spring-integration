@@ -19,11 +19,13 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -81,7 +83,10 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		for (AbstractClientConnectionFactory factory : this.factories) {
 			factory.registerListener(new TcpListener() {
 				public boolean onMessage(Message<?> message) {
-					throw new UnsupportedOperationException("This should never be called");
+					if (!(message instanceof ErrorMessage)) {
+						throw new UnsupportedOperationException("This should never be called");
+					}
+					return false;
 				}
 			});
 		}
@@ -98,10 +103,12 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 	protected TcpConnectionSupport obtainConnection() throws Exception {
 		TcpConnectionSupport connection = this.getTheConnection();
 		if (connection != null && connection.isOpen()) {
+			((FailoverTcpConnection) connection).incrementEpoch();
 			return connection;
 		}
 		FailoverTcpConnection failoverTcpConnection = new FailoverTcpConnection(this.factories);
 		failoverTcpConnection.registerListener(this.getListener());
+		failoverTcpConnection.incrementEpoch();
 		return failoverTcpConnection;
 	}
 
@@ -162,11 +169,17 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		private volatile boolean open = true;
 
+		private final AtomicLong epoch = new AtomicLong();
+
 		public FailoverTcpConnection(List<AbstractClientConnectionFactory> factories) throws Exception {
 			this.factories = factories;
 			this.factoryIterator = factories.iterator();
 			findAConnection();
 			this.connectionId = UUID.randomUUID().toString();
+		}
+
+		void incrementEpoch() {
+			this.epoch.incrementAndGet();
 		}
 
 		/**
@@ -288,7 +301,7 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 
 		@Override
 		public String getConnectionId() {
-			return this.connectionId;
+			return this.connectionId + ":" + epoch;
 		}
 
 		@Override
@@ -331,11 +344,6 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 			this.delegate.setSerializer(serializer);
 		}
 
-		@Override
-		public long incrementAndGetConnectionSequence() {
-			return this.delegate.incrementAndGetConnectionSequence();
-		}
-
 		/**
 		 * We have to intercept the message to replace the connectionId header with
 		 * ours so the listener can correlate a response with a request. We supply
@@ -343,13 +351,21 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 		 * purposes.
 		 */
 		public boolean onMessage(Message<?> message) {
-			MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message)
-					.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
-			if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
-				messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
-						message.getHeaders().get(IpHeaders.CONNECTION_ID));
+			if (this.delegate.getConnectionId().equals(message.getHeaders().get(IpHeaders.CONNECTION_ID))) {
+				MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message)
+						.setHeader(IpHeaders.CONNECTION_ID, this.getConnectionId());
+				if (message.getHeaders().get(IpHeaders.ACTUAL_CONNECTION_ID) == null) {
+					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
+							message.getHeaders().get(IpHeaders.CONNECTION_ID));
+				}
+				return this.getListener().onMessage(messageBuilder.build());
 			}
-			return this.getListener().onMessage(messageBuilder.build());
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Message from defunct connection ignored " + message);
+				}
+				return false;
+			}
 		}
 
 	}

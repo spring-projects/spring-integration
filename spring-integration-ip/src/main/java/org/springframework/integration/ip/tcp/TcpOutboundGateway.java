@@ -33,7 +33,6 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
-import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
@@ -138,10 +137,10 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			return replyMessage;
 		}
 		catch (Exception e) {
+			logger.error("Tcp Gateway exception", e);
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
-			logger.error("Tcp Gateway exception", e);
 			throw new MessagingException("Failed to send or receive", e);
 		}
 		finally {
@@ -162,6 +161,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		if (connectionId == null) {
 			logger.error("Cannot correlate response - no connection id");
 			return false;
+		}
+		if (logger.isTraceEnabled()) {
+			logger.trace("onMessage: " + connectionId + "(" + message + ")");
 		}
 		AsyncReply reply = pendingReplies.get(connectionId);
 		if (reply == null) {
@@ -282,7 +284,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
-			boolean waitForMessageAfterError = connectionFactory instanceof TcpNioClientConnectionFactory;
+			boolean waitForMessageAfterError = true;
 			while (reply instanceof ErrorMessage) {
 				if (waitForMessageAfterError) {
 					/*

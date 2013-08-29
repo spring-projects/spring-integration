@@ -382,8 +382,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			if (this.executionControl.incrementAndGet() <= 1) {
 				// only execute run() if we don't already have one running
 				this.executionControl.set(1);
+				if (logger.isDebugEnabled()) {
+					logger.debug(this.getConnectionId() + " Running an assembler");
+				}
 				this.taskExecutor.execute(this);
-				logger.debug("Running an assembler");
 			} else {
 				this.executionControl.decrementAndGet();
 			}
