@@ -113,7 +113,7 @@
       <programlisting language="xml"><![CDATA[<int-mail:inbound-channel-adapter id="imapAdapter"
       store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
       java-mail-properties="javaMailProperties"
-      channel="recieveChannel"
+      channel="receiveChannel"
       should-delete-messages="true"
       should-mark-messages-as-read="true"
       auto-startup="true">
@@ -124,7 +124,7 @@
       send a Message to the specified channel as soon as it receives the notification that new mail is available:
       <programlisting language="xml"><![CDATA[<int-mail:imap-idle-channel-adapter id="customAdapter"
       store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
-      channel="recieveChannel"
+      channel="receiveChannel"
       auto-startup="true"
       should-delete-messages="false"
       should-mark-messages-as-read="true"
