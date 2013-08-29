@@ -17,6 +17,7 @@
 package org.springframework.integration.json;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Map;
 
 import org.springframework.expression.AccessException;
@@ -139,9 +140,9 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		else if (raw instanceof Double) {
 			return factory.numberNode((Double) raw);
 		}
-		// else if (raw instanceof BigInteger) {
-		// return factory.numberNode((BigInteger) raw);
-		// }
+		else if (raw instanceof BigInteger) {
+			return factory.numberNode((BigInteger) raw);
+		}
 		else if (raw instanceof BigDecimal) {
 			return factory.numberNode((BigDecimal) raw);
 		}
