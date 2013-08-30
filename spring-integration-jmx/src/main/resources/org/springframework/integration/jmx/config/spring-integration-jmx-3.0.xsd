@@ -32,6 +32,25 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="tree-polling-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an inbound Channel Adapter that polls for JMX MBeans.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="treeType">
+					<xsd:sequence minOccurs="0" maxOccurs="1">
+						<xsd:element ref="integration:poller" />
+					</xsd:sequence>
+					<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="operation-invoking-outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -180,6 +199,21 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="treeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines inbound operation invoking type
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="mbeanServerIdentifyerType">
+				<xsd:attribute name="channel" type="xsd:string" />
+				<xsd:attribute name="query-name" type="xsd:string" use="optional" />
+				<xsd:attribute name="query-expression" type="xsd:string" use="optional" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:complexType name="adapterType">
 		<xsd:annotation>
