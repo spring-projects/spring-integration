@@ -137,6 +137,39 @@
 </int-jmx:attribute-polling-channel-adapter>]]></programlisting>
 	</section>
 
+	<section id="tree-polling-channel-adapter">
+		<title>Tree Polling Channel Adapter</title>
+		<para>
+			The <emphasis>Tree Polling Channel Adapter</emphasis> queries the JMX MBean tree and 
+			sends a message with a payload that is the graph of objects that matches the query. By 
+			default the MBeans are mapped to primitives and simple Objects like Map, List and arrays - 
+			permitting simple transformation, for example, to JSON. An MBeanServer reference is also 
+			required, but it will automatically check for a bean named <emphasis>mbeanServer</emphasis> 
+			by default, just like the <emphasis>Notification-listening Channel Adapter</emphasis> 
+			described above. A basic configuration would be:
+		</para>
+		<programlisting language="xml"><![CDATA[<int-jmx:tree-polling-channel-adapter id="adapter"
+    channel="channel"
+    query-name="example.domain:type=*">
+        <int:poller max-messages-per-poll="1" fixed-rate="5000"/>
+</int-jmx:tree-polling-channel-adapter>]]></programlisting>
+		<para>
+			This will include all attributes on the MBeans selected. You can filter the attributes by
+			providing  an <interfacename>MBeanObjectConverter</interfacename> that
+			has an appropriate filter configured. The converter can be provided as a reference to
+			a bean definition using the <code>converter</code> attribute, or as an
+			inner &lt;bean/&gt; definition. A <classname>DefaultMBeanObjectConverter</classname> is
+			provided which can take a <interfacename>MBeanAttributeFilter</interfacename> in
+			its constructor argument.
+		</para>
+		<para>
+			Two standard filters are provided; the <classname>NamedFieldsMBeanAttributeFilter</classname>
+			allows you to specify a list of attributes to include and the
+			<classname>NotNamedFieldsMBeanAttributeFilter</classname> allows you to specify a list
+			of attributes to exclude. You can also implement your own filter
+		</para>
+	</section>
+
 	<section id="jmx-operation-invoking-channel-adapter">
 		<title>Operation Invoking Channel Adapter</title>
 

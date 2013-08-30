@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * Namespace handler for Spring Integration's <em>jmx</em> namespace.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Dave Syer
+ * @author Stuart Williams
  * @since 2.0
  */
 public class JmxNamespaceHandler extends AbstractIntegrationNamespaceHandler {
@@ -32,6 +33,7 @@ public class JmxNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("operation-invoking-channel-adapter", new OperationInvokingChannelAdapterParser());
 		this.registerBeanDefinitionParser("operation-invoking-outbound-gateway", new OperationInvokingOutboundGatewayParser());
 		this.registerBeanDefinitionParser("attribute-polling-channel-adapter", new AttributePollingChannelAdapterParser());
+		this.registerBeanDefinitionParser("tree-polling-channel-adapter", new MBeanTreePollingChannelAdapterParser());
 		this.registerBeanDefinitionParser("notification-listening-channel-adapter", new NotificationListeningChannelAdapterParser());
 		this.registerBeanDefinitionParser("notification-publishing-channel-adapter", new NotificationPublishingChannelAdapterParser());
 		this.registerBeanDefinitionParser("mbean-export", new MBeanExporterParser());
