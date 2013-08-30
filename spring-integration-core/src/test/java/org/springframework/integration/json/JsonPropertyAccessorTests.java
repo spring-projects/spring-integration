@@ -17,7 +17,6 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -90,40 +89,8 @@ public class JsonPropertyAccessorTests {
 		assertEquals(5, actual.asInt());
 	}
 
-	@Test
-	public void testWriteInHash() throws Exception {
-		JsonNode json = mapper.readTree("{\"foo\": 4}");
-
-		assign(json, "bar", 42L);
-		assertTrue(json.get("bar").isLong());
-		assertEquals(42L, json.get("bar").longValue());
-
-		assign(json, "foo", "fizz");
-		assertEquals("fizz", json.get("foo").asText());
-	}
-
-	@Test
-	public void testWriteInArray() throws Exception {
-		JsonNode json = mapper.readTree("[4, 5, 6]");
-
-		assign(json, "['1']", 42);
-		assertEquals(42, json.get(1).asInt());
-	}
-
-	@Test
-	public void testWriteNested() throws Exception {
-		JsonNode json = mapper.readTree("{\"foo\": 42}");
-		Integer[] value = new Integer[] { 3, 4, 5 };
-
-		assign(json, "foo", value);
-		assertEquals(5, json.get("foo").get(2).asInt());
-	}
-
 	private <T> T evaluate(Object target, String expression, Class<T> expectedType) {
 		return parser.parseExpression(expression).getValue(context, target, expectedType);
 	}
 
-	private void assign(Object target, String expression, Object value) {
-		parser.parseExpression(expression).setValue(context, target, value);
-	}
 }

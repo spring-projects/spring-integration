@@ -16,22 +16,17 @@
 
 package org.springframework.integration.json;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Map;
-
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * A SpEL {@link PropertyAccessor} that knows how to read and write on Jackson JSON objects.
+ * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
  * 
  * @author Eric Bottard
  */
@@ -80,93 +75,12 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public boolean canWrite(EvaluationContext context, Object target, String name) throws AccessException {
-		if (target instanceof ArrayNode) {
-			// TODO: consider array auto-expansion?
-			ArrayNode new_name = (ArrayNode) target;
-			Integer index = maybeIndex(name);
-			return new_name.has(index);
-		}
-		else if (target instanceof ObjectNode) {
-			return true;
-		}
-		else {
-			throw new AssertionError("Can't happen");
-		}
+		return false;
 	}
 
 	@Override
 	public void write(EvaluationContext context, Object target, String name, Object newValue) throws AccessException {
-		ContainerNode<?> container = (ContainerNode<?>) target;
-		JsonNode wrapped = wrap(newValue, container);
-
-		if (target instanceof ArrayNode) {
-			ArrayNode array = (ArrayNode) target;
-			array.set(Integer.parseInt(name), wrapped);
-		}
-		else if (target instanceof ObjectNode) {
-			ObjectNode hash = (ObjectNode) target;
-			hash.set(name, wrapped);
-		}
-		else {
-			throw new AccessException(String.format("Can't set property '%s' on object '%s'", name, target));
-		}
+		throw new UnsupportedOperationException("Write is not supported");
 	}
 
-	private JsonNode wrap(Object raw, ContainerNode<?> factory) {
-		if (raw instanceof JsonNode) {
-			return (JsonNode) raw;
-		}
-		else if (raw instanceof String) {
-			return factory.textNode((String) raw);
-		}
-		else if (raw instanceof Byte) {
-			return factory.numberNode((Byte) raw);
-		}
-		else if (raw instanceof Short) {
-			return factory.numberNode((Short) raw);
-		}
-		else if (raw instanceof Character) {
-			return factory.textNode(raw.toString());
-		}
-		else if (raw instanceof Integer) {
-			return factory.numberNode((Integer) raw);
-		}
-		else if (raw instanceof Long) {
-			return factory.numberNode((Long) raw);
-		}
-		else if (raw instanceof Float) {
-			return factory.numberNode((Float) raw);
-		}
-		else if (raw instanceof Double) {
-			return factory.numberNode((Double) raw);
-		}
-		else if (raw instanceof BigInteger) {
-			return factory.numberNode((BigInteger) raw);
-		}
-		else if (raw instanceof BigDecimal) {
-			return factory.numberNode((BigDecimal) raw);
-		}
-		else if (raw == null) {
-			return factory.nullNode();
-		}
-		else if (raw instanceof Object[]) {
-			Object[] array = (Object[]) raw;
-			ArrayNode result = factory.arrayNode();
-			for (Object o : array) {
-				result.add(wrap(o, factory));
-			}
-			return result;
-		}
-		else if (raw instanceof Map) {
-			@SuppressWarnings("unchecked")
-			Map<String, ?> map = (Map<String, ?>) raw;
-			ObjectNode result = factory.objectNode();
-			for (String key : map.keySet()) {
-				result.set(key, wrap(map.get(key), factory));
-			}
-			return result;
-		}
-		else
-			throw new IllegalArgumentException();
-	}
 }
