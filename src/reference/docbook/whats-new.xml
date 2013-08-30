@@ -213,7 +213,6 @@
 				For more information see <xref linkend="chain"/>.
 			</para>
 		</section>
-<<<<<<< HEAD
 		<section id="3.0-jms-mdca-te">
 			<title>JMS Message Driven Channel Adapter</title>
 			<para>
