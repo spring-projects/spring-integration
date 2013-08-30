@@ -16,11 +16,16 @@
 
 package org.springframework.integration.json;
 
+import java.io.IOException;
+
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -35,7 +40,10 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	/**
 	 * The kind of types this can work with.
 	 */
-	private static final Class<?>[] SUPPORTED_CLASSES = new Class[] { ObjectNode.class, ArrayNode.class };
+	private static final Class<?>[] SUPPORTED_CLASSES = new Class[] { String.class, ObjectNode.class, ArrayNode.class };
+
+	// Note: ObjectMapper is thread-safe
+	private ObjectMapper objectMapper;
 
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {
@@ -44,9 +52,37 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
-		ContainerNode<?> container = (ContainerNode<?>) target;
+		ContainerNode<?> container = asJson(target);
 		Integer index = maybeIndex(name);
 		return (index != null && container.has(index) || container.has(name));
+	}
+
+	private ContainerNode<?> asJson(Object target) throws AccessException {
+		if (target instanceof ContainerNode) {
+			return (ContainerNode<?>) target;
+		}
+		else if (target instanceof String) {
+			try {
+				objectMapper = new ObjectMapper();
+				JsonNode json = objectMapper.readTree((String) target);
+				if (json instanceof ContainerNode) {
+					return (ContainerNode<?>) json;
+				}
+				else {
+					throw new AccessException("Can not act on json that is not a ContainerNode: "
+							+ json.getClass().getSimpleName());
+				}
+			}
+			catch (JsonProcessingException e) {
+				throw new AccessException("Exception while trying to deserialize String", e);
+			}
+			catch (IOException e) {
+				throw new AccessException("Exception while trying to deserialize String", e);
+			}
+		}
+		else {
+			throw new IllegalStateException("Can't happen. Check SUPPORTED_CLASSES");
+		}
 	}
 
 	/**
@@ -63,7 +99,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
-		ContainerNode<?> container = (ContainerNode<?>) target;
+		ContainerNode<?> container = asJson(target);
 		Integer index = maybeIndex(name);
 		if (index != null && container.has(index)) {
 			return new TypedValue(container.get(index));
@@ -81,6 +117,10 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	@Override
 	public void write(EvaluationContext context, Object target, String name, Object newValue) throws AccessException {
 		throw new UnsupportedOperationException("Write is not supported");
+	}
+
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
 	}
 
 }

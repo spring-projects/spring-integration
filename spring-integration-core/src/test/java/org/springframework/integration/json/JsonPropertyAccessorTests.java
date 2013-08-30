@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.expression.AccessException;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -87,6 +88,25 @@ public class JsonPropertyAccessorTests {
 		Object json = mapper.readTree("{\"foo\": {\"bar\": 4, \"fizz\": 5} }");
 		JsonNode actual = evaluate(json, "foo.fizz", JsonNode.class);
 		assertEquals(5, actual.asInt());
+	}
+
+	@Test
+	public void testImplicitStringConversion() throws Exception {
+		String json = "{\"foo\": {\"bar\": 4, \"fizz\": 5} }";
+		JsonNode actual = evaluate(json, "foo.fizz", JsonNode.class);
+		assertEquals(5, actual.asInt());
+	}
+
+	@Test(expected = AccessException.class)
+	public void testUnsupportedString() throws Exception {
+		String xml = "<what>?</what>";
+		evaluate(xml, "what", Object.class);
+	}
+
+	@Test(expected = SpelEvaluationException.class)
+	public void testUnsupportedJson() throws Exception {
+		String json = "\"literal\"";
+		evaluate(json, "foo", Object.class);
 	}
 
 	private <T> T evaluate(Object target, String expression, Class<T> expectedType) {
