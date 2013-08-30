@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 /**
  * Base class for Message Splitter implementations that delegate to a
  * {@link MessageProcessor} instance.
- * 
+ *
  * @author Mark Fisher
  * @since 2.0
  */
@@ -43,8 +43,7 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 	}
 
 	@Override
-	public void onInit() {
-		super.onInit();
+	public void doInit() {
 		ConversionService conversionService = this.getConversionService();
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);

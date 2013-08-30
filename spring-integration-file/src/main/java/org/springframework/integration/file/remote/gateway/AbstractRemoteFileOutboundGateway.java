@@ -286,8 +286,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 
 	@Override
-	protected void onInit() {
-		super.onInit();
+	protected void doInit() {
 		Assert.notNull(this.command, "command must not be null");
 		if (Command.RM.equals(this.command) ||
 				Command.GET.equals(this.command)) {

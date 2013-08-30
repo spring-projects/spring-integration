@@ -194,8 +194,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
      * the requestChannel is set.
      */
 	@Override
-	public void onInit() {
-		super.onInit();
+	public void doInit() {
 		if (this.replyChannel != null) {
 			Assert.notNull(this.requestChannel, "If the replyChannel is set, then the requestChannel must not be null");
 		}
