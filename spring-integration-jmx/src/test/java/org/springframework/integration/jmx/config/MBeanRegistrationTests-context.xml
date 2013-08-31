@@ -26,4 +26,9 @@
 	
 	<int:logging-channel-adapter id="logger" channel="testChannel"/>
 	
+	<int:chain id="chain" input-channel="chainin">
+		<int:transformer id="t1" expression="'foo'"/>
+		<int:filter id="f1" expression="true"/>
+	</int:chain>
+
 </beans>
