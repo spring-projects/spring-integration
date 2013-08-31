@@ -57,7 +57,9 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 			for (MBeanAttributeInfo attrInfo : attributeInfos) {
 				// we don't need to repeat name of this as an attribute
-				if ("ObjectName".equals(attrInfo.getName())) continue;
+				if ("ObjectName".equals(attrInfo.getName())) {
+					continue;
+				}
 
 				Object value;
 				try {
@@ -87,7 +89,9 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 	 * @return recursively mapped object
 	 */
 	private Object checkAndConvert(Object input) {
-		if (input == null) return input;
+		if (input == null) {
+			return input;
+		}
 		else if (input.getClass().isArray()) {
 
 			if (CompositeData.class.isAssignableFrom(input.getClass().getComponentType())) {
@@ -152,7 +156,6 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 						}
 					}
 					else {
-
 						returnable.put(keys, value);
 					}
 				}
