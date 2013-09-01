@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -37,6 +37,7 @@ import javax.management.modelmbean.ModelMBean;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
@@ -63,6 +64,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
 import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
@@ -1042,7 +1044,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		if (name == null) {
-			name = monitor.getMessageHandler().toString();
+			if (monitor.getMessageHandler() instanceof NamedComponent) {
+				name = ((NamedComponent) monitor.getMessageHandler()).getComponentName();
+			}
+			if (name == null) {
+				name = monitor.getMessageHandler().toString();
+			}
 			source = "handler";
 		}
 

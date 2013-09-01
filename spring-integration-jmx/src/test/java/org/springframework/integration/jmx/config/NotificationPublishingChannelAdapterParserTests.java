@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Set;
+
 import javax.management.MBeanServer;
 import javax.management.Notification;
 import javax.management.ObjectName;
@@ -28,6 +29,7 @@ import javax.management.ObjectName;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
@@ -35,7 +37,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jmx.JmxHeaders;
-import org.springframework.integration.jmx.NotificationPublishingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -126,7 +127,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertNull(notification.getUserData());
 		Set<ObjectName> names = server.queryNames(
 				new ObjectName("org.springframework.integration:type=MessageHandler," +
-						"name=chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain.handler,*")
+						"name=chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain,*")
 				, null);
 		assertEquals(1, names.size());
 	}
