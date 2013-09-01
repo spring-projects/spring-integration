@@ -19,6 +19,7 @@ package org.springframework.integration.http.inbound;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
@@ -83,10 +84,15 @@ public class Int2312RequestMappingIntegrationTests {
 	@Test
 	public void testParams() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/params");
-		Object handler = this.handlerMapping.getHandler(request);
-		// There is no matching handlers and some default handler
-		//See org.springframework.web.servlet.handler.AbstractHandlerMapping#getHandler
-		assertNull(handler);
+        Object handler = null;
+        try {
+            handler = this.handlerMapping.getHandler(request);
+        }
+        catch (Exception e) {
+            // There is no matching handlers and some default handler
+            //See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleNoMatch
+            assertTrue(e instanceof UnsatisfiedServletRequestParameterException);
+        }
 
 		request = new MockHttpServletRequest("GET", "/params");
 		request.addParameter("param1", "1");

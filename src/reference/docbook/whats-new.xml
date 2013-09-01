@@ -119,6 +119,18 @@
 				For more information see <xref linkend="spel-property-accessors" />.
 			</para>
 		</section>
+		<section id="3.0-request-mapping">
+			<title>HTTP Request Mapping</title>
+			<para>
+				HTTP module provides a powerful Request Mapping for inbound endpoints. <classname>UriPathHandlerMapping</classname>
+				was replaced by <classname>IntegrationRequestMappingHandlerMapping</classname>, which is registered as a bean with name
+				<code>integrationRequestMappingHandlerMapping</code> in the application context on parsing of http inbound endpoint,
+				if there wasn't registered one before. To achieve flexible Request Mapping is provided <code>&lt;request-mapping/&gt;</code>
+				sub-element for <code>&lt;http:inbound-channel-adapter/&gt;</code> and <code>&lt;http:inbound-gateway/&gt;</code>.
+				Both new components are fully based on the Request Mapping infrastructure from Spring MVC 3.1.
+				For more information see <xref linkend="http-namespace"/>.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">

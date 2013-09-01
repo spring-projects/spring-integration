@@ -41,9 +41,12 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
- * @author Biju Kunjummen
+ * @author Gary Russell
  * @author Artem Bilan
-*/public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
+ * @author Biju Kunjummen
+ */
+
+public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 
 	private static ExpressionParser PARSER = new SpelExpressionParser();
 
@@ -70,10 +73,13 @@ import org.springframework.web.servlet.HandlerMapping;
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		RequestMapping requestMapping = new RequestMapping();
+
+        RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
-		gateway.setRequestMapping(requestMapping);		gateway.setRequestChannel(echoChannel);
+		gateway.setRequestMapping(requestMapping);
 		gateway.afterPropertiesSet();
+
+        gateway.setRequestChannel(echoChannel);
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -111,9 +117,12 @@ import org.springframework.web.servlet.HandlerMapping;
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		RequestMapping requestMapping = new RequestMapping();
+
+        RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
-		gateway.setRequestMapping(requestMapping);		gateway.setRequestChannel(echoChannel);
+		gateway.setRequestMapping(requestMapping);
+
+        gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables.f"));
 		gateway.afterPropertiesSet();
 
@@ -153,9 +162,12 @@ import org.springframework.web.servlet.HandlerMapping;
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		RequestMapping requestMapping = new RequestMapping();
+
+        RequestMapping requestMapping = new RequestMapping();
 		requestMapping.setPathPatterns("/fname/{f}/lname/{l}");
-		gateway.setRequestMapping(requestMapping);		gateway.setRequestChannel(echoChannel);
+		gateway.setRequestMapping(requestMapping);
+
+        gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables"));
 		gateway.afterPropertiesSet();
 
