@@ -60,6 +60,17 @@
 				<xref linkend="syslog"/>.
 			</para>
 		</section>
+		<section id="3.0-jmx">
+			<title>JMX Support</title>
+			<para>
+				A new <code>&lt;int-jmx:tree-polling-channel-adapter/&gt;</code> is provided; this
+				adapter queries the JMX MBean tree and sends a message with a payload that is the 
+				graph of objects that matches the query. By default the MBeans are mapped to 
+				primitives and simple Objects like Map, List and arrays - permitting simple 
+				transformation, for example, to JSON
+				<xref linkend="jmx"/>.
+			</para>
+		</section>
 		<section id="3.0-tail">
 			<title>'Tail' Support</title>
 			<para>

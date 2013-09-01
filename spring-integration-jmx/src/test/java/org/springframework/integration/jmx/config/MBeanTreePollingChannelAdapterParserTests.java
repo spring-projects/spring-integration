@@ -23,6 +23,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.QueryExp;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -81,6 +86,9 @@ public class MBeanTreePollingChannelAdapterParserTests {
 	@Qualifier("adapter-query-expr-bean")
 	private SourcePollingChannelAdapter adapterQueryExprBean;
 
+	@Autowired
+	private MBeanServer mbeanServer;
+
 	private long testTimeout = 2000L;
 
 	@Test
@@ -91,7 +99,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertNotNull(result);
 
 		assertEquals(HashMap.class, result.getPayload().getClass());
-		
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
@@ -110,7 +118,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertNotNull(result);
 
 		assertEquals(HashMap.class, result.getPayload().getClass());
-		
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
 
@@ -124,6 +132,12 @@ public class MBeanTreePollingChannelAdapterParserTests {
 	@Test
 	public void pollQueryNameAdapter() throws Exception {
 		adapterQueryName.start();
+
+		ObjectName queryName = TestUtils.getPropertyValue(adapterQueryName, "source.queryName", ObjectName.class);
+		assertEquals("java.lang:type=Runtime", queryName.getCanonicalName());
+
+		QueryExp queryExp = TestUtils.getPropertyValue(adapterQueryName, "source.queryExpression", QueryExp.class);
+		assertTrue(queryExp.apply(new ObjectName("java.lang:type=Runtime")));
 
 		Message<?> result = channel3.receive(testTimeout);
 		assertNotNull(result);
