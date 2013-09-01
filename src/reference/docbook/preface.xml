@@ -1,27 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <preface xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" xml:id="preface">
-  <title>Preface</title>
- 
+	<title>Preface</title>
+	<section id="system-requirements">
+		<title>Requirements</title>
+		<para>
+			This section details the supported
+			<ulink url="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java</ulink>
+			and <ulink url="http://www.springsource.org/spring-framework">Spring Framework</ulink>
+			versions.
+		</para>
+		<section id="supported-java-versions">
+			<title>Supported Java Versions</title>
+			<para>
+				For <emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>,
+				the <emphasis role="strong">minimum</emphasis> supported Java
+				version is <emphasis role="strong">Java SE 6</emphasis>.
+				Older versions of Java will not be supported any longer.
+			</para>
+			<para>
+				<emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>
+				will also support <emphasis role="strong">Java SE 7</emphasis> as well
+				as <emphasis role="strong">Java SE 8</emphasis> (once released).
+			</para>
+			<note>
+				<emphasis>Spring Integration</emphasis> <emphasis role="strong">2.2.x</emphasis>
+				is the last version that supports <emphasis>Java 5</emphasis> (J2SE 5.0).
+			</note>
+		</section>
+		<section id="supported-spring-versions">
+			<title>Supported Versions of the Spring Framework</title>
+			<para>
+				The default dependency used by <emphasis>Spring Integration</emphasis>
+				<emphasis role="strong">3.0.0.RELEASE</emphasis> will be
+				<emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.0.RELEASE</emphasis>.
+			</para>
+			<para>
+				<emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.0</emphasis>
+				will also support the following versions:
+			</para>
+			<itemizedlist>
+				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.1.3.RELEASE</emphasis></listitem>
+				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.1.RELEASE</emphasis></listitem>
+			</itemizedlist>
+			<note>
+				<emphasis>Spring Integration</emphasis> <emphasis role="strong">2.2.x</emphasis>
+				is the last version that supports <emphasis>Spring Framework</emphasis>
+				<emphasis role="strong">3.0.x</emphasis>.
+			</note>
+		</section>
+	</section>
 	<section id="code-conventions">
 		<title>Code Conventions</title>
 		<para>
-		The Spring Framework 2.0 introduced support for namespaces, which 
-		simplifies the Xml configuration of the application context, and consequently 
-		Spring Integration provides broad namespace support. This reference guide 
-		applies the following conventions for all code examples that use namespace 
-		support: 
+		The Spring Framework 2.0 introduced support for namespaces, which
+		simplifies the Xml configuration of the application context, and consequently
+		Spring Integration provides broad namespace support. This reference guide
+		applies the following conventions for all code examples that use namespace
+		support:
 		</para>
 		<para>
-		The <emphasis role="bold">int</emphasis> namespace prefix will be used for 
-		Spring Integration's core namespace support. Each Spring Integration adapter 
+		The <emphasis role="bold">int</emphasis> namespace prefix will be used for
+		Spring Integration's core namespace support. Each Spring Integration adapter
 		type (module) will provide its own namespace, which is configured using the
 		following convention:
         </para>
-        <para>		
-			<emphasis role="bold">int-</emphasis> followed by the name of the module, e.g. 
-			<emphasis role="bold">int-twitter</emphasis>, 
+        <para>
+			<emphasis role="bold">int-</emphasis> followed by the name of the module, e.g.
+			<emphasis role="bold">int-twitter</emphasis>,
 			<emphasis role="bold">int-stream</emphasis>, …
-			
+
 			<programlisting  language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -29,28 +76,28 @@
   xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
   xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
   xsi:schemaLocation="
-   http://www.springframework.org/schema/beans 
+   http://www.springframework.org/schema/beans
    http://www.springframework.org/schema/beans/spring-beans.xsd
-   http://www.springframework.org/schema/integration 
+   http://www.springframework.org/schema/integration
    http://www.springframework.org/schema/integration/spring-integration.xsd
-   http://www.springframework.org/schema/integration/twitter 
-   http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd  
-   http://www.springframework.org/schema/integration/stream 
+   http://www.springframework.org/schema/integration/twitter
+   http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd
+   http://www.springframework.org/schema/integration/stream
    http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 …
 </beans>]]></programlisting>
 		</para>
-        <para>      
+        <para>
 		For a detailed explanation regarding Spring Integration's namespace support
 		see <emphasis><xref linkend="configuration-namespace"/></emphasis>.
 		<note>
-		   Please note that the namespace prefix can be freely chosen. You may 
-		   even choose not to use any namespace prefixes at all. Therefore, 
-		   apply the convention that suits your application needs best. Be aware, 
-		   though, that SpringSource Tool Suite™ (STS) uses the same namespace 
-		   conventions for Spring Integration as used in this reference guide. 
+		   Please note that the namespace prefix can be freely chosen. You may
+		   even choose not to use any namespace prefixes at all. Therefore,
+		   apply the convention that suits your application needs best. Be aware,
+		   though, that SpringSource Tool Suite™ (STS) uses the same namespace
+		   conventions for Spring Integration as used in this reference guide.
 		</note>
 		</para>
-		
+
 	</section>
 </preface>
