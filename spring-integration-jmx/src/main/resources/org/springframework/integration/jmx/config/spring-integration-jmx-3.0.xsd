@@ -42,8 +42,32 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="treeType">
-					<xsd:sequence minOccurs="0" maxOccurs="1">
-						<xsd:element ref="integration:poller" />
+					<xsd:sequence>
+						<xsd:choice minOccurs="0" maxOccurs="1" >
+							<xsd:sequence>
+								<xsd:element ref="integration:poller" />
+								<xsd:choice minOccurs="0" maxOccurs="1">
+									<xsd:element ref="beans:ref">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="org.springframework.integration.jmx.MBeanObjectConverter" />
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:element>
+									<xsd:element ref="beans:bean">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="org.springframework.integration.jmx.MBeanObjectConverter" />
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:element>
+								</xsd:choice>
+							</xsd:sequence>
+						</xsd:choice>
 					</xsd:sequence>
 					<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
 				</xsd:extension>
@@ -209,8 +233,44 @@
 		<xsd:complexContent>
 			<xsd:extension base="mbeanServerIdentifyerType">
 				<xsd:attribute name="channel" type="xsd:string" />
-				<xsd:attribute name="query-name" type="xsd:string" use="optional" />
-				<xsd:attribute name="query-expression" type="xsd:string" use="optional" />
+				<xsd:attribute name="query-name" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							A string to be parsed into an ObjectName object
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="query-name-ref" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							A reference to an ObjectName instance
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation>
+								<tool:expected-type type="javax.management.ObjectName"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="query-expression" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							A string to be parsed into a QueryExp object
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="query-expression-ref" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							A reference to a QueryExp instance
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation>
+								<tool:expected-type type="javax.management.QueryExp"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

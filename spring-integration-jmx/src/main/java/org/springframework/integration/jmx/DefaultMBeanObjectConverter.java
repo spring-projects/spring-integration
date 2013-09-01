@@ -31,12 +31,17 @@ import javax.management.RuntimeMBeanException;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * @author Stuart Williams
  * @since 3.0
  *
  */
 public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
+
+	private static final Log log = LogFactory.getLog(DefaultMBeanObjectConverter.class);
 
 	/*
 	 * (non-Javadoc)
@@ -66,6 +71,13 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 					value = connection.getAttribute(objName, attrInfo.getName());
 				}
 				catch (RuntimeMBeanException e) {
+					// N.B. standard MemoryUsage MBeans will throw an exception when some 
+					// measurement is unsupported.  Logging at trace rather than debug to
+					// avoid confusion.
+					if (log.isTraceEnabled()) {
+						log.trace("Error getting attribute '" + attrInfo.getName() + "' on '" + objName + "'", e);
+					}
+
 					// try to unwrap the exception somewhat; not sure this is ideal
 					Throwable t = e;
 					while (t.getCause() != null) {
@@ -105,7 +117,7 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 			}
 			if (TabularData.class.isAssignableFrom(input.getClass().getComponentType())) {
 				// TODO haven't hit this yet, but expect to
-				throw new UnsupportedOperationException("TabularData.isAssignableFrom(getComponentType) for " + input.toString());
+				log.warn("TabularData.isAssignableFrom(getComponentType) for " + input.toString());
 			}
 		}
 		else if (input instanceof CompositeData) {
@@ -113,7 +125,7 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 			if (data.getCompositeType().isArray()) {
 				// TODO? I haven't found an example where this gets thrown - but need to test it on Tomcat/Jetty or something
-				throw new UnsupportedOperationException("(data.getCompositeType().isArray for " + input.toString());
+				log.warn("(data.getCompositeType().isArray for " + input.toString());
 			}
 			else {
 				Map<String, Object> returnable = new HashMap<String, Object>();
@@ -132,7 +144,7 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 			if (data.getTabularType().isArray()) {
 				// TODO? I haven't found an example where this gets thrown, so might not be required
-				throw new UnsupportedOperationException("TabularData.isArray for " + input.toString());
+				log.warn("TabularData.isArray for " + input.toString());
 			}
 			else {
 

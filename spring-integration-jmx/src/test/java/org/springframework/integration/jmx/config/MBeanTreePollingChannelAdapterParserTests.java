@@ -16,6 +16,7 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -25,6 +26,7 @@ import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -40,16 +42,52 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class MBeanTreePollingChannelAdapterParserTests {
 
 	@Autowired
-	private PollableChannel channel;
+	@Qualifier("channel1")
+	private PollableChannel channel1;
 
 	@Autowired
-	private SourcePollingChannelAdapter adapter;
+	@Qualifier("channel2")
+	private PollableChannel channel2;
+
+	@Autowired
+	@Qualifier("channel3")
+	private PollableChannel channel3;
+
+	@Autowired
+	@Qualifier("channel4")
+	private PollableChannel channel4;
+
+	@Autowired
+	@Qualifier("channel5")
+	private PollableChannel channel5;
+
+	@Autowired
+	@Qualifier("adapter-default")
+	private SourcePollingChannelAdapter adapterDefault;
+
+	@Autowired
+	@Qualifier("adapter-inner")
+	private SourcePollingChannelAdapter adapterInner;
+
+	@Autowired
+	@Qualifier("adapter-query-name")
+	private SourcePollingChannelAdapter adapterQueryName;
+
+	@Autowired
+	@Qualifier("adapter-query-name-bean")
+	private SourcePollingChannelAdapter adapterQueryNameBean;
+
+	@Autowired
+	@Qualifier("adapter-query-expr-bean")
+	private SourcePollingChannelAdapter adapterQueryExprBean;
+
+	private long testTimeout = 2000L;
 
 	@Test
-	public void pollForBeans() throws Exception {
-		adapter.start();
+	public void pollDefaultAdapter() throws Exception {
+		adapterDefault.start();
 
-		Message<?> result = channel.receive(1000);
+		Message<?> result = channel1.receive(testTimeout);
 		assertNotNull(result);
 
 		assertEquals(HashMap.class, result.getPayload().getClass());
@@ -60,6 +98,84 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		// test for a couple of MBeans
 		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
+
+		adapterDefault.stop();
+	}
+
+	@Test
+	public void pollInnerAdapter() throws Exception {
+		adapterInner.start();
+
+		Message<?> result = channel2.receive(testTimeout);
+		assertNotNull(result);
+
+		assertEquals(HashMap.class, result.getPayload().getClass());
+		
+		@SuppressWarnings("unchecked")
+		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
+
+		// test for a couple of MBeans
+		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
+		assertTrue(beans.containsKey("java.lang:type=Runtime"));
+
+		adapterDefault.stop();
+	}
+
+	@Test
+	public void pollQueryNameAdapter() throws Exception {
+		adapterQueryName.start();
+
+		Message<?> result = channel3.receive(testTimeout);
+		assertNotNull(result);
+
+		assertEquals(HashMap.class, result.getPayload().getClass());
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
+
+		// test for a couple of MBeans
+		assertFalse(beans.containsKey("java.lang:type=OperatingSystem"));
+		assertTrue(beans.containsKey("java.lang:type=Runtime"));
+
+		adapterDefault.stop();
+	}
+
+	@Test
+	public void pollQueryNameBeanAdapter() throws Exception {
+		adapterQueryNameBean.start();
+
+		Message<?> result = channel4.receive(testTimeout);
+		assertNotNull(result);
+
+		assertEquals(HashMap.class, result.getPayload().getClass());
+		
+		@SuppressWarnings("unchecked")
+		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
+
+		// test for a couple of MBeans
+		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
+		assertFalse(beans.containsKey("java.lang:type=Runtime"));
+
+		adapterDefault.stop();
+	}
+
+	@Test
+	public void pollQueryExprBeanAdapter() throws Exception {
+		adapterQueryExprBean.start();
+
+		Message<?> result = channel5.receive(testTimeout);
+		assertNotNull(result);
+
+		assertEquals(HashMap.class, result.getPayload().getClass());
+		
+		@SuppressWarnings("unchecked")
+		Map<String, Object> beans = (Map<String, Object>) result.getPayload();
+
+		// test for a couple of MBeans
+		assertFalse(beans.containsKey("java.lang:type=OperatingSystem"));
+		assertTrue(beans.containsKey("java.lang:type=Runtime"));
+
+		adapterDefault.stop();
 	}
 
 }

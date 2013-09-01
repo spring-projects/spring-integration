@@ -49,19 +49,12 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	private final MBeanObjectConverter converter;
 
 	/**
-	 * 
-	 */
-	public MBeanTreePollingMessageSource() {
-		this(new DefaultMBeanObjectConverter());
-	}
-
-	/**
 	 * @param converter
 	 */
 	public MBeanTreePollingMessageSource(MBeanObjectConverter converter) {
 		this.converter = converter;
 	}
-	
+
 	/**
 	 * Provides the mapped tree object
 	 */
@@ -98,7 +91,7 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	public void setQueryName(String queryName) {
 		Assert.notNull(queryName, "'queryName' must not be null");
 		try {
-			setQueryName(ObjectName.getInstance(queryName));
+			setQueryNameReference(ObjectName.getInstance(queryName));
 		} catch (MalformedObjectNameException e) {
 			throw new IllegalArgumentException(e);
 		}
@@ -107,7 +100,7 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	/**
 	 * @param queryName
 	 */
-	public void setQueryName(ObjectName queryName) {
+	public void setQueryNameReference(ObjectName queryName) {
 		this.queryName = queryName;
 	}
 
@@ -117,7 +110,7 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	public void setQueryExpression(String queryExpression) {
 		Assert.notNull(queryExpression, "'queryExpression' must not be null");
 		try {
-			setQueryExpression(ObjectName.getInstance(queryExpression));
+			setQueryExpressionReference(ObjectName.getInstance(queryExpression));
 		} catch (MalformedObjectNameException e) {
 			throw new IllegalArgumentException(e);
 		}
@@ -126,7 +119,7 @@ public class MBeanTreePollingMessageSource extends AbstractMessageSource<Object>
 	/**
 	 * @param queryExpression
 	 */
-	public void setQueryExpression(QueryExp queryExpression) {
+	public void setQueryExpressionReference(QueryExp queryExpression) {
 		this.queryExpression = queryExpression;
 	}
 }

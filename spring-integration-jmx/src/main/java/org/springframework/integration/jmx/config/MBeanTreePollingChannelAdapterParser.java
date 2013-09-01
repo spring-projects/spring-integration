@@ -16,10 +16,13 @@
 package org.springframework.integration.jmx.config;
 
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jmx.DefaultMBeanObjectConverter;
 import org.w3c.dom.Element;
 
 /**
@@ -38,10 +41,28 @@ public class MBeanTreePollingChannelAdapterParser extends AbstractPollingInbound
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
 				"org.springframework.integration.jmx.MBeanTreePollingMessageSource");
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server", "server");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-expression");
-		// TODO provide constructor parameter as inner bean?
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "query-name-ref", "queryNameReference");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "query-expression-ref", "queryExpressionReference");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-name", "queryName");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-expression", "queryExpression");
+
+		BeanComponentDefinition innerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		String beanName;
+
+		if (innerBeanDef != null) {
+			beanName = BeanDefinitionReaderUtils.generateBeanName(innerBeanDef.getBeanDefinition(), parserContext.getRegistry(), true);
+			parserContext.getRegistry().registerBeanDefinition(beanName, innerBeanDef.getBeanDefinition());
+		}
+		else {
+			BeanDefinitionBuilder childBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultMBeanObjectConverter.class);
+			beanName = BeanDefinitionReaderUtils.generateBeanName(childBuilder.getBeanDefinition(), parserContext.getRegistry(), true);
+			parserContext.getRegistry().registerBeanDefinition(beanName, childBuilder.getBeanDefinition());
+		}
+
+		builder.addConstructorArgReference(beanName);
+
 		return builder.getBeanDefinition();
 	}
 
