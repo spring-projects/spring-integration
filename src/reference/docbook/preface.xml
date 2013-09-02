@@ -19,7 +19,7 @@
 			</para>
 			<para>
 				<emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>
-				will also support <emphasis role="strong">Java SE 7</emphasis> as well
+				also supports <emphasis role="strong">Java SE 7</emphasis> as well
 				as <emphasis role="strong">Java SE 8</emphasis> (once released).
 			</para>
 			<note>
@@ -35,12 +35,13 @@
 				<emphasis>Spring Framework</emphasis> <emphasis role="strong">3.1.4.RELEASE</emphasis>.
 			</para>
 			<para>
-				<emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.0</emphasis>
-				will also support the following versions:
+				Generally, <emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.x</emphasis>
+				supports the following <emphasis>Spring Framework</emphasis> releases:
 			</para>
 			<itemizedlist>
-				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.3.RELEASE</emphasis></listitem>
-				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.0.RELEASE</emphasis></listitem>
+				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.1.x</emphasis></listitem>
+				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.x</emphasis></listitem>
+				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.x</emphasis></listitem>
 			</itemizedlist>
 			<note>
 				<emphasis>Spring Integration</emphasis> <emphasis role="strong">2.2.x</emphasis>
