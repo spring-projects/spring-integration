@@ -43,6 +43,16 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 	private static final Log log = LogFactory.getLog(DefaultMBeanObjectConverter.class);
 
+	private MBeanAttributeFilter filter;
+
+	public DefaultMBeanObjectConverter() {
+		this(new DefaultMBeanAttributeFilter());
+	}
+
+	public DefaultMBeanObjectConverter(MBeanAttributeFilter filter) {
+		this.filter = filter;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.integration.jmx.MBeanObjectConverter#convert(javax.management.MBeanServerConnection, javax.management.ObjectInstance)
@@ -62,7 +72,8 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 
 			for (MBeanAttributeInfo attrInfo : attributeInfos) {
 				// we don't need to repeat name of this as an attribute
-				if ("ObjectName".equals(attrInfo.getName())) {
+				if ("ObjectName".equals(attrInfo.getName()) || 
+						!filter.accept(objName, attrInfo.getName())) {
 					continue;
 				}
 
@@ -132,7 +143,9 @@ public class DefaultMBeanObjectConverter implements MBeanObjectConverter {
 				Set<String> keys = data.getCompositeType().keySet();
 				for (String key : keys) {
 					// we don't need to repeat name of this as an attribute
-					if ("ObjectName".equals(key)) continue;
+					if ("ObjectName".equals(key)) {
+						continue;
+					}
 					Object value = checkAndConvert(data.get(key));
 					returnable.put(key, value);
 				}

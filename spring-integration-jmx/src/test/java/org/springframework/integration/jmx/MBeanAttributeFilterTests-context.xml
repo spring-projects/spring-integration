@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<context:mbean-export/>
+
+	<context:mbean-server/>
+
+	<int-jmx:mbean-export/>
+
+	<int-jmx:tree-polling-channel-adapter id="adapter"
+		channel="in"
+		query-expression="org.springframework.integration:type=MessageChannel,name=*"
+		auto-startup="false">
+		<int:poller max-messages-per-poll="1" fixed-rate="5000"/>
+		<bean class="org.springframework.integration.jmx.DefaultMBeanObjectConverter">
+			<constructor-arg>
+				<bean class="org.springframework.integration.jmx.NamedFieldsMBeanAttributeFilter">
+					<constructor-arg>
+						<array>
+							<value type="java.lang.String">SendCount</value>
+							<value type="java.lang.String">SendErrorCount</value>
+						</array>
+					</constructor-arg>
+				</bean>
+			</constructor-arg>
+		</bean>
+	</int-jmx:tree-polling-channel-adapter>
+
+	<int:channel id="in">
+	</int:channel>
+
+	<int:service-activator id="pass"
+		input-channel="in"
+		output-channel="out"
+		expression="payload">
+	</int:service-activator>
+
+	<int:channel id="out">
+		<int:queue/>
+	</int:channel>
+
+</beans>
