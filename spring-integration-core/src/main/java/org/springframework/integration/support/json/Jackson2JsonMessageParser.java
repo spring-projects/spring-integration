@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonToken;
  * Uses Jackson 2 JSON-processor (@link https://github.com/FasterXML).
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
@@ -44,7 +45,7 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 
 	@Override
 	protected JsonParser createJsonParser(String jsonMessage) throws Exception {
-		return new JsonFactory().createJsonParser(jsonMessage);
+		return new JsonFactory().createParser(jsonMessage);
 	}
 
 	@Override
