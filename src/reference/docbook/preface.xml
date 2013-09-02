@@ -31,16 +31,16 @@
 			<title>Supported Versions of the Spring Framework</title>
 			<para>
 				The default dependency used by <emphasis>Spring Integration</emphasis>
-				<emphasis role="strong">3.0.0.RELEASE</emphasis> will be
-				<emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.0.RELEASE</emphasis>.
+				<emphasis role="strong">3.0.0.RELEASE</emphasis> is
+				<emphasis>Spring Framework</emphasis> <emphasis role="strong">3.1.4.RELEASE</emphasis>.
 			</para>
 			<para>
 				<emphasis>Spring Integration</emphasis> <emphasis role="strong">3.0.0</emphasis>
 				will also support the following versions:
 			</para>
 			<itemizedlist>
-				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.1.3.RELEASE</emphasis></listitem>
-				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.1.RELEASE</emphasis></listitem>
+				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">3.2.3.RELEASE</emphasis></listitem>
+				<listitem><emphasis>Spring Framework</emphasis> <emphasis role="strong">4.0.0.RELEASE</emphasis></listitem>
 			</itemizedlist>
 			<note>
 				<emphasis>Spring Integration</emphasis> <emphasis role="strong">2.2.x</emphasis>
