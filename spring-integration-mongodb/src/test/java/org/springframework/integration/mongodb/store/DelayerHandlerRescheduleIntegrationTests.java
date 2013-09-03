@@ -75,7 +75,6 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 			assertTrue(e.getMessage().contains("BeanFactory not initialized or already closed - call 'refresh'"));
 		}
 
-		assertEquals(delayerMessageGroupId, messageStore.iterator().next().getGroupId());
 		assertEquals(2, messageStore.messageGroupSize(delayerMessageGroupId));
 
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
