@@ -270,11 +270,7 @@ project('spring-integration-http') {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
 
-		if (springVersionDefault.equalsIgnoreCase(springVersion)) {
-			compile("javax.servlet:javax.servlet-api:3.0.1", provided)
-		} else {
-			compile("javax.servlet:servlet-api:2.5", provided)
-		}
+		compile("javax.servlet:javax.servlet-api:3.0.1", provided)
 
 		compile("commons-httpclient:commons-httpclient:3.1") { dep ->
 			optional dep
@@ -552,7 +548,7 @@ project('spring-integration-ws') {
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-test")
 		testCompile "stax:stax-api:1.0.1"
-		testCompile "xstream:xstream:1.2.2"
+		testCompile 'com.thoughtworks.xstream:xstream:1.4.4'
 		testCompile ("org.springframework.ws:spring-ws-support:$springWsVersion") {
 			exclude group: 'org.springframework'
 		}

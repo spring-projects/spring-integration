@@ -10,7 +10,7 @@
 
 	<header-enricher>
 		<header name="testHeader">
-			<beans:ref local="testBean"/>
+			<beans:ref bean="testBean"/>
 		</header>
 	</header-enricher>
 

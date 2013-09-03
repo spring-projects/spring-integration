@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.context.support.GenericApplicationContext;
@@ -41,6 +42,7 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 public class DatatypeChannelTests {
@@ -84,7 +86,7 @@ public class DatatypeChannelTests {
 		});
 		channel.setConversionService(conversionService);
 		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(new Integer(1), channel.receive().getPayload());
+		assertEquals(1, channel.receive().getPayload());
 	}
 
 	@Test
@@ -103,9 +105,11 @@ public class DatatypeChannelTests {
 		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
 		channelBuilder.addPropertyValue("datatypes", "java.lang.Integer, java.util.Date");
 		context.registerBeanDefinition("testChannel", channelBuilder.getBeanDefinition());
+		context.refresh();
+
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
 		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(new Integer(1), channel.receive().getPayload());
+		assertEquals(1, channel.receive().getPayload());
 	}
 
 	@Test
@@ -130,9 +134,11 @@ public class DatatypeChannelTests {
 		channelBuilder.addPropertyValue("datatypes", "java.lang.Integer, java.util.Date");
 		channelBuilder.addPropertyValue("conversionService", customConversionService);
 		context.registerBeanDefinition("testChannel", channelBuilder.getBeanDefinition());
+		context.refresh();
+
 		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
 		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
-		assertEquals(new Integer(99), channel.receive().getPayload());
+		assertEquals(99, channel.receive().getPayload());
 	}
 
 	@Test

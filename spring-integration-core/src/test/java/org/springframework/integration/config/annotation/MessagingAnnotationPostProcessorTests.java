@@ -56,6 +56,8 @@ public class MessagingAnnotationPostProcessorTests {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		DirectChannel inputChannel = new DirectChannel();
 		context.registerChannel("inputChannel", inputChannel);
+		context.refresh();
+
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
