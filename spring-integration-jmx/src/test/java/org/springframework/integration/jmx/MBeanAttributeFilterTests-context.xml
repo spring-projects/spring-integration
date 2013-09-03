@@ -13,11 +13,15 @@
 
 	<context:mbean-server/>
 
-	<int-jmx:mbean-export/>
+	<int-jmx:mbean-export default-domain="#{@domain}" />
+
+	<bean id="domain" class="java.lang.String">
+		<constructor-arg value="#{T(java.util.UUID).randomUUID().toString()}"/>
+	</bean>
 
 	<int-jmx:tree-polling-channel-adapter id="adapter"
 		channel="in"
-		query-expression="org.springframework.integration:type=MessageChannel,name=*"
+		query-expression="#{domain}:type=MessageChannel,name=*"
 		auto-startup="false">
 		<int:poller max-messages-per-poll="1" fixed-rate="5000"/>
 		<bean class="org.springframework.integration.jmx.DefaultMBeanObjectConverter">
@@ -48,7 +52,7 @@
 
 	<int-jmx:tree-polling-channel-adapter id="adapterNot"
 		channel="in"
-		query-expression="org.springframework.integration:type=MessageChannel,name=*"
+		query-expression="#{domain}:type=MessageChannel,name=*"
 		auto-startup="false">
 		<int:poller max-messages-per-poll="1" fixed-rate="5000"/>
 		<bean class="org.springframework.integration.jmx.DefaultMBeanObjectConverter">

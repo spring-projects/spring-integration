@@ -52,6 +52,9 @@ public class MBeanAttributeFilterTests {
 	@Autowired
 	private SourcePollingChannelAdapter adapterNot;
 
+	@Autowired
+	private String domain;
+
 	private final long testTimeout = 1000L;
 
 	@Test
@@ -71,7 +74,7 @@ public class MBeanAttributeFilterTests {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> bean = (Map<String, Object>) payload
-				.get("org.springframework.integration:name=in,type=MessageChannel");
+				.get(domain + ":name=in,type=MessageChannel");
 
 		assertEquals(2, bean.size());
 		assertTrue(bean.containsKey("SendCount"));
@@ -97,7 +100,7 @@ public class MBeanAttributeFilterTests {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> bean = (Map<String, Object>) payload
-				.get("org.springframework.integration:name=in,type=MessageChannel");
+				.get(domain + ":name=in,type=MessageChannel");
 
 		assertEquals(8, bean.size());
 		assertFalse(bean.containsKey("SendCount"));

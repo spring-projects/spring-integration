@@ -126,7 +126,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertEquals("test.type", notification.getType());
 		assertNull(notification.getUserData());
 		Set<ObjectName> names = server.queryNames(
-				new ObjectName("org.springframework.integration:type=MessageHandler," +
+				new ObjectName("*:type=MessageHandler," +
 						"name=chainWithJmxNotificationPublishing$child.jmx-notification-publishing-channel-adapter-within-chain,*")
 				, null);
 		assertEquals(1, names.size());

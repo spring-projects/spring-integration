@@ -15,7 +15,7 @@
 
 	<context:mbean-export/>
 	<context:mbean-server/>
-	<jmx:mbean-export/>
+	<jmx:mbean-export default-domain="#{T(java.util.UUID).randomUUID().toString()}"/>
 
 	<si:channel id="channel"/>
 
