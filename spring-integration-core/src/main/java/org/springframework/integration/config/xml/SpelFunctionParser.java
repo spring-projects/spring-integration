@@ -33,6 +33,8 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Parser for the &lt;spel-function&gt; element.
+ * Doesn't register a bean within application context, collects 'functions'
+ * within {@link org.springframework.integration.config.SpelFunctionRegistrar} bean.
  *
  * @author Artem Bilan
  * @since 3.0
@@ -52,7 +54,7 @@ public class SpelFunctionParser implements BeanDefinitionParser {
 		String className = element.getAttribute("class");
 		String signature = element.getAttribute("method");
 
-		Class clazz = null;
+		Class<?> clazz = null;
 		try {
 			clazz = ClassUtils.forName(className, parserContext.getReaderContext().getBeanClassLoader());
 		}

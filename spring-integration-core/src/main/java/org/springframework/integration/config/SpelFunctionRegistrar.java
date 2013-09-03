@@ -19,17 +19,32 @@ package org.springframework.integration.config;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
 /**
+ * <p>
  * Utility class that keeps track of a Map of SpEL functions in order to register
  * them with the "integrationEvaluationContext" upon initialization.
+ * </p>
+ * <p>
+ * Seeing the {@link org.springframework.integration.config.xml.SpelFunctionParser}
+ * doesn't register a bean for &lt;spel-function&gt; within application context,
+ * then there is no automatic inherit way to get 'functions' from parent context
+ * and this class provide a hook to get 'functions' from parent context.
+ * </p>
  *
  * @author Artem Bilan
+ *
  * @since 3.0
  */
-class SpelFunctionRegistrar {
+class SpelFunctionRegistrar implements ApplicationContextAware, InitializingBean {
 
 	private final Map<String, Method> functions;
 
+	private ApplicationContext applicationContext;
 
 	SpelFunctionRegistrar(Map<String, Method> functions) {
 		this.functions = functions;
@@ -37,6 +52,27 @@ class SpelFunctionRegistrar {
 
 	Map<String, Method> getFunctions() {
 		return functions;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		ApplicationContext parent = this.applicationContext.getParent();
+		if (parent != null) {
+			SpelFunctionRegistrar parentFunctionRegistrar = parent.getBean(SpelFunctionRegistrar.class);
+			if (parentFunctionRegistrar != null) {
+				Map<String, Method> parentFunctions = parentFunctionRegistrar.getFunctions();
+				for (String key : parentFunctions.keySet()) {
+					if(!this.functions.containsKey(key)) {
+						this.functions.put(key, parentFunctions.get(key));
+					}
+				}
+			}
+		}
 	}
 
 }
