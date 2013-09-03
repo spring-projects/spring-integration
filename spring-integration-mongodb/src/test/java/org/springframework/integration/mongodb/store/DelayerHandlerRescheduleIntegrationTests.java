@@ -16,9 +16,13 @@ package org.springframework.integration.mongodb.store;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Iterator;
+
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -42,6 +46,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 
 	@Test
 	@MongoDbAvailable
+	@SuppressWarnings("unchecked")
 	public void testDelayerHandlerRescheduleWithMongoDbMessageStore() throws Exception {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
@@ -74,11 +79,17 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 		assertEquals(2, messageStore.messageGroupSize(delayerMessageGroupId));
 
 		MessageGroup messageGroup = messageStore.getMessageGroup(delayerMessageGroupId);
-		Message<?> messageInStore = messageGroup.getMessages().iterator().next();
+		Iterator<Message<?>> iterator = messageGroup.getMessages().iterator();
+		Message<?> messageInStore = iterator.next();
 		Object payload = messageInStore.getPayload();
 
 		// INT-3049
 		assertTrue(payload instanceof DelayHandler.DelayedMessageWrapper);
+
+		Message<String> original1 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) payload).getOriginal();
+		messageInStore = iterator.next();
+		Message<String> original2 = (Message<String>) ((DelayHandler.DelayedMessageWrapper) messageInStore.getPayload()).getOriginal();
+		assertThat(message1, Matchers.anyOf(Matchers.is(original1), Matchers.is(original2)));
 
 		context.refresh();
 

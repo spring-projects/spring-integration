@@ -440,11 +440,33 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
-    private static class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage> {
+    private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage> {
 
         @SuppressWarnings("unchecked")
-        public GenericMessage<?> convert(DBObject source) {
-            return new GenericMessage<Object>(source.get("payload"), (Map<String, Object>) source.get("headers"));
+        public GenericMessage convert(DBObject source) {
+			MessageReadingMongoConverter converter =
+					(MessageReadingMongoConverter) MongoDbMessageStore.this.template.getConverter();
+			Map<String, Object> headers = converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			Object payload = source.get("payload");
+			Object payloadType = source.get(PAYLOAD_TYPE_KEY);
+			if (payloadType != null && payload instanceof DBObject) {
+				try {
+					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
+					payload = converter.read(payloadClass, (DBObject) payload);
+				}
+				catch (Exception e) {
+					throw new IllegalStateException("failed to load class: " + payloadType, e);
+				}
+			}
+
+			GenericMessage message = new GenericMessage(payload, headers);
+			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
+			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+
+			return message;
         }
 
     }
