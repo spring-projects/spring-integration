@@ -223,14 +223,16 @@
 				<xsd:attribute name="query-name" type="xsd:string" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							A string to be parsed into an ObjectName object
+							A string to be parsed into an ObjectName object. If this
+							attribute is specified you cannot specify `query-name-ref`.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="query-name-ref" type="xsd:string" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							A reference to an ObjectName instance
+							A reference to an ObjectName instance.  If this
+							attribute is specified you cannot specify `query-name`.
 						</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation>
@@ -242,14 +244,16 @@
 				<xsd:attribute name="query-expression" type="xsd:string" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							A string to be parsed into a QueryExp object
+							A string to be parsed into a QueryExp object.  If this
+							attribute is specified you cannot specify `query-expression-ref`.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="query-expression-ref" type="xsd:string" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							A reference to a QueryExp instance
+							A reference to a QueryExp instance.  If this
+							attribute is specified you cannot specify `query-expression`.
 						</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation>

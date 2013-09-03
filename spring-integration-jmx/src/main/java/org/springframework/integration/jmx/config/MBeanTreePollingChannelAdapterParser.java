@@ -53,6 +53,14 @@ public class MBeanTreePollingChannelAdapterParser extends AbstractPollingInbound
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-name", "queryName");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query-expression", "queryExpression");
 
+		if (StringUtils.hasText(element.getAttribute("query-name"))
+				&& StringUtils.hasText(element.getAttribute("query-name-ref"))) {
+			parserContext.getReaderContext().error("Cannot have both `query-name' and 'query-name-ref'", element);
+		}
+		if (StringUtils.hasText(element.getAttribute("query-expression"))
+				&& StringUtils.hasText(element.getAttribute("query-expression-ref"))) {
+			parserContext.getReaderContext().error("Cannot have both `query-expression' and 'query-expression-ref'", element);
+		}
 		BeanComponentDefinition innerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String beanName = element.getAttribute("converter");
 
