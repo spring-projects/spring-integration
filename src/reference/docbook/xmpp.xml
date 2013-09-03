@@ -201,8 +201,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     	</note>
     </para>
   </section>
-  <section id="xmpp-appendices">
-    	<title>Appendices</title>
+  <section id="xmpp-advanced">
+		<title>Advanced Configuration</title>
 
     	<para>
     	Since Spring Integration XMPP support is based on the Smack 3.1 API (http://www.igniterealtime.org/downloads/index.jsp), it is important

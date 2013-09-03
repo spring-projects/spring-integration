@@ -68,6 +68,14 @@
 				<xref linkend="file-tailing"/>.
 			</para>
 		</section>
+		<section id="3.0-spel-customization">
+			<title>Spring Expression Language (SpEL) Configuration</title>
+			<para>
+				A new factory bean is provided to allow
+				configuration of custom <interfacename>PropertyAccessor</interfacename>s and functions for
+				use in SpEL expressions throughout the framework. For more information see <xref linkend="spel" />.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">

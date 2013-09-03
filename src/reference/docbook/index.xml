@@ -162,6 +162,7 @@
 		<partintro id="spring-integration-adapters">
 			<para>Advanced Topics and Additional Resources</para>
 		</partintro>
+		<xi:include href="./spel.xml"/>
 		<xi:include href="./message-publishing.xml"/>
 		<xi:include href="./transactions.xml"/>
 		<xi:include href="./security.xml"/>

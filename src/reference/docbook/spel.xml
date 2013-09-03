@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<appendix xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="spel"
+	xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>Spring Expression Language (SpEL)</title>
+
+	<section id="spel-intro">
+		<title>Introduction</title>
+		<para>
+			Many Spring Integration components can be configured using expressions. These expressions
+			are written in the <ulink url="http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html">
+			Spring Expression Language</ulink>.
+		</para>
+		<para>
+			In most cases, the <emphasis>#root</emphasis> object is the
+			<classname>Message</classname> which, of course, has two properties - <code>headers</code> and
+			<code>payload</code> - allowing such expressions as <code>payload</code>, <code>payload.foo</code>,
+			<code>headers['my.header']</code> etc.
+		</para>
+		<para>
+			In some cases, additional variables are provided, for example the <code>&lt;int-http:inbound-gateway/&gt;</code>
+			provides <code>#requestParams</code> (parameters from the HTTP request) and <code>#pathVariables</code>
+			(values from path placeholders in the URI).
+		</para>
+		<para>
+			For all SpEL expressions, a <interfacename>BeanResolver</interfacename> is available, enabling references to
+			any bean in the application context. For example <code>@myBean.foo(payload)</code>. In addition, two
+			<interfacename>PropertyAccessors</interfacename> are available; a <classname>MapAccessor</classname>
+			enables accessing values in a <interfacename>Map</interfacename> using a key, and a
+			<classname>ReflectivePropertyAccessor</classname> which allows access to fields and or JavaBean compliant
+			properties (using getters and setters). This is how the <interfacename>Message</interfacename> headers
+			and payload properties are accessible.
+		</para>
+		<para>
+			Starting with Spring Integration 3.0, it is possible to add additional
+			<interfacename>PropertyAccessor</interfacename>s to the SpEL evaluation context.
+			In fact, the framework provides one such accessor,
+			the <classname>JsonPropertyAccessor</classname> which can be used (read-only) to access fields from
+			a <classname>JsonNode</classname>, or JSON in a <classname>String</classname>. Or you can create your
+			own <interfacename>PropertyAccessor</interfacename> if you have specific needs.
+		</para>
+		<para>
+			In addition, custom functions can be added. Custom functions are <code>static</code> methods
+			declared on a class. Functions and property accessors are available in any SpEL
+			expression used throughout the framework.
+		</para>
+		<para>
+			To configure your custom accessors and functions, add an
+			<classname>IntegrationEvaluationContextFactoryBean</classname> with
+			<code>id="integrationEvaluationContext"</code>
+			to your application context, with the appropriate configuration; for example:
+		</para>
+		<programlisting language="xml"><![CDATA[<beans:bean id="integrationEvaluationContext"
+			class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
+	<property name="propertyAccessors">
+		<list>
+			<bean class="foo.MyCustomPropertyAccessor"/>
+		</list>
+	</property>
+	<property name="functions">
+		<map>
+			<entry key="barcalc"
+				value="#{T(foo.MyFunctions).getMethod('calc', T(foo.MyBar))}"/>
+		</map>
+	</property>
+</bean>]]></programlisting>
+		<para>
+			This factory bean definition will override the default <code>integrationEvaluationContext</code>
+			bean definition, adding the custom accessor to the list (which also includes the standard
+			accessors mentioned above), and one custom function.
+		</para>
+		<para>
+			Note that custom functions are static methods.
+			In the above example, the custom function is a static method <code>calc</code> on class
+			<classname>MyFunctions</classname> and takes a single parameter of type <classname>MyBar</classname>.
+		</para>
+		<para>
+			Say you have a <classname>Message</classname> with a payload that has a type <classname>MyFoo</classname>
+			on which you need to perform some action to create a <classname>MyBar</classname> object from it,
+			and you then want to invoke a custom function <code>calc</code> on that object.
+		</para>
+		<para>
+			The standard property accessors wouldn't know how to get a <classname>MyBar</classname>
+			from a <classname>MyFoo</classname> so you could write
+			and configure a custom property accessor to do so. So, your final expression might be
+			<code>"#barcalc(payload.myBar)"</code>.
+		</para>
+	</section>
+</appendix>
