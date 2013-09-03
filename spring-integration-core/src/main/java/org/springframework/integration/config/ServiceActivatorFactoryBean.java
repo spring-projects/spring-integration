@@ -61,6 +61,10 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		}
 	}
 
+	/**
+	 * If the target object is a {@link MessageHandler} and the method is 'handleMessage', return an
+	 * {@link AbstractReplyProducingMessageHandler} that wraps it.
+	 */
 	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
 		MessageHandler handler = null;
 		if (targetObject instanceof MessageHandler
@@ -95,15 +99,19 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
-	private AbstractReplyProducingMessageHandler configureHandler(ServiceActivatingHandler handler) {
+	private MessageHandler configureHandler(ServiceActivatingHandler handler) {
 		postProcessReplyProducer(handler);
 		return handler;
 	}
 
 
+	/**
+	 * Always returns true - any {@link AbstractReplyProducingMessageHandler} can
+	 * be used directly.
+	 */
 	@Override
 	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
-		return true; // Any ARPMH can be a service
+		return true;
 	}
 
 	@Override

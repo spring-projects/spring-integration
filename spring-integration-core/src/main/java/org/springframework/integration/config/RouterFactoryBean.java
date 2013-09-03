@@ -90,9 +90,9 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
-			MessageHandler directHandler = createDirectHandlerIfPossible(targetObject, targetMethodName);
-			if (directHandler != null) {
-				return directHandler;
+			if (targetObject instanceof MessageHandler && this.canBeUsedDirect(targetObject)
+					&& this.isHandleRequestMethod(targetMethodName)) {
+				return (MessageHandler) targetObject;
 			}
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
 			this.configureRouter(router);
@@ -106,15 +106,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			}
 		}
 		return router;
-	}
-
-	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
-		MessageHandler handler = null;
-		if (targetObject instanceof MessageHandler && this.canBeUsedDirect(targetObject)
-				&& this.isHandleRequestMethod(targetMethodName)) {
-			handler = (MessageHandler) targetObject;
-		}
-		return handler;
 	}
 
 	@Override

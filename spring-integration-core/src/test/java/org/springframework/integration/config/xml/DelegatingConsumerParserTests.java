@@ -184,7 +184,8 @@ public class DelegatingConsumerParserTests {
 			fail("expected exception");
 		}
 		catch (Exception e) {
-			assertEquals("An AbstractReplyProducingMessageHandler may only be referenced once (foo)", e.getMessage());
+			assertEquals("An AbstractReplyProducingMessageHandler may only be referenced once (foo) - "
+					+ "use scope=\"prototype\"", e.getMessage());
 		}
 	}
 
