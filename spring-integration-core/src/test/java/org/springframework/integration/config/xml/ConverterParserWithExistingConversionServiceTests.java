@@ -40,11 +40,11 @@ import org.springframework.util.Assert;
 public class ConverterParserWithExistingConversionServiceTests {
 	@Autowired
 	private ApplicationContext applicationContext;
-	
+
 	@Autowired
 	@Qualifier(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)
 	private ConversionService conversionService;
-	
+
 	@Test
 	public void testConversionServiceAvailability(){
 		Assert.isTrue(applicationContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME).equals(conversionService));
@@ -53,11 +53,12 @@ public class ConverterParserWithExistingConversionServiceTests {
 	}
 	@Test
 	public void testParentConversionServiceAvailability(){
-		ApplicationContext parentContext = 
+		ApplicationContext parentContext =
 			new ClassPathXmlApplicationContext("ConverterParserWithExistingConversionServiceTests-parent.xml", ConverterParserWithExistingConversionServiceTests.class);
 		GenericApplicationContext childContext = new GenericApplicationContext();
 		childContext.setParent(parentContext);
-		
+		childContext.refresh();
+
 		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
 		GenericConversionService conversionServiceChild = childContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
 		Assert.isTrue(conversionServiceParent == conversionServiceChild); // validating that they are pointing to the same object
@@ -67,7 +68,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 		Assert.isTrue(conversionServiceChild.canConvert(TestBean1.class, TestBean3.class));
 	}
 
-	
+
 	private static class TestBean1  {
 
 		private String text;
@@ -105,7 +106,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 			return this.text.replace("-TEST", "_TARGET_CHANNEL");
 		}
 	}
-	
+
 	private static class TestConverter implements Converter<TestBean1, TestBean2> {
 
 		public TestBean2 convert(TestBean1 source) {

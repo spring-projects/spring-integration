@@ -98,6 +98,7 @@ public class SOLingerTests {
 		TestingUtilities.waitListening(inCF, null);
 		try {
 			Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+			socket.setSoTimeout(10000);
 			String test = "Test\r\n";
 			socket.getOutputStream().write(test.getBytes());
 			byte[] buff = new byte[test.length() + 5];

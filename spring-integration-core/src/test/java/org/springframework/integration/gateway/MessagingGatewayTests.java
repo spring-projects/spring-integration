@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -49,6 +50,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @SuppressWarnings("unchecked")
 public class MessagingGatewayTests {
@@ -70,7 +72,10 @@ public class MessagingGatewayTests {
 		this.messagingGateway = new MessagingGatewaySupport() {};
 		this.messagingGateway.setRequestChannel(requestChannel);
 		this.messagingGateway.setReplyChannel(replyChannel);
-		this.messagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());
+		AbstractApplicationContext context = TestUtils.createTestApplicationContext();
+		context.refresh();
+
+		this.messagingGateway.setBeanFactory(context);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 		reset(allmocks);
@@ -169,7 +174,7 @@ public class MessagingGatewayTests {
 	@Ignore
 	public void sendMessageAndReceiveObject() {
 		// setup local mocks
-		MessageHeaders messageHeadersMock = createMock(MessageHeaders.class);	
+		MessageHeaders messageHeadersMock = createMock(MessageHeaders.class);
 		//set expectations
 		expect(replyChannel.receive(0)).andReturn(messageMock);
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
@@ -211,7 +216,7 @@ public class MessagingGatewayTests {
 	@Ignore
 	public void sendMessageAndReceiveMessage() {
 		// setup local mocks
-		MessageHeaders messageHeadersMock = createMock(MessageHeaders.class);	
+		MessageHeaders messageHeadersMock = createMock(MessageHeaders.class);
 		//set expectations
 		expect(replyChannel.receive(0)).andReturn(messageMock);
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
@@ -234,12 +239,12 @@ public class MessagingGatewayTests {
 			verify(allmocks);
 		}
 	}
-	
+
 	// should fail but it doesn't now
 	@Test(expected=MessagingException.class)
 	public void validateErroMessageCanNotBeReplyMessage() {
 		DirectChannel reqChannel = new DirectChannel();
-		reqChannel.subscribe(new MessageHandler() {		
+		reqChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("ooops");
 			}
@@ -248,22 +253,21 @@ public class MessagingGatewayTests {
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyErrorService());
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
-		this.messagingGateway = new MessagingGatewaySupport() {};
-	
+
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
-		this.messagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());
+		this.messagingGateway.setReplyChannel(null);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
-		
+
 		this.messagingGateway.sendAndReceiveMessage("hello");
 	}
-	
+
 	// should not fail but it does now
 	@Test
 	public void validateErrorChannelWithSuccessfulReply() {
 		DirectChannel reqChannel = new DirectChannel();
-		reqChannel.subscribe(new MessageHandler() {		
+		reqChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("ooops");
 			}
@@ -272,23 +276,22 @@ public class MessagingGatewayTests {
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyOneWayErrorService());
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
-		this.messagingGateway = new MessagingGatewaySupport() {};
-	
+
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
-		this.messagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());
+		this.messagingGateway.setReplyChannel(null);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
-		
-		this.messagingGateway.send("hello");		
+
+		this.messagingGateway.send("hello");
 	}
-	
+
 	public static class MyErrorService {
 		public Message<?> handleErrorMessage(Message<?> errorMessage){
 			return errorMessage;
 		}
 	}
-	
+
 	public static class MyOneWayErrorService {
 		public void handleErrorMessage(Message<?> errorMessage){
 			return;

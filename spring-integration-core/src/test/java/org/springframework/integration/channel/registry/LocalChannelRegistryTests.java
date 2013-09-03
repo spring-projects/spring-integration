@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -40,10 +41,11 @@ public class LocalChannelRegistryTests {
 
 	private LocalChannelRegistry registry = new LocalChannelRegistry();
 
-	private ApplicationContext context = new GenericApplicationContext();
+	private AbstractApplicationContext context = new GenericApplicationContext();
 
 	@Before
 	public void setUp() {
+		context.refresh();
 		registry.setApplicationContext(context);
 	}
 
