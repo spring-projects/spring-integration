@@ -54,7 +54,7 @@ public class SpelFunctionParser implements BeanDefinitionParser {
 
 		Class clazz = null;
 		try {
-			clazz = ClassUtils.forName(className, ClassUtils.getDefaultClassLoader());
+			clazz = ClassUtils.forName(className, parserContext.getReaderContext().getBeanClassLoader());
 		}
 		catch (ClassNotFoundException e) {
 			parserContext.getReaderContext().error(e.getMessage(), element);
