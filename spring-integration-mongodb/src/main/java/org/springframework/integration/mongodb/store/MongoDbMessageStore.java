@@ -29,6 +29,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.converter.Converter;
@@ -59,9 +63,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 
 /**
  * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
@@ -72,6 +73,7 @@ import com.mongodb.DBObject;
  * @author Sean Brandt
  * @author Jodie StJohn
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
@@ -313,6 +315,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			customConverters.add(new UuidToDBObjectConverter());
 			customConverters.add(new DBObjectToUUIDConverter());
 			customConverters.add(new MessageHistoryToDBObjectConverter());
+			customConverters.add(new DBObjectToGenericMessageConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
@@ -372,7 +375,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				}
 
 				if (completeGroup != null){
-					wrapper.set_Group_complete(completeGroup.booleanValue());
+					wrapper.set_Group_complete(completeGroup);
 				}
 
 				return (S) wrapper;
@@ -414,8 +417,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private static class DBObjectToUUIDConverter implements Converter<DBObject, UUID> {
 		public UUID convert(DBObject source) {
-			UUID id = UUID.fromString((String) source.get("_value"));
-			return id;
+			return UUID.fromString((String) source.get("_value"));
 		}
 	}
 
@@ -437,6 +439,37 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			return obj;
 		}
 	}
+
+    private class DBObjectToGenericMessageConverter implements Converter<DBObject, GenericMessage> {
+
+        @SuppressWarnings("unchecked")
+        public GenericMessage convert(DBObject source) {
+			MessageReadingMongoConverter converter =
+					(MessageReadingMongoConverter) MongoDbMessageStore.this.template.getConverter();
+			Map<String, Object> headers = converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
+
+			Object payload = source.get("payload");
+			Object payloadType = source.get(PAYLOAD_TYPE_KEY);
+			if (payloadType != null && payload instanceof DBObject) {
+				try {
+					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
+					payload = converter.read(payloadClass, (DBObject) payload);
+				}
+				catch (Exception e) {
+					throw new IllegalStateException("failed to load class: " + payloadType, e);
+				}
+			}
+
+			GenericMessage message = new GenericMessage(payload, headers);
+			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
+			// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+			innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+
+			return message;
+        }
+
+    }
 
 	/**
 	 * Wrapper class used for storing Messages in MongoDB along with their "group" metadata.
