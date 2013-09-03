@@ -79,8 +79,8 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	@Override
 	protected void checkForIllegalTarget(Object targetObject, String targetMethodName) {
 		if (targetObject instanceof AbstractReplyProducingMessageHandler
-				&& this.isHandleRequestMethod(targetMethodName)) {
-			throw new IllegalArgumentException("You cannot use 'AbstractReplyProducingMessageHandler.handleRequest()' "
+				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
+			throw new IllegalArgumentException("You cannot use 'AbstractReplyProducingMessageHandler.handleMessage()' "
 					+ "as a filter - it does not return a result");
 		}
 	}

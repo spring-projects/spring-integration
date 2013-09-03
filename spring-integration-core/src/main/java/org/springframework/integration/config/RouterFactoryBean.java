@@ -91,7 +91,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
 			if (targetObject instanceof MessageHandler && this.canBeUsedDirect(targetObject)
-					&& this.isHandleRequestMethod(targetMethodName)) {
+					&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 				return (MessageHandler) targetObject;
 			}
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
@@ -145,9 +145,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		}
 		if (this.resolutionRequired != null) {
 			router.setResolutionRequired(this.resolutionRequired);
-		}
-		else {
-			router.setResolutionRequired(true);
 		}
 		if (this.channelResolver != null) {
 			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");

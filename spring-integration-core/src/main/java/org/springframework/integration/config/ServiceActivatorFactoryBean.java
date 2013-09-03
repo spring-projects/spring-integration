@@ -48,17 +48,15 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
-		MessageHandler directHandler = null;
-		directHandler = createDirectHandlerIfPossible(targetObject, targetMethodName);
-		if (directHandler != null) {
-			return directHandler;
-		}
-		else {
-			ServiceActivatingHandler handler = (StringUtils.hasText(targetMethodName))
+		MessageHandler handler = null;
+		handler = createDirectHandlerIfPossible(targetObject, targetMethodName);
+		if (handler == null) {
+			handler = configureHandler(
+					StringUtils.hasText(targetMethodName)
 					? new ServiceActivatingHandler(targetObject, targetMethodName)
-					: new ServiceActivatingHandler(targetObject);
-			return this.configureHandler(handler);
+					: new ServiceActivatingHandler(targetObject));
 		}
+		return handler;
 	}
 
 	/**
@@ -68,7 +66,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	private MessageHandler createDirectHandlerIfPossible(final Object targetObject, String targetMethodName) {
 		MessageHandler handler = null;
 		if (targetObject instanceof MessageHandler
-				&& this.isHandleRequestMethod(targetMethodName)) {
+				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 			/*
 			 * Return a reply-producing message handler so that we still get 'produced no reply' messages
 			 * and the super class will inject the advice chain to advise the handler if needed.

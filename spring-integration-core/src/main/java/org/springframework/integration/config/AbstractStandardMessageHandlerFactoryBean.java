@@ -78,8 +78,8 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
 			boolean targetIsDirectReplyProducingHandler = this.extractTypeIfPossible(targetObject,
 										AbstractReplyProducingMessageHandler.class) != null
-							&& this.canBeUsedDirect(targetObject)
-							&& this.isHandleRequestMethod(this.targetMethodName);
+							&& this.canBeUsedDirect(targetObject) // give subclasses a say
+							&& this.methodIsHandleMessageOrEmpty(this.targetMethodName);
 			if (this.targetObject instanceof MessageProcessor<?>) {
 				handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
 			}
@@ -106,7 +106,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 
 	protected void checkForIllegalTarget(Object targetObject, String targetMethodName) {
 		if (targetObject instanceof AbstractReplyProducingMessageHandler
-				&& this.isHandleRequestMethod(targetMethodName)) {
+				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 			/*
 			 * If we allow an ARPMH to be the target of another ARPMH, the reply would
 			 * be attempted to be sent by the inner (no output channel) and a reply would
@@ -163,7 +163,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		return null;
 	}
 
-	protected boolean isHandleRequestMethod(String targetMethodName) {
+	protected boolean methodIsHandleMessageOrEmpty(String targetMethodName) {
 		return (!StringUtils.hasText(targetMethodName)
 				|| "handleMessage".equals(targetMethodName));
 	}
