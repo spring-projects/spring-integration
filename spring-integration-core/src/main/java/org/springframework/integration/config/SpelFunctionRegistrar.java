@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -63,14 +64,18 @@ class SpelFunctionRegistrar implements ApplicationContextAware, InitializingBean
 	public void afterPropertiesSet() throws Exception {
 		ApplicationContext parent = this.applicationContext.getParent();
 		if (parent != null) {
-			SpelFunctionRegistrar parentFunctionRegistrar = parent.getBean(SpelFunctionRegistrar.class);
-			if (parentFunctionRegistrar != null) {
+			try {
+				SpelFunctionRegistrar parentFunctionRegistrar = parent.getBean(SpelFunctionRegistrar.class);
 				Map<String, Method> parentFunctions = parentFunctionRegistrar.getFunctions();
 				for (String key : parentFunctions.keySet()) {
 					if(!this.functions.containsKey(key)) {
 						this.functions.put(key, parentFunctions.get(key));
 					}
 				}
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				//Ignore it.
+				//There is no <spel-function> components within parent application context.
 			}
 		}
 	}

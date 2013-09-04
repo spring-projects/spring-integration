@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -56,7 +57,13 @@ public class ParentContextTests {
 	 */
 	@Test
 	public void testSpelBeanReferencesInChildAndParent() throws ClassNotFoundException {
-		AbstractApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml", this.getClass());
+		//To check if 'org.springframework.integration.config.SpelFunctionRegistrar#afterPropertiesSet()'
+		//doesn't throw any Exception
+		AbstractApplicationContext superParent = new GenericApplicationContext();
+		superParent.refresh();
+
+		AbstractApplicationContext parent = new ClassPathXmlApplicationContext(new String[]{"ParentContext-context.xml"},
+				this.getClass(), superParent);
 
 		Class<?> spelFunctionRegistrarClass = Class.forName("org.springframework.integration.config.SpelFunctionRegistrar");
 		Object parentSpelFunctionRegistrar = parent.getBean(spelFunctionRegistrarClass);

@@ -127,7 +127,7 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 			}
 			catch (NoSuchBeanDefinitionException e) {
 				//Ignore it.
-				// There is no <spel-function> components within application context.
+				//There is no <spel-function> components within application context.
 			}
 		}
 	}
