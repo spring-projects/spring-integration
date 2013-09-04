@@ -81,8 +81,9 @@ public class SpelFunctionParser implements BeanDefinitionParser {
 	private synchronized void initializeSpelFunctionRegistrarIfNecessary(ParserContext parserContext) {
 		if (!this.initialized) {
 			BeanDefinitionBuilder registrarBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SpelFunctionRegistrar");
-			registrarBuilder.addConstructorArgValue(this.functions);
+					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SpelFunctionRegistrar")
+					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+					.addConstructorArgValue(this.functions);
 			BeanDefinitionReaderUtils.registerWithGeneratedName(registrarBuilder.getBeanDefinition(),
 					parserContext.getRegistry());
 			this.initialized = true;

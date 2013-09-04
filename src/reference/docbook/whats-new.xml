@@ -64,9 +64,9 @@
 			<title>JMX Support</title>
 			<para>
 				A new <code>&lt;int-jmx:tree-polling-channel-adapter/&gt;</code> is provided; this
-				adapter queries the JMX MBean tree and sends a message with a payload that is the 
-				graph of objects that matches the query. By default the MBeans are mapped to 
-				primitives and simple Objects like Map, List and arrays - permitting simple 
+				adapter queries the JMX MBean tree and sends a message with a payload that is the
+				graph of objects that matches the query. By default the MBeans are mapped to
+				primitives and simple Objects like Map, List and arrays - permitting simple
 				transformation, for example, to JSON
 				<xref linkend="jmx"/>.
 			</para>
@@ -82,9 +82,17 @@
 		<section id="3.0-spel-customization">
 			<title>Spring Expression Language (SpEL) Configuration</title>
 			<para>
-				A new factory bean is provided to allow
+				A new <classname>IntegrationEvaluationContextFactoryBean</classname> is provided to allow
 				configuration of custom <interfacename>PropertyAccessor</interfacename>s and functions for
 				use in SpEL expressions throughout the framework. For more information see <xref linkend="spel" />.
+			</para>
+		</section>
+		<section id="3.0-spel-functions">
+			<title>SpEL Functions Support</title>
+			<para>
+				To customize the SpEL <interfacename>EvaluationContext</interfacename> with static
+				<classname>Method</classname> functions the new <code>&lt;spel-function/&gt;</code>
+				component is introduced. For more information see <xref linkend="spel-functions" />.
 			</para>
 		</section>
 	</section>
@@ -303,7 +311,7 @@
 			<para>
 				All Outbound Gateways (e.g. <code>&lt;jdbc:outbound-gateway/&gt;</code> or <code>&lt;jms:outbound-gateway/&gt;</code>)
 				are designed for 'request-reply' scenarios. A response is expected from the external service and
-				will be published to the <code>reply-channel</code>, or the <code>replyChannel</code> message header. 
+				will be published to the <code>reply-channel</code>, or the <code>replyChannel</code> message header.
 				However, there are some cases where the external system might not always return a
 				result, e.g. a <code>&lt;jdbc:outbound-gateway/&gt;</code>, when a SELECT ends with an empty <interfacename>ResultSet</interfacename>
 				or, say, a Web Service is One-Way. An option is therefore needed to configure whether or not a
