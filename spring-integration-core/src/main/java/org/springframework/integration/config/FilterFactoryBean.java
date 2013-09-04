@@ -132,9 +132,9 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	 * MessageSelector, MesageSelector wins and gets wrapped in a MessageFilter.
 	 */
 	@Override
-	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
-		return abstractReplyProducingMessageHandler instanceof MessageFilter
-				|| (!(abstractReplyProducingMessageHandler instanceof MessageSelector)
+	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+		return handler instanceof MessageFilter
+				|| (!(handler instanceof MessageSelector)
 						&& this.discardChannel == null && this.throwExceptionOnRejection == null
 						&& this.discardWithinAdvice == null);
 	}

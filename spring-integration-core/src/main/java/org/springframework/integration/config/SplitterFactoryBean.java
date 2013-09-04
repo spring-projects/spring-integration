@@ -106,8 +106,8 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	@Override
-	protected boolean canBeUsedDirect(Object targetObject) {
-		return targetObject instanceof AbstractMessageSplitter
+	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+		return handler instanceof AbstractMessageSplitter
 				|| (this.applySequence == null && this.delimiters == null);
 	}
 
@@ -135,12 +135,8 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 			if (this.applySequence != null) {
 				splitter.setApplySequence(applySequence);
 			}
-			else {
-				splitter.setApplySequence(true);
-			}
 		}
 	}
-
 
 
 }

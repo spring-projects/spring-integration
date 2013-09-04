@@ -78,8 +78,12 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 		}
 	}
 
+	/**
+	 * Always returns true - any {@link AbstractReplyProducingMessageHandler} can
+	 * be used directly.
+	 */
 	@Override
-	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
 		return true; // Any ARPMH can be a transformer
 	}
 

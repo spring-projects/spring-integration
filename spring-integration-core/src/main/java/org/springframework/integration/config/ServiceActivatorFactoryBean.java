@@ -67,6 +67,10 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		MessageHandler handler = null;
 		if (targetObject instanceof MessageHandler
 				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
+			if (targetObject instanceof AbstractReplyProducingMessageHandler) {
+				// should never happen but just return it if it's already an ARPMH
+				return (MessageHandler) targetObject;
+			}
 			/*
 			 * Return a reply-producing message handler so that we still get 'produced no reply' messages
 			 * and the super class will inject the advice chain to advise the handler if needed.
@@ -108,7 +112,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	 * be used directly.
 	 */
 	@Override
-	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
 		return true;
 	}
 

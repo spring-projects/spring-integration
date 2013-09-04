@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
@@ -90,7 +91,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
-			if (targetObject instanceof MessageHandler && this.canBeUsedDirect(targetObject)
+			if (targetObject instanceof MessageHandler && this.noRouterAttributesProvided()
 					&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 				return (MessageHandler) targetObject;
 			}
@@ -153,9 +154,12 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
-		return !(abstractReplyProducingMessageHandler instanceof AbstractMessageRouter)
-				&& this.channelMappings == null && this.defaultOutputChannel == null
+	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
+		return noRouterAttributesProvided();
+	}
+
+	private boolean noRouterAttributesProvided() {
+		return this.channelMappings == null && this.defaultOutputChannel == null
 				&& this.timeout == null && this.resolutionRequired == null && this.applySequence == null
 				&& this.ignoreSendFailures == null && this.channelResolver == null;
 	}

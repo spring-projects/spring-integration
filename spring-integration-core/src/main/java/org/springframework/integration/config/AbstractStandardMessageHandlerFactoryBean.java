@@ -78,7 +78,8 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
 			boolean targetIsDirectReplyProducingHandler = this.extractTypeIfPossible(targetObject,
 										AbstractReplyProducingMessageHandler.class) != null
-							&& this.canBeUsedDirect(targetObject) // give subclasses a say
+							&& this.canBeUsedDirect(
+									(AbstractReplyProducingMessageHandler) targetObject) // give subclasses a say
 							&& this.methodIsHandleMessageOrEmpty(this.targetMethodName);
 			if (this.targetObject instanceof MessageProcessor<?>) {
 				handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
@@ -168,7 +169,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 				|| "handleMessage".equals(targetMethodName));
 	}
 
-	protected boolean canBeUsedDirect(Object abstractReplyProducingMessageHandler) {
+	protected boolean canBeUsedDirect(AbstractReplyProducingMessageHandler handler) {
 		return false;
 	}
 
