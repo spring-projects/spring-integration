@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
- *
+ * 
  * @author Eric Bottard
  */
 public class JsonPropertyAccessor implements PropertyAccessor {
@@ -41,8 +41,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	/**
 	 * The kind of types this can work with.
 	 */
-	private static final Class<?>[] SUPPORTED_CLASSES =
-			new Class[] { String.class, ObjectNode.class, ArrayNode.class };
+	private static final Class<?>[] SUPPORTED_CLASSES = new Class[] { String.class, ToStringFriendlyJsonNode.class,
+			ObjectNode.class, ArrayNode.class };
 
 	// Note: ObjectMapper is thread-safe
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -59,20 +59,28 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		return ((index != null && container.has(index)) || container.has(name));
 	}
 
+	private ContainerNode<?> assertContainerNode(JsonNode json) throws AccessException {
+		if (json instanceof ContainerNode) {
+			return (ContainerNode<?>) json;
+		}
+		else {
+			throw new AccessException("Can not act on json that is not a ContainerNode: "
+					+ json.getClass().getSimpleName());
+		}
+	}
+
 	private ContainerNode<?> asJson(Object target) throws AccessException {
 		if (target instanceof ContainerNode) {
 			return (ContainerNode<?>) target;
 		}
+		else if (target instanceof ToStringFriendlyJsonNode) {
+			ToStringFriendlyJsonNode wrapper = (ToStringFriendlyJsonNode) target;
+			return assertContainerNode(wrapper.node);
+		}
 		else if (target instanceof String) {
 			try {
 				JsonNode json = this.objectMapper.readTree((String) target);
-				if (json instanceof ContainerNode) {
-					return (ContainerNode<?>) json;
-				}
-				else {
-					throw new AccessException("Can not act on json that is not a ContainerNode: "
-							+ json.getClass().getSimpleName());
-				}
+				return assertContainerNode(json);
 			}
 			catch (JsonProcessingException e) {
 				throw new AccessException("Exception while trying to deserialize String", e);
@@ -103,10 +111,10 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		ContainerNode<?> container = asJson(target);
 		Integer index = maybeIndex(name);
 		if (index != null && container.has(index)) {
-			return new TypedValue(container.get(index));
+			return new TypedValue(wrap(container.get(index)));
 		}
 		else {
-			return new TypedValue(container.get(name));
+			return new TypedValue(wrap(container.get(name)));
 		}
 	}
 
@@ -123,6 +131,30 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "'objectMapper' cannot be null");
 		this.objectMapper = objectMapper;
+	}
+
+	private ToStringFriendlyJsonNode wrap(JsonNode json) {
+		return new ToStringFriendlyJsonNode(json);
+	}
+
+	public static class ToStringFriendlyJsonNode {
+		private final JsonNode node;
+
+		public ToStringFriendlyJsonNode(JsonNode node) {
+			this.node = node;
+		}
+
+		@Override
+		public String toString() {
+			if (node.isValueNode()) {
+				// This is to avoid quotes around a TextNode for example
+				return node.asText();
+			}
+			else {
+				return node.toString();
+			}
+
+		}
 	}
 
 }
