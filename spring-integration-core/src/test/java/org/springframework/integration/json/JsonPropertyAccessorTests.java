@@ -25,7 +25,6 @@ import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -49,20 +48,20 @@ public class JsonPropertyAccessorTests {
 	@Test
 	public void testSimpleLookup() throws Exception {
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
-		JsonNode actual = evaluate(json, "foo", JsonNode.class);
-		assertEquals("bar", actual.asText());
+		Object actual = evaluate(json, "foo", Object.class);
+		assertEquals("bar", actual.toString());
 	}
 
 	@Test(expected = SpelEvaluationException.class)
 	public void testUnsupportedJsonConstruct() throws Exception {
 		Object json = mapper.readTree("\"foo\"");
-		evaluate(json, "fizz", JsonNode.class);
+		evaluate(json, "fizz", Object.class);
 	}
 
 	@Test(expected = SpelEvaluationException.class)
 	public void testMissingProperty() throws Exception {
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
-		evaluate(json, "fizz", JsonNode.class);
+		evaluate(json, "fizz", Object.class);
 	}
 
 	@Test
@@ -70,8 +69,8 @@ public class JsonPropertyAccessorTests {
 		Object json = mapper.readTree("[3, 4, 5]");
 		// JsonNode actual = evaluate("1", json, JsonNode.class); // Does not work
 		// JsonNode actual = evaluate("'1'", json, JsonNode.class); // Does not work
-		JsonNode actual = evaluate(json, "['1']", JsonNode.class);
-		assertEquals(4, actual.asInt());
+		Object actual = evaluate(json, "['1']", Object.class);
+		assertEquals("4", actual.toString());
 	}
 
 	@Test
@@ -79,22 +78,22 @@ public class JsonPropertyAccessorTests {
 		Object json = mapper.readTree("[[3], [4, 5], []]");
 		// JsonNode actual = evaluate("1.1", json, JsonNode.class); // Does not work
 		// JsonNode actual = evaluate("[1][1]", json, JsonNode.class); // Does not work
-		JsonNode actual = evaluate(json, "['1']['1']", JsonNode.class);
-		assertEquals(5, actual.asInt());
+		Object actual = evaluate(json, "['1']['1']", Object.class);
+		assertEquals("5", actual.toString());
 	}
 
 	@Test
 	public void testNestedHashConstruct() throws Exception {
 		Object json = mapper.readTree("{\"foo\": {\"bar\": 4, \"fizz\": 5} }");
-		JsonNode actual = evaluate(json, "foo.fizz", JsonNode.class);
-		assertEquals(5, actual.asInt());
+		Object actual = evaluate(json, "foo.fizz", Object.class);
+		assertEquals("5", actual.toString());
 	}
 
 	@Test
 	public void testImplicitStringConversion() throws Exception {
 		String json = "{\"foo\": {\"bar\": 4, \"fizz\": 5} }";
-		JsonNode actual = evaluate(json, "foo.fizz", JsonNode.class);
-		assertEquals(5, actual.asInt());
+		Object actual = evaluate(json, "foo.fizz", Object.class);
+		assertEquals("5", actual.toString());
 	}
 
 	@Test(expected = SpelEvaluationException.class)
