@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 /**
  * @author Mark Fisher
  * @author Dave Syer
+ * @author Gary Russell
+ *
  * @since 2.1
  */
 public class OutboundGatewayTests {
@@ -75,7 +77,7 @@ public class OutboundGatewayTests {
 		}).when(context).getBean(anyString());
 		when(context.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)).thenReturn(true);
 		IntegrationEvaluationContextFactoryBean integrationEvaluationContextFactoryBean = new IntegrationEvaluationContextFactoryBean();
-		integrationEvaluationContextFactoryBean.setApplicationContext(context);
+		integrationEvaluationContextFactoryBean.setBeanFactory(context);
 		integrationEvaluationContextFactoryBean.afterPropertiesSet();
 		StandardEvaluationContext evalContext = integrationEvaluationContextFactoryBean.getObject();
 		when(context.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class))

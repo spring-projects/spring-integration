@@ -47,6 +47,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -69,6 +70,9 @@ public class SpelTransformerIntegrationTests {
 
 	@Autowired @Qualifier("bar.handler")
 	private AbstractReplyProducingMessageHandler barHandler;
+
+	@Autowired
+	private MessageChannel spelFunctionInput;
 
 
 	@Test
@@ -117,6 +121,14 @@ public class SpelTransformerIntegrationTests {
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
 		assertEquals("bar", reply.getPayload());
+	}
+
+	@Test
+	public void testInt1639SpelFunction() {
+		Message<?> message = MessageBuilder.withPayload("  foo   ").build();
+		this.spelFunctionInput.send(message);
+		Message<?> result = output.receive(0);
+		assertEquals("foo", result.getPayload());
 	}
 
 	static class TestBean {
