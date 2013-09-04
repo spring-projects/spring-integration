@@ -29,6 +29,6 @@
 
 	<int:publish-subscribe-channel id="pubSubDefaultChannel" />
 
-	<int:publish-subscribe-channel id="pubSubExplicitChannel" max-subscribers="2 "/>
+	<int:publish-subscribe-channel id="pubSubExplicitChannel" max-subscribers="2 " min-subscribers="1"/>
 
 </beans>

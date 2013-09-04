@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	private final Executor executor;
 
+	private volatile int minSubscribers;
+
 	public BroadcastingDispatcher() {
 		this(null, false);
 	}
@@ -89,8 +91,17 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		this.applySequence = applySequence;
 	}
 
+	/**
+	 * If at least this number of subscribers receive the message, {@link #dispatch(Message)}
+	 * will return true. Default: 0.
+	 * @param minSubscribers The minimum number of subscribers.
+	 */
+	public void setMinSubscribers(int minSubscribers) {
+		this.minSubscribers = minSubscribers;
+	}
+
 	public boolean dispatch(Message<?> message) {
-		boolean dispatched = false;
+		int dispatched = 0;
 		int sequenceNumber = 1;
 		Collection<MessageHandler> handlers = this.getHandlers();
 		if (this.requireSubscribers && handlers.size() == 0) {
@@ -106,14 +117,23 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 						invokeHandler(handler, messageToSend);
 					}
 				});
-				dispatched = true;
+				dispatched++;
 			}
 			else {
-				boolean success = this.invokeHandler(handler, messageToSend);
-				dispatched = (success || dispatched);
+				if (this.invokeHandler(handler, messageToSend)) {
+					dispatched++;
+				}
 			}
 		}
-		return dispatched;
+		if (dispatched == 0 && this.minSubscribers == 0 && logger.isDebugEnabled()) {
+			if (sequenceSize > 0) {
+				logger.debug("No subscribers received message, default behavior is ignore");
+			}
+			else {
+				logger.debug("No subscribers, default behavior is ignore");
+			}
+		}
+		return dispatched >= minSubscribers;
 	}
 
 	private boolean invokeHandler(MessageHandler handler, Message<?> message) {
@@ -134,5 +154,6 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 			return false;
 		}
 	}
+
 
 }

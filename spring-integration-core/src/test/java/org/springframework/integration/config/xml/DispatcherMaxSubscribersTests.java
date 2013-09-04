@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,5 +78,7 @@ public abstract class DispatcherMaxSubscribersTests {
 		Integer explicitMax = TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(pubSubExplicitChannel, "dispatcher"), "maxSubscribers", Integer.class);
 		assertEquals(val2, explicitMax.intValue());
+		Integer explicitMin = TestUtils.getPropertyValue(pubSubExplicitChannel, "dispatcher.minSubscribers", Integer.class);
+		assertEquals(1, explicitMin.intValue());
 	}
 }

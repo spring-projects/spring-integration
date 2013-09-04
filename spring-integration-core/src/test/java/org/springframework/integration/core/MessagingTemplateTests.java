@@ -36,9 +36,11 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -545,6 +547,69 @@ public class MessagingTemplateTests {
 		catch (MessagingException e) {
 			assertEquals("Reply message being sent, but the receiving thread has already timed out", e.getMessage());
 		}
+	}
+
+	@Test
+	public void testNoSubs() {
+		MessagingTemplate template = new MessagingTemplate();
+		PublishSubscribeChannel channel = new PublishSubscribeChannel();
+		template.setDefaultChannel(channel);
+		template.convertAndSend("foo");
+	}
+
+	@Test
+	public void testSubsAllFail() {
+		MessagingTemplate template = new MessagingTemplate();
+		PublishSubscribeChannel channel = new PublishSubscribeChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new RuntimeException();
+			}
+		});
+		channel.setIgnoreFailures(true);
+		template.setDefaultChannel(channel);
+		template.convertAndSend("foo");
+	}
+
+	@Test
+	public void testEnoughSubs() {
+		MessagingTemplate template = new MessagingTemplate();
+		PublishSubscribeChannel channel = new PublishSubscribeChannel();
+		channel.setMinSubscribers(1);
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
+		template.setDefaultChannel(channel);
+		template.convertAndSend("foo");
+	}
+
+	@Test(expected=MessageDeliveryException.class)
+	public void testNoSubsFatal() {
+		MessagingTemplate template = new MessagingTemplate();
+		PublishSubscribeChannel channel = new PublishSubscribeChannel();
+		channel.setMinSubscribers(1);
+		template.setDefaultChannel(channel);
+		template.convertAndSend("foo");
+	}
+
+	@Test(expected=MessageDeliveryException.class)
+	public void testNotEnoughSubsFatal() {
+		MessagingTemplate template = new MessagingTemplate();
+		PublishSubscribeChannel channel = new PublishSubscribeChannel();
+		channel.setMinSubscribers(2);
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
+		template.setDefaultChannel(channel);
+		template.convertAndSend("foo");
 	}
 
 	@Test

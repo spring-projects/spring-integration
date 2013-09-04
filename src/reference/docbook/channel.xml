@@ -81,6 +81,20 @@
         must be a <interfacename>MessageHandler</interfacename> itself, and the subscriber's
         <methodname>handleMessage(Message)</methodname> method will be invoked in turn.
       </para>
+      <para>
+        Prior to version 3.0, invoking the send method on a <classname>PublishSubscribeChannel</classname> that
+        had no subscribers returned <code>false</code>. When used in conjunction with a
+        <classname>MessagingTemplate</classname>, a <classname>MessageDeliveryException</classname>
+        was thrown. Starting with version 3.0, the behavior has changed such that a send is
+        always considered successful if at least the minimum subscribers are present (and successfully
+        handle the message). This behavior can be modified by setting the <code>minSubscribers</code>
+        property, which defaults to <code>0</code>.
+      </para>
+      <note>
+        If a <classname>TaskExecutor</classname> is used, only the presence of the correct number
+        of subscribers is used for this determination, because the actual handling of the message
+        is performed asynchronously.
+      </note>
     </section>
     <section id="channel-implementations-queuechannel">
       <title>QueueChannel</title>
