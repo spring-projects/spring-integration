@@ -363,5 +363,18 @@
 				For more information see <xref linkend="http"/>.
 			</para>
 		</section>
+		<section id="3.0-pub-sub">
+			<title>PublishSubscribeChannel Behavior</title>
+			<para>
+				Previously, sending to a &lt;publish-subscribe-channel/&gt; that had
+				no subscribers would return a <code>false</code> result. If used in conjunction with
+				a <classname>MessagingTemplate</classname>, this would result in an exception being thrown.
+				Now, the <classname>PublishSubscribeChannel</classname> has a property
+				<code>minSubscribers</code> (default 0). If the message is sent to at least the minimum
+				number of subscribers, the send is deemed to be successful (even if zero). If an application
+				is expecting to get an exception under these conditions, set the minimum subscribers to at
+				least 1.
+			</para>
+		</section>
 	</section>
 </chapter>

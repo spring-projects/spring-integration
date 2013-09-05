@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 	private volatile boolean ignoreFailures;
 
 	private volatile boolean applySequence;
+
+	private volatile int minSubscribers;
 
 	private volatile int maxSubscribers = Integer.MAX_VALUE;
 
@@ -116,6 +118,18 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 		this.maxSubscribers = maxSubscribers;
 		this.getDispatcher().setMaxSubscribers(maxSubscribers);
 	}
+
+	/**
+	 * If at least this number of subscribers receive the message,
+	 * {@link #send(org.springframework.integration.Message)}
+	 * will return true. Default: 0.
+	 * @param minSubscribers The minimum number of subscribers.
+	 */
+	public void setMinSubscribers(int minSubscribers) {
+		this.minSubscribers = minSubscribers;
+		this.getDispatcher().setMinSubscribers(minSubscribers);
+	}
+
 	/**
 	 * Callback method for initialization.
 	 */
@@ -132,6 +146,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 			this.dispatcher = new BroadcastingDispatcher(this.executor);
 			this.dispatcher.setIgnoreFailures(this.ignoreFailures);
 			this.dispatcher.setApplySequence(this.applySequence);
+			this.dispatcher.setMinSubscribers(this.minSubscribers);
 			this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 		}
 	}
