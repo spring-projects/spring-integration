@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
- *
+ * 
  * @author Eric Bottard
  */
 public class JsonPropertyAccessor implements PropertyAccessor {

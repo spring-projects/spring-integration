@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -29,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests for {@link JsonPropertyAccessor}.
- *
+ * 
  * @author Eric Bottard
  */
 public class JsonPropertyAccessorTests {
