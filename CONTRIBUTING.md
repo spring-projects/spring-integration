@@ -97,18 +97,18 @@ This command, will provide the following output, which in this case shows a nice
 * c129a02e6c752b49bacd4a445092a44f66c2a1e9 INT-2721 Increase Timers on JDBC Delayer Tests
 * 14e556ce23d49229c420632cef608630b1d82e7d INT-2620 Fix Debug Log
 *   af35733b20fa97a5df123a155362f9b5781ac4b6 Merge pull request #814 from willschipp/INT-3037
-|\  
+|\
 | * 6140aa7b2cfb6ae309c55a157e94b44e5d0bea4f INT-3037 Fix JDBC MS Discard After Completion
-|/  
+|/
 * 077f2b24ea871a3937c513e08241d1c6cb9c9179 Update Spring Social Twitter to 1.0.5
 *   cc5bcf64a68bb7b6e59132cc675c36be694e174a Merge pull request #819 from garyrussell/INT-3053
-|\  
+|\
 | * 6d4f2b46d859c903881a561c35aa28df68f8faf3 INT-3053 Allow task-executor on <reply-listener/>
-|/  
+|/
 *   1a27d8194158572f59622f1618de17b99dfb52f0 Merge pull request #816 from habuma
-|\  
+|\
 | * 56f9581b85a8a40bbcf2461ffc0753212669a68d Update Spring Social Twitter version to 1.0.4
-|/  
+|/
 ````
 If you see intersecting lines, that usually means that you forgot to rebase you branch. As mentioned earlier, **please rebase against master** before issueing a pull request.
 
@@ -131,7 +131,7 @@ Please carefully follow the whitespace and formatting conventions already presen
 
 ```java
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,6 +215,21 @@ See the [checking out and building][] section of the README for instructions. Ma
 ## Mention your pull request on the associated JIRA issue
 
 Add a comment to the associated JIRA issue(s) linking to your new pull request.
+
+## Provide a Link to the JIRA issue in the Associated Pull Request
+
+Add a JIRA issue link to your first commit comment of the pull request on the last line, so your commit message may looks like this:
+
+    INT-1639: Add <spel-function> support
+
+    * add `<spel-function>` XSD element
+    * add `SpelFunctionParser`
+    * add `SpelFunctionRegistrar` to avoid introducing some confused 'Method'-bean
+    * add `SpelFunctionRegistrar` collaboration with `IntegrationEvaluationContextFactoryBean`
+    * some refactoring for `IntegrationEvaluationContextFactoryBean`
+    * polishing some failed tests after this change
+
+    JIRA: https://jira.springsource.org/browse/INT-1639
 
 [help documentation]: http://help.github.com/send-pull-requests
 [JIRA issue tracker]: https://jira.springsource.org/browse/INT
