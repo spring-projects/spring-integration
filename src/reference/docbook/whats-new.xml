@@ -102,6 +102,15 @@
 				component is introduced. For more information see <xref linkend="spel-functions" />.
 			</para>
 		</section>
+		<section id="3.0-spel-property-accessors">
+			<title>SpEL PropertyAccessors Support</title>
+			<para>
+				To customize the SpEL <interfacename>EvaluationContext</interfacename> with
+				<interfacename>PropertyAccessor</interfacename> implementations
+				the new <code>&lt;spel-property-accessors/&gt;</code> component is introduced.
+				For more information see <xref linkend="spel-property-accessors" />.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">

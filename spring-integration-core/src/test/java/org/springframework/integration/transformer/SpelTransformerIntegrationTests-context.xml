@@ -39,6 +39,13 @@
 		</beans:property>
 	</beans:bean>
 
+	<spel-property-accessors>
+		<beans:bean class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
+		<beans:ref bean="fooAccessor"/>
+	</spel-property-accessors>
+
+	<beans:bean id="fooAccessor" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
+
 	<channel id="fooin" />
 
 	<transformer id="foo" input-channel="fooin" expression="payload.bar" />

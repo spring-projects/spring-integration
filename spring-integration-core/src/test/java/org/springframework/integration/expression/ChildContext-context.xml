@@ -21,6 +21,9 @@
 
 	<int:spel-function id="barChild" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
 
-	<int:spel-function id="jsonPath" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
+	<int:spel-function id="jsonPath" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>	<int:spel-property-accessors>
+		<ref bean="jsonPropertyAccessor"/>
+	</int:spel-property-accessors>
 
+	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
 </beans>

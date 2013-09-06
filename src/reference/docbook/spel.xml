@@ -140,9 +140,33 @@
 				the same name. The functions themselves are processed by the framework - they do not appear
 				as beans in the application context.
 			</note>
+		</para>
+	</section>
+	<section id="spel-property-accessors">
+		<title>PropertyAccessors</title>
+		<para>
+			Namespace support is provided for easy addition of SpEL custom <interfacename>PropertyAccessor</interfacename>
+			implementations. You can specify the <code>&lt;spel-property-accessors/&gt;</code> list component to provide
+			custom <interfacename>PropertyAccessor</interfacename>s to the <interfacename>EvaluationContext</interfacename>
+			used throughout the framework. Instead of configuring the factory bean above, simply add one or more of these
+			components and the framework will automatically add them to the default
+			<emphasis>integrationEvaluationContext</emphasis> factory bean:
+		</para>
+		<programlisting language="xml"><![CDATA[<int:spel-property-accessors>
+	<beans:bean class="org.springframework.integration.json.JsonPropertyAccessor"/>
+	<beans:ref bean="fooPropertyAccessor"/>
+</int:spel-property-accessors>
+		]]></programlisting>
+		<para>
+			With this sample two custom <interfacename>PropertyAccessor</interfacename>s will be injected to the
+			<interfacename>EvaluationContext</interfacename> and in the order how they are declared.
+		</para>
+		<para>
 			<note>
-				At this time, <interfacename>PropertyAccessor</interfacename>s are not inherited and must be
-				declared as described above in each context.
+				Custom <interfacename>PropertyAccessor</interfacename>s declared in a parent context are also made available
+				in any child context(s). They are placed in the end of result list (but before default
+				<classname>org.springframework.expression.spel.support.ReflectivePropertyAccessor</classname>).
+				Custom <interfacename>PropertyAccessor</interfacename>s can't be overridden.
 			</note>
 		</para>
 	</section>

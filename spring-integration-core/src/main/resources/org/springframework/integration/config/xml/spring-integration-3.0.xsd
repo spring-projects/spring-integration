@@ -3923,6 +3923,20 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="spel-property-accessors">
+		<xsd:annotation>
+			<xsd:documentation>
+				Allows you to register PropertyAccessors (implementation of the PropertyAccessor interface) that will
+				be automatically registered with the SpEL EvaluationContext.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element ref="beans:bean" />
+				<xsd:element ref="beans:ref" />
+			</xsd:choice>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:complexType name="control-bus-type">
 		<xsd:annotation>

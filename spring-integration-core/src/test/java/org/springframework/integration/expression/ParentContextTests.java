@@ -29,11 +29,10 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.hamcrest.Matchers;
-
-import org.springframework.context.support.AbstractApplicationContext;
+import org.hamcrest.Matchers;import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.PropertyAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -45,6 +44,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -57,7 +57,10 @@ public class ParentContextTests {
 	 * BeanResolver. Verifies that the two Foos in the parent context get an evaluation context
 	 * with the same bean resolver. Verifies that the one Foo in the child context gets a different
 	 * bean resolver. Verifies that bean references in SpEL expressions to beans in the child
-	 * and parent contexts work.
+	 * and parent contexts work. Verifies that PropertyAccessors are inherited in the child context
+	 * and the parent's ones are last in the propertyAccessors list of EvaluationContext.
+	 * Verifies that SpEL functions are inherited from parent context and overridden with the same 'id'.
+	 *
 	 */
 	@Test
 	public void testSpelBeanReferencesInChildAndParent() throws Exception {
@@ -69,7 +72,6 @@ public class ParentContextTests {
 		Object jsonPath = parentFunctions.get("jsonPath");
 		assertNotNull(jsonPath);
 		assertThat((Method) jsonPath, Matchers.isOneOf(JsonPathUtils.class.getMethods()));
-
 		assertEquals(2, evalContexts.size());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(parent);
 		child.setConfigLocation("org/springframework/integration/expression/ChildContext-context.xml");
@@ -82,12 +84,41 @@ public class ParentContextTests {
 		jsonPath = childFunctions.get("jsonPath");
 		assertNotNull(jsonPath);
 		assertThat((Method) jsonPath, Matchers.not(Matchers.isOneOf(JsonPathUtils.class.getMethods())));
-
 		assertEquals(3, evalContexts.size());
 		assertSame(evalContexts.get(0).getBeanResolver(), evalContexts.get(1).getBeanResolver());
+
+		List<PropertyAccessor> propertyAccessors = evalContexts.get(0).getPropertyAccessors();
+		assertEquals(3, propertyAccessors.size());
+		PropertyAccessor parentPropertyAccessor = parent.getBean("jsonPropertyAccessor", PropertyAccessor.class);
+		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
+
+		Map<String, Object> variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(0), "variables");
+		assertEquals(2, variables.size());
+		assertTrue(variables.containsKey("bar"));
+		assertTrue(variables.containsKey("barParent"));
+
 		assertNotSame(evalContexts.get(1).getBeanResolver(), evalContexts.get(2).getBeanResolver());
-		assertSame(parent, TestUtils.getPropertyValue(evalContexts.get(0).getBeanResolver(), "beanFactory"));
-		assertSame(child, TestUtils.getPropertyValue(evalContexts.get(2).getBeanResolver(), "beanFactory"));
+		propertyAccessors = evalContexts.get(1).getPropertyAccessors();
+		assertEquals(3, propertyAccessors.size());
+		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
+
+		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(1), "variables");
+		assertEquals(2, variables.size());
+		assertTrue(variables.containsKey("bar"));
+		assertTrue(variables.containsKey("barParent"));
+
+		propertyAccessors = evalContexts.get(2).getPropertyAccessors();
+		assertEquals(4, propertyAccessors.size());
+		PropertyAccessor childPropertyAccessor = child.getBean("jsonPropertyAccessor", PropertyAccessor.class);
+		assertTrue(propertyAccessors.contains(childPropertyAccessor));
+		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
+		assertTrue(propertyAccessors.indexOf(childPropertyAccessor) < propertyAccessors.indexOf(parentPropertyAccessor));
+
+		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(2), "variables");
+		assertEquals(3, variables.size());
+		assertTrue(variables.containsKey("bar"));
+		assertTrue(variables.containsKey("barParent"));
+		assertTrue(variables.containsKey("barChild"));
 
 		// Test transformer expressions
 		child.getBean("input", MessageChannel.class).send(new GenericMessage<String>("baz"));
