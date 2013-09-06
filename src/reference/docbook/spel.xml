@@ -35,8 +35,8 @@
 		<title>SpEL Evaluation Context Customization</title>
 		<para>
 			Starting with Spring Integration 3.0, it is possible to add additional
-			<interfacename>PropertyAccessor</interfacename>s to the SpEL evaluation context.
-			In fact, the framework provides one such accessor,
+			<interfacename>PropertyAccessor</interfacename>s to the SpEL evaluation contexts used by
+			the framework. The framework provides
 			the <classname>JsonPropertyAccessor</classname> which can be used (read-only) to access fields from
 			a <classname>JsonNode</classname>, or JSON in a <classname>String</classname>. Or you can create your
 			own <interfacename>PropertyAccessor</interfacename> if you have specific needs.
@@ -47,10 +47,11 @@
 			expression used throughout the framework.
 		</para>
 		<para>
-			To configure your custom accessors and functions, add an
-			<classname>IntegrationEvaluationContextFactoryBean</classname> with
-			<code>id="integrationEvaluationContext"</code>
-			to your application context, with the appropriate configuration; for example:
+			The following configuration shows how to directly configure the
+			<classname>IntegrationEvaluationContextFactoryBean</classname> with custom property accessors
+			and functions. However, for convenience, namespace support is provided for both, as
+			described in the following sections, and the framework will automatically configure
+			the factory bean on your behalf.
 		</para>
 		<programlisting language="xml"><![CDATA[<beans:bean id="integrationEvaluationContext"
 			class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
@@ -92,8 +93,8 @@
 		<para>
 			Namespace support is provided for easy addition of SpEL custom functions.
 			You can specify <code>&lt;spel-function/&gt;</code> components to provide
-			<ulink url="http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-ref-functions">
-			custom SpEL functions</ulink> to the <interfacename>EvaluationContext</interfacename> used throughout the framework.
+			<ulink url="http://static.springsource.org/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-ref-functions"
+			>custom SpEL functions</ulink> to the <interfacename>EvaluationContext</interfacename> used throughout the framework.
 			Instead of configuring the factory bean above, simply add one or more of these components
 			and the framework will automatically add them to the default <emphasis>integrationEvaluationContext</emphasis>
 			factory bean.
@@ -123,7 +124,7 @@
 					<classname>StandardEvaluationContext</classname> instance,
 					and it is configured with the default
 					<interfacename>PropertyAccessor</interfacename>s, <interfacename>BeanResolver</interfacename>
-					and the custom function.
+					and the custom functions.
 				</listitem>
 				<listitem>
 					That <interfacename>EvaluationContext</interfacename> instance is injected into the
@@ -136,13 +137,85 @@
 				SpEL functions declared in a parent context are also made available in any child context(s). Each
 				context has its own instance of the <emphasis>integrationEvaluationContext</emphasis> factory bean
 				because each needs a different <interfacename>BeanResolver</interfacename>, but the function
-				declarations are inherited (and can be overridden if needed by declaring a SpEL function with
-				the same name. The functions themselves are processed by the framework - they do not appear
-				as beans in the application context.
+				declarations are inherited and can be overridden if needed by declaring a SpEL function with
+				the same name.
 			</note>
+		</para>
+		<para>
+			Spring Integration provides some standard functions, which are registered with the application
+			context automatically on start up:
+			<itemizedlist>
+				<listitem>
+					<emphasis role="bold">#jsonPath</emphasis> - to evaluate a 'jsonPath' on some provided object. This function
+					invokes <code>JsonPathUtils.evaluate(...)</code>. This static method delegates to the
+					<ulink url="http://code.google.com/p/json-path">Jayway JsonPath library</ulink>. The following shows
+					some usage examples:
+					<programlisting language="xml"><![CDATA[<transformer expression="#jsonPath(payload, '$.store.book[0].author')"/>
+
+<filter expression="#jsonPath(payload,'$..book[2].isbn') matches '\d-\d{3}-\d{5}-\d'"/>
+
+<splitter expression="#jsonPath(payload, '$.store.book')"/>
+
+<router expression="#jsonPath(payload, headers.jsonPath)">
+	<mapping channel="output1" value="reference"/>
+	<mapping channel="output2" value="fiction"/>
+</router>]]></programlisting>
+					#jsonPath also supports the third optional parameter - an array of
+					<ulink url="https://github.com/jayway/JsonPath/blob/master/json-path/src/main/java/com/jayway/jsonpath/Filter.java"
+						><classname>com.jayway.jsonpath.Filter</classname></ulink>, which could be provided by a reference to a
+						bean or bean method, for example.
+						<note>
+							Using this function requires the Jayway JsonPath library (json-path.jar) to be on
+							the classpath; otherwise the <emphasis>#jsonPath</emphasis>
+							SpEL function won't be registered.
+						</note>
+						For more information regarding JSON see 'JSON Transformers' in <xref linkend="transformer"/>.
+				</listitem>
+				<!--<listitem>
+					<emphasis>#xpath</emphasis> - TBD
+				</listitem>
+				<listitem>
+					<emphasis>#request</emphasis> - TBD
+				</listitem>
+				<listitem>
+					<emphasis>#auth</emphasis> - TBD
+				</listitem>-->
+			</itemizedlist>
+		</para>
+	</section>
+	<section id="spel-property-accessors">
+		<title>PropertyAccessors</title>
+		<para>
+			Namespace support is provided for the easy addition of SpEL custom
+			<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/expression/PropertyAccessor.html"
+			><interfacename>PropertyAccessor</interfacename></ulink>
+			implementations. You can specify the <code>&lt;spel-property-accessors/&gt;</code> component to provide a list of
+			custom <interfacename>PropertyAccessor</interfacename>s to the <interfacename>EvaluationContext</interfacename>
+			used throughout the framework. Instead of configuring the factory bean above, simply add one or more of these
+			components, and the framework will automatically add the accessors to the default
+			<emphasis>integrationEvaluationContext</emphasis> factory bean:
+		</para>
+		<programlisting language="xml"><![CDATA[<int:spel-property-accessors>
+	<bean id="jsonPA" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+	<ref bean="fooPropertyAccessor"/>
+</int:spel-property-accessors>
+		]]></programlisting>
+		<para>
+			With this sample, two custom <interfacename>PropertyAccessor</interfacename>s will be injected to the
+			<interfacename>EvaluationContext</interfacename> in the order that they are declared.
+		</para>
+		<para>
 			<note>
-				At this time, <interfacename>PropertyAccessor</interfacename>s are not inherited and must be
-				declared as described above in each context.
+				Custom <interfacename>PropertyAccessor</interfacename>s declared in a parent context are also made available
+				in any child context(s). They are placed at the end of result list (but before the default
+				<classname>org.springframework.context.expression.MapAccessor</classname> and
+				<classname>org.springframework.expression.spel.support.ReflectivePropertyAccessor</classname>).
+				If a <interfacename>PropertyAccessor</interfacename> with the same bean id is declared in a child context(s),
+				it will override the parent accessor. Beans declared within a <code>&lt;spel-property-accessors/&gt;</code>
+				must have an 'id' attribute.
+				The final order of usage is: the accessors in the current context,
+				in the order in which they are declared, followed by any from parent contexts, in order, followed
+				by the <classname>MapAccessor</classname> and finally the <classname>ReflectivePropertyAccessor</classname>.
 			</note>
 		</para>
 	</section>

@@ -23,4 +23,13 @@
 
 	<int:spel-function id="barParent" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
 
+	<int:spel-property-accessors>
+		<ref bean="parentJsonPropertyAccessor"/>
+		<ref bean="jsonPropertyAccessor"/>
+	</int:spel-property-accessors>
+
+	<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+
+	<bean id="parentJsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
+
 </beans>

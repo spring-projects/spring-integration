@@ -39,6 +39,13 @@
 		</beans:property>
 	</beans:bean>
 
+	<beans:import resource="property-accessor-import-context.xml" />
+
+	<!-- import twice to verify override is ok -->
+	<beans:import resource="property-accessor-import-context.xml" />
+
+	<beans:bean id="fooAccessor" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
+
 	<channel id="fooin" />
 
 	<transformer id="foo" input-channel="fooin" expression="payload.bar" />
