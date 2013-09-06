@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,15 @@ import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.util.Assert;
 
 /**
  * A method-invoking implementation of {@link MessageSelector}.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
 
@@ -42,8 +44,10 @@ public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
 		super(new MethodInvokingMessageProcessor<Boolean>(object, methodName));
 	}
 
+	@SuppressWarnings("unchecked")
 	public MethodInvokingSelector(Object object) {
-		super(new MethodInvokingMessageProcessor<Boolean>(object, Filter.class));
+		super(object instanceof MessageProcessor<?> ? (MessageProcessor<Boolean>) object :
+				new MethodInvokingMessageProcessor<Boolean>(object, Filter.class));
 	}
 
 }

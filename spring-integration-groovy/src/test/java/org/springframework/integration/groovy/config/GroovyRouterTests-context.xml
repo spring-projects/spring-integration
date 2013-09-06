@@ -15,7 +15,7 @@
 		<queue/>
 	</channel>
 
-	<router input-channel="referencedScriptInput">
+	<router id="groovyRouter" input-channel="referencedScriptInput">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyRouterTests.groovy"/>
 	</router>
 

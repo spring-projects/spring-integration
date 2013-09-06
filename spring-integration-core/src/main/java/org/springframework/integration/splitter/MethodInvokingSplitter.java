@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 
 /**
@@ -28,8 +29,9 @@ import org.springframework.integration.handler.MethodInvokingMessageProcessor;
  * is a Collection or Array. If the return value is not a Collection or
  * Array, then the single Object will be returned as the payload of a
  * single reply Message.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MethodInvokingSplitter extends AbstractMessageProcessingSplitter {
 
@@ -41,8 +43,10 @@ public class MethodInvokingSplitter extends AbstractMessageProcessingSplitter {
 		super(new MethodInvokingMessageProcessor<Collection<?>>(object, methodName));
 	}
 
+	@SuppressWarnings("unchecked")
 	public MethodInvokingSplitter(Object object) {
-		super(new MethodInvokingMessageProcessor<Collection<?>>(object, Splitter.class));
+		super(object instanceof MessageProcessor<?> ? (MessageProcessor<Collection<?>>) object :
+				new MethodInvokingMessageProcessor<Collection<?>>(object, Splitter.class));
 	}
 
 }

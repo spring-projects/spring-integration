@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.transformer;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 
 /**
@@ -26,8 +27,9 @@ import org.springframework.integration.handler.MethodInvokingMessageProcessor;
  * on the given object. The method's return value will be considered as
  * the payload of a new Message unless the return value is itself already
  * a Message.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MethodInvokingTransformer extends AbstractMessageProcessingTransformer {
 
@@ -40,7 +42,8 @@ public class MethodInvokingTransformer extends AbstractMessageProcessingTransfor
 	}
 
 	public MethodInvokingTransformer(Object object) {
-		super(new MethodInvokingMessageProcessor<Object>(object, Transformer.class));
+		super(object instanceof MessageProcessor<?> ? (MessageProcessor<?>) object :
+				new MethodInvokingMessageProcessor<Object>(object, Transformer.class));
 	}
 
 }

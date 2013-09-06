@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Alexander Peters
  * @author Gary Russell
+ * @author Artem Bilan
  */
 abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
@@ -135,7 +136,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 	}
 
 	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
-		return this.createMethodInvokingHandler(processor, "processMessage");
+		return this.createMethodInvokingHandler(processor, null);
 	}
 
 	MessageHandler createDefaultHandler() {
