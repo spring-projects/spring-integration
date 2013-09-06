@@ -135,7 +135,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 	}
 
 	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
-		return this.createMethodInvokingHandler(processor, "processMessage");
+		return this.createMethodInvokingHandler(processor, null);
 	}
 
 	MessageHandler createDefaultHandler() {

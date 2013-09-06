@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,28 @@ package org.springframework.integration.groovy.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -44,6 +52,9 @@ public class GroovySplitterTests {
 	@Autowired
 	private MessageChannel inlineScriptInput;
 
+	@Autowired
+	@Qualifier("groovySplitter.handler")
+	private MessageHandler groovySplitterMessageHandler;
 
 	@Test
 	public void referencedScript() {
@@ -67,6 +78,15 @@ public class GroovySplitterTests {
 		assertEquals("b", replyChannel.receive(0).getPayload());
 		assertEquals("c", replyChannel.receive(0).getPayload());
 		assertNull(replyChannel.receive(0));
+	}
+
+	@Test
+	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
+	    assertTrue(this.groovySplitterMessageHandler instanceof MethodInvokingSplitter);
+	    MessageProcessor messageProcessor = TestUtils.getPropertyValue(this.groovySplitterMessageHandler,
+				"messageProcessor", MessageProcessor.class);
+	    //before it was MethodInvokingMessageProcessor
+		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);
 	}
 
 }

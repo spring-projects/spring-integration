@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.router;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.support.channel.ChannelResolver;
 
@@ -28,8 +29,9 @@ import org.springframework.integration.support.channel.ChannelResolver;
  * String to be interpreted as a channel name, or a Collection (or Array) of
  * either type. If the method returns channel names, then a
  * {@link ChannelResolver} is required.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MethodInvokingRouter extends AbstractMessageProcessingRouter {
 
@@ -42,7 +44,8 @@ public class MethodInvokingRouter extends AbstractMessageProcessingRouter {
 	}
 
 	public MethodInvokingRouter(Object object) {
-		super(new MethodInvokingMessageProcessor<Object>(object, Router.class));
+		super(object instanceof MessageProcessor<?> ? (MessageProcessor<?>) object :
+				new MethodInvokingMessageProcessor<Object>(object, Router.class));
 	}
 
 }

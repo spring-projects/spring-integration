@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration/groovy http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<filter input-channel="referencedScriptInput">
+	<filter id="groovyFilter" input-channel="referencedScriptInput">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyFilterTests.groovy"/>
 	</filter>
 
