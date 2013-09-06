@@ -68,7 +68,13 @@ def customizePom(pom, gradleProject) {
 					name = 'Gunnar Hillert'
 					email = 'ghillert@gopivotal.com'
 				}
+				developer {
+					id = 'abilan'
+					name = 'Artem Bilan'
+					email = 'abilan@gopivotal.com'
+				}
 			}
 		}
 	}
 }
+
