@@ -1,0 +1,178 @@
+---
+# The name of your project
+title: Spring Integration
+
+badges:
+
+
+  # Customize your project's badges. Delete any entries that do not apply.
+  custom:
+    - name: Source (GitHub)
+      url:  https://github.com/spring-projects/spring-integration
+      icon: github
+
+    - name: Issues (JIRA)
+      url:  http://jira.springsource.org/browse/INT
+      icon: tracking
+
+    - name: CI (Bamboo)
+      url:  https://build.springsource.org/browse/INT
+      icon: ci
+
+    - name: Forum
+      url:  http://forum.spring.io/forum/spring-projects/integration
+      icon: forum
+
+    - name: StackOverflow
+      url:  http://stackoverflow.com/questions/tagged/spring-integration
+      icon: stackoverflow
+
+    - name: Metrics (SonarQube)
+      url:  https://sonar.springsource.org/dashboard/index/org.springframework.integration:spring-integration
+      icon: metrics
+
+---
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+<!-- Specify the parent of this project (or delete if none) to influence the rendering of the breadcrumb -->
+
+
+{% capture billboard_description %}
+
+Extends the Spring programming model to support the well-known 
+[Enterprise Integration Patterns](http://www.eaipatterns.com). Spring Integration enables lightweight messaging
+within Spring-based applications and supports integration with external systems via declarative adapters.
+Those adapters provide a higher-level of abstraction over Spring's support for remoting, messaging,
+and scheduling. Spring Integration's primary goal is to provide a simple model for building enterprise
+integration solutions while maintaining the separation of concerns that is essential for producing
+maintainable, testable code.
+
+{% endcapture %}
+
+{% capture main_content %}
+
+Using the [Spring Framework](/spring-framework/) encourages developers to code using interfaces and
+use dependency injection (DI) to provide a Plain Old Java Object (POJO) with the dependencies it needs
+to perform its tasks. __Spring Integration__ takes this concept one step further, where POJOs are wired
+together using a messaging paradigm and individual components may not be aware of other components in
+the application. Such an application is built by assembling fine-grained reusable components to form
+a higher level of functionality. WIth careful design, these flows can be modularized and also reused
+at an even higher level.
+
+In addition to wiring together fine-grained components, Spring Integration provides a wide selection of
+channel adapters and gateways to communicate with external systems. Channel Adapters are used for one-way
+integration (send or receive); gateways are used for request/reply scenarios (inbound or outbound).
+For a full list of adapters and gateways, refer to the reference documentation.
+
+The [Spring XD](/spring-xd/) project builds on Spring Integration, where Spring Integration modules
+are assembled into an XD Stream.
+
+## Features
+
+* Implementation of most of the [Enterprise Integration Patterns](http://www.eaipatterns.com)
+ * Endpoint
+ * Channel (Point-to-point and Publish/Subscribe)
+ * Aggregator
+ * Filter
+ * Transformer
+ * Control Bus
+ * ...
+* Integration with External Systems
+ * ReST/HTTP
+ * FTP/SFTP
+ * Twitter
+ * WebServices (SOAP and ReST)
+ * TCP/UDP
+ * JMS
+ * RabbitMQ
+ * Email
+ * ...
+* The framework has extensive JMX support
+ * Exposing framework components as MBeans
+ * Adapters to obtain attributes from MBeans, invoke operations, send/receive notifications
+
+<span id="quick-start"></span>
+## Quick Start
+
+{% include download_widget.md %}
+
+In the following "quick start" application you can see that the same gateway interface is
+used to invoke two completely different service implementations. To build and run this program
+you will need the __spring-integration-ws__ and __spring-integration-xml__ modules as described
+above.
+
+````java
+public class Main {
+
+	public static void main(String... args) throws Exception {
+		ApplicationContext ctx =
+			new ClassPathXmlApplicationContext("context.xml");
+		// Simple Service
+		TempConverter converter =
+			ctx.getBean("simpleGateway", TempConverter.class);
+		System.out.println(converter.fahrenheitToCelcius(68.0f));
+		// Web Service
+		converter  = ctx.getBean("wsGateway", TempConverter.class);
+		System.out.println(converter.fahrenheitToCelcius(68.0f));
+	}
+}
+````
+
+````java
+public interface TempConverter {
+
+	float fahrenheitToCelcius(float fahren);
+
+}
+````
+
+````xml
+<!-- Simple Service -->
+
+<int:gateway id="simpleGateway"
+	service-interface="foo.TempConverter"
+	default-request-channel="simpleExpression" />
+
+<int:service-activator id="expressionConverter"
+	input-channel="simpleExpression"
+	expression="(payload - 32) / 9 * 5"/>
+
+<!-- Web Service -->
+
+<int:gateway id="wsGateway" service-interface="foo.TempConverter"
+	default-request-channel="viaWebService" />
+
+<int:chain id="wsChain" input-channel="viaWebService">
+	<int:transformer
+	   expression="'&lt;FahrenheitToCelsius xmlns=''http://tempuri.org/''&gt;&lt;Fahrenheit&gt;XXX&lt;/Fahrenheit&gt;&lt;/FahrenheitToCelsius&gt;'.replace('XXX', payload.toString())" />
+	<int-ws:header-enricher>
+		<int-ws:soap-action value="http://tempuri.org/FahrenheitToCelsius"/>
+	</int-ws:header-enricher>
+	<int-ws:outbound-gateway
+		uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
+	<int-xml:xpath-transformer
+		xpath-expression="/*[local-name()='FahrenheitToCelsiusResponse']/*[local-name()='FahrenheitToCelsiusResult']"/>
+</int:chain>
+````
+
+{% endcapture %}
+
+{% capture related_resources %}
+
+### Sample Projects
+
+An extensive array of [sample applications](https://github.com/SpringSource/spring-integration-samples) is available.
+
+### Other Resources
+
+* A number of additional adapters and gateways have been [provided by the community](https://github.com/SpringSource/spring-integration-extensions).
+* Contributions are always welcome, either new modules in the [extensions repository](https://github.com/SpringSource/spring-integration-extensions)
+or new features for the core project. For more information see the [Contributor Guidelines](https://github.com/SpringSource/spring-integration/blob/master/CONTRIBUTING.md).
+* [Spring Integration in Action](http://www.manning.com/fisher/) by project founder [Mark Fisher](https://spring.io/team/mfisher) et al.
+
+{% endcapture %}
+
+
+{% include project_page.html %}
+</html>
