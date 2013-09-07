@@ -229,7 +229,9 @@ public class Kid {
       <para>
         Beginning with version 3.0, the <code>object-mapper</code> attribute references an instance of a new
         strategy interface <interfacename>JsonObjectMapper</interfacename>. This abstraction allows multiple
-        implementations of json mappers to be used. Implementations that wrap Jackson 1.x and Jackson 2 are
+        implementations of json mappers to be used. Implementations that wrap
+        <ulink url="http://jackson.codehaus.org">Jackson 1.x</ulink>  and
+        <ulink url="https://github.com/FasterXML">Jackson 2</ulink>  are
         provided, with the version being detected on the classpath. These classes are
         <classname>JacksonJsonObjectMapper</classname> and <classname>Jackson2JsonObjectMapper</classname>.
       </para>
@@ -238,6 +240,23 @@ public class Kid {
         instead of a <interfacename>JsonObjectMapper</interfacename>. This will be removed in a future release.
       </para>
     </note>
+    <para>
+		<important>
+			If there are plans or requirements to use both Jacksons libraries in the same application, keep in mind:
+			before version 3.0 JSON adapters used only Jackson 1.x and after 3.0 the framework prefers Jackson 2
+			by default. So, to avoid unexpected issues with Jackson's mapping features (e.g. annotations), there may be
+			a need to use those features for domain classes from both Jacksons:
+			<programlisting language="java"><![CDATA[@org.codehaus.jackson.annotate.JsonIgnoreProperties(ignoreUnknown=true)
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown=true)
+public class Foo {
+
+        @org.codehaus.jackson.annotate.JsonProperty("fooBar")
+        @com.fasterxml.jackson.annotation.JsonProperty("fooBar")
+        public Object bar;
+
+}]]></programlisting>
+		</important>
+    </para>
     <para>
         You may wish to consider using a <interfacename>FactoryBean</interfacename> or simple factory
         method to create the <classname>JsonObjectMapper</classname> with
