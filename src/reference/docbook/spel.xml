@@ -132,6 +132,13 @@
 			</itemizedlist>
 		</para>
 		<para>
+			The <interfacename>@SpelFunction</interfacename> annotation is also available: it just enough mark
+			a static method with this annotation and provide a <code>name</code> of the function to the <code>value</code>
+			attribute, otherwise the function name will get a method name. Note, the class with methods, annotated with
+			<interfacename>@SpelFunction</interfacename>, has to be registered as a bean in the application context;
+			<code>&lt;int:annotation-config/&gt;</code> has to be provided too.
+		</para>
+		<para>
 			<note>
 				SpEL functions declared in a parent context are also made available in any child context(s). Each
 				context has its own instance of the <emphasis>integrationEvaluationContext</emphasis> factory bean

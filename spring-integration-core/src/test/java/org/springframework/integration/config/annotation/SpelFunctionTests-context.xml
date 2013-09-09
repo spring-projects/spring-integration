@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns="http://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<annotation-config/>
+
+	<channel id="outputChannel">
+		<queue/>
+	</channel>
+
+	<transformer input-channel="toUpperCaseChannel" output-channel="outputChannel" expression="#toUpperCase(payload)"/>
+
+	<transformer input-channel="toLowerCaseChannel" output-channel="outputChannel" expression="#lower(payload)"/>
+
+	<beans:bean class="org.springframework.integration.config.annotation.SpelFunctionTests$Foo"/>
+
+</beans:beans>

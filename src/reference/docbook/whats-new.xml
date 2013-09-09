@@ -92,7 +92,8 @@
 			<para>
 				To customize the SpEL <interfacename>EvaluationContext</interfacename> with static
 				<classname>Method</classname> functions the new <code>&lt;spel-function/&gt;</code>
-				component is introduced. For more information see <xref linkend="spel-functions" />.
+				component and <interfacename>@SpelFunction</interfacename> are introduced.
+				For more information see <xref linkend="spel-functions" />.
 			</para>
 		</section>
 	</section>
