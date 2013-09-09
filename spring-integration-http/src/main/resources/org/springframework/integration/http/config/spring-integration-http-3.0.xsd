@@ -114,16 +114,8 @@
 		<xsd:attribute name="path" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Allows you to specify the URI path (e.g., /orderId/{order})
-
-					When using the 'path' attribute, please ensure to also
-					declare a handler mapping bean of type
-					'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
-
-					This bean is used by the Spring MVC DispatcherServlet to
-					evaluate which URL maps to which inbound endpoint. For
-					more information please see the chapter on 'Handler mappings'
-					in the Spring Framework Reference Documentation.
+					Comma-separated URI paths (e.g., /orderId/{order}).
+					Ant-style path patterns are also supported (e.g. /myPath/*.do).
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

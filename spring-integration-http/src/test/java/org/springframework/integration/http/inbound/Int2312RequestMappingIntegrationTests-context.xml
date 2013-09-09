@@ -13,6 +13,12 @@
 			http://www.springframework.org/schema/integration/http
 			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
+	<inbound-gateway path="/path1,/path2"
+					 request-channel="multiplePathsChannel"/>
+
+	<si:transformer input-channel="multiplePathsChannel"
+					expression="T(org.springframework.integration.http.inbound.Int2312RequestMappingIntegrationTests).TEST_STRING_MULTIPLE_PATHS"/>
+
 	<util:constant id="TEST_PATH"
 				   static-field="org.springframework.integration.http.inbound.Int2312RequestMappingIntegrationTests.TEST_PATH"/>
 

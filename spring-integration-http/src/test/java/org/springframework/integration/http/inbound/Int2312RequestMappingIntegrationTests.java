@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -35,10 +32,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.servlet.HandlerAdapter;
-import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 
@@ -53,10 +48,33 @@ public class Int2312RequestMappingIntegrationTests {
 
 	public static final String TEST_PATH = "/test/{value}";
 
+	public static final String TEST_STRING_MULTIPLE_PATHS = "Multiple Paths The Same Endpoint";
+
 	@Autowired
 	private HandlerMapping handlerMapping;
 
 	private HandlerAdapter handlerAdapter = new HttpRequestHandlerAdapter();
+
+	@Test
+	public void testMultiplePathsTheSameEndpoint() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		request.setRequestURI("/path1");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		Object handler = this.handlerMapping.getHandler(request).getHandler();
+		this.handlerAdapter.handle(request, response, handler);
+		assertEquals(TEST_STRING_MULTIPLE_PATHS, response.getContentAsString());
+
+		request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		request.setRequestURI("/path2");
+		response = new MockHttpServletResponse();
+		handler = this.handlerMapping.getHandler(request).getHandler();
+		this.handlerAdapter.handle(request, response, handler);
+		assertEquals(TEST_STRING_MULTIPLE_PATHS, response.getContentAsString());
+	}
+
+
 
 	@Test
 	public void testURIVariablesAndHeaders() throws Exception {
