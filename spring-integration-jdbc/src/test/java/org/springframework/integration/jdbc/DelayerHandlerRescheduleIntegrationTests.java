@@ -31,6 +31,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.store.MessageGroup;
@@ -41,6 +42,7 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -79,9 +81,11 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		input.send(MessageBuilder.withPayload("test2").build());
 
 		// Emulate restart and check DB state before next start
+		// Interrupt taskScheduler as quickly as possible
+		ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
+		taskScheduler.shutdown();
+		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
 		context.destroy();
-
-		Thread.sleep(100);
 
 		try {
 			context.getBean("input", MessageChannel.class);
