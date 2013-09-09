@@ -19,23 +19,28 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.gemstone.gemfire.cache.Cache;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
-import com.gemstone.gemfire.cache.Cache;
 
 /**
  * @author Artem Bilan
@@ -73,9 +78,11 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		input.send(MessageBuilder.withPayload("test2").build());
 
 		// Emulate restart and check Cache state before next start
+		// Interrupt taskScheduler as quickly as possible
+		ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
+		taskScheduler.shutdown();
+		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
 		context.destroy();
-
-		Thread.sleep(100);
 
 		try {
 			context.getBean("input", MessageChannel.class);
