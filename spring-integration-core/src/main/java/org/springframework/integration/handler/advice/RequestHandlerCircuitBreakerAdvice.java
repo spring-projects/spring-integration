@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * A circuit breaker that stops calling a failing service after threshold

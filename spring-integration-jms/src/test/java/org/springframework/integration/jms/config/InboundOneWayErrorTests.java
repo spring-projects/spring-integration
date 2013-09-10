@@ -31,9 +31,9 @@ import javax.jms.Session;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.core.PollableChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.util.ErrorHandler;

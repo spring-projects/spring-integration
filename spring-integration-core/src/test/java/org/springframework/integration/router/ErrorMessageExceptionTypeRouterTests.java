@@ -24,20 +24,21 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
 public class ErrorMessageExceptionTypeRouterTests {
-	
+
 	private DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
 	private QueueChannel illegalArgumentChannel = new QueueChannel();
@@ -49,7 +50,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 	private QueueChannel messageDeliveryExceptionChannel = new QueueChannel();
 
 	private QueueChannel defaultChannel = new QueueChannel();
-	
+
 	@Before
 	public void prepare(){
 		beanFactory.registerSingleton("illegalArgumentChannel", illegalArgumentChannel);
@@ -73,7 +74,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelMappings(exceptionTypeChannelMap);
-		
+
 		router.setBeanFactory(beanFactory);
 
 		router.setDefaultOutputChannel(defaultChannel);

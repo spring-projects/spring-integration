@@ -49,9 +49,9 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
@@ -340,7 +340,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					if ("org.springframework.integration.gateway.RequestReplyExchanger".equals(iface.getName())) {
 						frameworkMethods.add(targetClass.getMethod("exchange", Message.class));
 					}
-					else if ("org.springframework.integration.core.MessageHandler".equals(iface.getName()) && !requiresReply) {
+					else if ("org.springframework.messaging.MessageHandler".equals(iface.getName()) && !requiresReply) {
 						frameworkMethods.add(targetClass.getMethod("handleMessage", Message.class));
 					}
 				}

@@ -18,7 +18,7 @@ package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 
 import org.junit.Test;

@@ -25,7 +25,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * @author Alex Peters

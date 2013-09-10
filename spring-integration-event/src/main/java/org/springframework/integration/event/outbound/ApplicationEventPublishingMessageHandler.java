@@ -19,13 +19,13 @@ package org.springframework.integration.event.outbound;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * A {@link org.springframework.integration.core.MessageHandler} that publishes each {@link Message} it receives as
+ * A {@link org.springframework.messaging.MessageHandler} that publishes each {@link Message} it receives as
  * a {@link MessagingEvent}. The {@link MessagingEvent} is a subclass of
  * Spring's {@link ApplicationEvent} used by this adapter to simply wrap the
  * {@link Message}.

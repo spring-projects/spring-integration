@@ -35,7 +35,7 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;publishing-interceptor&gt; element.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0
@@ -52,14 +52,16 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 		if (mappings.get("headers") != null) {
 			spelSourceBuilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
 		}
+
 		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.support.channel.BeanFactoryChannelResolver");
+				"org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver");
+
 		if (mappings.get("channels") != null){
 			spelSourceBuilder.addPropertyValue("channelMap", mappings.get("channels"));
 		}
-		String chResolverName = 
+		String chResolverName =
 				BeanDefinitionReaderUtils.registerWithGeneratedName(chResolverBuilder.getBeanDefinition(), parserContext.getRegistry());
-		String defaultChannel = StringUtils.hasText(element.getAttribute("default-channel")) ? 
+		String defaultChannel = StringUtils.hasText(element.getAttribute("default-channel")) ?
 				element.getAttribute("default-channel") : IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;
 		rootBuilder.addConstructorArgValue(spelSourceBuilder.getBeanDefinition());
 		rootBuilder.addPropertyReference("channelResolver", chResolverName);
@@ -74,12 +76,12 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 		Map<String, Map<String, String>> headersExpressionMap = new HashMap<String, Map<String, String>>();
 		Map<String, String> channelMap = new HashMap<String, String>();
 		ManagedMap<String, Object> resolvableChannelMap = new ManagedMap<String, Object>();
-		if (mappings != null && mappings.size() > 0) {	
+		if (mappings != null && mappings.size() > 0) {
 			for (Element mapping : mappings) {
 				// set payloadMap
-				String methodPattern = StringUtils.hasText(mapping.getAttribute("pattern")) ? 
+				String methodPattern = StringUtils.hasText(mapping.getAttribute("pattern")) ?
 						mapping.getAttribute("pattern") : "*";
-				String payloadExpression = StringUtils.hasText(mapping.getAttribute("payload")) ? 
+				String payloadExpression = StringUtils.hasText(mapping.getAttribute("payload")) ?
 						mapping.getAttribute("payload") : "#return";
 				payloadExpressionMap.put(methodPattern, payloadExpression);
 
@@ -117,7 +119,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 				channelMap.put(methodPattern, channel);
 				resolvableChannelMap.put(channel, new RuntimeBeanReference(channel));
 			}
-		} 
+		}
 		if (payloadExpressionMap.size() == 0) {
 			payloadExpressionMap.put("*", "#return");
 		}

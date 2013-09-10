@@ -20,14 +20,13 @@ import java.util.Date;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
@@ -38,7 +37,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 @ContextConfiguration
 public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContextTests {
 
-	private MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 	@Value("#{out}") private MessageChannel channel;
 
@@ -49,7 +48,7 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
-		MessageBuilder<String> mb = MessageBuilder.withPayload("Early start today" 
+		MessageBuilder<String> mb = MessageBuilder.withPayload("Early start today"
 				+ new Date(System.currentTimeMillis()));
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);

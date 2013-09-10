@@ -27,7 +27,7 @@ import org.springframework.data.redis.support.collections.RedisCollectionFactory
 import org.springframework.data.redis.support.collections.RedisStore;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.expression.ExpressionUtils;

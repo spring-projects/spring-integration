@@ -20,7 +20,8 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
 /**
@@ -29,7 +30,7 @@ import org.springframework.util.StringUtils;
  * configurable {@link MessageHeaders}, such as 'reply-channel', 'priority',
  * and 'correlation-id'. It will also accept custom header values (or bean
  * references) if provided as 'header' sub-elements.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -38,9 +39,9 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 	public StandardHeaderEnricherParser() {
 		this.addElementToHeaderMapping("reply-channel", MessageHeaders.REPLY_CHANNEL);
 		this.addElementToHeaderMapping("error-channel", MessageHeaders.ERROR_CHANNEL);
-		this.addElementToHeaderMapping("correlation-id", MessageHeaders.CORRELATION_ID);
-		this.addElementToHeaderMapping("expiration-date", MessageHeaders.EXPIRATION_DATE, Long.class);
-		this.addElementToHeaderMapping("priority", MessageHeaders.PRIORITY, Integer.class);
+		this.addElementToHeaderMapping("correlation-id", EiMessageHeaderAccessor.CORRELATION_ID);
+		this.addElementToHeaderMapping("expiration-date", EiMessageHeaderAccessor.EXPIRATION_DATE, Long.class);
+		this.addElementToHeaderMapping("priority", EiMessageHeaderAccessor.PRIORITY, Integer.class);
 	}
 
 	@Override

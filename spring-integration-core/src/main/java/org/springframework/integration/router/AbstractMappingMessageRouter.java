@@ -25,20 +25,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolutionException;
-import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Base class for all Message Routers that support mapping from arbitrary String values
  * to Message Channel names.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
@@ -49,7 +49,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
-	private volatile ChannelResolver channelResolver;
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private volatile String prefix;
 
@@ -74,12 +74,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	/**
-	 * Specify the {@link ChannelResolver} strategy to use.
-	 * The default is a BeanFactoryChannelResolver.
+	 * Specify the {@link DestinationResolver} strategy to use.
+	 * The default is a BeanFactoryMessageChannelDestinationResolver.
 	 * This is considered an infrastructural configuration option and
 	 * as of 2.1 has been deprecated as a configuration-driven attribute.
 	 */
-	public void setChannelResolver(ChannelResolver channelResolver) {
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		this.channelResolver = channelResolver;
 	}
@@ -134,7 +134,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	public void onInit() {
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.channelResolver == null && beanFactory != null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
 		}
 	}
 
@@ -161,9 +161,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 		Assert.state(this.channelResolver != null, "unable to resolve channel names, no ChannelResolver available");
 		MessageChannel channel = null;
 		try {
-			channel = this.channelResolver.resolveChannelName(channelName);
+			channel = this.channelResolver.resolveDestination(channelName);
 		}
-		catch (ChannelResolutionException e) {
+		catch (DestinationResolutionException e) {
 			if (this.resolutionRequired) {
 				throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'", e);
 			}

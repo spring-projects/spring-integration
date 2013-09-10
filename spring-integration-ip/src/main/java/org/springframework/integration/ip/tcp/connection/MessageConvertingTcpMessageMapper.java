@@ -15,9 +15,9 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.converter.MessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -27,9 +27,9 @@ import org.springframework.util.Assert;
  */
 public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 
-	private final MessageConverter messageConverter;
+	private final MessageConverter<Object> messageConverter;
 
-	public MessageConvertingTcpMessageMapper(MessageConverter messageConverter) {
+	public MessageConvertingTcpMessageMapper(MessageConverter<Object> messageConverter) {
 		Assert.notNull(messageConverter, "'messasgeConverter' must not be null");
 		this.messageConverter = messageConverter;
 	}
@@ -54,7 +54,7 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 
 	@Override
 	public Object fromMessage(Message<?> message) throws Exception {
-		return this.messageConverter.fromMessage(message);
+		return this.messageConverter.fromMessage(message, Object.class);
 	}
 
 }

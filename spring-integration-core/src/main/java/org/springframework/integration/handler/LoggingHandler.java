@@ -22,9 +22,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.Message;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.handler.advice;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.retry.RetryState;
 
 /**

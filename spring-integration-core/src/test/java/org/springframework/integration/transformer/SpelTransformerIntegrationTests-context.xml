@@ -37,7 +37,7 @@
 		<beans:property name="functions">
 			<util:map>
 				<beans:entry key="bar"
-				value="#{T(org.springframework.integration.transformer.SpelTransformerIntegrationTests$BarFunction).getMethod('bar', T(org.springframework.integration.Message))}"/>
+					value="#{T(org.springframework.integration.transformer.SpelTransformerIntegrationTests$BarFunction).getMethod('bar', T(org.springframework.messaging.Message))}"/>
 			</util:map>
 		</beans:property>
 	</beans:bean>

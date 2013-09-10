@@ -23,9 +23,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.RegexUtils;
 import org.springframework.integration.mapping.InboundMessageMapper;

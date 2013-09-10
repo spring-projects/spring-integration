@@ -38,17 +38,10 @@ import javax.jms.Session;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -61,6 +54,12 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
  * @author Jonas Partner
@@ -220,7 +219,9 @@ public class JmsOutboundGatewayParserTests {
 				Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
 				assertNotNull(componentHistoryRecord);
 				assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
-				new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
+			    GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
+			    messagingTemplate.setDefaultDestination((MessageChannel)message.getHeaders().getReplyChannel());
+			    messagingTemplate.send(message);
 			}
 		};
 		handler = spy(handler);

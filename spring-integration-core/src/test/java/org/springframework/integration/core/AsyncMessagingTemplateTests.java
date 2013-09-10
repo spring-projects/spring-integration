@@ -30,16 +30,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
-
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class AsyncMessagingTemplateTests {
-	
+
 	// TODO: changed from 0 because of recurrent failure: is this right?
 	private long safety = 100;
 
@@ -55,7 +55,7 @@ public class AsyncMessagingTemplateTests {
 	public void asyncSendWithDefaultChannel() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		Future<?> future = template.asyncSend(message);
 		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
@@ -102,7 +102,7 @@ public class AsyncMessagingTemplateTests {
 	public void asyncConvertAndSendWithDefaultChannel() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		Future<?> future = template.asyncConvertAndSend("test");
 		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
 		Message<?> result = channel.receive(0);
@@ -146,7 +146,7 @@ public class AsyncMessagingTemplateTests {
 	public void asyncReceiveWithDefaultChannel() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncReceive();
 		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
 		long start = System.currentTimeMillis();
@@ -198,7 +198,7 @@ public class AsyncMessagingTemplateTests {
 	public void asyncReceiveAndConvertWithDefaultChannel() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		Future<?> result = template.asyncReceiveAndConvert();
 		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
 		long start = System.currentTimeMillis();
@@ -253,7 +253,7 @@ public class AsyncMessagingTemplateTests {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		long start = System.currentTimeMillis();
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		assertNotNull(result.get());
@@ -299,7 +299,7 @@ public class AsyncMessagingTemplateTests {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		long start = System.currentTimeMillis();
 		Future<String> result = template.asyncConvertSendAndReceive("test");
 		assertNotNull(result.get());
@@ -346,7 +346,7 @@ public class AsyncMessagingTemplateTests {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		long start = System.currentTimeMillis();
 		Future<String> result = template.asyncConvertSendAndReceive(new Integer(123), new TestMessagePostProcessor());
 		assertNotNull(result.get());
@@ -393,7 +393,7 @@ public class AsyncMessagingTemplateTests {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		result.get(10, TimeUnit.MILLISECONDS);
 	}
@@ -403,7 +403,7 @@ public class AsyncMessagingTemplateTests {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(-1));
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		try {
 			result.get(10, TimeUnit.MILLISECONDS);
@@ -420,7 +420,7 @@ public class AsyncMessagingTemplateTests {
 		EchoHandler handler = new EchoHandler(10000);
 		channel.subscribe(handler);
 		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
-		template.setDefaultChannel(channel);
+		template.setDefaultDestination(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		try {
 			Thread.sleep(200);

@@ -24,10 +24,11 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.integration.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.messaging.Message;
 
 /**
  * @author Marius Bogoevici
@@ -55,7 +56,7 @@ public class MethodInvokingReleaseStrategyTests {
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnNonParameterizedListOfMessages(List<Message<?>> messages) {
 				Assert.assertTrue(messages.size() > 0);
-				return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
+				return messages.size() > new EiMessageHeaderAccessor(messages.iterator().next()).getSequenceSize();
 			}
 		}
 		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
@@ -70,7 +71,7 @@ public class MethodInvokingReleaseStrategyTests {
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnListOfMessagesParametrizedWithWildcard(List<Message<?>> messages) {
 				Assert.assertTrue(messages.size() > 0);
-				return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
+				return messages.size() > new EiMessageHeaderAccessor(messages.iterator().next()).getSequenceSize();
 			}
 		}
 		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),
@@ -85,7 +86,7 @@ public class MethodInvokingReleaseStrategyTests {
 			@SuppressWarnings("unused")
 			public boolean checkCompletenessOnListOfMessagesParametrizedWithString(List<Message<String>> messages) {
 				Assert.assertTrue(messages.size() > 0);
-				return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
+				return messages.size() > new EiMessageHeaderAccessor(messages.iterator().next()).getSequenceSize();
 			}
 		}
 		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new TestReleaseStrategy(),

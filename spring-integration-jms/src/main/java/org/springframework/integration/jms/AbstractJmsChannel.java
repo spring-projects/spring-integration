@@ -16,7 +16,8 @@
 
 package org.springframework.integration.jms;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.Assert;
@@ -44,7 +45,7 @@ public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		try {
-			DynamicJmsTemplateProperties.setPriority(message.getHeaders().getPriority());
+			DynamicJmsTemplateProperties.setPriority(new EiMessageHeaderAccessor(message).getPriority());
 			this.jmsTemplate.convertAndSend(message);
 		}
 		finally {

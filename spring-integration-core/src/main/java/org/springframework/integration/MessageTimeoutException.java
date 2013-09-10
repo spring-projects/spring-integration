@@ -16,14 +16,17 @@
 
 package org.springframework.integration;
 
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+
 /**
  * Exception that indicates a timeout elapsed prior to successful message delivery.
- * 
+ *
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
 public class MessageTimeoutException extends MessageDeliveryException {
-	
+
 	public MessageTimeoutException(String description) {
 		super(description);
 	}

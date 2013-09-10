@@ -23,15 +23,18 @@ import java.util.concurrent.Future;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
-public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMessagingOperations {
+public class AsyncMessagingTemplate extends GenericMessagingTemplate implements AsyncMessagingOperations {
 
 	private volatile AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
 

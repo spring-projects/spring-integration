@@ -20,10 +20,10 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.mail.MailMessage;
@@ -119,7 +119,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 			return new MimeMailMessage(mimeMessage);
 		} 
 		catch (Exception e) {
-			throw new org.springframework.integration.MessagingException("Failed to creaet MimeMessage with contentType: " + 
+			throw new org.springframework.messaging.MessagingException("Failed to creaet MimeMessage with contentType: " + 
 																			contentType, e);
 		}
 	}

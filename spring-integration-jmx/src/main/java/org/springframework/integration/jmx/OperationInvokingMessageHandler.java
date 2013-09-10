@@ -32,12 +32,11 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.jmx.support.ObjectNameManager;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -63,172 +62,172 @@ import org.springframework.util.ObjectUtils;
  */
 public class OperationInvokingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
-	private volatile MBeanServerConnection server;
+    private volatile MBeanServerConnection server;
 
-	private volatile ObjectName objectName;
+    private volatile ObjectName objectName;
 
-	private volatile String operationName;
+    private volatile String operationName;
 
 
-	/**
-	 * Provide a reference to the MBeanServer within which the MBean
-	 * target for operation invocation has been registered.
-	 */
-	public void setServer(MBeanServerConnection server) {
-		this.server = server;
-	}
+    /**
+     * Provide a reference to the MBeanServer within which the MBean
+     * target for operation invocation has been registered.
+     */
+    public void setServer(MBeanServerConnection server) {
+        this.server = server;
+    }
 
-	/**
-	 * Specify a default ObjectName to use when no such header is
-	 * available on the Message being handled.
-	 */
-	public void setObjectName(String objectName) {
-		try {
-			if (objectName != null) {
-				this.objectName = ObjectNameManager.getInstance(objectName);
-			}
-		}
-		catch (MalformedObjectNameException e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
+    /**
+     * Specify a default ObjectName to use when no such header is
+     * available on the Message being handled.
+     */
+    public void setObjectName(String objectName) {
+        try {
+            if (objectName != null) {
+                this.objectName = ObjectNameManager.getInstance(objectName);
+            }
+        }
+        catch (MalformedObjectNameException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
 
-	/**
-	 * Specify an operation name to be invoked when no such
-	 * header is available on the Message being handled.
-	 */
-	public void setOperationName(String operationName) {
-		this.operationName = operationName;
-	}
+    /**
+     * Specify an operation name to be invoked when no such
+     * header is available on the Message being handled.
+     */
+    public void setOperationName(String operationName) {
+        this.operationName = operationName;
+    }
 
-	@Override
-	public final void onInit() {
-		Assert.notNull(this.server, "MBeanServer is required.");
-		super.onInit();
-	}
+    @Override
+    public final void onInit() {
+        Assert.notNull(this.server, "MBeanServer is required.");
+        super.onInit();
+    }
 
-	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
-		ObjectName objectName = this.resolveObjectName(requestMessage);
-		String operationName = this.resolveOperationName(requestMessage);
-		Map<String, Object> paramsFromMessage = this.resolveParameters(requestMessage);
-		try {
-			MBeanInfo mbeanInfo = this.server.getMBeanInfo(objectName);
-			MBeanOperationInfo[] opInfoArray = mbeanInfo.getOperations();
-			boolean hasNoArgOption = false;
-			for (MBeanOperationInfo opInfo : opInfoArray) {
-				if (operationName.equals(opInfo.getName())) {
-					MBeanParameterInfo[] paramInfoArray = opInfo.getSignature();
-					if (paramInfoArray.length == 0) {
-						hasNoArgOption = true;
-					}
-					if (paramInfoArray.length == paramsFromMessage.size()) {
-						int index = 0;
-						Object values[] = new Object[paramInfoArray.length];
-						String signature[] = new String[paramInfoArray.length];
-						for (MBeanParameterInfo paramInfo : paramInfoArray) {
-							Object value = paramsFromMessage.get(paramInfo.getName());
-							if (value == null) {
-								/*
-								 * With Spring 3.2.3 and greater, the parameter names are
-								 * registered instead of the JVM's default p1, p2 etc.
-								 * Fall back to that naming style if not found.
-								 */
-								value = paramsFromMessage.get("p" + (index + 1));
-							}
-							if (value != null && value.getClass().getName().equals(paramInfo.getType())) {
-								values[index] = value;
-								signature[index] = paramInfo.getType();
-								index++;
-							}
-						}
-						if (index == paramInfoArray.length) {
-							return this.server.invoke(objectName, operationName, values, signature);
-						}
-					}
-				}
-			}
-			if (hasNoArgOption) {
-				return this.server.invoke(objectName, operationName, null, null);
-			}
-			throw new MessagingException(requestMessage, "failed to find JMX operation '"
-					+ operationName + "' on MBean [" + objectName + "] of type [" + mbeanInfo.getClassName()
-					+ "] with " + paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet());
-		}
-		catch (JMException e) {
-			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
-					operationName + "' on MBean [" + objectName + "]" + " with " +
-					paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet(), e);
-		}
-		catch (IOException e) {
-			throw new MessageHandlingException(requestMessage, "IOException on MBeanServerConnection", e);
-		}
-	}
+    @Override
+    protected Object handleRequestMessage(Message<?> requestMessage) {
+        ObjectName objectName = this.resolveObjectName(requestMessage);
+        String operationName = this.resolveOperationName(requestMessage);
+        Map<String, Object> paramsFromMessage = this.resolveParameters(requestMessage);
+        try {
+            MBeanInfo mbeanInfo = this.server.getMBeanInfo(objectName);
+            MBeanOperationInfo[] opInfoArray = mbeanInfo.getOperations();
+            boolean hasNoArgOption = false;
+            for (MBeanOperationInfo opInfo : opInfoArray) {
+                if (operationName.equals(opInfo.getName())) {
+                    MBeanParameterInfo[] paramInfoArray = opInfo.getSignature();
+                    if (paramInfoArray.length == 0) {
+                        hasNoArgOption = true;
+                    }
+                    if (paramInfoArray.length == paramsFromMessage.size()) {
+                        int index = 0;
+                        Object values[] = new Object[paramInfoArray.length];
+                        String signature[] = new String[paramInfoArray.length];
+                        for (MBeanParameterInfo paramInfo : paramInfoArray) {
+                            Object value = paramsFromMessage.get(paramInfo.getName());
+                            if (value == null) {
+                                /*
+                                 * With Spring 3.2.3 and greater, the parameter names are
+                                 * registered instead of the JVM's default p1, p2 etc.
+                                 * Fall back to that naming style if not found.
+                                 */
+                                value = paramsFromMessage.get("p" + (index + 1));
+                            }
+                            if (value != null && value.getClass().getName().equals(paramInfo.getType())) {
+                                values[index] = value;
+                                signature[index] = paramInfo.getType();
+                                index++;
+                            }
+                        }
+                        if (index == paramInfoArray.length) {
+                            return this.server.invoke(objectName, operationName, values, signature);
+                        }
+                    }
+                }
+            }
+            if (hasNoArgOption) {
+                return this.server.invoke(objectName, operationName, null, null);
+            }
+            throw new MessagingException(requestMessage, "failed to find JMX operation '"
+                    + operationName + "' on MBean [" + objectName + "] of type [" + mbeanInfo.getClassName()
+                    + "] with " + paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet());
+        }
+        catch (JMException e) {
+            throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
+                    operationName + "' on MBean [" + objectName + "]" + " with " +
+                    paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet(), e);
+        }
+        catch (IOException e) {
+            throw new MessageHandlingException(requestMessage, "IOException on MBeanServerConnection", e);
+        }
+    }
 
-	/**
-	 * First checks if defaultObjectName is set, otherwise falls back on  {@link JmxHeaders#OBJECT_NAME} header.
-	 */
-	private ObjectName resolveObjectName(Message<?> message) {
-		ObjectName objectName = this.objectName;
-		if (objectName == null){
-			Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
-			if (objectNameHeader instanceof ObjectName) {
-				objectName = (ObjectName) objectNameHeader;
-			}
-			else if (objectNameHeader instanceof String) {
-				try {
-					objectName = ObjectNameManager.getInstance(objectNameHeader);
-				}
-				catch (MalformedObjectNameException e) {
-					throw new IllegalArgumentException(e);
-				}
-			}
-		}
-		Assert.notNull(objectName, "Failed to resolve ObjectName.");
-		return objectName;
-	}
+    /**
+     * First checks if defaultObjectName is set, otherwise falls back on  {@link JmxHeaders#OBJECT_NAME} header.
+     */
+    private ObjectName resolveObjectName(Message<?> message) {
+        ObjectName objectName = this.objectName;
+        if (objectName == null){
+            Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
+            if (objectNameHeader instanceof ObjectName) {
+                objectName = (ObjectName) objectNameHeader;
+            }
+            else if (objectNameHeader instanceof String) {
+                try {
+                    objectName = ObjectNameManager.getInstance(objectNameHeader);
+                }
+                catch (MalformedObjectNameException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
+        }
+        Assert.notNull(objectName, "Failed to resolve ObjectName.");
+        return objectName;
+    }
 
-	/**
-	  * First checks if defaultOperationName is set, otherwise falls back on  {@link JmxHeaders#OPERATION_NAME} header.
-	 */
-	private String resolveOperationName(Message<?> message) {
-		String operationName = this.operationName;
-		if (operationName == null){
-			operationName = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
-		}
-		Assert.notNull(operationName, "Failed to resolve operation name.");
-		return operationName;
-	}
+    /**
+      * First checks if defaultOperationName is set, otherwise falls back on  {@link JmxHeaders#OPERATION_NAME} header.
+     */
+    private String resolveOperationName(Message<?> message) {
+        String operationName = this.operationName;
+        if (operationName == null){
+            operationName = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
+        }
+        Assert.notNull(operationName, "Failed to resolve operation name.");
+        return operationName;
+    }
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Map<String, Object> resolveParameters(Message<?> message) {
-		Map<String, Object> map = null;
-		if (message.getPayload() instanceof Map) {
-			map = (Map<String, Object>) message.getPayload();
-		}
-		else if (message.getPayload() instanceof List) {
-			map = this.createParameterMapFromList((List) message.getPayload());
-		}
-		else if (message.getPayload() != null && message.getPayload().getClass().isArray()) {
-			map = this.createParameterMapFromList(
-					Arrays.asList(ObjectUtils.toObjectArray(message.getPayload())));
-		}
-		else if (message.getPayload() != null) {
-			map = this.createParameterMapFromList(Collections.singletonList(message.getPayload()));
-		}
-		else {
-			map = Collections.EMPTY_MAP;
-		}
-		return map;
-	}
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Map<String, Object> resolveParameters(Message<?> message) {
+        Map<String, Object> map = null;
+        if (message.getPayload() instanceof Map) {
+            map = (Map<String, Object>) message.getPayload();
+        }
+        else if (message.getPayload() instanceof List) {
+            map = this.createParameterMapFromList((List) message.getPayload());
+        }
+        else if (message.getPayload() != null && message.getPayload().getClass().isArray()) {
+            map = this.createParameterMapFromList(
+                    Arrays.asList(ObjectUtils.toObjectArray(message.getPayload())));
+        }
+        else if (message.getPayload() != null) {
+            map = this.createParameterMapFromList(Collections.singletonList(message.getPayload()));
+        }
+        else {
+            map = Collections.EMPTY_MAP;
+        }
+        return map;
+    }
 
-	@SuppressWarnings("rawtypes")
-	private Map<String, Object> createParameterMapFromList(List parameters) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		for (int i = 0; i < parameters.size(); i++) {
-			map.put("p" + (i + 1), parameters.get(i));
-		}
-		return map;
-	}
+    @SuppressWarnings("rawtypes")
+    private Map<String, Object> createParameterMapFromList(List parameters) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        for (int i = 0; i < parameters.size(); i++) {
+            map.put("p" + (i + 1), parameters.get(i));
+        }
+        return map;
+    }
 
 }

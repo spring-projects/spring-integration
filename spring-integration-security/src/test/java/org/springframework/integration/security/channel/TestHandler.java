@@ -19,8 +19,8 @@ package org.springframework.integration.security.channel;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * @author Mark Fisher

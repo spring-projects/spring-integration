@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
@@ -30,7 +30,7 @@ import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.ReleaseStrategy;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for the {@link Aggregator @Aggregator} annotation.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -57,13 +57,13 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, releaseStrategy);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
-			MessageChannel discardChannel = this.channelResolver.resolveChannelName(discardChannelName);
+			MessageChannel discardChannel = this.channelResolver.resolveDestination(discardChannelName);
 			Assert.notNull(discardChannel, "failed to resolve discardChannel '" + discardChannelName + "'");
 			handler.setDiscardChannel(discardChannel);
 		}
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
-			handler.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
 		}
 		handler.setSendTimeout(annotation.sendTimeout());
 		handler.setSendPartialResultOnExpiry(annotation.sendPartialResultsOnExpiry());

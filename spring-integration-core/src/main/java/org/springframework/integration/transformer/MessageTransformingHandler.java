@@ -17,17 +17,17 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
  * A reply-producing {@link MessageHandler} that delegates to a
  * {@link Transformer} instance to modify the received {@link Message}
  * and sends the result to its output channel.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */

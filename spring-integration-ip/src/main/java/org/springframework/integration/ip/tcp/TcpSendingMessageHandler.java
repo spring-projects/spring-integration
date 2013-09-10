@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
@@ -32,6 +31,7 @@ import org.springframework.integration.ip.tcp.connection.ClientModeConnectionMan
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
@@ -51,7 +51,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private volatile AbstractConnectionFactory serverConnectionFactory;
 
-	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
+	private final Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
 
 	private volatile boolean isClientMode;
 
@@ -81,7 +81,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	/**
 	 * Writes the message payload to the underlying socket, using the specified
 	 * message format.
-	 * @see org.springframework.integration.core.MessageHandler#handleMessage(org.springframework.integration.Message)
+	 * @see org.springframework.messaging.MessageHandler#handleMessage(org.springframework.messaging.Message)
 	 */
 	@Override
 	public void handleMessageInternal(final Message<?> message) throws

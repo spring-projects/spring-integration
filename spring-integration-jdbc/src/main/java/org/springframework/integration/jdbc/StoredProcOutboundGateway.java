@@ -23,9 +23,9 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.support.MessageBuilder;

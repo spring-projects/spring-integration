@@ -20,19 +20,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class TestChannelResolver implements ChannelResolver {
+public class TestChannelResolver implements DestinationResolver<MessageChannel> {
 
 	private volatile Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
 
-	public MessageChannel resolveChannelName(String channelName) {
+	public MessageChannel resolveDestination(String channelName) {
 		return this.channels.get(channelName);
 	}
 

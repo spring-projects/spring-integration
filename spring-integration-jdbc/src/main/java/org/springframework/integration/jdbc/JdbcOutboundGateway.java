@@ -21,7 +21,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcOperations;

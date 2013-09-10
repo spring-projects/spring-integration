@@ -21,15 +21,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
 
 /**
@@ -41,12 +39,12 @@ public class LocalChannelRegistryTests {
 
 	private LocalChannelRegistry registry = new LocalChannelRegistry();
 
-	private AbstractApplicationContext context = new GenericApplicationContext();
+	private GenericApplicationContext context = new GenericApplicationContext();
 
 	@Before
 	public void setUp() {
-		context.refresh();
 		registry.setApplicationContext(context);
+		context.refresh();
 	}
 
 	@Test

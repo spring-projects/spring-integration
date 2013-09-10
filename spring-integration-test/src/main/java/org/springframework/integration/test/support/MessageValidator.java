@@ -1,6 +1,6 @@
 package org.springframework.integration.test.support;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 /**
  * Validate a message. Create an anonymous instance or subclass to 
  * implement the validateMessage() method

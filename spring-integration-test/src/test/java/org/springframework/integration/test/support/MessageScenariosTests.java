@@ -24,7 +24,7 @@ import static org.springframework.integration.test.matcher.PayloadMatcher.hasPay
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 

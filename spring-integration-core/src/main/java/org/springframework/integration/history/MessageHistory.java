@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.util.Assert;
@@ -88,7 +88,7 @@ public class MessageHistory implements List<Properties>, Serializable {
 	public boolean contains(Object o) {
 		return this.components.contains(o);
 	}
-	
+
 	public boolean containsAll(Collection<?> c) {
 		return this.components.containsAll(c);
 	}

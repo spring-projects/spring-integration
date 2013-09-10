@@ -21,7 +21,7 @@ import java.nio.channels.SocketChannel;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * An abstraction over {@link Socket} and {@link SocketChannel} that

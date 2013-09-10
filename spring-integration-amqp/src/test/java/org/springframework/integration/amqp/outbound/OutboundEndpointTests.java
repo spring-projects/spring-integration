@@ -34,7 +34,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -59,7 +59,7 @@ public class OutboundEndpointTests {
 			}
 		}).when(amqpTemplate).send(anyString(), anyString(), any(Message.class),
 				any(CorrelationData.class));
-		org.springframework.integration.Message<?> message = MessageBuilder.withPayload("foo")
+		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(MessageHeaders.CONTENT_TYPE, "bar")
 				.build();
 		endpoint.handleMessage(message);
@@ -83,7 +83,7 @@ public class OutboundEndpointTests {
 				return null;
 			}
 		}).when(amqpTemplate).doSendAndReceiveWithTemporary(anyString(), anyString(), any(Message.class));
-		org.springframework.integration.Message<?> message = MessageBuilder.withPayload("foo")
+		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(MessageHeaders.CONTENT_TYPE, "bar")
 				.build();
 		endpoint.handleMessage(message);

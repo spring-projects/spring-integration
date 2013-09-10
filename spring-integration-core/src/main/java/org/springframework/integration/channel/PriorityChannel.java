@@ -20,21 +20,22 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.util.UpperBound;
 
 /**
  * A message channel that prioritizes messages based on a {@link Comparator}.
  * The default comparator is based upon the message header's 'priority'.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
 public class PriorityChannel extends QueueChannel {
 
 	private final UpperBound upperBound;
-	
+
 	private final AtomicLong sequenceCounter = new AtomicLong();
 
 	/**
@@ -93,11 +94,11 @@ public class PriorityChannel extends QueueChannel {
 		}
 		return message;
 	}
-	
+
 	private static class SequenceFallbackComparator implements Comparator<Message<?>> {
-		
+
 		private final Comparator<Message<?>> targetComparator;
-		
+
 		public SequenceFallbackComparator(Comparator<Message<?>> targetComparator){
 			this.targetComparator = targetComparator;
 		}
@@ -108,14 +109,14 @@ public class PriorityChannel extends QueueChannel {
 				compareResult = this.targetComparator.compare(message1, message2);
 			}
 			else {
-				Integer priority1 = message1.getHeaders().getPriority();
-				Integer priority2 = message2.getHeaders().getPriority();
-				
+				Integer priority1 = new EiMessageHeaderAccessor(message1).getPriority();
+				Integer priority2 = new EiMessageHeaderAccessor(message2).getPriority();
+
 				priority1 = priority1 != null ? priority1 : 0;
 				priority2 = priority2 != null ? priority2 : 0;
 				compareResult = priority2.compareTo(priority1);
 			}
-		
+
 			if (compareResult == 0){
 				Long sequence1 = ((MessageWrapper) message1).getSequence();
 				Long sequence2 = ((MessageWrapper) message2).getSequence();
@@ -124,7 +125,7 @@ public class PriorityChannel extends QueueChannel {
 			return compareResult;
 		}
 	}
-	
+
 	//we need this because of INT-2508
 	private class MessageWrapper implements Message<Object>{
 		private final Message<?> rootMessage;

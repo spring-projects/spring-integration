@@ -18,7 +18,7 @@ package org.springframework.integration.scripting;
 
 import java.util.Map;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * @author Oleg Zhurakousky

@@ -18,7 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.SynchronousQueue;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * A zero-capacity version of {@link QueueChannel} that delegates to a

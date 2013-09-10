@@ -22,14 +22,13 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.ws.WebServiceHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -49,7 +48,8 @@ public class WebServiceHeaderEnricherTests {
 
 	@Test
 	public void literalValue() {
-		MessagingTemplate template = new MessagingTemplate(literalValueInput);
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		template.setDefaultDestination(literalValueInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("http://test", headers.get(WebServiceHeaders.SOAP_ACTION));
@@ -57,7 +57,8 @@ public class WebServiceHeaderEnricherTests {
 
 	@Test
 	public void expression() {
-		MessagingTemplate template = new MessagingTemplate(expressionInput);
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		template.setDefaultDestination(expressionInput);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("http://foo", headers.get(WebServiceHeaders.SOAP_ACTION));

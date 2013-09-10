@@ -26,7 +26,7 @@ import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;

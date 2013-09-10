@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher

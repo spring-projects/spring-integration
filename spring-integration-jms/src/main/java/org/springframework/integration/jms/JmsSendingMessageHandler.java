@@ -20,17 +20,18 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessagePostProcessor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
 
 /**
  * A MessageConsumer that sends the converted Message payload within a JMS Message.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
@@ -78,7 +79,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Specify whether the payload should be extracted from each integration
 	 * Message to be used as the JMS Message body.
-	 * 
+	 *
 	 * <p>The default value is <code>true</code>. To force passing of the full
 	 * Spring Integration Message instead, set this to <code>false</code>.
 	 */
@@ -108,7 +109,7 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 		Object objectToSend = (this.extractPayload) ? message.getPayload() : message;
 		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(message, this.headerMapper);
 		try {
-			DynamicJmsTemplateProperties.setPriority(message.getHeaders().getPriority());
+			DynamicJmsTemplateProperties.setPriority(new EiMessageHeaderAccessor(message).getPriority());
 			this.send(destination, objectToSend, messagePostProcessor);
 		}
 		finally {

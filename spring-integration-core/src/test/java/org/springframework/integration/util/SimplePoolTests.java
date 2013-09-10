@@ -28,8 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell

@@ -28,7 +28,7 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;

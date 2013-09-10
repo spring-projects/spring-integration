@@ -19,8 +19,8 @@ package org.springframework.integration.router;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * A Message Router that resolves the target {@link MessageChannel} for

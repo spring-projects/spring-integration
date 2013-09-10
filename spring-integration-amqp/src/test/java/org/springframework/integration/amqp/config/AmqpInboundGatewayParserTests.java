@@ -39,11 +39,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -87,9 +87,9 @@ public class AmqpInboundGatewayParserTests {
 	public void verifyUsageWithHeaderMapper() throws Exception{
 		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);
 		requestChannel.subscribe(new MessageHandler() {
-			public void handleMessage(org.springframework.integration.Message<?> siMessage)
+			public void handleMessage(org.springframework.messaging.Message<?> siMessage)
 					throws MessagingException {
-				org.springframework.integration.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage).setHeader("bar", "bar").build();
+				org.springframework.messaging.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage).setHeader("bar", "bar").build();
 				MessageChannel replyChannel = (MessageChannel) siMessage.getHeaders().getReplyChannel();
 				replyChannel.send(replyMessage);
 			}

@@ -24,7 +24,7 @@ import static org.junit.Assert.fail;
 import java.util.Map;
 
 import org.junit.Test;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -44,7 +44,7 @@ public class MapMessageConverterTests {
 		MapMessageConverter converter = new MapMessageConverter();
 		converter.setHeaderNames("bar");
 		@SuppressWarnings("unchecked")
-		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message);
+		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message, Map.class);
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 
@@ -78,7 +78,7 @@ public class MapMessageConverterTests {
 		MapMessageConverter converter = new MapMessageConverter();
 		converter.setHeaderNames("bar");
 		@SuppressWarnings("unchecked")
-		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message);
+		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message, Map.class);
 
 		map.remove("payload");
 
@@ -98,7 +98,7 @@ public class MapMessageConverterTests {
 		MapMessageConverter converter = new MapMessageConverter();
 		converter.setHeaderNames("bar");
 		@SuppressWarnings("unchecked")
-		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message);
+		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message, Map.class);
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 
@@ -117,7 +117,7 @@ public class MapMessageConverterTests {
 		MapMessageConverter converter = new MapMessageConverter();
 		converter.setHeaderNames("bar");
 		@SuppressWarnings("unchecked")
-		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message);
+		Map<String, Object> map =  (Map<String, Object>) converter.fromMessage(message, Map.class);
 		@SuppressWarnings("unchecked")
 		Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 

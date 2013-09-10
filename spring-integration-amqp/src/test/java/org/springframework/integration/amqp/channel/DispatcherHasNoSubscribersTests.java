@@ -42,8 +42,8 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageDeliveryException;
 
 import com.rabbitmq.client.Channel;
 

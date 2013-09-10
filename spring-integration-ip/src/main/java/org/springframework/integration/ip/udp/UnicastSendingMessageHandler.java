@@ -31,16 +31,16 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * A {@link org.springframework.integration.core.MessageHandler} implementation that maps a Message into
+ * A {@link org.springframework.messaging.MessageHandler} implementation that maps a Message into
  * a UDP datagram packet and sends that to the specified host and port.
  *
  * Messages can be basic, with no support for reliability, can be prefixed

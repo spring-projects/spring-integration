@@ -15,17 +15,18 @@
  */
 package org.springframework.integration.test.matcher;
 
-import org.hamcrest.Description;
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
-import org.junit.Assert;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
+import static org.hamcrest.CoreMatchers.is;
 
 import java.util.Date;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
+import org.junit.Assert;
+import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * Are the {@link MessageHeaders} of a {@link Message} containing any entry
@@ -121,7 +122,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static <T> Matcher<Message<?>> hasCorrelationId(T value) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.CORRELATION_ID, value));
+		return new HeaderMatcher(MapContentMatchers.hasEntry(EiMessageHeaderAccessor.CORRELATION_ID, value));
 	}
 
 	@Factory
@@ -131,7 +132,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static Matcher<Message<?>> hasSequenceNumber(Matcher<Integer> matcher) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.SEQUENCE_NUMBER, matcher));
+		return new HeaderMatcher(MapContentMatchers.hasEntry(EiMessageHeaderAccessor.SEQUENCE_NUMBER, matcher));
 	}
 
 	@Factory
@@ -141,7 +142,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static Matcher<Message<?>> hasSequenceSize(Matcher<Integer> value) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.SEQUENCE_SIZE, value));
+		return new HeaderMatcher(MapContentMatchers.hasEntry(EiMessageHeaderAccessor.SEQUENCE_SIZE, value));
 	}
 
 	@Factory
@@ -151,7 +152,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static Matcher<Message<?>> hasExpirationDate(Matcher<Long> matcher) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.EXPIRATION_DATE, matcher));
+		return new HeaderMatcher(MapContentMatchers.hasEntry(EiMessageHeaderAccessor.EXPIRATION_DATE, matcher));
 	}
 
 	@Factory

@@ -21,15 +21,15 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.ChannelResolutionException;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -49,7 +49,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private volatile boolean requiresReply = false;
 
-	private final MessagingTemplate messagingTemplate;
+	private final GenericMessagingTemplate messagingTemplate;
 
 	private volatile RequestHandler advisedRequestHandler;
 
@@ -60,7 +60,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 
 	public AbstractReplyProducingMessageHandler() {
-		this.messagingTemplate = new MessagingTemplate();
+		this.messagingTemplate = new GenericMessagingTemplate();
 	}
 
 
@@ -76,11 +76,11 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	/**
-	 * Set the ChannelResolver to be used when there is no default output channel.
+	 * Set the DestinationResolver<MessageChannel> to be used when there is no default output channel.
 	 */
-	public void setChannelResolver(ChannelResolver channelResolver) {
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.messagingTemplate.setChannelResolver(channelResolver);
+		this.messagingTemplate.setDestinationResolver(channelResolver);
 	}
 
 	/**
@@ -92,9 +92,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	/**
-	 * Provides access to the {@link MessagingTemplate} for subclasses.
+	 * Provides access to the {@link GenericMessagingTemplate} for subclasses.
 	 */
-	protected MessagingTemplate getMessagingTemplate() {
+	protected GenericMessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
 
@@ -210,7 +210,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			this.sendMessage(replyMessage, replyChannelHeaderValue);
 		}
 		else {
-			throw new ChannelResolutionException("no output-channel or replyChannel header available");
+			throw new DestinationResolutionException("no output-channel or replyChannel header available");
 		}
 	}
 

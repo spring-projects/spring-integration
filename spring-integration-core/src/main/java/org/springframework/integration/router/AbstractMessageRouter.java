@@ -20,15 +20,15 @@ import java.util.Collection;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
  * Base class for all Message Routers.
@@ -48,7 +48,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile boolean applySequence;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 
 	/**
@@ -96,9 +96,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Provides {@link MessagingTemplate} access for subclasses.
+	 * Provides {@link GenericMessagingTemplate} access for subclasses.
 	 */
-	protected MessagingTemplate getMessagingTemplate() {
+	protected GenericMessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
 

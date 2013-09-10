@@ -45,16 +45,16 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
@@ -118,10 +118,10 @@ public class HttpInboundGatewayParserTests {
 		assertThat((Boolean) getPropertyValue(gateway, "convertExceptions"), is(true));
 		assertThat((PollableChannel) getPropertyValue(gateway, "replyChannel"), is(responses));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "errorChannel"));
-		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
-				gateway, "messagingTemplate", MessagingTemplate.class);
-		assertEquals(1234L, TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
-		assertEquals(4567L, TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
+		GenericMessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
+		gateway, "messagingTemplate", GenericMessagingTemplate.class);
+		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
+		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 
 		boolean registerDefaultConverters = TestUtils.getPropertyValue(gateway,"mergeWithDefaultConverters", Boolean.class);
 		assertFalse("By default the register-default-converters flag should be false", registerDefaultConverters);

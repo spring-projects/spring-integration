@@ -16,6 +16,12 @@
 
 package org.springframework.integration.config.annotation;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
+
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -29,18 +35,12 @@ import org.springframework.integration.aggregator.MethodInvokingCorrelationStrat
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * @author Marius Bogoevici
@@ -69,9 +69,9 @@ public class AggregatorAnnotationTests {
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
-		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
-		assertEquals(channelResolver.resolveChannelName("outputChannel"), getPropertyValue(aggregator, "outputChannel"));
-		assertEquals(channelResolver.resolveChannelName("discardChannel"), getPropertyValue(aggregator,
+		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryMessageChannelDestinationResolver(context);
+		assertEquals(channelResolver.resolveDestination("outputChannel"), getPropertyValue(aggregator, "outputChannel"));
+		assertEquals(channelResolver.resolveDestination("discardChannel"), getPropertyValue(aggregator,
 				"discardChannel"));
 		assertEquals(98765432l, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));

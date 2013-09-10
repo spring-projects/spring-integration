@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.ReflectionUtils;

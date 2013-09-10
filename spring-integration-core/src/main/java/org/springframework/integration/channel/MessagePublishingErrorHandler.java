@@ -21,20 +21,20 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 /**
  * {@link ErrorHandler} implementation that sends an {@link ErrorMessage} to a
  * {@link MessageChannel}.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
@@ -43,7 +43,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile ChannelResolver channelResolver;
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private volatile MessageChannel defaultErrorChannel;
 
@@ -53,7 +53,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	public MessagePublishingErrorHandler() {
 	}
 
-	public MessagePublishingErrorHandler(ChannelResolver channelResolver) {
+	public MessagePublishingErrorHandler(DestinationResolver<MessageChannel> channelResolver) {
 		Assert.notNull(channelResolver, "channelResolver must not be null");
 		this.channelResolver = channelResolver;
 	}
@@ -70,7 +70,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
 		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+			this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
 		}
 	}
 
@@ -108,10 +108,10 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		Message<?> failedMessage = (t instanceof MessagingException) ?
 				((MessagingException) t).getFailedMessage() : null;
 		if (this.defaultErrorChannel == null && this.channelResolver != null) {
-			this.defaultErrorChannel = this.channelResolver.resolveChannelName(
+			this.defaultErrorChannel = this.channelResolver.resolveDestination(
 					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		}
-		
+
 		if (failedMessage == null || failedMessage.getHeaders().getErrorChannel() == null) {
 			return this.defaultErrorChannel;
 		}
@@ -122,7 +122,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		Assert.isInstanceOf(String.class, errorChannelHeader,
 				"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
 				errorChannelHeader.getClass() + "]");
-		return this.channelResolver.resolveChannelName((String) errorChannelHeader);
+		return this.channelResolver.resolveDestination((String) errorChannelHeader);
 	}
 
 }

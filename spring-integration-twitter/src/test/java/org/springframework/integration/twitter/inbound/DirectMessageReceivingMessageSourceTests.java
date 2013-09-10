@@ -22,7 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 

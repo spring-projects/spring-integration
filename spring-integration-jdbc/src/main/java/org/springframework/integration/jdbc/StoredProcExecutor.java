@@ -31,8 +31,6 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,6 +44,8 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 import com.google.common.cache.CacheBuilder;

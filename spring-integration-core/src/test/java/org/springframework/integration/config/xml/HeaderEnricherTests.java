@@ -16,26 +16,29 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -98,63 +101,63 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void correlationIdValue() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals("ABC", result.getHeaders().getCorrelationId());
+		assertEquals("ABC", new EiMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 	@Test
 	public void correlationIdValueWithType() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdValueWithTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		Object correlationId = result.getHeaders().getCorrelationId();
+		Object correlationId = new EiMessageHeaderAccessor(result).getCorrelationId();
 		assertEquals(Long.class, correlationId.getClass());
 		assertEquals(new Long(123), correlationId);
 	}
 
 	@Test
 	public void correlationIdRef() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(123), result.getHeaders().getCorrelationId());
+		assertEquals(new Integer(123), new EiMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 	@Test
 	public void expirationDateValue() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Long(1111), result.getHeaders().getExpirationDate());
+		assertEquals(new Long(1111), new EiMessageHeaderAccessor(result).getExpirationDate());
 	}
 
 	@Test
 	public void expirationDateRef() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Long(9999), result.getHeaders().getExpirationDate());
+		assertEquals(new Long(9999), new EiMessageHeaderAccessor(result).getExpirationDate());
 	}
 
 	@Test
 	public void priority() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(42), result.getHeaders().getPriority());
+		assertEquals(new Integer(42), new EiMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test
 	public void expressionUsingPayload() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("payloadExpressionInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<TestBean>(new TestBean("foo")));
 		assertNotNull(result);
@@ -163,7 +166,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionUsingHeader() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("headerExpressionInput", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeader1", "foo").build();
 		Message<?> result = template.sendAndReceive(channel, message);
@@ -173,7 +176,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionWithDateType() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("expressionWithDateTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
@@ -185,7 +188,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionWithLongType() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("expressionWithLongTypeInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
@@ -195,7 +198,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void refWithMethod() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("refWithMethod", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
@@ -205,7 +208,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void ref() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("ref", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
@@ -216,7 +219,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void innerBean() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("innerBean", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
@@ -227,7 +230,7 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void innerBeanWithMethod() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		MessageChannel channel = context.getBean("innerBeanWithMethod", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);

@@ -23,22 +23,21 @@ import java.util.Collection;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.Orderable;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -57,13 +56,13 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final BeanFactory beanFactory;
 
-	protected final ChannelResolver channelResolver;
+	protected final DestinationResolver<MessageChannel> channelResolver;
 
 
 	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactory = beanFactory;
-		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
 	}
 
 
@@ -128,7 +127,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		AbstractEndpoint endpoint = null;
 		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(inputChannelName)) {
-			MessageChannel inputChannel = this.channelResolver.resolveChannelName(inputChannelName);
+			MessageChannel inputChannel = this.channelResolver.resolveDestination(inputChannelName);
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 			Assert.isTrue(inputChannel instanceof SubscribableChannel,
 					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");

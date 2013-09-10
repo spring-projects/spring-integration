@@ -16,15 +16,15 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -44,7 +44,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	private volatile boolean shouldTrack;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 	/**
 	 * Specify the source to be polled for Messages.

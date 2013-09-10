@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * Strategy for determining how messages can be correlated. Implementations

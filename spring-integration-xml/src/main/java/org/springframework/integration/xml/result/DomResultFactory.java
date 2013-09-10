@@ -22,7 +22,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Jonas Partner

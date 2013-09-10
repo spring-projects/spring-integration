@@ -21,7 +21,7 @@ import java.util.Map;
 
 import javax.jms.Message;
 
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.jms.JmsHeaderMapper;
 
 /**

@@ -18,7 +18,7 @@ package org.springframework.integration.store;
 
 import java.util.Collection;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * A group of messages that are correlated with each other and should be processed in the same context.

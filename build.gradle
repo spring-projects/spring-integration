@@ -58,7 +58,7 @@ subprojects { subproject ->
 		mockitoVersion = '1.9.5'
 		eaioUUIDVersion = '3.2'
 
-		springVersionDefault = '3.1.4.RELEASE'
+		springVersionDefault = '4.0.0.M3'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
 		springAmqpVersion = '1.2.0.RELEASE'
@@ -189,6 +189,7 @@ project('spring-integration-core') {
 	dependencies {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile "com.eaio.uuid:uuid:$eaioUUIDVersion"

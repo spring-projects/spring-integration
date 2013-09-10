@@ -18,7 +18,7 @@ package org.springframework.integration.ws;
 
 import java.io.IOException;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;

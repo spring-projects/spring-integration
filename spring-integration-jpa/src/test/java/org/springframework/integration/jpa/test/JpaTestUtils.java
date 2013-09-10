@@ -16,7 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;

@@ -18,8 +18,10 @@ package org.springframework.integration.core;
 
 import java.util.concurrent.Future;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.MessagePostProcessor;
 
 /**
  * @author Mark Fisher

@@ -19,10 +19,11 @@ package org.springframework.integration.router.config;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.PollableChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -94,7 +95,7 @@ public class SplitterParserTests {
 		assertEquals("test", result4.getPayload());
 		assertNull(output.receive(0));
 	}
-	
+
 	@Test(expected = ReplyRequiredException.class)
 	public void splitterParserTestWithRequiresReply() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -113,8 +114,8 @@ public class SplitterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
 		Message<?> message = output.receive(1000);
-		assertThat(message.getHeaders().getSequenceNumber(), is(0));
-		assertThat(message.getHeaders().getSequenceSize(), is(0));
+		assertThat(new EiMessageHeaderAccessor(message).getSequenceNumber(), is(0));
+		assertThat(new EiMessageHeaderAccessor(message).getSequenceSize(), is(0));
 	}
 
 

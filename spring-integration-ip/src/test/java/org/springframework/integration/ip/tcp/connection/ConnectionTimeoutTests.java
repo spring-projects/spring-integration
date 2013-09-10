@@ -32,13 +32,13 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.integration.Message;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Gary Russell

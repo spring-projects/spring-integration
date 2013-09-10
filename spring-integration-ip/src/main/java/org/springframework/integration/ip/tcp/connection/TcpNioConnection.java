@@ -35,8 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.util.Assert;
 

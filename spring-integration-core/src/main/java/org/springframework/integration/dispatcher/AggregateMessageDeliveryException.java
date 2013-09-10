@@ -16,17 +16,17 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.util.StringUtils;
-
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.util.StringUtils;
 
 /**
  * An Exception that encapsulates an aggregated group of Exceptions for use by dispatchers
  * that may try multiple handler invocations within a single dispatch operation.
- * 
+ *
  * @author Mark Fisher
  * @since 1.0.3
  */

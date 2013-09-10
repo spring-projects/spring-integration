@@ -37,13 +37,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.FileCopyUtils;
 
 /**

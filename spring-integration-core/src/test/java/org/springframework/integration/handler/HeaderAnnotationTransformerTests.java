@@ -20,14 +20,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
@@ -47,7 +46,7 @@ public class HeaderAnnotationTransformerTests {
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("testabc", result.getPayload());
-		assertEquals("abc", result.getHeaders().getCorrelationId());
+		assertEquals("abc", new EiMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 	@Test // INT-1082
@@ -62,7 +61,7 @@ public class HeaderAnnotationTransformerTests {
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("ABC", result.getPayload());
-		assertEquals("abc", result.getHeaders().getCorrelationId());
+		assertEquals("abc", new EiMessageHeaderAccessor(result).getCorrelationId());
 	}
 
 	@Test
@@ -99,7 +98,7 @@ public class HeaderAnnotationTransformerTests {
 	public static class TestTransformer {
 
 		public String appendCorrelationId(Object payload,
-				@Header(value = MessageHeaders.CORRELATION_ID, required = true) Object correlationId) {
+				@Header(value = EiMessageHeaderAccessor.CORRELATION_ID, required = true) Object correlationId) {
 			return payload.toString() + correlationId.toString();
 		}
 
@@ -107,7 +106,7 @@ public class HeaderAnnotationTransformerTests {
 			return payload.toString() + header.toString();
 		}
 
-		public String evalCorrelationId(@Header(value = MessageHeaders.CORRELATION_ID + ".toUpperCase()") String result) {
+		public String evalCorrelationId(@Header(value = EiMessageHeaderAccessor.CORRELATION_ID + ".toUpperCase()") String result) {
 			return result.toString();
 		}
 

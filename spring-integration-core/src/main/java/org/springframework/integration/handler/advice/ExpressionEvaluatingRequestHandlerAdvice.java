@@ -19,15 +19,15 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.message.ErrorMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -51,7 +51,7 @@ public class ExpressionEvaluatingRequestHandlerAdvice extends AbstractRequestHan
 
 	private volatile MessageChannel failureChannel;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 	private volatile boolean trapException = false;
 

@@ -16,6 +16,15 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -27,22 +36,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Iwein Fuld
@@ -81,6 +82,8 @@ public class CorrelatingMessageHandlerTests {
 		Message<?> message2 = testMessage(correlationKey, 2, 2);
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
+		when(processor.processMessageGroup(any(MessageGroup.class))).thenReturn(MessageBuilder.withPayload("grouped").build());
+		when(outputChannel.send(any(Message.class), anyLong())).thenReturn(true);
 
 		handler.handleMessage(message1);
 
@@ -104,7 +107,7 @@ public class CorrelatingMessageHandlerTests {
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 
 		handler.setExpireGroupsUponCompletion(true);
-		
+
 		handler.handleMessage(message1);
 
 		try {
@@ -135,6 +138,8 @@ public class CorrelatingMessageHandlerTests {
 		final CountDownLatch bothMessagesHandled = new CountDownLatch(2);
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
+		when(processor.processMessageGroup(any(MessageGroup.class))).thenReturn(MessageBuilder.withPayload("grouped").build());
+		when(outputChannel.send(any(Message.class), anyLong())).thenReturn(true);
 
 		handler.handleMessage(message1);
 		bothMessagesHandled.countDown();

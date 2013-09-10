@@ -22,7 +22,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;

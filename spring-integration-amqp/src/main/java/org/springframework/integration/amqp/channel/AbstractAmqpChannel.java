@@ -17,7 +17,7 @@
 package org.springframework.integration.amqp.channel;
 
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.util.Assert;
 

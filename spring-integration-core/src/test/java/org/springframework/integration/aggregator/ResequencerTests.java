@@ -28,13 +28,13 @@ import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Marius Bogoevici
@@ -69,11 +69,11 @@ public class ResequencerTests {
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
 		assertNotNull(reply1);
-		assertThat( reply1.getHeaders().getSequenceNumber(), is(1));
+		assertThat( new EiMessageHeaderAccessor(reply1).getSequenceNumber(), is(1));
 		assertNotNull(reply2);
-		assertThat(reply2.getHeaders().getSequenceNumber(), is(2));
+		assertThat(new EiMessageHeaderAccessor(reply2).getSequenceNumber(), is(2));
 		assertNotNull(reply3);
-		assertThat( reply3.getHeaders().getSequenceNumber(), is(3));
+		assertThat( new EiMessageHeaderAccessor(reply3).getSequenceNumber(), is(3));
 	}
 
 	@Test
@@ -142,11 +142,11 @@ public class ResequencerTests {
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
 		assertNotNull(reply1);
-		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(1), new EiMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertNotNull(reply2);
-		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(2), new EiMessageHeaderAccessor(reply2).getSequenceNumber());
 		assertNotNull(reply3);
-		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(reply3).getSequenceNumber());
 	}
 
 	@Test
@@ -165,18 +165,18 @@ public class ResequencerTests {
 		Message<?> reply3 = replyChannel.receive(0);
 		// only messages 1 and 2 should have been received by now
 		assertNotNull(reply1);
-		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(1), new EiMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertNotNull(reply2);
-		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(2), new EiMessageHeaderAccessor(reply2).getSequenceNumber());
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		this.resequencer.handleMessage(message4);
 		reply3 = replyChannel.receive(0);
 		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply3);
-		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(reply3).getSequenceNumber());
 		assertNotNull(reply4);
-		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(4), new EiMessageHeaderAccessor(reply4).getSequenceNumber());
 	}
 
 	@Test
@@ -195,18 +195,18 @@ public class ResequencerTests {
 		Message<?> reply3 = replyChannel.receive(0);
 		// only messages 1 and 2 should have been received by now
 		assertNotNull(reply1);
-		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(1), new EiMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertNotNull(reply2);
-		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(2), new EiMessageHeaderAccessor(reply2).getSequenceNumber());
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		this.resequencer.handleMessage(message4);
 		reply3 = replyChannel.receive(0);
 		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply3);
-		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(reply3).getSequenceNumber());
 		assertNotNull(reply4);
-		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(4), new EiMessageHeaderAccessor(reply4).getSequenceNumber());
 	}
 
 	@Test
@@ -227,8 +227,8 @@ public class ResequencerTests {
 		assertNotNull(reply1);
 		assertNotNull(reply2);
 		assertNull(reply3);
-		ArrayList<Integer> sequence = new ArrayList<Integer>(Arrays.asList(reply1.getHeaders().getSequenceNumber(), reply2.getHeaders()
-				.getSequenceNumber()));
+		ArrayList<Integer> sequence = new ArrayList<Integer>(Arrays.asList(new EiMessageHeaderAccessor(reply1).getSequenceNumber(),
+				new EiMessageHeaderAccessor(reply2).getSequenceNumber()));
 		Collections.sort(sequence);
 		assertEquals("[1, 2]", sequence.toString());
 		// when sending the last message, the whole sequence must have been sent
@@ -251,7 +251,7 @@ public class ResequencerTests {
 		Message<?> discard2 = discardChannel.receive(0);
 		// message2 has been discarded because it came in with the wrong sequence size
 		assertNotNull(discard1);
-		assertEquals(new Integer(1), discard1.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(1), new EiMessageHeaderAccessor(discard1).getSequenceNumber());
 		assertNull(discard2);
 	}
 
@@ -292,13 +292,13 @@ public class ResequencerTests {
 		reply3 = replyChannel.receive(0);
 		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply1);
-		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(1), new EiMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertNotNull(reply2);
-		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(2), new EiMessageHeaderAccessor(reply2).getSequenceNumber());
 		assertNotNull(reply3);
-		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(reply3).getSequenceNumber());
 		assertNotNull(reply4);
-		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(4), new EiMessageHeaderAccessor(reply4).getSequenceNumber());
 	}
 
 	@Test

@@ -22,19 +22,20 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -120,7 +121,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					if (this.errorHandler == null) {
 						Assert.notNull(this.getBeanFactory(), "BeanFactory is required");
 						this.errorHandler = new MessagePublishingErrorHandler(
-								new BeanFactoryChannelResolver(getBeanFactory()));
+								new BeanFactoryMessageChannelDestinationResolver(getBeanFactory()));
 					}
 					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 				}

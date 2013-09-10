@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Filter;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.util.Assert;
@@ -48,7 +48,7 @@ public class FilterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		MessageFilter filter = new MessageFilter(selector);
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
-			filter.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+			filter.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
 		}
 		filter.setDiscardWithinAdvice(annotation.discardWithinAdvice());
 		return filter;

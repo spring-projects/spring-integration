@@ -18,8 +18,8 @@ package org.springframework.integration.ws;
 import java.util.Map;
 
 import org.springframework.expression.ExpressionException;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;

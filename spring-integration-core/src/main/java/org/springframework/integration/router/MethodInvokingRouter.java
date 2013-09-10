@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
-import org.springframework.integration.support.channel.ChannelResolver;
 
 /**
  * A Message Router that invokes the specified method on the given object. The

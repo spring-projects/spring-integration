@@ -19,7 +19,7 @@ package org.springframework.integration.channel;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.util.Assert;
 

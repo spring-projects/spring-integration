@@ -16,7 +16,7 @@
 
 package org.springframework.integration.twitter.ignored;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;

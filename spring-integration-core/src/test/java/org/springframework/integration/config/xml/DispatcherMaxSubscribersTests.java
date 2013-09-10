@@ -18,7 +18,7 @@ package org.springframework.integration.config.xml;
 import static org.junit.Assert.assertEquals;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

@@ -27,7 +27,7 @@ import javax.xml.transform.dom.DOMResult;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.xml.transform.StringResult;
 
 /**

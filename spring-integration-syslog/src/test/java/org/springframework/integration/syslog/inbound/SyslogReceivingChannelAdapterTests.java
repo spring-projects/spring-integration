@@ -37,11 +37,11 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.syslog.config.SyslogReceivingChannelAdapterFactoryBean;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
 
 /**
  * @author Gary Russell

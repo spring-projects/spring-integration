@@ -18,19 +18,20 @@ package org.springframework.integration.aggregator;
 
 import java.util.Comparator;
 
-import org.springframework.integration.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.messaging.Message;
 
 /**
  * A {@link Comparator} implementation based on the 'sequence number'
  * property of a {@link Message Message's} header.
- * 
+ *
  * @author Mark Fisher
  */
 public class MessageSequenceComparator implements Comparator<Message<?>> {
 
 	public int compare(Message<?> message1, Message<?> message2) {
-		Integer s1 = message1.getHeaders().getSequenceNumber();
-		Integer s2 = message2.getHeaders().getSequenceNumber();
+		Integer s1 = new EiMessageHeaderAccessor(message1).getSequenceNumber();
+		Integer s2 = new EiMessageHeaderAccessor(message2).getSequenceNumber();
 		if (s1 == null) {
 			s1 = 0;
 		}

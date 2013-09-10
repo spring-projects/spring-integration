@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.message.GenericMessage;
@@ -39,8 +40,8 @@ public class TestAnnotatedEndpointWithCustomizedAggregator {
 	@Aggregator(
 			inputChannel = "inputChannel",
 			outputChannel = "outputChannel",
-			discardChannel = "discardChannel", 
-			sendPartialResultsOnExpiry = true, 
+			discardChannel = "discardChannel",
+			sendPartialResultsOnExpiry = true,
 			sendTimeout = 98765432)
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
@@ -50,7 +51,7 @@ public class TestAnnotatedEndpointWithCustomizedAggregator {
 		for (Message<?> message : sortableList) {
 			buffer.append(message.getPayload().toString());
 			if (null == correlationId) {
-				correlationId = message.getHeaders().getCorrelationId();
+				correlationId = new EiMessageHeaderAccessor(message).getCorrelationId();
 			}
 		}
 		Message<?> returnedMessage = new GenericMessage<String>(buffer.toString());

@@ -66,7 +66,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.PollableChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.ImapIdleChannelAdapter.ImapIdleExceptionEvent;
@@ -389,7 +389,7 @@ public class ImapMailReceiverTests {
 		PollableChannel channel = context.getBean("channel", PollableChannel.class);
 
 		adapter.start();
-		org.springframework.integration.Message<?> replMessage = channel.receive(10000);
+		org.springframework.messaging.Message<?> replMessage = channel.receive(10000);
 		MessageHistory history = MessageHistory.read(replMessage);
 		assertNotNull(history);
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "simpleAdapter", 0);
@@ -411,7 +411,7 @@ public class ImapMailReceiverTests {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new AbstractReplyProducingMessageHandler() {
 			@Override
-			protected Object handleRequestMessage(org.springframework.integration.Message<?> requestMessage) {
+			protected Object handleRequestMessage(org.springframework.messaging.Message<?> requestMessage) {
 				throw new RuntimeException("Failed");
 			}
 		});
@@ -463,7 +463,7 @@ public class ImapMailReceiverTests {
 		}).when(receiver).fetchMessages(messages);
 
 		adapter.start();
-		org.springframework.integration.Message<?> replMessage = errorChannel.receive(10000);
+		org.springframework.messaging.Message<?> replMessage = errorChannel.receive(10000);
 		assertNotNull(replMessage);
 		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
 		adapter.stop();

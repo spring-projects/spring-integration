@@ -18,8 +18,8 @@ package org.springframework.integration.dispatcher;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * Strategy for determining the iteration order of a MessageHandler list.

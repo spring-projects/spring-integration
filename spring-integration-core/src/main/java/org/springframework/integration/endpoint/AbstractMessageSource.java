@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.AbstractExpressionEvaluator;

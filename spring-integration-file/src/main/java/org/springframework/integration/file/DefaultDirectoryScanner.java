@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 

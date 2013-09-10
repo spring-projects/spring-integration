@@ -37,7 +37,7 @@
       value. If that value is available, it will then check its type. If it is a
       <interfacename>MessageChannel</interfacename>, the reply message will be sent to that channel. If it is a
       <classname>String</classname>, then the endpoint will attempt to resolve the channel name to a channel instance.
-      If the channel cannot be resolved, then a <classname>ChannelResolutionException</classname> will be thrown.
+      If the channel cannot be resolved, then a <classname>DestinationResolutionException</classname> will be thrown.
       It it can be resolved, the Message will be sent there. This is the technique used for Request Reply messaging
       in Spring Integration, and it is also an example of the Return Address pattern.
     </para>

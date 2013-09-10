@@ -18,7 +18,8 @@ import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.springframework.integration.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.messaging.Message;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id. The
@@ -123,7 +124,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		if (size() == 0) {
 			return 0;
 		}
-		return getOne().getHeaders().getSequenceSize();
+		return new EiMessageHeaderAccessor(getOne()).getSequenceSize();
 	}
 
 	public int size() {

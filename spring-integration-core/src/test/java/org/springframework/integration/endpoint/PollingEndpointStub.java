@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**

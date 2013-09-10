@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * The default Message Splitter implementation. Returns individual Messages

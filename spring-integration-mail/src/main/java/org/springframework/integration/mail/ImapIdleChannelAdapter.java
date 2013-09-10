@@ -230,7 +230,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 							"Failure in 'idle' task. Will resubmit.", e);
 				}
 				else {
-					throw new org.springframework.integration.MessagingException(
+					throw new org.springframework.messaging.MessagingException(
 							"Failure in 'idle' task. Will NOT resubmit.", e);
 				}
 			}
@@ -240,7 +240,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 	private Runnable createMessageSendingTask(final Message mailMessage){
 		Runnable sendingTask = new Runnable() {
 			public void run() {
-				org.springframework.integration.Message<?> message =
+				org.springframework.messaging.Message<?> message =
 						MessageBuilder.withPayload(mailMessage).build();
 
 				if (TransactionSynchronizationManager.isActualTransactionActive()) {

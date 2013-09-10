@@ -12,7 +12,7 @@
  */
 package org.springframework.integration.scripting;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author David Turanski

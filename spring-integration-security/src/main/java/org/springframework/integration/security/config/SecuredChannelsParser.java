@@ -34,7 +34,7 @@ import org.springframework.util.xml.DomUtils;
 /**
  * Creates a {@link org.springframework.integration.security.channel.ChannelSecurityInterceptor}
  * to control send and receive access, and creates a bean post-processor to apply the
- * interceptor to {@link org.springframework.integration.MessageChannel}s
+ * interceptor to {@link org.springframework.messaging.MessageChannel}s
  * whose names match the specified patterns.
  * 
  * @author Jonas Partner

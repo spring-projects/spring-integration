@@ -30,9 +30,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
@@ -43,6 +40,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
  * @author Gunnar Hillert
@@ -82,7 +82,7 @@ public class StoredProcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("messagingTemplate");
 
-		MessagingTemplate messagingTemplate = (MessagingTemplate) source;
+		GenericMessagingTemplate messagingTemplate = (GenericMessagingTemplate) source;
 
 		accessor = new DirectFieldAccessor(messagingTemplate);
 

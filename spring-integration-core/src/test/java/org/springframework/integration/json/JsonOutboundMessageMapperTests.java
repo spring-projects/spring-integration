@@ -28,11 +28,11 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.json.JsonOutboundMessageMapper;
+import org.springframework.messaging.Message;
 
 /**
  * @author Jeremy Grelle
@@ -86,7 +86,7 @@ public class JsonOutboundMessageMapperTests {
 		String result = mapper.fromMessage(testMessage);
 		assertEquals(expected, result);
 	}
-	
+
 	@Test
 	public void testFromMessageWithHeadersAndBeanPayload() throws Exception {
 		TestBean payload = new TestBean();
@@ -99,7 +99,7 @@ public class JsonOutboundMessageMapperTests {
 		TestBean parsedPayload = extractJsonPayloadToTestBean(result);
 		assertEquals(payload, parsedPayload);
 	}
-	
+
 	@Test
 	public void testFromMessageExtractBeanPayload() throws Exception {
 		TestBean payload = new TestBean();
@@ -111,7 +111,7 @@ public class JsonOutboundMessageMapperTests {
 		TestBean parsedPayload = objectMapper.readValue(result, TestBean.class);
 		assertEquals(payload, parsedPayload);
 	}
-	
+
 	private TestBean extractJsonPayloadToTestBean(String json) throws JsonParseException, IOException {
 		JsonParser parser = jsonFactory.createJsonParser(json);
 		do {

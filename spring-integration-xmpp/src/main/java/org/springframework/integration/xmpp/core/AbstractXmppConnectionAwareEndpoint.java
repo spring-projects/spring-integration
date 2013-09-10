@@ -19,7 +19,7 @@ package org.springframework.integration.xmpp.core;
 import org.jivesoftware.smack.XMPPConnection;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.util.Assert;
 

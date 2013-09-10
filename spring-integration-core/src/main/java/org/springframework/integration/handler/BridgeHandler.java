@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * A simple MessageHandler implementation that passes the request Message

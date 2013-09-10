@@ -34,12 +34,12 @@ import java.util.Vector;
 import org.junit.After;
 import org.junit.Test;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
+import org.springframework.messaging.Message;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;

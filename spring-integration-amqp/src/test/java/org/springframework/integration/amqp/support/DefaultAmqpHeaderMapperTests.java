@@ -30,7 +30,7 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.http.MediaType;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
 
 /**

@@ -16,8 +16,8 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.core.PollableChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
 
 /**
  * Base class for all pollable channels.

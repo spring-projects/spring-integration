@@ -13,7 +13,7 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.store.MessageGroup;
 
 /**

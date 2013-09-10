@@ -21,14 +21,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
 
 /**
  * @author Mark Fisher
@@ -99,7 +98,7 @@ public class ReturnAddressTests {
 		assertNull(channel2.receive(0));
 	}
 
-	@Test(expected = ChannelResolutionException.class)
+	@Test(expected = DestinationResolutionException.class)
 	public void returnAddressFallbackButNotAvailable() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());

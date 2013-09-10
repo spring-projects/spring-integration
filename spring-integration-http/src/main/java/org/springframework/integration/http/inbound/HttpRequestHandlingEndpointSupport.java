@@ -47,9 +47,9 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -84,7 +84,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * <p>
  * The behavior is "request/reply" by default. Pass {@code false} to the constructor to force send-only as opposed
  * to sendAndReceive. Send-only means that as soon as the Message is created and passed to the
- * {@link #setRequestChannel(org.springframework.integration.MessageChannel) request channel}, a response will be
+ * {@link #setRequestChannel(org.springframework.messaging.MessageChannel) request channel}, a response will be
  * generated. Subclasses determine how that response is generated (e.g. simple status response or rendering a View).
  * <p>
  * In a request-reply scenario, the reply Message's payload will be extracted prior to generating a response by default.

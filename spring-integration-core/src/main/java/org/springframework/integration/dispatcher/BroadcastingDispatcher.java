@@ -19,11 +19,11 @@ package org.springframework.integration.dispatcher;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageDispatchingException;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 
 /**
  * A broadcasting dispatcher implementation. If the 'ignoreFailures' property is set to <code>false</code> (the

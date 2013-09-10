@@ -416,7 +416,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				return AbstractMailReceiver.this.obtainFolderInstance();
 			}
 			catch (MessagingException e) {
-				throw new org.springframework.integration.MessagingException("Unable to obtain the mail folder", e);
+				throw new org.springframework.messaging.MessagingException("Unable to obtain the mail folder", e);
 			}
 		}
 

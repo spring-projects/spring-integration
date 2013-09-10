@@ -16,9 +16,12 @@
 
 package org.springframework.integration;
 
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+
 /**
  * Exception that indicates an error occurred during message handling.
- * 
+ *
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")

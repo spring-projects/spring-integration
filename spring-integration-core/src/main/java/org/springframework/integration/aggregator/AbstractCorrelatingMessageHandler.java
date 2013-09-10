@@ -22,13 +22,9 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessagingException;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -36,9 +32,14 @@ import org.springframework.integration.store.MessageGroupStore.MessageGroupCallb
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.util.DefaultLockRegistry;
 import org.springframework.integration.util.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -80,7 +81,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private MessageChannel outputChannel;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 	private volatile MessageChannel discardChannel = new NullChannel();
 
@@ -102,7 +103,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		setMessageStore(store);
 		this.outputProcessor = processor;
 		this.correlationStrategy = correlationStrategy == null ?
-				new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID) : correlationStrategy;
+				new HeaderAttributeCorrelationStrategy(EiMessageHeaderAccessor.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
 		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
@@ -329,7 +330,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		Message<?> lastReleasedMessage = sorted.get(partialSequence.size()-1);
 
-		return lastReleasedMessage.getHeaders().getSequenceNumber();
+		return new EiMessageHeaderAccessor(lastReleasedMessage).getSequenceNumber();
 	}
 
 	private MessageGroup store(Object correlationKey, Message<?> message) {
@@ -449,9 +450,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			if (this.size() == 0) {
 				return true;
 			}
-			Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
+			EiMessageHeaderAccessor messageHeaderAccessor = new EiMessageHeaderAccessor(message);
+			Integer messageSequenceNumber = messageHeaderAccessor.getSequenceNumber();
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-				Integer messageSequenceSize = message.getHeaders().getSequenceSize();
+				Integer messageSequenceSize = messageHeaderAccessor.getSequenceSize();
 				if (!messageSequenceSize.equals(this.getSequenceSize())) {
 					return false;
 				}
@@ -464,7 +466,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
 			for (Message<?> member : messages) {
-				Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
+				Integer memberSequenceNumber = new EiMessageHeaderAccessor(member).getSequenceNumber();
 				if (messageSequenceNumber.equals(memberSequenceNumber)) {
 					return true;
 				}

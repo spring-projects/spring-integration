@@ -26,13 +26,14 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 
 /**
  * @author Mark Fisher
@@ -148,7 +149,7 @@ public class RecipientListRouterTests {
 			assertEquals("test", result1a.getPayload());
 			Message<?> result1b = channelB.receive(0);
 			assertNotNull(result1b);
-			assertEquals("blocker", result1b.getPayload());			
+			assertEquals("blocker", result1b.getPayload());
 			assertNull(channelC.receive(0));
 			throw e;
 		}
@@ -296,13 +297,13 @@ public class RecipientListRouterTests {
 		assertNotNull(result1a);
 		assertNotNull(result1b);
 		assertEquals("test", result1a.getPayload());
-		assertEquals(0, result1a.getHeaders().getSequenceNumber().intValue());
-		assertEquals(0, result1a.getHeaders().getSequenceSize().intValue());
-		assertNull(result1a.getHeaders().getCorrelationId());
+		assertEquals(0, new EiMessageHeaderAccessor(result1a).getSequenceNumber().intValue());
+		assertEquals(0, new EiMessageHeaderAccessor(result1a).getSequenceSize().intValue());
+		assertNull(new EiMessageHeaderAccessor(result1a).getCorrelationId());
 		assertEquals("test", result1b.getPayload());
-		assertEquals(0, result1b.getHeaders().getSequenceNumber().intValue());
-		assertEquals(0, result1b.getHeaders().getSequenceSize().intValue());
-		assertNull(result1b.getHeaders().getCorrelationId());
+		assertEquals(0, new EiMessageHeaderAccessor(result1b).getSequenceNumber().intValue());
+		assertEquals(0, new EiMessageHeaderAccessor(result1b).getSequenceSize().intValue());
+		assertNull(new EiMessageHeaderAccessor(result1b).getCorrelationId());
 	}
 
 	@Test
@@ -324,13 +325,13 @@ public class RecipientListRouterTests {
 		assertNotNull(result1a);
 		assertNotNull(result1b);
 		assertEquals("test", result1a.getPayload());
-		assertEquals(1, result1a.getHeaders().getSequenceNumber().intValue());
-		assertEquals(2, result1a.getHeaders().getSequenceSize().intValue());
-		assertEquals(message.getHeaders().getId(), result1a.getHeaders().getCorrelationId());
+		assertEquals(1,new EiMessageHeaderAccessor(result1a).getSequenceNumber().intValue());
+		assertEquals(2, new EiMessageHeaderAccessor(result1a).getSequenceSize().intValue());
+		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(result1a).getCorrelationId());
 		assertEquals("test", result1b.getPayload());
-		assertEquals(2, result1b.getHeaders().getSequenceNumber().intValue());
-		assertEquals(2, result1b.getHeaders().getSequenceSize().intValue());
-		assertEquals(message.getHeaders().getId(), result1b.getHeaders().getCorrelationId());
+		assertEquals(2, new EiMessageHeaderAccessor(result1b).getSequenceNumber().intValue());
+		assertEquals(2, new EiMessageHeaderAccessor(result1b).getSequenceSize().intValue());
+		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(result1b).getCorrelationId());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

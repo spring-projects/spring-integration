@@ -34,7 +34,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -84,7 +84,7 @@ public class MailSendingMessageHandlerContextTests {
 	@Test
 	public void byteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
-		org.springframework.integration.Message<?> message =
+		org.springframework.messaging.Message<?> message =
 				MessageBuilder.withPayload(payload)
 				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
 				.setHeader(MailHeaders.TO, MailTestsHelper.TO)

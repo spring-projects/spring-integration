@@ -18,11 +18,11 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
@@ -111,7 +111,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	public final void onInit() {
 		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
-					new BeanFactoryChannelResolver(this.getBeanFactory()));
+					new BeanFactoryMessageChannelDestinationResolver(this.getBeanFactory()));
 			this.executor = new ErrorHandlingTaskExecutor(this.executor, errorHandler);
 		}
 		this.dispatcher = new UnicastingDispatcher(this.executor);

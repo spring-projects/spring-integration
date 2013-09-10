@@ -42,7 +42,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.CollectionUtils;
 

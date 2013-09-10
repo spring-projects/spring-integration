@@ -20,16 +20,16 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -41,7 +41,7 @@ public class MessageProducerSupportTests {
 	@Test(expected=MessageDeliveryException.class)
 	public void validateExceptionIfNoErrorChannel() {
 		DirectChannel outChannel = new DirectChannel();
-		
+
 		outChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("problems");
@@ -64,7 +64,7 @@ public class MessageProducerSupportTests {
 			}
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
-		errorChannel.subscribe(new MessageHandler() {	
+		errorChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("ooops");
 			}
@@ -81,7 +81,7 @@ public class MessageProducerSupportTests {
 	@Test
 	public void validateSuccessfulErrorFlowDoesNotThrowErrors() {
 		DirectChannel outChannel = new DirectChannel();
-		outChannel.subscribe(new MessageHandler() {	
+		outChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("problems");
 			}

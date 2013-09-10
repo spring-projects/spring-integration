@@ -25,7 +25,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.util.CollectionFilter;
 import org.springframework.util.Assert;

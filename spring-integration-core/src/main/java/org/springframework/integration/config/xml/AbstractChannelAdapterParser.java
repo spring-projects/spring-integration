@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
 /**
  * Base parser for Channel Adapters.
  * <p/>
- * Includes logic to determine {@link org.springframework.integration.MessageChannel}:
+ * Includes logic to determine {@link org.springframework.messaging.MessageChannel}:
  * if 'channel' attribute is defined - uses its value as 'channelName';
  * if 'id' attribute is defined - creates {@link DirectChannel} at runtime and uses id's value as 'channelName';
  * if current component is defined as nested element inside any other components e.g. &lt;chain&gt;

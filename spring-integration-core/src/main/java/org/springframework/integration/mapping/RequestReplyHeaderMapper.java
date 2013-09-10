@@ -17,7 +17,7 @@ package org.springframework.integration.mapping;
 
 import java.util.Map;
 
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * Request/Reply strategy interface for mapping {@link MessageHeaders} to and from other

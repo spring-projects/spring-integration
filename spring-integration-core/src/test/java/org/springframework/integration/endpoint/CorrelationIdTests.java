@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -48,7 +48,7 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals(correlationId, reply.getHeaders().getCorrelationId());
+		assertEquals(correlationId, new EiMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -63,8 +63,8 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals(message.getHeaders().getCorrelationId(), reply.getHeaders().getCorrelationId());
-		assertTrue(message.getHeaders().getCorrelationId().equals(reply.getHeaders().getCorrelationId()));
+		assertEquals(new EiMessageHeaderAccessor(message).getCorrelationId(), new EiMessageHeaderAccessor(reply).getCorrelationId());
+		assertTrue(new EiMessageHeaderAccessor(message).getCorrelationId().equals(new EiMessageHeaderAccessor(reply).getCorrelationId()));
 	}
 
 	@Test
@@ -80,7 +80,7 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
+		assertEquals("456-XYZ", new EiMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class CorrelationIdTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
+		assertEquals("456-XYZ", new EiMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -107,13 +107,13 @@ public class CorrelationIdTests {
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
-		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());
-		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());		
+		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply1).getCorrelationId());
+		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply2).getCorrelationId());
 	}
 
 	@Test
 	public void testCorrelationIdWithSplitterWhenValueSetOnIncomingMessage() throws Exception {
-		
+
 		final String correlationIdForTest = "#FOR_TEST#";
 		Message<?> message = MessageBuilder.withPayload("test1,test2").setCorrelationId(correlationIdForTest).build();
 		QueueChannel testChannel = new QueueChannel();
@@ -123,10 +123,10 @@ public class CorrelationIdTests {
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
-		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());
-		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());		
-		assertTrue("Sequence details missing", reply1.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
-		assertTrue("Sequence details missing", reply2.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply1).getCorrelationId());
+		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply2).getCorrelationId());
+		assertTrue("Sequence details missing", reply1.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
+		assertTrue("Sequence details missing", reply2.getHeaders().containsKey(EiMessageHeaderAccessor.SEQUENCE_DETAILS));
 	}
 
 	@SuppressWarnings("unused")

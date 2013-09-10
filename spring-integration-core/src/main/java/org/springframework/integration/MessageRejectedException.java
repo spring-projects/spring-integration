@@ -16,9 +16,11 @@
 
 package org.springframework.integration;
 
+import org.springframework.messaging.Message;
+
 /**
  * Exception that indicates a message has been rejected by a selector.
- * 
+ *
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")

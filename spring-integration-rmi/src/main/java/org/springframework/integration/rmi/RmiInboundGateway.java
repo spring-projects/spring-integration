@@ -19,11 +19,11 @@ package org.springframework.integration.rmi;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
 import org.springframework.util.Assert;
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * An inbound Messaging Gateway for RMI-based remoting.
- * 
+ *
  * @author Mark Fisher
  */
 public class RmiInboundGateway extends MessagingGatewaySupport implements RequestReplyExchanger, InitializingBean {
@@ -87,7 +87,7 @@ public class RmiInboundGateway extends MessagingGatewaySupport implements Reques
 	public void setRemoteInvocationExecutor(RemoteInvocationExecutor remoteInvocationExecutor) {
 		this.remoteInvocationExecutor = remoteInvocationExecutor;
 	}
-	
+
 	public String getComponentType() {
 		return "rmi:inbound-gateway";
 	}

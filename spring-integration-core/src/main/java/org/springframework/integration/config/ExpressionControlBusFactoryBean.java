@@ -21,7 +21,7 @@ import java.util.List;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.expression.MethodFilter;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;

@@ -21,7 +21,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 
 /**
  * Channel adapter that joins a multicast group and receives incoming packets and

@@ -22,7 +22,7 @@ import org.springframework.classify.Classifier;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.retry.RetryState;
 import org.springframework.retry.support.DefaultRetryState;

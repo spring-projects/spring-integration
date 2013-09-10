@@ -29,19 +29,19 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
@@ -108,9 +108,10 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		return this.dispatcher.removeHandler(handler);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected boolean doSend(Message<?> message, long arg1) {
-		this.redisTemplate.convertAndSend(this.topicName, this.messageConverter.fromMessage(message));
+		this.redisTemplate.convertAndSend(this.topicName, this.messageConverter.fromMessage(message, Object.class));
 		return true;
 	}
 
@@ -126,7 +127,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		this.container.setConnectionFactory(connectionFactory);
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
-					new BeanFactoryChannelResolver(this.getBeanFactory()));
+					new BeanFactoryMessageChannelDestinationResolver(this.getBeanFactory()));
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
 		this.container.setTaskExecutor(this.taskExecutor);
@@ -180,7 +181,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 	private class MessageListenerDelegate {
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings({ "unused", "unchecked" })
 		public void handleMessage(String s) {
 			Message<?> siMessage = messageConverter.toMessage(s);
 			try {

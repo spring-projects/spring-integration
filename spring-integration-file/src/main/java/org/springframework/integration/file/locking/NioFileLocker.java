@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.locking;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.file.FileReadingMessageSource;
 
 import java.io.File;

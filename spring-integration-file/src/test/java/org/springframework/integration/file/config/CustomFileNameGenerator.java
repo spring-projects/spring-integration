@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.file.FileNameGenerator;
 
 import java.util.Date;

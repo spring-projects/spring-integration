@@ -18,7 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.util.Assert;
 

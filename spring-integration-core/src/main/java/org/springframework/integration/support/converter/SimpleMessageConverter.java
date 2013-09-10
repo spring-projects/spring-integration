@@ -16,17 +16,21 @@
 
 package org.springframework.integration.support.converter;
 
-import org.springframework.integration.Message;
+import java.lang.reflect.Type;
+
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConversionException;
+import org.springframework.messaging.support.converter.MessageConverter;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleMessageConverter implements MessageConverter {
+public class SimpleMessageConverter implements MessageConverter<Object> {
 
 	private volatile InboundMessageMapper inboundMessageMapper;
 
@@ -70,7 +74,7 @@ public class SimpleMessageConverter implements MessageConverter {
 		}
 	}
 
-	public <P> Object fromMessage(Message<P> message) {
+	public Object fromMessage(Message<?> message, Type targetClass) {
 		try {
 			return this.outboundMessageMapper.fromMessage(message);
 		}

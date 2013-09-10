@@ -19,9 +19,9 @@ package org.springframework.integration.config.annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -44,7 +44,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		router.setBeanFactory(this.beanFactory);
 		String defaultOutputChannelName = annotation.defaultOutputChannel();
 		if (StringUtils.hasText(defaultOutputChannelName)) {
-			MessageChannel defaultOutputChannel = this.channelResolver.resolveChannelName(defaultOutputChannelName);
+			MessageChannel defaultOutputChannel = this.channelResolver.resolveDestination(defaultOutputChannelName);
 			Assert.notNull(defaultOutputChannel, "unable to resolve defaultOutputChannel '" + defaultOutputChannelName + "'");
 			router.setDefaultOutputChannel(defaultOutputChannel);
 		}

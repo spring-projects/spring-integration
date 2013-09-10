@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
@@ -29,7 +28,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.SpringVersion;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -43,16 +42,16 @@ public class MessageBusParserTests {
 	public void testErrorChannelReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithErrorChannel.xml", this.getClass());
-		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
-		assertEquals(context.getBean("errorChannel"), resolver.resolveChannelName("errorChannel"));
+		BeanFactoryMessageChannelDestinationResolver resolver = new BeanFactoryMessageChannelDestinationResolver(context);
+		assertEquals(context.getBean("errorChannel"), resolver.resolveDestination("errorChannel"));
 	}
 
 	@Test
 	public void testDefaultErrorChannel() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
-		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
-		assertEquals(context.getBean("errorChannel"), resolver.resolveChannelName("errorChannel"));
+		BeanFactoryMessageChannelDestinationResolver resolver = new BeanFactoryMessageChannelDestinationResolver(context);
+		assertEquals(context.getBean("errorChannel"), resolver.resolveDestination("errorChannel"));
 	}
 
 	@Test

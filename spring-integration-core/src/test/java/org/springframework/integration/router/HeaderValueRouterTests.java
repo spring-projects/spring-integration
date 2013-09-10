@@ -23,12 +23,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * @author Mark Fisher
@@ -70,15 +70,15 @@ public class HeaderValueRouterTests {
 		Message<?> result = channel.receive(1000);
 		assertNotNull(result);
 		assertSame(message, result);
-		
-		// validate dynamics  
+
+		// validate dynamics
 		HeaderValueRouter router = (HeaderValueRouter) context.getBean("router");
 		router.setChannelMapping("testChannel", "newChannel");
 		router.handleMessage(message);
 		QueueChannel newChannel = (QueueChannel) context.getBean("newChannel");
 		result = newChannel.receive(10);
 		assertNotNull(result);
-		
+
 		router.removeChannelMapping("testChannel");
 		router.handleMessage(message);
 		result = channel.receive(1000);
@@ -119,8 +119,8 @@ public class HeaderValueRouterTests {
 		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelMappings", channelMappings);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
-		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new ChannelResolver() {
-			public MessageChannel resolveChannelName(String channelName) {
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new DestinationResolver<MessageChannel>() {
+			public MessageChannel resolveDestination(String channelName) {
 				return context.getBean("anotherChannel", MessageChannel.class);
 			}
 		});
@@ -185,5 +185,5 @@ public class HeaderValueRouterTests {
 		assertSame(message, result2);
 	}
 
-	
+
 }

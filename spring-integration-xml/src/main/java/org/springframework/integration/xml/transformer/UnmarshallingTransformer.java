@@ -25,7 +25,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Document;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.source.DomSourceFactory;

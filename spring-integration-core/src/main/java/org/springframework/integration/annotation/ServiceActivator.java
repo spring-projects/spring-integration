@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Indicates that a method is capable of handling a message or message payload.
  * <p>
  * A method annotated with @ServiceActivator may accept a parameter of type
- * {@link org.springframework.integration.Message} or of the expected
+ * {@link org.springframework.messaging.Message} or of the expected
  * Message payload's type. Any type conversion supported by
  * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
  * the Message payload if necessary. Header values can also be passed as

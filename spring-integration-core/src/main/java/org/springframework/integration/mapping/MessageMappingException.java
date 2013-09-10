@@ -16,8 +16,8 @@
 
 package org.springframework.integration.mapping;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 /**
  * Exception that indicates an error during message mapping.

@@ -82,9 +82,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			public void onMessage(Message message) {
 				Object payload = amqpMessageConverter.fromMessage(message);
 				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
-				org.springframework.integration.Message<?> request =
+				org.springframework.messaging.Message<?> request =
 						MessageBuilder.withPayload(payload).copyHeaders(headers).build();
-				final org.springframework.integration.Message<?> reply = sendAndReceiveMessage(request);
+				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
 				if (reply != null) {
 					// TODO: fallback to a reply address property of this gateway
 					Address replyTo = message.getMessageProperties().getReplyToAddress();

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -24,11 +25,9 @@ import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.containsString;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
 
 /**
  * @author Iwein Fuld

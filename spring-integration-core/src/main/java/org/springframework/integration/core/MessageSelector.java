@@ -16,7 +16,7 @@
 
 package org.springframework.integration.core;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * Strategy interface for message selection.

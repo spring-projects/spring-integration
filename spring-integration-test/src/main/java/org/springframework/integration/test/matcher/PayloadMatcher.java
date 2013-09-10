@@ -20,7 +20,7 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * Is the payload of a {@link Message} equal to a given value or is matching

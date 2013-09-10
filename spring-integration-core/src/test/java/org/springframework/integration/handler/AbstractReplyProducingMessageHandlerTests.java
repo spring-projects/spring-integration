@@ -25,9 +25,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.support.MessageBuilder;
 
 /**

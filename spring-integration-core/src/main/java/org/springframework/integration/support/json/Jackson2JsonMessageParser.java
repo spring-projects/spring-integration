@@ -20,8 +20,8 @@ package org.springframework.integration.support.json;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.core.JsonFactory;

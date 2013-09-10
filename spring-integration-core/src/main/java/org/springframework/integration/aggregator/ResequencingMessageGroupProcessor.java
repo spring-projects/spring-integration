@@ -19,7 +19,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -59,6 +60,6 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 	}
 
 	private Integer extractSequenceNumber(Message<?> message) {
-		return message.getHeaders().getSequenceNumber();
+		return new EiMessageHeaderAccessor(message).getSequenceNumber();
 	}
 }

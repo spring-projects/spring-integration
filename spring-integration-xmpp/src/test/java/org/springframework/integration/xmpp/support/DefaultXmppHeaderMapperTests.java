@@ -26,7 +26,7 @@ import org.jivesoftware.smack.packet.Message;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessageHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.xmpp.XmppHeaders;
 
 /**

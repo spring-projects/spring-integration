@@ -17,7 +17,7 @@
 package org.springframework.integration.xmpp;
 
 /**
- * Used as keys for {@link org.springframework.integration.Message} objects
+ * Used as keys for {@link org.springframework.messaging.Message} objects
  * that handle XMPP events.
  *
  * @author Mario Gray

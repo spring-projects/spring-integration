@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.converter;
+package org.springframework.integration.xml.config;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolver;
 
-/**
- * @author Mark Fisher
- * @since 2.0
- */
-public interface MessageConverter {
+class StubDestinationResolver implements DestinationResolver<MessageChannel> {
 
-	<P> Message<P> toMessage(Object object);
-
-	<P> Object fromMessage(Message<P> message);
+	public MessageChannel resolveDestination(String channelName) {
+		return null;
+	}
 
 }

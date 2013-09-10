@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.core.PollableChannel;
+import org.springframework.messaging.PollableChannel;
 
 public class MessageSourceMonitoringIntegrationTests {
 

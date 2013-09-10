@@ -30,8 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;

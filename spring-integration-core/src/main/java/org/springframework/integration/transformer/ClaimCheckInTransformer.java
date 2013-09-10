@@ -16,7 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;

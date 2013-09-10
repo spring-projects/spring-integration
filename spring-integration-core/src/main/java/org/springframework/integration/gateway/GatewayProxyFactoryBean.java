@@ -40,16 +40,16 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -82,7 +82,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private volatile Long defaultReplyTimeout;
 
-	private volatile ChannelResolver channelResolver;
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private volatile boolean shouldTrack = false;
 
@@ -216,7 +216,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			}
 			BeanFactory beanFactory = this.getBeanFactory();
 			if (this.channelResolver == null && beanFactory != null) {
-				this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+				this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
 			}
 			Class<?> proxyInterface = this.determineServiceInterface();
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(proxyInterface);
@@ -424,7 +424,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private MessageChannel resolveChannelName(String channelName) {
 		Assert.state(this.channelResolver != null, "ChannelResolver is required");
-		MessageChannel channel = this.channelResolver.resolveChannelName(channelName);
+		MessageChannel channel = this.channelResolver.resolveDestination(channelName);
 		Assert.notNull(channel, "failed to resolve channel '" + channelName + "'");
 		return channel;
 	}

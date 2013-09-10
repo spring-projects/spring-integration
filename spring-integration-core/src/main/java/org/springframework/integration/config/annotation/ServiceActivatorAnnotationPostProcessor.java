@@ -20,13 +20,13 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for Methods annotated with {@link ServiceActivator @ServiceActivator}.
- * 
+ *
  * @author Mark Fisher
  */
 public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
@@ -41,7 +41,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(bean, method);
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
-			serviceActivator.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+			serviceActivator.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
 		}
 		return serviceActivator;
 	}

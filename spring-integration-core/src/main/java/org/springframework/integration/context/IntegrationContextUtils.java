@@ -19,8 +19,8 @@ package org.springframework.integration.context;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.store.metadata.MetadataStore;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 

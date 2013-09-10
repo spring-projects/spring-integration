@@ -16,7 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.core.serializer.support.DeserializingConverter;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.lob.LobHandler;
 

@@ -17,7 +17,7 @@ package org.springframework.integration.file;
 
 import java.io.File;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * A simple wrapper for a {@code Message<File>;} used for

@@ -18,8 +18,8 @@ package org.springframework.integration.ip.tcp.connection;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.integration.Message;
-import org.springframework.integration.message.ErrorMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * Base class for TcpConnectionIntercepters; passes all method calls through

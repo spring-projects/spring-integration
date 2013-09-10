@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright 2002-2013 the original author or authors.
+=======
+ * Copyright 2002-2011 the original author or authors.
+>>>>>>> Further Spring 4 updates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,16 +21,15 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.expression.Expression;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -55,10 +58,9 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	private volatile Boolean ignoreSendFailures;
 
-	private volatile ChannelResolver channelResolver;
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
-
-	public void setChannelResolver(ChannelResolver channelResolver) {
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		this.channelResolver = channelResolver;
 	}
 

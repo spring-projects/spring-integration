@@ -23,14 +23,14 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -79,7 +79,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 	 */
 	private volatile Long sendTimeout = null;
 
-	private volatile ChannelResolver channelResolver;
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private volatile boolean initialized;
 
@@ -114,7 +114,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 				this.configureChain();
 				BeanFactory beanFactory = this.getBeanFactory();
 				if (this.channelResolver == null && beanFactory != null) {
-					this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+					this.channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
 				}
 				this.initialized = true;
 			}
@@ -263,7 +263,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 			}
 			else if (replyChannelHeader instanceof String) {
 				Assert.notNull(channelResolver, "ChannelResolver is required");
-				replyChannel = channelResolver.resolveChannelName((String) replyChannelHeader);
+				replyChannel = channelResolver.resolveDestination((String) replyChannelHeader);
 			}
 			else {
 				throw new MessageHandlingException(message,

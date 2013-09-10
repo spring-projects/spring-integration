@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.util.StringUtils;
@@ -43,7 +43,7 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
-			handler.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+			handler.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
 		}
 		return handler;
 	}

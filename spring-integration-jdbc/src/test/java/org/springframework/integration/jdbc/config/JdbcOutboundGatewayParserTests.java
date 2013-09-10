@@ -12,13 +12,12 @@
  */
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -30,17 +29,16 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
  * @author Dave Syer
@@ -59,7 +57,7 @@ public class JdbcOutboundGatewayParserTests {
 
 	private ConfigurableApplicationContext context;
 
-	private MessagingTemplate messagingTemplate;
+	private GenericMessagingTemplate messagingTemplate;
 
 	private static volatile int adviceCalled;
 
@@ -163,7 +161,7 @@ public class JdbcOutboundGatewayParserTests {
         accessor = new DirectFieldAccessor(source);
         source = accessor.getPropertyValue("messagingTemplate");
 
-        MessagingTemplate messagingTemplate = (MessagingTemplate) source;
+        GenericMessagingTemplate messagingTemplate = (GenericMessagingTemplate) source;
 
         accessor = new DirectFieldAccessor(messagingTemplate);
 
@@ -238,7 +236,8 @@ public class JdbcOutboundGatewayParserTests {
 
 	protected void setupMessagingTemplate() {
 		PollableChannel pollableChannel = this.context.getBean("output", PollableChannel.class);
-		this.messagingTemplate = new MessagingTemplate(pollableChannel);
+		this.messagingTemplate = new GenericMessagingTemplate();
+		this.messagingTemplate.setDefaultDestination(pollableChannel);
 		this.messagingTemplate.setReceiveTimeout(500);
 	}
 

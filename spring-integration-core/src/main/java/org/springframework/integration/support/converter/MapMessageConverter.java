@@ -15,12 +15,14 @@
  */
 package org.springframework.integration.support.converter;
 
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -29,7 +31,7 @@ import org.springframework.util.Assert;
  * @since 3.0
  *
  */
-public class MapMessageConverter implements MessageConverter {
+public class MapMessageConverter implements MessageConverter<Object> {
 
 	private volatile String[] headerNames;
 
@@ -81,7 +83,7 @@ public class MapMessageConverter implements MessageConverter {
 		return convertedMessage;
 	}
 
-	public <P> Object fromMessage(Message<P> message) {
+	public Object fromMessage(Message<?> message, Type type) {
 		Map<String,Object> map = new HashMap<String, Object>();
 		map.put("payload", message.getPayload());
 		Map<String, Object> headers = new HashMap<String, Object>();

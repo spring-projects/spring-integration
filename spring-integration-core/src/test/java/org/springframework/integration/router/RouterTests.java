@@ -27,13 +27,13 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -120,9 +120,9 @@ public class RouterTests {
 		QueueChannel testChannel = new QueueChannel();
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
-		context.refresh();
 
 		router.setBeanFactory(context);
+		context.refresh();
 		router.handleMessage(new GenericMessage<String>("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
@@ -144,9 +144,10 @@ public class RouterTests {
 
 		context.getBeanFactory().registerSingleton("testChannel1", testChannel1);
 		context.getBeanFactory().registerSingleton("testChannel2", testChannel2);
-		context.refresh();
 
 		router.setBeanFactory(context);
+		context.refresh();
+
 		router.handleMessage(new GenericMessage<String>("test"));
 
 		Message<?> reply1 = testChannel1.receive(0);
@@ -191,9 +192,9 @@ public class RouterTests {
 		QueueChannel testChannel = new QueueChannel();
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
-		context.refresh();
 
 		router.setBeanFactory(context);
+		context.refresh();
 		router.handleMessage(new GenericMessage<String>("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
@@ -214,9 +215,9 @@ public class RouterTests {
 		QueueChannel testChannel = new QueueChannel();
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("testing_MyChannel", testChannel);
-		context.refresh();
 
 		router.setBeanFactory(context);
+		context.refresh();
 		router.handleMessage(new GenericMessage<String>("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
@@ -258,9 +259,9 @@ public class RouterTests {
 		QueueChannel testChannel = new QueueChannel();
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("MyChannel_withSuffix", testChannel);
-		context.refresh();
 
 		router.setBeanFactory(context);
+		context.refresh();
 		router.handleMessage(new GenericMessage<String>("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
@@ -315,6 +316,7 @@ public class RouterTests {
 		context.refresh();
 
 		router.setBeanFactory(context);
+
 		router.handleMessage(new GenericMessage<String>("test"));
 
 		Message<?> reply1 = testChannel1.receive(0);
@@ -379,9 +381,10 @@ public class RouterTests {
 
 		context.getBeanFactory().registerSingleton("100", testChannel1);
 		context.getBeanFactory().registerSingleton("200", testChannel2);
-		context.refresh();
 
 		router.setBeanFactory(context);
+		context.refresh();
+
 		router.handleMessage(new GenericMessage<String>("test"));
 
 		Message<?> reply1 = testChannel1.receive(0);

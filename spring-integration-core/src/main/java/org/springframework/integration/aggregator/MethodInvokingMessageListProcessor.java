@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 

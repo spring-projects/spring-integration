@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.xml.sax.SAXParseException;
 
 import org.springframework.core.io.Resource;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;

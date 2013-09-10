@@ -18,26 +18,26 @@ package org.springframework.integration.config;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
+import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.util.StringUtils;
 
 /**
  * Convenience factory for XML configuration of a {@link CorrelationStrategy}. Encapsulates the knowledge of the default
  * strategy and search algorithms for POJO and annotated methods.
- * 
+ *
  * @author Dave Syer
- * 
+ *
  */
 public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationStrategy> {
 
-	private CorrelationStrategy delegate = new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);
+	private CorrelationStrategy delegate = new HeaderAttributeCorrelationStrategy(EiMessageHeaderAccessor.CORRELATION_ID);
 
 	/**
 	 * Create a factory and set up the delegate which clients of the factory will see as its product.
-	 * 
+	 *
 	 * @param target the target object (null if default strategy is acceptable)
 	 */
 	public CorrelationStrategyFactoryBean(Object target) {
@@ -46,7 +46,7 @@ public class CorrelationStrategyFactoryBean implements FactoryBean<CorrelationSt
 
 	/**
 	 * Create a factory and set up the delegate which clients of the factory will see as its product.
-	 * 
+	 *
 	 * @param target the target object (null if default strategy is acceptable)
 	 * @param methodName the method name to invoke in the target (null if it can be inferred)
 	 */

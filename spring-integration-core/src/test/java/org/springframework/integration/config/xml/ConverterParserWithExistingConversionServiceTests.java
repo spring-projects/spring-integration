@@ -57,6 +57,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 			new ClassPathXmlApplicationContext("ConverterParserWithExistingConversionServiceTests-parent.xml", ConverterParserWithExistingConversionServiceTests.class);
 		GenericApplicationContext childContext = new GenericApplicationContext();
 		childContext.setParent(parentContext);
+
 		childContext.refresh();
 
 		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);

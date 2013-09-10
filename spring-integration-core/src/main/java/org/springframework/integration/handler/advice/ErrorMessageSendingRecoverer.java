@@ -18,11 +18,11 @@ package org.springframework.integration.handler.advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.message.ErrorMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.util.Assert;
@@ -40,11 +40,11 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object> {
 
 	private final static Log logger = LogFactory.getLog(ErrorMessageSendingRecoverer.class);
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
 		Assert.notNull(channel, "channel cannot be null");
-		this.messagingTemplate.setDefaultChannel(channel);
+		this.messagingTemplate.setDefaultDestination(channel);
 	}
 
 	public void setSendTimeout(long sendTimeout) {

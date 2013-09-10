@@ -18,7 +18,7 @@ package org.springframework.integration.gateway;
 
 import java.util.concurrent.Future;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.Payload;
 
 /**

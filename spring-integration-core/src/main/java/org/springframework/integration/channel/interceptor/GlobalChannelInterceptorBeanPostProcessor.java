@@ -33,7 +33,7 @@ import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;

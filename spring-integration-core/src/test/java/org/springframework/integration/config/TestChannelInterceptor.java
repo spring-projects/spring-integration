@@ -18,8 +18,8 @@ package org.springframework.integration.config;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 
 /**

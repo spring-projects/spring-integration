@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.EiMessageHeaderAccessor;
 
 /**
  * @author Mark Fisher
@@ -35,13 +35,13 @@ public class GenericMessageTests {
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("testAttribute", new Integer(123));
 		headerMap.put("testProperty", "foo");
-		headerMap.put(MessageHeaders.SEQUENCE_SIZE, 42);
-		headerMap.put(MessageHeaders.SEQUENCE_NUMBER, 24);
+		headerMap.put(EiMessageHeaderAccessor.SEQUENCE_SIZE, 42);
+		headerMap.put(EiMessageHeaderAccessor.SEQUENCE_NUMBER, 24);
 		GenericMessage<String> message = new GenericMessage<String>("test", headerMap);
 		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
 		assertEquals("foo", message.getHeaders().get("testProperty", String.class));
-		assertEquals(new Integer(42), message.getHeaders().getSequenceSize());
-		assertEquals(new Integer(24), message.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(42), new EiMessageHeaderAccessor(message).getSequenceSize());
+		assertEquals(new Integer(24), new EiMessageHeaderAccessor(message).getSequenceNumber());
 	}
 
 }

@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Splitter;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.util.StringUtils;
 
@@ -41,7 +41,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(bean, method);
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
-			splitter.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+			splitter.setOutputChannel(this.channelResolver.resolveDestination(outputChannelName));
 		}
 		return splitter;
 	}

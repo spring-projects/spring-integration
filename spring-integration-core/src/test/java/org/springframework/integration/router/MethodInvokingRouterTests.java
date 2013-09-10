@@ -26,17 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * @author Mark Fisher
@@ -136,15 +135,15 @@ public class MethodInvokingRouterTests {
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		
+
 		try {
 		    router.handleMessage(badMessage);
 		    fail();
 		} catch (MessageDeliveryException e) {
 			/* Success */
 		}
-		
-		
+
+
 	}
 
 	@Test
@@ -181,14 +180,14 @@ public class MethodInvokingRouterTests {
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		
+
 		try {
 		    router.handleMessage(badMessage);
 		    fail();
 		} catch (MessageDeliveryException e) {
 			/* Success */
 		}
-		
+
 	}
 
 	@Test
@@ -225,14 +224,14 @@ public class MethodInvokingRouterTests {
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		
+
 		try {
 		    router.handleMessage(badMessage);
 		    fail();
 		} catch (MessageDeliveryException e) {
 			/* Success */
 		}
-		
+
 	}
 
 	@Test
@@ -275,7 +274,7 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		
+
 		try {
 		    router.handleMessage(badMessage);
 		    fail();
@@ -324,7 +323,7 @@ public class MethodInvokingRouterTests {
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		
+
 		try {
 		    router.handleMessage(badMessage);
 		    fail();
@@ -373,7 +372,7 @@ public class MethodInvokingRouterTests {
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		
+
 		try {
 		    router.handleMessage(badMessage);
 		    fail();
@@ -422,7 +421,7 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		
+
 		try {
 		    router.handleMessage(badMessage);
 		    fail();
@@ -479,7 +478,7 @@ public class MethodInvokingRouterTests {
 		} catch (MessageDeliveryException e) {
 			/* Success */
 		}
-		
+
 	}
 
 	@Test
@@ -529,7 +528,7 @@ public class MethodInvokingRouterTests {
 		} catch (MessageDeliveryException e) {
 			/* Success */
 		}
-		
+
 	}
 
 
@@ -589,22 +588,22 @@ public class MethodInvokingRouterTests {
 
 	public static class SingleChannelInstanceRoutingTestBean {
 
-		private ChannelResolver channelResolver;
+		private DestinationResolver<MessageChannel> channelResolver;
 
-		public SingleChannelInstanceRoutingTestBean(ChannelResolver channelResolver) {
+		public SingleChannelInstanceRoutingTestBean(DestinationResolver<MessageChannel> channelResolver) {
 			this.channelResolver = channelResolver;
 		}
 
 		public MessageChannel routePayload(String name) {
-			return channelResolver.resolveChannelName(name + "-channel");
+			return channelResolver.resolveDestination(name + "-channel");
 		}
 
 		public MessageChannel routeMessage(Message<?> message) {
 			if (message.getPayload().equals("foo")) {
-				return channelResolver.resolveChannelName("foo-channel");
+				return channelResolver.resolveDestination("foo-channel");
 			}
 			else if (message.getPayload().equals("bar")) {
-				return channelResolver.resolveChannelName("bar-channel");
+				return channelResolver.resolveDestination("bar-channel");
 			}
 			return null;
 		}
@@ -613,17 +612,17 @@ public class MethodInvokingRouterTests {
 
 	public static class MultiChannelInstanceRoutingTestBean {
 
-		private ChannelResolver channelResolver;
+		private DestinationResolver<MessageChannel> channelResolver;
 
-		public MultiChannelInstanceRoutingTestBean(ChannelResolver channelResolver) {
+		public MultiChannelInstanceRoutingTestBean(DestinationResolver<MessageChannel> channelResolver) {
 			this.channelResolver = channelResolver;
 		}
 
 		public List<MessageChannel> routePayload(String name) {
 			List<MessageChannel> results = new ArrayList<MessageChannel>();
 			if (name.equals("foo") || name.equals("bar")) {
-				results.add(channelResolver.resolveChannelName("foo-channel"));
-				results.add(channelResolver.resolveChannelName("bar-channel"));
+				results.add(channelResolver.resolveDestination("foo-channel"));
+				results.add(channelResolver.resolveDestination("bar-channel"));
 			}
 			return results;
 		}
@@ -631,8 +630,8 @@ public class MethodInvokingRouterTests {
 		public List<MessageChannel> routeMessage(Message<?> message) {
 			List<MessageChannel> results = new ArrayList<MessageChannel>();
 			if (message.getPayload().equals("foo") || message.getPayload().equals("bar")) {
-				results.add(channelResolver.resolveChannelName("foo-channel"));
-				results.add(channelResolver.resolveChannelName("bar-channel"));
+				results.add(channelResolver.resolveDestination("foo-channel"));
+				results.add(channelResolver.resolveDestination("bar-channel"));
 			}
 			return results;
 		}
@@ -641,8 +640,8 @@ public class MethodInvokingRouterTests {
 			MessageChannel[] results = null;
 			if (message.getPayload().equals("foo") || message.getPayload().equals("bar")) {
 				results = new MessageChannel[2];
-				results[0] = channelResolver.resolveChannelName("foo-channel");
-				results[1] = channelResolver.resolveChannelName("bar-channel");
+				results[0] = channelResolver.resolveDestination("foo-channel");
+				results[1] = channelResolver.resolveDestination("bar-channel");
 			}
 			return results;
 		}

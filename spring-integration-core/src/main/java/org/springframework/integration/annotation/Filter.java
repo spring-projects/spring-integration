@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * Indicates that a method is capable of playing the role of a Message Filter.
  * <p>
  * A method annotated with @Filter may accept a parameter of type
- * {@link org.springframework.integration.Message} or of the expected
+ * {@link org.springframework.messaging.Message} or of the expected
  * Message payload's type. Any type conversion supported by default or any
  * Converters registered with the "integrationConversionService" bean will be
  * applied to the Message payload if necessary. Header values can also be passed

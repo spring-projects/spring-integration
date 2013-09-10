@@ -28,10 +28,11 @@ import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * @author Mark Fisher
@@ -40,7 +41,7 @@ import org.springframework.integration.support.channel.ChannelResolver;
  */
 public class MessagePublishingInterceptorTests {
 
-	private ChannelResolver channelResolver;
+	private DestinationResolver<MessageChannel> channelResolver;
 
 	private final QueueChannel testChannel = new QueueChannel();
 
@@ -49,7 +50,7 @@ public class MessagePublishingInterceptorTests {
 	@Before
 	public void setup() {
 		beanFactory = new DefaultListableBeanFactory();
-		channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		channelResolver = new BeanFactoryMessageChannelDestinationResolver(beanFactory);
 		beanFactory.registerSingleton("c", testChannel);
 	}
 

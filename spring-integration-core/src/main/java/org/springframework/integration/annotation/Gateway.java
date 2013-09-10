@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * where the annotation attributes can override the default channel settings.
  *
  * <p>A method annotated with @Gateway may accept a single non-annotated
- * parameter of type {@link org.springframework.integration.Message}
+ * parameter of type {@link org.springframework.messaging.Message}
  * or of the intended Message payload type. Method parameters may be mapped
  * to individual Message header values by using the {@link Header @Header}
  * parameter annotation. Alternatively, to pass the entire Message headers

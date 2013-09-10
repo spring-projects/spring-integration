@@ -18,9 +18,9 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

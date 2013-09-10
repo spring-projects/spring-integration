@@ -32,15 +32,15 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -60,7 +60,7 @@ public class JdbcPollingChannelAdapterParserTests {
 
 	private JdbcTemplate jdbcTemplate;
 
-	private MessagingTemplate messagingTemplate;
+	private GenericMessagingTemplate messagingTemplate;
 
 	private ConfigurableApplicationContext appCtx;
 
@@ -183,7 +183,8 @@ public class JdbcPollingChannelAdapterParserTests {
 
 	protected void setupMessagingTemplate() {
 		PollableChannel pollableChannel = this.appCtx.getBean("target", PollableChannel.class);
-		this.messagingTemplate = new MessagingTemplate(pollableChannel);
+		this.messagingTemplate = new GenericMessagingTemplate();
+		this.messagingTemplate.setDefaultDestination(pollableChannel);
 		this.messagingTemplate.setReceiveTimeout(500);
 	}
 

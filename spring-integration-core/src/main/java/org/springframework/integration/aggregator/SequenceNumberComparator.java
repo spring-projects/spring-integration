@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2010 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -15,13 +15,14 @@ package org.springframework.integration.aggregator;
 
 import java.util.Comparator;
 
-import org.springframework.integration.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
+import org.springframework.messaging.Message;
 
 /**
  * @author Dave Syer
- * 
+ *
  * @since 2.0
- * 
+ *
  */
 public class SequenceNumberComparator implements Comparator<Message<?>> {
 
@@ -31,8 +32,8 @@ public class SequenceNumberComparator implements Comparator<Message<?>> {
 	 * rank.
 	 */
 	public int compare(Message<?> o1, Message<?> o2) {
-		Integer sequenceNumber1 = o1.getHeaders().getSequenceNumber();
-		Integer sequenceNumber2 = o2.getHeaders().getSequenceNumber();
+		Integer sequenceNumber1 = new EiMessageHeaderAccessor(o1).getSequenceNumber();
+		Integer sequenceNumber2 = new EiMessageHeaderAccessor(o2).getSequenceNumber();
 		if (sequenceNumber1 == sequenceNumber2) {
 			return 0;
 		}

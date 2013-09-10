@@ -28,7 +28,7 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 
 /**
  * {@link SourceFactory} implementation which supports creation of a {@link DOMSource}

@@ -18,7 +18,7 @@ package org.springframework.integration.store;
 
 import java.util.UUID;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 /**

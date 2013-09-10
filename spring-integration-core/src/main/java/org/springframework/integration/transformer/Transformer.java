@@ -16,7 +16,7 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * Strategy interface for transforming a {@link Message}.

@@ -16,8 +16,8 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * Strategy interface for dispatching messages to handlers.

@@ -16,8 +16,8 @@
 
 package org.springframework.integration.history;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessagePostProcessor;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.core.MessagePostProcessor;
 import org.springframework.util.Assert;
 
 /**
@@ -54,5 +54,5 @@ public class HistoryWritingMessagePostProcessor implements MessagePostProcessor 
 		}
 		return message;
 	}
-	
+
 }

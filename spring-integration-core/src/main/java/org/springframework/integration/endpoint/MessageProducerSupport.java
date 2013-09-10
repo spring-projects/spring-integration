@@ -16,21 +16,21 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.message.ErrorMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
  * A support class for producer endpoints that provides a setter for the
  * output channel and a convenience method for sending Messages.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer, TrackableComponent {
@@ -41,7 +41,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private volatile boolean shouldTrack = false;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 
 	public void setOutputChannel(MessageChannel outputChannel) {

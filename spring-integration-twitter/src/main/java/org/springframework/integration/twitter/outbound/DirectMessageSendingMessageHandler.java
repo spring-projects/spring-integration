@@ -16,7 +16,7 @@
 
 package org.springframework.integration.twitter.outbound;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.social.twitter.api.Twitter;

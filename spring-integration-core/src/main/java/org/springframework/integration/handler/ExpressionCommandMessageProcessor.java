@@ -28,7 +28,7 @@ import org.springframework.expression.MethodExecutor;
 import org.springframework.expression.MethodFilter;
 import org.springframework.expression.MethodResolver;
 import org.springframework.expression.spel.support.ReflectiveMethodResolver;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * A MessageProcessor implementation that expects an Expression or expressionString

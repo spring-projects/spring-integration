@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -36,12 +35,12 @@ import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -56,13 +55,13 @@ import org.springframework.util.StringUtils;
  */
 public class MessagePublishingInterceptor implements MethodInterceptor, BeanFactoryAware {
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final GenericMessagingTemplate messagingTemplate = new GenericMessagingTemplate();
 
 	private volatile PublisherMetadataSource metadataSource;
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private volatile ChannelResolver channelResolver;
+	private volatile DestinationResolver<MessageChannel> channelResolver;
 
 	private volatile BeanFactory beanFactory;
 
@@ -81,10 +80,10 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 	}
 
 	public void setDefaultChannel(MessageChannel defaultChannel) {
-		this.messagingTemplate.setDefaultChannel(defaultChannel);
+		this.messagingTemplate.setDefaultDestination(defaultChannel);
 	}
 
-	public void setChannelResolver(ChannelResolver channelResolver) {
+	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
 		this.channelResolver = channelResolver;
 	}
 
@@ -150,7 +149,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 			MessageChannel channel = null;
 			if (channelName != null) {
 				Assert.state(this.channelResolver != null, "ChannelResolver is required to resolve channel names.");
-				channel = this.channelResolver.resolveChannelName(channelName);
+				channel = this.channelResolver.resolveDestination(channelName);
 			}
 			if (channel != null) {
 				this.messagingTemplate.send(channel, message);

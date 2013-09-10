@@ -18,7 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.Comparator;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher

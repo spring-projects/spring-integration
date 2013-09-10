@@ -16,9 +16,9 @@
 
 package org.springframework.integration.transformer.support;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher

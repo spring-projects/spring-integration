@@ -22,7 +22,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
@@ -87,7 +86,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
 		listener.onMessage(amqpMessage);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
-		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertEquals("foo", siMessage.getHeaders().get("foo"));
 		assertNull(siMessage.getHeaders().get("bar"));
 		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
@@ -114,7 +113,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
 		listener.onMessage(amqpMessage);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
-		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertEquals("foo", siMessage.getHeaders().get("foo"));
 		assertNull(siMessage.getHeaders().get("bar"));
 		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
@@ -142,7 +141,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		listener.onMessage(amqpMessage);
 
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
-		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertNull(siMessage.getHeaders().get("foo"));
 		assertNull(siMessage.getHeaders().get("bar"));
 		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
@@ -169,7 +168,7 @@ public class AmqpInboundChannelAdapterParserTests {
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
 		listener.onMessage(amqpMessage);
 		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
-		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		org.springframework.messaging.Message<?> siMessage = requestChannel.receive(0);
 		assertNull(siMessage.getHeaders().get("bar"));
 		assertNull(siMessage.getHeaders().get("foo"));
 		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));

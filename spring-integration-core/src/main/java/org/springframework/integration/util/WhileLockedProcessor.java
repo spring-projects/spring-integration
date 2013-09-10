@@ -18,7 +18,7 @@ package org.springframework.integration.util;
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 
 /**
  * A simple strategy callback class that allows you to provide

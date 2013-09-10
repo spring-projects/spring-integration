@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 import org.junit.Test;
 
 import org.springframework.aop.support.AopUtils;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.security.config.ChannelSecurityInterceptorBeanPostProcessor;
 

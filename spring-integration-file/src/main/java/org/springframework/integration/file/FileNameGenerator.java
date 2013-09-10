@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * Strategy interface for generating a file name from a message.

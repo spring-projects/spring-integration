@@ -26,7 +26,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;

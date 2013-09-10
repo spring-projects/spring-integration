@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ws;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;

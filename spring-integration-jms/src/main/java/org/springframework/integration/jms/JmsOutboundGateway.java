@@ -44,9 +44,7 @@ import javax.jms.Topic;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.Expression;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -59,6 +57,9 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -668,7 +669,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
 
-			Integer priority = requestMessage.getHeaders().getPriority();
+			Integer priority = new EiMessageHeaderAccessor(requestMessage).getPriority();
 			if (priority == null) {
 				priority = this.priority;
 			}
@@ -722,7 +723,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
 
-			Integer priority = requestMessage.getHeaders().getPriority();
+			Integer priority = new EiMessageHeaderAccessor(requestMessage).getPriority();
 			if (priority == null) {
 				priority = this.priority;
 			}

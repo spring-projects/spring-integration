@@ -73,21 +73,24 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 	}
 
-	private void registerIdGeneratorConfigurer(BeanDefinitionRegistry registry) {
-		String listenerClassName = "org.springframework.integration.config.IdGeneratorConfigurer";
+	private void registerInfrastructureBean(BeanDefinitionRegistry registry, String className) {
 		String[] definitionNames = registry.getBeanDefinitionNames();
 		for (String definitionName : definitionNames) {
 			BeanDefinition definition = registry.getBeanDefinition(definitionName);
-			if (listenerClassName.equals(definition.getBeanClassName())) {
+			if (className.equals(definition.getBeanClassName())) {
 				if (logger.isInfoEnabled()) {
-					logger.info(listenerClassName + " is already registered and will be used");
+					logger.info(className + " is already registered and will be used");
 				}
 				return;
 			}
 		}
-		RootBeanDefinition beanDefinition = new RootBeanDefinition(listenerClassName);
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(className);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinition, registry);
+	}
+
+	private void registerIdGeneratorConfigurer(BeanDefinitionRegistry registry) {
+		registerInfrastructureBean(registry, "org.springframework.integration.config.IdGeneratorConfigurer");
 	}
 
 	/**

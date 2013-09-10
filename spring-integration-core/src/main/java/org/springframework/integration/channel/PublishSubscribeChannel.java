@@ -19,8 +19,8 @@ package org.springframework.integration.channel;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -139,7 +139,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 			if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
 					this.errorHandler = new MessagePublishingErrorHandler(
-							new BeanFactoryChannelResolver(this.getBeanFactory()));
+							new BeanFactoryMessageChannelDestinationResolver(this.getBeanFactory()));
 				}
 				this.executor = new ErrorHandlingTaskExecutor(this.executor, this.errorHandler);
 			}

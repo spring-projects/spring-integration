@@ -29,11 +29,11 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -72,7 +72,7 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 	@Aspect
 	public static class HandlerAspect {
 
-		@Before("execution(* org.springframework.integration.core.MessageHandler+.*(..)) && args(message)")
+		@Before("execution(* org.springframework.messaging.MessageHandler+.*(..)) && args(message)")
 		public void addOneHundred(Message<?> message) {
 			((AtomicInteger) message.getPayload()).addAndGet(100);
 		}

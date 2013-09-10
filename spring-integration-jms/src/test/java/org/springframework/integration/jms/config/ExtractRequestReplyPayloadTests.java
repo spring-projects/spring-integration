@@ -23,17 +23,17 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageTimeoutException;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 
 /**
  * @author ozhurakousky
@@ -63,7 +63,8 @@ public class ExtractRequestReplyPayloadTests {
 		jmsInputChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		});
@@ -84,7 +85,8 @@ public class ExtractRequestReplyPayloadTests {
 		jmsInputChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		});
@@ -105,7 +107,8 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof javax.jms.Message);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		};
@@ -127,7 +130,8 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof javax.jms.Message);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		};
@@ -148,7 +152,8 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		};
@@ -167,7 +172,8 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		};
@@ -186,7 +192,8 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		};
@@ -211,7 +218,8 @@ public class ExtractRequestReplyPayloadTests {
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof javax.jms.Message);
-				MessagingTemplate template = new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel());
+				GenericMessagingTemplate template = new GenericMessagingTemplate();
+				template.setDefaultDestination((MessageChannel) message.getHeaders().getReplyChannel());
 				template.send(message);
 			}
 		};

@@ -26,27 +26,26 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
  * If run as a JUnit just sends one message and terminates (see console).
- * 
- * If run from main(),  
+ *
+ * If run from main(),
  * hangs around for a couple of minutes to allow console interaction (enter a message on the
- * console and you should see it go through the outbound context, over UDP, and 
+ * console and you should see it go through the outbound context, over UDP, and
  * received in the other context (and written back to the console).
- *  
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -77,15 +76,15 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		t.start(); // launch the receiver
 		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				"testIp-out-multicast-context.xml",
-				UdpMulticastEndToEndTests.class);	
+				UdpMulticastEndToEndTests.class);
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
 
 
 	public void launchSender(ApplicationContext applicationContext) throws Exception {
-		ChannelResolver channelResolver = new BeanFactoryChannelResolver(applicationContext);
-		MessageChannel inputChannel = channelResolver.resolveChannelName("mcInputChannel");
+		DestinationResolver<MessageChannel> channelResolver = new BeanFactoryMessageChannelDestinationResolver(applicationContext);
+		MessageChannel inputChannel = channelResolver.resolveDestination("mcInputChannel");
 		if (!readyToReceive.await(30, TimeUnit.SECONDS)) {
 			fail("Receiver failed to start in 30s");
 		}
@@ -129,7 +128,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 				UdpMulticastEndToEndTests.class);
 		while (okToRun) {
 			try {
-				readyToReceive.countDown();				
+				readyToReceive.countDown();
 				sentFirst.await();
 			}
 			catch (InterruptedException e) {

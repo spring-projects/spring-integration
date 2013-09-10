@@ -26,8 +26,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
@@ -287,7 +287,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 * Adds the failed message back to the 'toBeReceived' queue if there is room.
 	 *
 	 * @param failedMessage
-	 *            the {@link org.springframework.integration.Message} that failed
+	 *            the {@link org.springframework.messaging.Message} that failed
 	 */
 	public void onFailure(Message<File> failedMessage) {
 		if (logger.isWarnEnabled()) {

@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.syslog;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 
 /**

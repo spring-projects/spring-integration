@@ -33,9 +33,9 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.PollableChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.test.context.ContextConfiguration;

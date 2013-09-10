@@ -28,7 +28,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -94,7 +95,7 @@ public class DefaultSplitterTests {
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
-		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), new EiMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test

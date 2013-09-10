@@ -19,11 +19,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.messaging.MessageHandler;
 
 import com.gemstone.gemfire.cache.Operation;
 import com.gemstone.gemfire.cache.query.CqEvent;
@@ -146,8 +146,8 @@ public class ContinuousQueryMessageProducerTests {
 		 * (non-Javadoc)
 		 *
 		 * @see
-		 * org.springframework.integration.core.MessageHandler#handleMessage
-		 * (org.springframework.integration.Message)
+		 * org.springframework.messaging.MessageHandler#handleMessage
+		 * (org.springframework.messaging.Message)
 		 */
 		public void handleMessage(Message<?> message) throws MessagingException {
 			count++;

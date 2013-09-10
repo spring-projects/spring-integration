@@ -23,7 +23,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.security.channel.ChannelSecurityMetadataSource;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.util.Assert;

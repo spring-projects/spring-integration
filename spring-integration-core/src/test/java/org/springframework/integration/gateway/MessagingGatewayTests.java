@@ -34,18 +34,18 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
 
 /**
  * @author Iwein Fuld
@@ -72,13 +72,12 @@ public class MessagingGatewayTests {
 		this.messagingGateway = new MessagingGatewaySupport() {};
 		this.messagingGateway.setRequestChannel(requestChannel);
 		this.messagingGateway.setReplyChannel(replyChannel);
-		AbstractApplicationContext context = TestUtils.createTestApplicationContext();
-		context.refresh();
-
-		this.messagingGateway.setBeanFactory(context);
+		TestApplicationContext applicationContext = TestUtils.createTestApplicationContext();
+		this.messagingGateway.setBeanFactory(applicationContext);
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 		reset(allmocks);
+		applicationContext.refresh();
 	}
 
 
@@ -254,6 +253,8 @@ public class MessagingGatewayTests {
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 
+		this.messagingGateway = new MessagingGatewaySupport() {};
+
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);
 		this.messagingGateway.setReplyChannel(null);
@@ -276,6 +277,8 @@ public class MessagingGatewayTests {
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyOneWayErrorService());
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
+
+		this.messagingGateway = new MessagingGatewaySupport() {};
 
 		this.messagingGateway.setRequestChannel(reqChannel);
 		this.messagingGateway.setErrorChannel(errorChannel);

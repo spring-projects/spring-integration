@@ -35,13 +35,8 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -50,8 +45,13 @@ import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 public class TcpInboundGatewayTests {
@@ -68,8 +68,8 @@ public class TcpInboundGatewayTests {
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
-		handler.setChannelResolver(new ChannelResolver() {
-			public MessageChannel resolveChannelName(String channelName) {
+		handler.setChannelResolver(new DestinationResolver<MessageChannel>() {
+			public MessageChannel resolveDestination(String channelName) {
 				return channel;
 			}
 		});
@@ -182,8 +182,8 @@ public class TcpInboundGatewayTests {
 		final QueueChannel channel = new QueueChannel();
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
-		handler.setChannelResolver(new ChannelResolver() {
-			public MessageChannel resolveChannelName(String channelName) {
+		handler.setChannelResolver(new DestinationResolver<MessageChannel>() {
+			public MessageChannel resolveDestination(String channelName) {
 				return channel;
 			}
 		});

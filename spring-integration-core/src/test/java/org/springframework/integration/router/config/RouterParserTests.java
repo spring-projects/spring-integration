@@ -30,24 +30,24 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
-import org.springframework.integration.support.channel.ChannelResolutionException;
-import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
+import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -164,7 +164,7 @@ public class RouterParserTests {
 			this.inputForRouterRequiringResolution.send(new GenericMessage<Integer>(3));
 		}
 		catch (Exception e) {
-			assertTrue(e.getCause() instanceof ChannelResolutionException);
+			assertTrue(e.getCause() instanceof DestinationResolutionException);
 		}
 	}
 
@@ -176,7 +176,7 @@ public class RouterParserTests {
 	@Test
 	public void timeoutValueConfigured() {
 		assertTrue(this.routerWithTimeout instanceof MethodInvokingRouter);
-		MessagingTemplate template = TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", MessagingTemplate.class);
+		GenericMessagingTemplate template = TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", GenericMessagingTemplate.class);
 		Long timeout = TestUtils.getPropertyValue(template, "sendTimeout", Long.class);
 		assertEquals(new Long(1234), timeout);
 	}
@@ -188,15 +188,15 @@ public class RouterParserTests {
 		Message<?> message1 = this.sequenceOut1.receive(1000);
 		Message<?> message2 = this.sequenceOut2.receive(1000);
 		Message<?> message3 = this.sequenceOut3.receive(1000);
-		assertEquals(originalMessage.getHeaders().getId(), message1.getHeaders().getCorrelationId());
-		assertEquals(originalMessage.getHeaders().getId(), message2.getHeaders().getCorrelationId());
-		assertEquals(originalMessage.getHeaders().getId(), message3.getHeaders().getCorrelationId());
-		assertEquals(new Integer(1), message1.getHeaders().getSequenceNumber());
-		assertEquals(new Integer(3), message1.getHeaders().getSequenceSize());
-		assertEquals(new Integer(2), message2.getHeaders().getSequenceNumber());
-		assertEquals(new Integer(3), message2.getHeaders().getSequenceSize());
-		assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
-		assertEquals(new Integer(3), message3.getHeaders().getSequenceSize());
+		assertEquals(originalMessage.getHeaders().getId(), new EiMessageHeaderAccessor(message1).getCorrelationId());
+		assertEquals(originalMessage.getHeaders().getId(), new EiMessageHeaderAccessor(message2).getCorrelationId());
+		assertEquals(originalMessage.getHeaders().getId(), new EiMessageHeaderAccessor(message3).getCorrelationId());
+		assertEquals(new Integer(1), new EiMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message1).getSequenceSize());
+		assertEquals(new Integer(2), new EiMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message2).getSequenceSize());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message3).getSequenceNumber());
+		assertEquals(new Integer(3), new EiMessageHeaderAccessor(message3).getSequenceSize());
 	}
 
 	@Test
@@ -284,9 +284,9 @@ public class RouterParserTests {
 	}
 
 
-	static class TestChannelResover implements ChannelResolver {
+	static class TestChannelResover implements DestinationResolver<MessageChannel> {
 
-		public MessageChannel resolveChannelName(String channelName) {
+		public MessageChannel resolveDestination(String channelName) {
 			return null;
 		}
 

@@ -32,7 +32,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;

@@ -20,16 +20,17 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  * @since 2.1
  */
+@SuppressWarnings("rawtypes")
 public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final StringRedisTemplate template;
@@ -66,10 +67,11 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 		return this.defaultTopic;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String topic = this.determineTopic(message);
-		Object value = this.messageConverter.fromMessage(message);
+		Object value = this.messageConverter.fromMessage(message, Object.class);
 		this.template.convertAndSend(topic, value.toString());
 	}
 

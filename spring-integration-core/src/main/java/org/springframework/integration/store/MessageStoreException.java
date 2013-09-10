@@ -16,8 +16,8 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 /**
  * Exception for problems that occur when using a {@link MessageStore} implementation.

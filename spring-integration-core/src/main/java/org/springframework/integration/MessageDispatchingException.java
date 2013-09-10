@@ -16,6 +16,8 @@
 package org.springframework.integration;
 
 import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageDeliveryException;
 
 /**
  * Exception that indicates an internal error occurred within

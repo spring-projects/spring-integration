@@ -33,7 +33,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
@@ -99,7 +99,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		message.setProperty("foo", "foo");
 		message.setProperty("bar", "bar");
 		packetListener.processPacket(message);
-		org.springframework.integration.Message<?> siMessage = xmppInbound.receive(0);
+		org.springframework.messaging.Message<?> siMessage = xmppInbound.receive(0);
 		assertEquals("foo", siMessage.getHeaders().get("foo"));
 		assertEquals("oleg", siMessage.getHeaders().get("xmpp_to"));
 	}

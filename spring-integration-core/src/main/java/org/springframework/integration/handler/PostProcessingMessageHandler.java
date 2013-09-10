@@ -15,13 +15,13 @@
  */
 package org.springframework.integration.handler;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 
 /**
  * Implementations of this interface are subclasses of
  * {@link AbstractMessageHandler} that perform post processing after the
- * {@link AbstractMessageHandler#handleMessageInternal(org.springframework.integration.Message)}
+ * {@link AbstractMessageHandler#handleMessageInternal(org.springframework.messaging.Message)}
  * call.
  *
  * @author Gary Russell

@@ -44,7 +44,7 @@
 					</xsd:sequence>
 				</xsd:choice>
             </xsd:sequence>
-           <xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+            <xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
             <xsd:attribute name="directory" type="xsd:string" use="required">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[Specifies the input directory (The directory to poll from) e.g.:
@@ -151,7 +151,7 @@ Only files matching this regular expression will be picked up by this adapter.
                             <xsd:documentation>The channel through which outgoing messages will arrive.</xsd:documentation>
                             <xsd:appinfo>
                                 <tool:annotation kind="ref">
-                                    <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+                                    <tool:expected-type type="org.springframework.messaging.MessageChannel"/>
                                 </tool:annotation>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -281,7 +281,7 @@ Only files matching this regular expression will be picked up by this adapter.
                             <xsd:documentation>The channel through which outgoing messages will arrive.</xsd:documentation>
                             <xsd:appinfo>
                                 <tool:annotation kind="ref">
-                                    <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+                                    <tool:expected-type type="org.springframework.messaging.MessageChannel"/>
                                 </tool:annotation>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -294,7 +294,7 @@ Only files matching this regular expression will be picked up by this adapter.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <tool:annotation kind="ref">
-                                    <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+                                    <tool:expected-type type="org.springframework.messaging.MessageChannel"/>
                                 </tool:annotation>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -528,7 +528,7 @@ Only files matching this regular expression will be picked up by this adapter.
                 </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
-                        <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+                        <tool:expected-type type="org.springframework.messaging.MessageChannel"/>
                     </tool:annotation>
                 </xsd:appinfo>
             </xsd:annotation>
@@ -542,7 +542,7 @@ Only files matching this regular expression will be picked up by this adapter.
                 </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
-                        <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+                        <tool:expected-type type="org.springframework.messaging.MessageChannel"/>
                     </tool:annotation>
                 </xsd:appinfo>
             </xsd:annotation>

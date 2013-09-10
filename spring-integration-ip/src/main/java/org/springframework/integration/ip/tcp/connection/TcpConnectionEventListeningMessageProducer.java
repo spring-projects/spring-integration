@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.context.ApplicationListener;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;

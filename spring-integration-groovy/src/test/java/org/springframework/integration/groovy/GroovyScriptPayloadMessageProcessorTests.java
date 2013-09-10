@@ -24,7 +24,7 @@ import groovy.lang.MissingPropertyException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
 import org.springframework.integration.scripting.ScriptVariableGenerator;

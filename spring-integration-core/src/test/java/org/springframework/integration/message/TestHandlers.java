@@ -19,7 +19,7 @@ package org.springframework.integration.message;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * Factory for handler beans that are useful for testing.

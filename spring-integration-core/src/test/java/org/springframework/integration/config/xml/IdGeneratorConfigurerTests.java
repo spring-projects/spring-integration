@@ -25,15 +25,14 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessageHeaders.IdGenerator;
-import org.springframework.integration.MessageHeaders.JdkIdGenerator;
-import org.springframework.integration.MessageHeaders.SimpleIncrementingIdGenerator;
+import org.springframework.integration.support.IdGenerators.JdkIdGenerator;
+import org.springframework.integration.support.IdGenerators.SimpleIncrementingIdGenerator;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessageHeaders.IdGenerator;
 
 /**
  * @author Gary Russell

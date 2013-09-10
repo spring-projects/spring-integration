@@ -22,16 +22,16 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -142,10 +142,11 @@ public class HeaderEnricherOverwriteTests {
 	@Test
 	public void priorityExplicitOverwriteTrue() {
 		MessageChannel channel = context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class);
-		MessagingTemplate template = new MessagingTemplate(channel);
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
+		template.setDefaultDestination(channel);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(42), result.getHeaders().getPriority());
+		assertEquals(new Integer(42), new EiMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test
@@ -159,7 +160,7 @@ public class HeaderEnricherOverwriteTests {
 		input.send(message);
 		Message<?> result = replyChannel.receive(0);
 		assertNotNull(result);
-		assertEquals(new Integer(77), result.getHeaders().getPriority());
+		assertEquals(new Integer(77), new EiMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test

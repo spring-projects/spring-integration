@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;

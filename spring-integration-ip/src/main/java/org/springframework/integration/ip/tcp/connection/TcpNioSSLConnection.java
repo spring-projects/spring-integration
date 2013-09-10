@@ -28,7 +28,7 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**

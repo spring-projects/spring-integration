@@ -22,14 +22,13 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
-
-import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.DestinationResolutionException;
 
 /**
  * @author Mark Fisher
@@ -55,7 +54,7 @@ public class BridgeHandlerTests {
 		assertThat(reply, sameExceptImmutableHeaders(request));
 	}
 
-	@Test(expected = ChannelResolutionException.class)
+	@Test(expected = DestinationResolutionException.class)
 	public void missingOutputChannelVerifiedAtRuntime() {
 		Message<?> request = new GenericMessage<String>("test");
 		handler.handleMessage(request);

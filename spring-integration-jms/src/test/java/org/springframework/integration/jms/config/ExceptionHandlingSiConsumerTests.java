@@ -119,7 +119,7 @@ public class ExceptionHandlingSiConsumerTests {
 
 
 	public static class SampleErrorTransformer {
-		public org.springframework.integration.Message<?> transform(Throwable t) throws Exception {
+		public org.springframework.messaging.Message<?> transform(Throwable t) throws Exception {
 			return MessageBuilder.withPayload(t.getCause().getMessage()).build();
 		}
 	}

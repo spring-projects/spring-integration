@@ -22,15 +22,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Mark Fisher
@@ -121,8 +121,8 @@ public class ServiceActivatorEndpointTests {
 		reply1 = replyChannel1.receive(0);
 		assertNull(reply1);
 		reply2 = replyChannel2.receive(0);
-		assertNotNull(reply2);	
-		assertEquals("foobar", reply2.getPayload());	
+		assertNotNull(reply2);
+		assertEquals("foobar", reply2.getPayload());
 	}
 
 	@Test
@@ -178,7 +178,7 @@ public class ServiceActivatorEndpointTests {
 				.setReplyChannel(replyChannel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = replyChannel.receive(500);
-		assertNull(reply.getHeaders().getCorrelationId());
+		assertNull(new EiMessageHeaderAccessor(reply).getCorrelationId());
 	}
 
 	@Test
@@ -195,7 +195,7 @@ public class ServiceActivatorEndpointTests {
 				.setReplyChannel(replyChannel).build();
 		endpoint.handleMessage(message);
 		Message<?> reply = replyChannel.receive(500);
-		Object correlationId = reply.getHeaders().getCorrelationId();
+		Object correlationId = new EiMessageHeaderAccessor(reply).getCorrelationId();
 		assertFalse(message.getHeaders().getId().equals(correlationId));
 		assertEquals("ABC-123", correlationId);
 	}

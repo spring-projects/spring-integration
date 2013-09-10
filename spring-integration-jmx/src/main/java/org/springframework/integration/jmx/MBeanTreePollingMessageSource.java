@@ -25,9 +25,9 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.QueryExp;
 
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**

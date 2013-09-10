@@ -29,10 +29,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
@@ -43,6 +40,10 @@ import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+
 
 /**
  * @author Gunnar Hillert

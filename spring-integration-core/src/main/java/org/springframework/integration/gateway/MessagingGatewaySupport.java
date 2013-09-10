@@ -16,13 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -31,9 +24,16 @@ import org.springframework.integration.history.HistoryWritingMessagePostProcesso
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.core.GenericMessagingTemplate;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * {@link MessageChannel}s for sending, receiving, or request-reply operations.
  * Exposes setters for configuring request and reply {@link MessageChannel}s as
  * well as the timeout values for sending and receiving Messages.
- * 
+ *
  * @author Mark Fisher
  */
 public abstract class MessagingGatewaySupport extends AbstractEndpoint implements TrackableComponent {
@@ -62,7 +62,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
 
-	private final MessagingTemplate messagingTemplate;
+	private final GenericMessagingTemplate messagingTemplate;
 
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
 
@@ -74,7 +74,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 
 	public MessagingGatewaySupport() {
-		MessagingTemplate template = new MessagingTemplate();
+		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		template.setMessageConverter(this.messageConverter);
 		template.setSendTimeout(DEFAULT_TIMEOUT);
 		template.setReceiveTimeout(this.replyTimeout);
@@ -84,7 +84,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	/**
 	 * Set the request channel.
-	 * 
+	 *
 	 * @param requestChannel the channel to which request messages will be sent
 	 */
 	public void setRequestChannel(MessageChannel requestChannel) {
@@ -94,7 +94,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Set the reply channel. If no reply channel is provided, this gateway will
 	 * always use an anonymous, temporary channel for handling replies.
-	 * 
+	 *
 	 * @param replyChannel the channel from which reply messages will be received
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
@@ -113,7 +113,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Set the timeout value for sending request messages. If not
 	 * explicitly configured, the default is one second.
-	 * 
+	 *
 	 * @param requestTimeout the timeout value in milliseconds
 	 */
 	public void setRequestTimeout(long requestTimeout) {
@@ -123,7 +123,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Set the timeout value for receiving reply messages. If not
 	 * explicitly configured, the default is one second.
-	 * 
+	 *
 	 * @param replyTimeout the timeout value in milliseconds
 	 */
 	public void setReplyTimeout(long replyTimeout) {

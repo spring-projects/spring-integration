@@ -20,13 +20,13 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.util.Assert;
 
 /**
  * Abstract {@link InboundMessageMapper} implementation that maps incoming JSON messages
- * to a {@link org.springframework.integration.Message} with the specified payload type.
+ * to a {@link org.springframework.messaging.Message} with the specified payload type.
  *
  * @author Artem Bilan
  * @since 3.0
@@ -41,10 +41,10 @@ public abstract class AbstractJsonInboundMessageMapper<P> implements InboundMess
 	protected static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
 
 	static {
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.PRIORITY, Integer.class);
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.EXPIRATION_DATE, Long.class);
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.SEQUENCE_SIZE, Integer.class);
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.SEQUENCE_NUMBER, Integer.class);
+		DEFAULT_HEADER_TYPES.put(EiMessageHeaderAccessor.PRIORITY, Integer.class);
+		DEFAULT_HEADER_TYPES.put(EiMessageHeaderAccessor.EXPIRATION_DATE, Long.class);
+		DEFAULT_HEADER_TYPES.put(EiMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
+		DEFAULT_HEADER_TYPES.put(EiMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class);
 	}
 
 	protected final Type payloadType;

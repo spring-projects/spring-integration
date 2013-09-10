@@ -32,18 +32,18 @@ import org.junit.Test;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolutionException;
 
 /**
  * @author Mark Fisher
@@ -112,8 +112,8 @@ public class ChannelAdapterParserTests {
 		String beanName = "outboundWithImplicitChannel";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
-		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
-		assertNotNull(channelResolver.resolveChannelName(beanName));
+		BeanFactoryMessageChannelDestinationResolver channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.applicationContext);
+		assertNotNull(channelResolver.resolveDestination(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof EventDrivenConsumer);
@@ -142,8 +142,8 @@ public class ChannelAdapterParserTests {
 		String beanName = "methodInvokingConsumer";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
-		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
-		assertNotNull(channelResolver.resolveChannelName(beanName));
+		BeanFactoryMessageChannelDestinationResolver channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.applicationContext);
+		assertNotNull(channelResolver.resolveDestination(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof EventDrivenConsumer);
@@ -163,8 +163,8 @@ public class ChannelAdapterParserTests {
 		String beanName = "expressionConsumer";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
-		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
-		assertNotNull(channelResolver.resolveChannelName(beanName));
+		BeanFactoryMessageChannelDestinationResolver channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.applicationContext);
+		assertNotNull(channelResolver.resolveDestination(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof EventDrivenConsumer);
@@ -258,10 +258,10 @@ public class ChannelAdapterParserTests {
 		this.applicationContext.stop();
 	}
 
-	@Test(expected = ChannelResolutionException.class)
+	@Test(expected = DestinationResolutionException.class)
 	public void methodInvokingSourceAdapterIsNotChannel() {
-		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
-		channelResolver.resolveChannelName("methodInvokingSource");
+		BeanFactoryMessageChannelDestinationResolver channelResolver = new BeanFactoryMessageChannelDestinationResolver(this.applicationContext);
+		channelResolver.resolveDestination("methodInvokingSource");
 	}
 
 	@Test
@@ -281,7 +281,7 @@ public class ChannelAdapterParserTests {
 	}
 
 	public static class SampleBean {
-		private String message = "hello";
+		private final String message = "hello";
 
 		String getMessage() {
 			return message;

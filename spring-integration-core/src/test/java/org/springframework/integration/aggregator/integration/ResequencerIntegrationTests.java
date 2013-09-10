@@ -19,8 +19,9 @@ package org.springframework.integration.aggregator.integration;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -37,7 +38,7 @@ import static org.junit.Assert.assertNull;
  */
 public class ResequencerIntegrationTests {
 
-	@Test 
+	@Test
 	public void validateUnboundedResequencerLight(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTests.class);
 		MessageChannel inputChannel = context .getBean("resequencerLightInput", MessageChannel.class);
@@ -45,52 +46,52 @@ public class ResequencerIntegrationTests {
 		EventDrivenConsumer edc = context.getBean("resequencerLight", EventDrivenConsumer.class);
 		ResequencingMessageHandler handler = TestUtils.getPropertyValue(edc, "handler", ResequencingMessageHandler.class);
 		MessageGroupStore store = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		
+
 		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();
 		Message<?> message2 = MessageBuilder.withPayload("2").setCorrelationId("A").setSequenceNumber(2).build();
 		Message<?> message3 = MessageBuilder.withPayload("3").setCorrelationId("A").setSequenceNumber(3).build();
 		Message<?> message4 = MessageBuilder.withPayload("4").setCorrelationId("A").setSequenceNumber(4).build();
 		Message<?> message5 = MessageBuilder.withPayload("5").setCorrelationId("A").setSequenceNumber(5).build();
 		Message<?> message6 = MessageBuilder.withPayload("6").setCorrelationId("A").setSequenceNumber(6).build();
-		
+
 		inputChannel.send(message3);
 		assertNull(outputChannel.receive(0));
-		
+
 		inputChannel.send(message1);
 		message1 = outputChannel.receive(0);
 		assertNotNull(message1);
-		assertEquals((Integer)1, message1.getHeaders().getSequenceNumber());
-		
+		assertEquals((Integer)1, new EiMessageHeaderAccessor(message1).getSequenceNumber());
+
 		inputChannel.send(message2);
 		message2 = outputChannel.receive(0);
 		message3 = outputChannel.receive(0);
-		assertNotNull(message2);	
+		assertNotNull(message2);
 		assertNotNull(message3);
-		assertEquals((Integer)2, message2.getHeaders().getSequenceNumber());
-		assertEquals((Integer)3, message3.getHeaders().getSequenceNumber());
-		
+		assertEquals((Integer)2, new EiMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals((Integer)3, new EiMessageHeaderAccessor(message3).getSequenceNumber());
+
 		inputChannel.send(message5);
 		assertNull(outputChannel.receive(0));
-		
+
 		inputChannel.send(message6);
 		assertNull(outputChannel.receive(0));
-		
+
 		inputChannel.send(message4);
 		message4 = outputChannel.receive(0);
 		message5 = outputChannel.receive(0);
 		message6 = outputChannel.receive(0);
-		assertNotNull(message4);	
+		assertNotNull(message4);
 		assertNotNull(message5);
 		assertNotNull(message6);
-		assertEquals((Integer)4, message4.getHeaders().getSequenceNumber());
-		assertEquals((Integer)5, message5.getHeaders().getSequenceNumber());
-		assertEquals((Integer)6, message6.getHeaders().getSequenceNumber());
-		
-		
+		assertEquals((Integer)4, new EiMessageHeaderAccessor(message4).getSequenceNumber());
+		assertEquals((Integer)5, new EiMessageHeaderAccessor(message5).getSequenceNumber());
+		assertEquals((Integer)6, new EiMessageHeaderAccessor(message6).getSequenceNumber());
+
+
 		assertEquals(0, store.getMessageGroup("A").getMessages().size());
 	}
-	
-	@Test 
+
+	@Test
 	public void validateUnboundedResequencerDeep(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTests.class);
 		MessageChannel inputChannel = context .getBean("resequencerDeepInput", MessageChannel.class);
@@ -98,11 +99,11 @@ public class ResequencerIntegrationTests {
 		EventDrivenConsumer edc = context.getBean("resequencerDeep", EventDrivenConsumer.class);
 		ResequencingMessageHandler handler = TestUtils.getPropertyValue(edc, "handler", ResequencingMessageHandler.class);
 		MessageGroupStore store = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		
+
 		Message<?> message1 = MessageBuilder.withPayload("1").setCorrelationId("A").setSequenceNumber(1).build();
 		Message<?> message2 = MessageBuilder.withPayload("2").setCorrelationId("A").setSequenceNumber(2).build();
 		Message<?> message3 = MessageBuilder.withPayload("3").setCorrelationId("A").setSequenceNumber(3).build();
-		
+
 		inputChannel.send(message3);
 		assertNull(outputChannel.receive(0));
 		inputChannel.send(message1);

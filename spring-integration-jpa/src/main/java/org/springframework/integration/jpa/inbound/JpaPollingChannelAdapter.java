@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.jpa.inbound;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.jpa.core.JpaExecutor;

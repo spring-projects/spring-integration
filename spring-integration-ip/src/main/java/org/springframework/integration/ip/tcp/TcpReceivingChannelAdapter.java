@@ -18,7 +18,8 @@ package org.springframework.integration.ip.tcp;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -28,7 +29,6 @@ import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
 import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**

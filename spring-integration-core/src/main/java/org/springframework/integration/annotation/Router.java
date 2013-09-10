@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * based on a message, message header(s), or both.
  * <p>
  * A method annotated with @Router may accept a parameter of type
- * {@link org.springframework.integration.Message} or of the expected
+ * {@link org.springframework.messaging.Message} or of the expected
  * Message payload's type. Any type conversion supported by
  * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
  * the Message payload if necessary. Header values can also be passed as
@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * <p>
  * Return values from the annotated method may be either a Collection or Array
  * whose elements are either
- * {@link org.springframework.integration.MessageChannel channels} or
+ * {@link org.springframework.messaging.MessageChannel channels} or
  * Strings. In the latter case, the endpoint hosting this router will attempt
  * to resolve each channel name with the Channel Registry.
  *

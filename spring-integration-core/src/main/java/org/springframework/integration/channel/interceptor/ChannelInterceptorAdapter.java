@@ -16,8 +16,8 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 
 /**

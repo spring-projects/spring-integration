@@ -44,7 +44,7 @@
 		</constructor-arg>
 		<property name="channelResolver">
 			<bean
-				class="org.springframework.integration.support.channel.BeanFactoryChannelResolver">
+				class="org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver">
 <!--				<property name="channelMap">-->
 <!--					<map>-->
 <!--						<entry key="channel" value-ref="messagePublishingInterceptorUsageTestChannel" />-->

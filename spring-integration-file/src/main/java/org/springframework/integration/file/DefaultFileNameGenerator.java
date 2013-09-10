@@ -18,7 +18,7 @@ package org.springframework.integration.file;
 
 import java.io.File;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

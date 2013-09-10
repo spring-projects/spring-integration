@@ -31,8 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;

@@ -19,7 +19,7 @@ package org.springframework.integration.endpoint;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
