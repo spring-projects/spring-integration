@@ -19,22 +19,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
+import org.hamcrest.Matchers;
+
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
+import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -56,34 +60,34 @@ public class ParentContextTests {
 	 * and parent contexts work.
 	 */
 	@Test
-	public void testSpelBeanReferencesInChildAndParent() throws ClassNotFoundException {
-		//To check if 'org.springframework.integration.config.SpelFunctionRegistrar#afterPropertiesSet()'
-		//doesn't throw any Exception
-		AbstractApplicationContext superParent = new GenericApplicationContext();
-		superParent.refresh();
+	public void testSpelBeanReferencesInChildAndParent() throws Exception {
+		AbstractApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml", this.getClass());
 
-		AbstractApplicationContext parent = new ClassPathXmlApplicationContext(new String[]{"ParentContext-context.xml"},
-				this.getClass(), superParent);
-
-		Class<?> spelFunctionRegistrarClass = Class.forName("org.springframework.integration.config.SpelFunctionRegistrar");
-		Object parentSpelFunctionRegistrar = parent.getBean(spelFunctionRegistrarClass);
-		assertEquals(2, TestUtils.getPropertyValue(parentSpelFunctionRegistrar, "functions", Map.class).size());
+		Object parentEvaluationContextFactoryBean = parent.getBean(IntegrationEvaluationContextFactoryBean.class);
+		Map parentFunctions = TestUtils.getPropertyValue(parentEvaluationContextFactoryBean, "functions", Map.class);
+		assertEquals(3, parentFunctions.size());
+		Object jsonPath = parentFunctions.get("jsonPath");
+		assertNotNull(jsonPath);
+		assertThat((Method) jsonPath, Matchers.isOneOf(JsonPathUtils.class.getMethods()));
 
 		assertEquals(2, evalContexts.size());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(parent);
 		child.setConfigLocation("org/springframework/integration/expression/ChildContext-context.xml");
 		child.refresh();
 
-		Object childSpelFunctionRegistrar = child.getBean(spelFunctionRegistrarClass);
-		Map functions = TestUtils.getPropertyValue(childSpelFunctionRegistrar, "functions", Map.class);
-		assertEquals(3, functions.size());
-		assertTrue(functions.containsKey("barParent"));
+		Object childEvaluationContextFactoryBean = child.getBean(IntegrationEvaluationContextFactoryBean.class);
+		Map childFunctions = TestUtils.getPropertyValue(childEvaluationContextFactoryBean, "functions", Map.class);
+		assertEquals(4, childFunctions.size());
+		assertTrue(childFunctions.containsKey("barParent"));
+		jsonPath = childFunctions.get("jsonPath");
+		assertNotNull(jsonPath);
+		assertThat((Method) jsonPath, Matchers.not(Matchers.isOneOf(JsonPathUtils.class.getMethods())));
 
 		assertEquals(3, evalContexts.size());
 		assertSame(evalContexts.get(0).getBeanResolver(), evalContexts.get(1).getBeanResolver());
 		assertNotSame(evalContexts.get(1).getBeanResolver(), evalContexts.get(2).getBeanResolver());
-		assertSame(parent.getBeanFactory(), TestUtils.getPropertyValue(evalContexts.get(0).getBeanResolver(), "beanFactory"));
-		assertSame(child.getBeanFactory(), TestUtils.getPropertyValue(evalContexts.get(2).getBeanResolver(), "beanFactory"));
+		assertSame(parent, TestUtils.getPropertyValue(evalContexts.get(0).getBeanResolver(), "beanFactory"));
+		assertSame(child, TestUtils.getPropertyValue(evalContexts.get(2).getBeanResolver(), "beanFactory"));
 
 		// Test transformer expressions
 		child.getBean("input", MessageChannel.class).send(new GenericMessage<String>("baz"));

@@ -47,7 +47,7 @@ public class PublisherExpressionTests {
 	public void setup() throws Exception {
 		context.registerSingleton("testChannel", QueueChannel.class);
 		IntegrationEvaluationContextFactoryBean factory = new IntegrationEvaluationContextFactoryBean();
-		factory.setBeanFactory(context);
+		factory.setApplicationContext(context);
 		factory.afterPropertiesSet();
 		EvaluationContext ec = factory.getObject();
 		context.getBeanFactory().registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, ec);

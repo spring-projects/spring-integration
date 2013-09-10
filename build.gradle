@@ -185,6 +185,7 @@ project('spring-integration-core') {
 		compile "com.eaio.uuid:uuid:$eaioUUIDVersion"
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
+		compile('com.jayway.jsonpath:json-path:0.8.1', optional)
 		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
 	}
 }

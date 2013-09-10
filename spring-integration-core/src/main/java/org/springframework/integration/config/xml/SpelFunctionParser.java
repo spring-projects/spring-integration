@@ -16,78 +16,29 @@
 
 package org.springframework.integration.config.xml;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.xml.BeanDefinitionParser;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.ClassUtils;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.integration.config.SpelFunctionFactoryBean;
 
 /**
  * Parser for the &lt;spel-function&gt; element.
- * Doesn't register a bean within application context, collects 'functions'
- * within {@link org.springframework.integration.config.SpelFunctionRegistrar} bean.
  *
  * @author Artem Bilan
  * @since 3.0
  */
-public class SpelFunctionParser implements BeanDefinitionParser {
-
-	private final Map<String, Method> functions = new LinkedHashMap<String, Method>();
-
-	private volatile boolean initialized;
+public class SpelFunctionParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
-
-		this.initializeSpelFunctionRegistrarIfNecessary(parserContext);
-
-		String id = element.getAttribute("id");
-		String className = element.getAttribute("class");
-		String signature = element.getAttribute("method");
-
-		Class<?> clazz = null;
-		try {
-			clazz = ClassUtils.forName(className, parserContext.getReaderContext().getBeanClassLoader());
-		}
-		catch (ClassNotFoundException e) {
-			parserContext.getReaderContext().error(e.getMessage(), element);
-		}
-
-		Method method = BeanUtils.resolveSignature(signature, clazz);
-
-		if (method == null) {
-			parserContext.getReaderContext().error(String.format("No declared method '%s' in class '%s'",
-					signature, className), element);
-			return null;
-		}
-		if (!Modifier.isStatic(method.getModifiers())) {
-			parserContext.getReaderContext().error("SpEL-function method has to be 'static'", element);
-		}
-
-		this.functions.put(id, method);
-
-		return null;
+	protected Class<?> getBeanClass(Element element) {
+		return SpelFunctionFactoryBean.class;
 	}
 
-	private synchronized void initializeSpelFunctionRegistrarIfNecessary(ParserContext parserContext) {
-		if (!this.initialized) {
-			BeanDefinitionBuilder registrarBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SpelFunctionRegistrar")
-					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
-					.addConstructorArgValue(this.functions);
-			BeanDefinitionReaderUtils.registerWithGeneratedName(registrarBuilder.getBeanDefinition(),
-					parserContext.getRegistry());
-			this.initialized = true;
-		}
-	}
+	@Override
+	protected void doParse(Element element, BeanDefinitionBuilder builder) {
+		builder.addConstructorArgValue(element.getAttribute("class"))
+				.addConstructorArgValue(element.getAttribute("method"));
 
+	}
 }

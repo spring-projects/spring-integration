@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
@@ -66,7 +66,7 @@ import org.springframework.util.Assert;
  * @since 3.0
  */
 public class IntegrationEvaluationContextFactoryBean implements FactoryBean<StandardEvaluationContext>,
-		BeanFactoryAware, InitializingBean {
+		ApplicationContextAware, InitializingBean {
 
 	private volatile List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
 
@@ -74,14 +74,13 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 
 	private TypeConverter typeConverter = new StandardTypeConverter();
 
-	private BeanFactory beanFactory;
+	private ApplicationContext applicationContext;
 
 	private BeanResolver beanResolver;
 
-
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
 
 	public void setPropertyAccessors(PropertyAccessor... accessors) {
@@ -101,34 +100,25 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 		this.functions = functions;
 	}
 
-	public void addFunction(String name, Method method) {
-		this.functions.put(name, method);
-	}
-
-	public void addFunctions(Map<String, Method> functions) {
-		this.functions.putAll(functions);
-	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.propertyAccessors.isEmpty()) {
 			this.loadDefaultPropertyAccessors(this.propertyAccessors);
 		}
-		if (this.beanFactory != null) {
-			this.beanResolver = new BeanFactoryResolver(this.beanFactory);
-			ConversionService conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+		if (this.applicationContext != null) {
+			this.beanResolver = new BeanFactoryResolver(this.applicationContext);
+			ConversionService conversionService = IntegrationContextUtils.getConversionService(this.applicationContext);
 			if (conversionService != null) {
 				this.typeConverter = new StandardTypeConverter(conversionService);
 			}
-			try {
-				SpelFunctionRegistrar functionRegistrar = this.beanFactory.getBean(SpelFunctionRegistrar.class);
-				if (functionRegistrar != null) {
-					this.addFunctions(functionRegistrar.getFunctions());
+
+			Map<String, SpelFunctionFactoryBean> functionFactoryBeanMap =
+					BeanFactoryUtils.beansOfTypeIncludingAncestors(this.applicationContext, SpelFunctionFactoryBean.class);
+			for (SpelFunctionFactoryBean spelFunctionFactoryBean : functionFactoryBeanMap.values()) {
+				if (!this.functions.containsKey(spelFunctionFactoryBean.getFunctionName())) {
+					this.functions.put(spelFunctionFactoryBean.getFunctionName(), spelFunctionFactoryBean.getObject());
 				}
-			}
-			catch (NoSuchBeanDefinitionException e) {
-				//Ignore it.
-				//There is no <spel-function> components within application context.
 			}
 		}
 	}
