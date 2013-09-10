@@ -76,6 +76,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("wire-tap", new GlobalWireTapParser());
 		registerBeanDefinitionParser("transaction-synchronization-factory", new TransactionSynchronizationFactoryParser());
 		registerBeanDefinitionParser("spel-function", new SpelFunctionParser());
+		registerBeanDefinitionParser("json-path-spel-function", new JsonPathSpelFunctionParser());
 	}
 
 }
