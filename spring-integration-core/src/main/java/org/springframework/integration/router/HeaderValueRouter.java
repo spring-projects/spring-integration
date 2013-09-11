@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * A Message Router that resolves the MessageChannel from a header value.
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 1.0.3
@@ -46,7 +46,7 @@ public class HeaderValueRouter extends AbstractMappingMessageRouter {
 	protected List<Object> getChannelKeys(Message<?> message) {
 		Object value = message.getHeaders().get(this.headerName);
 		if (value instanceof String && ((String) value).indexOf(',') != -1) {
-			value = StringUtils.tokenizeToStringArray((String) value, ",", true, true);
+			value = StringUtils.tokenizeToStringArray((String) value, ",");
 		}
 		return Collections.singletonList(value);
 	}

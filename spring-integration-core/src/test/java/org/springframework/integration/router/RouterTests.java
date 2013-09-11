@@ -133,7 +133,7 @@ public class RouterTests {
 		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
-				return CollectionUtils.arrayToList(new String[] { "testChannel1,testChannel2" });
+				return CollectionUtils.arrayToList(new String[] { "testChannel1, , testChannel2  " });
 			}
 		};
 
