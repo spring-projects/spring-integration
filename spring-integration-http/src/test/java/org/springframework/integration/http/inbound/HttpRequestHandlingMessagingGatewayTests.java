@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.inbound;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -53,6 +54,7 @@ import org.springframework.util.SerializationUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 public class HttpRequestHandlingMessagingGatewayTests {
@@ -151,6 +153,8 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		assertEquals("HELLO", response.getContentAsString());
+		//INT-3120
+		assertNull(response.getHeader("Accept-Charset"));
 	}
 
 	@Test
