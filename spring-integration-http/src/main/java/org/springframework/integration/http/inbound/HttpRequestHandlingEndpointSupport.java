@@ -173,16 +173,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			if (logger.isDebugEnabled()) {
 				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'messageConverters'.");
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'messageConverters'.");
-			}
 		}
-		else if (jacksonPresent) {
-			this.messageConverters.add(new MappingJacksonHttpMessageConverter());
-			if (logger.isDebugEnabled()) {
-				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'messageConverters'.");
-			}
-		}		if (romePresent) {
+
+		}if (romePresent) {
 			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
 			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
