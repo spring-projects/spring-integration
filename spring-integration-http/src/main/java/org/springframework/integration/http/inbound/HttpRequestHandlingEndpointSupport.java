@@ -147,7 +147,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this.expectReply = expectReply;
 		this.messageConverters.add(new MultipartAwareFormHttpMessageConverter());
 		this.messageConverters.add(new ByteArrayHttpMessageConverter());
-		this.messageConverters.add(new StringHttpMessageConverter());
+		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
+		stringHttpMessageConverter.setWriteAcceptCharset(false);
+		this.messageConverters.add(stringHttpMessageConverter);
 		this.messageConverters.add(new ResourceHttpMessageConverter());
 		this.messageConverters.add(new SourceHttpMessageConverter());
 		if (jaxb2Present) {
