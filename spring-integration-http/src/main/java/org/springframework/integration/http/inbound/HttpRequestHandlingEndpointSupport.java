@@ -16,15 +16,14 @@
 
 package org.springframework.integration.http.inbound;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -58,6 +57,7 @@ import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -102,7 +102,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
-
 
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
@@ -167,7 +166,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
 			if (logger.isDebugEnabled()) {
 				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'messageConverters'.");
-			}		}
 		else if (JacksonJsonUtils.isJacksonPresent()) {
 			this.defaultMessageConverters.add(new MappingJacksonHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
