@@ -53,6 +53,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -373,6 +374,14 @@ public class ChainParserTests {
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.payloadSerializingTransformerWithinChain.handler"));
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.payloadDeserializingTransformerWithinChain.handler"));
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.gatewayWithinChain.handler"));
+		//INT-3117
+		GatewayProxyFactoryBean gatewayProxyFactoryBean = this.beanFactory.getBean("&subComponentsIdSupport1$child.gatewayWithinChain.handler",
+				GatewayProxyFactoryBean.class);
+		assertSame(this.strings, TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannel", MessageChannel.class));
+		assertSame(this.numbers, TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannel", MessageChannel.class));
+		assertEquals(new Long(1000), TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout", Long.class));
+		assertEquals(new Long(100), TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Long.class));
+
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToStringTransformerWithinChain.handler"));
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToMapTransformerWithinChain.handler"));
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.mapToObjectTransformerWithinChain.handler"));
