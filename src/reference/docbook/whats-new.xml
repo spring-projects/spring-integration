@@ -243,6 +243,15 @@
 				before sending the request. For more information see <xref linkend="http"/>.
 			</para>
 		</section>
+		<section id="3.0-http-register-default-converters">
+			<title>HTTP Inbound Adapter and HTTP Inbound Gateway 'register-default-converters' property</title>
+			<para>
+				<code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code> now
+				have a  <code>register-default-converters</code> attribute to set the list of default
+				<interfacename>HttpMessageConverter</interfacename> to user customized set of message converters.
+				For more information see <xref linkend="http"/>.
+			</para>
+		</section>		
 		<section id="3.0-amqp-mapping">
 			<title>AMQP Outbound Gateway Header Mapping</title>
 			<para>
