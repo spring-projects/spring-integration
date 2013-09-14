@@ -233,7 +233,8 @@
 			<para>
 				Payloads to <emphasis>persist</emphasis> or
 				<emphasis>merge</emphasis> can now be of type
-				<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
+				<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html"
+						>java.lang.Iterable</ulink></interfacename>.
 			</para>
 			<para>
 				In that case, each object returned by the
@@ -252,12 +253,33 @@
 				see 'JSON Transformers' in <xref linkend="transformer"/>.
 			</para>
 		</section>
-		<section id="3.0-http-encode-uri">
-			<title>HTTP Outbound Endpoint 'encode-uri' property</title>
+		<section id="3.0-http-endpointss">
+			<title>HTTP Endpoint Changes</title>
 			<para>
-				<code>&lt;http:outbound-gateway/&gt;</code> and <code>&lt;http:outbound-channel-adapter/&gt;</code> now
-				provide an <code>encode-uri</code> attribute to allow disabling the encoding of the URI object
-				before sending the request. For more information see <xref linkend="http"/>.
+				<itemizedlist>
+					<listitem>
+						<emphasis role="bold">Outbound Endpoint 'encode-uri'</emphasis> - <code>&lt;http:outbound-gateway/&gt;</code>
+						and <code>&lt;http:outbound-channel-adapter/&gt;</code> now
+						provides an <code>encode-uri</code> attribute to allow disabling the encoding of the URI object
+						before sending the request.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">Inbound Endpoint 'merge-with-default-converters'</emphasis> -
+						<code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code> now
+						have a <code>merge-with-default-converters</code> attribute to include the list of default
+						<interfacename>HttpMessageConverter</interfacename> after the custom message converters.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">'If-(Un)Modified-Since' HTTP headers</emphasis> - previously,
+						'If-Modified-Since' and 'If-Unmodified-Since' HTTP headers were incorrectly processed
+						within from/to HTTP headers mapping in the <classname>DefaultHttpHeaderMapper</classname>.
+						Now, in addition correcting that issue, <classname>DefaultHttpHeaderMapper</classname> provides
+						date parsing from formatted strings for any HTTP headers that accept date-time values.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information see <xref linkend="http"/>.
 			</para>
 		</section>
 		<section id="3.0-amqp-mapping">
@@ -408,16 +430,6 @@
 				the <code>ignore-expression-failures</code> was introduced to control the behavior when an
 				expression evaluation fails.
 				For more information see <xref linkend="delayer"/>.
-			</para>
-		</section>
-		<section id="3.0-http-header-mapper">
-			<title>DefaultHttpHeaderMapper and 'If-(Un)Modified-Since' HTTP headers</title>
-			<para>
-				Previously, 'If-Modified-Since' and 'If-Unmodified-Since' HTTP headers were incorrectly processed
-				within from/to HTTP headers mapping in the <classname>DefaultHttpHeaderMapper</classname>.
-				Now, in addition to the fix of that issue, <classname>DefaultHttpHeaderMapper</classname> provides date parsing
-				from formatted strings for HTTP headers, which accept date-time values.
-				For more information see <xref linkend="http"/>.
 			</para>
 		</section>
 		<section id="3.0-pub-sub">

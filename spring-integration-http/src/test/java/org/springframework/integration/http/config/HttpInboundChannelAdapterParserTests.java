@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.http.config;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -25,7 +27,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -34,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -65,6 +67,7 @@ import org.springframework.util.MultiValueMap;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Biju Kunjummen
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -78,6 +81,10 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Autowired
 	private HttpRequestHandlingMessagingGateway postOnlyAdapter;
+
+	@Autowired
+	@Qualifier("adapterWithCustomConverterWithDefaults")
+	private HttpRequestHandlingMessagingGateway adapterWithCustomConverterWithDefaults;
 
 	@Autowired
 	private HttpRequestHandlingMessagingGateway putOrDeleteAdapter;
@@ -95,6 +102,14 @@ public class HttpInboundChannelAdapterParserTests {
 	@Autowired
 	@Qualifier("/fname/{f}/lname/{l}")
 	private HttpRequestHandlingMessagingGateway inboundAdapterWithNameNoPath;
+
+	@Autowired
+	@Qualifier("adapterWithCustomConverterNoDefaults")
+	private HttpRequestHandlingMessagingGateway adapterWithCustomConverterNoDefaults;
+
+	@Autowired
+	@Qualifier("adapterNoCustomConverterNoDefaults")
+	private HttpRequestHandlingMessagingGateway adapterNoCustomConverterNoDefaults;
 
 	@Autowired
 	private HttpRequestHandlingController inboundController;
@@ -259,17 +274,14 @@ public class HttpInboundChannelAdapterParserTests {
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
-		converters.add(new SerializingHttpMessageConverter());
-		postOnlyAdapter.setMessageConverters(converters);
-
-		postOnlyAdapter.handleRequest(request, response);
+		adapterWithCustomConverterWithDefaults.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
 		Message<?> message = requests.receive(0);
 		assertNotNull(message);
 		assertTrue(message.getPayload() instanceof TestObject);
 		assertEquals("testObject", ((TestObject) message.getPayload()).text);
 	}
+
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -298,6 +310,32 @@ public class HttpInboundChannelAdapterParserTests {
 	@Test
 	public void testAutoChannel() {
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "requestChannel"));
+	}
+
+	@Test
+	public void testInboundAdapterWithMessageConverterDefaults() {
+		@SuppressWarnings("unchecked")
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterWithCustomConverterWithDefaults, "messageConverters", List.class);
+		assertTrue("There should be more than 1 message converter. The customized one and the defaults.", messageConverters.size() > 1);
+
+		//First converter should be the customized one
+		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+	}
+
+	@Test
+	public void testInboundAdapterWithNoMessageConverterDefaults() {
+		@SuppressWarnings("unchecked")
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterWithCustomConverterNoDefaults, "messageConverters", List.class);
+		//First converter should be the customized one
+		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+		assertTrue("There should be only the customized messageconverter registered.", messageConverters.size() == 1);
+	}
+
+	@Test
+	public void testInboundAdapterWithNoMessageConverterNoDefaults() {
+		@SuppressWarnings("unchecked")
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(adapterNoCustomConverterNoDefaults, "messageConverters", List.class);
+		assertTrue("There should be more than 1 message converter. The defaults.", messageConverters.size() > 1);
 	}
 
 	@SuppressWarnings("serial")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.springframework.integration.http.config;
 
 import static org.hamcrest.CoreMatchers.any;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -64,6 +67,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Biju Kunjummen
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -72,6 +76,18 @@ public class HttpInboundGatewayParserTests {
 	@Autowired
 	@Qualifier("inboundGateway")
 	private HttpRequestHandlingMessagingGateway gateway;
+
+	@Autowired
+	@Qualifier("inboundGatewayWithOneCustomConverter")
+	private HttpRequestHandlingMessagingGateway gatewayWithOneCustomConverter;
+
+	@Autowired
+	@Qualifier("inboundGatewayNoDefaultConverters")
+	private HttpRequestHandlingMessagingGateway gatewayNoDefaultConverters;
+
+	@Autowired
+	@Qualifier("inboundGatewayWithCustomAndDefaultConverters")
+	private HttpRequestHandlingMessagingGateway gatewayWithCustomAndDefaultConverters;
 
 	@Autowired
 	@Qualifier("withMappedHeaders")
@@ -105,6 +121,14 @@ public class HttpInboundGatewayParserTests {
 				gateway, "messagingTemplate", MessagingTemplate.class);
 		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
 		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
+
+		boolean registerDefaultConverters = TestUtils.getPropertyValue(gateway,"mergeWithDefaultConverters", Boolean.class);
+		assertFalse("By default the register-default-converters flag should be false", registerDefaultConverters);
+		@SuppressWarnings("unchecked")
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(gateway,"messageConverters", List.class);
+
+		assertTrue("The default converters should have been registered, given there are no custom converters",
+				messageConverters.size() > 0);
 	}
 
 	@Test(timeout=1000) @DirtiesContext
@@ -119,6 +143,7 @@ public class HttpInboundGatewayParserTests {
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
 		converters.add(new SerializingHttpMessageConverter());
 		gateway.setMessageConverters(converters);
+		gateway.afterPropertiesSet();
 
 		gateway.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
@@ -198,6 +223,40 @@ public class HttpInboundGatewayParserTests {
 		assertEquals("abc", abc.get(0));
 		List<String> personHeaders = headers.get("X-person");
 		assertEquals("Oleg", personHeaders.get(0));
+	}
+
+	@Test
+	public void testInboundGatewayWithMessageConverterDefaults() {
+		@SuppressWarnings("unchecked")
+		List<HttpMessageConverter<?>> messageConverters =
+			TestUtils.getPropertyValue(gatewayWithOneCustomConverter, "messageConverters", List.class);
+		assertThat("There should be only 1 message converter, by default register-default-converters is off",
+				messageConverters.size(), is(1));
+
+		//The converter should be the customized one
+		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+	}
+
+	@Test
+	public void testInboundGatewayWithNoMessageConverterDefaults() {
+		@SuppressWarnings("unchecked")
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(gatewayNoDefaultConverters, "messageConverters", List.class);
+		//First converter should be the customized one
+		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+
+		assertThat("There should be only 1 message converter, the register-default-converters is false",
+				messageConverters.size(), is(1));
+	}
+
+	@Test
+	public void testInboundGatewayWithCustomAndDefaultMessageConverters() {
+		@SuppressWarnings("unchecked")
+		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(gatewayWithCustomAndDefaultConverters, "messageConverters", List.class);
+		//First converter should be the customized one
+		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
+
+		assertTrue("There should be more than one converter",
+				messageConverters.size() > 1);
 	}
 
 	public static class Person{

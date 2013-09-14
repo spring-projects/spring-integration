@@ -41,6 +41,7 @@ import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
@@ -57,6 +58,7 @@ import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -95,6 +97,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Biju Kunjummen
  * @since 2.0
  */
 public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
@@ -103,19 +106,21 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
-	private static final boolean jacksonPresent = ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper",
-			HttpRequestHandlingEndpointSupport.class.getClassLoader())
-			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingEndpointSupport.class
-					.getClassLoader());
 
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
+
+	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<HttpMessageConverter<?>>();
+
+	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
 
 	private volatile Class<?> requestPayloadType = null;
 
-	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+	private volatile boolean convertersMerged;
+
+	private volatile boolean mergeWithDefaultConverters = false;
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
 
@@ -143,25 +148,42 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this(true);
 	}
 
-	@SuppressWarnings("rawtypes")
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		this.expectReply = expectReply;
-		this.messageConverters.add(new MultipartAwareFormHttpMessageConverter());
-		this.messageConverters.add(new ByteArrayHttpMessageConverter());
+		this.defaultMessageConverters.add(new MultipartAwareFormHttpMessageConverter());
+		this.defaultMessageConverters.add(new ByteArrayHttpMessageConverter());
 		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
 		stringHttpMessageConverter.setWriteAcceptCharset(false);
-		this.messageConverters.add(stringHttpMessageConverter);
-		this.messageConverters.add(new ResourceHttpMessageConverter());
-		this.messageConverters.add(new SourceHttpMessageConverter());
+		this.defaultMessageConverters.add(stringHttpMessageConverter);
+		this.defaultMessageConverters.add(new ResourceHttpMessageConverter());
+		@SuppressWarnings("rawtypes")
+		SourceHttpMessageConverter<?> sourceConverter = new SourceHttpMessageConverter();
+		this.defaultMessageConverters.add(sourceConverter);
 		if (jaxb2Present) {
-			this.messageConverters.add(new Jaxb2RootElementHttpMessageConverter());
+			this.defaultMessageConverters.add(new Jaxb2RootElementHttpMessageConverter());
+			if (logger.isDebugEnabled()) {
+				logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'messageConverters'.");
+			}
 		}
-		if (jacksonPresent) {
-			this.messageConverters.add(new MappingJacksonHttpMessageConverter());
+		if (JacksonJsonUtils.isJackson2Present()) {
+			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
+			if (logger.isDebugEnabled()) {
+				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'messageConverters'.");
+			}
+		}
+		else if (JacksonJsonUtils.isJacksonPresent()) {
+			this.defaultMessageConverters.add(new MappingJacksonHttpMessageConverter());
+			if (logger.isDebugEnabled()) {
+				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'messageConverters'.");
+			}
 		}
 		if (romePresent) {
-			this.messageConverters.add(new AtomFeedHttpMessageConverter());
-			this.messageConverters.add(new RssChannelHttpMessageConverter());
+			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
+			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
+			if (logger.isDebugEnabled()) {
+				logger.debug("'AtomFeedHttpMessageConverter' was added to the 'messageConverters'.");
+				logger.debug("'RssChannelHttpMessageConverter' was added to the 'messageConverters'.");
+			}
 		}
 	}
 
@@ -210,12 +232,26 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * responses.
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
-		Assert.notEmpty(messageConverters, "'messageConverters' must not be empty");
-		this.messageConverters = messageConverters;
+		Assert.noNullElements(messageConverters.toArray(), "'messageConverters' must not contain null entries");
+		List<HttpMessageConverter<?>> localConverters = new ArrayList<HttpMessageConverter<?>>(messageConverters);
+		if (this.mergeWithDefaultConverters) {
+			localConverters.addAll(this.defaultMessageConverters);
+			this.convertersMerged = true;
+		}
+		this.messageConverters = localConverters;
 	}
 
 	protected List<HttpMessageConverter<?>> getMessageConverters() {
 		return this.messageConverters;
+	}
+
+
+	/**
+	 * Flag which determines if the default converters should be available after
+	 * custom converters.
+	 */
+	public void setMergeWithDefaultConverters(boolean mergeWithDefaultConverters) {
+		this.mergeWithDefaultConverters = mergeWithDefaultConverters;
 	}
 
 	/**
@@ -284,6 +320,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Locates the {@link MultipartResolver} bean based on the default name defined by the
 	 * {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME} constant if available.
+	 * Sets up default converters if no converters set, or {@link #setMergeWithDefaultConverters(boolean)}
+	 * was called with true after the converters were set.
 	 */
 	@Override
 	protected void onInit() throws Exception {
@@ -306,10 +344,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				}
 			}
 		}
-
+		if (this.messageConverters.size() == 0 || (this.mergeWithDefaultConverters && !this.convertersMerged)) {
+			this.messageConverters.addAll(this.defaultMessageConverters);
+		}
 		this.validateSupportedMethods();
 	}
-
 
 	@Override
 	protected void doStart() {
@@ -468,7 +507,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Prepares an instance of {@link ServletServerHttpRequest} from the raw {@link HttpServletRequest}. Also converts
 	 * the request into a multipart request to make multiparts available if necessary. If no multipart resolver is set,
 	 * simply returns the existing request.
-	 * @param request current HTTP request
+	 * @param servletRequest current HTTP request
 	 * @return the processed request (multipart wrapper if necessary)
 	 * @see MultipartResolver#resolveMultipart
 	 */

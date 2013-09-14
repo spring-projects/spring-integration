@@ -26,6 +26,28 @@
 		reply-timeout="4567"
 		error-channel="errorChannel"/>
 
+	<inbound-gateway id="inboundGatewayWithOneCustomConverter"
+		request-channel="requests"
+		reply-channel="responses"
+		message-converters="customConverters"/>
+
+	<inbound-gateway id="inboundGatewayNoDefaultConverters"
+		request-channel="requests"
+		reply-channel="responses"
+		message-converters="customConverters"
+		merge-with-default-converters="false"/>
+
+	<inbound-gateway id="inboundGatewayWithCustomAndDefaultConverters"
+		request-channel="requests"
+		reply-channel="responses"
+		message-converters="customConverters"
+		merge-with-default-converters="true"/>
+
+	<util:list id="customConverters">
+		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
+	</util:list>
+
+
 	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo" error-code="oops"/>
 	
 	<inbound-gateway id="inboundControllerViewExp"
@@ -37,15 +59,14 @@
 	<inbound-gateway id="withMappedHeaders" request-channel="requests"
 								mapped-response-headers="abc, xyz"
 								mapped-request-headers="foo,bar"/>
-								
+
 	<inbound-gateway id="withMappedHeadersAndConverter" request-channel="requests"
 								mapped-response-headers="abc, xyz, person"
 								mapped-request-headers="foo,bar"/>
-				
-				
+
 	<si:converter ref="personConverter"/>
-				
+
 	<beans:bean id="personConverter" class="org.springframework.integration.http.config.HttpInboundGatewayParserTests.PersonConverter"/>
-	
+
 
 </beans:beans>

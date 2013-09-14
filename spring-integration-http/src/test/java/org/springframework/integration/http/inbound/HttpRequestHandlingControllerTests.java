@@ -51,6 +51,7 @@ import org.springframework.web.servlet.View;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Biju Kunjummen
  * @since 2.0
  */
 public class HttpRequestHandlingControllerTests {
@@ -62,6 +63,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -87,6 +89,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("'baz'");
 		controller.setViewExpression(viewExpression);
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -118,6 +121,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 
@@ -151,6 +155,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -181,6 +186,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setRequestChannel(requestChannel);
 		Expression viewExpression = new SpelExpressionParser().parseExpression("headers['bar']");
 		controller.setViewExpression(viewExpression);
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -209,6 +215,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setReplyKey("myReply");
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("howdy".getBytes());
@@ -241,6 +248,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
 		controller.setExtractReplyPayload(false);
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("abc".getBytes());
@@ -270,6 +278,7 @@ public class HttpRequestHandlingControllerTests {
 		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
 		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
+		controller.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());
@@ -308,6 +317,7 @@ public class HttpRequestHandlingControllerTests {
 		controller.setBeanFactory(mock(BeanFactory.class));
 		controller.setRequestChannel(requestChannel);
 		controller.setViewName("foo");
+		controller.afterPropertiesSet();
 		final MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("hello".getBytes());

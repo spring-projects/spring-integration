@@ -47,6 +47,7 @@ import org.w3c.dom.Element;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Biju Kunjummen
  */
 public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 
@@ -159,6 +160,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "errors-key");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "error-code");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "merge-with-default-converters");
 
 
 		//IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");

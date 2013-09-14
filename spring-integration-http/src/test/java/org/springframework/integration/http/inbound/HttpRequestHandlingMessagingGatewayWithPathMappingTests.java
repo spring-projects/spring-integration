@@ -40,6 +40,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Biju Kunjummen
  */
 public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 
@@ -70,6 +71,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
+		gateway.afterPropertiesSet();
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -102,6 +104,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables.f"));
+		gateway.afterPropertiesSet();
 
 		Object result =  gateway.doHandleRequest(request, response);
 		assertTrue(result instanceof Message);
@@ -134,6 +137,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables"));
+		gateway.afterPropertiesSet();
 
 		Object result =  gateway.doHandleRequest(request, response);
 		assertTrue(result instanceof Message);
