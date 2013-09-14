@@ -29,6 +29,21 @@
 					collection-name="foo"
 					mongo-template="mongoDbTemplate"/>
 
+	<int:channel id="input">
+		<int:queue/>
+	</int:channel>
+
+	<int-mongodb:outbound-channel-adapter id="pollableAdapter"
+										  channel="input"
+										  collection-name="foo"
+										  mongo-template="mongoDbTemplate">
+		<int:poller fixed-delay="1000"/>
+		<int-mongodb:request-handler-advice-chain>
+			<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice"/>
+		</int-mongodb:request-handler-advice-chain>
+	</int-mongodb:outbound-channel-adapter>
+
+
 	<bean id="mongoConverter" class="org.springframework.integration.mongodb.rules.MongoDbAvailableTests.TestMongoConverter">
 		<constructor-arg ref="mongoDbFactory"/>
 		<constructor-arg>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,30 @@ package org.springframework.integration.mongodb.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.junit.Test;
 
+import org.hamcrest.Matchers;
+
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.mongodb.outbound.MongoDbStoringMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class MongoDbOutboundChannelAdapterParserTests {
 
@@ -100,4 +112,16 @@ public class MongoDbOutboundChannelAdapterParserTests {
 	public void templateAndConverterFail(){
 		new ClassPathXmlApplicationContext("outbound-adapter-parser-fail-template-converter-config.xml", this.getClass());
 	}
+
+	@Test
+	public void testInt3024PollerAndRequestHandlerAdviceChain(){
+		ApplicationContext context = new ClassPathXmlApplicationContext("outbound-adapter-parser-config.xml", this.getClass());
+		AbstractEndpoint endpoint = context.getBean("pollableAdapter", AbstractEndpoint.class);
+		assertThat(endpoint, Matchers.instanceOf(PollingConsumer.class));
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		assertTrue(AopUtils.isAopProxy(handler));
+		List advisors = TestUtils.getPropertyValue(handler, "h.advised.advisors", List.class);
+		assertThat(TestUtils.getPropertyValue(advisors.get(0), "advice"), Matchers.instanceOf(RequestHandlerRetryAdvice.class));
+	}
+
 }
