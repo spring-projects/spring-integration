@@ -86,6 +86,14 @@
 				<interfacename>MessageSource</interfacename>; see <xref linkend="channel-adapter-expressions-and-scripts"/>.
 			</para>
 		</section>
+		<section id="3.0-content-enricher-headers">
+			<title>Content Enricher: Headers Enrichment Support</title>
+			<para>
+				The Content Enricher now provides configuration for <code>&lt;header/&gt;</code>
+				sub-elements, to enrich the outbound Message with headers based on the reply Message from the underlying
+				message flow. For more information see <xref linkend="payload-enricher"/>.
+			</para>
+		</section>
 		<section id="3.0-spel-customization">
 			<title>Spring Expression Language (SpEL) Configuration</title>
 			<para>

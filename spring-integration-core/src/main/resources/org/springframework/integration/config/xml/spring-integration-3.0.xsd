@@ -1229,6 +1229,42 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="header" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Each header sub-element provides the name of a message header (via the required 'name' attribute).
+						Exactly one of the 'value' or 'expression' attributes must be provided as well.
+						The former for a literal value to set, and the latter for a SpEL expression to be evaluated.
+						The root object of the evaluation context is the Message that was returned from the flow initiated
+						by this enricher.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType >
+					<xsd:complexContent>
+						<xsd:extension base="propertySubElementType">
+							<xsd:attribute name="overwrite" default="true">
+								<xsd:annotation>
+									<xsd:documentation>
+										Boolean value to indicate whether this header value should overwrite an
+										existing header value. Unlike the Header Enricher, this attribute is 'true'
+										by default, similar to the 'property' attribute.
+									</xsd:documentation>
+								</xsd:annotation>
+								<xsd:simpleType>
+									<xsd:union memberTypes="xsd:boolean xsd:string" />
+								</xsd:simpleType>
+							</xsd:attribute>
+							<xsd:attribute name="type" type="xsd:string">
+								<xsd:annotation>
+									<xsd:documentation source="java:java.lang.Class">
+										The fully qualified class name of the header value's expected type.
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:attribute>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:element>
 			<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="request-channel" type="xsd:string" use="optional">
