@@ -156,6 +156,20 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       If <emphasis>transfer-cookies</emphasis> is false, any <emphasis>Set-Cookie</emphasis> header received will
       remain as <emphasis>Set-Cookie</emphasis> in the reply message, and will be dropped on subsequent sends.
     </para>
+    <para>
+      <note>
+         HTTP protocol is always two-way, request/response one. However response may not have a body.
+         In this case <classname>HttpRequestExecutingMessageHandler</classname> places to the payload
+         of reply <code>Message</code> an entire <classname>org.springframework.http.HttpEntity</classname>,
+         independently of provided <code>expected-response-type</code>. According to
+         <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">Status Code Definitions</ulink>
+         there are many statuses, which identify that response MUST NOT contain a message-body (e.g. 204 No Content),
+         but the response should be interpreted by clients as valid one and the logic of further message flow may be
+         the same: first request to the HTTP resource returns content, but the second - doesn't (e.g. 304 Not Modified).
+         In these cases there may be a reason to place after Http Outbound Gateway some routing logic based on
+         <code>http_statusCode</code> (rather then payload type) and skip some steps of message flow.
+      </note>
+    </para>
   </section>
 
   <section id="http-namespace">
