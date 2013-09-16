@@ -13,7 +13,9 @@
 
 package org.springframework.integration.jdbc.config;
 
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.w3c.dom.Element;
+
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,7 +25,6 @@ import org.springframework.integration.config.xml.AbstractConsumerEndpointParser
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcOutboundGateway;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Gunnar Hillert
@@ -47,7 +48,8 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(storedProcExecutorBuilder, element, "sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "skip-undeclared-results");
 
-		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
+		final ManagedMap<String, BeanMetadataElement> returningResultsetMap =
+				StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
 
 		if (!returningResultsetMap.isEmpty()) {
 			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);

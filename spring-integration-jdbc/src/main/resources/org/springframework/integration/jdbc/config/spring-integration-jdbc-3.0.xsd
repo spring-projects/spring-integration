@@ -1274,9 +1274,15 @@
 		</xsd:attribute>
 		 <xsd:attribute name="row-mapper" type="xsd:string" use="required">
 			 <xsd:annotation>
-				 <xsd:documentation source="java:java.lang.Class"><![CDATA[
-					The fully qualified class name of the row mapper.
-				]]></xsd:documentation>
+				 <xsd:appinfo>
+					 <xsd:documentation>
+						 Reference to a row mapper to use to convert
+						 JDBC result set rows to message payloads.
+					 </xsd:documentation>
+					 <tool:annotation kind="ref">
+						 <tool:expected-type type="org.springframework.jdbc.core.RowMapper" />
+					 </tool:annotation>
+				 </xsd:appinfo>
 			 </xsd:annotation>
 		 </xsd:attribute>
 	</xsd:complexType>

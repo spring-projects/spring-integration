@@ -258,7 +258,7 @@
 			</para>
 		</section>
 		<section id="3.0-stored-proc-sql-return-type">
-			<title>SqlReturnType support for Stored Procedure components</title>
+			<title>Stored Procedure components improvements</title>
 			<para>
 				For more complex database-specific types, not supported by the standard
 				<code>CallableStatement.getObject</code> method, 2 new additional
@@ -270,6 +270,11 @@
 				<listitem><emphasis>return-type</emphasis></listitem>
 			</itemizedlist>
 			<para>
+				<para>
+					<code>row-mapper</code> attribute of <code>&lt;returning-resultset/&gt;</code> sub-element
+					now supports <code>id</code> reference to generic <interfacename>RowMapper</interfacename> bean
+					definition.
+				</para>
 				For more information see <xref linkend="stored-procedures"/>.
 			</para>
 		</section>
