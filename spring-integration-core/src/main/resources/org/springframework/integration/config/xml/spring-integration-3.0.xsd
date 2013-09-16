@@ -1229,6 +1229,19 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="header" type="propertySubElementType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Each header sub-element provides the name of a message header (via the required 'name' attribute).
+						Exactly one of the 'value' or 'expression' attributes must be provided as well.
+						The former for a literal value to set, and the latter for a SpEL expression to be evaluated.
+						The root object of the evaluation context is the Message that was returned from the flow initiated
+						by this enricher.
+						Note, in contradistinction to header-enricher, enricher component always override an existed header
+						in the inbound Message.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="request-handler-advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="request-channel" type="xsd:string" use="optional">

@@ -227,6 +227,8 @@
     <int:poller></int:poller>                             ]]><co id="payload-enricher10-co" linkends="payload-enricher10" /><![CDATA[
     <int:property name="" expression=""/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
     <int:property name="" value=""/>
+	<int:header name="" expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
+    <int:header name="" value=""/>
 </int:enricher>]]></programlisting>
 
 	        <para>
@@ -357,6 +359,22 @@
                             input Message if there is no request channel, or the
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
                             SpEL syntax).
+	                    </para>
+	                </callout>
+					<callout arearefs="payload-enricher12-co" id="payload-enricher12">
+	                    <para>
+                            Each <code>header</code> sub-element provides the
+                            name of a Message header (via the mandatory <code>name</code>
+                            attribute). Exactly one of the <code>value</code>
+                            or <code>expression</code> attributes must be provided
+                            as well. The former for a literal value to set, and the
+                            latter for a SpEL expression to be evaluated. The root
+                            object of the evaluation context is the Message that was
+                            returned from the flow initiated by this enricher, the
+                            input Message if there is no request channel, or the
+                            application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
+                            SpEL syntax). Note, if the header is presented in the input Message
+							it will be overrided by the evaluation result of this configuration.
 	                    </para>
 	                </callout>
 	            </calloutlist>

@@ -53,6 +53,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private final Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
 
+	private final Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private EvaluationContext sourceEvaluationContext;
@@ -85,9 +87,28 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			for (Map.Entry<String, Expression> entry : propertyExpressions.entrySet()) {
 				String key = entry.getKey();
 				Expression value = entry.getValue();
-				Assert.notNull(key, "propertyExpressions key must not be null");
-				Assert.notNull(value, "propertyExpressions value must not be null");
+				Assert.notNull(key, "propertyExpression key must not be null");
+				Assert.notNull(value, "propertyExpression value must not be null");
 				this.propertyExpressions.put(parser.parseExpression(key), value);
+			}
+		}
+	}
+
+	/**
+	 * Provide the map of expressions to evaluate when enriching the target MessageHeaders.
+	 * The keys should simply be header names, and the values should be Expressions
+	 * that will evaluate against the reply Message as the root object.
+	 */
+	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
+		Assert.notEmpty(headerExpressions, "headerExpressions must not be empty");
+		synchronized (this.headerExpressions) {
+			this.headerExpressions.clear();
+			for (Map.Entry<String, Expression> entry : headerExpressions.entrySet()) {
+				String key = entry.getKey();
+				Expression value = entry.getValue();
+				Assert.notNull(key, "headerExpression key must not be null");
+				Assert.notNull(value, "headerExpression value must not be null");
+				this.headerExpressions.put(key, value);
 			}
 		}
 	}
@@ -221,7 +242,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		final Object targetPayload;
 		if (requestPayload instanceof Cloneable && this.shouldClonePayload) {
 			try {
-				Method cloneMethod = requestPayload.getClass().getMethod("clone", new Class<?>[0]);
+				Method cloneMethod = requestPayload.getClass().getMethod("clone");
 				targetPayload = ReflectionUtils.invokeMethod(cloneMethod, requestPayload);
 			}
 			catch (Exception e) {
@@ -256,7 +277,18 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
 			propertyExpression.setValue(this.targetEvaluationContext, targetPayload, value);
 		}
-		return targetPayload;
+		if (this.headerExpressions.isEmpty()) {
+			return targetPayload;
+		}
+
+		Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
+		for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
+			String header = entry.getKey();
+			Expression valueExpression = entry.getValue();
+			Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
+			targetHeaders.put(header, value);
+		}
+		return MessageBuilder.withPayload(targetPayload).copyHeaders(targetHeaders).build();
 	}
 
 	/**

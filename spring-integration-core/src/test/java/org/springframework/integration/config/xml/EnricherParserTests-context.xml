@@ -15,14 +15,18 @@
 
 	<channel id="requests"/>
 
-	<enricher id="enricher" input-channel="input" 
+	<enricher id="enricher" input-channel="input"
 	                        request-channel="requests" request-timeout="1234"
 	                        reply-timeout="9876"
 	                        order="99" should-clone-payload="true" output-channel="output">
 		<property name="name" expression="payload.sourceName"/>
 		<property name="age" value="42"/>
 		<property name="gender" expression="@testBean"/>
-		
+
+		<header name="foo" value="bar"/>
+		<header name="testBean" expression="@testBean"/>
+		<header name="sourceName" expression="payload.sourceName"/>
+
 		<request-handler-advice-chain>
 			<beans:bean class="org.springframework.integration.config.xml.EnricherParserTests$FooAdvice" />
 		</request-handler-advice-chain>

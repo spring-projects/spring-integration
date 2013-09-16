@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -46,6 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.1
  */
@@ -124,7 +126,7 @@ public class EnricherParserTests {
 			}
 		});
 		Target original = new Target();
-		Message<?> request = MessageBuilder.withPayload(original).build();
+		Message<?> request = MessageBuilder.withPayload(original).setHeader("sourceName", "test").build();
 		context.getBean("input", MessageChannel.class).send(request);
 		Message<?> reply = context.getBean("output", PollableChannel.class).receive(0);
 		Target enriched = (Target) reply.getPayload();
@@ -133,6 +135,11 @@ public class EnricherParserTests {
 		assertEquals("male", enriched.getGender());
 		assertNotSame(original, enriched);
 		assertEquals(1, adviceCalled);
+
+		MessageHeaders headers = reply.getHeaders();
+		assertEquals("bar", headers.get("foo"));
+		assertEquals("male", headers.get("testBean"));
+		assertEquals("foo", headers.get("sourceName"));
 	}
 
 	private static class Source {

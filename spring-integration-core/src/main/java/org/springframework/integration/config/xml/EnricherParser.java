@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.transformer.ContentEnricher;
 import org.springframework.util.CollectionUtils;
@@ -34,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * Parser for the 'enricher' element.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class EnricherParser extends AbstractConsumerEndpointParser {
@@ -47,34 +48,15 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
-		
-		List<Element> propertyElements = DomUtils.getChildElementsByTagName(element, "property");
-		if (!CollectionUtils.isEmpty(propertyElements)) {
-			ManagedMap<String, Object> propertyExpressions = new ManagedMap<String, Object>();
-			for (Element propertyElement : propertyElements) {
-				String name = propertyElement.getAttribute("name");
-				String value = propertyElement.getAttribute("value");
-				String expression = propertyElement.getAttribute("expression");
-				if (StringUtils.hasText(value) && StringUtils.hasText(expression)) {
-					parserContext.getReaderContext().error("The 'value' and 'expression' attributes are mutually exclusive on " +
-							"an <enricher> element's <property> sub-element.", parserContext.extractSource(propertyElement));
-				}
-				if (StringUtils.hasText(value)) {
-					BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(LiteralExpression.class);
-					expressionBuilder.addConstructorArgValue(value);
-					propertyExpressions.put(name, expressionBuilder.getBeanDefinition());
-				}
-				else if (StringUtils.hasText(expression)) {
-					BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-					expressionBuilder.addConstructorArgValue(expression);
-					propertyExpressions.put(name, expressionBuilder.getBeanDefinition());
-				}
-				else {
-					parserContext.getReaderContext().error("Exactly one of 'value' or 'expression' attributes must be provided on " +
-							"an <enricher> element's <property> sub-element.", parserContext.extractSource(propertyElement));
-				}
-			}
+
+		ManagedMap<String, Object> propertyExpressions = this.parseSubElements(element, parserContext, "property");
+		if (!CollectionUtils.isEmpty(propertyExpressions)) {
 			builder.addPropertyValue("propertyExpressions", propertyExpressions);
+		}
+
+		ManagedMap<String, Object> headerExpressions = this.parseSubElements(element, parserContext, "header");
+		if (!CollectionUtils.isEmpty(headerExpressions)) {
+			builder.addPropertyValue("headerExpressions", headerExpressions);
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "should-clone-payload");
@@ -88,6 +70,20 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 		}
 
 		return builder;
+	}
+
+	private ManagedMap<String, Object> parseSubElements(Element element, ParserContext parserContext, String subElementName) {
+		List<Element> subElements = DomUtils.getChildElementsByTagName(element, subElementName);
+		ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
+		if (!CollectionUtils.isEmpty(subElements)) {
+			for (Element subElement : subElements) {
+				String name = subElement.getAttribute("name");
+				BeanDefinition beanDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
+						"expression", parserContext, subElement, true);
+				expressions.put(name, beanDefinition);
+			}
+		}
+		return expressions;
 	}
 
 }
