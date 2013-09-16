@@ -21,12 +21,14 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Types;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -40,10 +42,13 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.simple.ParameterizedSingleColumnRowMapper;
 
 /**
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
@@ -200,12 +205,18 @@ public class StoredProcPollingChannelAdapterParserTests {
 
 		Map<String, RowMapper<?>> returningResultSetRowMappersAsMap = (Map<String, RowMapper<?>>) returningResultSetRowMappers;
 
-		assertTrue("The rowmapper was not set. Expected returningResultSetRowMappersAsMap.size() == 1", returningResultSetRowMappersAsMap.size() == 1);
+		assertTrue("The rowmapper was not set. Expected returningResultSetRowMappersAsMap.size() == 2",
+				returningResultSetRowMappersAsMap.size() == 2);
 
-		Entry<String, ?> mapEntry1 = returningResultSetRowMappersAsMap.entrySet().iterator().next();
+		Iterator<Entry<String,RowMapper<?>>> iterator = returningResultSetRowMappersAsMap.entrySet().iterator();
 
-		assertEquals("out",    mapEntry1.getKey());
-		assertTrue(mapEntry1.getValue() instanceof PrimeMapper);
+		Entry<String, ?> mapEntry = iterator.next();
+		assertEquals("out", mapEntry.getKey());
+		assertTrue(mapEntry.getValue() instanceof PrimeMapper);
+
+		mapEntry = iterator.next();
+		assertEquals("out2", mapEntry.getKey());
+		assertTrue(mapEntry.getValue() instanceof ParameterizedSingleColumnRowMapper);
 
 	}
 

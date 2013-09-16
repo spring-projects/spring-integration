@@ -258,7 +258,7 @@
 			</para>
 		</section>
 		<section id="3.0-stored-proc-sql-return-type">
-			<title>SqlReturnType support for Stored Procedure components</title>
+			<title>Stored Procedure Components Improvements</title>
 			<para>
 				For more complex database-specific types, not supported by the standard
 				<code>CallableStatement.getObject</code> method, 2 new additional
@@ -270,7 +270,15 @@
 				<listitem><emphasis>return-type</emphasis></listitem>
 			</itemizedlist>
 			<para>
-				For more information see <xref linkend="stored-procedures"/>.
+				<para>
+					The <code>row-mapper</code> attribute of the Stored Procedure Inbound Channel Adapter
+					<code>&lt;returning-resultset/&gt;</code> sub-element
+					now supports a reference to a <interfacename>RowMapper</interfacename> bean
+					definition. Previously, it contained just a class name (which is still supported).
+				</para>
+				<para>
+					For more information see <xref linkend="stored-procedures"/>.
+				</para>
 			</para>
 		</section>
 		<section id="3.0-event-for-imap-idle">
