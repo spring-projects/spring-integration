@@ -19,9 +19,14 @@ package org.springframework.integration.jdbc.config;
 import java.sql.Types;
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
@@ -36,9 +41,9 @@ import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Gunnar Hillert
@@ -203,21 +208,31 @@ public final class StoredProcParserUtils {
 	 * @param storedProcComponent
 	 * @param parserContext
 	 */
-	public static ManagedMap<String, BeanDefinition> getReturningResultsetBeanDefinitions(
+	public static ManagedMap<String, BeanMetadataElement> getReturningResultsetBeanDefinitions(
 			Element storedProcComponent, ParserContext parserContext) {
 
 		List<Element> returningResultsetChildElements = DomUtils.getChildElementsByTagName(storedProcComponent, "returning-resultset");
 
-		ManagedMap<String, BeanDefinition> returningResultsetMap = new ManagedMap<String, BeanDefinition>();
+		ManagedMap<String, BeanMetadataElement> returningResultsetMap = new ManagedMap<String, BeanMetadataElement>();
 
 		for (Element childElement : returningResultsetChildElements) {
 
 			String name       = childElement.getAttribute("name");
 			String rowMapperAsString = childElement.getAttribute("row-mapper");
 
-			BeanDefinitionBuilder rowMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(rowMapperAsString);
+			BeanMetadataElement rowMapperBeanDefinition = null;
 
-			returningResultsetMap.put(name, rowMapperBuilder.getBeanDefinition());
+			try {
+				// Backward compatibility
+				ClassUtils.forName(rowMapperAsString, parserContext.getReaderContext().getBeanClassLoader());
+				rowMapperBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition(rowMapperAsString).getBeanDefinition();
+			}
+			catch (ClassNotFoundException e) {
+				//Ignore it and fallback to bean reference
+				rowMapperBeanDefinition = new RuntimeBeanReference(rowMapperAsString);
+			}
+
+			returningResultsetMap.put(name, rowMapperBeanDefinition);
 		}
 
 		return returningResultsetMap;

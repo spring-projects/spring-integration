@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,8 +13,9 @@
 
 package org.springframework.integration.jdbc.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.StoredProcPollingChannelAdapter;
-import org.w3c.dom.Element;
 
 /**
  * @author Gunnar Hillert
@@ -51,7 +51,8 @@ public class StoredProcPollingChannelAdapterParser extends AbstractPollingInboun
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "is-function");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(storedProcExecutorBuilder, element, "skip-undeclared-results");
 
-		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
+		final ManagedMap<String, BeanMetadataElement> returningResultsetMap =
+				StoredProcParserUtils.getReturningResultsetBeanDefinitions(element, parserContext);
 
 		if (!returningResultsetMap.isEmpty()) {
 			storedProcExecutorBuilder.addPropertyValue("returningResultSetRowMappers", returningResultsetMap);
