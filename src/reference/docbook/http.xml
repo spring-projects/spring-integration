@@ -156,6 +156,24 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       If <emphasis>transfer-cookies</emphasis> is false, any <emphasis>Set-Cookie</emphasis> header received will
       remain as <emphasis>Set-Cookie</emphasis> in the reply message, and will be dropped on subsequent sends.
     </para>
+    <para>
+      <note>
+        <title>Note: Empty Repsonse Bodies</title>
+         HTTP is a request/response protocol. However the response may not have a body, just headers.
+         In this case, the <classname>HttpRequestExecutingMessageHandler</classname> produces
+         a reply <code>Message</code> with the payload being
+         an <classname>org.springframework.http.HttpEntity</classname>, regardless of any
+         provided <code>expected-response-type</code>. According to the
+         <ulink url="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP RFC Status Code Definitions</ulink>,
+         there are many statuses which identify that a response MUST NOT contain a message-body (e.g. 204 No Content).
+         There are also cases where calls to the same URL might, or might not, return a response body; for example,
+         the first request to an HTTP resource returns content, but the second does not (e.g. 304 Not Modified).
+         In all cases, however, the <code>http_statusCode</code> message header is populated. This can be used in some
+         routing logic after the Http Outbound Gateway. You could also use a
+         <code>&lt;payload-type-router/&gt;</code> to route messages with an <classname>HttpEntity</classname>
+         to a different flow than that used for responses with a body.
+      </note>
+    </para>
   </section>
 
   <section id="http-namespace">
@@ -291,6 +309,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would
     contain the ResponseEntity as long as it's http status is a success (non-successful status codes will throw Exceptions).
 	If you are expecting a different type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
+	See also the note about empty response bodies in <xref linkend="http-outbound"/>.
     </para>
   <important>
     Beginning with Spring Integration 2.1 the <emphasis>request-timeout</emphasis> attribute
