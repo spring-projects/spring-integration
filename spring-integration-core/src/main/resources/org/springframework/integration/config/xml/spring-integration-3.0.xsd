@@ -763,6 +763,27 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="reply-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+					Identifies channel this gateway will subscribe to to receive reply Message.
+					]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="reply-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+					Specifies how long this gateway will wait for the reply message
+					before returning. By default it will wait indefinitely. 'null' is returned
+					if the gateway times out.
+					Value is specified in milliseconds.
+					]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="error-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[

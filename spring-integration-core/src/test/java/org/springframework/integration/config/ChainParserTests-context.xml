@@ -127,7 +127,8 @@
 		<header-filter id="headerFilterWithinChain" header-names="foo"/>
 		<payload-serializing-transformer id="payloadSerializingTransformerWithinChain"/>
 		<payload-deserializing-transformer id="payloadDeserializingTransformerWithinChain"/>
-		<gateway id="gatewayWithinChain" request-channel="strings"/>
+		<gateway id="gatewayWithinChain" request-channel="strings" reply-channel="numbers"
+				 request-timeout="1000" reply-timeout="100"/>
 		<object-to-string-transformer id="objectToStringTransformerWithinChain"/>
 		<object-to-map-transformer id="objectToMapTransformerWithinChain"/>
 		<map-to-object-transformer id="mapToObjectTransformerWithinChain"
