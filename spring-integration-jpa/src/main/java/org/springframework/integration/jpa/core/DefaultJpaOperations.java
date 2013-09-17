@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.jpa.core;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,8 @@ import java.util.Set;
 import javax.persistence.Parameter;
 import javax.persistence.Query;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.jpa.support.JpaUtils;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.PositionSupportingParameterSource;
@@ -39,6 +42,8 @@ import org.springframework.util.StringUtils;
  *
  */
 public class DefaultJpaOperations extends AbstractJpaOperations {
+
+	private static final Log logger = LogFactory.getLog(DefaultJpaOperations.class);
 
 	public void delete(Object entity) {
 		Assert.notNull(entity, "The entity must not be null!");
@@ -172,11 +177,63 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	public Object merge(Object entity) {
-		return entityManager.merge(entity);
+		Assert.notNull(entity, "The object to merge must not be null.");
+		return persistOrMerge(entity, true);
 	}
 
 	public void persist(Object entity) {
-		entityManager.persist(entity);
+		Assert.notNull(entity, "The object to persist must not be null.");
+		persistOrMerge(entity, false);
+	}
+
+	private Object persistOrMerge(Object entity, boolean isMerge) {
+
+		if (entity instanceof Iterable) {
+
+			@SuppressWarnings("unchecked")
+			Iterable<Object> entities = (Iterable<Object>) entity;
+
+			int savedEntities = 0;
+			int nullEntities = 0;
+
+			List<Object> mergedEntities = new ArrayList<Object>();
+
+			for (Object iteratedEntity : entities) {
+				if (iteratedEntity == null) {
+					nullEntities++;
+				}
+				else {
+					if (isMerge) {
+						mergedEntities.add(entityManager.merge(iteratedEntity));
+					}
+					else {
+						entityManager.persist(iteratedEntity);
+					}
+					savedEntities++;
+				}
+			}
+
+			if (logger.isDebugEnabled()) {
+				logger.debug(String.format("%s %s entities. %s NULL entities were ignored.",
+					isMerge ? "Merged" : "Persisted", savedEntities, nullEntities));
+			}
+
+			if (isMerge) {
+				return mergedEntities;
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			if (isMerge) {
+				return entityManager.merge(entity);
+			}
+			else {
+				entityManager.persist(entity);
+				return null;
+			}
+		}
 	}
 
 	/**

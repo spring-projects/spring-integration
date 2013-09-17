@@ -17,6 +17,8 @@ package org.springframework.integration.jpa.core;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 
 /**
@@ -138,7 +140,10 @@ public interface JpaOperations {
 	Object getSingleResultForQuery(String query, ParameterSource source);
 
 	/**
-	 * The entity to be merged with the entity manager
+	 * The entity to be merged with the {@link EntityManager}. The provided object can
+	 * also be an {@link Iterable} in which case each object of the {@link Iterable}
+	 * is treated as an entity and merged with the {@link EntityManager}. {@code Null}
+	 * values returned while iterating over the {@link Iterable} are ignored.
 	 *
 	 * @param entity Must not be null.
 	 * @return The merged managed instance of the entity.
@@ -146,7 +151,11 @@ public interface JpaOperations {
 	Object merge(Object entity);
 
 	/**
-	 * Persists the entity
+	 * Persists the entity. The provided object can also be an {@link Iterable}
+	 * in which case each object of the {@link Iterable} is treated as an entity
+	 * and persisted with the {@link EntityManager}. {@code Null} values returned
+	 * while iterating over the {@link Iterable} are ignored.
+	 *
 	 * @param entity Must not be null
 	 *
 	 */

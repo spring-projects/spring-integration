@@ -634,6 +634,19 @@
 					them to <emphasis>PERSIST</emphasis>,<emphasis>MERGE</emphasis> or <emphasis>DELETE</emphasis>
 					it from the underlying data source.
 				</para>
+				<note>
+					<para>
+						As of <emphasis>Spring Integration 3.0</emphasis>,
+						the provided payload to <emphasis>persist</emphasis> or
+						<emphasis>merge</emphasis> can also be of type
+						<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
+						In that case, each object returned by the
+						<interfacename>Iterable</interfacename> is treated as
+						an entity and persisted or merged using the underlying
+						<interfacename>EntityManager</interfacename>. Returned
+						<emphasis>NULL</emphasis> values are ignored.
+					</para>
+				</note>
 		</section>
 		<section>
 			<title>Using JPA Query Language (JPA QL)</title>
@@ -893,9 +906,22 @@ public class Student {
 				</callout>
 				<callout arearefs="outAdaptPersistMode">
 					<para>
-						Accepts one of the <emphasis>PERSIST</emphasis>,<emphasis>MERGE</emphasis> or <emphasis>DELETE</emphasis>. Indicates the operation that the adapter needs to perform.
+						Accepts one of the following: <emphasis>PERSIST</emphasis>,
+						<emphasis>MERGE</emphasis> or <emphasis>DELETE</emphasis>.
+						Indicates the operation that the adapter needs to perform.
 						Relevant only if an entity is being used for JPA operations.
 						Ignored if JPA QL, named query or native query is provided. Defaults to <emphasis>MERGE</emphasis>. <emphasis>Optional</emphasis>.
+					</para>
+					<para>
+						As of <emphasis role="bold">Spring Integration 3.0</emphasis>,
+						the provided payload to <emphasis>persist</emphasis> or
+						<emphasis>merge</emphasis> can also be of type
+						<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
+						In that case, each object returned by the
+						<interfacename>Iterable</interfacename> is treated as
+						an entity and persisted or merged using the underlying
+						<interfacename>EntityManager</interfacename>. Returned
+						<emphasis>NULL</emphasis> values are ignored.
 					</para>
 				</callout>
 				<callout arearefs="outAdaptUserPayloadAsParamSrc">

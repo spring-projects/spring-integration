@@ -130,8 +130,44 @@ public class HibernateJpaOperationsTests extends AbstractJpaOperationsTests {
 
 	@Test
 	@Override
+	public void testMergeCollection() {
+		super.testMergeCollection();
+	}
+
+	@Test
+	@Override
+	public void testMergeNullCollection() {
+		super.testMergeNullCollection();
+	}
+
+	@Test
+	@Override
+	public void testMergeCollectionWithNullElement() {
+		super.testMergeCollectionWithNullElement();
+	}
+
+	@Test
+	@Override
 	public void testPersist() {
 		super.testPersist();
+	}
+
+	@Test
+	@Override
+	public void testPersistCollection() {
+		super.testPersistCollection();
+	}
+
+	@Test
+	@Override
+	public void testPersistNullCollection() {
+		super.testPersistNullCollection();
+	}
+
+	@Test
+	@Override
+	public void testPersistCollectionWithNullElement() {
+		super.testPersistCollectionWithNullElement();
 	}
 
 	@Test
