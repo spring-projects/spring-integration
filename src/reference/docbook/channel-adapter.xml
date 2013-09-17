@@ -29,6 +29,9 @@
     <int:poller cron="30 * 9-17 * * MON-FRI"/>
 </int:channel-adapter>]]></programlisting>
     </para>
+    <para>
+      Also see <xref linkend="channel-adapter-expressions-and-scripts"/>.
+    </para>
     <note>
       <para>
         If no poller is provided, then a single default poller must be registered within the context.
@@ -121,6 +124,9 @@
       of the <code>&lt;inbound-channel-adapter&gt;</code> or <code>&lt;outbound-channel-adapter&gt;</code> element. Therefore, if the "channel"
       is not provided, the "id" is required.
     </para>
+  </section>
+  <section id="channel-adapter-expressions-and-scripts">
+    <title>Channel Adapter Expressions and Scripts</title>
     <para>
       Like many other Spring Integration components, the <code>&lt;inbound-channel-adapter&gt;</code> and
       <code>&lt;outbound-channel-adapter&gt;</code> also provide support for SpEL expression evaluation. To use SpEL, provide the
@@ -130,6 +136,37 @@
       evaluation result is a <emphasis>non-null</emphasis> value, while the <emphasis>expression</emphasis> for an
       <code>&lt;outbound-channel-adapter&gt;</code> must be the equivalent of a <emphasis>void</emphasis> returning method invocation.
     </para>
+    <para>
+      Starting with Spring Integration 3.0, an <code>&lt;int:inbound-channel-adapter/&gt;</code> can also be configured
+      with a SpEL <code>&lt;expression/&gt;</code> (or even with <code>&lt;script/&gt;</code>) sub-element, for when
+      more sophistication is required than can be achieved with the simple 'expression' attribute.
+      If you provide a script as a <interfacename>Resource</interfacename> using the <code>location</code>
+      attribute, you can also set the <emphasis>refresh-check-delay</emphasis> allowing the resource to be refreshed
+      periodically.
+      If you want the script to be checked on each poll, you would need to coordinate this setting with the poller's trigger:
+    </para>
+      <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter ref="source1" method="method1" channel="channel1">
+    <int:poller max-messages-per-poll="1" fixed-delay="5000"/>
+    <script:script lang="ruby" location="Foo.rb" refresh-check-delay="5000"/>
+</int:inbound-channel-adapter>]]></programlisting>
+    <para>
+      Also see the <code>cacheSeconds</code> property on the <classname>ReloadableResourceBundleExpressionSource</classname>
+      when using the <code>&lt;expression/&gt;</code> sub-element.
+      For more information regarding expressions see <xref linkend="spel"/>, and for scripts - <xref linkend="groovy"/>
+      and <xref linkend="scripting"/>.
+	</para>
+    <important>
+       <para>
+         The <code>&lt;int:inbound-channel-adapter/&gt;</code> is an endpoint that starts a message flow
+         via periodic triggering to poll some underlying <interfacename>MessageSource</interfacename>. Since, at the
+         time of polling, there is not yet a message object, expressions and scripts don't
+         have access to a root <classname>Message</classname>, so there are no <emphasis>payload</emphasis>
+         or <emphasis>headers</emphasis> properties that are available in most other messaging SpEL expressions.
+         Of course, the script <emphasis role="bold">can</emphasis>
+         generate and return a complete <classname>Message</classname> object with headers and payload, or just
+         a payload, which will be added to a message with basic headers.
+       </para>
+    </important>
   </section>
 
 </section>

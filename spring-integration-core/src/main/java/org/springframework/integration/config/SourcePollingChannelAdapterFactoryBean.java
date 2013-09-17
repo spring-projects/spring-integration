@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	private volatile boolean autoStartup = true;
 
+	private volatile int phase = 0;
+
 	private volatile Long sendTimeout;
 
 	private volatile String beanName;
@@ -80,6 +82,10 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -145,6 +151,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setErrorHandler(this.pollerMetadata.getErrorHandler());
 			spca.setBeanClassLoader(this.beanClassLoader);
 			spca.setAutoStartup(this.autoStartup);
+			spca.setPhase(this.phase);
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
 			spca.setTransactionSynchronizationFactory(this.pollerMetadata.getTransactionSynchronizationFactory());

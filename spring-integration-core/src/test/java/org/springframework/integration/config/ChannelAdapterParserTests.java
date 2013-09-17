@@ -17,10 +17,14 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +34,8 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -73,6 +79,7 @@ public class ChannelAdapterParserTests {
 		Object adapter = this.applicationContext.getBean(beanName);
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		assertEquals(-1, ((SourcePollingChannelAdapter) adapter).getPhase());
 		this.applicationContext.start();
 		Message<?> message = channel.receive(1000);
 		assertNotNull(message);
@@ -110,10 +117,22 @@ public class ChannelAdapterParserTests {
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof EventDrivenConsumer);
+		assertFalse(((EventDrivenConsumer) adapter).isAutoStartup());
+		assertEquals(-1, ((EventDrivenConsumer) adapter).getPhase());
 		TestConsumer consumer = (TestConsumer) this.applicationContext.getBean("consumer");
 		assertNull(consumer.getLastMessage());
 		Message<?> message = new GenericMessage<String>("test");
-		assertTrue(((MessageChannel) channel).send(message));
+		try {
+			((MessageChannel) channel).send(message);
+			fail("MessageDispatchingException is expected.");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessageDeliveryException.class));
+			assertThat(e.getCause(), Matchers.instanceOf(MessageDispatchingException.class));
+		}
+
+		((EventDrivenConsumer) adapter).start();
+		((MessageChannel) channel).send(message);
 		assertNotNull(consumer.getLastMessage());
 		assertEquals(message, consumer.getLastMessage());
 	}

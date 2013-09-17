@@ -15,21 +15,22 @@
 		<queue capacity="1"/>
 	</channel>
 
-	<outbound-channel-adapter id="outboundWithImplicitChannel" ref="consumer"/>
+	<outbound-channel-adapter id="outboundWithImplicitChannel" ref="consumer" auto-startup="false" phase="-1"/>
 
 	<outbound-channel-adapter id="methodInvokingConsumer" ref="testBean" method="store"/>
 
 	<outbound-channel-adapter id="expressionConsumer" expression="@testBean.store(payload)"/>
 
-	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage" 
-							 channel="queueChannel" auto-startup="false">
+	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage"
+							 channel="queueChannel" auto-startup="false" phase="-1">
 		<poller max-messages-per-poll="1" fixed-delay="10000"/>
 	</inbound-channel-adapter>
-	
+
 	<channel id="withTimeoutChannel">
 		<queue/>
 	</channel>
-	<inbound-channel-adapter id="methodInvokingSourceWithTimeout" ref="testBean" method="getMessage" 
+
+	<inbound-channel-adapter id="methodInvokingSourceWithTimeout" ref="testBean" method="getMessage"
 							 channel="withTimeoutChannel" auto-startup="false"
 							 send-timeout="999">
 		<poller max-messages-per-poll="1" fixed-rate="800"/>

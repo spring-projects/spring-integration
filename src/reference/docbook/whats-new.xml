@@ -75,8 +75,15 @@
 			<title>'Tail' Support</title>
 			<para>
 				File 'tail'ing inbound channel adapters are now provided to generate messages when
-				lines are added to the end of text files.
-				<xref linkend="file-tailing"/>.
+				lines are added to the end of text files; see <xref linkend="file-tailing"/>.
+			</para>
+		</section>
+		<section id="3.0-inbound-script">
+			<title>Inbound Channel Adapter Script Support</title>
+			<para>
+				The <code>&lt;int:inbound-channel-adapter/&gt;</code> now supports <code>&lt;expression/&gt;</code>
+				and <code>&lt;script/&gt;</code> sub-elements to create a
+				<interfacename>MessageSource</interfacename>; see <xref linkend="channel-adapter-expressions-and-scripts"/>.
 			</para>
 		</section>
 		<section id="3.0-spel-customization">

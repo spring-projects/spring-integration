@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,8 @@ public class ConsumerEndpointFactoryBean
 
 	private volatile boolean autoStartup = true;
 
+	private volatile int phase = 0;
+
 	private volatile MessageChannel inputChannel;
 
 	private volatile ConfigurableBeanFactory beanFactory;
@@ -110,6 +112,10 @@ public class ConsumerEndpointFactoryBean
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	public void setBeanName(String beanName) {
@@ -239,6 +245,7 @@ public class ConsumerEndpointFactoryBean
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
 			this.endpoint.setAutoStartup(this.autoStartup);
+			this.endpoint.setPhase(this.phase);
 			this.endpoint.afterPropertiesSet();
 			this.initialized = true;
 		}
