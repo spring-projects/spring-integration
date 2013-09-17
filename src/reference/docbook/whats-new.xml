@@ -194,6 +194,21 @@
 				please see <xref linkend="jdbc-message-store-generic"/>.
 			</para>
 		</section>
+		<section id="3.0-jpa-persist-merge-collections">
+			<title>JPA Support Improvements</title>
+			<para>
+				Payloads to <emphasis>persist</emphasis> or
+				<emphasis>merge</emphasis> can now be of type
+				<interfacename><ulink url="http://docs.oracle.com/javase/7/docs/api/java/lang/Iterable.html">java.lang.Iterable</ulink></interfacename>.
+			</para>
+			<para>
+				In that case, each object returned by the
+				<interfacename>Iterable</interfacename> is treated as
+				an entity and persisted or merged using the underlying
+				<interfacename>EntityManager</interfacename>.
+				<emphasis>NULL</emphasis> values returned by the iterator are ignored.
+			</para>
+		</section>
 		<section id="3.0-json-transformers">
 			<title>Jackson Support (JSON)</title>
 			<para>

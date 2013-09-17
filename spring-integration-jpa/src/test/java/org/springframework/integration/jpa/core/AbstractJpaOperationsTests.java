@@ -24,7 +24,6 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.junit.Assert;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
@@ -234,6 +233,92 @@ public class AbstractJpaOperationsTests {
 		Assert.assertTrue(student != savedStudent);
 	}
 
+	public void testMergeCollection() {
+		final JpaOperations jpaOperations = getJpaOperations(entityManager);
+
+		final StudentDomain student1 = JpaTestUtils.getTestStudent();
+		final StudentDomain student2 = JpaTestUtils.getTestStudent();
+		final StudentDomain student3 = JpaTestUtils.getTestStudent();
+
+		student1.setFirstName("Karl");
+		student2.setFirstName("Otto");
+		student3.setFirstName("Wilhelm");
+
+		List<StudentDomain> students = new ArrayList<StudentDomain>(3);
+
+		students.add(student1);
+		students.add(student2);
+		students.add(student3);
+
+		Assert.assertNull(student1.getRollNumber());
+		Assert.assertNull(student2.getRollNumber());
+		Assert.assertNull(student3.getRollNumber());
+
+		Object savedStudents = jpaOperations.merge(students);
+		entityManager.flush();
+
+		Assert.assertTrue(savedStudents instanceof List<?>);
+
+		@SuppressWarnings("unchecked")
+		List<StudentDomain> savedStudentCollection = (List<StudentDomain>) savedStudents;
+
+		Assert.assertNotNull(savedStudentCollection.get(0).getRollNumber());
+		Assert.assertNotNull(savedStudentCollection.get(1).getRollNumber());
+		Assert.assertNotNull(savedStudentCollection.get(2).getRollNumber());
+	}
+
+	public void testMergeNullCollection() {
+		final JpaOperations jpaOperations = getJpaOperations(entityManager);
+
+		try {
+			jpaOperations.merge(null);
+		}
+		catch (IllegalArgumentException e) {
+			Assert.assertEquals("The object to merge must not be null.", e.getMessage());
+			return;
+		}
+
+		Assert.fail("Expected an IllegalArgumentException to be thrown.");
+
+	}
+
+	public void testMergeCollectionWithNullElement() {
+		final JpaOperations jpaOperations = getJpaOperations(entityManager);
+
+		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+
+		Assert.assertEquals(3, studentsFromDbBeforeTest.size());
+
+		final StudentDomain student1 = JpaTestUtils.getTestStudent();
+		final StudentDomain student2 = null;
+		final StudentDomain student3 = JpaTestUtils.getTestStudent();
+
+		student1.setFirstName("Karl");
+		student3.setFirstName("Wilhelm");
+
+		List<StudentDomain> students = new ArrayList<StudentDomain>(3);
+
+		students.add(student1);
+		students.add(student2);
+		students.add(student3);
+
+		Assert.assertNull(student1.getRollNumber());
+		Assert.assertNull(student2);
+		Assert.assertNull(student3.getRollNumber());
+
+		Object savedStudents = jpaOperations.merge(students);
+		entityManager.flush();
+
+		Assert.assertTrue(savedStudents instanceof List<?>);
+
+		@SuppressWarnings("unchecked")
+		List<StudentDomain> savedStudentCollection = (List<StudentDomain>) savedStudents;
+
+		Assert.assertNotNull(savedStudentCollection.get(0).getRollNumber());
+		Assert.assertNotNull(savedStudentCollection.get(1).getRollNumber());
+
+	}
+
 	/**
 	 * Test method for {@link org.springframework.integration.jpa.core.DefaultJpaOperations#persist(java.lang.Object)}.
 	 */
@@ -248,6 +333,83 @@ public class AbstractJpaOperationsTests {
 		Assert.assertNotNull(student.getRollNumber());
 	}
 
+	public void testPersistCollection() {
+		final JpaOperations jpaOperations = getJpaOperations(entityManager);
+
+		final StudentDomain student1 = JpaTestUtils.getTestStudent();
+		final StudentDomain student2 = JpaTestUtils.getTestStudent();
+		final StudentDomain student3 = JpaTestUtils.getTestStudent();
+
+		student1.setFirstName("Karl");
+		student2.setFirstName("Otto");
+		student3.setFirstName("Wilhelm");
+
+		List<StudentDomain> students = new ArrayList<StudentDomain>(3);
+
+		students.add(student1);
+		students.add(student2);
+		students.add(student3);
+
+		Assert.assertNull(student1.getRollNumber());
+		Assert.assertNull(student2.getRollNumber());
+		Assert.assertNull(student3.getRollNumber());
+
+		jpaOperations.persist(students);
+		entityManager.flush();
+		Assert.assertNotNull(student1.getRollNumber());
+		Assert.assertNotNull(student2.getRollNumber());
+		Assert.assertNotNull(student3.getRollNumber());
+	}
+
+	public void testPersistNullCollection() {
+		final JpaOperations jpaOperations = getJpaOperations(entityManager);
+
+		try {
+			jpaOperations.persist(null);
+		}
+		catch (IllegalArgumentException e) {
+			Assert.assertEquals("The object to persist must not be null.", e.getMessage());
+			return;
+		}
+
+		Assert.fail("Expected an IllegalArgumentException to be thrown.");
+
+	}
+
+	public void testPersistCollectionWithNullElement() {
+		final JpaOperations jpaOperations = getJpaOperations(entityManager);
+
+		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+
+		Assert.assertEquals(3, studentsFromDbBeforeTest.size());
+
+		final StudentDomain student1 = JpaTestUtils.getTestStudent();
+		final StudentDomain student2 = null;
+		final StudentDomain student3 = JpaTestUtils.getTestStudent();
+
+		student1.setFirstName("Karl");
+		student3.setFirstName("Wilhelm");
+
+		List<StudentDomain> students = new ArrayList<StudentDomain>(3);
+
+		students.add(student1);
+		students.add(student2);
+		students.add(student3);
+
+		Assert.assertNull(student1.getRollNumber());
+		Assert.assertNull(student2);
+		Assert.assertNull(student3.getRollNumber());
+
+		jpaOperations.persist(students);
+		entityManager.flush();
+		Assert.assertNotNull(student1.getRollNumber());
+		Assert.assertNotNull(student3.getRollNumber());
+
+		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+
+		Assert.assertNotNull(studentsFromDb);
+		Assert.assertEquals(5, studentsFromDb.size());
+	}
 
 	public void testDeleteInBatch() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
