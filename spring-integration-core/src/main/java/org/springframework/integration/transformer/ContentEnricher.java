@@ -51,9 +51,9 @@ import org.springframework.util.ReflectionUtils;
  */
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle, IntegrationEvaluationContextAware {
 
-	private final Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
+	private volatile Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
 
-	private final Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+	private volatile Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -82,16 +82,15 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	public void setPropertyExpressions(Map<String, Expression> propertyExpressions) {
 		Assert.notEmpty(propertyExpressions, "propertyExpressions must not be empty");
-		synchronized (this.propertyExpressions) {
-			this.propertyExpressions.clear();
-			for (Map.Entry<String, Expression> entry : propertyExpressions.entrySet()) {
-				String key = entry.getKey();
-				Expression value = entry.getValue();
-				Assert.notNull(key, "propertyExpression key must not be null");
-				Assert.notNull(value, "propertyExpression value must not be null");
-				this.propertyExpressions.put(parser.parseExpression(key), value);
-			}
+		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(propertyExpressions.size());
+		for (Map.Entry<String, Expression> entry : propertyExpressions.entrySet()) {
+			String key = entry.getKey();
+			Expression value = entry.getValue();
+			Assert.notNull(key, "propertyExpression key must not be null");
+			Assert.notNull(value, "propertyExpression value must not be null");
+			localMap.put(parser.parseExpression(key), value);
 		}
+		this.propertyExpressions = localMap;
 	}
 
 	/**
@@ -101,16 +100,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		Assert.notEmpty(headerExpressions, "headerExpressions must not be empty");
-		synchronized (this.headerExpressions) {
-			this.headerExpressions.clear();
-			for (Map.Entry<String, Expression> entry : headerExpressions.entrySet()) {
-				String key = entry.getKey();
-				Expression value = entry.getValue();
-				Assert.notNull(key, "headerExpression key must not be null");
-				Assert.notNull(value, "headerExpression value must not be null");
-				this.headerExpressions.put(key, value);
-			}
-		}
+		this.headerExpressions = new HashMap<String, Expression>(headerExpressions);
 	}
 
 	/**
@@ -277,18 +267,20 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
 			propertyExpression.setValue(this.targetEvaluationContext, targetPayload, value);
 		}
+
 		if (this.headerExpressions.isEmpty()) {
 			return targetPayload;
 		}
-
-		Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
-		for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
-			String header = entry.getKey();
-			Expression valueExpression = entry.getValue();
-			Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
-			targetHeaders.put(header, value);
+		else {
+			Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
+			for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
+				String header = entry.getKey();
+				Expression valueExpression = entry.getValue();
+				Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
+				targetHeaders.put(header, value);
+			}
+			return MessageBuilder.withPayload(targetPayload).copyHeaders(targetHeaders).build();
 		}
-		return MessageBuilder.withPayload(targetPayload).copyHeaders(targetHeaders).build();
 	}
 
 	/**
