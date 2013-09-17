@@ -86,6 +86,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private final AtomicBoolean exceptionSent = new AtomicBoolean();
 
+	private volatile boolean noReadErrorOnClose;
+
 	public TcpConnectionSupport() {
 		this.server = false;
 		this.applicationEventPublisher = null;
@@ -306,6 +308,14 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	public String getConnectionId() {
 		return this.connectionId;
+	}
+
+	protected boolean isNoReadErrorOnClose() {
+		return noReadErrorOnClose;
+	}
+
+	protected void setNoReadErrorOnClose(boolean noReadErrorOnClose) {
+		this.noReadErrorOnClose = noReadErrorOnClose;
 	}
 
 	protected final void sendExceptionToListener(Exception e) {
