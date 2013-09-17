@@ -36,8 +36,6 @@ public class TcpNetConnection extends AbstractTcpConnection {
 
 	private final Socket socket;
 
-	private boolean noReadErrorOnClose;
-
 	private volatile long lastRead = System.currentTimeMillis();
 
 	private volatile long lastSend;
@@ -58,10 +56,11 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	 */
 	@Override
 	public void close() {
-		this.noReadErrorOnClose = true;
+		this.setNoReadErrorOnClose(true);
 		try {
 			this.socket.close();
-		} catch (Exception e) {}
+		}
+		catch (Exception e) {}
 		super.close();
 	}
 
@@ -176,7 +175,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 			}
 		}
 		if (doClose) {
-			boolean noReadErrorOnClose = this.noReadErrorOnClose;
+			boolean noReadErrorOnClose = this.isNoReadErrorOnClose();
 			this.closeConnection();
 			if (!(e instanceof SoftEndOfStreamException)) {
 				if (e instanceof SocketTimeoutException && this.isSingleUse()) {

@@ -96,16 +96,19 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	@Override
 	public void close() {
+		this.setNoReadErrorOnClose(true);
 		doClose();
 	}
 
 	private void doClose() {
 		try {
 			channelInputStream.close();
-		} catch (IOException e) {}
+		}
+		catch (IOException e) {}
 		try {
 			this.socketChannel.close();
-		} catch (Exception e) {}
+		}
+		catch (Exception e) {}
 		super.close();
 	}
 
@@ -182,11 +185,20 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				if (logger.isTraceEnabled()) {
 					logger.error("Read exception " +
 							 this.getConnectionId(), e);
-				} else {
+				}
+				else if (!this.isNoReadErrorOnClose()) {
 					logger.error("Read exception " +
 								 this.getConnectionId() + " " +
 								 e.getClass().getSimpleName() +
 							     ":" + e.getCause() + ":" + e.getMessage());
+				}
+				else {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Read exception " +
+									 this.getConnectionId() + " " +
+									 e.getClass().getSimpleName() +
+								     ":" + e.getCause() + ":" + e.getMessage());
+					}
 				}
 				this.closeConnection();
 				return;

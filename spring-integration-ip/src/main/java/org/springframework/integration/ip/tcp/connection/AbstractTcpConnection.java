@@ -72,6 +72,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	private volatile String hostAddress = "unknown";
 
+	private volatile boolean noReadErrorOnClose;
+
 	public AbstractTcpConnection(Socket socket, boolean server, boolean lookupHost) {
 		this.server = server;
 		InetAddress inetAddress = socket.getInetAddress();
@@ -260,6 +262,14 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	public String getConnectionId() {
 		return this.connectionId;
+	}
+
+	protected boolean isNoReadErrorOnClose() {
+		return noReadErrorOnClose;
+	}
+
+	protected void setNoReadErrorOnClose(boolean noReadErrorOnClose) {
+		this.noReadErrorOnClose = noReadErrorOnClose;
 	}
 
 }
