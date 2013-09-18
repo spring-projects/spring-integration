@@ -29,7 +29,12 @@
 		command-options="-1 -f"
 		expression="payload"
 		order="1"
+		local-filename-generator-expression="#remoteFileName.toUpperCase() + '.a' + @fooString"
 		/>
+
+	<bean id="fooString" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
 
 	<int-sftp:outbound-gateway id="gateway2"
 		local-directory="local-test-dir"

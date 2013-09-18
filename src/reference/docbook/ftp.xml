@@ -422,7 +422,10 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 		The payload of the result message is <code>Boolean.TRUE</code>.
 		The original remote directory is provided in the <code>file_remoteDirectory</code> header, and the filename is
 		provided in the <code>file_remoteFile</code> header. The new path is in
-		the <code>file_renameTo</code> header.
+		the <code>file_renameTo</code> header. The <emphasis>local-filename-generator-expression</emphasis> attribute
+		defines a SpEL expression to generate the name of local file(s) for <emphasis>get (mget)</emphasis> command.
+		The root object of the evaluation context is request Message, but in addition the <code>remoteFileName</code>
+		variable is also presented for evaluations.
 	  </para>
 	  <para>
 	    For all commands, the PATH that the command acts on is provided by the 'expression'
@@ -438,6 +441,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
     command="ls"
     command-options="-1"
     expression="payload"
+    local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.foo"
     reply-channel="toSplitter"/>]]></programlisting>
 	</para>
 	<para>

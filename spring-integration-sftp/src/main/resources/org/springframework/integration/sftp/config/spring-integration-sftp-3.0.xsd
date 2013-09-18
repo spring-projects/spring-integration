@@ -393,6 +393,20 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="local-filename-generator-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide a SpEL expression to
+								generate the file name of
+								the local (transferred) file. The root
+								object of the SpEL
+								evaluation is the request Message, but the name of the original
+								remote file is presented as 'remoteFileName' variable.
+								For example, a valid expression would be:
+								"#remoteFileName.toUpperCase() + headers.foo".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="local-directory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
