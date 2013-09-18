@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
@@ -55,7 +56,16 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rename-expression");		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");		return builder;
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rename-expression");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
+		String localFileGeneratorExpression = element.getAttribute("local-filename-generator-expression");
+		if (StringUtils.hasText(localFileGeneratorExpression)) {
+			BeanDefinitionBuilder localFileGeneratorExpressionBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			localFileGeneratorExpressionBuilder.addConstructorArgValue(localFileGeneratorExpression);
+			builder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
+		}
+		return builder;
 	}
 
 	protected void configureFilter(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
@@ -77,21 +87,21 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		}
 		else if (hasFileNamePattern) {
 			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					this.getSimplePatternFileListFilterClassname());
+					this.getSimplePatternFileListFilterClassName());
 			filterBuilder.addConstructorArgValue(fileNamePattern);
 			builder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
 		}
 		else if (hasFileNameRegex) {
 			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					this.getRegexPatternFileListFilterClassname());
+					this.getRegexPatternFileListFilterClassName());
 			filterBuilder.addConstructorArgValue(fileNameRegex);
 			builder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
 		}
 	}
 
-	protected abstract String getRegexPatternFileListFilterClassname();
+	protected abstract String getRegexPatternFileListFilterClassName();
 
-	protected abstract String getSimplePatternFileListFilterClassname();
+	protected abstract String getSimplePatternFileListFilterClassName();
 
 	protected abstract String getGatewayClassName();
 

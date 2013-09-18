@@ -29,9 +29,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
@@ -49,6 +52,7 @@ import org.springframework.util.StringUtils;
  * Base class for Outbound Gateways that perform remote file operations.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
@@ -178,6 +182,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private volatile FileListFilter<F> filter;
 
 
+	private volatile Expression localFilenameGeneratorExpression;
+
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
 			String expression) {
 		this.sessionFactory = sessionFactory;
@@ -248,6 +254,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.renameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
 				new SpelExpressionParser().parseExpression(expression));
 	}
+
+	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
+		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
+		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
+	}
+
 
 	@Override
 	protected void onInit() {
@@ -334,7 +346,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (remoteDir.length() == 0) {
 			remoteDir = this.remoteFileSeparator;
 		}
-		File payload = get(session, remoteFilePath, remoteFilename, true);
+		File payload = get(requestMessage, session, remoteFilePath, remoteFilename, true);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
@@ -348,7 +360,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (remoteDir.length() == 0) {
 			remoteDir = this.remoteFileSeparator;
 		}
-		List<File> payload = mGet(session, remoteDir, remoteFilename);
+		List<File> payload = mGet(requestMessage, session, remoteDir, remoteFilename);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
@@ -454,11 +466,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * Copy a remote file to the configured local directory.
+	 *
+	 * @param message
 	 * @param session
 	 * @param remoteFilePath
 	 * @throws IOException
 	 */
-	protected File get(Session<F> session, String remoteFilePath, String remoteFilename, boolean lsFirst)
+	protected File get(Message<?> message, Session<F> session, String remoteFilePath, String remoteFilename, boolean lsFirst)
 			throws IOException {
 		F[] files = null;
 		if (lsFirst) {
@@ -467,7 +481,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				throw new MessagingException(remoteFilePath + " is not a file");
 			}
 		}
-		File localFile = new File(this.localDirectory, remoteFilename);
+		File localFile = new File(this.localDirectory, this.generateLocalFileName(message, remoteFilename));
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
@@ -488,6 +502,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					fileOutputStream.close();
 				}
 				catch (Exception ignored2) {
+					//Ignore it
 				}
 			}
 			if (!tempFile.renameTo(localFile)) {
@@ -503,8 +518,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
-	protected List<File> mGet(Session<F> session, String remoteDirectory,
-			String remoteFilename) throws IOException {
+	protected List<File> mGet(Message<?> message, Session<F> session, String remoteDirectory,
+							  String remoteFilename) throws IOException {
 		String path = generateFullPath(remoteDirectory, remoteFilename);
 		String[] fileNames = session.listNames(path);
 		if (fileNames == null) {
@@ -519,11 +534,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			File file;
 			if (fileName.contains(this.remoteFileSeparator) &&
 					fileName.startsWith(remoteDirectory)) { // the server returned the full path
-				file = this.get(session, fileName,
+				file = this.get(message, session, fileName,
 						fileName.substring(fileName.lastIndexOf(this.remoteFileSeparator)), false);
 			}
 			else {
-				file = this.get(session, generateFullPath(remoteDirectory, fileName), fileName, false);
+				file = this.get(message, session, generateFullPath(remoteDirectory, fileName), fileName, false);
 			}
 			files.add(file);
 		}
@@ -571,6 +586,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			RemoteFileUtils.makeDirectories(remoteFileDirectory, session, this.remoteFileSeparator, this.logger);
 		}
 		session.rename(remoteFilePath, remoteFileNewPath);
+	}
+
+	private String generateLocalFileName(Message<?> message, String remoteFileName){
+		if (this.localFilenameGeneratorExpression != null){
+			EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+			evaluationContext.setVariable("remoteFileName", remoteFileName);
+			return this.localFilenameGeneratorExpression.getValue(evaluationContext, message, String.class);
+		}
+		return remoteFileName;
 	}
 
 	abstract protected boolean isDirectory(F file);

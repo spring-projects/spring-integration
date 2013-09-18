@@ -377,7 +377,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		  <listitem>mv (move/rename file)</listitem>
 	    </itemizedlist>
 	  </para>
-	  <para><emphasis>ls</emphasis></para>
+	  <para><emphasis role="bold">ls</emphasis></para>
 	  <para>
 	    ls lists remote file(s) and supports the following options:
 	    <itemizedlist>
@@ -402,7 +402,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    The remote directory that the <emphasis>ls</emphasis> command acted on is provided
 	    in the <classname>file_remoteDirectory</classname> header.
 	  </para>
-	  <para><emphasis>get</emphasis></para>
+	  <para><emphasis role="bold">get</emphasis></para>
 	  <para>
 	    <emphasis>get</emphasis> retrieves a remote file and supports the following option:
 	    <itemizedlist>
@@ -417,7 +417,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the filename is
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
-	  <para><emphasis>mget</emphasis></para>
+	  <para><emphasis role="bold">mget</emphasis></para>
 	  <para>
 	    <emphasis>mget</emphasis> retrieves multiple remote files based on a pattern and supports the following option:
 	    <itemizedlist>
@@ -435,7 +435,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    for the filenames is
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
-	  <para><emphasis>rm</emphasis></para>
+	  <para><emphasis role="bold">rm</emphasis></para>
 	  <para>
 	    The <emphasis>rm</emphasis> command has no options.
 	  </para>
@@ -445,7 +445,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the filename is
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
-	  <para><emphasis>mv</emphasis></para>
+	  <para><emphasis role="bold">mv</emphasis></para>
 	  <para>
 		The <emphasis>mv</emphasis> command has no options.
 	  </para>
@@ -461,9 +461,20 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		the <code>file_renameTo</code> header.
 	  </para>
 	  <para>
-	    For all commands, the PATH that the command acts on is provided by the 'expression'
-	    property of the gateway. For the mget command, the expression might evaluate to '*', meaning
-	    retrieve all files, or 'somedirectory/*' etc.
+		<emphasis role="bold">Additional Information</emphasis>
+	  </para>
+	  <para>
+		The <emphasis>get</emphasis> and <emphasis>mget</emphasis> commands support
+		the <emphasis>local-filename-generator-expression</emphasis> attribute. It
+		defines a SpEL expression to generate the name of local file(s) during the transfer.
+		The root object of the evaluation context is the request Message but, in addition, the <code>remoteFileName</code>
+		variable is also available, which is particularly useful for <emphasis>mget</emphasis>, for
+		example: <code>local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.foo"</code>
+	  </para>
+	  <para>
+		For all commands, the PATH that the command acts on is provided by the 'expression'
+		property of the gateway. For the mget command, the expression might evaluate to '*', meaning
+		retrieve all files, or 'somedirectory/*' etc.
 	  </para>
 	</para>
 	<para>

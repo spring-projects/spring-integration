@@ -31,6 +31,10 @@
 		order="1"
 		/>
 
+	<bean id="fooString" class="java.lang.String">
+		<constructor-arg value="foo" />
+	</bean>
+
 	<int-ftp:outbound-gateway id="gateway2"
 		local-directory="local-test-dir"
 		session-factory="csf"
@@ -44,6 +48,7 @@
 		expression="payload"
 		order="2"
 		requires-reply="false"
+		local-filename-generator-expression="#remoteFileName.toUpperCase() + '.a' + @fooString"
 		>
 		<int-ftp:request-handler-advice-chain>
 			<bean class="org.springframework.integration.ftp.config.FtpOutboundGatewayParserTests$FooAdvice" />

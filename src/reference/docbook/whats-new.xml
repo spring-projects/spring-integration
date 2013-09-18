@@ -175,12 +175,22 @@
 				to be maintained across JVM executions, a custom filter that retains state, perhaps on
 				the file system, can now be configured.
 			</para>
+			<para>
+				For more information, see
+				<xref linkend="ftp-inbound"/> and <xref linkend="sftp-inbound"/>.
+			</para>
 		</section>
 		<section id="3.0-xFTP-gw">
 			<title>FTP, SFTP and FTPS Gateways</title>
 			<para>
 				The gateways now support the <code>mv</code> command, enabling the renaming of remote
 				files.
+			</para>
+			<para>
+				The <code>local-filename-generator-expression</code> attribute is now supported,
+				enabling the naming of local files during transfer. By default, the same
+				name as the remote file is used. For more information, see
+				<xref linkend="ftp-outbound-gateway"/> and <xref linkend="sftp-outbound-gateway"/>.
 			</para>
 		</section>
 		<section id="3.0-jdbc-mysql-v5_6_4">
