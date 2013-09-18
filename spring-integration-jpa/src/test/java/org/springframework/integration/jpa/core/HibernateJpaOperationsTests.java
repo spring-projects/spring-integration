@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -130,8 +130,44 @@ public class HibernateJpaOperationsTests extends AbstractJpaOperationsTests {
 
 	@Test
 	@Override
+	public void testMergeCollection() {
+		super.testMergeCollection();
+	}
+
+	@Test
+	@Override
+	public void testMergeNullCollection() {
+		super.testMergeNullCollection();
+	}
+
+	@Test
+	@Override
+	public void testMergeCollectionWithNullElement() {
+		super.testMergeCollectionWithNullElement();
+	}
+
+	@Test
+	@Override
 	public void testPersist() {
 		super.testPersist();
+	}
+
+	@Test
+	@Override
+	public void testPersistCollection() {
+		super.testPersistCollection();
+	}
+
+	@Test
+	@Override
+	public void testPersistNullCollection() {
+		super.testPersistNullCollection();
+	}
+
+	@Test
+	@Override
+	public void testPersistCollectionWithNullElement() {
+		super.testPersistCollectionWithNullElement();
 	}
 
 	@Test
