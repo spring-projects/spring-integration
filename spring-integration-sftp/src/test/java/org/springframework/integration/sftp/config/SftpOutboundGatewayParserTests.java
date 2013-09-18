@@ -21,7 +21,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +39,7 @@ import org.springframework.integration.sftp.gateway.SftpOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Gary Russell
@@ -65,7 +68,7 @@ public class SftpOutboundGatewayParserTests {
 	private static volatile int adviceCalled;
 
 	@Test
-	public void testGateway1() {
+	public void testGateway1() throws Exception {
 		SftpOutboundGateway gateway = TestUtils.getPropertyValue(gateway1,
 				"handler", SftpOutboundGateway.class);
 		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
@@ -77,12 +80,27 @@ public class SftpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
 		assertEquals(Command.LS, TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")
-		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
+		Set<Option> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
 		assertTrue(options.contains(Option.NAME_ONLY));
 		assertTrue(options.contains(Option.NOSORT));
 
 		Long sendTimeout = TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout", Long.class);
 		assertEquals(Long.valueOf(777), sendTimeout);
+
+		//INT-3129
+		assertNotNull(TestUtils.getPropertyValue(gateway, "localFilenameGeneratorExpression"));
+		final AtomicReference<Method> genMethod = new AtomicReference<Method>();
+		ReflectionUtils.doWithMethods(SftpOutboundGateway.class, new ReflectionUtils.MethodCallback() {
+
+			@Override
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				if ("generateLocalFileName".equals(method.getName())) {
+					method.setAccessible(true);
+					genMethod.set(method);
+				}
+			}
+		});
+		assertEquals("FOO.afoo", genMethod.get().invoke(gateway, new GenericMessage<String>(""), "foo"));
 	}
 
 	@Test

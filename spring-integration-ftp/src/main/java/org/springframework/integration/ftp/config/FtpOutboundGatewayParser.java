@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,30 @@
 package org.springframework.integration.ftp.config;
 
 import org.springframework.integration.file.config.AbstractRemoteFileOutboundGatewayParser;
+import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
+import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
+import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  *
  */
 public class FtpOutboundGatewayParser extends AbstractRemoteFileOutboundGatewayParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.ftp";
-
 	public String getGatewayClassName() {
-		return BASE_PACKAGE + ".gateway.FtpOutboundGateway";
+		return FtpOutboundGateway.class.getName();
 	}
 
 	@Override
-	protected String getSimplePatternFileListFilterClassname() {
-		return BASE_PACKAGE + ".filters.FtpSimplePatternFileListFilter";
+	protected String getSimplePatternFileListFilterClassName() {
+		return FtpSimplePatternFileListFilter.class.getName();
 	}
 
 	@Override
-	protected String getRegexPatternFileListFilterClassname() {
-		return BASE_PACKAGE + ".filters.FtpRegexPatternFileListFilter";
+	protected String getRegexPatternFileListFilterClassName() {
+		return FtpRegexPatternFileListFilter.class.getName();
 	}
 
 }
