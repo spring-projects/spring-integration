@@ -11,8 +11,6 @@
 		<context:include-filter type="regex" expression="JsonPathTests"/>
 	</context:component-scan>
 
-	<json-path-spel-function/>
-
 	<channel id="output">
 		<queue/>
 	</channel>

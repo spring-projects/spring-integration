@@ -34,9 +34,11 @@ import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
+import org.springframework.integration.config.SpelFunctionFactoryBean;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -67,6 +69,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		this.verifySchemaVersion(element, parserContext);
 		this.registerImplicitChannelCreator(parserContext);
 		this.registerIntegrationEvaluationContext(parserContext);
+		this.registerBuildInBeans(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
@@ -141,6 +144,41 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 	}
 
+	private void registerBuildInBeans(ParserContext parserContext) {
+		String jsonPathBeanName = "jsonPath";
+		boolean alreadyRegistered = false;
+		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBean(jsonPathBeanName);
+		}
+		else {
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(jsonPathBeanName);
+		}
+		if (!alreadyRegistered) {
+			Class<?> jsonPathClass = null;
+			try {
+				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", parserContext.getReaderContext().getBeanClassLoader());
+			}
+			catch (ClassNotFoundException e) {
+				parserContext.getReaderContext().warning("SpEL function '#jsonPath' isn't registered: " +
+						"there is no jayway json-path.jar in the classpath.", null, e);
+			}
+
+			if (jsonPathClass != null) {
+				BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
+						.addConstructorArgValue(IntegrationNamespaceUtils.BASE_PACKAGE + ".json.JsonPathUtils")
+						.addConstructorArgValue("evaluate");
+				BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(builder.getBeanDefinition(), jsonPathBeanName);
+				BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, parserContext.getRegistry());
+			}
+		}
+
+		this.doRegisterBuildInBeans(parserContext);
+	}
+
+	protected void doRegisterBuildInBeans(ParserContext parserContext) {
+
+	}
+
 	private void registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(ParserContext parserContext) {
 		boolean alreadyRegistered = false;
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
@@ -171,10 +209,10 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	}
 
 	private void verifySchemaVersion(Element element, ParserContext parserContext) {
-		if (!(matchesVersion(element) && matchesVersion(element.getOwnerDocument().getDocumentElement())))  {
+		if (!(matchesVersion(element) && matchesVersion(element.getOwnerDocument().getDocumentElement()))) {
 			parserContext.getReaderContext().error(
-					"You cannot use prior versions of Spring Integration schemas with Spring Integration " + VERSION  +
-					". Please upgrade your schema declarations or use versionless aliases (e.g. spring-integration.xsd).", element);
+					"You cannot use prior versions of Spring Integration schemas with Spring Integration " + VERSION +
+							". Please upgrade your schema declarations or use versionless aliases (e.g. spring-integration.xsd).", element);
 		}
 	}
 

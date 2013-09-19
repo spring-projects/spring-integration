@@ -19,18 +19,20 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.Resource;
@@ -121,11 +123,11 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		Expression expression = expressionParser.parseExpression("#target.find(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		ConfigurableListableBeanFactory beanFactory = new GenericApplicationContext().getBeanFactory();
-		processor.setBeanFactory(beanFactory);
+		AbstractApplicationContext applicationContext = new GenericApplicationContext();
+		processor.setBeanFactory(applicationContext);
 		IntegrationEvaluationContextFactoryBean factoryBean = new IntegrationEvaluationContextFactoryBean();
-		factoryBean.setBeanFactory(beanFactory);
-		beanFactory.registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+		factoryBean.setApplicationContext(applicationContext);
+		applicationContext.getBeanFactory().registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				factoryBean.getObject());
 		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
@@ -173,6 +175,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		context.registerBeanDefinition("testString", beanDefinition);
 		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
+		context.refresh();
+
 		Expression expression = expressionParser.parseExpression("payload.concat(@testString)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(context);
@@ -190,6 +194,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				new RootBeanDefinition(IntegrationEvaluationContextFactoryBean.class));
 		context.registerBeanDefinition("testString", beanDefinition);
+		context.refresh();
+
 		Expression expression = expressionParser.parseExpression("@testString.concat(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(context);
