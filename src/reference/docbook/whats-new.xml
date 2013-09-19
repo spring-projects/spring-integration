@@ -89,7 +89,7 @@
 		<section id="3.0-content-enricher-headers">
 			<title>Content Enricher: Headers Enrichment Support</title>
 			<para>
-				Content Enricher are now provide configuration for <code>&lt;header/&gt;</code>
+				Content Enricher now provides configuration for <code>&lt;header/&gt;</code>
 				sub-elements to enrich outbound Message with headers based on reply Message from underlying
 				message flow. For more information see <xref linkend="payload-enricher"/>.
 			</para>

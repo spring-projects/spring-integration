@@ -82,12 +82,12 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	public void setPropertyExpressions(Map<String, Expression> propertyExpressions) {
 		Assert.notEmpty(propertyExpressions, "propertyExpressions must not be empty");
+		Assert.noNullElements(propertyExpressions.keySet().toArray(), "propertyExpressions keys must not be empty");
+		Assert.noNullElements(propertyExpressions.values().toArray(), "propertyExpressions values must not be empty");
 		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(propertyExpressions.size());
 		for (Map.Entry<String, Expression> entry : propertyExpressions.entrySet()) {
 			String key = entry.getKey();
 			Expression value = entry.getValue();
-			Assert.notNull(key, "propertyExpression key must not be null");
-			Assert.notNull(value, "propertyExpression value must not be null");
 			localMap.put(parser.parseExpression(key), value);
 		}
 		this.propertyExpressions = localMap;
@@ -100,6 +100,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		Assert.notEmpty(headerExpressions, "headerExpressions must not be empty");
+		Assert.noNullElements(headerExpressions.keySet().toArray(), "headerExpressions keys must not be empty");
+		Assert.noNullElements(headerExpressions.values().toArray(), "headerExpressions values must not be empty");
 		this.headerExpressions = new HashMap<String, Expression>(headerExpressions);
 	}
 
