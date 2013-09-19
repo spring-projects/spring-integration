@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -27,7 +29,6 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Base class for outbound Channel Adapter parsers.
@@ -71,6 +72,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		}
 		builder.addPropertyValue("inputChannelName", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 
 		this.configureRequestHandlerAdviceChain(element, parserContext, handlerBeanComponentDefinition.getBeanDefinition(), builder);
 

@@ -779,6 +779,9 @@
 			<xsd:documentation>
 				Defines a Channel Adapter that receives from a MessageSource and sends to a
 				MessageChannel.
+				Note, is used 'expression' attribute, 'expression' or 'script' sub-element
+				there is no context of inbound Message and
+				the 'payload' and 'headers' variables can't be used.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

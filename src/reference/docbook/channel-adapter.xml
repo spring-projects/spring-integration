@@ -29,6 +29,26 @@
     <int:poller cron="30 * 9-17 * * MON-FRI"/>
 </int:channel-adapter>]]></programlisting>
     </para>
+    <para>
+	  As many other components in the Spring Integration <code>&lt;int:inbound-channel-adapter/&gt;</code> can be configured
+      with SpEL 'expression'(<code>&lt;expression/&gt;</code>) or even with <code>&lt;script/&gt;</code> sub-element. In most
+      cases it is useful when expression (or script) is external (refreshable) resource, so it maybe make sense to correlate
+      polling period with resource <emphasis>cache-seconds</emphasis> (<emphasis>refresh-check-delay</emphasis>):
+      <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter ref="source1" method="method1" channel="channel1">
+    <int:poller max-messages-per-poll="1" fixed-delay="5000"/>
+    <script:script lang="ruby" location="Foo.rb" refresh-check-delay="5000"/>
+</int:inbound-channel-adapter>]]></programlisting>
+      For more information regarding expressions see <xref linkend="spel"/>, regarding scripts - <xref linkend="groovy"/>
+      and <xref linkend="scripting"/>.
+	</para>
+    <important>
+       <para>
+		 As far as <code>&lt;int:inbound-channel-adapter/&gt;</code> is an endpoint, who starts message flow
+         via periodic triggering some underlying <interfacename>MessageSource</interfacename>, there is no inbound (request)
+         Message context, so expressions and scripts are very limited with variables and <emphasis>payload</emphasis>
+         and <emphasis>headers</emphasis> properties aren't available in this case.
+       </para>
+    </important>
     <note>
       <para>
         If no poller is provided, then a single default poller must be registered within the context.
