@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -109,12 +110,20 @@ public class InboundChannelAdapterExpressionTests {
 	public void headerExpressions() {
 		SourcePollingChannelAdapter adapter = context.getBean("headerExpressionsProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
-		Map<String, Expression> headerExpressions = TestUtils.getPropertyValue(adapter, "source.headerExpressions", Map.class); 
+		Map<String, Expression> headerExpressions = TestUtils.getPropertyValue(adapter, "source.headerExpressions", Map.class);
 		assertEquals(2, headerExpressions.size());
 		assertEquals("6 * 7", headerExpressions.get("foo").getExpressionString());
 		assertEquals("x", headerExpressions.get("bar").getExpressionString());
 		assertEquals(42, headerExpressions.get("foo").getValue());
 		assertEquals("x", headerExpressions.get("bar").getValue());
+	}
+
+	@Test
+	public void testInt2867InnerExpression() {
+		SourcePollingChannelAdapter adapter = context.getBean("expressionElement", SourcePollingChannelAdapter.class);
+		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
+		assertEquals("'Hello World!'", expression.getExpressionString());
+
 	}
 
 }

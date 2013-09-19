@@ -800,19 +800,17 @@
 			<xsd:documentation>
 				Defines a Channel Adapter that receives from a MessageSource and sends to a
 				MessageChannel.
+				Note, is used 'expression' attribute, 'expression' or 'script' sub-element
+				there is no context of inbound Message and
+				the 'payload' and 'headers' variables can't be used.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
+				<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1"/>
 				<xsd:choice minOccurs="0" maxOccurs="1" >
-					<xsd:sequence>
-						<xsd:element name="poller" type="basePollerType" />
-						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-					</xsd:sequence>
-					<xsd:sequence>
-						<xsd:element ref="beans:bean" />
-						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
-					</xsd:sequence>
+					<xsd:element name="expression" type="innerExpressionType"/>
+					<xsd:any namespace="##other"/>
 				</xsd:choice>
 				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
@@ -1037,6 +1035,16 @@
 				<xsd:documentation>
 					Lifecycle attribute signaling if this component should be started during Application Context startup.
 				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="phase" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+						The Lifecycle attribute determining the start/stop order
+						of the underlying MessageHandlerChain.
+					</xsd:documentation>
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>

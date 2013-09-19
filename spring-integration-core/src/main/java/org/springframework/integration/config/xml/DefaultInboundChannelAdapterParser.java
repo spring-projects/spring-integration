@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,20 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
-import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.config.ExpressionFactoryBean;
-import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
-import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
+import org.springframework.integration.endpoint.MethodInvokingMessageSource;
+import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -46,23 +46,34 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+		Object source = parserContext.extractSource(element);
 		BeanMetadataElement result = null;
 		BeanComponentDefinition innnerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String sourceRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
 		String methodName = element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE);
 		String expressionString = element.getAttribute(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE);
+		Element scriptElement = DomUtils.getChildElementByTagName(element, "script");
+		Element expressionElement = DomUtils.getChildElementByTagName(element, "expression");
 
-		boolean isInnerDef = innnerBeanDef != null;
-		boolean isRef = StringUtils.hasText(sourceRef);
-		boolean isExpression = StringUtils.hasText(expressionString);
+		boolean hasInnerDef = innnerBeanDef != null;
+		boolean hasRef = StringUtils.hasText(sourceRef);
+		boolean hasExpression = StringUtils.hasText(expressionString);
+		boolean hasScriptElement = scriptElement != null;
+		boolean hasExpressionElement = expressionElement != null;
 		boolean hasMethod = StringUtils.hasText(methodName);
 
-		if (!(isInnerDef ^ (isRef ^ isExpression))) {
+		if (!hasInnerDef && !hasRef && !hasExpression && !hasScriptElement && !hasExpressionElement) {
 			parserContext.getReaderContext().error(
-					"Exactly one of the 'ref', 'expression' or inner bean is required.", element);
+					"Exactly one of the 'ref', 'expression', inner bean, <script> or <expression> is required.", element);
 		}
 
-		if (isInnerDef) {
+		if (hasInnerDef) {
+			if (hasRef || hasExpression) {
+				parserContext.getReaderContext().error(
+						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured on element " +
+								IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+				return null;
+			}
 			if (hasMethod) {
 				result = this.parseMethodInvokingSource(innnerBeanDef, methodName, element, parserContext);
 			}
@@ -70,15 +81,34 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				result = innnerBeanDef;
 			}
 		}
-		else if (isExpression) {
-			if (hasMethod) {
+		else if (hasScriptElement) {
+			if (hasRef || hasMethod || hasExpression) {
 				parserContext.getReaderContext().error(
-						"The 'method' attribute can't be used with 'expression' attribute.", element);
+						"Neither 'ref' and 'method' nor 'expression' are permitted when an inner script element is configured on element " +
+								IntegrationNamespaceUtils.createElementDescription(element) + ".", source);
+				return null;
 			}
-			String expressionBeanName = this.parseExpression(expressionString, element, parserContext);
-			result = new RuntimeBeanReference(expressionBeanName);
+			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
+			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".scripting.ScriptExecutingMessageSource");
+			sourceBuilder.addConstructorArgValue(scriptBeanDefinition);
+			this.parseHeaderExpressions(sourceBuilder, element, parserContext);
+			result = sourceBuilder.getBeanDefinition();
 		}
-		else if (isRef) {
+		else if (hasExpression || hasExpressionElement) {
+			if (hasRef || hasMethod) {
+				parserContext.getReaderContext().error(
+						"The 'ref' and 'method' attributes can't be used with 'expression' attribute or inner <expression>.", element);
+				return null;
+			}
+			if (hasExpression & hasExpressionElement) {
+				parserContext.getReaderContext().error(
+						"Exactly one of the 'expression' attribute or inner <expression> is required.", element);
+				return null;
+			}
+			result = this.parseExpression(expressionString, expressionElement, element, parserContext);
+		}
+		else if (hasRef) {
 			BeanMetadataElement sourceValue = new RuntimeBeanReference(sourceRef);
 			if (hasMethod) {
 				result = this.parseMethodInvokingSource(sourceValue, methodName, element, parserContext);
@@ -87,31 +117,44 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				result = sourceValue;
 			}
 		}
-		else {
-			parserContext.getReaderContext().error("One of the following is required: " +
-					"'ref' attribute, 'expression' attribute, or an inner-bean definition.", element);
-		}
+
 		return result;
 	}
 
-	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName, Element element, ParserContext parserContext) {
+	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName, Element element,
+														  ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageSource.class);
 		sourceBuilder.addPropertyValue("object", targetObject);
 		sourceBuilder.addPropertyValue("methodName", methodName);
 		this.parseHeaderExpressions(sourceBuilder, element, parserContext);
-		String sourceRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
-		return new RuntimeBeanReference(sourceRef);
+		return sourceBuilder.getBeanDefinition();
 	}
 
-	private String parseExpression(String expressionString, Element element, ParserContext parserContext) {
+	private BeanMetadataElement parseExpression(String expressionString, Element expressionElement, Element element,
+												ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageSource.class);
-		RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-		expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionString);
+
+		BeanDefinition expressionDef = null;
+
+		if (StringUtils.hasText(expressionString)) {
+			expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionString);
+		}
+		else {
+			BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					DynamicExpression.class);
+			String key = expressionElement.getAttribute("key");
+			String expressionSourceReference = expressionElement.getAttribute("source");
+			dynamicExpressionBuilder.addConstructorArgValue(key);
+			dynamicExpressionBuilder.addConstructorArgReference(expressionSourceReference);
+			expressionDef = dynamicExpressionBuilder.getBeanDefinition();
+		}
+
 		sourceBuilder.addConstructorArgValue(expressionDef);
 		sourceBuilder.addConstructorArgValue(null);
+
 		this.parseHeaderExpressions(sourceBuilder, element, parserContext);
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
+		return sourceBuilder.getBeanDefinition();
 	}
 
 	private void parseHeaderExpressions(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
@@ -120,24 +163,8 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 			ManagedMap<String, Object> headerExpressions = new ManagedMap<String, Object>();
 			for (Element headerElement : headerElements) {
 				String headerName = headerElement.getAttribute("name");
-				String headerValue = headerElement.getAttribute("value");
-				String headerExpression = headerElement.getAttribute("expression");
-				boolean hasValue = StringUtils.hasText(headerValue);
-				boolean hasExpression = StringUtils.hasText(headerExpression);
-				if (!(hasValue ^ hasExpression)) {
-					parserContext.getReaderContext().error("exactly one of 'value' or 'expression' is required on a header sub-element",
-							parserContext.extractSource(headerElement));
-					continue;
-				}
-				RootBeanDefinition expressionDef = null;
-				if (hasValue) {
-					expressionDef = new RootBeanDefinition(LiteralExpression.class);
-					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
-				}
-				else {
-					expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
-					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
-				}
+				BeanDefinition expressionDef = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
+						"expression", parserContext, headerElement, true);
 				headerExpressions.put(headerName, expressionDef);
 			}
 			builder.addPropertyValue("headerExpressions", headerExpressions);
