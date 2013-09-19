@@ -1,11 +1,11 @@
 /*
- * Copyright 2009-2010 the original author or authors.
- * 
+ * Copyright 2009-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -13,12 +13,17 @@
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -26,6 +31,11 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.message.GenericMessage;
 
+/**
+ * @author Dave Syer
+ * @author Gary Russell
+ *
+ */
 public class MessageChannelsMonitorIntegrationTests {
 
 	private static Log logger = LogFactory.getLog(MessageChannelsMonitorIntegrationTests.class);
@@ -62,10 +72,13 @@ public class MessageChannelsMonitorIntegrationTests {
 		try {
 
 			int before = service.getCounter();
+			CountDownLatch latch = new CountDownLatch(50);
+			service.setLatch(latch);
 			for (int i = 0; i < 50; i++) {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
 			}
+			assertTrue(latch.await(10, TimeUnit.SECONDS));
 			assertEquals(before + 50, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
@@ -85,6 +98,8 @@ public class MessageChannelsMonitorIntegrationTests {
 		ClassPathXmlApplicationContext context = createContext("anonymous-channel.xml", "anonymous");
 		try {
 			int before = service.getCounter();
+			CountDownLatch latch = new CountDownLatch(10);
+			service.setLatch(latch);
 			for (int i = 0; i < 5; i++) {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
@@ -99,6 +114,7 @@ public class MessageChannelsMonitorIntegrationTests {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
 			}
+			assertTrue(latch.await(10, TimeUnit.SECONDS));
 			assertEquals(before + 10, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
@@ -119,6 +135,8 @@ public class MessageChannelsMonitorIntegrationTests {
 		ClassPathXmlApplicationContext context = createContext("queue-channel.xml", "queue");
 		try {
 			int before = service.getCounter();
+			CountDownLatch latch = new CountDownLatch(10);
+			service.setLatch(latch);
 			for (int i = 0; i < 5; i++) {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
@@ -133,6 +151,7 @@ public class MessageChannelsMonitorIntegrationTests {
 				channel.send(new GenericMessage<String>("bar"));
 				Thread.sleep(20L);
 			}
+			assertTrue(latch.await(10, TimeUnit.SECONDS));
 			assertEquals(before + 10, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
@@ -156,7 +175,10 @@ public class MessageChannelsMonitorIntegrationTests {
 		try {
 
 			int before = service.getCounter();
+			CountDownLatch latch = new CountDownLatch(1);
+			service.setLatch(latch);
 			channel.send(new GenericMessage<String>("bar"));
+			assertTrue(latch.await(10, TimeUnit.SECONDS));
 			assertEquals(before + 1, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
@@ -181,11 +203,18 @@ public class MessageChannelsMonitorIntegrationTests {
 	public static class Service {
 		private int counter;
 
+		private volatile CountDownLatch latch;
+
+		public void setLatch(CountDownLatch latch) {
+			this.latch = latch;
+		}
+
 		public void execute(String input) {
 			if ("fail".equals(input)) {
 				throw new RuntimeException("Planned");
 			}
 			counter++;
+			latch.countDown();
 		}
 
 		public int getCounter() {
