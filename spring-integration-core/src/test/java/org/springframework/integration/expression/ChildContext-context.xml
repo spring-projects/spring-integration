@@ -5,11 +5,11 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<bean id="bar" class="java.lang.String">
+	<bean id="barString" class="java.lang.String">
 		<constructor-arg value="bar"/>
 	</bean>
 
-	<int:transformer input-channel="input" output-channel="output" expression="@foo + @bar"/>
+	<int:transformer input-channel="input" output-channel="output" expression="@foo + @barString"/>
 
 	<int:channel id="output">
 		<int:queue/>
@@ -20,5 +20,7 @@
 	<int:spel-function id="bar" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
 
 	<int:spel-function id="barChild" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
+
+	<int:spel-function id="jsonPath" class="org.springframework.integration.expression.ParentContextTests$Bar" method="bar"/>
 
 </beans>

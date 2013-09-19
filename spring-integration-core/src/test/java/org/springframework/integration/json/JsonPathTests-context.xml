@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:context="http://www.springframework.org/schema/context"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:component-scan base-package="org.springframework.integration.json">
+		<context:include-filter type="regex" expression="JsonPathTests"/>
+	</context:component-scan>
+
+	<channel id="output">
+		<queue/>
+	</channel>
+
+	<transformer input-channel="transformerInput" output-channel="output"
+				 expression="#jsonPath(payload, '$.store.book[0].author')"/>
+
+
+
+	<filter input-channel="filterInput1" output-channel="output" discard-channel="discardChannel"
+			throw-exception-on-rejection="true"
+			expression="!#jsonPath(payload, '$..bicycle').empty"/>
+
+	<channel id="discardChannel">
+		<queue/>
+	</channel>
+
+	<filter input-channel="filterInput2" output-channel="output"
+			expression="#jsonPath(payload, '$..book[2].isbn')  matches '^\d-\d{3}-\d{5}-\d$'"/>
+
+	<filter input-channel="filterInput3" output-channel="output"
+			expression="#jsonPath(payload, '$..book[?(@.price > ' + headers.price + ')]').size() > 1"/>
+
+	<filter input-channel="filterInput4" output-channel="output"
+			expression="#jsonPath(payload, '$.store.book[?]', @jsonPathFilter).empty"/>
+
+
+
+	<splitter input-channel="splitterInput" output-channel="splitterOutput"
+			  expression="#jsonPath(payload, '$.store.book')"/>
+
+	<channel id="splitterOutput">
+		<queue/>
+	</channel>
+
+
+
+	<router input-channel="routerInput" expression="#jsonPath(payload, headers.jsonPath)">
+		<mapping channel="routerOutput1" value="reference"/>
+		<mapping channel="routerOutput2" value="fiction"/>
+	</router>
+
+	<channel id="routerOutput1">
+		<queue/>
+	</channel>
+
+	<channel id="routerOutput2">
+		<queue/>
+	</channel>
+
+</beans:beans>

@@ -77,7 +77,7 @@ public class OutboundGatewayTests {
 		}).when(context).getBean(anyString());
 		when(context.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)).thenReturn(true);
 		IntegrationEvaluationContextFactoryBean integrationEvaluationContextFactoryBean = new IntegrationEvaluationContextFactoryBean();
-		integrationEvaluationContextFactoryBean.setBeanFactory(context);
+		integrationEvaluationContextFactoryBean.setApplicationContext(context);
 		integrationEvaluationContextFactoryBean.afterPropertiesSet();
 		StandardEvaluationContext evalContext = integrationEvaluationContextFactoryBean.getObject();
 		when(context.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class))
