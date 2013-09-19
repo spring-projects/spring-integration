@@ -3946,18 +3946,6 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="json-path-spel-function">
-		<xsd:annotation>
-			<xsd:documentation>
-				<![CDATA[
-				Will register #jsonPath() SpEL function in the integration Evaluation Context
-				to use for expressions evaluations throughout the framework. Based on
-				org.springframework.integration.json.JsonPathUtils#evaluate who delegates to
-				com.jayway.jsonpath.JsonPath
-					]]>
-			</xsd:documentation>
-		</xsd:annotation>
-	</xsd:element>
 
 	<xsd:complexType name="control-bus-type">
 		<xsd:annotation>

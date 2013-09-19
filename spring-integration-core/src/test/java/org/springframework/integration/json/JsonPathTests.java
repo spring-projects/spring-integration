@@ -19,6 +19,7 @@ package org.springframework.integration.json;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -31,6 +32,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.hamcrest.Matchers;
+
 import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +43,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -77,6 +81,9 @@ public class JsonPathTests {
 
 	@Autowired
 	private volatile MessageChannel filterInput1;
+
+	@Autowired
+	private PollableChannel discardChannel;
 
 	@Autowired
 	private volatile MessageChannel filterInput2;
@@ -147,6 +154,19 @@ public class JsonPathTests {
 
 		this.filterInput4.send(testMessage);
 		receive = this.output.receive(1000);
+		assertNotNull(receive);
+
+		try {
+			this.filterInput1.send(new GenericMessage<String>("{foo:{}}"));
+			fail("MessageRejectedException is expected.");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessageRejectedException.class));
+		}
+		receive = this.output.receive(0);
+		assertNull(receive);
+
+		receive = this.discardChannel.receive(1000);
 		assertNotNull(receive);
 
 	}

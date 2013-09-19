@@ -21,6 +21,9 @@ import static org.springframework.integration.context.IntegrationContextUtils.IN
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -34,7 +37,6 @@ import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
-import org.springframework.integration.config.SpelFunctionFactoryBean;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
@@ -50,6 +52,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHandler {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private static final String VERSION = "3.0";
 
@@ -69,7 +73,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		this.verifySchemaVersion(element, parserContext);
 		this.registerImplicitChannelCreator(parserContext);
 		this.registerIntegrationEvaluationContext(parserContext);
-		this.registerBuildInBeans(parserContext);
+		this.registerBuiltInBeans(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
@@ -144,7 +148,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 	}
 
-	private void registerBuildInBeans(ParserContext parserContext) {
+	private void registerBuiltInBeans(ParserContext parserContext) {
 		String jsonPathBeanName = "jsonPath";
 		boolean alreadyRegistered = false;
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
@@ -159,23 +163,19 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", parserContext.getReaderContext().getBeanClassLoader());
 			}
 			catch (ClassNotFoundException e) {
-				parserContext.getReaderContext().warning("SpEL function '#jsonPath' isn't registered: " +
-						"there is no jayway json-path.jar in the classpath.", null, e);
+				logger.debug("SpEL function '#jsonPath' isn't registered: there is no jayway json-path.jar in the classpath.", e);
 			}
 
 			if (jsonPathClass != null) {
-				BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
-						.addConstructorArgValue(IntegrationNamespaceUtils.BASE_PACKAGE + ".json.JsonPathUtils")
-						.addConstructorArgValue("evaluate");
-				BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(builder.getBeanDefinition(), jsonPathBeanName);
-				BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, parserContext.getRegistry());
+				IntegrationNamespaceUtils.registerSpelFunctionBean(parserContext.getRegistry(), jsonPathBeanName,
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".json.JsonPathUtils", "evaluate");
 			}
 		}
 
-		this.doRegisterBuildInBeans(parserContext);
+		this.doRegisterBuiltInBeans(parserContext);
 	}
 
-	protected void doRegisterBuildInBeans(ParserContext parserContext) {
+	protected void doRegisterBuiltInBeans(ParserContext parserContext) {
 
 	}
 
