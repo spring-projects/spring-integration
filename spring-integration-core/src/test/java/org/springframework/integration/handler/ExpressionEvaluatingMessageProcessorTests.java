@@ -128,6 +128,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		factoryBean.setApplicationContext(applicationContext);
 		applicationContext.getBeanFactory().registerSingleton(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
 				factoryBean.getObject());
+		applicationContext.refresh();
+
 		processor.afterPropertiesSet();
 		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
 		evaluationContext.setVariable("target", new TestTarget());
