@@ -21,7 +21,7 @@
 	<inbound-channel-adapter id="postOnlyAdapter" channel="requests" supported-methods="POST"/>
 	
 	<inbound-channel-adapter id="adapterWithCustomConverterWithDefaults" message-converters="customConverters" 
-							channel="requests" supported-methods="POST" register-default-converters="true"/>	
+							channel="requests" supported-methods="POST" merge-with-default-converters="true"/>	
 	
 	<inbound-channel-adapter id="adapterWithCustomConverterNoDefaults" message-converters="customConverters" 
 							channel="requests" supported-methods="POST" />	

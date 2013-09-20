@@ -35,7 +35,7 @@
 		request-channel="requests"
 		reply-channel="responses"
 		message-converters="customConverters"
-		register-default-converters="false"/>
+		merge-with-default-converters="false"/>
 
 	<util:list id="customConverters">
 		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>

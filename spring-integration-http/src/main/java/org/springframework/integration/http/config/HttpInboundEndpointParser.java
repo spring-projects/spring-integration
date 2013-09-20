@@ -160,7 +160,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "errors-key");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "error-code");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "register-default-converters");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "merge-with-default-converters");
 
 
 		//IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");

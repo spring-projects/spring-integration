@@ -116,7 +116,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
-	private volatile boolean registerDefaultConverters = false;
+	private volatile boolean mergeWithDefaultConverters = false;
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
 
@@ -203,12 +203,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	
 
 	/**
-	 * Flag which determines if the default converters should be available if the user has customized 
-	 * the list of message converters. The behavior will be to add the default converters after
-	 * the list of user customized converters
+	 * Flag which determines if the default converters should be available after 
+	 * custom converters.
 	 */
-	public void setRegisterDefaultConverters(boolean registerDefaultConverters) {
-		this.registerDefaultConverters = registerDefaultConverters;
+	public void setMergeWithDefaultConverters(boolean mergeWithDefaultConverters) {
+		this.mergeWithDefaultConverters = mergeWithDefaultConverters;
 	}
 
 	/**
@@ -305,11 +304,12 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	/**
 	 * Register the list of {@link HttpMessageConverter}. If user has customized the set of converters, then
-	 * an additional flag 'registerDefaultConverters' can be set to add the list of default HttpMessageConverter 
-	 * to the  list of converters
+	 * an additional flag 'mergeWithDefaultConverters' can be set to add the list of default HttpMessageConverter 
+	 * after the  list of custom converters. If there are no custom converters, the default converters will 
+	 * always be registered
 	 */
 	private void registerConverters() {
-		if (this.registerDefaultConverters || this.messageConverters.size() == 0) {
+		if (this.mergeWithDefaultConverters || this.messageConverters.size() == 0) {
 			this.messageConverters.addAll(defaultMessageConverters());
 		}
 	}
