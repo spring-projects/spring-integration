@@ -29,6 +29,8 @@ public interface StudentService {
 	@Payload("new java.util.Date()")
 	List<StudentDomain> getAllStudents();
 
+	List<StudentDomain> getAllStudentsFromGivenRecord(int recordNumber);
+
 	StudentDomain persistStudent(StudentDomain student);
 
 	StudentDomain persistStudentUsingMerge(StudentDomain studentToPersist);

@@ -45,11 +45,13 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	private static final Log logger = LogFactory.getLog(DefaultJpaOperations.class);
 
+	@Override
 	public void delete(Object entity) {
 		Assert.notNull(entity, "The entity must not be null!");
 		entityManager.remove(entity);
 	}
 
+	@Override
 	public void deleteInBatch(Iterable<?> entities) {
 
 		Assert.notNull(entities, "entities must not be null.");
@@ -80,24 +82,28 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	}
 
+	@Override
 	public int executeUpdate(String updateQuery,  ParameterSource source) {
 		Query query = entityManager.createQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
+	@Override
 	public int executeUpdateWithNamedQuery(String updateQuery, ParameterSource source) {
 		Query query = entityManager.createNamedQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
+	@Override
 	public int executeUpdateWithNativeQuery(String updateQuery, ParameterSource source) {
 		Query query = entityManager.createNativeQuery(updateQuery);
 		setParametersIfRequired(updateQuery, source, query);
 		return query.executeUpdate();
 	}
 
+	@Override
 	public <T> T find(Class<T> entityType, Object id) {
 		return entityManager.find(entityType, id);
 	}
@@ -108,11 +114,15 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		return query;
 	}
 
-	public List<?> getResultListForClass(Class<?> entityClass, int maxNumberOfResults) {
+
+	@Override
+	public List<?> getResultListForClass(Class<?> entityClass, int firstResult, int maxNumberOfResults) {
 
 		final String entityName = JpaUtils.getEntityName(entityManager, entityClass);
 		final Query query = entityManager.createQuery("select x from " + entityName + " x", entityClass);
-
+		if(firstResult > 0) {
+			query.setFirstResult(firstResult);
+		}
 		if(maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
@@ -121,12 +131,16 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	}
 
+	@Override
 	public List<?> getResultListForNamedQuery(String selectNamedQuery,
-			ParameterSource parameterSource, int maxNumberOfResults) {
+			ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
 
 		final Query query = entityManager.createNamedQuery(selectNamedQuery);
 		setParametersIfRequired(selectNamedQuery, parameterSource, query);
 
+		if(firstResult > 0) {
+			query.setFirstResult(firstResult);
+		}
 		if(maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
@@ -135,8 +149,9 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	}
 
+	@Override
 	public List<?> getResultListForNativeQuery(String selectQuery, Class<?> entityClass,
-			ParameterSource parameterSource, int maxNumberOfResults) {
+			ParameterSource parameterSource, int firstResult, int maxNumberOfResults) {
 
 		final Query query;
 
@@ -148,6 +163,9 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		setParametersIfRequired(selectQuery, parameterSource, query);
 
+		if(firstResult > 0) {
+			query.setFirstResult(firstResult);
+		}
 		if(maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
@@ -155,15 +173,20 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		return query.getResultList();
 	}
 
+	@Override
 	public List<?> getResultListForQuery(String query, ParameterSource source) {
-			return getResultListForQuery(query,source, 0);
+			return getResultListForQuery(query,source, 0, 0);
 	}
 
+	@Override
 	public List<?> getResultListForQuery(String queryString, ParameterSource source,
-			int maxNumberOfResults) {
+			int firstResult, int maxNumberOfResults) {
 
 		Query query = getQuery(queryString,source);
 
+		if(firstResult > 0) {
+			query.setFirstResult(firstResult);
+		}
 		if(maxNumberOfResults > 0) {
 			query.setMaxResults(maxNumberOfResults);
 		}
@@ -171,16 +194,19 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		return query.getResultList();
 	}
 
+	@Override
 	public Object getSingleResultForQuery(String queryString, ParameterSource source) {
 		Query query = getQuery(queryString,source);
 		return query.getSingleResult();
 	}
 
+	@Override
 	public Object merge(Object entity) {
 		Assert.notNull(entity, "The object to merge must not be null.");
 		return persistOrMerge(entity, true);
 	}
 
+	@Override
 	public void persist(Object entity) {
 		Assert.notNull(entity, "The object to persist must not be null.");
 		persistOrMerge(entity, false);

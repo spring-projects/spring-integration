@@ -14,9 +14,8 @@ package org.springframework.integration.jpa.outbound;
 
 import java.util.List;
 
-import org.junit.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +55,13 @@ public class JpaOutboundGatewayTests {
 	public void getStudent() {
 		final StudentDomain student = studentService.getStudent(1001L);
 		Assert.assertNotNull(student);
+	}
+
+	@Test
+	public void getAllStudentsStartingFromGivenRecord() {
+		List<?> students = studentService.getAllStudentsFromGivenRecord(1);
+		Assert.assertNotNull(students);
+		Assert.assertEquals(2, students.size());
 	}
 
 	@Test

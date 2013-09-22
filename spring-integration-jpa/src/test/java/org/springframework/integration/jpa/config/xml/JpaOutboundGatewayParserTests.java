@@ -18,13 +18,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
@@ -57,41 +61,55 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 	@Test
 	public void testRetrievingJpaOutboundGatewayParser() throws Exception {
 		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGateway");
-
-
 		final AbstractMessageChannel inputChannel = TestUtils.getPropertyValue(this.consumer, "inputChannel", AbstractMessageChannel.class);
-
 		assertEquals("in", inputChannel.getComponentName());
-
 		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
-
 		final OutboundGatewayType gatewayType = TestUtils.getPropertyValue(jpaOutboundGateway, "gatewayType", OutboundGatewayType.class);
-
 		assertEquals(OutboundGatewayType.RETRIEVING, gatewayType);
-
 		long sendTimeout = TestUtils.getPropertyValue(jpaOutboundGateway, "messagingTemplate.sendTimeout", Long.class);
-
 		assertEquals(100, sendTimeout);
-
 		assertFalse(TestUtils.getPropertyValue(jpaOutboundGateway, "requiresReply", Boolean.class));
-
 		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
-
 		assertNotNull(jpaExecutor);
-
 		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
-
 		assertEquals("org.springframework.integration.jpa.test.entity.StudentDomain", entityClass.getName());
-
 		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
-
 		assertNotNull(jpaOperations);
-
 		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class));
-
 		final Integer maxNumberOfResults = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResults", Integer.class);
-
 		assertEquals(Integer.valueOf(55), maxNumberOfResults);
+	}
+
+	@Test
+	public void testRetrievingJpaOutboundGatewayParserWithFirstResult() throws Exception {
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithFirstResult");
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+		Expression firstResultExpression =
+			TestUtils.getPropertyValue(jpaOutboundGateway, "firstRecordExpression", Expression.class);
+		assertNotNull(firstResultExpression);
+		assertEquals(LiteralExpression.class, firstResultExpression.getClass());
+		assertEquals("1", TestUtils.getPropertyValue(firstResultExpression, "literalValue", String.class));
+	}
+
+	@Test
+	public void testRetrievingJpaOutboundGatewayParserWithFirstResultExpression() throws Exception {
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithFirstResultExpression");
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+		Expression firstResultExpression =
+			TestUtils.getPropertyValue(jpaOutboundGateway, "firstRecordExpression", Expression.class);
+		assertNotNull(firstResultExpression);
+		assertEquals(SpelExpression.class, firstResultExpression.getClass());
+		assertEquals("header['firstResult']", TestUtils.getPropertyValue(firstResultExpression, "expression", String.class));
+	}
+
+	@Test
+	public void testRetrievingJpaOutboundGatewayParserWithExpressionExecutor() throws Exception {
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithExpressionExecutor");
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+		EvaluationContext evaluationContext =
+			TestUtils.getPropertyValue(jpaOutboundGateway, "evaluationContext", EvaluationContext.class);
+		assertNotNull(evaluationContext);
+		assertEquals(evaluationContext, context.getBean("evaluationContext"));
 	}
 
 	@Test
@@ -167,6 +185,18 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 		assertNotNull(context.getBean("retrievingJpaOutboundGateway.jpaExecutor", JpaExecutor.class));
 		assertNotNull(context.getBean("updatingJpaOutboundGateway.jpaExecutor", JpaExecutor.class));
+
+	}
+
+	@Test
+	public void withBothFirstResultAndFirstResultExpressionPresent() {
+		try {
+			this.context = new ClassPathXmlApplicationContext("JpaInvalidOutboundGatewayParserTests.xml", getClass());
+		} catch (BeanDefinitionStoreException e) {
+			assertEquals("Attributes first-result and first-result-expression are mutually exclusive to each other", e.getMessage());
+			return;
+		}
+		assertTrue(false);
 
 	}
 

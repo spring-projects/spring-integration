@@ -16,7 +16,10 @@
 
 package org.springframework.integration.jpa.outbound;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
@@ -39,6 +42,8 @@ import org.springframework.util.Assert;
  * constructor.
  *
  * @author Gunnar Hillert
+ * @author Amol Nayak
+ *
  * @since 2.2
  *
  */
@@ -47,6 +52,9 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private final JpaExecutor   jpaExecutor;
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
 	private boolean producesReply = true;	//false for outbound-channel-adapter, true for outbound-gateway
+	private EvaluationContext evaluationContext;
+	private Expression firstRecordExpression;
+
 
 	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
@@ -57,6 +65,7 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 	public JpaOutboundGateway(JpaExecutor jpaExecutor) {
 		Assert.notNull(jpaExecutor, "jpaExecutor must not be null.");
 		this.jpaExecutor = jpaExecutor;
+
 	}
 
 	/**
@@ -66,25 +75,33 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 	protected void onInit() {
 		super.onInit();
 		this.jpaExecutor.setBeanFactory(this.getBeanFactory());
+		if(this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+		}
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-
 		final Object result;
-
 		if (OutboundGatewayType.RETRIEVING.equals(this.gatewayType)) {
-
-			result = this.jpaExecutor.poll(requestMessage);
-
+			int firstRecord = 0;
+			if(firstRecordExpression != null) {
+				Object firstRecordEvaluationResult = firstRecordExpression.getValue(evaluationContext, requestMessage);
+				if(firstRecordEvaluationResult != null) {
+					if(firstRecordEvaluationResult instanceof Number) {
+						firstRecord = ((Number)firstRecordEvaluationResult).intValue();
+					}
+					else {
+						throw new IllegalArgumentException("Expected the value of the firstRecord to be a Number" +
+								" got " + firstRecordEvaluationResult.getClass().getName());
+					}
+				}
+			}
+			result = this.jpaExecutor.poll(requestMessage, firstRecord);
 		} else if (OutboundGatewayType.UPDATING.equals(this.gatewayType)) {
-
 			result = this.jpaExecutor.executeOutboundJpaOperation(requestMessage);
-
 		} else {
-
 			throw new IllegalArgumentException(String.format("GatewayType  '%s' is not supported.", this.gatewayType));
-
 		}
 
 		if (result == null || !producesReply) {
@@ -115,4 +132,20 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 		this.producesReply = producesReply;
 	}
 
+	/**
+	 * Sets the evaluation context for evaluating the expression to get the from record of the
+	 * result set retrieved by the retrieving gateway
+	 * @param evaluationContext
+	 */
+	public void setEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
+	/**
+	 * The expression that would get evaluated to get the first record of the result set
+	 * @param firstRecordExpression
+	 */
+	public void setFirstRecordExpression(Expression firstRecordExpression) {
+		this.firstRecordExpression = firstRecordExpression;
+	}
 }

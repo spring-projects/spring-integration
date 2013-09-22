@@ -17,10 +17,6 @@ import static org.springframework.beans.factory.xml.AbstractBeanDefinitionParser
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -43,6 +39,9 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -54,6 +53,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Amol Nayak
  *
  */
 public abstract class IntegrationNamespaceUtils {
@@ -471,4 +471,23 @@ public abstract class IntegrationNamespaceUtils {
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
 
+	/**
+	 * Ensures that at most one of attribute of the given attributes is present in the element
+	 * @return
+	 */
+	public static  boolean ensureMutualExclusivity(Element element, String... attributeNames) {
+		boolean isExclusive = true;
+		boolean foundOne = false;
+		for(String attributeName:attributeNames) {
+			boolean currentAttributePresent = element.hasAttribute(attributeName);
+			if(foundOne && currentAttributePresent) {
+				isExclusive = false;
+				break;
+			}
+			else {
+				foundOne = currentAttributePresent;
+			}
+		}
+		return isExclusive;
+	}
 }

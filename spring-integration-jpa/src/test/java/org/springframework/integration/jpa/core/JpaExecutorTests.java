@@ -15,6 +15,7 @@ package org.springframework.integration.jpa.core;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -22,7 +23,6 @@ import javax.persistence.EntityManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
@@ -224,4 +224,43 @@ public class JpaExecutorTests {
 
 	}
 
+	@Test
+	public void testResultStartingFromSecondRecordForJPAQuery() throws Exception {
+		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
+		jpaExecutor.setJpaQuery("select s from Student s");
+		jpaExecutor.afterPropertiesSet();
+		List<?> results = jpaExecutor.doPoll(null, 2);
+		Assert.assertNotNull(results);
+		Assert.assertEquals(1, results.size());
+	}
+
+	@Test
+	public void testResultStartingFromSecondRecordForNativeQuery() throws Exception {
+		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
+		jpaExecutor.setNativeQuery("select * from Student s");
+		jpaExecutor.afterPropertiesSet();
+		List<?> results = jpaExecutor.doPoll(null, 2);
+		Assert.assertNotNull(results);
+		Assert.assertEquals(1, results.size());
+	}
+
+	@Test
+	public void testResultStartingFromSecondRecordForNamedQuery() throws Exception {
+		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
+		jpaExecutor.setNamedQuery("selectAllStudents");
+		jpaExecutor.afterPropertiesSet();
+		List<?> results = jpaExecutor.doPoll(null, 2);
+		Assert.assertNotNull(results);
+		Assert.assertEquals(1, results.size());
+	}
+
+	@Test
+	public void testResultStartingFromSecondRecordUsingEntity() throws Exception {
+		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
+		jpaExecutor.setEntityClass(StudentDomain.class);
+		jpaExecutor.afterPropertiesSet();
+		List<?> results = jpaExecutor.doPoll(null, 2);
+		Assert.assertNotNull(results);
+		Assert.assertEquals(1, results.size());
+	}
 }

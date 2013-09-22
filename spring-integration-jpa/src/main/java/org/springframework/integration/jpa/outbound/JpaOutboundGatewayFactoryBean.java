@@ -19,10 +19,11 @@ package org.springframework.integration.jpa.outbound;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -74,6 +75,10 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	private volatile boolean requiresReply = false;
 
 	private volatile String componentName;
+
+	private Expression firstRecordExpression;
+
+	private EvaluationContext evaluationContext;
 
 	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
@@ -134,6 +139,25 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		this.componentName = componentName;
 	}
 
+	/**
+	 * The Expression that would be evaluated against the message for getting the first
+	 * position of the result set in a RETRIEVING gateway
+	 *
+	 * @param firstRecordExpression
+	 */
+	public void setFirstRecordExpression(Expression firstRecordExpression) {
+		this.firstRecordExpression = firstRecordExpression;
+	}
+
+	/**
+	 * The {@link EvaluationContext} for executing the {@link #firstRecordExpression}
+	 * @param evaluationContext
+	 */
+	public void setEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
+
 	@Override
 	public Class<?> getObjectType() {
 		return MessageHandler.class;
@@ -154,6 +178,8 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 			jpaOutboundGateway.setAdviceChain(this.adviceChain);
 		}
 		jpaOutboundGateway.setBeanFactory(this.getBeanFactory());
+		jpaOutboundGateway.setFirstRecordExpression(firstRecordExpression);
+		jpaOutboundGateway.setEvaluationContext(evaluationContext);
 		jpaOutboundGateway.afterPropertiesSet();
 
 		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
@@ -170,5 +196,4 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 
 		return jpaOutboundGateway;
 	}
-
 }

@@ -148,6 +148,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * {@link ParameterSourceFactory}.
 	 *
 	 */
+	@Override
 	public void afterPropertiesSet() {
 
 		if (this.jpaParameters != null) {
@@ -247,6 +248,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	}
 
+
 	/**
 	 * Execute a (typically retrieving) JPA operation. The <i>requestMessage</i>
 	 * can be used to provide additional query parameters using
@@ -255,22 +257,19 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * {@link JpaExecutor#parameterSource} is being used for providing query parameters.
 	 *
 	 * @param requestMessage May be null.
+	 * @param firstRecord.
 	 * @return The payload object, which may be null.
 	 */
 	@SuppressWarnings("unchecked")
-	public Object poll(final Message<?> requestMessage) {
-
+	public Object poll(final Message<?> requestMessage, int firstRecord) {
 		final Object payload;
-
 		final List<?> result;
-
 		if (requestMessage == null) {
-			result = doPoll(this.parameterSource);
+			result = doPoll(this.parameterSource, firstRecord);
 		}
 		else {
 			ParameterSource parameterSource = determineParameterSource(requestMessage);
-
-			result = doPoll(parameterSource);
+			result = doPoll(parameterSource, firstRecord);
 		}
 
 		if (result.isEmpty()) {
@@ -283,21 +282,17 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 					payload = result.iterator().next();
 				}
 				else {
-
 					throw new MessagingException(requestMessage,
 						"The Jpa operation returned more than "
 					  + "1 result object but expectSingleResult was 'true'.");
 				}
-
 			}
 			else {
 				payload = result;
 			}
-
 		}
 
 		if (payload != null && this.deleteAfterPoll) {
-
 			if (payload instanceof Iterable) {
 				if (this.deleteInBatch) {
 					this.jpaOperations.deleteInBatch((Iterable<Object>) payload);
@@ -313,8 +308,23 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			}
 
 		}
-
 		return payload;
+	}
+
+
+	/**
+	 * Execute a (typically retrieving) JPA operation. The <i>requestMessage</i>
+	 * can be used to provide additional query parameters using
+	 * {@link JpaExecutor#parameterSourceFactory}. If the
+	 * <i>requestMessage</i> parameter is null then
+	 * {@link JpaExecutor#parameterSource} is being used for providing query parameters.
+	 *
+	 * @param requestMessage May be null.
+	 * @return The payload object, which may be null.
+	 */
+	@SuppressWarnings("unchecked")
+	public Object poll(final Message<?> requestMessage) {
+		return poll(requestMessage, 0);
 	}
 
 	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
@@ -335,28 +345,29 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		return poll(null);
 	}
 
-	protected List<?> doPoll(ParameterSource jpaQLParameterSource) {
-
+	protected List<?> doPoll(ParameterSource jpaQLParameterSource, int firstRecord) {
 		List<?> payload = null;
-
 		if (this.jpaQuery != null) {
-			payload = jpaOperations.getResultListForQuery(this.jpaQuery, jpaQLParameterSource, maxNumberOfResults);
+			payload = jpaOperations.getResultListForQuery(this.jpaQuery, jpaQLParameterSource,
+							firstRecord, maxNumberOfResults);
 		}
 		else if (this.nativeQuery != null) {
-			payload = jpaOperations.getResultListForNativeQuery(this.nativeQuery, this.entityClass, jpaQLParameterSource, maxNumberOfResults);
+			payload = jpaOperations.getResultListForNativeQuery(this.nativeQuery, this.entityClass, jpaQLParameterSource,
+							firstRecord, maxNumberOfResults);
 		}
 		else if (this.namedQuery != null) {
-			payload = jpaOperations.getResultListForNamedQuery(this.namedQuery, jpaQLParameterSource, maxNumberOfResults);
+			payload = jpaOperations.getResultListForNamedQuery(this.namedQuery, jpaQLParameterSource,
+							firstRecord, maxNumberOfResults);
 		}
 		else if (this.entityClass != null) {
-			payload = jpaOperations.getResultListForClass(this.entityClass, maxNumberOfResults);
+			payload = jpaOperations.getResultListForClass(this.entityClass,
+							firstRecord, maxNumberOfResults);
 		}
 		else {
 			throw new IllegalStateException("For the polling operation, one of "
 								+ "the following properties must be specified: "
 								+ "query, namedQuery or entityClass.");
 		}
-
 		return payload;
 	}
 

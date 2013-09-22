@@ -40,6 +40,7 @@ import javax.persistence.TemporalType;
 @Entity(name="Student")
 @Table(name="Student")
 @NamedQueries({
+	@NamedQuery(name="selectAllStudents", query="select s from Student s"),
 	@NamedQuery(name="selectStudent", query="select s from Student s where s.lastName = 'Last One'"),
 	@NamedQuery(name="updateStudent", query="update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 })

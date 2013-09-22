@@ -85,20 +85,24 @@ public interface JpaOperations {
 	/**
 	 *
 	 * @param  entityClass
-	 * @param  maxNumberOfReturnedObjects
+	 * @param  firstResult
+	 * @param  maxNumberOfReturnedObjects	 *
 	 * @return List of found entities
 	 */
 	List<?> getResultListForClass(Class<?> entityClass,
+			int firstResult,
 			int maxNumberOfReturnedObjects);
 
 	/**
 	 *
 	 * @param  selectNamedQuery
 	 * @param  jpaQLParameterSource
+	 * @param  firstResult
 	 * @param  maxNumberOfResults
 	 * @return List of found entities
 	 */
 	List<?> getResultListForNamedQuery(String selectNamedQuery, ParameterSource jpaQLParameterSource,
+			int firstResult,
 			int maxNumberOfResults);
 
 	/**
@@ -106,11 +110,14 @@ public interface JpaOperations {
 	 * @param selectQuery
 	 * @param entityClass
 	 * @param jpaQLParameterSource
+	 * @param  firstResult
 	 * @param maxNumberOfResults
 	 * @return List of found entities
 	 */
 	List<?> getResultListForNativeQuery(String selectQuery,
-			Class<?> entityClass,  ParameterSource jpaQLParameterSource, int maxNumberOfResults);
+			Class<?> entityClass,  ParameterSource jpaQLParameterSource,
+			int firstResult,
+			int maxNumberOfResults);
 
 	/**
 	 * Executes the provided query to return a list of results
@@ -124,11 +131,12 @@ public interface JpaOperations {
 	 * Executes the provided query to return a list of results.
 	 *
 	 * @param query Must not be null or empty
+	 * @param firstResult The first result
 	 * @param maxNumberOfResults Must be a non-negative value
 	 * @param source the Parameter source for this query to be executed, if none then set null
 	 * @return List of found entities
 	 */
-	List<?> getResultListForQuery(String query, ParameterSource source, int maxNumberOfResults);
+	List<?> getResultListForQuery(String query, ParameterSource source, int firstResult, int maxNumberOfResults);
 
 	/**
 	 * Executes the provided query to return a single element

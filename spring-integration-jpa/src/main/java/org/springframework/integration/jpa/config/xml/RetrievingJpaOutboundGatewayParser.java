@@ -15,12 +15,19 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
+import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.ensureMutualExclusivity;
+
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -41,6 +48,29 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
 
+		if(!ensureMutualExclusivity(gatewayElement, "first-result", "first-result-expression")) {
+			throw new BeanDefinitionStoreException("Attributes first-result and first-result-expression" +
+					" are mutually exclusive to each other");
+		}
+
+		Expression firstResultExpression = null;
+		if(gatewayElement.hasAttribute("first-result")) {
+			String firstResult = gatewayElement.getAttribute("first-result");
+			if(StringUtils.hasText(firstResult)) {
+				firstResultExpression = new LiteralExpression(firstResult);
+			}
+		}
+		else if(gatewayElement.hasAttribute("first-result-expression")) {
+			String firstResultExp = gatewayElement.getAttribute("first-result-expression");
+			if(StringUtils.hasText(firstResultExp)) {
+				firstResultExpression = new SpelExpressionParser().parseExpression(firstResultExp);
+			}
+		}
+		if(firstResultExpression != null) {
+			jpaOutboundGatewayBuilder.addPropertyValue("firstRecordExpression", firstResultExpression);
+		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "evaluation-context");
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "max-number-of-results");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-in-batch");
@@ -55,7 +85,5 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
 		jpaOutboundGatewayBuilder.addPropertyValue("gatewayType", OutboundGatewayType.RETRIEVING);
 		return jpaOutboundGatewayBuilder;
-
 	}
-
 }
