@@ -30,7 +30,8 @@ import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.BeanResolver;
@@ -61,19 +62,17 @@ import org.springframework.util.Assert;
  * <p/>
  * <p>
  * After initialization this factory populates functions and property accessors from
- * {@link SpelFunctionRegistrar} and {@link SpelPropertyAccessorRegistrar}, respectively.
+ * {@link SpelFunctionFactoryBean} and {@link SpelPropertyAccessorRegistrar}, respectively.
  * Functions and property accessors are also inherited from parent context.
  * Note, functions can be overridden as it is with generic bean behaviour, but property accessors
  * are copied as is and placed in the result list in the end.
  * </p>
  * <p>
- * This factory returns a new instance for each reference singleton - {@link #isSingleton()}
- * returns false.
+ * This factory returns a new instance for each reference - {@link #isSingleton()} returns false.
  * </p>
  *
  * @author Artem Bilan
  * @author Gary Russell
- *
  * @since 3.0
  */
 public class IntegrationEvaluationContextFactoryBean implements FactoryBean<StandardEvaluationContext>,
@@ -90,7 +89,8 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;	}
+		this.applicationContext = applicationContext;
+	}
 
 	public void setPropertyAccessors(PropertyAccessor... accessors) {
 		Assert.noNullElements(accessors, "Cannot have null elements in accessors");
@@ -127,13 +127,12 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 			for (SpelFunctionFactoryBean spelFunctionFactoryBean : functionFactoryBeanMap.values()) {
 				if (!this.functions.containsKey(spelFunctionFactoryBean.getFunctionName())) {
 					this.functions.put(spelFunctionFactoryBean.getFunctionName(), spelFunctionFactoryBean.getObject());
-
 				}
 			}
 		}
 
 		Collection<SpelPropertyAccessorRegistrar> propertyAccessorRegistrars =
-				IntegrationContextUtils.beansOfTypeIncludingAncestors(this.beanFactory, SpelPropertyAccessorRegistrar.class);
+				IntegrationContextUtils.beansOfTypeIncludingAncestors(this.applicationContext, SpelPropertyAccessorRegistrar.class);
 
 		for (SpelPropertyAccessorRegistrar propertyAccessorRegistrar : propertyAccessorRegistrars) {
 			this.propertyAccessors.addAll(propertyAccessorRegistrar.getPropertyAccessors());

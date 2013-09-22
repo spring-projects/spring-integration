@@ -28,8 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.hamcrest.Matchers;
 
-import org.hamcrest.Matchers;import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
@@ -93,9 +94,10 @@ public class ParentContextTests {
 		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
 
 		Map<String, Object> variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(0), "variables");
-		assertEquals(2, variables.size());
+		assertEquals(3, variables.size());
 		assertTrue(variables.containsKey("bar"));
 		assertTrue(variables.containsKey("barParent"));
+		assertTrue(variables.containsKey("jsonPath"));
 
 		assertNotSame(evalContexts.get(1).getBeanResolver(), evalContexts.get(2).getBeanResolver());
 		propertyAccessors = evalContexts.get(1).getPropertyAccessors();
@@ -103,9 +105,10 @@ public class ParentContextTests {
 		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(1), "variables");
-		assertEquals(2, variables.size());
+		assertEquals(3, variables.size());
 		assertTrue(variables.containsKey("bar"));
 		assertTrue(variables.containsKey("barParent"));
+		assertTrue(variables.containsKey("jsonPath"));
 
 		propertyAccessors = evalContexts.get(2).getPropertyAccessors();
 		assertEquals(4, propertyAccessors.size());
@@ -115,10 +118,11 @@ public class ParentContextTests {
 		assertTrue(propertyAccessors.indexOf(childPropertyAccessor) < propertyAccessors.indexOf(parentPropertyAccessor));
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(2), "variables");
-		assertEquals(3, variables.size());
+		assertEquals(4, variables.size());
 		assertTrue(variables.containsKey("bar"));
 		assertTrue(variables.containsKey("barParent"));
 		assertTrue(variables.containsKey("barChild"));
+		assertTrue(variables.containsKey("jsonPath"));
 
 		// Test transformer expressions
 		child.getBean("input", MessageChannel.class).send(new GenericMessage<String>("baz"));
