@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.w3c.dom.Node;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.transformer.HeaderEnricher;
+import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
@@ -33,7 +34,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * Transformer implementation that evaluates XPath expressions against the
  * message payload and inserts the result of the evaluation into a message
  * header. The header names will match the keys in the map of expressions.
- * 
+ *
  * @author Jonas Partner
  * @author Mark Fisher
  * @since 2.0

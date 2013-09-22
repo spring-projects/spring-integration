@@ -34,6 +34,7 @@ import org.springframework.integration.expression.IntegrationEvaluationContextAw
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -53,7 +54,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private volatile Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
 
-	private volatile Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+	private volatile Map<String, HeaderValueMessageProcessor<?>> headerExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>();
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -94,15 +95,16 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
-	 * Provide the map of expressions to evaluate when enriching the target MessageHeaders.
+	 * Provide the map of {@link HeaderValueMessageProcessor} to evaluate when enriching
+	 * the target MessageHeaders.
 	 * The keys should simply be header names, and the values should be Expressions
 	 * that will evaluate against the reply Message as the root object.
 	 */
-	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
+	public void setHeaderExpressions(Map<String, HeaderValueMessageProcessor<?>> headerExpressions) {
 		Assert.notEmpty(headerExpressions, "headerExpressions must not be empty");
 		Assert.noNullElements(headerExpressions.keySet().toArray(), "headerExpressions keys must not be empty");
 		Assert.noNullElements(headerExpressions.values().toArray(), "headerExpressions values must not be empty");
-		this.headerExpressions = new HashMap<String, Expression>(headerExpressions);
+		this.headerExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>(headerExpressions);
 	}
 
 	/**
@@ -275,11 +277,15 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 		else {
 			Map<String, Object> targetHeaders = new HashMap<String, Object>(this.headerExpressions.size());
-			for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
+			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
 				String header = entry.getKey();
-				Expression valueExpression = entry.getValue();
-				Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
-				targetHeaders.put(header, value);
+				HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
+				Boolean overwrite = valueProcessor.isOverwrite();
+				overwrite = overwrite != null ? overwrite : false;
+				if (overwrite || !requestMessage.getHeaders().containsKey(header)) {
+					Object value = valueProcessor.processMessage(replyMessage);
+					targetHeaders.put(header, value);
+				}
 			}
 			return MessageBuilder.withPayload(targetPayload).copyHeaders(targetHeaders).build();
 		}

@@ -32,6 +32,9 @@
 	        Please go to the adapter specific sections of this reference manual
 	        to learn more about those adapters.
 	    </para>
+		<para>
+			For more info regarding expressions support, please see <xref linkend="spel" />.
+		</para>
     </section>
 
     <section id="header-enricher">
@@ -373,8 +376,7 @@
                             returned from the flow initiated by this enricher, the
                             input Message if there is no request channel, or the
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
-                            SpEL syntax). Note, if the header is presented in the input Message
-							it will be overrided by the evaluation result of this configuration.
+                            SpEL syntax).
 	                    </para>
 	                </callout>
 	            </calloutlist>

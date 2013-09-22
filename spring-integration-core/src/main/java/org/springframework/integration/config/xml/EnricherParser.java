@@ -49,14 +49,33 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 
-		ManagedMap<String, Object> propertyExpressions = this.parseSubElements(element, parserContext, "property");
-		if (!CollectionUtils.isEmpty(propertyExpressions)) {
-			builder.addPropertyValue("propertyExpressions", propertyExpressions);
+		List<Element> subElements = DomUtils.getChildElementsByTagName(element, "property");
+		if (!CollectionUtils.isEmpty(subElements)) {
+			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
+			for (Element subElement : subElements) {
+				String name = subElement.getAttribute("name");
+				BeanDefinition beanDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
+						"expression", parserContext, subElement, true);
+				expressions.put(name, beanDefinition);
+			}
+			builder.addPropertyValue("propertyExpressions", expressions);
 		}
 
-		ManagedMap<String, Object> headerExpressions = this.parseSubElements(element, parserContext, "header");
-		if (!CollectionUtils.isEmpty(headerExpressions)) {
-			builder.addPropertyValue("headerExpressions", headerExpressions);
+		subElements = DomUtils.getChildElementsByTagName(element, "header");
+		if (!CollectionUtils.isEmpty(subElements)) {
+			ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
+			for (Element subElement : subElements) {
+				String name = subElement.getAttribute("name");
+				BeanDefinition expressionDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
+						"expression", parserContext, subElement, true);
+				BeanDefinitionBuilder valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor");
+				valueProcessorBuilder.addConstructorArgValue(expressionDefinition)
+						.addConstructorArgValue(subElement.getAttribute("type"));
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, subElement, "overwrite");
+				expressions.put(name, valueProcessorBuilder.getBeanDefinition());
+			}
+			builder.addPropertyValue("headerExpressions", expressions);
 		}
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "should-clone-payload");
@@ -70,20 +89,6 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 		}
 
 		return builder;
-	}
-
-	private ManagedMap<String, Object> parseSubElements(Element element, ParserContext parserContext, String subElementName) {
-		List<Element> subElements = DomUtils.getChildElementsByTagName(element, subElementName);
-		ManagedMap<String, Object> expressions = new ManagedMap<String, Object>();
-		if (!CollectionUtils.isEmpty(subElements)) {
-			for (Element subElement : subElements) {
-				String name = subElement.getAttribute("name");
-				BeanDefinition beanDefinition = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("value",
-						"expression", parserContext, subElement, true);
-				expressions.put(name, beanDefinition);
-			}
-		}
-		return expressions;
 	}
 
 }

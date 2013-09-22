@@ -25,11 +25,16 @@
 
 		<header name="foo" value="bar"/>
 		<header name="testBean" expression="@testBean"/>
-		<header name="sourceName" expression="payload.sourceName"/>
+		<header name="sourceName" expression="payload.sourceName" overwrite="true"/>
+		<header name="notOverwrite" expression="payload.sourceName"/>
 
 		<request-handler-advice-chain>
 			<beans:bean class="org.springframework.integration.config.xml.EnricherParserTests$FooAdvice" />
 		</request-handler-advice-chain>
+	</enricher>
+
+	<enricher input-channel="input2" output-channel="output">
+		<header name="foo" expression="new java.util.Date()" type="int"/>
 	</enricher>
 
 	<beans:bean id="testBean" class="java.lang.String">

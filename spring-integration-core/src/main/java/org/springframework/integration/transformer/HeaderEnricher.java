@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,14 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 
 /**
  * A Transformer that adds statically configured header values to a Message.
@@ -146,78 +140,6 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 		}
 	}
 
-	public static interface HeaderValueMessageProcessor<T> extends MessageProcessor<T> {
-
-		Boolean isOverwrite();
-
-	}
-
-	static abstract class AbstractHeaderValueMessageProcessor<T> implements HeaderValueMessageProcessor<T> {
-
-		// null indicates no explicit setting; use header-enricher's
-		// 'default-overwrite' value
-		private volatile Boolean overwrite = null;
-
-		public void setOverwrite(Boolean overwrite) {
-			this.overwrite = overwrite;
-		}
-
-		public Boolean isOverwrite() {
-			return this.overwrite;
-		}
-
-	}
-
-	static class StaticHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> {
-
-		private final T value;
-
-		public StaticHeaderValueMessageProcessor(T value) {
-			this.value = value;
-		}
-
-		public T processMessage(Message<?> message) {
-			return this.value;
-		}
-	}
-
-	static class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T>
-			implements BeanFactoryAware {
-
-		private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(
-				true, true));
-
-		private final ExpressionEvaluatingMessageProcessor<T> targetProcessor;
-
-		/**
-		 * Create a header value processor for the given Expression and the
-		 * expected type of the expression evaluation result. The expectedType
-		 * may be null if unknown.
-		 */
-		public ExpressionEvaluatingHeaderValueMessageProcessor(Expression expression, Class<T> expectedType) {
-			this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
-		}
-
-		/**
-		 * Create a header value processor for the given expression string and
-		 * the expected type of the expression evaluation result. The
-		 * expectedType may be null if unknown.
-		 */
-		public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<T> expectedType) {
-			Expression expression = expressionParser.parseExpression(expressionString);
-			this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
-		}
-
-		public void setBeanFactory(BeanFactory beanFactory) {
-			this.targetProcessor.setBeanFactory(beanFactory);
-		}
-
-		public T processMessage(Message<?> message) {
-			return this.targetProcessor.processMessage(message);
-		}
-
-	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -241,35 +163,13 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 		for (HeaderValueMessageProcessor<?> processor : this.headersToAdd.values()) {
 			Boolean processerOverwrite = processor.isOverwrite();
 			if (processerOverwrite != null) {
-				shouldOverwrite |= processerOverwrite.booleanValue();
+				shouldOverwrite |= processerOverwrite;
 			}
 		}
 		if (!shouldOverwrite && !this.shouldSkipNulls) {
 			logger.warn(this.beanName
 					+ " is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
 		}
-	}
-
-	static class MessageProcessingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Object> {
-
-		private final MessageProcessor<?> targetProcessor;
-
-		public <T> MessageProcessingHeaderValueMessageProcessor(MessageProcessor<T> targetProcessor) {
-			this.targetProcessor = targetProcessor;
-		}
-
-		public MessageProcessingHeaderValueMessageProcessor(Object targetObject) {
-			this(targetObject, null);
-		}
-
-		public MessageProcessingHeaderValueMessageProcessor(Object targetObject, String method) {
-			this.targetProcessor = new MethodInvokingMessageProcessor<Object>(targetObject, method);
-		}
-
-		public Object processMessage(Message<?> message) {
-			return this.targetProcessor.processMessage(message);
-		}
-
 	}
 
 }
