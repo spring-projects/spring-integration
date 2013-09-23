@@ -71,6 +71,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 						try {
 							return invocation.proceed();
 						}
+						catch (Exception e) {
+							throw e;
+						}
 						catch (Throwable e) {
 							throw new ThrowableHolderException(e);
 						}
@@ -91,6 +94,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 												" so please raise an issue if you see this exception");
 							}
 						}
+						catch (Exception e) {
+							throw e;
+						}
 						catch (Throwable e) {
 							throw new ThrowableHolderException(e);
 						}
@@ -98,12 +104,7 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 				}, invocationThis, message);
 			}
 			catch (Exception e) {
-				if (e instanceof ThrowableHolderException) {
-					throw e.getCause();
-				}
-				else {
-					throw e;
-				}
+				throw this.unwrapThrowableIfNecessary(e);
 			}
 		}
 	}

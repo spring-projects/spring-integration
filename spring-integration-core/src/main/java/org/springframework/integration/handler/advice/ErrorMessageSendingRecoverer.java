@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.springframework.integration.handler.advice;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
@@ -29,7 +30,9 @@ import org.springframework.util.Assert;
 /**
  * RecoveryCallback that sends the final throwable as an ErrorMessage after
  * retry exhaustion.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
@@ -57,11 +60,11 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object> {
 					"this can occur, for example, if the RetryPolicy allowed zero attempts to execute the handler; " +
 					"RetryContext: " + context.toString());
 		}
+		else if (!(lastThrowable instanceof MessagingException)) {
+			lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"), lastThrowable);
+		}
 		if (logger.isDebugEnabled()) {
-			String supplement = "";
-			if (lastThrowable instanceof MessagingException) {
-				supplement = ":failedMessage:" + ((MessagingException) lastThrowable).getFailedMessage();
-			}
+			String supplement = ":failedMessage:" + ((MessagingException) lastThrowable).getFailedMessage();
 			logger.debug("Sending ErrorMessage " + supplement, lastThrowable);
 		}
 		messagingTemplate.send(new ErrorMessage(lastThrowable));
