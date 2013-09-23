@@ -22,25 +22,11 @@
 			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="url" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
 						The URL for an RSS or ATOM feed.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Identifies channel attached to this adapter. Depending on the type of the adapter
-						this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where
-						messages will be sent to by this adapter (e.g., inbound-channel-adapter).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -71,14 +57,6 @@
 							<tool:expected-type type="org.springframework.integration.store.MetadataStore" />
 						</tool:annotation>
 					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
-				<xsd:annotation>
-					<xsd:documentation>
-					Lifecycle attribute signaling if this component should be started during Application Context startup.
-					Default is 'true'
-					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>

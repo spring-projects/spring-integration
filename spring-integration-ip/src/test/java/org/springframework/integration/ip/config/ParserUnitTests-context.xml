@@ -37,6 +37,8 @@
 		task-executor="externalTE"
 		error-channel="errorChannel"
 		lookup-host="false"
+		auto-startup="false"
+		phase="1234"
 	/>
 
 	<ip:udp-inbound-channel-adapter id="testInUdpMulticast"

@@ -46,6 +46,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
@@ -110,6 +111,10 @@ public class ParserUnitTests {
 	@Autowired
 	@Qualifier(value="testOutUdpiMulticast.handler")
 	MulticastSendingMessageHandler udpOutMulticast;
+
+	@Autowired
+	@Qualifier(value="testOutTcpNio")
+	AbstractEndpoint tcpOutEndpoint;
 
 	@Autowired
 	@Qualifier(value="testOutTcpNio.handler")
@@ -288,6 +293,8 @@ public class ParserUnitTests {
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertFalse((Boolean)mapperAccessor.getPropertyValue("lookupHost"));
+		assertFalse(TestUtils.getPropertyValue(udpIn, "autoStartup", Boolean.class));
+		assertEquals(1234, dfa.getPropertyValue("phase"));
 	}
 
 	@Test
@@ -431,8 +438,8 @@ public class ParserUnitTests {
 		assertEquals("ip:tcp-outbound-channel-adapter", tcpOut.getComponentType());
 		assertFalse(cfC1.isLookupHost());
 		assertEquals(35, dfa.getPropertyValue("order"));
-		assertFalse(tcpOut.isAutoStartup());
-		assertEquals(125, tcpOut.getPhase());
+		assertFalse(tcpOutEndpoint.isAutoStartup());
+		assertEquals(125, tcpOutEndpoint.getPhase());
 		assertFalse((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfC1, "mapper"), "applySequence"));
 	}

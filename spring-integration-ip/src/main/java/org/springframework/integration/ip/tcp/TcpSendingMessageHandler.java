@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
-import org.springframework.context.SmartLifecycle;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -45,17 +45,13 @@ import org.springframework.util.Assert;
  *
  */
 public class TcpSendingMessageHandler extends AbstractMessageHandler implements
-		TcpSender, SmartLifecycle, ClientModeCapable {
+		TcpSender, Lifecycle, ClientModeCapable {
 
 	private volatile AbstractConnectionFactory clientConnectionFactory;
 
 	private volatile AbstractConnectionFactory serverConnectionFactory;
 
 	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
-
-	private volatile boolean autoStartup = true;
-
-	private volatile int phase;
 
 	private volatile boolean isClientMode;
 
@@ -245,14 +241,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		return this.active;
 	}
 
-	public int getPhase() {
-		return this.phase;
-	}
-
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
 	public void stop(Runnable callback) {
 		synchronized (this.lifecycleMonitor) {
 			if (this.active) {
@@ -269,14 +257,6 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 				}
 			}
 		}
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
-	public void setPhase(int phase) {
-		this.phase = phase;
 	}
 
 	/**

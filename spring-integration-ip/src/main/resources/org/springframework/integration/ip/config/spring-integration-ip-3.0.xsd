@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/ip"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:tool="http://www.springframework.org/schema/tool"
-		xmlns:integration="http://www.springframework.org/schema/integration"
-		targetNamespace="http://www.springframework.org/schema/integration/ip"
-		elementFormDefault="qualified"
-		attributeFormDefault="unqualified">
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/ip"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
-	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
-	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd"/>
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -22,7 +20,7 @@
 	<xsd:element name="udp-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a udp inbound Channel Adapter for receiving incoming udp packets.
+				Defines a udp inbound Channel Adapter for receiving incoming udp packets.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -32,7 +30,8 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type
+										type="org.springframework.integration.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -41,16 +40,21 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type
+										type="org.springframework.integration.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
-								If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
-								the MessagingException will be sent to this channel. Otherwise, any such exception
+								If a (synchronous) downstream exception is
+								thrown and an "error-channel" is specified,
+								the
+								MessagingException will be sent to this channel. Otherwise, any
+								such exception
 								will simply be logged by the channel adapter.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -59,20 +63,22 @@
 	<xsd:element name="udp-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an outbound UDP packet-sending Channel Adapter.
+				Defines an outbound UDP packet-sending Channel Adapter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="udpAdapterType">
 					<xsd:all>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType"
+							minOccurs="0" maxOccurs="1" />
 					</xsd:all>
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+									<tool:expected-type
+										type="org.springframework.integration.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -87,16 +93,19 @@
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-Specifies a specific Executor to be used for handling acknowledgments in the UDP adapter. If not supplied, an internal
-pooled executor will be used. Needed on some platforms that require the use of specific
-task executors such as a WorkManagerTaskExecutor.
+								Specifies a specific Executor to be used for handling acknowledgments in
+								the UDP adapter. If not supplied, an internal
+								pooled executor will be used. Needed on some platforms that require
+								the use of specific
+								task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="order">
 						<xsd:annotation>
 							<xsd:documentation>
-								Specifies the order for invocation when this endpoint is connected as a
+								Specifies the order for invocation when this
+								endpoint is connected as a
 								subscriber to a SubscribableChannel.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -108,237 +117,263 @@ task executors such as a WorkManagerTaskExecutor.
 
 	<xsd:element name="tcp-inbound-channel-adapter">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
-					<xsd:attribute name="id" type="xsd:string"/>
-					<xsd:attribute name="connection-factory" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-		A connection factory is needed by an inbound adapter. If the connection factory has a type 'server',
-		the factory is 'owned' by this adapter. If it has a type 'client', it is owned by an outbound channel
-		adapter and this adapter will receive any incoming messages on the connection created by the outbound
-		adapter.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="error-channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-								If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
-								the MessagingException will be sent to this channel. Otherwise, any such exception
-								will simply be logged by the channel adapter.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="client-mode" type="xsd:string" use="optional" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-							 If set to true, causes the adapter to act as a client with respect to
-							 establishing the connection, rather than listening for incoming connections.
-							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to false.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attributeGroup ref="clientModeAttributeGroup" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.ConnectionFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A connection factory is needed by an inbound adapter. If the
+						connection factory has a type 'server',
+						the factory is 'owned' by this adapter. If it has a type 'client', it
+						is owned by an outbound channel
+						adapter and this adapter will receive any incoming messages on the
+						connection created by the outbound
+						adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a (synchronous) downstream exception is thrown and an
+						"error-channel" is specified,
+						the MessagingException will be sent to this channel. Otherwise, any
+						such exception
+						will simply be logged by the channel adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="client-mode" type="xsd:string"
+				use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true, causes the adapter to act as a client with respect
+						to
+						establishing the connection, rather than listening for incoming connections.
+						Requires a type="client" connection factory, with single-use set
+						to false.
+						Defaults to false.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="clientModeAttributeGroup" />
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="tcp-outbound-channel-adapter">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
-					<xsd:all>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
-					</xsd:all>
-					<xsd:attribute name="id" type="xsd:string"/>
-					<xsd:attribute name="connection-factory" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-		A connection factory is needed by an outbound adapter. If the connection factory has a type 'client',
-		the factory is 'owned' by this adapter. If it has a type 'server', it is owned by an inbound channel
-		adapter and this adapter will attempt to correlate messages to the connection on which an original
-		inbound message was received.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="order">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specifies the order for invocation when this endpoint is connected as a
-								subscriber to a SubscribableChannel.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="client-mode" type="xsd:string" use="optional" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-							 If set to true, causes the adapter to establish a connection when started,
-							 rather than when the first message is sent.
-							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to false.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attributeGroup ref="clientModeAttributeGroup" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:all>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType"
+					minOccurs="0" maxOccurs="1" />
+			</xsd:all>
+			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.ConnectionFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A connection factory is needed by an outbound adapter. If the
+						connection factory has a type 'client',
+						the factory is 'owned' by this adapter. If it has a type 'server', it
+						is owned by an inbound channel
+						adapter and this adapter will attempt to correlate messages to the
+						connection on which an original
+						inbound message was received.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="client-mode" type="xsd:string"
+				use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true, causes the adapter to establish a connection when
+						started,
+						rather than when the first message is sent.
+						Requires a type="client" connection factory, with single-use set to false.
+						Defaults to false.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="clientModeAttributeGroup" />
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="tcp-inbound-gateway">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
-					<xsd:attribute name="id" type="xsd:string"/>
-					<xsd:attribute name="connection-factory" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory"/>
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-		A connection factory is needed by an inbound adapter. The connection factory must be of type 'server'.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="request-channel" type="xsd:string" use="required">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="reply-channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="reply-timeout" type="xsd:string"/>
-					<xsd:attribute name="error-channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-								If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
-								the MessagingException will be sent to this channel and the ultimate response
-								of the error flow will be returned as a response by the gateway. If no
-								"error-channel" is specified, any such exception
-								will simply be logged by the gateway. In such a situation, no response is sent
-								to the client.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="client-mode" type="xsd:string" use="optional" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-							 If set to true, causes the gateway to act as a client with respect to
-							 establishing the connection, rather than listening for incoming connections.
-							 Requires a type="client" connection factory, with single-use set to false.
-							 Defaults to false.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attributeGroup ref="clientModeAttributeGroup" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A connection factory is needed by an inbound adapter. The
+						connection factory must be of type 'server'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string"
+				use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string" />
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a (synchronous) downstream exception is thrown and an
+						"error-channel" is specified,
+						the MessagingException will be sent to this channel and the ultimate
+						response
+						of the error flow will be returned as a response by the gateway. If
+						no
+						"error-channel" is specified, any such exception
+						will simply be logged by the gateway. In such a situation, no response
+						is sent
+						to the client.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="client-mode" type="xsd:string"
+				use="optional" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true, causes the gateway to act as a client with respect
+						to
+						establishing the connection, rather than listening for incoming connections.
+						Requires a type="client" connection factory, with single-use set
+						to false.
+						Defaults to false.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="clientModeAttributeGroup" />
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="tcp-outbound-gateway">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
-					<xsd:all>
-						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
-					</xsd:all>
-					<xsd:attribute name="id" type="xsd:string"/>
-					<xsd:attribute name="connection-factory" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-		A connection factory is needed by an outbound adapter. The connection factory must be of 'client'.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="request-channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="reply-channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="request-timeout" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								When using a shared socket, specifies the time the gateway will wait
-								to get access to the socket to send the request.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="reply-timeout" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+			<xsd:all>
+				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType"
+					minOccurs="0" maxOccurs="1" />
+			</xsd:all>
+			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.ConnectionFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A connection factory is needed by an outbound adapter. The
+						connection factory must be of 'client'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						When using a shared socket, specifies the time the gateway will wait
+						to get access to the socket to send the request.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
 								Allows you to specify how long this gateway will wait for
 								the reply message to be sent successfully to the reply channel
 								before throwing an exception. This attribute only applies when the
@@ -361,42 +396,42 @@ task executors such as a WorkManagerTaskExecutor.
 								the remote-timeout attribute; it has been changed
 								to make it consistent with other endpoints.
 							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="remote-timeout" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specifies the time the gateway will wait for a reply
-								from the remote system. Prior to 2.2, this was specified
-								with the reply-timeout attribute. To provide easier migration,
-								this attribute defaults to the same value of the reply-timeout,
-								if supplied, or 10 seconds otherwise.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="order">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specifies the order for invocation when this endpoint is connected as a
-								subscriber to a SubscribableChannel.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="remote-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the time the gateway will wait for a reply
+						from the remote system. Prior to 2.2, this was specified
+						with the reply-timeout attribute. To provide easier migration,
+						this attribute defaults to the same value of the reply-timeout,
+						if supplied, or 10 seconds otherwise.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="tcp-connection-factory">
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="type">
 				<xsd:annotation>
 					<xsd:documentation>
-Connection factories can be 'client' or 'server'. Client factories
-open a connection to a server using a host and port. Server factories
-listen on a port and create a separate connection for each incoming
-connection request.
+						Connection factories can be 'client' or 'server'. Client factories
+						open a connection to a server using a host and port. Server factories
+						listen on a port and create a separate connection for each
+						incoming
+						connection request.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -409,25 +444,30 @@ connection request.
 			<xsd:attribute name="host" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-The host to which a client connection factory will connect.
+						The host to which a client connection factory will connect.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="port" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-For client factories, the port to which a client connection factory will connect.
-For server factories, the port on which the factory will listen for incoming
-connections.
+						For client factories, the port to which a client connection factory
+						will connect.
+						For server factories, the port on which the factory will listen for
+						incoming
+						connections.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="using-nio" type="xsd:string" default="false">
+			<xsd:attribute name="using-nio" type="xsd:string"
+				default="false">
 				<xsd:annotation>
 					<xsd:documentation>
-If true, the factory will use java.nio.channel.SocketChannel for communication;
-for a large number of connections on the server side, this can provide better
-performance and may use fewer threads.
+						If true, the factory will use java.nio.channel.SocketChannel for
+						communication;
+						for a large number of connections on the server side, this can
+						provide better
+						performance and may use fewer threads.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -441,85 +481,105 @@ performance and may use fewer threads.
 			<xsd:attribute name="using-direct-buffers" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-If true, instructs the factory to use direct buffers if possible; only applies if
-using-nio is true. Refer to ByteBuffer javadocs for more information.
+						If true, instructs the factory to use direct buffers if possible;
+						only applies if
+						using-nio is true. Refer to ByteBuffer javadocs for more information.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="single-use" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-If true, a new connection will be created for each use. For inbound adapters
-where there is no outbound adapter sharing the factory, the connection will
-be closed after a message is received. For outbound adapters where there is
-no inbound adapter sharing the factory, or for inbound adapters where an
-outbound adapter shares the factory, the connection will be closed after
-so-timeout milliseconds. For outbound adapters where an inbound adapter shares
-the factory, the connection will be closed after a response is received.
+						If true, a new connection will be created for each use. For inbound
+						adapters
+						where there is no outbound adapter sharing the factory, the connection
+						will
+						be closed after a message is received. For outbound adapters where
+						there is
+						no inbound adapter sharing the factory, or for inbound adapters
+						where an
+						outbound adapter shares the factory, the connection will be closed after
+						so-timeout milliseconds. For outbound adapters where an inbound
+						adapter shares
+						the factory, the connection will be closed after a response is
+						received.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="serializer" type="xsd:string" >
+			<xsd:attribute name="serializer" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.core.serializer.Serializer"/>
+							<tool:expected-type
+								type="org.springframework.core.serializer.Serializer" />
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-A Serializer that converts message payloads to/from output streams/input streams
-associated with the connection. Default is ByteArrayCrLfSerializer. Serializer and Deserializer
-would normally be the same but this is not required.
+						A Serializer that converts message payloads
+						to/from output streams/input streams
+						associated with the
+						connection. Default is ByteArrayCrLfSerializer. Serializer and
+						Deserializer
+						would normally be the same but this is not required.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="deserializer" type="xsd:string" >
+			<xsd:attribute name="deserializer" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.core.serializer.Deserializer"/>
+							<tool:expected-type
+								type="org.springframework.core.serializer.Deserializer" />
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-A Deserializer that converts message payloads to/from output streams/input streams
-associated with the connection. Default is ByteArrayCrLfSerializer. Serializer and Deserializer
-would normally be the same but this is not required.
+						A Deserializer that converts message payloads to/from output
+						streams/input streams
+						associated with the connection. Default is ByteArrayCrLfSerializer.
+						Serializer and Deserializer
+						would normally be the same but this is not required.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="local-address" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-On a multi-homed system, specifies the ip address of the network interface used to communicate.
-For inbound adapters and gateways, specifies the interface used to listen for incoming connections.
-If omitted, the endpoint will listen on all available adapters. For the UDP multicast outbound adapter
-specifies the interface to which multicast packets will be sent. For UDP unicast and multicast
-adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
-apply to TCP outbound adapters and gateways.
+						On a multi-homed system, specifies the ip address of the network
+						interface used to communicate.
+						For inbound adapters and gateways, specifies the interface used to
+						listen for incoming connections.
+						If omitted, the endpoint will listen on all available adapters. For
+						the UDP multicast outbound adapter
+						specifies the interface to which multicast packets will be sent. For UDP
+						unicast and multicast
+						adapters, specifies which interface to which the acknowledgment socket will
+						be bound. Does not
+						apply to TCP outbound adapters and gateways.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-A task executor for managing connections; if not specified a
-cached thread pool task executor is used.
+						A task executor for managing connections; if not specified a
+						cached thread pool task executor is used.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="backlog" type="xsd:string" >
+			<xsd:attribute name="backlog" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-Specifies the connection backlog for server sockets. Does not
-apply to client factories.
+						Specifies the connection backlog for server sockets. Does not
+						apply to client factories.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="lookup-host" type="xsd:string" >
+			<xsd:attribute name="lookup-host" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-Whether or not to do a DNS reverse-lookup on the remote ip address to insert the host name into the
-message headers (ip_connectionId, ip_hostName). Default "true".
+						Whether or not to do a DNS reverse-lookup on the remote ip address to
+						insert the host name into the
+						message headers (ip_connectionId, ip_hostName). Default "true".
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -527,32 +587,42 @@ message headers (ip_connectionId, ip_hostName). Default "true".
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain"/>
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="apply-sequence" type="xsd:string" default="false">
+			<xsd:attribute name="apply-sequence" type="xsd:string"
+				default="false">
 				<xsd:annotation>
 					<xsd:documentation>
-When set to "true", adds sequenceNumber and correlationId headers to messages originating from
-connections created by this factory. Facilitates resequencing if necessary. Default "false".
+						When set to "true", adds sequenceNumber and correlationId headers to
+						messages originating from
+						connections created by this factory. Facilitates resequencing if necessary.
+						Default "false".
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="ssl-context-support" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-A reference to a TcpSSLContextSupport strategy implementation. Providing this reference
-enables SSL on connections created by this factory. A DefaultTcpSSLContextSupport implementation
-is provided that takes keystore and trustore names and passwords. The SSLContext created by
-this implementation is used to obtain socket factories (when using-nio="false") or SSLEngine
-instances (when using-nio="true"). When this attribute is omitted, normal plain text
-sockets are used.
+						A reference to a TcpSSLContextSupport strategy implementation.
+						Providing this reference
+						enables SSL on connections created by this factory. A
+						DefaultTcpSSLContextSupport implementation
+						is provided that takes keystore and trustore names and passwords.
+						The SSLContext created by
+						this implementation is used to obtain socket factories (when
+						using-nio="false") or SSLEngine
+						instances (when using-nio="true"). When this attribute is omitted, normal
+						plain text
+						sockets are used.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSSLContextSupport"/>
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.TcpSSLContextSupport" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -560,12 +630,15 @@ sockets are used.
 			<xsd:attribute name="socket-support" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-A reference to a TcpSocketSupport strategy implementation. Allows post-processing Socket
-and ServerSocket instances after creation and after configured attributes are applied.
+						A reference to a TcpSocketSupport strategy implementation. Allows
+						post-processing Socket
+						and ServerSocket instances after creation and after configured
+						attributes are applied.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSocketSupport"/>
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.TcpSocketSupport" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -573,15 +646,19 @@ and ServerSocket instances after creation and after configured attributes are ap
 			<xsd:attribute name="socket-factory-support" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-A reference to a TcpSocketFactorySupport strategy implementation. Allows customization
-of the factories used to create sockets. The default implementation returns default.
-ServerSocketFactory and SocketFactory instances, unless an 'ssl-context-support'
-attribute has been supplied, in which case the SSLContext obtained therefrom is
-used to create SSLServerSocketFactory and SSLSocketFactory instances.
+						A reference to a TcpSocketFactorySupport strategy implementation.
+						Allows customization
+						of the factories used to create sockets. The default implementation
+						returns default.
+						ServerSocketFactory and SocketFactory instances, unless an 'ssl-context-support'
+						attribute has been supplied, in which case the SSLContext obtained
+						therefrom is
+						used to create SSLServerSocketFactory and SSLSocketFactory instances.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport"/>
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.TcpSocketFactorySupport" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -589,12 +666,14 @@ used to create SSLServerSocketFactory and SSLSocketFactory instances.
 			<xsd:attribute name="mapper" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-A reference to a TcpMessageMapper implementation. Allows customization of headers in inbound messages by overriding
-setCustomHeaders(). Default is TcpMessageMapper.
+						A reference to a TcpMessageMapper implementation. Allows
+						customization of headers in inbound messages by overriding
+						setCustomHeaders(). Default is TcpMessageMapper.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpMessageMapper"/>
+							<tool:expected-type
+								type="org.springframework.integration.ip.tcp.connection.TcpMessageMapper" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -605,68 +684,78 @@ setCustomHeaders(). Default is TcpMessageMapper.
 	<xsd:element name="tcp-connection-event-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound Channel Adapter which listens for TCP Connection
-				events, converts them to Messages and sends them to a Message Channel.
+				Configures an inbound Channel Adapter which
+				listens for TCP Connection
+				events, converts them to Messages and
+				sends them to a Message Channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
-					<xsd:attribute name="id" type="xsd:string" use="optional" />
-					<xsd:attribute name="event-types" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								Comma delimited list of event types (classes that extend TcpConnectionEvent) that this adapter
-								should send to the message channel. By default, all event types will be sent [OPTIONAL].
-								Note, it is NOT possible to filter by subtype, just class - for example, the standard TcpConnectionEvent
-								class has 3 subtypes (OPEN, CLOSE, EXCEPTION). This feature is intended to allow the adapter to
-								be used, say, to obtain just subclasses of TcpConnectionEvent (perhaps generated by a
-								TcpConnectionInterceptor, perhaps to signal handshaking of some kind).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type
-										type="org.springframework.integration.MessageChannel" />
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-								The channel to which Messages generated from Application Context events will be sent.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="error-channel" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type
-										type="org.springframework.integration.MessageChannel" />
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-								If a (synchronous) downstream exception is thrown and an error-channel is specified,
-								a MessagingException will be sent to this channel. Otherwise, any such exception
-								will be propagated to the caller.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attribute name="id" type="xsd:string" use="optional" />
+			<xsd:attribute name="event-types" type="xsd:string"
+				use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						Comma delimited list of event types (classes that extend
+						TcpConnectionEvent) that this adapter
+						should send to the message channel. By default, all event types will be
+						sent [OPTIONAL].
+						Note, it is NOT possible to filter by subtype, just class - for
+						example, the standard TcpConnectionEvent
+						class has 3 subtypes (OPEN, CLOSE, EXCEPTION). This feature is intended
+						to allow the adapter to
+						be used, say, to obtain just subclasses of TcpConnectionEvent
+						(perhaps generated by a
+						TcpConnectionInterceptor, perhaps to signal handshaking of some kind).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						The channel to which Messages generated from Application Context
+						events will be sent.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a (synchronous) downstream exception is thrown and an
+						error-channel is specified,
+						a MessagingException will be sent to this channel. Otherwise, any
+						such exception
+						will be propagated to the caller.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="udpInboundAdapterType">
 		<xsd:complexContent>
 			<xsd:extension base="udpAdapterType">
-				<xsd:attribute name="pool-size" type="xsd:string" >
+				<xsd:attribute name="pool-size" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-The number of threads that will be used for socket/channel handling. Only applies
-if an external task-executor is NOT being used. When using an external task executor,
-its configuration specifies the number of threads.
+							The number of threads that will be used for socket/channel handling.
+							Only applies
+							if an external task-executor is NOT being used. When using an
+							external task executor,
+							its configuration specifies the number of threads.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -675,17 +764,20 @@ its configuration specifies the number of threads.
 				<xsd:attribute name="task-executor" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-Specifies a specific Executor to be used for socket handling. If not supplied, an internal
-pooled executor will be used (See pool-size). Needed on some platforms that require the use of specific
-task executors such as a WorkManagerTaskExecutor.
+							Specifies a specific Executor to be used for socket handling. If not
+							supplied, an internal
+							pooled executor will be used (See pool-size). Needed on some platforms
+							that require the use of specific
+							task executors such as a WorkManagerTaskExecutor.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="lookup-host" type="xsd:string" >
+				<xsd:attribute name="lookup-host" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-Whether or not to do a DNS reverse-lookup on the remote ip address to insert the host name into the
-message headers (ip_hostName). Default "true".
+							Whether or not to do a DNS reverse-lookup on the remote ip address to
+							insert the host name into the
+							message headers (ip_hostName). Default "true".
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -696,7 +788,7 @@ message headers (ip_hostName). Default "true".
 	<xsd:complexType name="udpAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Common configuration for UDP-based adapters.
+				Common configuration for UDP-based adapters.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -708,7 +800,7 @@ message headers (ip_hostName). Default "true".
 	</xsd:complexType>
 
 	<xsd:complexType name="common-attributes">
-		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="id" type="xsd:string" />
 		<xsd:attribute name="port" type="xsd:string" />
 		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
@@ -716,42 +808,30 @@ message headers (ip_hostName). Default "true".
 		<xsd:attribute name="local-address" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-On a multi-homed system, specifies the ip address of the network interface used to communicate.
-For inbound adapters and gateways, specifies the interface used to listen for incoming connections.
-If omitted, the endpoint will listen on all available adapters. For the UDP multicast outbound adapter
-specifies the interface to which multicast packets will be sent. For UDP unicast and multicast
-adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
-apply to TCP outbound adapters and gateways.
+					On a multi-homed system, specifies the ip address of the network
+					interface used to communicate.
+					For inbound adapters and gateways, specifies the interface used to
+					listen for incoming connections.
+					If omitted, the endpoint will listen on all available adapters. For
+					the UDP multicast outbound adapter
+					specifies the interface to which multicast packets will be sent. For UDP
+					unicast and multicast
+					adapters, specifies which interface to which the acknowledgment socket will
+					be bound. Does not
+					apply to TCP outbound adapters and gateways.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:complexType name="smartLifeCycleType">
-		<xsd:attribute name="auto-startup" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-Boolean value indicating whether this endpoint should start automatically.
-				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="phase" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-The lifecycle phase within which this endpoint should start and stop.
-The lower the value the earlier this endpoint will start and the later it will stop. The
-default is 0. Values can be negative. See SmartLifeCycle.
-				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
-
 	<xsd:attributeGroup name="clientModeAttributeGroup">
-		<xsd:attribute name="retry-interval" type="xsd:string" use="optional" default="60000">
+		<xsd:attribute name="retry-interval" type="xsd:string"
+			use="optional" default="60000">
 			<xsd:annotation>
 				<xsd:documentation>
-				 When in client mode, specifies the retry interval, in milliseconds, if a connection
-				 cannot be established. Defaults to 60000.
+					When in client mode, specifies the retry interval, in milliseconds, if
+					a connection
+					cannot be established. Defaults to 60000.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -759,8 +839,10 @@ default is 0. Values can be negative. See SmartLifeCycle.
 			<xsd:annotation>
 				<xsd:documentation>
 					When in client mode,
-					provide a reference to the TaskScheduler instance to
-					be used for establishing connections. If not provided, the default
+					provide a reference to the
+					TaskScheduler instance to
+					be used for establishing connections. If
+					not provided, the default
 					will use a thread pool of size 1.
 				</xsd:documentation>
 				<xsd:appinfo>

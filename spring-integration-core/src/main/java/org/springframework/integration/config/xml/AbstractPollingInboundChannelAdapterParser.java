@@ -49,8 +49,6 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		if (pollerElement != null) {
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, adapterBuilder, parserContext);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "phase");
 		return adapterBuilder.getBeanDefinition();
 	}
 

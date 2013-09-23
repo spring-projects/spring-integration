@@ -37,10 +37,6 @@ public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				IpAdapterParserUtils.AUTO_STARTUP);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-				IpAdapterParserUtils.PHASE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.CLIENT_MODE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RETRY_INTERVAL);

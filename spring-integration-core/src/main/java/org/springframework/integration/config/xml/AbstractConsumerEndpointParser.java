@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.config.xml;
 import java.util.Collection;
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
@@ -34,7 +36,6 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Base class parser for elements that create Message Endpoints.
@@ -96,7 +97,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 						+ elementDescription + ".", element);
 			}
 			return handlerBeanDefinition;
-		} else {
+		}
+		else {
 			if (!hasInputChannelAttribute) {
 				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
 				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
@@ -115,18 +117,18 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 
-		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)){
-			if (parserContext.getRegistry().containsBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)){
+		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
+			if (parserContext.getRegistry().containsBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
 				BeanDefinition channelRegistry = parserContext.getRegistry().
 						getBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 				ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
 				ValueHolder vh = caValues.getArgumentValue(0, Collection.class);
-				if (vh == null){ //although it should never happen if it does we can fix it
+				if (vh == null) { //although it should never happen if it does we can fix it
 					caValues.addIndexedArgumentValue(0, new ManagedSet<String>());
 				}
 
 				@SuppressWarnings("unchecked")
-				Collection<String>  channelCandidateNames = (Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue();
+				Collection<String> channelCandidateNames = (Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue();
 				channelCandidateNames.add(inputChannelName);
 			}
 			else {
@@ -144,7 +146,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			}
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElementList.get(0), builder, parserContext);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = this.resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));

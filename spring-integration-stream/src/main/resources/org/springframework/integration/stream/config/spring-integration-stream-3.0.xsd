@@ -29,18 +29,8 @@
 			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -55,19 +45,9 @@
 	or to stderr (System.err) depending on the element name.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="charset" type="xsd:string"/>
 		<xsd:attribute name="append-newline" type="xsd:string" default="false"/>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		<xsd:attribute name="order">
 			<xsd:annotation>
 				<xsd:documentation>

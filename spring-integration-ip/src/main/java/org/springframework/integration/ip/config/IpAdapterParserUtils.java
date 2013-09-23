@@ -16,12 +16,13 @@
 
 package org.springframework.integration.ip.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Utility methods and constants for IP adapter parsers.
@@ -102,10 +103,6 @@ public abstract class IpAdapterParserUtils {
 	public static final String REPLY_CHANNEL = "reply-channel";
 
 	public static final String LOOKUP_HOST = "lookup-host";
-
-	public static final String AUTO_STARTUP = "auto-startup";
-
-	public static final String PHASE = "phase";
 
 	public static final String APPLY_SEQUENCE = "apply-sequence";
 

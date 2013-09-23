@@ -44,32 +44,7 @@
 					</xsd:sequence>
 				</xsd:choice>
             </xsd:sequence>
-            <xsd:attribute name="id" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (SourcePollingChannelAdapter)
-
-                        Keep in mind that if no "channel" attribute is defined, then the "id" attribute is required.
-                        In that case the "id" attribute's value will be used as the channel name and ".adapter" will be
-                        appended to the "id" value of the underlying bean definition.
-                        ]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[Defines the message channel to which the payload shall be forwarded to.
-
-                        Keep in mind that any Channel Adapter can be created without a "channel" reference in which case
-                        it will implicitly create an instance of DirectChannel. The created channel's name will match
-                        the "id" attribute of the <inbound-channel-adapter/> element. Therefore, if the "channel" attribute
-                        is not provided, then the "id" attribute is required.
-                        ]]></xsd:documentation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
+           <xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
             <xsd:attribute name="directory" type="xsd:string" use="required">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[Specifies the input directory (The directory to poll from) e.g.:
@@ -139,13 +114,6 @@ Only files matching this regular expression will be picked up by this adapter.
 					]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="auto-startup" type="xsd:string" default="true">
-                <xsd:annotation>
-				    <xsd:documentation>
-				        Lifecycle attribute signaling if this component should be started during Application Context startup.
-				    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
             <xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -200,32 +168,7 @@ Only files matching this regular expression will be picked up by this adapter.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (xxxFileTailingMessageProducer)
-
-                        If no "channel" attribute is defined, then the "id" attribute is required.
-                        In that case the "id" attribute's value will be used as the channel name and ".adapter" will be
-                        appended to the "id" value of the underlying bean definition.
-                        ]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[Defines the message channel to which the payload shall be forwarded to.
-
-                        Any Channel Adapter can be created without a "channel" reference in which case
-                        it will implicitly create an instance of DirectChannel. The created channel's name will match
-                        the "id" attribute of the <inbound-channel-adapter/> element. Therefore, if the "channel" attribute
-                        is not provided, then the "id" attribute is required.
-                        ]]></xsd:documentation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
             <xsd:attribute name="native-options" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -319,21 +262,6 @@ Only files matching this regular expression will be picked up by this adapter.
 				<xsd:simpleType>
 					<xsd:union memberTypes="xsd:boolean xsd:string"/>
 				</xsd:simpleType>
-            </xsd:attribute>
-            <xsd:attribute name="auto-startup" type="xsd:string" default="true">
-                <xsd:annotation>
-				    <xsd:documentation>
-				        Lifecycle attribute signaling if this component should be started during Application Context startup.
-				    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="phase" type="xsd:string">
-                <xsd:annotation>
-				    <xsd:documentation>
-				        Lifecycle attribute signaling the phase in which this component should be started during
-				        Application Context startup when 'auto-startup' is true.
-				    </xsd:documentation>
-                </xsd:annotation>
             </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
@@ -538,13 +466,6 @@ Only files matching this regular expression will be picked up by this adapter.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="auto-startup" type="xsd:string">
-            <xsd:annotation>
-                <xsd:documentation>
-                    <![CDATA[Lifecycle attribute signaling if this component should be started during Application Context startup.]]>
-                </xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
         <xsd:attribute name="charset" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
@@ -555,6 +476,7 @@ Only files matching this regular expression will be picked up by this adapter.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
     </xsd:complexType>
 
     <xsd:element name="file-to-string-transformer">
