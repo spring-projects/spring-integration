@@ -79,7 +79,13 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+                     Note, the default 'phase' value for XmppConnectionFactoryBean is Integer.MIN_VALUE
+				]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attributeGroup>
 		</xsd:complexType>
 	</xsd:element>
 

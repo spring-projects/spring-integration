@@ -123,7 +123,7 @@
 		<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
-		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="twitter-template"  type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

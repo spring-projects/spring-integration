@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for 'xmpp:xmpp-connection' element
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0
  */
@@ -50,8 +50,8 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String serviceName = element.getAttribute("service-name");
 		String host = element.getAttribute("host");
-		String port = element.getAttribute("port");	
-		BeanDefinitionBuilder connectionConfigurationBuilder = 
+		String port = element.getAttribute("port");
+		BeanDefinitionBuilder connectionConfigurationBuilder =
 			BeanDefinitionBuilder.genericBeanDefinition("org.jivesoftware.smack.ConnectionConfiguration");
 		if (StringUtils.hasText(host)) {
 			Assert.hasLength(port, "Port must be provided if 'host' is specified");
@@ -67,7 +67,8 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 		for (String attribute : connectionFactoryAttributes) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
 		builder.addConstructorArgValue(connectionConfigurationBuilder.getBeanDefinition());
 	}
 
