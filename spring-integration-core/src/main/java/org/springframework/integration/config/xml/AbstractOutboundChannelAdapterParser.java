@@ -71,8 +71,6 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, builder, parserContext);
 		}
 		builder.addPropertyValue("inputChannelName", channelName);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 
 		this.configureRequestHandlerAdviceChain(element, parserContext, handlerBeanComponentDefinition.getBeanDefinition(), builder);
 

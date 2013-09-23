@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -30,7 +32,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base parser for Channel Adapters.
- *
+ * <p/>
  * Includes logic to determine {@link org.springframework.integration.MessageChannel}:
  * if 'channel' attribute is defined - uses its value as 'channelName';
  * if 'id' attribute is defined - creates {@link DirectChannel} at runtime and uses id's value as 'channelName';
@@ -63,7 +65,17 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 		if (!StringUtils.hasText(channelName)) {
 			channelName = this.createDirectChannel(element, parserContext);
 		}
-		return doParse(element, parserContext, channelName);
+		AbstractBeanDefinition beanDefinition = doParse(element, parserContext, channelName);
+		MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
+		String autoStartup = element.getAttribute(IntegrationNamespaceUtils.AUTO_STARTUP);
+		if (StringUtils.hasText(autoStartup)) {
+			propertyValues.add("autoStartup", new TypedStringValue(autoStartup));
+		}
+		String phase = element.getAttribute(IntegrationNamespaceUtils.PHASE);
+		if (StringUtils.hasText(phase)) {
+			propertyValues.add("phase", new TypedStringValue(phase));
+		}
+		return beanDefinition;
 	}
 
 	private String createDirectChannel(Element element, ParserContext parserContext) {

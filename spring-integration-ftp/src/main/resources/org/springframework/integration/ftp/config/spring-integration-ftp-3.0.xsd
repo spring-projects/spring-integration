@@ -545,18 +545,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string"
-			default="true">
-			<xsd:annotation>
-				<xsd:documentation>
-					Lifecycle attribute signaling if this component
-					should be started during
-					Application Context startup.
-					Default is
-					'true'
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
 
 </xsd:schema>

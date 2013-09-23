@@ -136,33 +136,13 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true">
-			<xsd:annotation>
-					<xsd:documentation>
-					Lifecycle attribute signaling whether this component should be started during Application Context startup.
-					Default is 'true'.
-					</xsd:documentation>
-				</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-				<xsd:documentation>
-					Message Channel to which messages will be sent by this adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="outbound-twitter-type">
 		<xsd:all>
 			<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 		</xsd:all>
-		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="twitter-template" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -172,18 +152,6 @@
 					</xsd:appinfo>
 					<xsd:documentation>
 						Reference to a TwitterTemplate bean provided by the Spring Social project.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Message Channel where this adapter receives messages to be handled by performing Twitter operations.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

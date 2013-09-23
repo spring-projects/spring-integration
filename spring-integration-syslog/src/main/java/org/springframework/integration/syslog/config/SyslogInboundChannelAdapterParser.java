@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.syslog.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,7 +25,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ip.config.UdpInboundChannelAdapterParser;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parses a {@code <int-syslog:inbound-channel-adapter/>}.
@@ -59,8 +60,6 @@ public class SyslogInboundChannelAdapterParser extends UdpInboundChannelAdapterP
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		return builder.getBeanDefinition();
 	}
 

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xmpp.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -24,11 +26,10 @@ import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Base class for XMPP inbound parsers
- * 
+ *
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @since 2.0.1
@@ -66,12 +67,11 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractCh
 					"(e.g., <int-xmpp:xmpp-connection .../>). If 'id' is not provided the default will be 'xmppConnection'.");
 		}
 		builder.addPropertyReference("outputChannel", channelName);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		this.postProcess(element, parserContext, builder);
 		return builder.getBeanDefinition();
 	}
-	
+
 	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
 		// no op
 	}

@@ -180,18 +180,7 @@
 	</xsd:element>
 
 	<xsd:complexType name="InboundChannelAdapterType">
-		<xsd:attribute name="id" type="xsd:string" use="optional" />
-		<xsd:attribute name="channel" type="xsd:string" use="optional">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type
-							type="org.springframework.integration.MessageChannel" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="error-channel" type="xsd:string"
 			use="optional">
 			<xsd:annotation>

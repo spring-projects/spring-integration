@@ -564,17 +564,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" default="true" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					Flag to indicate that the component should start automatically
-					on startup (default true).
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:union memberTypes="xsd:boolean xsd:string" />
-			</xsd:simpleType>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:attributeGroup>
 
 	<xsd:simpleType name="persistMode">

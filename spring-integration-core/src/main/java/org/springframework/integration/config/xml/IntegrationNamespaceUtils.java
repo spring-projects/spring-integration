@@ -65,6 +65,8 @@ public abstract class IntegrationNamespaceUtils {
 	static final String EXPRESSION_ATTRIBUTE = "expression";
 	public static final String HANDLER_ALIAS_SUFFIX = ".handler";
 	public static final String REQUEST_HANDLER_ADVICE_CHAIN = "request-handler-advice-chain";
+	public static final String AUTO_STARTUP = "auto-startup";
+	public static final String PHASE = "phase";
 
 	/**
 	 * Property name on ChannelInitializer used to configure the default max subscribers for

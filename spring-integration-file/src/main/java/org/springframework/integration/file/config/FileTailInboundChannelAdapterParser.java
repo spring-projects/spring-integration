@@ -46,8 +46,6 @@ public class FileTailInboundChannelAdapterParser extends AbstractChannelAdapterP
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file-delay");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "end");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reopen");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 
 		return builder.getBeanDefinition();
 	}

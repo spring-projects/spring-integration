@@ -24,8 +24,6 @@
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="int-ip:smartLifeCycleType">
 					<xsd:sequence minOccurs="0" maxOccurs="1">
 						<xsd:element name="udp-attributes" type="int-ip:udpInboundAdapterType"/>
 					</xsd:sequence>
@@ -106,8 +104,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 

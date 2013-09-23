@@ -27,7 +27,6 @@
 						<xsd:element ref="integration:poller" />
 					</xsd:sequence>
 					<xsd:attribute name="attribute-name" type="xsd:string" use="required" />
-					<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -56,7 +55,6 @@
 							</xsd:element>
 						</xsd:choice>
 					</xsd:sequence>
-					<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -274,6 +272,7 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -288,6 +287,7 @@
 			<xsd:extension base="mbeanServerIdentifyerType">
 				<xsd:attribute name="channel" type="xsd:string" />
 				<xsd:attribute name="object-name" type="xsd:string" use="required" />
+				<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
