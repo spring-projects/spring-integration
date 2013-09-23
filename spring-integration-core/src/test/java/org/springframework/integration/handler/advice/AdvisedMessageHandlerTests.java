@@ -20,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
@@ -30,7 +31,9 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,6 +44,7 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -929,6 +933,57 @@ public class AdvisedMessageHandlerTests {
 		assertTrue(adviceCalled.get());
 		assertNull(discardedWithinAdvice.get());
 		assertNotNull(discardChannel.receive(0));
+	}
+
+	@Test
+	public void testInt2943RetryWithExceptionClassifier() {
+		final AtomicInteger counter = new AtomicInteger(0);
+
+		@SuppressWarnings("serial")
+		class MyException extends RuntimeException {
+
+		}
+
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				counter.incrementAndGet();
+				throw new MyException();
+
+			}
+		};
+		QueueChannel replies = new QueueChannel();
+		handler.setOutputChannel(replies);
+		RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
+
+		RetryTemplate retryTemplate = new RetryTemplate();
+
+		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
+		retryableExceptions.put(MyException.class, false);
+		retryableExceptions.put(MessagingException.class, true);
+
+		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, retryableExceptions));
+
+		advice.setRetryTemplate(retryTemplate);
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		adviceChain.add(advice);
+		handler.setAdviceChain(adviceChain);
+		handler.afterPropertiesSet();
+
+		Message<String> message = new GenericMessage<String>("Hello, world!");
+		try {
+			handler.handleMessage(message);
+			fail("MessagingException expected.");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessagingException.class));
+			assertThat(e.getCause(), Matchers.instanceOf(MyException.class));
+		}
+
+		assertEquals(1, counter.get());
+
 	}
 
 	private interface Bar {

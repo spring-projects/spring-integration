@@ -83,21 +83,19 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		try {
 			return retryTemplate.execute(new RetryCallback<Object>() {
 				public Object doWithRetry(RetryContext context) throws Exception {
-					try {
 						return callback.cloneAndExecute();
-					}
-					catch (MessagingException e) {
-						if (e.getFailedMessage() == null) {
-							e.setFailedMessage(message);
-						}
-						throw e;
-					}
-					catch (Exception e) {
-						throw new MessagingException(message, "Failed to invoke handler",
-								unwrapExceptionIfNecessary(e));
-					}
 				}
 			}, this.recoveryCallback, retryState);
+		}
+		catch (MessagingException e) {
+			if (e.getFailedMessage() == null) {
+				e.setFailedMessage(message);
+			}
+			throw e;
+		}
+		catch (Exception e) {
+			throw new MessagingException(message, "Failed to invoke handler",
+					unwrapExceptionIfNecessary(e));
 		}
 		finally {
 			messageHolder.remove();
