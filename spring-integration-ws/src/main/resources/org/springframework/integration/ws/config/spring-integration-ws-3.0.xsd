@@ -239,7 +239,6 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="order" type="xsd:string"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="header-mapper">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -272,6 +271,7 @@ this list can also be simple patterns to be matched against the header names (e.
 						]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 

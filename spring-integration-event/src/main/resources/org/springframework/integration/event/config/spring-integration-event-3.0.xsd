@@ -24,20 +24,7 @@
             </xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="optional" />
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.integration.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-						The channel to which Messages generated from Application Context events will be sent.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="error-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -69,7 +56,6 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -85,20 +71,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:string" />
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.integration.MessageChannel" />
-						</tool:annotation>
-						<xsd:documentation>
-							The Message Channel from which this adapter receives Messages.
-						</xsd:documentation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="order">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -107,7 +80,6 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
 		</xsd:complexType>
 	</xsd:element>
 

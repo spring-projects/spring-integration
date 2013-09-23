@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.SmartLifecycle;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
@@ -66,7 +66,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class MessageHandlerChain extends AbstractMessageHandler implements MessageProducer, SmartLifecycle {
+public class MessageHandlerChain extends AbstractMessageHandler implements MessageProducer, Lifecycle {
 
 	private volatile List<MessageHandler> handlers;
 
@@ -84,10 +84,6 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
-
-	private volatile boolean autoStartup = true;
-
-	private volatile int phase = Integer.MAX_VALUE;
 
 	private volatile boolean running;
 
@@ -176,14 +172,6 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 	 * SmartLifecycle implementation (delegates to the {@link #handlers})
 	 */
 
-	public final boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	public final int getPhase() {
-		return this.phase;
-	}
-
 	public final boolean isRunning() {
 		this.lifecycleLock.lock();
 		try {
@@ -237,26 +225,18 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		}
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
-	public void setPhase(int phase) {
-		this.phase = phase;
-	}
-
 	private void doStop() {
 		for (MessageHandler handler : this.handlers) {
-			if (handler instanceof SmartLifecycle) {
-				((SmartLifecycle) handler).stop();
+			if (handler instanceof Lifecycle) {
+				((Lifecycle) handler).stop();
 			}
 		}
 	}
 
 	private void doStart() {
 		for (MessageHandler handler : this.handlers) {
-			if (handler instanceof SmartLifecycle) {
-				((SmartLifecycle) handler).start();
+			if (handler instanceof Lifecycle) {
+				((Lifecycle) handler).start();
 			}
 		}
 	}

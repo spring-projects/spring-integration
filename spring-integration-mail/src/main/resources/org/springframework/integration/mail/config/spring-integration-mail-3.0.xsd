@@ -30,16 +30,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="mail-sender" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -62,7 +53,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="order">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -181,25 +171,7 @@
 	</xsd:element>
 
 	<xsd:complexType name="inboundMailAdapterType">
-		<xsd:attribute name="id" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	A unique identifier for this Channel Adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Reference for the MessageChannel to which this adapter will send Messages.
-				</xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="store-uri" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
@@ -279,13 +251,6 @@
 	retrieval but before they are processed. If you wish to mark a message after completion
 	of message processing, use transaction synchronization instead.
 				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true">
-			<xsd:annotation>
-				<xsd:documentation>
-	Specify whether this endpoint should be started automatically. The default is TRUE.
-				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

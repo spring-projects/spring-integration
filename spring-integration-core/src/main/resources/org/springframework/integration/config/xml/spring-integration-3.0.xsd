@@ -877,13 +877,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Lifecycle attribute signaling if this component should be started during Application Context startup.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="pattern" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -907,6 +900,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attributeGroup ref="smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -1041,23 +1035,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true">
-			<xsd:annotation>
-				<xsd:documentation>
-					Lifecycle attribute signaling if this component should be started during Application Context startup.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="phase" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-						The Lifecycle attribute determining the start/stop order
-						of the underlying MessageHandlerChain.
-					</xsd:documentation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="smartLifeCycleAttributeGroup"/>
 	</xsd:attributeGroup>
 
 	<xsd:complexType name="methodInvokingChannelAdapterType">
@@ -1552,16 +1530,6 @@
 				<xsd:group ref="chain-elements-group" maxOccurs="unbounded"/>
 			</xsd:choice>
 			<xsd:attributeGroup ref="inputOutputChannelGroup" />
-			<xsd:attribute name="phase" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<xsd:documentation>
-							The Lifecycle attribute determining the start/stop order
-							of the underlying MessageHandlerChain.
-						</xsd:documentation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="id" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
@@ -3066,17 +3034,6 @@
     -->
 
     <xsd:attributeGroup name="topLevelRouterAttributeGroup">
-        <xsd:attribute name="auto-startup" default="true">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Lifecycle attribute signaling if this component should be
-                    started during Application Context startup. Defaults to true.
-                </xsd:documentation>
-            </xsd:annotation>
-            <xsd:simpleType>
-                <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>
-        </xsd:attribute>
         <xsd:attribute name="input-channel" type="xsd:string">
             <xsd:annotation>
                 <xsd:appinfo>
@@ -3099,6 +3056,7 @@
                     ]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+		<xsd:attributeGroup ref="smartLifeCycleAttributeGroup"/>
     </xsd:attributeGroup>
 
     <!--
@@ -4025,17 +3983,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-        <xsd:attribute name="auto-startup" default="true">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Lifecycle attribute signaling if this component should be
-                    started during Application Context startup. Defaults to true.
-                </xsd:documentation>
-            </xsd:annotation>
-            <xsd:simpleType>
-                <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>
-        </xsd:attribute>
+        <xsd:attributeGroup ref="smartLifeCycleAttributeGroup"/>
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="subscribersAttributeGroup">
@@ -4117,4 +4065,24 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="smartLifeCycleAttributeGroup">
+		<xsd:attribute name="auto-startup" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Boolean value indicating whether this endpoint should start automatically.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="phase" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+The lifecycle phase within which this endpoint should start and stop.
+The lower the value the earlier this endpoint will start and the later it will stop. The
+default is 0. Values can be negative. See SmartLifeCycle.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
 </xsd:schema>

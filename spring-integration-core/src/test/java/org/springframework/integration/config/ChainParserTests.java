@@ -53,6 +53,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.LoggingHandler;
@@ -335,9 +336,11 @@ public class ChainParserTests {
 	@Test //INT-2605
 	public void checkSmartLifecycleConfig() {
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("ChainParserSmartLifecycleAttributesTest.xml", this.getClass());
-		MessageHandlerChain handlerChain = ctx.getBean(MessageHandlerChain.class);
-		assertEquals(false, handlerChain.isAutoStartup());
-		assertEquals(256, handlerChain.getPhase());
+		AbstractEndpoint chainEndpoint = ctx.getBean("chain", AbstractEndpoint.class);
+		assertEquals(false, chainEndpoint.isAutoStartup());
+		assertEquals(256, chainEndpoint.getPhase());
+
+		MessageHandlerChain handlerChain = ctx.getBean("chain.handler", MessageHandlerChain.class);
 		assertEquals(3000L, TestUtils.getPropertyValue(handlerChain, "sendTimeout"));
 		assertEquals(false, TestUtils.getPropertyValue(handlerChain, "running"));
 		//INT-3108

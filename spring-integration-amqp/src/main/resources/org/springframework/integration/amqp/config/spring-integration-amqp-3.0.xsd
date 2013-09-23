@@ -366,14 +366,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Flag to indicate whether this Message Channel should start automatically.
-	This only applies to a message-driven channel. Default is true.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attributeGroup ref="containerAndTemplateAttributes"/>
 		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
 	</xsd:complexType>
@@ -566,13 +558,6 @@ standard headers to also be mapped.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	Boolean value indicating whether this endpoint should start automatically.
-				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="containerAttributes">
@@ -722,15 +707,6 @@ standard headers to also be mapped.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="phase" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-	The lifeycle phase determining the start/stop order of the underlying listener container.
-					</xsd:documentation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="prefetch-count" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -815,6 +791,7 @@ standard headers to also be mapped.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:attributeGroup>
 
 </xsd:schema>

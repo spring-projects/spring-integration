@@ -108,8 +108,6 @@ task executors such as a WorkManagerTaskExecutor.
 
 	<xsd:element name="tcp-inbound-channel-adapter">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
 					<xsd:attribute name="id" type="xsd:string"/>
 					<xsd:attribute name="connection-factory" type="xsd:string">
 						<xsd:annotation>
@@ -159,16 +157,13 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attributeGroup ref="clientModeAttributeGroup" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="clientModeAttributeGroup"/>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="tcp-outbound-channel-adapter">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
 					<xsd:all>
 						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
@@ -215,16 +210,13 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attributeGroup ref="clientModeAttributeGroup" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="clientModeAttributeGroup"/>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="tcp-inbound-gateway">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
 					<xsd:attribute name="id" type="xsd:string"/>
 					<xsd:attribute name="connection-factory" type="xsd:string">
 						<xsd:annotation>
@@ -284,16 +276,13 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attributeGroup ref="clientModeAttributeGroup" />
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="clientModeAttributeGroup"/>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="tcp-outbound-gateway">
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
 					<xsd:all>
 						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
@@ -382,8 +371,7 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -459,7 +447,7 @@ the factory, the connection will be closed after a response is received.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="serializer" type="xsd:string" >
+			<xsd:attribute name="serializer" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -467,9 +455,9 @@ the factory, the connection will be closed after a response is received.
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-A Serializer that converts message payloads to/from output streams/input streams
-associated with the connection. Default is ByteArrayCrLfSerializer. Serializer and Deserializer
-would normally be the same but this is not required.
+						A Serializer that converts message payloads to/from output streams/input streams
+						associated with the connection. Default is ByteArrayCrLfSerializer. Serializer and Deserializer
+						would normally be the same but this is not required.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -610,8 +598,6 @@ setCustomHeaders(). Default is TcpMessageMapper.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="smartLifeCycleType">
 					<xsd:attribute name="id" type="xsd:string" use="optional" />
 					<xsd:attribute name="event-types" type="xsd:string" use="optional">
 						<xsd:annotation>
@@ -653,8 +639,7 @@ setCustomHeaders(). Default is TcpMessageMapper.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -723,25 +708,6 @@ specifies the interface to which multicast packets will be sent. For UDP unicast
 adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
 apply to TCP outbound adapters and gateways.
 				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
-
-	<xsd:complexType name="smartLifeCycleType">
-		<xsd:attribute name="auto-startup" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-Boolean value indicating whether this endpoint should start automatically.
-				]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="phase" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-The lifecycle phase within which this endpoint should start and stop.
-The lower the value the earlier this endpoint will start and the later it will stop. The
-default is 0. Values can be negative. See SmartLifeCycle.
-				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

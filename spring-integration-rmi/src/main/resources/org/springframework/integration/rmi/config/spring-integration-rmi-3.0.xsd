@@ -134,7 +134,7 @@
 		</xsd:attribute>
 		<xsd:attribute name="request-timeout" type="xsd:string"/>
 		<xsd:attribute name="reply-timeout" type="xsd:string"/>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 	</xsd:complexType>
 
 </xsd:schema>

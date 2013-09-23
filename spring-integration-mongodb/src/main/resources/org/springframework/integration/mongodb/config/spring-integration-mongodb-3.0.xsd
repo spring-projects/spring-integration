@@ -108,17 +108,7 @@
 				Common configuration for mongodb adapters.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:string" />
-		<xsd:attribute name="channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Reference to a Message Channel that will be used
-					by this adapter to
-					'receiveFrom' or 'sendTo' Messages depending on the adapter type (e.g.,
-					inbound/outbound)
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 		<xsd:attribute name="mongodb-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -183,7 +173,5 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string"
-			default="true" />
 	</xsd:complexType>
 </xsd:schema>
