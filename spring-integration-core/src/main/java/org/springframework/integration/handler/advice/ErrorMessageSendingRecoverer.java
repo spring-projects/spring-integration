@@ -60,14 +60,11 @@ public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object> {
 					"this can occur, for example, if the RetryPolicy allowed zero attempts to execute the handler; " +
 					"RetryContext: " + context.toString());
 		}
+		else if (!(lastThrowable instanceof MessagingException)) {
+			lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"), lastThrowable);
+		}
 		if (logger.isDebugEnabled()) {
-			String supplement = "";
-			if (lastThrowable instanceof MessagingException) {
-				supplement = ":failedMessage: " + ((MessagingException) lastThrowable).getFailedMessage();
-			}
-			else {
-				lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"), lastThrowable);
-			}
+			String supplement = ":failedMessage:" + ((MessagingException) lastThrowable).getFailedMessage();
 			logger.debug("Sending ErrorMessage " + supplement, lastThrowable);
 		}
 		messagingTemplate.send(new ErrorMessage(lastThrowable));
