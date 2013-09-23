@@ -423,14 +423,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="evaluation-context">
-			<xsd:annotation>
-				<xsd:documentation>
-					The expression evaluation context that would be used by the gateway to evaluate the first-result-expression
-					provided.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="expect-single-result" default="false">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[

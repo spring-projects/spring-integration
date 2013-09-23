@@ -59,7 +59,6 @@
 		expect-single-result="true"
 		order="1"
 		first-result-expression="header['firstResult']"
-		evaluation-context="evaluationContext"
 		max-number-of-results="55"
 		request-channel="in"
 		reply-channel="out"
@@ -100,9 +99,4 @@
 			<bean class="org.springframework.integration.jpa.config.xml.JpaOutboundGatewayParserTests$FooAdvice"/>
 		</constructor-arg>
 	</bean>
-
-	<bean id="evaluationContext" class="org.mockito.Mockito" factory-method="mock">
-	    <constructor-arg value="#{T(java.lang.Class).forName('org.springframework.expression.EvaluationContext')}"/>
-	</bean>
-
 </beans>

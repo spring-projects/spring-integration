@@ -214,7 +214,7 @@
 				</constructor-arg>
 				<property        name="gatewayType"   value="RETRIEVING"/>
 				<property        name="outputChannel" ref="studentReplyChannel"/>
-				<property		 name="firstRecordExpression"
+				<property		 name="firstResultExpression"
 				    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
 			</bean>
 		</constructor-arg>

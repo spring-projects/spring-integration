@@ -53,7 +53,6 @@ import org.w3c.dom.NodeList;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
- * @author Amol Nayak
  *
  */
 public abstract class IntegrationNamespaceUtils {
@@ -469,25 +468,5 @@ public abstract class IntegrationNamespaceUtils {
 				.addConstructorArgValue(className)
 				.addConstructorArgValue(methodSignature);
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
-	}
-
-	/**
-	 * Ensures that at most one of attribute of the given attributes is present in the element
-	 * @return
-	 */
-	public static  boolean ensureMutualExclusivity(Element element, String... attributeNames) {
-		boolean isExclusive = true;
-		boolean foundOne = false;
-		for(String attributeName:attributeNames) {
-			boolean currentAttributePresent = element.hasAttribute(attributeName);
-			if(foundOne && currentAttributePresent) {
-				isExclusive = false;
-				break;
-			}
-			else {
-				foundOne = currentAttributePresent;
-			}
-		}
-		return isExclusive;
 	}
 }

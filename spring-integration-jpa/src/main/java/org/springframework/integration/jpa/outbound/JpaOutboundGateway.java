@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.jpa.outbound;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
-import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
@@ -47,13 +47,14 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
+public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler
+			implements IntegrationEvaluationContextAware {
 
 	private final JpaExecutor   jpaExecutor;
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
 	private boolean producesReply = true;	//false for outbound-channel-adapter, true for outbound-gateway
-	private EvaluationContext evaluationContext;
-	private Expression firstRecordExpression;
+	private volatile EvaluationContext evaluationContext;
+	private volatile Expression firstResultExpression;
 
 
 	/**
@@ -75,21 +76,18 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 	protected void onInit() {
 		super.onInit();
 		this.jpaExecutor.setBeanFactory(this.getBeanFactory());
-		if(this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		}
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		final Object result;
 		if (OutboundGatewayType.RETRIEVING.equals(this.gatewayType)) {
-			int firstRecord = 0;
-			if(firstRecordExpression != null) {
-				Object firstRecordEvaluationResult = firstRecordExpression.getValue(evaluationContext, requestMessage);
+			int firstResult = 0;
+			if(firstResultExpression != null) {
+				Object firstRecordEvaluationResult = firstResultExpression.getValue(evaluationContext, requestMessage);
 				if(firstRecordEvaluationResult != null) {
 					if(firstRecordEvaluationResult instanceof Number) {
-						firstRecord = ((Number)firstRecordEvaluationResult).intValue();
+						firstResult = ((Number)firstRecordEvaluationResult).intValue();
 					}
 					else {
 						throw new IllegalArgumentException("Expected the value of the firstRecord to be a Number" +
@@ -97,7 +95,7 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 					}
 				}
 			}
-			result = this.jpaExecutor.poll(requestMessage, firstRecord);
+			result = this.jpaExecutor.poll(requestMessage, firstResult);
 		} else if (OutboundGatewayType.UPDATING.equals(this.gatewayType)) {
 			result = this.jpaExecutor.executeOutboundJpaOperation(requestMessage);
 		} else {
@@ -143,9 +141,15 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	/**
 	 * The expression that would get evaluated to get the first record of the result set
-	 * @param firstRecordExpression
+	 * @param firstResultExpression
 	 */
-	public void setFirstRecordExpression(Expression firstRecordExpression) {
-		this.firstRecordExpression = firstRecordExpression;
+	public void setFirstResultExpression(Expression firstResultExpression) {
+		this.firstResultExpression = firstResultExpression;
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(
+			EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
 	}
 }

@@ -19,10 +19,10 @@ package org.springframework.integration.jpa.outbound;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -76,9 +76,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 
 	private volatile String componentName;
 
-	private Expression firstRecordExpression;
-
-	private EvaluationContext evaluationContext;
+	private Expression firstResultExpression;
 
 	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
@@ -143,20 +141,11 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	 * The Expression that would be evaluated against the message for getting the first
 	 * position of the result set in a RETRIEVING gateway
 	 *
-	 * @param firstRecordExpression
+	 * @param firstResultExpression
 	 */
-	public void setFirstRecordExpression(Expression firstRecordExpression) {
-		this.firstRecordExpression = firstRecordExpression;
+	public void setFirstResultExpression(Expression firstResultExpression) {
+		this.firstResultExpression = firstResultExpression;
 	}
-
-	/**
-	 * The {@link EvaluationContext} for executing the {@link #firstRecordExpression}
-	 * @param evaluationContext
-	 */
-	public void setEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
-
 
 	@Override
 	public Class<?> getObjectType() {
@@ -178,8 +167,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 			jpaOutboundGateway.setAdviceChain(this.adviceChain);
 		}
 		jpaOutboundGateway.setBeanFactory(this.getBeanFactory());
-		jpaOutboundGateway.setFirstRecordExpression(firstRecordExpression);
-		jpaOutboundGateway.setEvaluationContext(evaluationContext);
+		jpaOutboundGateway.setFirstResultExpression(firstResultExpression);
 		jpaOutboundGateway.afterPropertiesSet();
 
 		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {

@@ -21,11 +21,11 @@ import static org.junit.Assert.fail;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
@@ -85,7 +85,7 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithFirstResult");
 		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
 		Expression firstResultExpression =
-			TestUtils.getPropertyValue(jpaOutboundGateway, "firstRecordExpression", Expression.class);
+			TestUtils.getPropertyValue(jpaOutboundGateway, "firstResultExpression", Expression.class);
 		assertNotNull(firstResultExpression);
 		assertEquals(LiteralExpression.class, firstResultExpression.getClass());
 		assertEquals("1", TestUtils.getPropertyValue(firstResultExpression, "literalValue", String.class));
@@ -96,20 +96,10 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithFirstResultExpression");
 		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
 		Expression firstResultExpression =
-			TestUtils.getPropertyValue(jpaOutboundGateway, "firstRecordExpression", Expression.class);
+			TestUtils.getPropertyValue(jpaOutboundGateway, "firstResultExpression", Expression.class);
 		assertNotNull(firstResultExpression);
 		assertEquals(SpelExpression.class, firstResultExpression.getClass());
 		assertEquals("header['firstResult']", TestUtils.getPropertyValue(firstResultExpression, "expression", String.class));
-	}
-
-	@Test
-	public void testRetrievingJpaOutboundGatewayParserWithExpressionExecutor() throws Exception {
-		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithExpressionExecutor");
-		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
-		EvaluationContext evaluationContext =
-			TestUtils.getPropertyValue(jpaOutboundGateway, "evaluationContext", EvaluationContext.class);
-		assertNotNull(evaluationContext);
-		assertEquals(evaluationContext, context.getBean("evaluationContext"));
 	}
 
 	@Test
@@ -193,7 +183,7 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 		try {
 			this.context = new ClassPathXmlApplicationContext("JpaInvalidOutboundGatewayParserTests.xml", getClass());
 		} catch (BeanDefinitionStoreException e) {
-			assertEquals("Attributes first-result and first-result-expression are mutually exclusive to each other", e.getMessage());
+			assertTrue(e.getMessage().startsWith("Configuration problem: Only one of 'first-result' or 'first-result-expression' is allowed"));
 			return;
 		}
 		assertTrue(false);
