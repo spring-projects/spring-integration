@@ -17,6 +17,7 @@ package org.springframework.integration.handler.advice;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
  * retry exhaustion.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */

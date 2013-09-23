@@ -936,7 +936,16 @@ public class AdvisedMessageHandlerTests {
 	}
 
 	@Test
-	public void testInt2943RetryWithExceptionClassifier() {
+	public void testInt2943RetryWithExceptionClassifierFalse() {
+		testInt2943RetryWithExceptionClassifier(false, 1);
+	}
+
+	@Test
+	public void testInt2943RetryWithExceptionClassifierTrue() {
+		testInt2943RetryWithExceptionClassifier(true, 3);
+	}
+
+	private void testInt2943RetryWithExceptionClassifier(boolean retryForMyException, int expected) {
 		final AtomicInteger counter = new AtomicInteger(0);
 
 		@SuppressWarnings("serial")
@@ -960,7 +969,7 @@ public class AdvisedMessageHandlerTests {
 		RetryTemplate retryTemplate = new RetryTemplate();
 
 		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<Class<? extends Throwable>, Boolean>();
-		retryableExceptions.put(MyException.class, false);
+		retryableExceptions.put(MyException.class, retryForMyException);
 		retryableExceptions.put(MessagingException.class, true);
 
 		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, retryableExceptions));
@@ -982,7 +991,7 @@ public class AdvisedMessageHandlerTests {
 			assertThat(e.getCause(), Matchers.instanceOf(MyException.class));
 		}
 
-		assertEquals(1, counter.get());
+		assertEquals(expected, counter.get());
 
 	}
 

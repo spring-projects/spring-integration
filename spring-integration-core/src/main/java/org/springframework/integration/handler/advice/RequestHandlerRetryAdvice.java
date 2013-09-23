@@ -83,7 +83,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		try {
 			return retryTemplate.execute(new RetryCallback<Object>() {
 				public Object doWithRetry(RetryContext context) throws Exception {
-						return callback.cloneAndExecute();
+					return callback.cloneAndExecute();
 				}
 			}, this.recoveryCallback, retryState);
 		}
