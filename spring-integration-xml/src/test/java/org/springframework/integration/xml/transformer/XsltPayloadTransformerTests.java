@@ -124,6 +124,17 @@ public class XsltPayloadTransformerTests {
         assertEquals("Wrong value from result conversion", returnValue,
                 transformed);
     }
+    
+    @Test
+    public void testXsltPayloadWithBadTransformerFactoryClassname() throws Exception {
+        Integer returnValue = new Integer(13);
+        transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
+                "foo.bar.Baz");
+        Object transformed = transformer
+                .doTransform(buildMessage(new StringSource(docAsString)));
+        assertEquals("Wrong value from result conversion", returnValue,
+                transformed);
+    }
 
     @Test(expected = TransformerException.class)
     public void testNonXmlString() throws Exception {

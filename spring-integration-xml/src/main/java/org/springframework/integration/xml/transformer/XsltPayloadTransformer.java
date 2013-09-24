@@ -47,6 +47,7 @@ import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.xml.transform.StringResult;
@@ -325,10 +326,19 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	}
 	
     private static TransformerFactory getTransformerFactory(String transformerFactoryImplClass) {
+        TransformerFactory transformerFactory = null;
+        
         if (transformerFactoryImplClass == null || transformerFactoryImplClass.length() <= 0) {
-            return TransformerFactory.newInstance();
+            transformerFactory = TransformerFactory.newInstance();
+        } else if(ClassUtils.isPresent(transformerFactoryImplClass, ClassLoader.getSystemClassLoader())) {
+            transformerFactory = TransformerFactory.newInstance(transformerFactoryImplClass, ClassLoader.getSystemClassLoader());
         } else {
-            return TransformerFactory.newInstance(transformerFactoryImplClass, ClassLoader.getSystemClassLoader());
+            if (logger.isWarnEnabled()) {
+                logger.warn(String.format("Class [%s] was not found will default to [%s], please ensure [%s] is located on your class path", transformerFactoryImplClass, TransformerFactory.class, transformerFactoryImplClass));
+            }
+            transformerFactory = TransformerFactory.newInstance();
         }
-    }
+        
+        return transformerFactory;
+    }    
 }
