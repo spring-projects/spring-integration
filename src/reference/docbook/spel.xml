@@ -142,6 +142,9 @@
 			</note>
 		</para>
 		<para>
+			<emphasis role="bold">Built-in SpEL Functions</emphasis>
+		</para>
+		<para>
 			Spring Integration provides some standard functions, which are registered with the application
 			context automatically on start up:
 			<itemizedlist>
