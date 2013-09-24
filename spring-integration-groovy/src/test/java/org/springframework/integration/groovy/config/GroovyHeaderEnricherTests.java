@@ -32,7 +32,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.transformer.HeaderEnricher;
+import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -71,11 +71,11 @@ public class GroovyHeaderEnricherTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void inlineScript() throws Exception{
-		Map<String, HeaderEnricher.HeaderValueMessageProcessor<?>> headers =
+		Map<String, HeaderValueMessageProcessor<?>> headers =
 				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript, "handler.transformer.headersToAdd", Map.class);
 		assertEquals(1, headers.size());
-		HeaderEnricher.HeaderValueMessageProcessor<?> headerValueMessageProcessor = headers.get("TEST_HEADER");
-		assertThat(headerValueMessageProcessor.getClass().getName(), Matchers.containsString("HeaderEnricher$MessageProcessingHeaderValueMessageProcessor"));
+		HeaderValueMessageProcessor<?> headerValueMessageProcessor = headers.get("TEST_HEADER");
+		assertThat(headerValueMessageProcessor.getClass().getName(), Matchers.containsString("MessageProcessingHeaderValueMessageProcessor"));
 		Object targetProcessor = TestUtils.getPropertyValue(headerValueMessageProcessor, "targetProcessor");
 		assertEquals(GroovyScriptExecutingMessageProcessor.class, targetProcessor.getClass());
 

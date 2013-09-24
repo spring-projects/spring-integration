@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,30 @@ package org.springframework.integration.config.xml;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ContentEnricher;
@@ -46,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.1
  */
@@ -124,7 +132,10 @@ public class EnricherParserTests {
 			}
 		});
 		Target original = new Target();
-		Message<?> request = MessageBuilder.withPayload(original).build();
+		Message<?> request = MessageBuilder.withPayload(original)
+				.setHeader("sourceName", "test")
+				.setHeader("notOverwrite", "test")
+				.build();
 		context.getBean("input", MessageChannel.class).send(request);
 		Message<?> reply = context.getBean("output", PollableChannel.class).receive(0);
 		Target enriched = (Target) reply.getPayload();
@@ -133,6 +144,26 @@ public class EnricherParserTests {
 		assertEquals("male", enriched.getGender());
 		assertNotSame(original, enriched);
 		assertEquals(1, adviceCalled);
+
+		MessageHeaders headers = reply.getHeaders();
+		assertEquals("bar", headers.get("foo"));
+		assertEquals("male", headers.get("testBean"));
+		assertEquals("foo", headers.get("sourceName"));
+		assertEquals("test", headers.get("notOverwrite"));
+	}
+
+	@Test
+	public void testInt3027WrongHeaderType() {
+		MessageChannel input = context.getBean("input2", MessageChannel.class);
+		try {
+			input.send(new GenericMessage<Object>("test"));
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessageHandlingException.class));
+			assertThat(e.getCause(), Matchers.instanceOf(TypeMismatchException.class));
+			assertThat(e.getCause().getMessage(),
+					Matchers.startsWith("Failed to convert value of type 'java.util.Date' to required type 'int'"));
+		}
 	}
 
 	private static class Source {

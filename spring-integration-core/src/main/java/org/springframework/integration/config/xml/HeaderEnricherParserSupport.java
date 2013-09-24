@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						Object headerValue = (headerType != null) ?
 								new TypedStringValue(value, headerType) : value;
 						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticHeaderValueMessageProcessor");
+								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
 						valueProcessorBuilder.addConstructorArgValue(headerValue);
 					}
 					else if (isExpression) {
@@ -188,7 +188,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 									"The 'method' attribute cannot be used with the 'expression' attribute.", element);
 						}
 						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$ExpressionEvaluatingHeaderValueMessageProcessor");
+								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor");
 						if (expressionElement != null) {
 							BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamicExpression.class);
 							dynamicExpressionBuilder.addConstructorArgValue(expressionElement.getAttribute("key"));
@@ -207,7 +207,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						if (hasMethod || isScript) {
 							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MessageProcessingHeaderValueMessageProcessor");
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.MessageProcessingHeaderValueMessageProcessor");
 							valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
 							if (hasMethod) {
 								valueProcessorBuilder.addConstructorArgValue(method);
@@ -215,7 +215,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						else {
 							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticHeaderValueMessageProcessor");
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
 							valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
 						}
 					}
@@ -226,13 +226,13 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						if (hasMethod) {
 							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MessageProcessingHeaderValueMessageProcessor");
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.MessageProcessingHeaderValueMessageProcessor");
 							valueProcessorBuilder.addConstructorArgReference(ref);
 							valueProcessorBuilder.addConstructorArgValue(method);
 						}
 						else {
 							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticHeaderValueMessageProcessor");
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.support.StaticHeaderValueMessageProcessor");
 							valueProcessorBuilder.addConstructorArgReference(ref);
 						}
 					}
