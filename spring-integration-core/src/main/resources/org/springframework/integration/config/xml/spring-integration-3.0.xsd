@@ -1242,12 +1242,13 @@
 				<xsd:complexType >
 					<xsd:complexContent>
 						<xsd:extension base="propertySubElementType">
-							<xsd:attribute name="overwrite">
+							<xsd:attribute name="overwrite" default="true">
 								<xsd:annotation>
 									<xsd:documentation>
 										Boolean value to indicate whether this header value should overwrite an
 										existing header value for
-										the same name.
+										the same name. unlike Header Enricher this attribute by default 'true',
+										similar to 'property' attribute.
 									</xsd:documentation>
 								</xsd:annotation>
 								<xsd:simpleType>

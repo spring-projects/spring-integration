@@ -281,7 +281,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 				String header = entry.getKey();
 				HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
 				Boolean overwrite = valueProcessor.isOverwrite();
-				overwrite = overwrite != null ? overwrite : false;
+				overwrite = overwrite != null ? overwrite : true;
 				if (overwrite || !requestMessage.getHeaders().containsKey(header)) {
 					Object value = valueProcessor.processMessage(replyMessage);
 					targetHeaders.put(header, value);

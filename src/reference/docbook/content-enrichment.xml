@@ -231,7 +231,7 @@
     <int:property name="" expression=""/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
     <int:property name="" value=""/>
 	<int:header name="" expression=""/>  ]]><co id="payload-enricher12-co" linkends="payload-enricher12" /><![CDATA[
-    <int:header name="" value=""/>
+    <int:header name="" value="" overwrite="" type=""/>
 </int:enricher>]]></programlisting>
 
 	        <para>
@@ -377,6 +377,11 @@
                             input Message if there is no request channel, or the
                             application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
                             SpEL syntax).
+							Note, similar to <code>&lt;header-enricher&gt;</code> <code>&lt;enricher&gt;</code>'s
+							<code>header</code> element has <code>type</code> and <code>overwrite</code> attributes.
+							But in case of <code>&lt;enricher&gt;</code> the <code>overwrite</code> by default has
+							value <code>true</code> to be consistent with <code>&lt;enricher&gt;</code>'s
+							<code>&lt;property&gt;</code> sub-element.
 	                    </para>
 	                </callout>
 	            </calloutlist>
