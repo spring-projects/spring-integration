@@ -40,7 +40,7 @@
 	</beans:bean>
 
 	<spel-property-accessors>
-		<beans:bean class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
+		<beans:bean id="fooAccessor1" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
 		<beans:ref bean="fooAccessor"/>
 	</spel-property-accessors>
 

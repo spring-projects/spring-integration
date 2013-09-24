@@ -16,12 +16,7 @@
 
 package org.springframework.integration.context;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.HierarchicalBeanFactory;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessageChannel;
@@ -99,23 +94,6 @@ public abstract class IntegrationContextUtils {
 	 */
 	public static StandardEvaluationContext getEvaluationContext(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
-	}
-
-	/**
-	 * Return the list of beans which implement provided Class from provided beanFactory and
-	 * its ancestors. Similar to {@link org.springframework.beans.factory.BeanFactoryUtils#beansOfTypeIncludingAncestors}
-	 * but without override.
-	 */
-	public static <T> List<T> beansOfTypeIncludingAncestors(ListableBeanFactory lbf, Class<T> type) {
-		List<T> result = new LinkedList<T>();
-		result.addAll(lbf.getBeansOfType(type).values());
-		if (lbf instanceof HierarchicalBeanFactory) {
-			HierarchicalBeanFactory hbf = (HierarchicalBeanFactory) lbf;
-			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory) {
-				result.addAll(beansOfTypeIncludingAncestors((ListableBeanFactory) hbf.getParentBeanFactory(), type));
-			}
-		}
-		return result;
 	}
 
 	private static <T> T getBeanOfType(BeanFactory beanFactory, String beanName, Class<T> type) {

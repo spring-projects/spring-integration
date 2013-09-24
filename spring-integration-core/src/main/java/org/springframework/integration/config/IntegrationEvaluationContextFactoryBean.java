@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,6 +28,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.expression.BeanFactoryResolver;
@@ -64,8 +64,6 @@ import org.springframework.util.Assert;
  * After initialization this factory populates functions and property accessors from
  * {@link SpelFunctionFactoryBean} and {@link SpelPropertyAccessorRegistrar}, respectively.
  * Functions and property accessors are also inherited from parent context.
- * Note, functions can be overridden as it is with generic bean behaviour, but property accessors
- * are copied as is and placed in the result list in the end.
  * </p>
  * <p>
  * This factory returns a new instance for each reference - {@link #isSingleton()} returns false.
@@ -129,13 +127,15 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 					this.functions.put(spelFunctionFactoryBean.getFunctionName(), spelFunctionFactoryBean.getObject());
 				}
 			}
-		}
 
-		Collection<SpelPropertyAccessorRegistrar> propertyAccessorRegistrars =
-				IntegrationContextUtils.beansOfTypeIncludingAncestors(this.applicationContext, SpelPropertyAccessorRegistrar.class);
-
-		for (SpelPropertyAccessorRegistrar propertyAccessorRegistrar : propertyAccessorRegistrars) {
-			this.propertyAccessors.addAll(propertyAccessorRegistrar.getPropertyAccessors());
+			try {
+				SpelPropertyAccessorRegistrar propertyAccessorRegistrar = this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
+				this.propertyAccessors.addAll(propertyAccessorRegistrar.getPropertyAccessors());
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				// There is no 'SpelPropertyAccessorRegistrar' bean with the parent application context
+				// Ignore it
+			}
 		}
 	}
 

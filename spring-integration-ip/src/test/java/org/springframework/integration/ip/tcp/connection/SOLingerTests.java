@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.test.context.ContextConfiguration;
@@ -89,6 +91,7 @@ public class SOLingerTests {
 	}
 
 	@Test
+	@Ignore
 	public void finReceivedNioLinger() {
 		finReceived(inCFNioLinger);
 	}
@@ -98,7 +101,6 @@ public class SOLingerTests {
 		TestingUtilities.waitListening(inCF, null);
 		try {
 			Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-			socket.setSoTimeout(10000);
 			String test = "Test\r\n";
 			socket.getOutputStream().write(test.getBytes());
 			byte[] buff = new byte[test.length() + 5];

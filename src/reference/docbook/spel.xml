@@ -169,7 +169,7 @@
 						</note>
 						For more information regarding JSON see JSON Transformers' in <xref linkend="transformer"/>.
 				</listitem>
-				<listitem>
+				<!--<listitem>
 					<emphasis>#xpath</emphasis> - TBD
 				</listitem>
 				<listitem>
@@ -177,7 +177,7 @@
 				</listitem>
 				<listitem>
 					<emphasis>#auth</emphasis> - TBD
-				</listitem>
+				</listitem>-->
 			</itemizedlist>
 		</para>
 	</section>
@@ -207,7 +207,8 @@
 				Custom <interfacename>PropertyAccessor</interfacename>s declared in a parent context are also made available
 				in any child context(s). They are placed in the end of result list (but before default
 				<classname>org.springframework.expression.spel.support.ReflectivePropertyAccessor</classname>).
-				Custom <interfacename>PropertyAccessor</interfacename>s can't be overridden.
+				Custom <interfacename>PropertyAccessor</interfacename>s can be overridden in child context(s) too
+				with the same bean id.
 			</note>
 		</para>
 	</section>

@@ -16,16 +16,21 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
+import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;spel-property-accessors&gt; element.
@@ -35,7 +40,7 @@ import org.springframework.beans.factory.xml.ParserContext;
  */
 public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 
-	private final List<Object> propertyAccessors = new ManagedList<Object>();
+	private final Map<String, Object> propertyAccessors = new ManagedMap<String, Object>();
 
 	private volatile boolean initialized;
 
@@ -43,7 +48,45 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.initializeSpelPropertyAccessorRegistrarIfNecessary(parserContext);
 
-		this.propertyAccessors.addAll(parserContext.getDelegate().parseListElement(element, null));
+		BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
+
+		NodeList children = element.getChildNodes();
+
+		for (int i = 0; i < children.getLength(); i++) {
+			Node node = children.item(i);
+			String propertyAccessorName = null;
+			Object propertyAccessor = null;
+			if (node instanceof Element && !delegate.nodeNameEquals(node, BeanDefinitionParserDelegate.DESCRIPTION_ELEMENT)) {
+				Element ele = (Element) node;
+
+				if (delegate.nodeNameEquals(ele, BeanDefinitionParserDelegate.BEAN_ELEMENT)) {
+					propertyAccessorName = ele.getAttribute(BeanDefinitionParserDelegate.ID_ATTRIBUTE);
+					if (!StringUtils.hasText(propertyAccessorName)) {
+						parserContext.getReaderContext()
+								.error("The '<bean>' 'id' attribute is required within 'spel-property-accessors'.", ele);
+						return null;
+					}
+					propertyAccessor = delegate.parseBeanDefinitionElement(ele);
+				}
+				else if (delegate.nodeNameEquals(ele, BeanDefinitionParserDelegate.REF_ELEMENT)) {
+					BeanReference propertyAccessorRef = (BeanReference) delegate.parsePropertySubElement(ele, null);
+					propertyAccessorName = propertyAccessorRef.getBeanName();
+					propertyAccessor = propertyAccessorRef;
+				}
+				else {
+					parserContext.getReaderContext().error("Only '<bean>' and '<ref>' elements are allowed.", element);
+					return null;
+				}
+
+				if (this.propertyAccessors.containsKey(propertyAccessorName)) {
+					parserContext.getReaderContext()
+							.error("PropertyAccessor with name '" + propertyAccessorName + "' is already registered.", ele);
+				}
+				else {
+					this.propertyAccessors.put(propertyAccessorName, propertyAccessor);
+				}
+			}
+		}
 
 		return null;
 	}

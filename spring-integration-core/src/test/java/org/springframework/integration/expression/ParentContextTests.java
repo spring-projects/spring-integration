@@ -16,6 +16,7 @@
 package org.springframework.integration.expression;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
@@ -64,6 +65,7 @@ public class ParentContextTests {
 	 *
 	 */
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testSpelBeanReferencesInChildAndParent() throws Exception {
 		AbstractApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml", this.getClass());
 
@@ -89,9 +91,12 @@ public class ParentContextTests {
 		assertSame(evalContexts.get(0).getBeanResolver(), evalContexts.get(1).getBeanResolver());
 
 		List<PropertyAccessor> propertyAccessors = evalContexts.get(0).getPropertyAccessors();
-		assertEquals(3, propertyAccessors.size());
-		PropertyAccessor parentPropertyAccessor = parent.getBean("jsonPropertyAccessor", PropertyAccessor.class);
+		assertEquals(4, propertyAccessors.size());
+		PropertyAccessor parentPropertyAccessorOverride = parent.getBean("jsonPropertyAccessor", PropertyAccessor.class);
+		PropertyAccessor parentPropertyAccessor = parent.getBean("parentJsonPropertyAccessor", PropertyAccessor.class);
+		assertTrue(propertyAccessors.contains(parentPropertyAccessorOverride));
 		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
+		assertTrue(propertyAccessors.indexOf(parentPropertyAccessorOverride) > propertyAccessors.indexOf(parentPropertyAccessor));
 
 		Map<String, Object> variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(0), "variables");
 		assertEquals(3, variables.size());
@@ -101,8 +106,8 @@ public class ParentContextTests {
 
 		assertNotSame(evalContexts.get(1).getBeanResolver(), evalContexts.get(2).getBeanResolver());
 		propertyAccessors = evalContexts.get(1).getPropertyAccessors();
-		assertEquals(3, propertyAccessors.size());
-		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
+		assertEquals(4, propertyAccessors.size());
+		assertTrue(propertyAccessors.contains(parentPropertyAccessorOverride));
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(1), "variables");
 		assertEquals(3, variables.size());
@@ -115,6 +120,7 @@ public class ParentContextTests {
 		PropertyAccessor childPropertyAccessor = child.getBean("jsonPropertyAccessor", PropertyAccessor.class);
 		assertTrue(propertyAccessors.contains(childPropertyAccessor));
 		assertTrue(propertyAccessors.contains(parentPropertyAccessor));
+		assertFalse(propertyAccessors.contains(parentPropertyAccessorOverride));
 		assertTrue(propertyAccessors.indexOf(childPropertyAccessor) < propertyAccessors.indexOf(parentPropertyAccessor));
 
 		variables = (Map<String, Object>) TestUtils.getPropertyValue(evalContexts.get(2), "variables");

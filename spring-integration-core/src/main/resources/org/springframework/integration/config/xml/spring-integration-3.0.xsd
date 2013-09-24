@@ -3928,6 +3928,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:documentation>
 				Allows you to register PropertyAccessors (implementation of the PropertyAccessor interface) that will
 				be automatically registered with the SpEL EvaluationContext.
+				Note, the 'id' attribute of the bean definition below is required.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
