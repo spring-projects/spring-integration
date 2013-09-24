@@ -7,12 +7,13 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 
 	<int-ip:tcp-connection-factory
 		id="scf"
 		type="server"
 		so-timeout="60000"
-		port="9876"/>
+		port="#{tcpIpUtils.findAvailableServerSocket()}"/>
 
 	<int-ip:tcp-inbound-channel-adapter
 		connection-factory="scf"
@@ -32,7 +33,7 @@
 		id="ccf"
 		type="client"
 		host="localhost"
-		port="9876"
+		port="#{scf.port}"
 		so-timeout="60000"
 
 	/>
@@ -53,7 +54,7 @@
 		id="gateway.ccf"
 		type="client"
 		host="localhost"
-		port="9876"
+		port="#{scf.port}"
 		so-timeout="60000"
 	/>
 
