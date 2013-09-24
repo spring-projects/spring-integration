@@ -146,8 +146,8 @@
 				<listitem>
 					<emphasis>#jsonPath</emphasis> - to evaluate provided 'jsonPath' on some provided object. This function
 					is based on
-					<ulink url="http://docs.spring.io/spring-integration/docs/3.0.0.BUILD-SNAPSHOT/api/org/springframework/integration/json/JsonPathUtils.html#evaluate%28java.lang.Object,%20java.lang.String,%20com.jayway.jsonpath.Filter...%29">
-					<classname>JsonPathUtils#evaluate</classname></ulink>. This static method delegates to the
+					<ulink url="http://docs.spring.io/spring-integration/docs/3.0.0.RC1/api/org/springframework/integration/json/JsonPathUtils.html#evaluate%28java.lang.Object,%20java.lang.String,%20com.jayway.jsonpath.Filter...%29"
+							><classname>JsonPathUtils#evaluate</classname></ulink>. This static method delegates to the
 					<ulink url="http://code.google.com/p/json-path">Jayway JsonPath library</ulink>. The usage may looks like this:
 					<programlisting language="xml"><![CDATA[<transformer expression="#jsonPath(payload, '$.store.book[0].author')"/>
 
@@ -167,7 +167,7 @@
 							If there is no Jayway JsonPath library (json-path.jar) in the classpath, <emphasis>#jsonPath</emphasis>
 							SpEL function won't be registered.
 						</note>
-						For more information regarding JSON see JSON Transformers' in <xref linkend="transformer"/>.
+						For more information regarding JSON see 'JSON Transformers' in <xref linkend="transformer"/>.
 				</listitem>
 				<!--<listitem>
 					<emphasis>#xpath</emphasis> - TBD
