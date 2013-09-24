@@ -200,7 +200,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 								     ":" + e.getCause() + ":" + e.getMessage());
 					}
 				}
-				this.closeConnection();
+				this.closeConnection(true);
 				return;
 			}
 		} finally {
@@ -237,8 +237,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		Message<?> message = null;
 		try {
 			message = this.getMapper().toMessage(this);
-		} catch (Exception e) {
-			this.closeConnection();
+		}
+		catch (Exception e) {
+			this.closeConnection(true);
 			if (e instanceof SocketTimeoutException && this.isSingleUse()) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Closing single use socket after timeout " + this.getConnectionId());
@@ -259,13 +260,14 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			if (message != null) {
 				intercepted = getListener().onMessage(message);
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			if (e instanceof NoListenerException) {
 				if (this.isSingleUse()) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Closing single use channel after inbound message " + this.getConnectionId());
 					}
-					this.closeConnection();
+					this.closeConnection(true);
 				}
 			}
 			else {
@@ -281,7 +283,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Closing single use cbannel after inbound message " + this.getConnectionId());
 			}
-			this.closeConnection();
+			this.closeConnection(false);
 		}
 	}
 
@@ -303,7 +305,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			int len = this.socketChannel.read(this.rawBuffer);
 			if (len < 0) {
 				this.writingToPipe = false;
-				this.closeConnection();
+				this.closeConnection(true);
 			}
 			if (logger.isTraceEnabled()) {
 				logger.trace("After read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
@@ -373,16 +375,18 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 		try {
 			doRead();
-		} catch (ClosedChannelException cce) {
+		}
+		catch (ClosedChannelException cce) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(this.getConnectionId() + " Channel is closed");
 			}
-			this.closeConnection();
-		} catch (Exception e) {
+			this.closeConnection(true);
+		}
+		catch (Exception e) {
 			logger.error("Exception on Read " +
 					     this.getConnectionId() + " " +
 					     e.getMessage(), e);
-			this.closeConnection();
+			this.closeConnection(true);
 		}
 	}
 
@@ -390,7 +394,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * Close the socket due to timeout.
 	 */
 	void timeout() {
-		this.closeConnection();
+		this.closeConnection(true);
 	}
 
 	/**
