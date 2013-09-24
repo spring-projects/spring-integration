@@ -24,7 +24,6 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -512,31 +511,28 @@ public class AbstractJpaOperationsTests {
 
 	}
 
-	@Test
-	public void testGetAllStudentsFromSecondRecord() {
+	public void testGetAllStudentsFromThirdRecord() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		List<?> results = jpaOperations.getResultListForClass(StudentDomain.class, 2, 0);
 		assertEquals(1, results.size());
 	}
 
-	@Test
-	public void testGetAllStudentsUsingNativeQueryFromSecondRecord() {
+
+	public void testGetAllStudentsUsingNativeQueryFromThirdRecord() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		String query = "select * from Student";
 		List<?> results = jpaOperations.getResultListForNativeQuery(query, StudentDomain.class, null, 2, 0);
 		assertEquals(1, results.size());
 	}
 
-	@Test
-	public void testGetAllStudentsUsingNamedQueryFromSecondRecord() {
+
+	public void testGetAllStudentsUsingNamedQueryFromThirdRecord() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		List<?> results = jpaOperations.getResultListForNamedQuery("selectAllStudents", null, 2, 0);
 		assertEquals(1, results.size());
 	}
 
-
-	@Test
-	public void testGetAllStudentsUsingJPAQueryFromSecondRecord() {
+	public void testGetAllStudentsUsingJPAQueryFromThirdRecord() {
 		JpaOperations jpaOperations = getJpaOperations(entityManager);
 		String query = "select s from Student s";
 		List<?> results = jpaOperations.getResultListForQuery(query, null, 2, 0);

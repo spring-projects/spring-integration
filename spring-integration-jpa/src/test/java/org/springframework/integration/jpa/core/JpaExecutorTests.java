@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
@@ -226,41 +227,46 @@ public class JpaExecutorTests {
 	}
 
 	@Test
-	public void testResultStartingFromSecondRecordForJPAQuery() throws Exception {
+	public void testResultStartingFromThirdRecordForJPAQuery() throws Exception {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("select s from Student s");
+		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
 		jpaExecutor.afterPropertiesSet();
-		List<?> results = jpaExecutor.doPoll(null, 2);
+
+		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);
 		Assert.assertEquals(1, results.size());
 	}
 
 	@Test
-	public void testResultStartingFromSecondRecordForNativeQuery() throws Exception {
+	public void testResultStartingFromThirdRecordForNativeQuery() throws Exception {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNativeQuery("select * from Student s");
+		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
 		jpaExecutor.afterPropertiesSet();
-		List<?> results = jpaExecutor.doPoll(null, 2);
+		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);
 		Assert.assertEquals(1, results.size());
 	}
 
 	@Test
-	public void testResultStartingFromSecondRecordForNamedQuery() throws Exception {
+	public void testResultStartingFromThirdRecordForNamedQuery() throws Exception {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNamedQuery("selectAllStudents");
+		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
 		jpaExecutor.afterPropertiesSet();
-		List<?> results = jpaExecutor.doPoll(null, 2);
+		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);
 		Assert.assertEquals(1, results.size());
 	}
 
 	@Test
-	public void testResultStartingFromSecondRecordUsingEntity() throws Exception {
+	public void testResultStartingFromThirdRecordUsingEntity() throws Exception {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
+		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
 		jpaExecutor.afterPropertiesSet();
-		List<?> results = jpaExecutor.doPoll(null, 2);
+		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);
 		Assert.assertEquals(1, results.size());
 	}

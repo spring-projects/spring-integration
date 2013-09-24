@@ -1140,7 +1140,6 @@ public class Student {
     max-number-of-results="" ]]><co id="outGateMaxNumOfResults"/><![CDATA[
     first-result="" ]]><co id="outGateFirstResult"/><![CDATA[
     first-result-expression="" ]]><co id="outGateFirstResultExpression"/><![CDATA[
-    evaluation-context="" ]]><co id="outGateEvaluationContext"/><![CDATA[
     named-query=""
     native-query=""
     order=""
@@ -1183,13 +1182,6 @@ public class Student {
 						This expression is evaluated against the message to find the position of first record in the
 						result set to be retrieved This attribute is mutually exclusive to <code>first-result</code>.
 						This attribute is introduced since version 3.0. <emphasis>Optional</emphasis>.
-					</para>
-				</callout>
-				<callout arearefs="outGateEvaluationContext">
-					<para>
-						The evaluation context be used for evaluating the expression given in <code>first-result-expressio</code>
-						attribute. Not providing one will use the default context which suffices in majority of
-						scenarios. This attribute is introduced since version 3.0. <emphasis>Optional</emphasis>.
 					</para>
 				</callout>
 			</calloutlist>

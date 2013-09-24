@@ -210,12 +210,12 @@
 						<constructor-arg name="entityManager" ref="entityManager"/>
 						<property name="jpaQuery"           value="select s from Student s"/>
 						<property name="expectSingleResult" value="false"/>
+						<property		 name="firstResultExpression"
+						    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
 					</bean>
 				</constructor-arg>
 				<property        name="gatewayType"   value="RETRIEVING"/>
 				<property        name="outputChannel" ref="studentReplyChannel"/>
-				<property		 name="firstResultExpression"
-				    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
 			</bean>
 		</constructor-arg>
 	</bean>

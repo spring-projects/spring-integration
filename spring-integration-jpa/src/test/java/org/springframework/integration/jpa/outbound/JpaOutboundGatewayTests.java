@@ -33,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Amol Nayak
+ *
  * @since 2.2
  *
  */

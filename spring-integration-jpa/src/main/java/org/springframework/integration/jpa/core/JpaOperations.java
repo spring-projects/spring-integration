@@ -86,7 +86,7 @@ public interface JpaOperations {
 	 *
 	 * @param  entityClass
 	 * @param  firstResult
-	 * @param  maxNumberOfReturnedObjects	 *
+	 * @param  maxNumberOfReturnedObjects
 	 * @return List of found entities
 	 */
 	List<?> getResultListForClass(Class<?> entityClass,

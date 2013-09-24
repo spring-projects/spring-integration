@@ -23,7 +23,6 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -75,8 +74,6 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 	private volatile boolean requiresReply = false;
 
 	private volatile String componentName;
-
-	private Expression firstResultExpression;
 
 	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
@@ -137,16 +134,6 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		this.componentName = componentName;
 	}
 
-	/**
-	 * The Expression that would be evaluated against the message for getting the first
-	 * position of the result set in a RETRIEVING gateway
-	 *
-	 * @param firstResultExpression
-	 */
-	public void setFirstResultExpression(Expression firstResultExpression) {
-		this.firstResultExpression = firstResultExpression;
-	}
-
 	@Override
 	public Class<?> getObjectType() {
 		return MessageHandler.class;
@@ -167,9 +154,7 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 			jpaOutboundGateway.setAdviceChain(this.adviceChain);
 		}
 		jpaOutboundGateway.setBeanFactory(this.getBeanFactory());
-		jpaOutboundGateway.setFirstResultExpression(firstResultExpression);
 		jpaOutboundGateway.afterPropertiesSet();
-
 		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
 
 			ProxyFactory proxyFactory = new ProxyFactory(jpaOutboundGateway);
