@@ -81,7 +81,7 @@ import org.springframework.xml.transform.StringSource;
  */
 public class XsltPayloadTransformer extends AbstractTransformer {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private static final Log logger = LogFactory.getLog(XsltPayloadTransformer.class);
 
 	private final Templates templates;
 
@@ -115,10 +115,10 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) throws Exception {
 		this(xslResource, resultTransformer, null);
 	}
-
-    public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer, String transformerFactoryClass) throws Exception {
-        this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), resultTransformer);
-    }
+	
+	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer, String transformerFactoryClass) throws Exception {
+		this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), resultTransformer);
+	}
 
     public XsltPayloadTransformer(Resource xslResource, String transformerFactoryClass) throws Exception {
         this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), null);
