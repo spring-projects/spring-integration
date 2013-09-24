@@ -367,6 +367,7 @@ public class CachingClientConnectionFactoryTests {
 	}
 
 	private void testCloseOnTimeoutGuts(AbstractClientConnectionFactory cf) throws Exception, InterruptedException {
+		TestingUtilities.waitListening(serverCf, null);
 		cf.setSoTimeout(100);
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(cf, 1);
 		cccf.start();
