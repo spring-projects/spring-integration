@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
@@ -351,6 +352,28 @@ public class CachingClientConnectionFactoryTests {
 		assertEquals(connectionIds.get(0), connectionIds.get(1));
 
 		okToRun.set(false);
+	}
+
+	@Test
+	public void testCloseOnTimeoutNet() throws Exception {
+		TcpNetClientConnectionFactory cf = new TcpNetClientConnectionFactory("localhost", serverCf.getPort());
+		testCloseOnTimeoutGuts(cf);
+	}
+
+	@Test
+	public void testCloseOnTimeoutNio() throws Exception {
+		TcpNioClientConnectionFactory cf = new TcpNioClientConnectionFactory("localhost", serverCf.getPort());
+		testCloseOnTimeoutGuts(cf);
+	}
+
+	private void testCloseOnTimeoutGuts(AbstractClientConnectionFactory cf) throws Exception, InterruptedException {
+		cf.setSoTimeout(100);
+		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(cf, 1);
+		cccf.start();
+		TcpConnection connection = cccf.getConnection();
+		Thread.sleep(200);
+		assertFalse(connection.isOpen());
+		cccf.stop();
 	}
 
 	@Test

@@ -143,7 +143,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Closing single-use connection" + this.getConnectionId());
 				}
-				this.closeConnection();
+				this.closeConnection(false);
 			}
 		}
 	}
@@ -165,7 +165,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * If we have been intercepted, propagate the close from the outermost interceptor;
 	 * otherwise, just call close().
 	 */
-	protected void closeConnection() {
+	protected void closeConnection(boolean isException) {
 		if (!(this.listener instanceof TcpConnectionInterceptor)) {
 			close();
 			return;
@@ -175,6 +175,10 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
 		}
 		outerInterceptor.close();
+		if (isException) {
+			// ensure physical close in case the interceptor did not close
+			this.close();
+		}
 	}
 
 	/**

@@ -170,7 +170,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 				catch (NoListenerException nle) {
 					if (singleUse) {
 						logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
-						this.closeConnection();
+						this.closeConnection(true);
 						okToRun = false;
 					} else {
 						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
@@ -186,7 +186,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 				 */
 				if (singleUse && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
 					logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
-					this.closeConnection();
+					this.closeConnection(false);
 					okToRun = false;
 				}
 			}
@@ -212,12 +212,11 @@ public class TcpNetConnection extends TcpConnectionSupport {
 			}
 			catch (SocketException e1) {
 				logger.error("Error accessing soTimeout", e1);
-				doClose = true;
 			}
 		}
 		if (doClose) {
 			boolean noReadErrorOnClose = this.isNoReadErrorOnClose();
-			this.closeConnection();
+			this.closeConnection(true);
 			if (!(e instanceof SoftEndOfStreamException)) {
 				if (e instanceof SocketTimeoutException && this.isSingleUse()) {
 					if (logger.isDebugEnabled()) {
