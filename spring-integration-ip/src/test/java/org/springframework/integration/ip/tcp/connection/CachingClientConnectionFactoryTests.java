@@ -366,13 +366,16 @@ public class CachingClientConnectionFactoryTests {
 		testCloseOnTimeoutGuts(cf);
 	}
 
-	private void testCloseOnTimeoutGuts(AbstractClientConnectionFactory cf) throws Exception, InterruptedException {
+	private void testCloseOnTimeoutGuts(AbstractClientConnectionFactory cf) throws Exception {
 		TestingUtilities.waitListening(serverCf, null);
 		cf.setSoTimeout(100);
 		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(cf, 1);
 		cccf.start();
 		TcpConnection connection = cccf.getConnection();
-		Thread.sleep(200);
+		int n = 0;
+		while (n++ < 100 && connection.isOpen()) {
+			Thread.sleep(100);
+		}
 		assertFalse(connection.isOpen());
 		cccf.stop();
 	}
