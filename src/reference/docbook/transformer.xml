@@ -350,6 +350,10 @@ public class Foo {
 
 <int-amqp:inbound-channel-adapter ... message-converter="jsonConverterWithPOType" ... />]]></programlisting>
     </important>
+    <para>
+      In addition to JSON Transformers Spring Integration provides out-of-the-box <emphasis>#jsonPath</emphasis>
+      SpEL function. For more information see <xref linkend="spel"/>.
+    </para>
   </section>
 
   <section id="transformer-annotation">

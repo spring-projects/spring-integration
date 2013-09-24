@@ -21,10 +21,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.TypeDescriptor;
@@ -35,11 +38,13 @@ import org.springframework.expression.TypedValue;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
@@ -74,6 +79,11 @@ public class SpelTransformerIntegrationTests {
 	@Autowired
 	private MessageChannel spelFunctionInput;
 
+	@Autowired
+	private IntegrationEvaluationContextFactoryBean evaluationContextFactoryBean;
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	@Test
 	public void simple() {
@@ -111,6 +121,7 @@ public class SpelTransformerIntegrationTests {
 		assertNotNull(reply);
 		assertTrue(reply.getPayload() instanceof String);
 		assertEquals("baz", reply.getPayload());
+		assertEquals(4, TestUtils.getPropertyValue(this.evaluationContextFactoryBean, "propertyAccessors", List.class).size());
 	}
 
 	@Test
