@@ -25,16 +25,19 @@
 
 	<spel-function id="trim" class="org.springframework.util.StringUtils" method="trimWhitespace"/>
 
+
 	<beans:bean id="integrationEvaluationContext" class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
 		<beans:property name="propertyAccessors">
-			<util:list>
-				<beans:bean class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
-			</util:list>
+			<util:map>
+				<beans:entry key="foo">
+					<beans:bean class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$FooAccessor"/>
+				</beans:entry>
+			</util:map>
 		</beans:property>
 		<beans:property name="functions">
 			<util:map>
 				<beans:entry key="bar"
-					value="#{T(org.springframework.integration.transformer.SpelTransformerIntegrationTests$BarFunction).getMethod('bar', T(org.springframework.integration.Message))}"/>
+				value="#{T(org.springframework.integration.transformer.SpelTransformerIntegrationTests$BarFunction).getMethod('bar', T(org.springframework.integration.Message))}"/>
 			</util:map>
 		</beans:property>
 	</beans:bean>

@@ -17,10 +17,7 @@
 package org.springframework.integration.config;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -76,43 +73,44 @@ import org.springframework.util.Assert;
 public class IntegrationEvaluationContextFactoryBean implements FactoryBean<StandardEvaluationContext>,
 		ApplicationContextAware, InitializingBean {
 
-	private volatile List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
+	private volatile Map<String, PropertyAccessor> propertyAccessors = new LinkedHashMap<String, PropertyAccessor>();
 
 	private volatile Map<String, Method> functions = new LinkedHashMap<String, Method>();
 
 	private TypeConverter typeConverter = new StandardTypeConverter();
 
-	private ApplicationContext applicationContext;
 	private BeanResolver beanResolver;
+
+	private ApplicationContext applicationContext;
+
+	private volatile boolean initialized;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 
-	public void setPropertyAccessors(PropertyAccessor... accessors) {
-		Assert.noNullElements(accessors, "Cannot have null elements in accessors");
-		List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>();
-		loadDefaultPropertyAccessors(propertyAccessors);
-		Collections.addAll(propertyAccessors, accessors);
-		this.propertyAccessors = propertyAccessors;
+	public void setPropertyAccessors(Map<String, PropertyAccessor> accessors) {
+		Assert.isTrue(!this.initialized, "'propertyAccessors' can't be changed after initialization.");
+		Assert.notNull(accessors, "'accessors' must not be null.");
+		Assert.noNullElements(accessors.values().toArray(), "'accessors' cannot have null values.");
+		this.propertyAccessors = new LinkedHashMap<String, PropertyAccessor>(accessors);
+	}
+
+	public Map<String, PropertyAccessor> getPropertyAccessors() {
+		return propertyAccessors;
 	}
 
 	public void setFunctions(Map<String, Method> functionsArg) {
-		Map<String, Method> functions = new LinkedHashMap<String, Method>();
-		for (Entry<String, Method> function : functionsArg.entrySet()) {
-			Assert.notNull(function.getValue(), "Method cannot be null");
-			functions.put(function.getKey(), function.getValue());
-		}
-		this.functions = functions;
+		Assert.isTrue(!this.initialized, "'functions' can't be changed after initialization.");
+		Assert.notNull(functionsArg, "'functions' must not be null.");
+		Assert.noNullElements(functionsArg.values().toArray(), "'functions' cannot have null values.");
+		this.functions = new LinkedHashMap<String, Method>(functionsArg);
 	}
 
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if (this.propertyAccessors.isEmpty()) {
-			this.loadDefaultPropertyAccessors(this.propertyAccessors);
-		}
 		if (this.applicationContext != null) {
 			this.beanResolver = new BeanFactoryResolver(this.applicationContext);
 			ConversionService conversionService = IntegrationContextUtils.getConversionService(this.applicationContext);
@@ -130,13 +128,32 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 
 			try {
 				SpelPropertyAccessorRegistrar propertyAccessorRegistrar = this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
-				this.propertyAccessors.addAll(propertyAccessorRegistrar.getPropertyAccessors());
+				for (Entry<String, PropertyAccessor> entry : propertyAccessorRegistrar.getPropertyAccessors().entrySet()) {
+					if (!this.propertyAccessors.containsKey(entry.getKey())) {
+						this.propertyAccessors.put(entry.getKey(), entry.getValue());
+					}
+				}
 			}
 			catch (NoSuchBeanDefinitionException e) {
-				// There is no 'SpelPropertyAccessorRegistrar' bean with the parent application context
-				// Ignore it
+				// There is no 'SpelPropertyAccessorRegistrar' bean in the application context.
+			}
+
+			ApplicationContext parent = this.applicationContext.getParent();
+
+			if (parent != null && parent.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
+				IntegrationEvaluationContextFactoryBean parentFactoryBean =
+						parent.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+								IntegrationEvaluationContextFactoryBean.class);
+
+				for (Entry<String, PropertyAccessor> entry : parentFactoryBean.getPropertyAccessors().entrySet()) {
+					if (!this.propertyAccessors.containsKey(entry.getKey())) {
+						this.propertyAccessors.put(entry.getKey(), entry.getValue());
+					}
+				}
 			}
 		}
+
+		this.initialized = true;
 	}
 
 	@Override
@@ -146,19 +163,17 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 		evaluationContext.setBeanResolver(this.beanResolver);
 		evaluationContext.setTypeConverter(this.typeConverter);
 
-		for (PropertyAccessor propertyAccessor : this.propertyAccessors) {
+		for (PropertyAccessor propertyAccessor : this.propertyAccessors.values()) {
 			evaluationContext.addPropertyAccessor(propertyAccessor);
 		}
+
+		evaluationContext.addPropertyAccessor(new MapAccessor());
 
 		for (Entry<String, Method> functionEntry : this.functions.entrySet()) {
 			evaluationContext.registerFunction(functionEntry.getKey(), functionEntry.getValue());
 		}
 
 		return evaluationContext;
-	}
-
-	private void loadDefaultPropertyAccessors(List<PropertyAccessor> propertyAccessors) {
-		propertyAccessors.add(new MapAccessor());
 	}
 
 	@Override

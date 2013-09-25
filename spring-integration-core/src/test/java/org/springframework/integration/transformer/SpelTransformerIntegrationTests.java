@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
+import java.util.Map;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -121,7 +121,7 @@ public class SpelTransformerIntegrationTests {
 		assertNotNull(reply);
 		assertTrue(reply.getPayload() instanceof String);
 		assertEquals("baz", reply.getPayload());
-		assertEquals(4, TestUtils.getPropertyValue(this.evaluationContextFactoryBean, "propertyAccessors", List.class).size());
+		assertEquals(3, TestUtils.getPropertyValue(this.evaluationContextFactoryBean, "propertyAccessors", Map.class).size());
 	}
 
 	@Test
