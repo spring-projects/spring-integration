@@ -129,6 +129,17 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="merge-with-default-converters" type="xsd:boolean" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Flag to indicate if the default converters should be registered after
+						custom converters. This flag is used only if message-converters 
+						are provided, otherwise all default converters will be registered.
+
+						Defaults to "false"
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="header-mapper" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -287,6 +298,17 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="merge-with-default-converters" type="xsd:boolean" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Flag to indicate if the default converters should be registered after custom
+								converters. This flag is used only if message-converters 
+								are provided, otherwise all default converters will be registered.
+								
+								Defaults to "false"
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>					
 					<xsd:attribute name="header-mapper" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

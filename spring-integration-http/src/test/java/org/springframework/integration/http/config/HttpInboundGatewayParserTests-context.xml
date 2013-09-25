@@ -26,6 +26,22 @@
 		reply-timeout="4567"
 		error-channel="errorChannel"/>
 
+	<inbound-gateway id="inboundGatewayWithDefaultConverters"
+		request-channel="requests"
+		reply-channel="responses"
+		message-converters="customConverters"/>
+
+	<inbound-gateway id="inboundGatewayNoDefaultConverters"
+		request-channel="requests"
+		reply-channel="responses"
+		message-converters="customConverters"
+		merge-with-default-converters="false"/>
+
+	<util:list id="customConverters">
+		<beans:bean class="org.springframework.integration.http.converter.SerializingHttpMessageConverter"/>
+	</util:list>		
+
+
 	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo" error-code="oops"/>
 	
 	<inbound-gateway id="inboundControllerViewExp"

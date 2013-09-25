@@ -55,6 +55,7 @@ import org.springframework.util.SerializationUtils;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Biju Kunjummen
  * @since 2.0
  */
 public class HttpRequestHandlingMessagingGatewayTests {
@@ -66,6 +67,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestChannel(requestChannel);
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
@@ -86,6 +88,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 
@@ -115,6 +118,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.addHeader("Accept", "x-application/octet-stream");
@@ -142,6 +146,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestPayloadType(String.class);
 		gateway.setRequestChannel(requestChannel);
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 
@@ -170,6 +175,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		gateway.setRequestChannel(requestChannel);
 		gateway.setConvertExceptions(true);
 		gateway.setMessageConverters(Arrays.<HttpMessageConverter<?>>asList(new TestHttpMessageConverter()));
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader("Accept", "application/x-java-serialized-object");
 		request.setMethod("GET");
@@ -185,6 +191,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setRequestChannel(channel);
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/test");
 		request.setParameter("foo", "123");
 		request.addParameter("bar", "456");
@@ -217,6 +224,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
 		converters.add(new SerializingHttpMessageConverter());
 		gateway.setMessageConverters(converters);
+		gateway.afterPropertiesSet();
 
 		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/test");
 

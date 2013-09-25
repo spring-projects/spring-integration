@@ -62,7 +62,9 @@
   customization of the mapping from <interfacename>HttpServletRequest</interfacename> to <interfacename>Message</interfacename>. The default converters
   encapsulate simple strategies, which for
   example will create a String message for a <emphasis>POST</emphasis> request where the content type starts with "text", see the Javadoc for
-  full details.
+  full details. An additional flag (<code>mergeWithDefaultConverters</code>) can be set along with the list of 
+  custom <interfacename>HttpMessageConverter</interfacename> to add the default converters after the custom converters. 
+  By default this flag is set to false.
       </para>
       <para>Starting with this release MultiPart File support was implemented. If the request has been wrapped as a
     <emphasis>MultipartHttpServletRequest</emphasis>, when using the default converters, that request will be converted

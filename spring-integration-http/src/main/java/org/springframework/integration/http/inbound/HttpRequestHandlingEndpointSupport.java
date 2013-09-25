@@ -41,6 +41,7 @@ import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
@@ -57,6 +58,7 @@ import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -95,6 +97,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Biju Kunjummen
  * @since 2.0
  */
 public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
@@ -103,10 +106,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
-	private static final boolean jacksonPresent = ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper",
-			HttpRequestHandlingEndpointSupport.class.getClassLoader())
-			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingEndpointSupport.class
-					.getClassLoader());
 
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
@@ -116,6 +115,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private volatile Class<?> requestPayloadType = null;
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+
+	private volatile boolean mergeWithDefaultConverters = false;
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
 
@@ -143,26 +144,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this(true);
 	}
 
-	@SuppressWarnings("rawtypes")
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		this.expectReply = expectReply;
-		this.messageConverters.add(new MultipartAwareFormHttpMessageConverter());
-		this.messageConverters.add(new ByteArrayHttpMessageConverter());
-		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
-		stringHttpMessageConverter.setWriteAcceptCharset(false);
-		this.messageConverters.add(stringHttpMessageConverter);
-		this.messageConverters.add(new ResourceHttpMessageConverter());
-		this.messageConverters.add(new SourceHttpMessageConverter());
-		if (jaxb2Present) {
-			this.messageConverters.add(new Jaxb2RootElementHttpMessageConverter());
-		}
-		if (jacksonPresent) {
-			this.messageConverters.add(new MappingJacksonHttpMessageConverter());
-		}
-		if (romePresent) {
-			this.messageConverters.add(new AtomFeedHttpMessageConverter());
-			this.messageConverters.add(new RssChannelHttpMessageConverter());
-		}
 	}
 
 	/**
@@ -211,11 +194,20 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		Assert.notEmpty(messageConverters, "'messageConverters' must not be empty");
-		this.messageConverters = messageConverters;
+		this.messageConverters.addAll(messageConverters);
 	}
 
 	protected List<HttpMessageConverter<?>> getMessageConverters() {
 		return this.messageConverters;
+	}
+	
+
+	/**
+	 * Flag which determines if the default converters should be available after 
+	 * custom converters.
+	 */
+	public void setMergeWithDefaultConverters(boolean mergeWithDefaultConverters) {
+		this.mergeWithDefaultConverters = mergeWithDefaultConverters;
 	}
 
 	/**
@@ -306,8 +298,20 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				}
 			}
 		}
-
+		registerConverters();
 		this.validateSupportedMethods();
+	}
+
+	/**
+	 * Register the list of {@link HttpMessageConverter}. If user has customized the set of converters, then
+	 * an additional flag 'mergeWithDefaultConverters' can be set to add the list of default HttpMessageConverter 
+	 * after the  list of custom converters. If there are no custom converters, the default converters will 
+	 * always be registered
+	 */
+	private void registerConverters() {
+		if (this.mergeWithDefaultConverters || this.messageConverters.size() == 0) {
+			this.messageConverters.addAll(defaultMessageConverters());
+		}
 	}
 
 
@@ -566,6 +570,35 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Provides the list of default HttpMessageConverter
+	 */
+	@SuppressWarnings("rawtypes")
+	private List<HttpMessageConverter<?>> defaultMessageConverters() {
+		List<HttpMessageConverter<?>> defaultConverters = new ArrayList<HttpMessageConverter<?>>();
+		defaultConverters.add(new MultipartAwareFormHttpMessageConverter());
+		defaultConverters.add(new ByteArrayHttpMessageConverter());
+		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
+		stringHttpMessageConverter.setWriteAcceptCharset(false);
+		defaultConverters.add(stringHttpMessageConverter);
+		defaultConverters.add(new ResourceHttpMessageConverter());
+		defaultConverters.add(new SourceHttpMessageConverter());
+		if (jaxb2Present) {
+			defaultConverters.add(new Jaxb2RootElementHttpMessageConverter());
+		}
+		if (JacksonJsonUtils.isJackson2Present()) {
+			defaultConverters.add(new MappingJackson2HttpMessageConverter());
+		}else if (JacksonJsonUtils.isJacksonPresent()) {
+			defaultConverters.add(new MappingJacksonHttpMessageConverter());
+		}
+		if (romePresent) {
+			defaultConverters.add(new AtomFeedHttpMessageConverter());
+			defaultConverters.add(new RssChannelHttpMessageConverter());
+		}
+		
+		return defaultConverters;
 	}
 
 	public int beforeShutdown() {
