@@ -3,33 +3,33 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>Feed Adapter</title>
   <para>
-    Spring Integration provides support for Syndication via Feed Adapters 
+    Spring Integration provides support for Syndication via Feed Adapters
   </para>
   <section id="feed-intro">
     <title>Introduction</title>
     <para>
-     Web syndication is a form of publishing material such as news stories, press releases, blog posts, and 
+     Web syndication is a form of publishing material such as news stories, press releases, blog posts, and
      other items typically available on a website but also made available in a feed format such as RSS or ATOM.
     </para>
     <para>
-    Spring integration provides support for Web Syndication via its 'feed' adapter and provides convenient 
-    namespace-based configuration for it. 
+    Spring integration provides support for Web Syndication via its 'feed' adapter and provides convenient
+    namespace-based configuration for it.
 	To configure the 'feed' namespace, include the following elements within the headers of your XML configuration file:
-	
+
 	<programlisting language="xml"><![CDATA[xmlns:int-feed="http://www.springframework.org/schema/integration/feed"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/feed 
+xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
 	http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"]]></programlisting>
 
     </para>
   </section>
-  <section>
+  <section id="feed-inbound-channel-adapter">
   	<title>Feed Inbound Channel Adapter</title>
   	<para>
   	The only adapter that is really needed to provide support for retrieving feeds is an <emphasis>inbound channel adapter</emphasis>.
   	This allows you to subscribe to a particular URL. Below is an example configuration:
-  	
-  	<programlisting language="xml"><![CDATA[<int-feed:inbound-channel-adapter id="feedAdapter" 
-		channel="feedChannel" 
+
+  	<programlisting language="xml"><![CDATA[<int-feed:inbound-channel-adapter id="feedAdapter"
+		channel="feedChannel"
 		url="http://feeds.bbci.co.uk/news/rss.xml">
 	<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 </int-feed:inbound-channel-adapter>]]></programlisting>
@@ -38,46 +38,59 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
   	</para>
   	<para>
   	 As news items are retrieved they will be converted to Messages and sent to a channel identified by the <code>channel</code> attribute.
-	The payload of each message will be a <classname>com.sun.syndication.feed.synd.SyndEntry</classname> instance. That encapsulates 
+	The payload of each message will be a <classname>com.sun.syndication.feed.synd.SyndEntry</classname> instance. That encapsulates
 	various data about a news item (content, dates, authors, etc.).
   	</para>
   	<para>
-  	You can also see that the <emphasis>Inbound Feed Channel Adapter</emphasis> is a Polling Consumer. That means you have to 
+  	You can also see that the <emphasis>Inbound Feed Channel Adapter</emphasis> is a Polling Consumer. That means you have to
   	provide a poller configuration. However, one important thing you must understand with regard to Feeds is that its inner-workings
-  	are slightly different then most other poling consumers. When an Inbound Feed adapter is started, it does the first poll and 
-  	receives a <classname>com.sun.syndication.feed.synd.SyndEntryFeed</classname> instance. That is an object that contains multiple 
-  	<classname>SyndEntry</classname> objects. Each entry is stored in the local entry queue and is released based on 
-  	the value in the <code>max-messages-per-poll</code> attribute such that each Message will contain a single entry. 
-  	If during retrieval of the entries from the entry queue the queue had become empty, the adapter will attempt to update 
+  	are slightly different then most other poling consumers. When an Inbound Feed adapter is started, it does the first poll and
+  	receives a <classname>com.sun.syndication.feed.synd.SyndEntryFeed</classname> instance. That is an object that contains multiple
+  	<classname>SyndEntry</classname> objects. Each entry is stored in the local entry queue and is released based on
+  	the value in the <code>max-messages-per-poll</code> attribute such that each Message will contain a single entry.
+  	If during retrieval of the entries from the entry queue the queue had become empty, the adapter will attempt to update
   	the Feed thereby populating the queue with more entries (SyndEntry instances) if available. Otherwise the next attempt to
     poll for a feed will be determined by the trigger of the poller (e.g., every 10 seconds in the above configuration).
   	</para>
-  	
+
   	<para>
   		<emphasis>Duplicate Entries</emphasis>
   	</para>
   	<para>
   		Polling for a Feed might result in entries that have already been processed
-        ("I already read that news item, why are you showing it to me again?"). 
+        ("I already read that news item, why are you showing it to me again?").
   		Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
-        Each feed entry will have a <emphasis>published date</emphasis> field. Every time a new Message is generated and sent, 
+        Each feed entry will have a <emphasis>published date</emphasis> field. Every time a new Message is generated and sent,
         Spring Integration will store the value of the latest <emphasis>published date</emphasis> in an instance of the
         <classname>org.springframework.integration.store.MetadataStore</classname> strategy. The MetadataStore interface is
         designed to store various types of generic meta-data (e.g., published date of the last feed entry that has been processed)
-        to help components such as this Feed adapter deal with duplicates. 
+        to help components such as this Feed adapter deal with duplicates.
    	</para>
-   	<para>
-   The default rule for locating this metadata store is as follows: Spring Integration will look for a bean of type
- 	<classname>org.springframework.integration.store.MetadataStore</classname> in the ApplicationContext. If one is found then it will be used, 
- 	otherwise it will create a new instance of <classname>SimpleMetadataStore</classname> which is an in-memory implementation that 
- 	will only persist metadata within the lifecycle of the currently running Application Context. This means that upon restart you may
-    end up with duplicate entries. If you need to persist metadata between Application Context restarts, you may use the 
- 	<classname>PropertiesPersistingMetadataStore</classname> which is backed by a properties file and a properties-persister.
-    Alternatively, you could provide your own implementation of the <classname>MetadataStore</classname> interface
-    (e.g. JdbcMetadataStore) and configure it as bean in the Application Context.
-  	
-  	<programlisting language="xml"><![CDATA[<bean id="metadataStore" 
+	<para>
+		The default rule for locating this metadata store is as follows:
+		<emphasis>Spring Integration</emphasis> will look for a bean of type
+		<classname>org.springframework.integration.store.MetadataStore</classname> in
+		the ApplicationContext. If one is found then it will be used, otherwise
+		it will create a new instance of <classname>SimpleMetadataStore</classname>
+		which is an in-memory implementation that will only persist metadata within
+		the lifecycle of the currently running Application Context. This means
+		that upon restart you may end up with duplicate entries.
+	</para>
+	<para>
+		If you need to persist metadata between Application Context restarts, you
+		may use the <classname>PropertiesPersistingMetadataStore</classname> which
+		is backed by a properties file and a properties-persister. Alternatively,
+		you could provide your own implementation of the
+		<interfacename>MetadataStore</interfacename> interface (e.g. JdbcMetadataStore)
+		and configure it as bean in the Application Context.
+	</para>
+	<programlisting language="xml"><![CDATA[<bean id="metadataStore"
     class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>]]></programlisting>
-  	</para>
-  </section>
+	<tip>
+		As of <emphasis>Spring Integration 3.0</emphasis> a Redis-based
+		<interfacename>MetadataStore</interfacename> is also available. The
+		<classname>RedisMetadataStore</classname> will also allow you to maintain persisted
+		metadata across Application Context restarts. For more information see <xref linkend="redis-metadata-store" />.
+	</tip>
+	</section>
 </chapter>
