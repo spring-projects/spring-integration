@@ -463,6 +463,11 @@
     <bean class="o.s.i.xml.transformer.ResultToDocumentTransformer"/>
   </constructor-arg>
 </bean>]]></programlisting>
+		<para>
+			Starting with Spring Integration 3.0, you can now specify the transformer factory class name using
+			a constructor argument. This is configured using the <code>transformer-factory-class</code>
+			attribute when using the namespace.
+		</para>
 	</section>
 	<section id="xml-using-result-transformers">
 		<title>ResultTransformers</title>
@@ -639,6 +644,10 @@
 			see, with the <code>expression</code> and <code>value</code> attribute,
 			Xslt parameters could now be mapped to any accessible part of the Message
 			as well as any literal value.
+		</para>
+		<para>
+			Starting with Spring Integration 3.0, you can now specify the transformer factory class name using
+			the <code>transformer-factory-class</code> attribute.
 		</para>
 	</section>
 	<section id="xml-using-result-transformers-namespace">

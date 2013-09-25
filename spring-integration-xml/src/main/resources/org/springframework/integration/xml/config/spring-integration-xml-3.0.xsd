@@ -237,6 +237,21 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="transformer-factory-class" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								A fully qualified class name to a transformer factory
+								class that overrides the current JVM default.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<xsd:appinfo>
+									<tool:annotation kind="direct">
+										<tool:expected-type type="java.lang.Class"/>
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

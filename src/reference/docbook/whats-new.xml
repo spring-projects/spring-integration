@@ -372,6 +372,13 @@
 				For more information see <xref linkend="message-id-generation"/>.
 			</para>
 		</section>
+		<section id="3.0-xslt-transformer">
+			<title>XsltPayloadTransformer</title>
+			<para>
+				You can now specify the transformer factory class name using the
+				<code>transformer-factory-class</code> attribute. See <xref linkend="xml-xslt-payload-transformers"/>
+			</para>
+		</section>
 		<section id="3.0-tcp-headers">
 			<title>Message Headers and TCP</title>
 			<para>
