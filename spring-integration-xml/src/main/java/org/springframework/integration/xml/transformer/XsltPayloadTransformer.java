@@ -47,6 +47,7 @@ import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.xml.transform.StringResult;
@@ -76,10 +77,11 @@ import org.springframework.xml.transform.StringSource;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Mike Bazos
  */
 public class XsltPayloadTransformer extends AbstractTransformer {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private static final Log logger = LogFactory.getLog(XsltPayloadTransformer.class);
 
 	private final Templates templates;
 
@@ -107,20 +109,25 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	}
 
 	public XsltPayloadTransformer(Resource xslResource) throws Exception {
-		this(TransformerFactory.newInstance().newTemplates(
-				createStreamSourceOnResource(xslResource)), null);
+		this(xslResource, null, null);
 	}
 
 	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) throws Exception {
-		this(TransformerFactory.newInstance().newTemplates(
-				createStreamSourceOnResource(xslResource)), resultTransformer);
+		this(xslResource, resultTransformer, null);
 	}
+	
+	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer, String transformerFactoryClass) throws Exception {
+		this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), resultTransformer);
+	}
+
+    public XsltPayloadTransformer(Resource xslResource, String transformerFactoryClass) throws Exception {
+        this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), null);
+    }
 
 	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
 		this.templates = templates;
 		this.resultTransformer = resultTransformer;
 	}
-
 
 	/**
 	 * Sets the SourceFactory.
@@ -317,5 +324,21 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 			return new StreamSource(xslResource.getInputStream());
 		}
 	}
-
+	
+    private static TransformerFactory getTransformerFactory(String transformerFactoryImplClass) {
+        TransformerFactory transformerFactory = null;
+        
+        if (transformerFactoryImplClass == null || transformerFactoryImplClass.length() <= 0) {
+            transformerFactory = TransformerFactory.newInstance();
+        } else if(ClassUtils.isPresent(transformerFactoryImplClass, ClassLoader.getSystemClassLoader())) {
+            transformerFactory = TransformerFactory.newInstance(transformerFactoryImplClass, ClassLoader.getSystemClassLoader());
+        } else {
+            if (logger.isWarnEnabled()) {
+                logger.warn(String.format("Class [%s] was not found will default to [%s], please ensure [%s] is located on your class path", transformerFactoryImplClass, TransformerFactory.class, transformerFactoryImplClass));
+            }
+            transformerFactory = TransformerFactory.newInstance();
+        }
+        
+        return transformerFactory;
+    }    
 }

@@ -16,6 +16,10 @@
 
 package org.springframework.integration.xml.transformer;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
+
 import javax.xml.transform.Result;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
@@ -34,15 +38,12 @@ import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-
 
 /**
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Mike Bazos
  */
 public class XsltPayloadTransformerTests {
 
@@ -107,6 +108,28 @@ public class XsltPayloadTransformerTests {
         Integer returnValue = new Integer(13);
         transformer = new XsltPayloadTransformer(getXslResource(),
                 new StubResultTransformer(returnValue));
+        Object transformed = transformer
+                .doTransform(buildMessage(new StringSource(docAsString)));
+        assertEquals("Wrong value from result conversion", returnValue,
+                transformed);
+    }
+    
+    @Test
+    public void testXsltPayloadWithTransformerFactoryClassname() throws Exception {
+    	Integer returnValue = new Integer(13);
+    	transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
+    			"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+        Object transformed = transformer
+                .doTransform(buildMessage(new StringSource(docAsString)));
+        assertEquals("Wrong value from result conversion", returnValue,
+                transformed);
+    }
+    
+    @Test
+    public void testXsltPayloadWithBadTransformerFactoryClassname() throws Exception {
+        Integer returnValue = new Integer(13);
+        transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
+                "foo.bar.Baz");
         Object transformed = transformer
                 .doTransform(buildMessage(new StringSource(docAsString)));
         assertEquals("Wrong value from result conversion", returnValue,
