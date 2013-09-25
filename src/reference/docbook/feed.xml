@@ -77,20 +77,35 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
 		that upon restart you may end up with duplicate entries.
 	</para>
 	<para>
-		If you need to persist metadata between Application Context restarts, you
-		may use the <classname>PropertiesPersistingMetadataStore</classname> which
-		is backed by a properties file and a properties-persister. Alternatively,
-		you could provide your own implementation of the
-		<interfacename>MetadataStore</interfacename> interface (e.g. JdbcMetadataStore)
-		and configure it as bean in the Application Context.
+		If you need to persist metadata between Application Context restarts, two
+		persistent <interfacename>MetadataStores</interfacename> are available:
+	</para>
+	<itemizedlist>
+		<listitem>PropertiesPersistingMetadataStore</listitem>
+		<listitem>RedisMetadataStore</listitem>
+	</itemizedlist>
+	<para>
+		The <classname>PropertiesPersistingMetadataStore</classname> is backed by
+		a properties file and a
+		<interfacename><ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/PropertiesPersister.html">PropertiesPersister</ulink></interfacename>.
 	</para>
 	<programlisting language="xml"><![CDATA[<bean id="metadataStore"
     class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>]]></programlisting>
-	<tip>
-		As of <emphasis>Spring Integration 3.0</emphasis> a Redis-based
-		<interfacename>MetadataStore</interfacename> is also available. The
-		<classname>RedisMetadataStore</classname> will also allow you to maintain persisted
-		metadata across Application Context restarts. For more information see <xref linkend="redis-metadata-store" />.
-	</tip>
+		<para>
+			As of <emphasis>Spring Integration 3.0</emphasis> a Redis-based
+			<interfacename>MetadataStore</interfacename> is also available. For
+			more information regarding the <classname>RedisMetadataStore</classname>
+			see <xref linkend="redis-metadata-store" />.
+		</para>
+		<warning>
+			Be careful when using the same Redis instancce across multiple application
+			contexts as separate Feed adapters may accidentally use the same persisted
+			key.
+		</warning>
+		<para>
+			Alternatively, you could provide your own implementation of the
+			<interfacename>MetadataStore</interfacename> interface (e.g. JdbcMetadataStore)
+			and configure it as bean in the Application Context.
+		</para>
 	</section>
 </chapter>

@@ -40,7 +40,6 @@ public class RedisMetadataStore implements MetadataStore {
 	public RedisMetadataStore(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null.");
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
-		this.redisTemplate.afterPropertiesSet();
 	}
 
 	/**

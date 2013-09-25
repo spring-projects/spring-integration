@@ -247,6 +247,11 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 		<programlisting language="xml"><![CDATA[<bean name="metadataStore" class="o.s.i.redis.store.metadata.RedisMetadataStore">
     <constructor-arg name="connectionFactory" ref="redisConnectionFactory"/>
 </bean>]]></programlisting>
+		<warning>
+			Be careful when using the same Redis instancce across multiple application
+			contexts as separate adapters may accidentally use the same persisted
+			key.
+		</warning>
 	</section>
   <section id="redis-store-inbound-channel-adapter">
         <title>RedisStore Inbound Channel Adapter</title>
