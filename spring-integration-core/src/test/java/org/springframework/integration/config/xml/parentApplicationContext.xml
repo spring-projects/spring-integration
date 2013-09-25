@@ -6,4 +6,6 @@
            http://www.springframework.org/schema/integration
            http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<annotation-config/>
+
 </beans:beans>

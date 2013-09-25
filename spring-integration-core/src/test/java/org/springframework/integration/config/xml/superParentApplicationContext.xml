@@ -9,4 +9,6 @@
 	<beans:bean id="taskScheduler"
 		class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler" />
 
+	<annotation-config/>
+
 </beans:beans>
