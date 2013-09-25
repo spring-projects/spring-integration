@@ -19,7 +19,6 @@ package org.springframework.integration.xml.transformer;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
@@ -30,10 +29,9 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -47,7 +45,6 @@ import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.xml.transform.StringResult;
@@ -78,18 +75,21 @@ import org.springframework.xml.transform.StringSource;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Mike Bazos
+ * @author Gary Russell
  */
-public class XsltPayloadTransformer extends AbstractTransformer {
+public class XsltPayloadTransformer extends AbstractTransformer implements BeanClassLoaderAware {
 
-	private static final Log logger = LogFactory.getLog(XsltPayloadTransformer.class);
+	private final ResultTransformer resultTransformer;
 
-	private final Templates templates;
+	private volatile Resource xslResource;
+
+	private volatile Templates templates;
+
+	private String transformerFactoryClassName;
 
 	private volatile StandardEvaluationContext evaluationContext;
 
 	private Map<String, Expression> xslParameterMappings;
-
-	private final ResultTransformer resultTransformer;
 
 	private volatile SourceFactory sourceFactory = new DomSourceFactory();
 
@@ -103,28 +103,38 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 
 	private volatile String[] xsltParamHeaders;
 
+	private ClassLoader classLoader;
 
-	public XsltPayloadTransformer(Templates templates) throws ParserConfigurationException {
+
+	public XsltPayloadTransformer(Templates templates) {
 		this(templates, null);
 	}
 
-	public XsltPayloadTransformer(Resource xslResource) throws Exception {
+	public XsltPayloadTransformer(Resource xslResource) {
 		this(xslResource, null, null);
 	}
 
-	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) throws Exception {
+	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) {
 		this(xslResource, resultTransformer, null);
 	}
-	
-	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer, String transformerFactoryClass) throws Exception {
-		this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), resultTransformer);
+
+	public XsltPayloadTransformer(Resource xslResource, String transformerFactoryClassName) {
+		Assert.notNull(xslResource, "'xslResource' must not be null.");
+		Assert.hasText(transformerFactoryClassName, "'transformerFactoryClassName' must not be empty String.");
+		this.xslResource = xslResource;
+		this.transformerFactoryClassName = transformerFactoryClassName;
+		this.resultTransformer = null;
 	}
 
-    public XsltPayloadTransformer(Resource xslResource, String transformerFactoryClass) throws Exception {
-        this(getTransformerFactory(transformerFactoryClass).newTemplates(createStreamSourceOnResource(xslResource)), null);
-    }
+	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer, String transformerFactoryClassName) {
+		Assert.notNull(xslResource, "'xslResource' must not be null.");
+		this.xslResource = xslResource;
+		this.resultTransformer = resultTransformer;
+		this.transformerFactoryClassName = transformerFactoryClassName;
+	}
 
-	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
+	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) {
+		Assert.notNull(templates, "'templates' must not be null.");
 		this.templates = templates;
 		this.resultTransformer = resultTransformer;
 	}
@@ -169,15 +179,31 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		Assert.notNull(classLoader, "'beanClassLoader' must not be null.");
+		this.classLoader = classLoader;
+	}
+
+
+	@Override
 	public String getComponentType() {
 		return "xml:xslt-transformer";
 	}
-
 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		if (this.templates == null) {
+			TransformerFactory transformerFactory;
+			if (this.transformerFactoryClassName != null) {
+				transformerFactory = TransformerFactory.newInstance(this.transformerFactoryClassName, this.classLoader);
+			}
+			else {
+				transformerFactory = TransformerFactory.newInstance();
+			}
+			this.templates = transformerFactory.newTemplates(createStreamSourceOnResource(this.xslResource));
+		}
 	}
 
 	@Override
@@ -276,6 +302,7 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 		return (Document) domResult.getNode();
 	}
 
+
 	private Transformer buildTransformer(Message<?> message) throws TransformerException {
 		// process individual mappings
 		Transformer transformer = this.templates.newTransformer();
@@ -308,7 +335,6 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 		return transformer;
 	}
 
-
 	/**
 	 * Compensate for the fact that a Resource <i>may</i> not be a File or even
 	 * addressable through a URI. If it is, we want the created StreamSource to
@@ -324,21 +350,5 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 			return new StreamSource(xslResource.getInputStream());
 		}
 	}
-	
-    private static TransformerFactory getTransformerFactory(String transformerFactoryImplClass) {
-        TransformerFactory transformerFactory = null;
-        
-        if (transformerFactoryImplClass == null || transformerFactoryImplClass.length() <= 0) {
-            transformerFactory = TransformerFactory.newInstance();
-        } else if(ClassUtils.isPresent(transformerFactoryImplClass, ClassLoader.getSystemClassLoader())) {
-            transformerFactory = TransformerFactory.newInstance(transformerFactoryImplClass, ClassLoader.getSystemClassLoader());
-        } else {
-            if (logger.isWarnEnabled()) {
-                logger.warn(String.format("Class [%s] was not found will default to [%s], please ensure [%s] is located on your class path", transformerFactoryImplClass, TransformerFactory.class, transformerFactoryImplClass));
-            }
-            transformerFactory = TransformerFactory.newInstance();
-        }
-        
-        return transformerFactory;
-    }    
+
 }

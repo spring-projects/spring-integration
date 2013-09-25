@@ -16,16 +16,19 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Document;
+
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -36,7 +39,6 @@ import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
-import org.w3c.dom.Document;
 
 
 /**
@@ -56,6 +58,7 @@ public class XsltPayloadTransformerTests {
     @Before
     public void setUp() throws Exception {
         transformer = new XsltPayloadTransformer(getXslResource());
+		transformer.afterPropertiesSet();
     }
 
     @Test
@@ -108,32 +111,30 @@ public class XsltPayloadTransformerTests {
         Integer returnValue = new Integer(13);
         transformer = new XsltPayloadTransformer(getXslResource(),
                 new StubResultTransformer(returnValue));
+		transformer.afterPropertiesSet();
         Object transformed = transformer
                 .doTransform(buildMessage(new StringSource(docAsString)));
         assertEquals("Wrong value from result conversion", returnValue,
                 transformed);
     }
-    
+
     @Test
     public void testXsltPayloadWithTransformerFactoryClassname() throws Exception {
     	Integer returnValue = new Integer(13);
     	transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
     			"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+		transformer.afterPropertiesSet();
         Object transformed = transformer
                 .doTransform(buildMessage(new StringSource(docAsString)));
         assertEquals("Wrong value from result conversion", returnValue,
                 transformed);
     }
-    
-    @Test
+
+    @Test(expected = TransformerFactoryConfigurationError.class)
     public void testXsltPayloadWithBadTransformerFactoryClassname() throws Exception {
-        Integer returnValue = new Integer(13);
-        transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
-                "foo.bar.Baz");
-        Object transformed = transformer
-                .doTransform(buildMessage(new StringSource(docAsString)));
-        assertEquals("Wrong value from result conversion", returnValue,
-                transformed);
+        transformer = new XsltPayloadTransformer(getXslResource(), "foo.bar.Baz");
+		transformer.afterPropertiesSet();
+        transformer.doTransform(buildMessage(new StringSource(docAsString)));
     }
 
     @Test(expected = TransformerException.class)
@@ -151,8 +152,9 @@ public class XsltPayloadTransformerTests {
         Resource resource = new ClassPathResource("transform-with-import.xsl",
                 this.getClass());
         transformer = new XsltPayloadTransformer(resource);
+		transformer.afterPropertiesSet();
         assertEquals(transformer.doTransform(buildMessage(docAsString)),
-                outputAsString);
+				outputAsString);
     }
 
 
@@ -163,6 +165,7 @@ public class XsltPayloadTransformerTests {
         transformer = new XsltPayloadTransformer(resource);
         transformer.setResultFactory(new StringResultFactory());
         transformer.setAlwaysUseResultFactory(true);
+		transformer.afterPropertiesSet();
         Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
         assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
     }
@@ -175,6 +178,7 @@ public class XsltPayloadTransformerTests {
         transformer = new XsltPayloadTransformer(resource);
         transformer.setResultFactory(new StringResultFactory());
         transformer.setAlwaysUseResultFactory(true);
+		transformer.afterPropertiesSet();
         Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
         assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
     }
@@ -184,6 +188,7 @@ public class XsltPayloadTransformerTests {
         transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText());
         transformer.setResultFactory(new StringResultFactory());
         transformer.setAlwaysUseResultFactory(true);
+		transformer.afterPropertiesSet();
         Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
         assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
         assertEquals("Wrong content in string", "hello world", returned.toString());

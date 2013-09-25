@@ -62,9 +62,6 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		else if (StringUtils.hasText(xslTemplates)) {
 			builder.addConstructorArgReference(xslTemplates);
 		}
-		if (StringUtils.hasText(transformerFactoryClass)) {
-			builder.addConstructorArgValue(transformerFactoryClass);
-		}
 		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
 		boolean resultFactorySpecified = StringUtils.hasText(resultFactory) || StringUtils.hasText(resultType);
 		if(resultFactorySpecified){
@@ -72,6 +69,9 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		}
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
+		}
+		if (StringUtils.hasText(transformerFactoryClass)) {
+			builder.addConstructorArgValue(transformerFactoryClass);
 		}
 		List<Element> xslParameterElements = DomUtils.getChildElementsByTagName(element, "xslt-param");
 		if (!CollectionUtils.isEmpty(xslParameterElements)) {
