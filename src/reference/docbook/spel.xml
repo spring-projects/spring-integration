@@ -56,9 +56,11 @@
 		<programlisting language="xml"><![CDATA[<beans:bean id="integrationEvaluationContext"
 			class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
 	<property name="propertyAccessors">
-		<list>
-			<bean class="foo.MyCustomPropertyAccessor"/>
-		</list>
+		<util:map>
+			<beans:entry key="foo">
+				<beans:bean class="<bean class="foo.MyCustomPropertyAccessor"/>"/>
+			</beans:entry>
+		</util:map>
 	</property>
 	<property name="functions">
 		<map>
