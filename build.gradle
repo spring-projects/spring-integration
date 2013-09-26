@@ -535,6 +535,7 @@ project('spring-integration-twitter') {
 		}
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-test")
+		testCompile project(":spring-integration-redis")
 	}
 }
 

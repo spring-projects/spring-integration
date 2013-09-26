@@ -119,7 +119,6 @@
 				For more information see <xref linkend="spel-property-accessors" />.
 			</para>
 		</section>
-
 		<section id="3.0-request-mapping">
 			<title>HTTP Request Mapping</title>
 			<para>
