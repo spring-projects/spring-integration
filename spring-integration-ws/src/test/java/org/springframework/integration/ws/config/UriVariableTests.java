@@ -17,33 +17,43 @@
 package org.springframework.integration.ws.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.WebServiceIOException;
+import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.core.WebServiceMessageExtractor;
+import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.context.MessageContext;
-import org.springframework.ws.soap.SoapMessageCreationException;
 import org.springframework.ws.transport.context.TransportContext;
 import org.springframework.ws.transport.context.TransportContextHolder;
 import org.springframework.ws.transport.http.HttpUrlConnection;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -54,7 +64,25 @@ public class UriVariableTests {
 	private ApplicationContext context;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void checkUriVariables() {
+		Object gateway = context.getBean("gateway.handler");
+		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
+		webServiceTemplate = Mockito.spy(webServiceTemplate);
+		final AtomicReference<String> uri = new AtomicReference<String>();
+		Mockito.doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				uri.set((String) invocation.getArguments()[0]);
+				throw new WebServiceIOException("intentional");
+			}
+		}).when(webServiceTemplate)
+				.sendAndReceive(Mockito.anyString(),
+						Mockito.any(WebServiceMessageCallback.class),
+						(WebServiceMessageExtractor<Object>) Mockito.any(WebServiceMessageExtractor.class));
+
+		new DirectFieldAccessor(gateway).setPropertyValue("webServiceTemplate", webServiceTemplate);
+
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		TestClientInterceptor interceptor = context.getBean("interceptor", TestClientInterceptor.class);
 		Message<?> message = MessageBuilder.withPayload("<spring/>").setHeader("x", "integration").build();
@@ -63,11 +91,9 @@ public class UriVariableTests {
 		}
 		catch (MessageHandlingException e) {
 			// expected
-			Class<?> causeType = e.getCause().getClass();
-			assertTrue(WebServiceIOException.class.equals(causeType) // offline
-					|| SoapMessageCreationException.class.equals(causeType));
+			assertThat(e.getCause(), Matchers.is(Matchers.instanceOf(WebServiceIOException.class))); // offline
 		}
-		assertEquals("http://springsource.org/spring-integration", interceptor.getLastUri().toString());
+		assertEquals("http://localhost/spring-integration", uri.get());
 	}
 
 
