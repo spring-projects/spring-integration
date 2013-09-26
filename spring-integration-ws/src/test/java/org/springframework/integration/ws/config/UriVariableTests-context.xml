@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration/ws
 			http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
 
-	<ws:outbound-gateway id="gateway" request-channel="input" uri="http://springsource.org/{foo}-{bar}" interceptor="interceptor">
+	<ws:outbound-gateway id="gateway" request-channel="input" uri="http://localhost/{foo}-{bar}" interceptor="interceptor">
 		<ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
 		<ws:uri-variable name="bar" expression="headers.x"/>
 	</ws:outbound-gateway>
