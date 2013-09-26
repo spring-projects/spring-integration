@@ -22,9 +22,11 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +41,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
@@ -46,9 +49,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 3.0
- *
  */
 public class ParentContextTests {
 
@@ -62,7 +63,6 @@ public class ParentContextTests {
 	 * and parent contexts work. Verifies that PropertyAccessors are inherited in the child context
 	 * and the parent's ones are last in the propertyAccessors list of EvaluationContext.
 	 * Verifies that SpEL functions are inherited from parent context and overridden with the same 'id'.
-	 *
 	 */
 	@Test
 	@SuppressWarnings("unchecked")
@@ -70,7 +70,7 @@ public class ParentContextTests {
 		AbstractApplicationContext parent = new ClassPathXmlApplicationContext("ParentContext-context.xml", this.getClass());
 
 		Object parentEvaluationContextFactoryBean = parent.getBean(IntegrationEvaluationContextFactoryBean.class);
-		Map<?,?> parentFunctions = TestUtils.getPropertyValue(parentEvaluationContextFactoryBean, "functions", Map.class);
+		Map<?, ?> parentFunctions = TestUtils.getPropertyValue(parentEvaluationContextFactoryBean, "functions", Map.class);
 		assertEquals(3, parentFunctions.size());
 		Object jsonPath = parentFunctions.get("jsonPath");
 		assertNotNull(jsonPath);
@@ -81,7 +81,7 @@ public class ParentContextTests {
 		child.refresh();
 
 		Object childEvaluationContextFactoryBean = child.getBean(IntegrationEvaluationContextFactoryBean.class);
-		Map<?,?> childFunctions = TestUtils.getPropertyValue(childEvaluationContextFactoryBean, "functions", Map.class);
+		Map<?, ?> childFunctions = TestUtils.getPropertyValue(childEvaluationContextFactoryBean, "functions", Map.class);
 		assertEquals(4, childFunctions.size());
 		assertTrue(childFunctions.containsKey("barParent"));
 		jsonPath = childFunctions.get("jsonPath");
@@ -139,6 +139,17 @@ public class ParentContextTests {
 		out = child.getBean("parentOut", QueueChannel.class).receive(0);
 		assertNotNull(out);
 		assertEquals("foo", out.getPayload());
+
+		IntegrationEvaluationContextFactoryBean evaluationContextFactoryBean =
+				child.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+						IntegrationEvaluationContextFactoryBean.class);
+		try {
+			evaluationContextFactoryBean.setPropertyAccessors(Collections.<String, PropertyAccessor>emptyMap());
+			fail("IllegalArgumentException expected.");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
+		}
 	}
 
 	public static class Foo implements IntegrationEvaluationContextAware {

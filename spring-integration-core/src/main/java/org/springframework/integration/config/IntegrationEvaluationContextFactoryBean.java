@@ -83,21 +83,27 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 
 	private ApplicationContext applicationContext;
 
+	private volatile boolean initialized;
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 
 	public void setPropertyAccessors(Map<String, PropertyAccessor> accessors) {
+		Assert.isTrue(!this.initialized, "'propertyAccessors' can't be changed after initialization.");
 		Assert.notNull(accessors, "'accessors' must not be null.");
-		Assert.noNullElements(accessors.keySet().toArray(), "'accessors' cannot have null keys.");
 		Assert.noNullElements(accessors.values().toArray(), "'accessors' cannot have null values.");
 		this.propertyAccessors = new LinkedHashMap<String, PropertyAccessor>(accessors);
 	}
 
+	public Map<String, PropertyAccessor> getPropertyAccessors() {
+		return propertyAccessors;
+	}
+
 	public void setFunctions(Map<String, Method> functionsArg) {
+		Assert.isTrue(!this.initialized, "'functions' can't be changed after initialization.");
 		Assert.notNull(functionsArg, "'functions' must not be null.");
-		Assert.noNullElements(functionsArg.keySet().toArray(), "'functions' cannot have null keys.");
 		Assert.noNullElements(functionsArg.values().toArray(), "'functions' cannot have null values.");
 		this.functions = new LinkedHashMap<String, Method>(functionsArg);
 	}
@@ -122,30 +128,33 @@ public class IntegrationEvaluationContextFactoryBean implements FactoryBean<Stan
 
 			try {
 				SpelPropertyAccessorRegistrar propertyAccessorRegistrar = this.applicationContext.getBean(SpelPropertyAccessorRegistrar.class);
-				Map<String, PropertyAccessor> propertyAccessorsFromRegistrar = propertyAccessorRegistrar.getPropertyAccessors();
-				for (String key : propertyAccessorsFromRegistrar.keySet()) {
-					if (!this.propertyAccessors.containsKey(key)) {
-						this.propertyAccessors.put(key, propertyAccessorsFromRegistrar.get(key));
+				for (Entry<String, PropertyAccessor> entry : propertyAccessorRegistrar.getPropertyAccessors().entrySet()) {
+					if (!this.propertyAccessors.containsKey(entry.getKey())) {
+						this.propertyAccessors.put(entry.getKey(), entry.getValue());
 					}
 				}
 			}
 			catch (NoSuchBeanDefinitionException e) {
-				// There is no 'SpelPropertyAccessorRegistrar' bean with the parent application context
+				// There is no 'SpelPropertyAccessorRegistrar' bean with the application context
 				// Ignore it
 			}
 
 			ApplicationContext parent = this.applicationContext.getParent();
 
-			if (parent != null) {
-				IntegrationEvaluationContextFactoryBean parentFactoryBean = parent.getBean(IntegrationEvaluationContextFactoryBean.class);
-				Map<String, PropertyAccessor> propertyAccessorsFromParent = parentFactoryBean.propertyAccessors;
-				for (String key : propertyAccessorsFromParent.keySet()) {
-					if (!this.propertyAccessors.containsKey(key)) {
-						this.propertyAccessors.put(key, propertyAccessorsFromParent.get(key));
+			if (parent != null && parent.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)) {
+				IntegrationEvaluationContextFactoryBean parentFactoryBean =
+						parent.getBean("&" + IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME,
+								IntegrationEvaluationContextFactoryBean.class);
+
+				for (Entry<String, PropertyAccessor> entry : parentFactoryBean.getPropertyAccessors().entrySet()) {
+					if (!this.propertyAccessors.containsKey(entry.getKey())) {
+						this.propertyAccessors.put(entry.getKey(), entry.getValue());
 					}
 				}
 			}
 		}
+
+		this.initialized = true;
 	}
 
 	@Override
