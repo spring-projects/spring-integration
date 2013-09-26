@@ -45,7 +45,6 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Artem Bilan
  * @author Biju Kunjummen
  */
-
 public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 
 	private static ExpressionParser PARSER = new SpelExpressionParser();

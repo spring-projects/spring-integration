@@ -18,6 +18,7 @@ package org.springframework.integration.http.inbound;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -35,13 +36,13 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * detects and registers {@link RequestMappingInfo}s for {@link HttpRequestHandlingEndpointSupport}
  * from a Spring Integration HTTP configuration of
  * {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
- * <p>
+ * <p/>
  * This class is automatically configured as bean in the application context on the parsing phase of
  * the {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements, if there is none registered, yet.
  * However it can be configured as a regular bean with appropriate configuration for
  * {@link RequestMappingHandlerMapping}. It is recommended to have only one similar bean in the application context
  * and with the 'id' {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
- * <p>
+ * <p/>
  * In most cases Spring MVC offers to configure Request Mapping via {@link org.springframework.stereotype.Controller}
  * and {@link org.springframework.web.bind.annotation.RequestMapping},
  * and that's why Spring MVC Handler Mapping infrastructure relies on {@link org.springframework.web.method.HandlerMethod},
@@ -53,10 +54,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * compromise implementation between method-level annotation and component-level (e.g. Spring Integration XML) configurations.
  *
  * @author Artem Bilan
- * @since 3.0
- *
  * @see RequestMapping
  * @see RequestMappingHandlerMapping
+ * @since 3.0
  */
 public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 
@@ -105,35 +105,39 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	 */
 	private RequestMappingInfo getMappingForEndpoint(HttpRequestHandlingEndpointSupport endpoint) {
 		final RequestMapping requestMapping = endpoint.getRequestMapping();
-		Object[] createRequestMappingInfoParams = new Object[]{new org.springframework.web.bind.annotation.RequestMapping() {
-			public String[] value() {
-				return requestMapping.getPathPatterns();
-			}
 
-			public RequestMethod[] method() {
-				return requestMapping.getRequestMethods();
-			}
+		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
+				new org.springframework.web.bind.annotation.RequestMapping() {
+					public String[] value() {
+						return requestMapping.getPathPatterns();
+					}
 
-			public String[] params() {
-				return requestMapping.getParams();
-			}
+					public RequestMethod[] method() {
+						return requestMapping.getRequestMethods();
+					}
 
-			public String[] headers() {
-				return requestMapping.getHeaders();
-			}
+					public String[] params() {
+						return requestMapping.getParams();
+					}
 
-			public String[] consumes() {
-				return requestMapping.getConsumes();
-			}
+					public String[] headers() {
+						return requestMapping.getHeaders();
+					}
 
-			public String[] produces() {
-				return requestMapping.getProduces();
-			}
+					public String[] consumes() {
+						return requestMapping.getConsumes();
+					}
 
-			public Class<? extends Annotation> annotationType() {
-				return org.springframework.web.bind.annotation.RequestMapping.class;
-			}
-		}, this.getCustomTypeCondition(endpoint.getClass())};
+					public String[] produces() {
+						return requestMapping.getProduces();
+					}
+
+					public Class<? extends Annotation> annotationType() {
+						return org.springframework.web.bind.annotation.RequestMapping.class;
+					}
+				};
+
+		Object[] createRequestMappingInfoParams = new Object[]{requestMappingAnnotation, this.getCustomTypeCondition(endpoint.getClass())};
 		return (RequestMappingInfo) ReflectionUtils.invokeMethod(CREATE_REQUEST_MAPPING_INFO_METHOD, this, createRequestMappingInfoParams);
 	}
 

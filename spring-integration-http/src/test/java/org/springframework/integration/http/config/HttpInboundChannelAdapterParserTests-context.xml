@@ -4,6 +4,7 @@
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:si="http://www.springframework.org/schema/integration"
+        	 xmlns:util="http://www.springframework.org/schema/util"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
@@ -24,10 +25,10 @@
 	<inbound-channel-adapter id="postOnlyAdapter" path="/postOnly" channel="requests" supported-methods="POST"/>
 
 	<inbound-channel-adapter id="adapterWithCustomConverterWithDefaults" message-converters="customConverters"
-							channel="requests" supported-methods="POST" merge-with-default-converters="true"/>
+							channel="requests" supported-methods="DELETE" merge-with-default-converters="true"/>
 
 	<inbound-channel-adapter id="adapterWithCustomConverterNoDefaults" message-converters="customConverters"
-							channel="requests" supported-methods="POST" />
+							channel="requests" supported-methods="HEAD" />
 
 	<inbound-channel-adapter id="adapterNoCustomConverterNoDefaults" channel="requests" supported-methods="POST" />
 

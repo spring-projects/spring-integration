@@ -16,14 +16,15 @@
 
 package org.springframework.integration.http.inbound;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -106,13 +107,12 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
+	private static final List<HttpMethod> nonReadableBodyHttpMethods =
+			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
 	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
-
-	private static final List<HttpMethod> nonReadableBodyHttpMethods =
-			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
 	private volatile RequestMapping requestMapping = new RequestMapping();
 
@@ -156,33 +156,27 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		if (jaxb2Present) {
 			this.defaultMessageConverters.add(new Jaxb2RootElementHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
-				logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'messageConverters'.");
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'messageConverters'.");
+				logger.debug("'Jaxb2RootElementHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 			}
 		}
 		if (JacksonJsonUtils.isJackson2Present()) {
 			this.defaultMessageConverters.add(new MappingJackson2HttpMessageConverter());
 			if (logger.isDebugEnabled()) {
-				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'messageConverters'.");
+				logger.debug("'MappingJackson2HttpMessageConverter' was added to the 'defaultMessageConverters'.");
+			}
+		}
 		else if (JacksonJsonUtils.isJacksonPresent()) {
 			this.defaultMessageConverters.add(new MappingJacksonHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
-				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'messageConverters'.");
+				logger.debug("'MappingJacksonHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 			}
 		}
-
-		}if (romePresent) {
+		if (romePresent) {
 			this.defaultMessageConverters.add(new AtomFeedHttpMessageConverter());
 			this.defaultMessageConverters.add(new RssChannelHttpMessageConverter());
 			if (logger.isDebugEnabled()) {
-				logger.debug("'AtomFeedHttpMessageConverter' was added to the 'messageConverters'.");
-				logger.debug("'RssChannelHttpMessageConverter' was added to the 'messageConverters'.");
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("'AtomFeedHttpMessageConverter' was added to the 'messageConverters'.");
-				logger.debug("'RssChannelHttpMessageConverter' was added to the 'messageConverters'.");
+				logger.debug("'AtomFeedHttpMessageConverter' was added to the 'defaultMessageConverters'.");
+				logger.debug("'RssChannelHttpMessageConverter' was added to the 'defaultMessageConverters'.");
 			}
 		}
 	}
@@ -508,7 +502,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request) and a Content-Type header.
 	 */
 	private boolean isReadable(ServletServerHttpRequest request) {
-		return !(CollectionUtils.containsInstance(httpMethodsWithNoBody, request.getMethod()))
+		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()))
 				&& request.getHeaders().getContentType() != null;
 	}
 
@@ -528,12 +522,12 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Converts a servlet request's parameterMap to a {@link MultiValueMap}.
 	 */
 	@SuppressWarnings("rawtypes")
-	private MultiValueMap<String, String> convertParameterMap(Map parameterMap) {
+	private MultiValueMap<String, String> convertParameterMap(Map<String, String[]> parameterMap) {
 		MultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>(parameterMap.size());
-		for (Object key : parameterMap.keySet()) {
-			String[] values = (String[]) parameterMap.get(key);
+		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+			String[] values = entry.getValue();
 			for (String value : values) {
-				convertedMap.add((String) key, value);
+				convertedMap.add(entry.getKey(), value);
 			}
 		}
 		return convertedMap;
@@ -577,10 +571,10 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	private void validateSupportedMethods() {
 		if (this.requestPayloadType != null
-				&& CollectionUtils.containsAny(httpMethodsWithNoBody, Arrays.asList(this.requestMapping.getMethods()))) {
+				&& CollectionUtils.containsAny(nonReadableBodyHttpMethods, Arrays.asList(this.requestMapping.getMethods()))) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("The 'requestPayloadType' attribute will have no relevance for one of the specified HTTP methods '" +
-						httpMethodsWithNoBody + "'");
+						nonReadableBodyHttpMethods + "'");
 			}
 		}
 	}

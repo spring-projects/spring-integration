@@ -7,7 +7,8 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
-	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.2.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -24,7 +25,7 @@
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element name="request-mapping" type="requestMappingType" minOccurs="0"/>
-				<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
+ 				<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attribute name="send-timeout" type="xsd:string" />
@@ -95,7 +96,7 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="reply-timeout"   type="xsd:string">
+					<xsd:attribute name="reply-timeout" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 	Used to set the revceiveTimeout on the underlying MessagingTemplate instance
@@ -184,6 +185,17 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					List of HttpMessageConverters for this Channel Adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="merge-with-default-converters" type="xsd:boolean" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate if the default converters should be registered after any custom
+					converters. This flag is used only if message-converters
+					are provided, otherwise all default converters will be registered.
+
+					Defaults to "false"
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

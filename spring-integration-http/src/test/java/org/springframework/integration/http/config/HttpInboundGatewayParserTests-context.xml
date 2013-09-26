@@ -3,9 +3,11 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:si="http://www.springframework.org/schema/integration"
+	    xmlns:util="http://www.springframework.org/schema/util"
 		xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<si:publish-subscribe-channel id="requests"/>
 
@@ -31,17 +33,20 @@
 	<inbound-gateway id="inboundGatewayWithOneCustomConverter"
 		request-channel="requests"
 		reply-channel="responses"
+		supported-methods="DELETE"
 		message-converters="customConverters"/>
 
 	<inbound-gateway id="inboundGatewayNoDefaultConverters"
 		request-channel="requests"
 		reply-channel="responses"
+		supported-methods="TRACE"
 		message-converters="customConverters"
 		merge-with-default-converters="false"/>
 
 	<inbound-gateway id="inboundGatewayWithCustomAndDefaultConverters"
 		request-channel="requests"
 		reply-channel="responses"
+		supported-methods="HEAD"
 		message-converters="customConverters"
 		merge-with-default-converters="true"/>
 
@@ -69,6 +74,8 @@
 	</inbound-gateway>
 
 	<si:converter ref="personConverter"/>
+
 	<beans:bean id="personConverter"
 				class="org.springframework.integration.http.config.HttpInboundGatewayParserTests$PersonConverter"/>
+
 </beans:beans>
