@@ -24,19 +24,25 @@ import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 /**
  * @author Oleg Zhurakousky
  */
 public class RequestReplyScenariosWithNonCachedConsumersTests {
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test(expected=MessageTimeoutException.class)
 	public void messageCorrelationBasedOnRequestMessageIdOptimized() throws Exception{

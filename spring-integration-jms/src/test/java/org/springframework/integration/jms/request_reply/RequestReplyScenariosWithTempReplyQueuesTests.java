@@ -36,6 +36,7 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQDestination;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -43,6 +44,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
@@ -56,6 +58,9 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 public class RequestReplyScenariosWithTempReplyQueuesTests {
 
 	private final SimpleMessageConverter converter = new SimpleMessageConverter();
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
 	public void messageCorrelationBasedOnRequestMessageId() throws Exception{

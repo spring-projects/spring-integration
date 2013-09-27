@@ -17,6 +17,7 @@ package org.springframework.integration.jms.request_reply;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -24,11 +25,15 @@ import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
  */
 public class RequestReplyScenariosWithCorrelationKeyProvidedTests {
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
 	public void messageCorrelationBasedCustomCorrelationKey() throws Exception{
