@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,6 +37,7 @@ import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.config.ActiveMqTestUtils;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -46,6 +48,9 @@ public class PipelineJmsTests extends ActiveMQMultiContextTests {
 	private final Executor executor = Executors.newFixedThreadPool(30);
 
 	private static final Log logger = LogFactory.getLog(PipelineJmsTests.class);
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Before
 	public void setLogLevel() {

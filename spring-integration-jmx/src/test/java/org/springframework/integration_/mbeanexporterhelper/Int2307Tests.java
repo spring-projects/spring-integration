@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,8 +22,11 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectInstance;
 
+import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.export.MBeanExporter;
 
@@ -33,6 +36,9 @@ import org.springframework.jmx.export.MBeanExporter;
  *
  */
 public class Int2307Tests {
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@SuppressWarnings("unchecked")
 	@Test
