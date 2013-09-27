@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
@@ -41,15 +42,9 @@ public class PipelineNamedReplyQueuesJmsTests {
 
 	private final Executor executor = Executors.newFixedThreadPool(30);
 
-	private static final Log logger = LogFactory.getLog(PipelineJmsTests.class);
-
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
-	@Before
-	public void setLogLevel() {
-		LogManager.getLogger(getClass()).setLevel(Level.INFO);
-	}
 	int requests = 50;
 
 	/**

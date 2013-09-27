@@ -18,8 +18,8 @@ package org.springframework.integration.test.support;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assume;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.rules.TestWatchman;
+import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 /**
@@ -30,15 +30,15 @@ import org.junit.runners.model.Statement;
  * @since 3.0
  *
  */
-public class LongRunningIntegrationTest extends TestWatcher {
+public class LongRunningIntegrationTest extends TestWatchman {
 
 	private final static Log logger = LogFactory.getLog(LongRunningIntegrationTest.class);
 
 	@Override
-	public Statement apply(Statement base, Description description) {
+	public Statement apply(Statement base, FrameworkMethod method, Object target) {
 		boolean shouldRun = "true".equalsIgnoreCase(System.getenv("RUN_LONG_INTEGRATION_TESTS"));
 		if (!shouldRun) {
-			logger.info("Skipping long running test " + description.getDisplayName());
+			logger.info("Skipping long running test " + this.getClass().getSimpleName() + "." + method.getName());
 			return new Statement() {
 
 				@Override
@@ -48,7 +48,7 @@ public class LongRunningIntegrationTest extends TestWatcher {
 			};
 		}
 		else {
-			return super.apply(base, description);
+			return super.apply(base, method, target);
 		}
 	}
 
