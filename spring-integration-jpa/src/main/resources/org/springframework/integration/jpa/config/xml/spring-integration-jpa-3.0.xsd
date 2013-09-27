@@ -222,6 +222,29 @@
 				</xsd:element>
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
+			<xsd:attribute name="first-result" type="xsd:integer">
+				<xsd:annotation>
+					<xsd:documentation>
+						The attribute that is used to set the first result marker while executing the
+						results. A negative value will retrieve from first record in the result set.
+						It is a way for the application to use the gateway to paginate the results in
+						combination with the max-number-of-results attribute. This attribute is mutually
+						exclusive to first-result-expression attribute
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="first-result-expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						The attribute that is used to set the first result expression that would
+						be evaluated to get the first record while executing the JPA query for result
+						A negative value will retrieve from first record in the result set.
+						It is a way for the application to use the gateway to paginate the results in
+						combination with the max-number-of-results attribute. This attribute is mutually
+						exclusive to first-result attribute
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="coreJpaComponentAttributes" />
 			<xsd:attributeGroup ref="commonJpaOutboundGatewayAttributes"/>
 			<xsd:attributeGroup ref="commonRetrievingJpaAttributes" />

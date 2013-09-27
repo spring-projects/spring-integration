@@ -30,6 +30,7 @@
 		<int:method name="persistStudentUsingMerge" request-channel="persistStudentUsingMergeChannel" />
 		<int:method name="getStudent2"              request-channel="retrievingGatewayInsideChain" />
 		<int:method name="persistStudent2"          request-channel="updatingGatewayInsideChain" />
+		<int:method name="getAllStudentsFromGivenRecord" request-channel="getStudentsFromGivenRecordChannel"/>
 	</int:gateway>
 
 	<int:channel id="studentReplyChannel"/>
@@ -43,6 +44,7 @@
 	<int:channel id="getStudentEndpointWithExceptionChannel"/>
 	<int:channel id="retrievingGatewayInsideChain"/>
 	<int:channel id="updatingGatewayInsideChain"/>
+	<int:channel id="getStudentsFromGivenRecordChannel"/>
 
 	<bean id="deleteStudentEndpoint"
 				class="org.springframework.integration.endpoint.EventDrivenConsumer">
@@ -190,6 +192,26 @@
 								</bean>
 							</util:list>
 						</property>
+					</bean>
+				</constructor-arg>
+				<property        name="gatewayType"   value="RETRIEVING"/>
+				<property        name="outputChannel" ref="studentReplyChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="getStudentsFromGivenFromRecord"
+		class="org.springframework.integration.endpoint.EventDrivenConsumer">
+		<constructor-arg name="inputChannel" ref="getStudentsFromGivenRecordChannel"/>
+		<constructor-arg name="handler">
+			<bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+				<constructor-arg name="jpaExecutor">
+					<bean class="org.springframework.integration.jpa.core.JpaExecutor">
+						<constructor-arg name="entityManager" ref="entityManager"/>
+						<property name="jpaQuery"           value="select s from Student s"/>
+						<property name="expectSingleResult" value="false"/>
+						<property		 name="firstResultExpression"
+						    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
 					</bean>
 				</constructor-arg>
 				<property        name="gatewayType"   value="RETRIEVING"/>

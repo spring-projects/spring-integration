@@ -26,6 +26,46 @@
 		reply-timeout="100"
 		requires-reply="false"/>
 
+	<int-jpa:retrieving-outbound-gateway id="retrievingJpaOutboundGatewayWithFirstResult"
+		entity-manager-factory="entityManagerFactory"
+		auto-startup="true"
+		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+		expect-single-result="true"
+		order="1"
+		first-result="1"
+		max-number-of-results="55"
+		request-channel="in"
+		reply-channel="out"
+		reply-timeout="100"
+		requires-reply="false"/>
+
+	<int-jpa:retrieving-outbound-gateway id="retrievingJpaOutboundGatewayWithFirstResultExpression"
+		entity-manager-factory="entityManagerFactory"
+		auto-startup="true"
+		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+		expect-single-result="true"
+		order="1"
+		first-result-expression="header['firstResult']"
+		max-number-of-results="55"
+		request-channel="in"
+		reply-channel="out"
+		reply-timeout="100"
+		requires-reply="false"/>
+
+	<int-jpa:retrieving-outbound-gateway id="retrievingJpaOutboundGatewayWithExpressionExecutor"
+		entity-manager-factory="entityManagerFactory"
+		auto-startup="true"
+		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+		expect-single-result="true"
+		order="1"
+		first-result-expression="header['firstResult']"
+		max-number-of-results="55"
+		request-channel="in"
+		reply-channel="out"
+		reply-timeout="100"
+		requires-reply="false"/>
+
+
 	<int-jpa:updating-outbound-gateway id="updatingJpaOutboundGateway"
 		entity-manager-factory="entityManagerFactory"
 		auto-startup="false"
@@ -59,5 +99,4 @@
 			<bean class="org.springframework.integration.jpa.config.xml.JpaOutboundGatewayParserTests$FooAdvice"/>
 		</constructor-arg>
 	</bean>
-
 </beans>

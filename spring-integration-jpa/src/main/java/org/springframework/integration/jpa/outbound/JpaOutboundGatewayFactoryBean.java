@@ -155,7 +155,6 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 		}
 		jpaOutboundGateway.setBeanFactory(this.getBeanFactory());
 		jpaOutboundGateway.afterPropertiesSet();
-
 		if (!CollectionUtils.isEmpty(this.txAdviceChain)) {
 
 			ProxyFactory proxyFactory = new ProxyFactory(jpaOutboundGateway);
@@ -170,5 +169,4 @@ public class JpaOutboundGatewayFactoryBean extends AbstractFactoryBean<MessageHa
 
 		return jpaOutboundGateway;
 	}
-
 }

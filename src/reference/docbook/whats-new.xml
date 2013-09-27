@@ -452,5 +452,14 @@
 				least 1.
 			</para>
 		</section>
+		<section id="3.0-jpa-first-result">
+			<title>JPA Adapters: first-result attribute</title>
+			<para>
+			    Retrieving gateways had no mechanism to specify the first record to be retrieved which
+			    is a common use case. The retrieving gateways now support specifying this parameter
+			    using a <code>first-result</code> and <code>first-result-expression</code> attributes
+			    to the gateway definition.<xref linkend="jpa-retrieving-outbound-gateway"/>
+			</para>
+		</section>
 	</section>
 </chapter>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,10 +36,13 @@ import javax.persistence.TemporalType;
  * @author Amol Nayak
  * @author Gunnar Hillert
  *
+ * @since 2.2
+ *
  */
 @Entity(name="Student")
 @Table(name="Student")
 @NamedQueries({
+	@NamedQuery(name="selectAllStudents", query="select s from Student s"),
 	@NamedQuery(name="selectStudent", query="select s from Student s where s.lastName = 'Last One'"),
 	@NamedQuery(name="updateStudent", query="update Student s set s.lastName = :lastName, s.lastUpdated = :lastUpdated where s.rollNumber in (select max(a.rollNumber) from Student a)")
 })

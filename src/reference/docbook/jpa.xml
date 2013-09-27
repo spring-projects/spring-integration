@@ -1138,6 +1138,8 @@ public class Student {
     jpa-operations=""
     jpa-query=""
     max-number-of-results="" ]]><co id="outGateMaxNumOfResults"/><![CDATA[
+    first-result="" ]]><co id="outGateFirstResult"/><![CDATA[
+    first-result-expression="" ]]><co id="outGateFirstResultExpression"/><![CDATA[
     named-query=""
     native-query=""
     order=""
@@ -1166,6 +1168,20 @@ public class Student {
 						This non zero, non negative integer value tells the adapter not to select more than given number
 						of rows on execution of the select operation. By default, if this attribute is not set,
 						all the possible records are selected by given query.<emphasis>Optional</emphasis>.
+					</para>
+				</callout>
+				<callout arearefs="outGateFirstResult">
+					<para>
+						This non zero, non negative integer value tells the adapter the first record from which the
+						results are to be retrieved This attribute is mutually exclusive to <code>first-result-expression</code>.
+						This attribute is introduced since version 3.0. <emphasis>Optional</emphasis>.
+					</para>
+				</callout>
+				<callout arearefs="outGateFirstResultExpression">
+					<para>
+						This expression is evaluated against the message to find the position of first record in the
+						result set to be retrieved This attribute is mutually exclusive to <code>first-result</code>.
+						This attribute is introduced since version 3.0. <emphasis>Optional</emphasis>.
 					</para>
 				</callout>
 			</calloutlist>

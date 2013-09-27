@@ -470,5 +470,4 @@ public abstract class IntegrationNamespaceUtils {
 				.addConstructorArgValue(methodSignature);
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
-
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.junit.Assert;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
@@ -60,7 +61,7 @@ public class AbstractJpaOperationsTests {
 
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 		Assert.assertTrue(students.size() == 3);
 
 	}
@@ -72,7 +73,7 @@ public class AbstractJpaOperationsTests {
 
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 2);
+		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 2);
 		Assert.assertTrue(String.format("Was expecting 2 Students to be returned but got '%s'.", students.size()),
 						  students.size() == 2);
 
@@ -87,7 +88,7 @@ public class AbstractJpaOperationsTests {
 
 		final StudentDomain student = JpaTestUtils.getTestStudent();
 
-		List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 		Assert.assertTrue(students.size() == 3);
 
 		ParameterSourceFactory requestParameterSourceFactory =
@@ -156,7 +157,7 @@ public class AbstractJpaOperationsTests {
 
 		Class<?> entityClass = StudentDomain.class;
 
-		List<?> students = jpaOperations.getResultListForNativeQuery(selectSqlQuery, entityClass, null, 0);
+		List<?> students = jpaOperations.getResultListForNativeQuery(selectSqlQuery, entityClass, null, 0, 0);
 
 		Assert.assertTrue(students.size() == 1);
 
@@ -181,7 +182,7 @@ public class AbstractJpaOperationsTests {
 
 		String selectSqlQuery = "select rollNumber, firstName, lastName, gender, dateOfBirth, lastUpdated from Student where lastName = 'Last One'";
 
-		List<?> students = jpaOperations.getResultListForNativeQuery(selectSqlQuery, null, null, 0);
+		List<?> students = jpaOperations.getResultListForNativeQuery(selectSqlQuery, null, null, 0, 0);
 
 		Assert.assertTrue(students.size() == 1);
 
@@ -285,7 +286,7 @@ public class AbstractJpaOperationsTests {
 	public void testMergeCollectionWithNullElement() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertEquals(3, studentsFromDbBeforeTest.size());
 
@@ -379,7 +380,7 @@ public class AbstractJpaOperationsTests {
 	public void testPersistCollectionWithNullElement() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> studentsFromDbBeforeTest = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertEquals(3, studentsFromDbBeforeTest.size());
 
@@ -405,7 +406,7 @@ public class AbstractJpaOperationsTests {
 		Assert.assertNotNull(student1.getRollNumber());
 		Assert.assertNotNull(student3.getRollNumber());
 
-		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertNotNull(studentsFromDb);
 		Assert.assertEquals(5, studentsFromDb.size());
@@ -414,7 +415,7 @@ public class AbstractJpaOperationsTests {
 	public void testDeleteInBatch() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertNotNull(students);
 
@@ -432,7 +433,7 @@ public class AbstractJpaOperationsTests {
 
 		transactionManager.commit(status);
 
-		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertNotNull(studentsFromDb);
 		Assert.assertTrue(studentsFromDb.size() == 0);
@@ -451,7 +452,7 @@ public class AbstractJpaOperationsTests {
 	public void testDelete() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertNotNull(studentsFromDb);
 		Assert.assertTrue(studentsFromDb.size() == 3);
@@ -475,7 +476,7 @@ public class AbstractJpaOperationsTests {
 
 		transactionManager.commit(status);
 
-		final List<?> studentsFromDbAfterDelete = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> studentsFromDbAfterDelete = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertNotNull(studentsFromDbAfterDelete);
 		Assert.assertTrue(studentsFromDbAfterDelete.size() == 2);
@@ -485,7 +486,7 @@ public class AbstractJpaOperationsTests {
 	public void testDeleteInBatchWithEmptyCollection() {
 		final JpaOperations jpaOperations = getJpaOperations(entityManager);
 
-		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> students = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertNotNull(students);
 		Assert.assertTrue(students.size() == 3);
@@ -503,11 +504,38 @@ public class AbstractJpaOperationsTests {
 
 		transactionManager.commit(status);
 
-		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0);
+		final List<?> studentsFromDb = jpaOperations.getResultListForClass(StudentDomain.class, 0, 0);
 
 		Assert.assertNotNull(studentsFromDb);
 		Assert.assertTrue(studentsFromDb.size() == 3); //Nothing should have happened
 
 	}
 
+	public void testGetAllStudentsFromThirdRecord() {
+		JpaOperations jpaOperations = getJpaOperations(entityManager);
+		List<?> results = jpaOperations.getResultListForClass(StudentDomain.class, 2, 0);
+		assertEquals(1, results.size());
+	}
+
+
+	public void testGetAllStudentsUsingNativeQueryFromThirdRecord() {
+		JpaOperations jpaOperations = getJpaOperations(entityManager);
+		String query = "select * from Student";
+		List<?> results = jpaOperations.getResultListForNativeQuery(query, StudentDomain.class, null, 2, 0);
+		assertEquals(1, results.size());
+	}
+
+
+	public void testGetAllStudentsUsingNamedQueryFromThirdRecord() {
+		JpaOperations jpaOperations = getJpaOperations(entityManager);
+		List<?> results = jpaOperations.getResultListForNamedQuery("selectAllStudents", null, 2, 0);
+		assertEquals(1, results.size());
+	}
+
+	public void testGetAllStudentsUsingJPAQueryFromThirdRecord() {
+		JpaOperations jpaOperations = getJpaOperations(entityManager);
+		String query = "select s from Student s";
+		List<?> results = jpaOperations.getResultListForQuery(query, null, 2, 0);
+		assertEquals(1, results.size());
+	}
 }
