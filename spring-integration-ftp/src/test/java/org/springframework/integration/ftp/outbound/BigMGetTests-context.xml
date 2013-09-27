@@ -16,7 +16,7 @@
 
 	<int:channel id="inbound" />
 
-	<int-ftp:outbound-gateway id="gatewayLS" cache-sessions="false"
+	<int-ftp:outbound-gateway id="gatewayLS"
 		session-factory="ftpSessionFactory"
 		request-channel="inbound"
 		command="mget"
