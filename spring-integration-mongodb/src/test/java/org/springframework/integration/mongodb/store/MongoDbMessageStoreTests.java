@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,13 @@
 
 package org.springframework.integration.mongodb.store;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Properties;
+import java.util.UUID;
 
 import org.junit.Test;
 
@@ -31,18 +37,14 @@ import org.springframework.integration.support.MessageBuilder;
 
 import com.mongodb.Mongo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 
-	@Test 
+	@Test
 	@MongoDbAvailable
 	public void addGetWithStringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
@@ -55,7 +57,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(messageToStore, retrievedMessage);
 	}
-	@Test 
+	@Test
 	@MongoDbAvailable
 	public void addThenRemoveWithStringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
@@ -69,7 +71,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertNull(retrievedMessage);
 	}
 
-	@Test 
+	@Test
 	@MongoDbAvailable
 	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
@@ -85,13 +87,13 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(messageToStore, retrievedMessage);
 	}
-	
+
 	@Test
 	@MongoDbAvailable
-	public void testWithMessageHistory() throws Exception{	
+	public void testWithMessageHistory() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		
+
 		Foo foo = new Foo();
 		foo.setName("foo");
 		Message<?> message = MessageBuilder.withPayload(foo).
@@ -105,7 +107,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
 		barChannel.setBeanName("barChannel");
-		
+
 		message = MessageHistory.write(message, fooChannel);
 		message = MessageHistory.write(message, barChannel);
 		store.addMessage(message);
@@ -122,7 +124,24 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals("fooChannel", fooChannelHistory.get("name"));
 		assertEquals("channel", fooChannelHistory.get("type"));
 	}
-	
+
+	@Test
+	@MongoDbAvailable
+	public void testInt3153SequenceDetails() throws Exception{
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		Message<?> messageToStore = MessageBuilder.withPayload("test")
+				.pushSequenceDetails(UUID.randomUUID(), 1, 1)
+				.pushSequenceDetails(UUID.randomUUID(), 1, 1)
+				.build();
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+		assertEquals(messageToStore, retrievedMessage);
+	}
+
 	public static class Foo{
 		private String name;
 
@@ -134,10 +153,10 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 			this.name = name;
 		}
 	}
-	
+
 	public static class Bar{
 		private String name;
-		
+
 		public Bar(String name){
 			this.name = name;
 		}
@@ -146,29 +165,29 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 			return name;
 		}
 	}
-	
+
 	public static class Baz{
 		private String name = "baz";
-		
+
 		public String getName() {
 			return name;
 		}
 	}
-	
+
 	public static class Abc{
 		private String name = "abx";
-		
+
 		private Abc(){}
-		
+
 		public String getName() {
 			return name;
 		}
 	}
-	
+
 	public static class Xyz{
 		@SuppressWarnings("unused")
 		private String name = "xyz";
-		
+
 		private Xyz(){}
 	}
 

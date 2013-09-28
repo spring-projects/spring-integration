@@ -22,9 +22,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.junit.Test;
-
 import org.hamcrest.Matchers;
+import org.junit.Test;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -120,7 +119,7 @@ public class MongoDbOutboundChannelAdapterParserTests {
 		assertThat(endpoint, Matchers.instanceOf(PollingConsumer.class));
 		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 		assertTrue(AopUtils.isAopProxy(handler));
-		List advisors = TestUtils.getPropertyValue(handler, "h.advised.advisors", List.class);
+		List<?> advisors = TestUtils.getPropertyValue(handler, "h.advised.advisors", List.class);
 		assertThat(TestUtils.getPropertyValue(advisors.get(0), "advice"), Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
