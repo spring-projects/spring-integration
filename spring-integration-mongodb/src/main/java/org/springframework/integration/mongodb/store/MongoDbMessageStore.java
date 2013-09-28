@@ -389,9 +389,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				Object headerValue = headers.get(headerName);
 				if (headerValue instanceof DBObject) {
 					DBObject source = (DBObject) headerValue;
-					Object type = source.get("_class");
 					try {
-						Class<?> typeClass = ClassUtils.forName(type.toString(), classLoader);
+						Class<?> typeClass = null;
+						if (source.containsField("_class")) {
+							Object type = source.get("_class");
+							typeClass = ClassUtils.forName(type.toString(), classLoader);
+						}
+						else if (source instanceof BasicDBList) {
+							typeClass = List.class;
+						}
+						else {
+							throw new IllegalStateException("Unsupported 'DBObject' type: " + source.getClass());
+						}
 						normalizedHeaders.put(headerName, super.read(typeClass, source));
 					}
 					catch (Exception e) {
