@@ -15,13 +15,14 @@
  */
 package org.springframework.integration.router;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
@@ -86,12 +88,12 @@ public class RouterConcurrencyTest {
 		router.setBeanFactory(beanFactory);
 
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		final List<ConversionService> returns = new ArrayList<ConversionService>();
+		final List<ConversionService> returns = Collections.synchronizedList(
+				new ArrayList<ConversionService>());
 		Runnable runnable = new Runnable() {
 
 			public void run() {
 				ConversionService requiredConversionService = router.getRequiredConversionService();
-				System.out.println("Adding " + requiredConversionService);
 				returns.add(requiredConversionService);
 			}
 		};
@@ -99,7 +101,7 @@ public class RouterConcurrencyTest {
 		exec.execute(runnable);
 		exec.shutdown();
 		exec.awaitTermination(10, TimeUnit.SECONDS);
-		assertTrue(returns.size() == 2);
+		assertEquals(2, returns.size());
 		assertNotNull(returns.get(0));
 		assertNotNull(returns.get(1));
 	}
