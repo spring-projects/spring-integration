@@ -40,4 +40,6 @@ public interface StudentService {
 	StudentDomain getStudent2(Long id);
 
 	StudentDomain persistStudent2(StudentDomain studentToPersist);
+
+	List<StudentDomain> getStudents(int maxNumberOfRecords);
 }

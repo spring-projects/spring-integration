@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
@@ -73,8 +74,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	private volatile String   nativeQuery;
 	private volatile String   namedQuery;
 
-	/** 0 means all possible objects shall be retrieved. */
-	private volatile int maxNumberOfResults = 0;
+	private volatile Expression maxNumberOfResultsExpression;
 
 	private volatile Expression firstResultExpression;
 
@@ -195,6 +195,10 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 
 		}
 
+		if(maxNumberOfResultsExpression == null) {
+			maxNumberOfResultsExpression = new LiteralExpression("0");
+		}
+
 	}
 
 	/**
@@ -270,8 +274,10 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	public Object poll(final Message<?> requestMessage) {
 		final Object payload;
 		final List<?> result;
+		int maxNumberOfResults =
+			evaluateExpressionForNumericResult(requestMessage, maxNumberOfResultsExpression);
 		if (requestMessage == null) {
-			result = doPoll(this.parameterSource, 0);
+			result = doPoll(this.parameterSource, 0, maxNumberOfResults);
 		}
 		else {
 			int firstResult = 0;
@@ -279,7 +285,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 				firstResult = getFirstResult(requestMessage);
 			}
 			ParameterSource parameterSource = determineParameterSource(requestMessage);
-			result = doPoll(parameterSource, firstResult);
+			result = doPoll(parameterSource, firstResult, maxNumberOfResults);
 		}
 
 		if (result.isEmpty()) {
@@ -322,25 +328,31 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	}
 
 	private int getFirstResult(final Message<?> requestMessage) {
+		int firstResult = evaluateExpressionForNumericResult(requestMessage, firstResultExpression);
+		return firstResult;
+	}
+
+	private int evaluateExpressionForNumericResult(
+			final Message<?> requestMessage, Expression expression) {
 		int firstResult = 0;
-		Object firstRecordEvaluationResult = firstResultExpression.getValue(evaluationContext, requestMessage);
-		if(firstRecordEvaluationResult != null) {
-			if(firstRecordEvaluationResult instanceof Number) {
-				firstResult = ((Number)firstRecordEvaluationResult).intValue();
+		Object evaluationResult = expression.getValue(evaluationContext, requestMessage);
+		if(evaluationResult != null) {
+			if(evaluationResult instanceof Number) {
+				firstResult = ((Number)evaluationResult).intValue();
 			}
-			else if(firstRecordEvaluationResult instanceof String){
+			else if(evaluationResult instanceof String){
 				try {
-					firstResult = Integer.parseInt((String)firstRecordEvaluationResult);
+					firstResult = Integer.parseInt((String)evaluationResult);
 				}
 				catch (NumberFormatException e) {
 					throw new IllegalArgumentException(
-							"Value " + firstRecordEvaluationResult + " passed as firstRecord cannot be " +
-									"parsed to a number");
+							"Value " + evaluationResult + " passed as cannot be " +
+									"parsed to a number, expected to be numeric");
 				}
 			}
 			else {
-				throw new IllegalArgumentException("Expected the value of the firstRecord to be a Number" +
-						     " got " + firstRecordEvaluationResult.getClass().getName());
+				throw new IllegalArgumentException("Expected the value to be a Number" +
+						     " got " + evaluationResult.getClass().getName());
 			}
 		}
 		return firstResult;
@@ -364,7 +376,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		return poll(null);
 	}
 
-	protected List<?> doPoll(ParameterSource jpaQLParameterSource, int firstResult) {
+	protected List<?> doPoll(ParameterSource jpaQLParameterSource, int firstResult,
+			int maxNumberOfResults) {
 		List<?> payload = null;
 		if (this.jpaQuery != null) {
 			payload = jpaOperations.getResultListForQuery(this.jpaQuery, jpaQLParameterSource,
@@ -527,19 +540,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	}
 
 	/**
-	 * Set the max number of results to retrieve from the database. Defaults to
-	 * 0, which means that all possible objects shall be retrieved.
-	 *
-	 * @param maxNumberOfResults Must not be negative.
-	 *
-	 * @see Query#setMaxResults(int)
-	 */
-	public void setMaxNumberOfResults(int maxNumberOfResults) {
-		Assert.isTrue(maxNumberOfResults >= 0, "maxNumberOfResults must not be negative.");
-		this.maxNumberOfResults = maxNumberOfResults;
-	}
-
-	/**
 	 * Sets the expression that will be evaluated to get the first result in the query executed.
 	 * If a null expression is set, all the results in the result set will be retrieved
 	 *
@@ -551,6 +551,19 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		this.firstResultExpression = firstResultExpression;
 	}
 
+
+
+	/**
+	 * Sets the expression for maximum number of results expression. It has be a non null value
+	 * Not setting one will default to the behavior of fetching all the records
+	 *
+	 * @param maxNumberOfResultsExpression
+	 */
+	public void setMaxNumberOfResultsExpression(
+			Expression maxNumberOfResultsExpression) {
+		Assert.notNull(maxNumberOfResultsExpression, "maxNumberOfResultsExpression cannot be null");
+		this.maxNumberOfResultsExpression = maxNumberOfResultsExpression;
+	}
 
 	/**
 	 * Sets the evaluation context for evaluating the expression to get the from record of the

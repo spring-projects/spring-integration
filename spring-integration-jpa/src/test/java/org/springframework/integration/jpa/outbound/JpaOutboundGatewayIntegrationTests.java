@@ -54,11 +54,11 @@ public class JpaOutboundGatewayIntegrationTests {
 
 	/**
 	 * Sends a message with the payload as a integer representing the start number in the result
-	 * set.
+	 * set and a header with value maxResults to get the max number of results
 	 * @throws Exception
 	 */
 	@Test
-	public void retrieveFromSecondRecord() throws Exception {
+	public void retrieveFromSecondRecordAndMaximumOneRecord() throws Exception {
 		responseChannel.subscribe(new MessageHandler() {
 			@SuppressWarnings("rawtypes")
 			@Override
@@ -66,7 +66,10 @@ public class JpaOutboundGatewayIntegrationTests {
 				assertEquals(1, ((List)message.getPayload()).size());
 			}
 		});
-		Message<Integer> message = MessageBuilder.withPayload(2).build();
+		Message<Integer> message = MessageBuilder
+						.withPayload(1)
+						.setHeader("maxResults", "1")
+						.build();
 		requestChannel.send(message);
 	}
 }

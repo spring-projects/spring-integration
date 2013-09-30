@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,8 +19,10 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -29,6 +31,8 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gunnar Hillert
+ * @author Amol Nayak
+ *
  * @since 2.2
  *
  */
@@ -84,7 +88,11 @@ public class JpaInboundChannelAdapterParserTests {
 
 		assertNotNull(jpaOperations);
 
-		assertEquals(Integer.valueOf(13), TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResults", Integer.class));
+		LiteralExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResultsExpression", LiteralExpression.class);
+
+		assertNotNull(expression);
+
+		assertEquals("13", TestUtils.getPropertyValue(expression, "literalValue"));
 
 	}
 

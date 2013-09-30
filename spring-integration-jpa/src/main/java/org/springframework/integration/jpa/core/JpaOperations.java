@@ -132,7 +132,7 @@ public interface JpaOperations {
 	 *
 	 * @param query Must not be null or empty
 	 * @param firstResult The first result
-	 * @param maxNumberOfResults Must be a non-negative value
+	 * @param maxNumberOfResults Must be a non-negative value, any negative or zero will be ignored
 	 * @param source the Parameter source for this query to be executed, if none then set null
 	 * @return List of found entities
 	 */

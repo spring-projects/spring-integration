@@ -76,8 +76,10 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
 		assertNotNull(jpaOperations);
 		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "expectSingleResult", Boolean.class));
-		final Integer maxNumberOfResults = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResults", Integer.class);
-		assertEquals(Integer.valueOf(55), maxNumberOfResults);
+		final LiteralExpression maxNumberOfResultsExpression =
+				TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResultsExpression", LiteralExpression.class);
+		assertNotNull(maxNumberOfResultsExpression);
+		assertEquals("55", TestUtils.getPropertyValue(maxNumberOfResultsExpression, "literalValue"));
 	}
 
 	@Test
@@ -100,6 +102,17 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 		assertNotNull(firstResultExpression);
 		assertEquals(SpelExpression.class, firstResultExpression.getClass());
 		assertEquals("header['firstResult']", TestUtils.getPropertyValue(firstResultExpression, "expression", String.class));
+	}
+
+	@Test
+	public void testRetrievingJpaOutboundGatewayParserWithMaxResultExpression() throws Exception {
+		setUp("JpaOutboundGatewayParserTests.xml", getClass(), "retrievingJpaOutboundGatewayWithMaxResultExpression");
+		final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+		Expression maxNumberOfResultExpression =
+			TestUtils.getPropertyValue(jpaOutboundGateway, "jpaExecutor.maxNumberOfResultsExpression", Expression.class);
+		assertNotNull(maxNumberOfResultExpression);
+		assertEquals(SpelExpression.class, maxNumberOfResultExpression.getClass());
+		assertEquals("header['maxResults']", TestUtils.getPropertyValue(maxNumberOfResultExpression, "expression", String.class));
 	}
 
 	@Test

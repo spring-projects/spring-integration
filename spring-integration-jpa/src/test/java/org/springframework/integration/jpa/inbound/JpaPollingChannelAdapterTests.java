@@ -29,9 +29,11 @@ import javax.persistence.EntityManager;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -94,6 +96,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -137,6 +140,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student");
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -180,7 +184,8 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student");
-		jpaExecutor.setMaxNumberOfResults(1);
+		jpaExecutor.setMaxNumberOfResultsExpression(new LiteralExpression("1"));
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -224,7 +229,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student s where s.firstName = 'First Two'");
-
+		jpaExecutor.afterPropertiesSet();
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
@@ -273,6 +278,7 @@ public class JpaPollingChannelAdapterTests {
 		jpaExecutor.setJpaQuery("from Student s");
 		jpaExecutor.setDeleteAfterPoll(true);
 		jpaExecutor.setDeleteInBatch(true);
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -332,6 +338,7 @@ public class JpaPollingChannelAdapterTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student s where s.lastName = 'Something Else'");
 		jpaExecutor.setDeleteAfterPoll(true);
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -371,6 +378,7 @@ public class JpaPollingChannelAdapterTests {
 		jpaExecutor.setJpaQuery("from Student s");
 		jpaExecutor.setDeleteAfterPoll(true);
 		jpaExecutor.setDeleteInBatch(false);
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -417,6 +425,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNativeQuery("select * from Student where lastName = 'Last One'");
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
@@ -460,6 +469,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNamedQuery("selectStudent");
+		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 

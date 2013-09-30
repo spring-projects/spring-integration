@@ -21,5 +21,6 @@
 			request-channel="in"
 			reply-channel="out"
 			first-result-expression="payload"
+			max-number-of-results-expression="headers['maxResults']"
 			reply-timeout="100"/>
 </beans>

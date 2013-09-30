@@ -63,7 +63,7 @@ public class JpaExecutorTests {
 	public void testExecutePollWithNoEntityClassSpecified() throws Exception {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
-
+		jpaExecutor.afterPropertiesSet();
 		try {
 			jpaExecutor.poll();
 		} catch (IllegalStateException e) {
@@ -211,22 +211,6 @@ public class JpaExecutorTests {
 	}
 
 	@Test
-	public void testNegativeMaxNumberOfResults() throws Exception {
-
-		final JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
-
-		try {
-			jpaExecutor.setMaxNumberOfResults(-10);
-		} catch (IllegalArgumentException e) {
-			Assert.assertEquals("maxNumberOfResults must not be negative.", e.getMessage());
-			return;
-		}
-
-		Assert.fail("Was expecting an IllegalStateException to be thrown.");
-
-	}
-
-	@Test
 	public void testResultStartingFromThirdRecordForJPAQuery() throws Exception {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("select s from Student s");
@@ -269,5 +253,17 @@ public class JpaExecutorTests {
 		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);
 		Assert.assertEquals(1, results.size());
+	}
+
+	@Test
+	public void withNullMaxNumberOfResultsExpression() {
+		final JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
+		try {
+			jpaExecutor.setMaxNumberOfResultsExpression(null);
+		} catch (Exception e) {
+			Assert.assertEquals("maxNumberOfResultsExpression cannot be null", e.getMessage());
+			return;
+		}
+		Assert.fail("Expected the test case to throw an exception");
 	}
 }
