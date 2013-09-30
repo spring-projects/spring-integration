@@ -116,6 +116,15 @@ subprojects { subproject ->
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.integration.*"
 	}
 
+	task testAll() {
+		inputs.files tasks.test.inputs.files
+		outputs.files tasks.test.outputs.files
+		doFirst {
+			tasks.test.systemProperty 'RUN_LONG_INTEGRATION_TESTS', 'true'
+		}
+		finalizedBy test
+	}
+
 	task sourcesJar(type: Jar) {
 		classifier = 'sources'
 		from sourceSets.main.allJava
@@ -126,21 +135,25 @@ subprojects { subproject ->
 		from javadoc
 	}
 
-	task checkTestConfigs << {
-		def configFiles = []
-		sourceSets.test.java.srcDirs.each {
-			fileTree(it).include('**/*.xml').exclude('**/log4j.xml').each { configFile ->
-				def configXml = new XmlParser(false, false).parse(configFile)
+	task checkTestConfigs {
+		inputs.files tasks.test.inputs.files
+		outputs.files tasks.test.outputs.files
+		doLast {
+			def configFiles = []
+			sourceSets.test.java.srcDirs.each {
+				fileTree(it).include('**/*.xml').exclude('**/log4j.xml').each { configFile ->
+					def configXml = new XmlParser(false, false).parse(configFile)
 
-				if (configXml.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/) {
-					configFiles << configFile
+					if (configXml.@'xsi:schemaLocation' ==~ /.*spring-[a-z-]*\d\.\d\.xsd.*/) {
+						configFiles << configFile
+					}
 				}
 			}
-		}
-		if (configFiles) {
-			throw new InvalidUserDataException('Hardcoded XSD version in the config files:\n' +
-												configFiles.collect {relativePath(it)}.join('\n') +
-			'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds on different versions of dependencies.')
+			if (configFiles) {
+				throw new InvalidUserDataException('Hardcoded XSD version in the config files:\n' +
+						configFiles.collect {relativePath(it)}.join('\n') +
+						'\nPlease, use versionless schemaLocations for Spring XSDs to avoid issues with builds on different versions of dependencies.')
+			}
 		}
 	}
 
@@ -758,5 +771,5 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = 'Generates gradlew[.bat] scripts'
-	gradleVersion = '1.6'
+	gradleVersion = '1.7'
 }
