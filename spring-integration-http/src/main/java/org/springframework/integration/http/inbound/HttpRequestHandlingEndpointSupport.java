@@ -73,7 +73,7 @@ import org.springframework.web.servlet.HandlerMapping;
 /**
  * Base class for HTTP request handling endpoints.
  * <p>
- * By default GET and POST requests are accepted via supplied default instance of {@link RequestMapping}.
+ * By default GET and POST requests are accepted via a supplied default instance of {@link RequestMapping}.
  * A GET request will generate a payload containing its 'parameterMap' while a POST
  * request will be converted to a Message payload according to the registered {@link HttpMessageConverter}s. Several are
  * registered by default, but the list can be explicitly set via {@link #setMessageConverters(List)}.
@@ -191,7 +191,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Set the path template for which this endpoint expects requests.
 	 * May include path variable {keys} to match against.
-	 * @deprecated in favor of {@linkplain #requestMapping}
+	 * @deprecated since 3.0 in favor of {@linkplain #requestMapping}
 	 */
 	@Deprecated
 	public void setPath(String path) {
@@ -199,7 +199,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	* @deprecated in favor of {@linkplain #requestMapping}
+	* @deprecated since 3.0 in favor of {@linkplain #requestMapping}
 	*/
 	@Deprecated
 	String getPath() {
@@ -277,7 +277,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 
 	/**
 	 * Specify the supported request methods for this gateway. By default, only GET and POST are supported.
-	 * @deprecated in favor to {@linkplain #requestMapping}
+	 * @deprecated since 3.0 in favor to {@linkplain #requestMapping}
 	 */
 	@Deprecated
 	public void setSupportedMethods(HttpMethod... supportedMethods) {

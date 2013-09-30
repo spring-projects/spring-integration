@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * Class for mapping web requests onto specific {@link HttpRequestHandlingEndpointSupport}.
  * Provides direct mapping in terms of functionality compared to
  * {@link org.springframework.web.bind.annotation.RequestMapping}.
- * <p>
- * Through the {@link IntegrationRequestMappingHandlerMapping}'s 'detect handler method' process is converted
- * to the {@link org.springframework.web.servlet.mvc.method.RequestMappingInfo}, which is used in the Spring MVC
- * {@link org.springframework.web.servlet.HandlerMapping} infrastructure.
  *
  * @author Artem Bilan
  * @since 3.0
  *
  * @see org.springframework.web.bind.annotation.RequestMapping
+ * @see IntegrationRequestMappingHandlerMapping
  */
 public class RequestMapping {
 

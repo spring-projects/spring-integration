@@ -44,7 +44,7 @@ import org.springframework.util.xml.DomUtils;
  * of the 'http' namespace. The constructor's boolean value specifies whether
  * a reply is to be expected. This value should be 'false' for the
  * 'inbound-channel-adapter' and 'true' for the 'inbound-gateway'.
- * As well as this parser register global Spring-MVC infrastructure bean for
+ * This parser also registers a global Spring-MVC infrastructure bean for
  * {@link IntegrationRequestMappingHandlerMapping};
  * see {@link #registerRequestMappingHandlerMappingIfNecessary}.
  *
