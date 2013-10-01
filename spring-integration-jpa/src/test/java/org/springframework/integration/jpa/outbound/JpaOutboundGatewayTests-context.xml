@@ -234,7 +234,7 @@
 						<property name="expectSingleResult" value="false"/>
 						<property name="firstResultExpression"
 						    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
-						<property name="maxNumberOfResultsExpression"
+						<property name="maxResultsExpression"
 						    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
 					</bean>
 				</constructor-arg>

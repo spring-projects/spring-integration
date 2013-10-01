@@ -44,7 +44,7 @@
 		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 		order="1"
 		first-result="1"
-		max-number-of-results-expression="header['maxResults']"
+		max-results-expression="header['maxResults']"
 		request-channel="in"
 		reply-channel="out"
 		reply-timeout="100"

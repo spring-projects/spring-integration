@@ -54,9 +54,9 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 		}
 
 		RootBeanDefinition maxResultsExpression = createExpressionDefinitionFromValueOrExpression("max-number-of-results",
-				"max-number-of-results-expression", parserContext, gatewayElement, false);
+				"max-results-expression", parserContext, gatewayElement, false);
 		if(maxResultsExpression != null) {
-			jpaExecutorBuilder.addPropertyValue("maxNumberOfResultsExpression", maxResultsExpression);
+			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", maxResultsExpression);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-in-batch");

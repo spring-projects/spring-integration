@@ -256,12 +256,12 @@ public class JpaExecutorTests {
 	}
 
 	@Test
-	public void withNullMaxNumberOfResultsExpression() {
+	public void withNullMaxResultsExpression() {
 		final JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
 		try {
-			jpaExecutor.setMaxNumberOfResultsExpression(null);
+			jpaExecutor.setMaxResultsExpression(null);
 		} catch (Exception e) {
-			Assert.assertEquals("maxNumberOfResultsExpression cannot be null", e.getMessage());
+			Assert.assertEquals("maxResultsExpression cannot be null", e.getMessage());
 			return;
 		}
 		Assert.fail("Expected the test case to throw an exception");

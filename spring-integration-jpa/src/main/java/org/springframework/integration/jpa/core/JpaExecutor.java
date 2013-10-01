@@ -74,7 +74,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	private volatile String   nativeQuery;
 	private volatile String   namedQuery;
 
-	private volatile Expression maxNumberOfResultsExpression;
+	private volatile Expression maxResultsExpression;
 
 	private volatile Expression firstResultExpression;
 
@@ -269,7 +269,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		final Object payload;
 		final List<?> result;
 		int maxNumberOfResults =
-			evaluateExpressionForNumericResult(requestMessage, maxNumberOfResultsExpression);
+			this.evaluateExpressionForNumericResult(requestMessage, maxResultsExpression);
 		if (requestMessage == null) {
 			result = doPoll(this.parameterSource, 0, maxNumberOfResults);
 		}
@@ -322,7 +322,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	}
 
 	private int getFirstResult(final Message<?> requestMessage) {
-		return evaluateExpressionForNumericResult(requestMessage, firstResultExpression);
+		return this.evaluateExpressionForNumericResult(requestMessage, firstResultExpression);
 	}
 
 	private int evaluateExpressionForNumericResult(
@@ -552,12 +552,12 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * Sets the expression for maximum number of results expression. It has be a non null value
 	 * Not setting one will default to the behavior of fetching all the records
 	 *
-	 * @param maxNumberOfResultsExpression
+	 * @param maxResultsExpression
 	 */
-	public void setMaxNumberOfResultsExpression(
-			Expression maxNumberOfResultsExpression) {
-		Assert.notNull(maxNumberOfResultsExpression, "maxNumberOfResultsExpression cannot be null");
-		this.maxNumberOfResultsExpression = maxNumberOfResultsExpression;
+	public void setMaxResultsExpression(
+			Expression maxResultsExpression) {
+		Assert.notNull(maxResultsExpression, "maxResultsExpression cannot be null");
+		this.maxResultsExpression = maxResultsExpression;
 	}
 
 	/**
@@ -569,7 +569,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	  * @see Query#setMaxResults(int)
 	  */
 	 public void setMaxNumberOfResults(int maxNumberOfResults) {
-		 setMaxNumberOfResultsExpression(new LiteralExpression("" + maxNumberOfResults));
+		 this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));
 	 }
 
 	/**

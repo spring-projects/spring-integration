@@ -50,10 +50,10 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
 		RootBeanDefinition definition = createExpressionDefinitionFromValueOrExpression("max-number-of-results",
-				"max-number-of-results-expression",
+				"max-results-expression",
 				parserContext, element, false);
 		if(definition != null) {
-			jpaExecutorBuilder.addPropertyValue("maxNumberOfResultsExpression", definition);
+			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", definition);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-after-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-in-batch");

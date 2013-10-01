@@ -89,7 +89,7 @@ public class JpaInboundChannelAdapterParserTests {
 
 		assertNotNull(jpaOperations);
 
-		LiteralExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResultsExpression", LiteralExpression.class);
+		LiteralExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", LiteralExpression.class);
 
 		assertNotNull(expression);
 
@@ -118,7 +118,7 @@ public class JpaInboundChannelAdapterParserTests {
 
 		assertNotNull(jpaOperations);
 
-		SpelExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResultsExpression", SpelExpression.class);
+		SpelExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", SpelExpression.class);
 
 		assertNotNull(expression);
 

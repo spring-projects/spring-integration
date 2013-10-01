@@ -184,7 +184,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student");
-		jpaExecutor.setMaxNumberOfResultsExpression(new LiteralExpression("1"));
+		jpaExecutor.setMaxResultsExpression(new LiteralExpression("1"));
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
