@@ -15,14 +15,16 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
+import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
@@ -47,10 +49,11 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
-		if(element.hasAttribute("max-number-of-results")) {
-			String maxNumberOfResultsValue = element.getAttribute("max-number-of-results");
-			jpaExecutorBuilder.addPropertyValue("maxNumberOfResultsExpression",
-					new LiteralExpression(maxNumberOfResultsValue));
+		RootBeanDefinition definition = createExpressionDefinitionFromValueOrExpression("max-number-of-results",
+				"max-number-of-results-expression",
+				parserContext, element, false);
+		if(definition != null) {
+			jpaExecutorBuilder.addPropertyValue("maxNumberOfResultsExpression", definition);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-after-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-in-batch");

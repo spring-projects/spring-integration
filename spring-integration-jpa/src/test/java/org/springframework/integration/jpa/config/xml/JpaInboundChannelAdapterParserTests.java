@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -95,6 +96,36 @@ public class JpaInboundChannelAdapterParserTests {
 		assertEquals("13", TestUtils.getPropertyValue(expression, "literalValue"));
 
 	}
+
+	@Test
+	public void testJpaInboundChannelAdapterParserWithMaxResultsExpression() throws Exception {
+
+		setUp("JpaInboundChannelAdapterParserTests.xml", getClass(), "jpaInboundChannelAdapter3");
+
+		final AbstractMessageChannel outputChannel = TestUtils.getPropertyValue(this.consumer, "outputChannel", AbstractMessageChannel.class);
+
+		assertEquals("out", outputChannel.getComponentName());
+
+		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "source.jpaExecutor", JpaExecutor.class);
+
+		assertNotNull(jpaExecutor);
+
+		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+
+		assertEquals("org.springframework.integration.jpa.test.entity.StudentDomain", entityClass.getName());
+
+		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+
+		assertNotNull(jpaOperations);
+
+		SpelExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResultsExpression", SpelExpression.class);
+
+		assertNotNull(expression);
+
+		assertEquals("@maxNumberOfResults", TestUtils.getPropertyValue(expression, "expression"));
+
+	}
+
 
 	@Test
 	public void testJpaExecutorBeanIdNaming() throws Exception {

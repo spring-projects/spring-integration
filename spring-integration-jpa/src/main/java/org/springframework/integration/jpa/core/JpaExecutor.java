@@ -192,13 +192,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 			if (this.usePayloadAsParameterSource == null) {
 				this.usePayloadAsParameterSource = true;
 			}
-
 		}
-
-		if(maxNumberOfResultsExpression == null) {
-			maxNumberOfResultsExpression = new LiteralExpression("0");
-		}
-
 	}
 
 	/**
@@ -328,34 +322,35 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	}
 
 	private int getFirstResult(final Message<?> requestMessage) {
-		int firstResult = evaluateExpressionForNumericResult(requestMessage, firstResultExpression);
-		return firstResult;
+		return evaluateExpressionForNumericResult(requestMessage, firstResultExpression);
 	}
 
 	private int evaluateExpressionForNumericResult(
 			final Message<?> requestMessage, Expression expression) {
-		int firstResult = 0;
-		Object evaluationResult = expression.getValue(evaluationContext, requestMessage);
-		if(evaluationResult != null) {
-			if(evaluationResult instanceof Number) {
-				firstResult = ((Number)evaluationResult).intValue();
-			}
-			else if(evaluationResult instanceof String){
-				try {
-					firstResult = Integer.parseInt((String)evaluationResult);
+		int evaluatedResult = 0;
+		if(expression != null) {
+			Object evaluationResult = expression.getValue(evaluationContext, requestMessage);
+			if(evaluationResult != null) {
+				if(evaluationResult instanceof Number) {
+					evaluatedResult = ((Number)evaluationResult).intValue();
 				}
-				catch (NumberFormatException e) {
-					throw new IllegalArgumentException(
-							"Value " + evaluationResult + " passed as cannot be " +
-									"parsed to a number, expected to be numeric");
+				else if(evaluationResult instanceof String){
+					try {
+						evaluatedResult = Integer.parseInt((String)evaluationResult);
+					}
+					catch (NumberFormatException e) {
+						throw new IllegalArgumentException(
+								"Value " + evaluationResult + " passed as cannot be " +
+										"parsed to a number, expected to be numeric");
+					}
 				}
-			}
-			else {
-				throw new IllegalArgumentException("Expected the value to be a Number" +
-						     " got " + evaluationResult.getClass().getName());
+				else {
+					throw new IllegalArgumentException("Expected the value to be a Number" +
+							     " got " + evaluationResult.getClass().getName());
+				}
 			}
 		}
-		return firstResult;
+		return evaluatedResult;
 	}
 
 	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
@@ -564,6 +559,18 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		Assert.notNull(maxNumberOfResultsExpression, "maxNumberOfResultsExpression cannot be null");
 		this.maxNumberOfResultsExpression = maxNumberOfResultsExpression;
 	}
+
+	/**
+	  * Set the max number of results to retrieve from the database. Defaults to
+	  * 0, which means that all possible objects shall be retrieved.
+	  *
+	  * @param maxNumberOfResults Must not be negative.
+	  *
+	  * @see Query#setMaxResults(int)
+	  */
+	 public void setMaxNumberOfResults(int maxNumberOfResults) {
+		 setMaxNumberOfResultsExpression(new LiteralExpression("" + maxNumberOfResults));
+	 }
 
 	/**
 	 * Sets the evaluation context for evaluating the expression to get the from record of the

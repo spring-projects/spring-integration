@@ -28,5 +28,16 @@
 		channel="out">
 		<int:poller fixed-rate="5000"/>
 	</int-jpa:inbound-channel-adapter>
-	
+
+	<int-jpa:inbound-channel-adapter id="jpaInboundChannelAdapter3"
+		entity-manager-factory="entityManagerFactory"
+		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
+		max-number-of-results-expression="@maxNumberOfResults"
+		channel="out">
+			<int:poller fixed-rate="5000"/>
+	</int-jpa:inbound-channel-adapter>
+
+	<bean name="maxNumberOfResults" class="java.lang.Integer">
+	    <constructor-arg value="2"/>
+	</bean>
 </beans>
