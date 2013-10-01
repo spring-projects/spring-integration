@@ -20,7 +20,7 @@
 	<delayer id="#{T (org.springframework.integration.redis.store.DelayerHandlerRescheduleIntegrationTests).DELAYER_ID}"
 			 input-channel="input"
 			 output-channel="output"
-			 default-delay="500"
+			 default-delay="10000"
 			 message-store="messageStore"/>
 
 </beans:beans>

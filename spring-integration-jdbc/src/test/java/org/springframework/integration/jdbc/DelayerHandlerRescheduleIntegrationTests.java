@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
@@ -38,6 +39,7 @@ import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -56,6 +58,9 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	public static final String DELAYER_ID = "delayerWithJdbcMS";
 
 	public static EmbeddedDatabase dataSource;
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@BeforeClass
 	public static void init() {
@@ -115,12 +120,12 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		PollableChannel output = context.getBean("output", PollableChannel.class);
 
-		Message<?> message = output.receive(10000);
+		Message<?> message = output.receive(20000);
 		assertNotNull(message);
 
 		Object payload1 = message.getPayload();
 
-		message = output.receive(10000);
+		message = output.receive(20000);
 		assertNotNull(message);
 		Object payload2 = message.getPayload();
 		assertNotSame(payload1, payload2);
