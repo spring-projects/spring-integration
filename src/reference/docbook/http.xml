@@ -139,11 +139,12 @@ By default the HTTP request will be generated using an instance of <classname>Si
   <classname>HttpURLConnection</classname>.  Use of the Apache Commons HTTP Client is also supported through the provided
   <classname>CommonsClientHttpRequestFactory</classname> which can be injected as shown above.
     </para>
-    <para>
-    	<note>
+	<note>
+      <para>
+
 In the case of the Outbound Gateway, the reply message produced by the gateway will contain all Message Headers present in the request message.
-    	</note>
-    </para>
+      </para>
+    </note>
     <para><emphasis>Cookies</emphasis></para>
     <para>
       Basic cookie support is provided by the <emphasis>transfer-cookies</emphasis> attribute on the outbound gateway. When
@@ -158,8 +159,8 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       If <emphasis>transfer-cookies</emphasis> is false, any <emphasis>Set-Cookie</emphasis> header received will
       remain as <emphasis>Set-Cookie</emphasis> in the reply message, and will be dropped on subsequent sends.
     </para>
-    <para>
-      <note>
+	<note>
+       <para>
         <title>Note: Empty Repsonse Bodies</title>
          HTTP is a request/response protocol. However the response may not have a body, just headers.
          In this case, the <classname>HttpRequestExecutingMessageHandler</classname> produces
@@ -174,8 +175,8 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
          routing logic after the Http Outbound Gateway. You could also use a
          <code>&lt;payload-type-router/&gt;</code> to route messages with an <classname>HttpEntity</classname>
          to a different flow than that used for responses with a body.
-      </note>
-    </para>
+       </para>
+    </note>
   </section>
 
   <section id="http-namespace">
@@ -226,15 +227,13 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
 
     <para><emphasis>Request Mapping support</emphasis></para>
-
-    <para>
-	  <note>
-        Spring Integration 3.0 is improving the REST support by introducing the
+	<note>
+      <para>
+        <emphasis>Spring Integration 3.0</emphasis> is improving the REST support by introducing the
         <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/IntegrationRequestMappingHandlerMapping.html"
         >IntegrationRequestMappingHandlerMapping</ulink></interfacename>. The implementation relies on the enhanced REST support provided by Spring Framework 3.1 or higher.
-      </note>
     </para>
-
+	</note>
     <para>
       Parsing of the <emphasis>HTTP Inbound Gateway</emphasis> or the
       <emphasis>HTTP Inbound Channel Adapter</emphasis> registers an <code>integrationRequestMappingHandlerMapping</code>
@@ -247,12 +246,13 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       		><interfacename>RequestMappingInfoHandlerMapping</interfacename></ulink>. The implementation provides similar functionality as provided by the
 		<ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/RequestMapping.html"
 				><classname>org.springframework.web.bind.annotation.RequestMapping</classname></ulink> annotation in Spring MVC.
+    </para>
 		<note>
 			For more information, please see
-			<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping">Mapping Requests With @RequestMapping</ulink>.
 		</note>
-
-		For this purpose, Spring Integration 3.0 introduces the <code>&lt;request-mapping&gt;</code> sub-element.
+	  <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-requestmapping">Mapping Requests With @RequestMapping</ulink>.
+    <para>
+		For this purpose, <emphasis>Spring Integration 3.0</emphasis> introduces the <code>&lt;request-mapping&gt;</code> sub-element.
 		This optional sub-element can be added to the <code>&lt;http:inbound-channel-adapter&gt;</code> and the <code>&lt;http:inbound-gateway&gt;</code>.
 		It works in conjunction with the <code>path</code> and <code>supported-methods</code> attributes:
     </para>
@@ -303,22 +303,22 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     	(or even the same <code>supported-methods</code>) and to provide different downstream message flows based on incoming HTTP Request.
     </para>
     <para>
-        However you always can get the data from <interfacename>Message</interfacename> into the flow as early as possibly
-    	and apply routing and filtering logic then, e.g.:
+        Alternatively, you can also declare just one HTTP Inbound Endpoint and apply routing and filtering logic within the Spring Integration
+        flow to achieve the same result. This allows you to get the <interfacename>Message</interfacename> into the flow as early as possibly, e.g.:
     </para>
-      <programlisting language="xml"><![CDATA[<http:inbound-gateway request-channel="httpMethodRouter"
+      <programlisting language="xml"><![CDATA[<int-http:inbound-gateway request-channel="httpMethodRouter"
        supported-methods="GET,DELETE"
        path="/process/{entId}"
        payload-expression="#pathVariables.entId"/>
 
-<router input-channel="httpMethodRouter" expression="headers.http_requestMethod">
-    <mapping value="GET" channel="in1"/>
-    <mapping value="DELETE" channel="in2"/>
-</router>
+<int:router input-channel="httpMethodRouter" expression="headers.http_requestMethod">
+    <int:mapping value="GET" channel="in1"/>
+    <int:mapping value="DELETE" channel="in2"/>
+</int:router>
 
-<service-activator input-channel="in1" ref="service" method="getEntity"/>
+<int:service-activator input-channel="in1" ref="service" method="getEntity"/>
 
-<service-activator input-channel="in2" ref="service" method="delete"/>]]></programlisting>
+<int:service-activator input-channel="in2" ref="service" method="delete"/>]]></programlisting>
 	<para>
 		For more information regarding <emphasis>Handler Mappings</emphasis>, please see:
 	</para>

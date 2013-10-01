@@ -122,12 +122,13 @@
 		<section id="3.0-request-mapping">
 			<title>HTTP Request Mapping</title>
 			<para>
-				HTTP module provides a powerful Request Mapping for inbound endpoints. <classname>UriPathHandlerMapping</classname>
-				was replaced by <classname>IntegrationRequestMappingHandlerMapping</classname>, which is registered as a bean with name
-				<code>integrationRequestMappingHandlerMapping</code> in the application context on parsing of http inbound endpoint,
-				if there wasn't registered one before. To achieve flexible Request Mapping is provided <code>&lt;request-mapping/&gt;</code>
+				The HTTP module provides powerful Request Mapping support for inbound endpoints. <classname>UriPathHandlerMapping</classname>
+				was replaced by <classname>IntegrationRequestMappingHandlerMapping</classname>,which is registered under the bean name
+				<code>integrationRequestMappingHandlerMapping</code> in the application context. Upon parsing of the HTTP Inbound Endpoint,
+				a new <classname>IntegrationRequestMappingHandlerMapping</classname> bean is either registered or an existing bean is being reused.
+				To achieve flexible Request Mapping configuration, Spring Integration provides the <code>&lt;request-mapping/&gt;</code>
 				sub-element for <code>&lt;http:inbound-channel-adapter/&gt;</code> and <code>&lt;http:inbound-gateway/&gt;</code>.
-				Both new components are fully based on the Request Mapping infrastructure from Spring MVC 3.1.
+				Both HTTP Inbound Endpoints are now  fully based on the Request Mapping infrastructure that was introduced with Spring MVC 3.1.
 				For more information see <xref linkend="http-namespace"/>.
 			</para>
 		</section>

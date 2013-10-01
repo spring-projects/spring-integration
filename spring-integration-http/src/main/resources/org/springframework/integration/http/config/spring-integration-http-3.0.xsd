@@ -17,42 +17,88 @@
 	</xsd:annotation>
 
 	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an inbound HTTP-based Channel Adapter.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines an inbound HTTP-based Channel Adapter.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element name="request-mapping" type="requestMappingType" minOccurs="0"/>
- 				<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
+				<xsd:element name="request-mapping" type="requestMappingType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Defines configuration for org.springframework.integration.http.inbound.RequestMapping
+							as RESTFul attributes for Spring Integration HTTP Inbound Endpoints.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+ 				<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies a Message header as a result of expression evaluation
+							against ServletRequest and URI Variables.
+						</xsd:documentation>
+					</xsd:annotation>
+ 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
-			<xsd:attribute name="send-timeout" type="xsd:string" />
+			<xsd:attribute name="send-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Maximum amount of time in milliseconds to wait when sending
+						a message to the channel if such channel may block.
+						For example, a Queue Channel can block until space
+						is available if its maximum capacity has been reached.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="inboundCommonAttributes" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="inbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an inbound HTTP-based Messaging Gateway.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines an inbound HTTP-based Messaging Gateway.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
 				    <xsd:sequence>
 						<xsd:element name="request-mapping" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									Defines configuration for org.springframework.integration.http.inbound.RequestMapping
+									as RESTFul attributes for Spring Integration HTTP Inbound Endpoints.
+								</xsd:documentation>
+							</xsd:annotation>
 							<xsd:complexType>
 								<xsd:complexContent>
 									<xsd:extension base="requestMappingType">
-										<xsd:attribute name="produces" type="xsd:string"/>
+										<xsd:attribute name="produces" type="xsd:string">
+											<xsd:annotation>
+												<xsd:documentation>
+													The producible media types of the mapped request, narrowing the primary mapping.
+													The format is a sequence of media types ("text/plain", "application/*),
+													with a request only mapped if the Accept matches one of these media types.
+													Expressions can be negated by using the "!" operator, as in "!text/plain", which matches
+													all requests with a Accept other than "text/plain".
+												</xsd:documentation>
+											</xsd:annotation>
+										</xsd:attribute>
 									</xsd:extension>
 								</xsd:complexContent>
 							</xsd:complexType>
 						</xsd:element>
-						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
+						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>
+									Specifies a Message header as a result of expression evaluation
+									against ServletRequest and URI Variables.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
 					</xsd:sequence>
 					<xsd:attribute name="request-channel" type="xsd:string" use="required">
 						<xsd:annotation>
@@ -61,10 +107,21 @@
 									<tool:expected-type type="org.springframework.integration.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
+							<xsd:documentation>
+								The receiving Message Channel of this endpoint.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="inboundCommonAttributes" />
-					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true" />
+					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify whether only the reply Message's payload should be passed in the response.
+								If this is set to 'false', the entire Message will be used to generate the response.
+								The default is 'true'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="convert-exceptions" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -85,7 +142,16 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="reply-key" type="xsd:string" />
+					<xsd:attribute name="reply-key" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								In the case that a view-name is specified this attribute can be used to
+								override the default key of the MVC Controller's ModelAndView attribute
+								to keep a reply from underlying message flow.
+								Default is 'reply'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="request-timeout" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -121,6 +187,12 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="supported-methods">
+			<xsd:annotation>
+				<xsd:documentation>
+					Comma-separated HTTP Method names. Determines which types of Request are
+					allowed with this Endpoint.
+				</xsd:documentation>
+			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
 			</xsd:simpleType>
@@ -206,6 +278,11 @@
 						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+					Specifies a reference to org.springframework.integration.mapping.HeaderMapper
+					implementation bean. Only one of 'header-mapper' or 'mapped-request-headers' attributes
+					can be provided.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="mapped-request-headers" type="xsd:string">
@@ -225,19 +302,29 @@
 						<tool:expected-type type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+					The MessagingGateway's 'error-channel' where to send an ErrorMessage in case
+					of Exception is caused from original message flow.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound HTTP-based Channel Adapter.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines an outbound HTTP-based Channel Adapter.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:choice minOccurs="0" maxOccurs="2">
-				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
+				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specify an expression for URI variable placeholder within 'url'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
@@ -294,10 +381,29 @@
 							<tool:expected-type type="org.springframework.web.client.RestTemplate" />
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+						The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="charset" type="xsd:string" />
-			<xsd:attribute name="extract-payload" type="xsd:string" />
+			<xsd:attribute name="charset" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify the charset name to use for converting String-typed payloads to bytes.
+						The default is 'UTF-8'
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether the outbound message's payload should be extracted
+						when preparing the request body. Otherwise the Message instance itself
+						will be serialized.
+						The default value is 'true'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="expected-response-type" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -337,6 +443,11 @@
 							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+						Specify a reference to org.springframework.integration.mapping.HeaderMapper
+						implementation bean. Only one of 'header-mapper' or 'mapped-request-headers' attributes
+						can be provided.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="mapped-request-headers" type="xsd:string">
@@ -384,16 +495,22 @@
 	</xsd:element>
 
 	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound HTTP-based Messaging Gateway.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines an outbound HTTP-based Messaging Gateway.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
 					<xsd:choice minOccurs="0" maxOccurs="2">
-						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
+						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>
+									Specify an expression for URI variable placeholder within 'url'.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
 						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attribute name="request-channel" type="xsd:string">
@@ -403,6 +520,9 @@
 									<tool:expected-type type="org.springframework.integration.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
+							<xsd:documentation>
+								The receiving Message Channel of this endpoint.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="url" type="xsd:string" use="optional">
@@ -465,6 +585,12 @@
 									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
 								</tool:annotation>
 							</xsd:appinfo>
+							<xsd:documentation>
+								Specifies a reference to org.springframework.integration.mapping.HeaderMapper
+								implementation bean. Only one of 'header-mapper' or 'mapped-request-headers'('mapped-response-headers')
+								attributes
+								can be provided.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="rest-template" type="xsd:string">
@@ -473,6 +599,9 @@
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.web.client.RestTemplate" />
 								</tool:annotation>
+								<xsd:documentation>
+									The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
+								</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -496,7 +625,16 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="extract-request-payload" type="xsd:string" />
+					<xsd:attribute name="extract-request-payload" type="xsd:string">
+						<xsd:annotation>
+						<xsd:documentation>
+							Specifies whether the outbound message's payload should be extracted
+							when preparing the request body. Otherwise the Message instance itself
+							will be serialized.
+							The default value is 'true'.
+						</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="expected-response-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -521,7 +659,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="charset" type="xsd:string" />
+					<xsd:attribute name="charset" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify the charset name to use for converting String-typed payloads to bytes.
+								The default is 'UTF-8'
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="request-factory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -663,6 +808,9 @@
 						<tool:expected-type type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+					Identifies the channel to which this gateway will subscribe, to receive(send) reply Messages.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
@@ -675,9 +823,54 @@
 				as RESTFul attributes for Spring Integration HTTP Inbound Endpoints.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="params" type="xsd:string"/>
-		<xsd:attribute name="headers" type="xsd:string" />
-		<xsd:attribute name="consumes" type="xsd:string" />
+		<xsd:attribute name="params" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The parameters of the mapped request, narrowing the primary mapping.
+					A sequence of "myParam=myValue" style
+					expressions, with a request only mapped if each such parameter is found
+					to have the given value.
+					Expressions can be negated by using the "!=" operator,
+					as in "myParam!=myValue".
+					"myParam" style expressions are also supported,
+					with such parameters having to be present in the request (allowed to have
+					any value).
+					"!myParam" style expressions indicate that the
+					specified parameter is not supposed to be present in the request.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="headers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The headers of the mapped request, narrowing the primary mapping.
+					A sequence of "My-Header=myValue" style
+					expressions, with a request only mapped if each such header is found
+					to have the given value.
+					Expressions can be negated by using the "!=" operator,
+					as in "My-Header!=myValue".
+					"My-Header" style expressions are also supported,
+					with such headers having to be present in the request (allowed to have
+					any value).
+					"!My-Header" style expressions indicate that the
+					specified header is not supposed to be present in the request.
+					Also supports media type wildcards (*), for headers such as Accept
+					and Content-Type. For instance, headers = "content-type=text/*"
+					will match requests with a Content-Type of "text/html", "text/plain", etc.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="consumes" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The consumable media types of the mapped request, narrowing the primary mapping.
+					The format is a sequence of media types ("text/plain", "application/*),
+					with a request only mapped if the Content-Type matches one of these media types.
+					Expressions can be negated by using the "!" operator, as in "!text/plain", which matches
+					all requests with a Content-Type other than "text/plain".
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 </xsd:schema>
