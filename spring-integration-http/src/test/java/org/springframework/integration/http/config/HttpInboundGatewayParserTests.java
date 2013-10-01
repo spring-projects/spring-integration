@@ -68,6 +68,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Biju Kunjummen
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -119,8 +120,8 @@ public class HttpInboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "errorChannel"));
 		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
 				gateway, "messagingTemplate", MessagingTemplate.class);
-		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
-		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
+		assertEquals(1234L, TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
+		assertEquals(4567L, TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 
 		boolean registerDefaultConverters = TestUtils.getPropertyValue(gateway,"mergeWithDefaultConverters", Boolean.class);
 		assertFalse("By default the register-default-converters flag should be false", registerDefaultConverters);
@@ -148,9 +149,7 @@ public class HttpInboundGatewayParserTests {
 		gateway.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
 
-		//MockHttpServletResponse#getContentType() works in Spring 3.1.2.RELEASE but not in 3.0.7.RELEASE
-		//For 3.0.7.RELEASE we have to rely on MockHttpServletResponse#getHeader instead
-		assertEquals(response.getHeader("Content-Type"), "application/x-java-serialized-object");
+		assertEquals(response.getContentType(), "application/x-java-serialized-object");
 	}
 
 	@Test

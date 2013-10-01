@@ -20,9 +20,9 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -58,7 +58,11 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.HandlerMapping;
+
 
 /**
  * @author Mark Fisher
@@ -66,7 +70,6 @@ import org.springframework.util.MultiValueMap;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
- * @author Gary Russell
  * @author Biju Kunjummen
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -75,6 +78,9 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Autowired
 	private PollableChannel requests;
+
+	@Autowired
+	private HandlerMapping integrationRequestMappingHandlerMapping;
 
 	@Autowired
 	private HttpRequestHandlingMessagingGateway defaultAdapter;
@@ -94,14 +100,6 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Autowired
 	private HttpRequestHandlingMessagingGateway inboundAdapterWithExpressions;
-
-	@Autowired
-	@Qualifier("/fname/{blah}/lname/{boo}")
-	private HttpRequestHandlingMessagingGateway inboundAdapterWithNameAndExpressions;
-
-	@Autowired
-	@Qualifier("/fname/{f}/lname/{l}")
-	private HttpRequestHandlingMessagingGateway inboundAdapterWithNameNoPath;
 
 	@Autowired
 	@Qualifier("adapterWithCustomConverterNoDefaults")
@@ -167,7 +165,15 @@ public class HttpInboundChannelAdapterParserTests {
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
-		request.setRequestURI("/fname/bill/lname/clinton");
+
+		String requestURI = "/fname/bill/lname/clinton";
+
+		//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleMatch
+		Map<String, String> uriTemplateVariables =
+				new AntPathMatcher().extractUriTemplateVariables("/fname/{f}/lname/{l}", requestURI);
+		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVariables);
+
+		request.setRequestURI(requestURI);
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		inboundAdapterWithExpressions.handleRequest(request, response);
@@ -180,60 +186,20 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("clinton", message.getHeaders().get("lname"));
 	}
 
-	@Test // ensure that 'path' takes priority over name
-	// INT-1677
-	public void withNameAndExpressionsAndPath() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setMethod("POST");
-		request.setContentType("text/plain");
-		request.setParameter("foo", "bar");
-		request.setContent("hello".getBytes());
-		request.setRequestURI("/fname/bill/lname/clinton");
-
-		MockHttpServletResponse response = new MockHttpServletResponse();
-		inboundAdapterWithNameAndExpressions.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-		Message<?> message = requests.receive(0);
-		assertNotNull(message);
-		Object payload = message.getPayload();
-		assertTrue(payload instanceof String);
-		assertEquals("bill", payload);
-		assertEquals("clinton", message.getHeaders().get("lname"));
-	}
-
-	@Test(expected=SpelEvaluationException.class)
-	// INT-1677
-	public void withNameAndExpressionsNoPath() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.setMethod("POST");
-		request.setContentType("text/plain");
-		request.setParameter("foo", "bar");
-		request.setContent("hello".getBytes());
-		request.setRequestURI("/fname/bill/lname/clinton");
-
-		MockHttpServletResponse response = new MockHttpServletResponse();
-		inboundAdapterWithNameNoPath.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-		Message<?> message = requests.receive(0);
-		assertNotNull(message);
-		Object payload = message.getPayload();
-		assertTrue(payload instanceof String);
-		assertEquals("hello", payload); // default payload
-		assertNull(message.getHeaders().get("lname"));
-	}
-
-
-
 	@Test
 	public void getRequestNotAllowed() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		request.setParameter("foo", "bar");
-		MockHttpServletResponse response = new MockHttpServletResponse();
-		postOnlyAdapter.handleRequest(request, response);
-		assertEquals(HttpServletResponse.SC_METHOD_NOT_ALLOWED, response.getStatus());
-		Message<?> message = requests.receive(0);
-		assertNull(message);
+		request.setRequestURI("/postOnly");
+		try {
+			this.integrationRequestMappingHandlerMapping.getHandler(request);
+		}
+		catch (HttpRequestMethodNotSupportedException e) {
+			assertEquals("GET", e.getMethod());
+			assertArrayEquals(new String[] {"POST"}, e.getSupportedMethods());
+		}
+
 	}
 
 	@Test
@@ -241,10 +207,7 @@ public class HttpInboundChannelAdapterParserTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContent("test".getBytes());
-
-		//request.setContentType("text/plain"); //Works in Spring 3.1.2.RELEASE but not in Spring 3.0.7.RELEASE
-		//Instead use:
-		request.addHeader("Content-Type", "text/plain");
+		request.setContentType("text/plain");
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		postOnlyAdapter.handleRequest(request, response);
@@ -267,10 +230,7 @@ public class HttpInboundChannelAdapterParserTests {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		new ObjectOutputStream(byteStream).writeObject(obj);
 		request.setContent(byteStream.toByteArray());
-
-//		//request.setContentType("application/x-java-serialized-object"); //Works in Spring 3.1.2.RELEASE but not in Spring 3.0.7.RELEASE
-//		//Instead use:
-		request.addHeader("Content-Type", "application/x-java-serialized-object");
+		request.setContentType("application/x-java-serialized-object");
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -284,13 +244,11 @@ public class HttpInboundChannelAdapterParserTests {
 
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void putOrDeleteMethodsSupported() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(putOrDeleteAdapter);
-		List<String> supportedMethods = (List<String>) accessor.getPropertyValue("supportedMethods");
-		assertEquals(2, supportedMethods.size());
-		assertTrue(supportedMethods.contains(HttpMethod.PUT));
-		assertTrue(supportedMethods.contains(HttpMethod.DELETE));
+		HttpMethod[] supportedMethods =
+				TestUtils.getPropertyValue(putOrDeleteAdapter, "requestMapping.methods", HttpMethod[].class);
+		assertEquals(2, supportedMethods.length);
+		assertArrayEquals(new HttpMethod[]{HttpMethod.PUT, HttpMethod.DELETE}, supportedMethods);
 	}
 
 	@Test

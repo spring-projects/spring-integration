@@ -22,7 +22,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
@@ -46,7 +45,7 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
 
 
-		RootBeanDefinition firstResultExpression = createExpressionDefinitionFromValueOrExpression("first-result",
+		BeanDefinition firstResultExpression = createExpressionDefinitionFromValueOrExpression("first-result",
 				"first-result-expression", parserContext, gatewayElement, false);
 
 		if(firstResultExpression != null) {
