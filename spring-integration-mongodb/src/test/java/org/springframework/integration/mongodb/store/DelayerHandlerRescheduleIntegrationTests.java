@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.hamcrest.Matchers;
@@ -39,6 +40,7 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -48,6 +50,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTests {
 
 	public static final String DELAYER_ID = "delayerWithMongoMS";
+
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test
 	@MongoDbAvailable
@@ -101,12 +106,12 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 
 		PollableChannel output = context.getBean("output", PollableChannel.class);
 
-		Message<?> message = output.receive(10000);
+		Message<?> message = output.receive(20000);
 		assertNotNull(message);
 
 		Object payload1 = message.getPayload();
 
-		message = output.receive(10000);
+		message = output.receive(20000);
 		assertNotNull(message);
 		Object payload2 = message.getPayload();
 		assertNotSame(payload1, payload2);
