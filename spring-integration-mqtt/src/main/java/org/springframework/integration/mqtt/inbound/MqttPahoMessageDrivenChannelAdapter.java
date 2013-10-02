@@ -22,6 +22,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
@@ -69,17 +70,28 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	protected void doStop() {
+		this.cancelReconnect();
 		super.doStop();
 		try {
 			this.client.unsubscribe(this.getTopic());
-			this.client.disconnect();
-			this.client.close();
-			this.connected = false;
-			this.client = null;
 		}
 		catch (MqttException e) {
-			logger.error("Exception while unsubscribing and disconnecting", e);
+			logger.error("Exception while unsubscribing", e);
 		}
+		try {
+			this.client.disconnect();
+		}
+		catch (MqttException e) {
+			logger.error("Exception while disconnecting", e);
+		}
+		try {
+			this.client.close();
+		}
+		catch (MqttException e) {
+			logger.error("Exception while closing", e);
+		}
+		this.connected = false;
+		this.client = null;
 	}
 
 	private void connectAndSubscribe() throws MqttException {
