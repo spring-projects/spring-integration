@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Properties;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
@@ -43,8 +42,11 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import junit.framework.Assert;
 
 /**
  * @author Oleg Zhurakousky
@@ -69,6 +71,7 @@ public class EventInboundChannelAdapterParserTests {
 	ApplicationEventListeningMessageProducer eventListener;
 
 	@Test
+	@DirtiesContext
 	public void validateEventParser() {
 		Object adapter = context.getBean("eventAdapterSimple");
 		Assert.assertNotNull(adapter);
@@ -76,6 +79,7 @@ public class EventInboundChannelAdapterParserTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("input"), adapterAccessor.getPropertyValue("outputChannel"));
 		Assert.assertSame(errorChannel, adapterAccessor.getPropertyValue("errorChannel"));
+		Assert.assertFalse((Boolean) adapterAccessor.getPropertyValue("active"));
 	}
 
 	@Test
@@ -88,7 +92,7 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertEquals(context.getBean("inputFiltered"), adapterAccessor.getPropertyValue("outputChannel"));
 		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
 		assertNotNull(eventTypes);
-		assertTrue(eventTypes.size() == 2);	
+		assertTrue(eventTypes.size() == 2);
 		assertTrue(eventTypes.contains(SampleEvent.class));
 		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
 		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
@@ -104,13 +108,16 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertEquals(context.getBean("inputFilteredPlaceHolder"), adapterAccessor.getPropertyValue("outputChannel"));
 		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
 		assertNotNull(eventTypes);
-		assertTrue(eventTypes.size() == 2);	
+		assertTrue(eventTypes.size() == 2);
 		assertTrue(eventTypes.contains(SampleEvent.class));
 		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
 	}
 
 	@Test
+	@DirtiesContext
 	public void validateUsageWithHistory() {
+		Lifecycle eventAdapterFiltered = context.getBean("eventAdapterSimple", Lifecycle.class);
+		eventAdapterFiltered.start();
 		PollableChannel channel = context.getBean("input", PollableChannel.class);
 		assertEquals(ContextRefreshedEvent.class, channel.receive(0).getPayload().getClass());
 		context.publishEvent(new SampleEvent("hello"));

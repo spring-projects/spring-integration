@@ -12,20 +12,21 @@
 	<int:message-history/>
 
 	<int-event:inbound-channel-adapter id="eventAdapterSimple" channel="input"
-	                                   error-channel="errorChannel"/>
+	                                   error-channel="errorChannel"
+									   auto-startup="false"/>
 
 	<int:channel id="input">
 		<int:queue/>
 	</int:channel>
-	
-	<int-event:inbound-channel-adapter id="eventAdapterFiltered" channel="inputFiltered" event-types="org.springframework.integration.event.config.EventInboundChannelAdapterParserTests$AnotherSampleEvent, 
+
+	<int-event:inbound-channel-adapter id="eventAdapterFiltered" channel="inputFiltered" event-types="org.springframework.integration.event.config.EventInboundChannelAdapterParserTests$AnotherSampleEvent,
 	                                                                                                  org.springframework.integration.event.config.EventInboundChannelAdapterParserTests$SampleEvent"/>
 
 	<int:channel id="inputFiltered">
 		<int:queue/>
 	</int:channel>
-	
-	<int-event:inbound-channel-adapter id="eventAdapterFilteredPlaceHolder" channel="inputFilteredPlaceHolder" 
+
+	<int-event:inbound-channel-adapter id="eventAdapterFilteredPlaceHolder" channel="inputFilteredPlaceHolder"
 				event-types="${event.types}"/>
 
 	<int:channel id="inputFilteredPlaceHolder">
