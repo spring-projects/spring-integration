@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package org.springframework.integration.scripting.config.jsr223;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -26,12 +29,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -43,6 +49,12 @@ public class Jsr223TransformerTests {
 
 	@Autowired
 	private MessageChannel inlineScriptInput;
+
+	@Autowired
+	private MessageChannel int3162InputChannel;
+
+	@Autowired
+	private PollableChannel int3162OutputChannel;
 
 
 	@Test
@@ -72,5 +84,23 @@ public class Jsr223TransformerTests {
 		assertEquals("inline-test-3", replyChannel.receive(0).getPayload().toString());
 		assertNull(replyChannel.receive(0));
 	}
+
+	@Test
+	public void testInt3162ScriptExecutorThreadSafety() {
+		for (int i = 0; i < 100; i++) {
+			this.int3162InputChannel.send(new GenericMessage<Object>(i));
+		}
+
+		Set<Object> result = new HashSet<Object>();
+
+		for (int i = 0; i < 100; i++) {
+			Message<?> message = this.int3162OutputChannel.receive(1000);
+			result.add(message.getPayload());
+		}
+
+		assertEquals(100, result.size());
+
+	}
+
 
 }
