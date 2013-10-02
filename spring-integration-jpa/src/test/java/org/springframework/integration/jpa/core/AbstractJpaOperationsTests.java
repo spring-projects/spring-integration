@@ -538,4 +538,11 @@ public class AbstractJpaOperationsTests {
 		List<?> results = jpaOperations.getResultListForQuery(query, null, 2, 0);
 		assertEquals(1, results.size());
 	}
+
+	public void testWithNegativeMaxNumberofResults() {
+		JpaOperations jpaOperations = getJpaOperations(entityManager);
+		String query = "select s from Student s";
+		List<?> results = jpaOperations.getResultListForQuery(query, null, 0, -1);
+		assertEquals(3, results.size());
+	}
 }

@@ -471,7 +471,17 @@
 			    Retrieving gateways had no mechanism to specify the first record to be retrieved which
 			    is a common use case. The retrieving gateways now support specifying this parameter
 			    using a <code>first-result</code> and <code>first-result-expression</code> attributes
-			    to the gateway definition.<xref linkend="jpa-retrieving-outbound-gateway"/>
+			    to the gateway definition. <xref linkend="jpa-retrieving-outbound-gateway"/>.
+			</para>
+		</section>
+		<section id="3.0-jpa-max-results">
+			<title>JPA Adapters: max-results-expression attribute</title>
+			<para>
+			    Retrieving gateways and inbound adapters now has a flexibility to specify the maximum
+			    number of results in a result set as an expression. We now have <code>max-number-of-results</code>
+			    and <code>max-results-expression</code> attributes which are used to provide the
+			    maximum number of results and the expression to compute the maximum number of results in the
+			    result set respectively. For more information see <xref linkend="jpa"/>.
 			</para>
 		</section>
 	</section>

@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
-import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,9 +29,7 @@ import org.springframework.integration.jpa.support.OutboundGatewayType;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
- *
  * @since 2.2
- *
  */
 public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatewayParser {
 
@@ -44,14 +40,20 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getOutboundGatewayJpaExecutorBuilder(gatewayElement, parserContext);
 
-
-		BeanDefinition firstResultExpression = createExpressionDefinitionFromValueOrExpression("first-result",
-				"first-result-expression", parserContext, gatewayElement, false);
-
-		if(firstResultExpression != null) {
+		BeanDefinition firstResultExpression = IntegrationNamespaceUtils
+				.createExpressionDefinitionFromValueOrExpression("first-result", "first-result-expression",
+						parserContext, gatewayElement, false);
+		if (firstResultExpression != null) {
 			jpaExecutorBuilder.addPropertyValue("firstResultExpression", firstResultExpression);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "max-number-of-results");
+
+		BeanDefinition maxResultsExpression = IntegrationNamespaceUtils
+				.createExpressionDefinitionFromValueOrExpression("max-number-of-results", "max-results-expression",
+						parserContext, gatewayElement, false);
+		if (maxResultsExpression != null) {
+			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", maxResultsExpression);
+		}
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-after-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "delete-in-batch");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "expect-single-result");
@@ -64,6 +66,8 @@ public class RetrievingJpaOutboundGatewayParser extends AbstractJpaOutboundGatew
 
 		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
 		jpaOutboundGatewayBuilder.addPropertyValue("gatewayType", OutboundGatewayType.RETRIEVING);
+
 		return jpaOutboundGatewayBuilder;
 	}
+
 }

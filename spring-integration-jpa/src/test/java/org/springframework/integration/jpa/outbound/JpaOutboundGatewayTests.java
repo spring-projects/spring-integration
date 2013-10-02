@@ -68,6 +68,14 @@ public class JpaOutboundGatewayTests {
 	}
 
 	@Test
+	public void getAllStudentsWithMaxNumberOfRecords() {
+		List<?> students = studentService.getStudents(1);
+		Assert.assertNotNull(students);
+		Assert.assertEquals(1, students.size());
+	}
+
+
+	@Test
 	public void deleteNonExistingStudent() {
 
 		StudentDomain student = JpaTestUtils.getTestStudent();

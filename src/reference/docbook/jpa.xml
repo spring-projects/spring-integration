@@ -408,6 +408,8 @@
                     auto-startup="true" ]]><co id="inboundAdapterAutoStartup"/><![CDATA[
                     query="select s from Student s" ]]><co id="inboundAdapterQuery"/><![CDATA[
                     expect-single-result="true" ]]><co id="inboundAdapterExpectResult"/><![CDATA[
+                    max-number-of-results="" ]]><co id="inboundAdapterMaxResults"/><![CDATA[
+                    max-results-expression="" ]]><co id="inboundAdapterMaxResultsExpression"/><![CDATA[
                     delete-after-poll="true"> ]]><co id="inboundAdapterDeleteAfterPoll"/><![CDATA[
     <int:poller fixed-rate="2000" >
       <int:transactional propagation="REQUIRED" transaction-manager="transactionManager"/>
@@ -449,6 +451,21 @@
                          <classname>MessagingException</classname> is thrown. The value defaults to <code>false</code>.
                      </para>
                  </callout>
+                 <callout arearefs="inboundAdapterMaxResults">
+					<para>
+						This non zero, non negative integer value tells the adapter not to select more than given number
+						of rows on execution of the select operation. By default, if this attribute is not set,
+						all the possible records are selected by given query. This attribute is mutually exclusive to
+						<code>max-results-expression</code>. <emphasis>Optional</emphasis>.
+					</para>
+				</callout>
+				<callout arearefs="inboundAdapterMaxResultsExpression">
+					<para>
+						An expression mutually exclusive to <code>max-number-of-results</code> that can
+						be used to provide an expression that will be evaluated to find the maximum number of results
+						in a result set. <emphasis>Optional</emphasis>.
+					</para>
+				</callout>
                  <callout arearefs="inboundAdapterDeleteAfterPoll">
                      <para>
                          Set this value to <code>true</code> if you want
@@ -1138,6 +1155,7 @@ public class Student {
     jpa-operations=""
     jpa-query=""
     max-number-of-results="" ]]><co id="outGateMaxNumOfResults"/><![CDATA[
+    max-results-expression="" ]]><co id="outGateMaxNumOfResultsExpression"/><![CDATA[
     first-result="" ]]><co id="outGateFirstResult"/><![CDATA[
     first-result-expression="" ]]><co id="outGateFirstResultExpression"/><![CDATA[
     named-query=""
@@ -1167,7 +1185,15 @@ public class Student {
 					<para>
 						This non zero, non negative integer value tells the adapter not to select more than given number
 						of rows on execution of the select operation. By default, if this attribute is not set,
-						all the possible records are selected by given query.<emphasis>Optional</emphasis>.
+						all the possible records are selected by given query. This attribute is mutually exclusive to
+						<code>max-results-expression</code>. <emphasis>Optional</emphasis>.
+					</para>
+				</callout>
+				<callout arearefs="outGateMaxNumOfResultsExpression">
+					<para>
+						An expression mutually exclusive to <code>max-number-of-results</code> that can
+						be used to provide an expression that will be evaluated to find the maximum number of results
+						in a result set. <emphasis>Optional</emphasis>.
 					</para>
 				</callout>
 				<callout arearefs="outGateFirstResult">
