@@ -150,7 +150,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		stringHttpMessageConverter.setWriteAcceptCharset(false);
 		this.defaultMessageConverters.add(stringHttpMessageConverter);
 		this.defaultMessageConverters.add(new ResourceHttpMessageConverter());
-		@SuppressWarnings("rawtypes")
 		SourceHttpMessageConverter<?> sourceConverter = new SourceHttpMessageConverter();
 		this.defaultMessageConverters.add(sourceConverter);
 		if (jaxb2Present) {
@@ -271,7 +270,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this.requestMapping = requestMapping;
 	}
 
-	public RequestMapping getRequestMapping() {
+	public final RequestMapping getRequestMapping() {
 		return requestMapping;
 	}
 
@@ -521,7 +520,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Converts a servlet request's parameterMap to a {@link MultiValueMap}.
 	 */
-	@SuppressWarnings("rawtypes")
 	private MultiValueMap<String, String> convertParameterMap(Map<String, String[]> parameterMap) {
 		MultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>(parameterMap.size());
 		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
