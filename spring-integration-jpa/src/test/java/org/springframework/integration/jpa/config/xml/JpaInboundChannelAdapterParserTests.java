@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,8 +19,11 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -29,6 +32,8 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gunnar Hillert
+ * @author Amol Nayak
+ *
  * @since 2.2
  *
  */
@@ -84,9 +89,43 @@ public class JpaInboundChannelAdapterParserTests {
 
 		assertNotNull(jpaOperations);
 
-		assertEquals(Integer.valueOf(13), TestUtils.getPropertyValue(jpaExecutor, "maxNumberOfResults", Integer.class));
+		LiteralExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", LiteralExpression.class);
+
+		assertNotNull(expression);
+
+		assertEquals("13", TestUtils.getPropertyValue(expression, "literalValue"));
 
 	}
+
+	@Test
+	public void testJpaInboundChannelAdapterParserWithMaxResultsExpression() throws Exception {
+
+		setUp("JpaInboundChannelAdapterParserTests.xml", getClass(), "jpaInboundChannelAdapter3");
+
+		final AbstractMessageChannel outputChannel = TestUtils.getPropertyValue(this.consumer, "outputChannel", AbstractMessageChannel.class);
+
+		assertEquals("out", outputChannel.getComponentName());
+
+		final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "source.jpaExecutor", JpaExecutor.class);
+
+		assertNotNull(jpaExecutor);
+
+		final Class<?> entityClass = TestUtils.getPropertyValue(jpaExecutor, "entityClass", Class.class);
+
+		assertEquals("org.springframework.integration.jpa.test.entity.StudentDomain", entityClass.getName());
+
+		final JpaOperations jpaOperations = TestUtils.getPropertyValue(jpaExecutor, "jpaOperations", JpaOperations.class);
+
+		assertNotNull(jpaOperations);
+
+		SpelExpression expression = TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", SpelExpression.class);
+
+		assertNotNull(expression);
+
+		assertEquals("@maxNumberOfResults", TestUtils.getPropertyValue(expression, "expression"));
+
+	}
+
 
 	@Test
 	public void testJpaExecutorBeanIdNaming() throws Exception {

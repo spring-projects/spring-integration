@@ -31,6 +31,7 @@
 		<int:method name="getStudent2"              request-channel="retrievingGatewayInsideChain" />
 		<int:method name="persistStudent2"          request-channel="updatingGatewayInsideChain" />
 		<int:method name="getAllStudentsFromGivenRecord" request-channel="getStudentsFromGivenRecordChannel"/>
+		<int:method name="getStudents" request-channel="getStudentsWithMaxNumberOfRecordsChannel"/>
 	</int:gateway>
 
 	<int:channel id="studentReplyChannel"/>
@@ -45,6 +46,7 @@
 	<int:channel id="retrievingGatewayInsideChain"/>
 	<int:channel id="updatingGatewayInsideChain"/>
 	<int:channel id="getStudentsFromGivenRecordChannel"/>
+	<int:channel id="getStudentsWithMaxNumberOfRecordsChannel"/>
 
 	<bean id="deleteStudentEndpoint"
 				class="org.springframework.integration.endpoint.EventDrivenConsumer">
@@ -219,6 +221,29 @@
 			</bean>
 		</constructor-arg>
 	</bean>
+
+	<bean id="getStudentsWithMaxNumberOfRecords"
+		class="org.springframework.integration.endpoint.EventDrivenConsumer">
+		<constructor-arg name="inputChannel" ref="getStudentsWithMaxNumberOfRecordsChannel"/>
+		<constructor-arg name="handler">
+			<bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+				<constructor-arg name="jpaExecutor">
+					<bean class="org.springframework.integration.jpa.core.JpaExecutor">
+						<constructor-arg name="entityManager" ref="entityManager"/>
+						<property name="jpaQuery"           value="select s from Student s"/>
+						<property name="expectSingleResult" value="false"/>
+						<property name="firstResultExpression"
+						    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
+						<property name="maxResultsExpression"
+						    value="#{new org.springframework.expression.spel.standard.SpelExpressionParser().parseExpression('payload')}"/>
+					</bean>
+				</constructor-arg>
+				<property        name="gatewayType"   value="RETRIEVING"/>
+				<property        name="outputChannel" ref="studentReplyChannel"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
 
 	<int:chain input-channel="retrievingGatewayInsideChain" output-channel="studentReplyChannel">
 		<jpa:retrieving-outbound-gateway entity-manager="entityManager"

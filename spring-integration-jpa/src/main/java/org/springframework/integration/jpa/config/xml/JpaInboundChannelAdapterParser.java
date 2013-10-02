@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,17 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
-import org.w3c.dom.Element;
 
 /**
  * The JPA Inbound Channel adapter parser
@@ -37,6 +39,7 @@ import org.w3c.dom.Element;
 public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser{
 
 
+	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 
 		final BeanDefinitionBuilder jpaPollingChannelAdapterBuilder = BeanDefinitionBuilder
@@ -44,7 +47,13 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "max-number-of-results");
+		RootBeanDefinition definition = IntegrationNamespaceUtils
+						.createExpressionDefinitionFromValueOrExpression("max-number-of-results",
+				"max-results-expression",
+				parserContext, element, false);
+		if(definition != null) {
+			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", definition);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-after-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-in-batch");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "expect-single-result");

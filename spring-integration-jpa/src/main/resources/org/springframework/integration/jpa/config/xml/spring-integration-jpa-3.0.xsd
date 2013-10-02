@@ -419,9 +419,20 @@
 				<xsd:documentation>
 					Specifies the maximum number of entities that shall be returned
 					by a JPA Operation. Using this attribute you basically set
-					the 'maxResults' property of the JPA Query object.
+					the 'maxResults' property of the JPA Query object. This attribute is mutually
+						exclusive to  max-results-expression attribute.
 				</xsd:documentation>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-results-expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the expression for the maximum number of entities that shall be returned
+						by a JPA Operation. Using this attribute you basically set
+						the 'maxResults' property of the JPA Query object. This attribute is mutually
+						exclusive to  max-number-of-results attribute.
+					</xsd:documentation>
+				</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="expect-single-result" default="false">
 			<xsd:annotation>
