@@ -150,7 +150,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		stringHttpMessageConverter.setWriteAcceptCharset(false);
 		this.defaultMessageConverters.add(stringHttpMessageConverter);
 		this.defaultMessageConverters.add(new ResourceHttpMessageConverter());
-		@SuppressWarnings("rawtypes")
 		SourceHttpMessageConverter<?> sourceConverter = new SourceHttpMessageConverter();
 		this.defaultMessageConverters.add(sourceConverter);
 		if (jaxb2Present) {
