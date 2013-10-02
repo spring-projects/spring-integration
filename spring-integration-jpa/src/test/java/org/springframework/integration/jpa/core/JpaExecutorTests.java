@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
@@ -51,6 +52,8 @@ public class JpaExecutorTests {
 
 	@Autowired
 	protected EntityManager entityManager;
+
+	private final StandardEvaluationContext ctx = new StandardEvaluationContext();
 
 	/**
 	 * In this test, the {@link JpaExecutor}'s poll method will be called without
@@ -215,6 +218,7 @@ public class JpaExecutorTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("select s from Student s");
 		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
+		jpaExecutor.setIntegrationEvaluationContext(ctx);
 		jpaExecutor.afterPropertiesSet();
 
 		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
@@ -227,6 +231,7 @@ public class JpaExecutorTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNativeQuery("select * from Student s");
 		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
+		jpaExecutor.setIntegrationEvaluationContext(ctx);
 		jpaExecutor.afterPropertiesSet();
 		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);
@@ -238,6 +243,7 @@ public class JpaExecutorTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNamedQuery("selectAllStudents");
 		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
+		jpaExecutor.setIntegrationEvaluationContext(ctx);
 		jpaExecutor.afterPropertiesSet();
 		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);
@@ -249,6 +255,7 @@ public class JpaExecutorTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
 		jpaExecutor.setFirstResultExpression(new LiteralExpression("2"));
+		jpaExecutor.setIntegrationEvaluationContext(ctx);
 		jpaExecutor.afterPropertiesSet();
 		List<?> results = (List<?>)jpaExecutor.poll(MessageBuilder.withPayload("").build());
 		Assert.assertNotNull(results);

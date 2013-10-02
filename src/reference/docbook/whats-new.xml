@@ -468,7 +468,7 @@
 			    number of results in a result set as an expression. We now have <code>max-number-of-results</code>
 			    and <code>max-results-expression</code> attributes which are used to provide the
 			    maximum number of results and the expression to compute the maximum number of results in the
-			    result set respectively.
+			    result set respectively. For more information see <xref linkend="jpa"/>.
 			</para>
 		</section>
 	</section>

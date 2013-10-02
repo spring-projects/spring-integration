@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
-import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -49,7 +47,8 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
-		RootBeanDefinition definition = createExpressionDefinitionFromValueOrExpression("max-number-of-results",
+		RootBeanDefinition definition = IntegrationNamespaceUtils
+						.createExpressionDefinitionFromValueOrExpression("max-number-of-results",
 				"max-results-expression",
 				parserContext, element, false);
 		if(definition != null) {

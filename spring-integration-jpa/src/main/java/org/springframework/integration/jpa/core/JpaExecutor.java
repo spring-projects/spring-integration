@@ -325,14 +325,13 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		return this.evaluateExpressionForNumericResult(requestMessage, firstResultExpression);
 	}
 
-	private int evaluateExpressionForNumericResult(
-			final Message<?> requestMessage, Expression expression) {
+	private int evaluateExpressionForNumericResult(final Message<?> requestMessage, Expression expression) {
 		int evaluatedResult = 0;
 		if(expression != null) {
 			Object evaluationResult = expression.getValue(evaluationContext, requestMessage);
 			if(evaluationResult != null) {
 				if(evaluationResult instanceof Number) {
-					evaluatedResult = ((Number)evaluationResult).intValue();
+					evaluatedResult = ((Number) evaluationResult).intValue();
 				}
 				else if(evaluationResult instanceof String){
 					try {
@@ -498,8 +497,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 *
 	 * @param parameterSourceFactory Must not be null
 	 */
-	public void setParameterSourceFactory(
-			ParameterSourceFactory parameterSourceFactory) {
+	public void setParameterSourceFactory(ParameterSourceFactory parameterSourceFactory) {
 		Assert.notNull(parameterSourceFactory, "parameterSourceFactory must not be null.");
 		this.parameterSourceFactory = parameterSourceFactory;
 	}
@@ -554,8 +552,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 *
 	 * @param maxResultsExpression
 	 */
-	public void setMaxResultsExpression(
-			Expression maxResultsExpression) {
+	public void setMaxResultsExpression(Expression maxResultsExpression) {
 		Assert.notNull(maxResultsExpression, "maxResultsExpression cannot be null");
 		this.maxResultsExpression = maxResultsExpression;
 	}
@@ -579,8 +576,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * @param evaluationContext
 	 */
 	@Override
-	public void setIntegrationEvaluationContext(
-			EvaluationContext evaluationContext) {
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
 	}
 }
