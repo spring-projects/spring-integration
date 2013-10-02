@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -96,7 +97,9 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 			handler = this.getApplicationContext().getBean((String) handler);
 		}
 		RequestMappingInfo mapping = this.getMappingForEndpoint((HttpRequestHandlingEndpointSupport) handler);
-		this.registerHandlerMethod(handler, HANDLE_REQUEST_METHOD, mapping);
+		if (mapping != null) {
+			this.registerHandlerMethod(handler, HANDLE_REQUEST_METHOD, mapping);
+		}
 	}
 
 	/**
@@ -106,6 +109,10 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	 */
 	private RequestMappingInfo getMappingForEndpoint(HttpRequestHandlingEndpointSupport endpoint) {
 		final RequestMapping requestMapping = endpoint.getRequestMapping();
+
+		if (ObjectUtils.isEmpty(requestMapping.getPathPatterns())) {
+			return null;
+		}
 
 		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
 				new org.springframework.web.bind.annotation.RequestMapping() {
