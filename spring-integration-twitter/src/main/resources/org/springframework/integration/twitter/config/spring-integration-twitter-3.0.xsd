@@ -123,7 +123,28 @@
 		<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
-		<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+		<xsd:attribute name="id" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The bean id of this Polling Endpoint; the MessageSource is also registered with this id
+					plus a suffix '.source'; also used as the
+					MetaDataStore key with suffix '.' + the profileId from the authorized Twitter user.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					Identifies the channel the attached to this adapter, to which messages will be sent.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		<xsd:attribute name="twitter-template"  type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -134,6 +155,21 @@
 				<xsd:documentation>
 					Reference to a TwitterTemplate bean provided by the Spring Social project.
 				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="metadata-store" use="optional" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a MetadataStore instance for storing metadata associated with
+					the retrieved feeds. If the implementation is persistent, it can help to
+					prevent duplicates between restarts. If shared, it can help coordinate multiple
+					instances of an adapter across different processes.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.metadata.MetadataStore" />
+					</tool:annotation>
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

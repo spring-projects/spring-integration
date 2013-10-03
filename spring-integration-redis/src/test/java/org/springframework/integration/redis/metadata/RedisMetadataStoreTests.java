@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.redis.store.metadata;
+package org.springframework.integration.redis.metadata;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -29,6 +29,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -143,4 +144,20 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 		fail("Expected an IllegalArgumentException to be thrown.");
 	}
+
+	@Test
+	@RedisAvailable
+	public void testRemoveFromMetadataStore(){
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+
+		String testKey = "RedisMetadataStoreTests-Remove";
+		String testValue = "Integration";
+
+		metadataStore.put(testKey, testValue);
+
+		assertEquals(testValue, metadataStore.remove(testKey));
+		assertNull(metadataStore.remove(testKey));
+	}
+
 }

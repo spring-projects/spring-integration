@@ -31,7 +31,7 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
  */
 public class DirectMessageReceivingMessageSourceTests {
 
-	
+
 	@SuppressWarnings("unchecked")
 	@Test @Ignore
 	public void demoReceiveDm() throws Exception{
@@ -40,11 +40,11 @@ public class DirectMessageReceivingMessageSourceTests {
 		pf.afterPropertiesSet();
 		Properties prop =  pf.getObject();
 		System.out.println(prop);
-		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"), 
-										               prop.getProperty("z_oleg.oauth.consumerSecret"), 
-										               prop.getProperty("z_oleg.oauth.accessToken"), 
+		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"),
+										               prop.getProperty("z_oleg.oauth.consumerSecret"),
+										               prop.getProperty("z_oleg.oauth.accessToken"),
 										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
-		DirectMessageReceivingMessageSource tSource = new DirectMessageReceivingMessageSource(template);
+		DirectMessageReceivingMessageSource tSource = new DirectMessageReceivingMessageSource(template, "foo");
 		tSource.afterPropertiesSet();
 		for (int i = 0; i < 50; i++) {
 			Message<DirectMessage> message = (Message<DirectMessage>) tSource.receive();

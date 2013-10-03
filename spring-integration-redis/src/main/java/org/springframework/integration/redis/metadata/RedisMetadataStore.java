@@ -11,13 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.redis.store.metadata;
+package org.springframework.integration.redis.metadata;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.store.metadata.MetadataStore;
+import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.util.Assert;
 
 /**
@@ -65,4 +65,13 @@ public class RedisMetadataStore implements MetadataStore {
 		BoundValueOperations<String, String> ops = this.redisTemplate.boundValueOps(key);
 		return ops.get();
 	}
+
+	@Override
+	public String remove(String key) {
+		Assert.notNull(key, "'key' must not be null.");
+		String value = this.get(key);
+		this.redisTemplate.delete(key);
+		return value;
+	}
+
 }

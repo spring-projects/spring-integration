@@ -141,11 +141,12 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
   	criteria you'll end up with the same set of tweets unless some other new tweet that matches your search criteria was posted
   	in between your searches. In that situation you'll get all the tweets you had before plus the new one. But what you really
   	want is only the new tweet(s). Spring Integration provides an elegant mechanism for handling these situations.
-  	The latest Tweet timestamp will be stored in an instance of the <classname>org.springframework.integration.store.MetadataStore</classname> which is a
+	The latest Tweet id will be stored in an instance of the <classname>org.springframework.integration.metadata.MetadataStore</classname> which is a
   	strategy interface designed for storing various types of metadata (e.g., last retrieved tweet in this case). That strategy helps components such as
     these Twitter adapters avoid duplicates. By default, Spring Integration will look for a bean of type
-    <classname>org.springframework.integration.store.MetadataStore</classname> in the ApplicationContext.
-    If one is found then it will be used, otherwise it will create a new instance of <classname>SimpleMetadataStore</classname>
+    <classname>org.springframework.integration.metadata.MetadataStore</classname> in the ApplicationContext. Alternatively,
+    you can configure an explicit <classname>MetadataStore</classname> on the adapter.
+    If there is no explicit or default store, the adapter will create a new instance of <classname>SimpleMetadataStore</classname>
   	which is a simple in-memory implementation that will only persist metadata within the lifecycle of the currently running application context.
   	That means upon restart you may end up with duplicate entries. If you need to persist metadata between Application Context
   	restarts, you may use the <classname>PropertiesPersistingMetadataStore</classname> (which is backed by a properties file, and a persister
@@ -165,8 +166,16 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 	</warning>
     <programlisting language="xml"><![CDATA[<bean id="metadataStore" class="o.s.i.store.PropertiesPersistingMetadataStore"/>
 ]]></programlisting>
-The Poller that is configured as part of any Inbound Twitter Adapter (see below) will simply poll from this MetadataStore to determine the latest tweet
-received.
+	<para>
+		If the <classname>MetadataStore</classname> is persistent, during initialization, any Inbound Twitter Adapter (see below)
+		will retrieve the latest tweet id that has already been sent by the adapter.
+	</para>
+	<note>
+		The key used to persist the latest <emphasis>twitter id</emphasis> is the value of the (required)
+		<code>id</code> attribute of the Twitter Inbound Channel Adapter component plus the <code>profileId</code>
+		of the Twitter user.
+	</note>
+
   	<section id="inbound-twitter-update">
   		<title>Inbound Message Channel Adapter</title>
   		<para>

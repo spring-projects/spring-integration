@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.store.metadata;
+package org.springframework.integration.metadata;
+
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Strategy interface for storing metadata from certain adapters
@@ -25,6 +28,7 @@ package org.springframework.integration.store.metadata;
  * @author Mark Fisher
  * @since 2.0
  */
+@ManagedResource
 public interface MetadataStore {
 
 	/**
@@ -35,6 +39,15 @@ public interface MetadataStore {
 	/**
 	 * Reads a value for the given key from this MetadataStore.
 	 */
+	@ManagedAttribute
 	String get(String key);
+
+	/**
+	 * Remove a value for the given key from this MetadataStore.
+	 * return the previous value associated with <tt>key</tt>, or
+	 *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+	 */
+	@ManagedAttribute
+	String remove(String key);
 
 }
