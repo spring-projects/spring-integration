@@ -17,6 +17,7 @@
 package org.springframework.integration.feed.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.atLeast;
@@ -83,6 +84,24 @@ public class FeedInboundChannelAdapterParserTests {
 		context.destroy();
 	}
 
+	/**
+	 * Test-case for INT-3147
+	 */
+	@Test
+	public void testThatMessageSourceIsRegisteredAsBean(){
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"FeedInboundChannelAdapterParserTests-file-context.xml", this.getClass());
+
+		FeedEntryMessageSource source = context.getBean("feedAdapter.source", FeedEntryMessageSource.class);
+		assertNotNull(source);
+
+		String metadataKey = TestUtils.getPropertyValue(source, "metadataKey", String.class);
+		assertTrue("The metadataKey should start with 'feed:inbound-channel-adapter.feedAdapter.source.' "
+				+ "but it was " + metadataKey,
+				metadataKey.startsWith("feed:inbound-channel-adapter.feedAdapter.source."));
+
+	}
+
 	public void validateSuccessfulHttpConfigurationWithCustomMetadataStore() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
@@ -98,7 +117,7 @@ public class FeedInboundChannelAdapterParserTests {
 
 	@Test
 	public void validateSuccessfulNewsRetrievalWithFileUrlAndMessageHistory() throws Exception {
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "message-store.properties");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "metadata-store.properties");
 		if (persisterFile.exists()) {
 			persisterFile.delete();
 		}
