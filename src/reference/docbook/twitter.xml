@@ -159,8 +159,8 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 		metadata across Application Context restarts. For more information see <xref linkend="redis-metadata-store" />.
 	</para>
 	<warning>
-		Be careful when using the same Redis instancce across multiple application
-		contexts as separate Feed adapters may accidentally use the same persisted
+		Be careful when using the same Redis instance across multiple application
+		contexts as separate Twitter adapters may accidentally use the same persisted
 		key.
 	</warning>
     <programlisting language="xml"><![CDATA[<bean id="metadataStore" class="o.s.i.store.PropertiesPersistingMetadataStore"/>

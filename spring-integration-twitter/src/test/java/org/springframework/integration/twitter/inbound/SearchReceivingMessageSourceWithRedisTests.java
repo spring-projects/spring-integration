@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 /**
  * @author Gunnar Hillert
+ * @since 3.0
  */
 public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTests {
 
@@ -127,7 +128,7 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 	}
 
 	@Configuration
-	@ImportResource("classpath:**/SearchReceivingMessageSourceWithRedisTests-context.xml")
+	@ImportResource("classpath:org/springframework/integration/twitter/inbound/SearchReceivingMessageSourceWithRedisTests-context.xml")
 	static class SearchReceivingMessageSourceWithRedisTestsConfig {
 
 		@Bean(name="twitterTemplate")

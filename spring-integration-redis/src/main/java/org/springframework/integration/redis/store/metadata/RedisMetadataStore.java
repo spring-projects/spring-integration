@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -32,8 +32,8 @@ public class RedisMetadataStore implements MetadataStore {
 	private final StringRedisTemplate redisTemplate;
 
 	/**
-	 * Initializes the {@link RedisTemplate}. A {@link StringRedisTemplate} is used
-	 * with default properties.
+	 * Initializes the {@link RedisTemplate}.
+	 * A {@link StringRedisTemplate} is used with default properties.
 	 *
 	 * @param connectionFactory Must not be null
 	 */
@@ -51,7 +51,7 @@ public class RedisMetadataStore implements MetadataStore {
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		BoundValueOperations<String, String> ops = redisTemplate.boundValueOps(key);
+		BoundValueOperations<String, String> ops = this.redisTemplate.boundValueOps(key);
 		ops.set(value);
 	}
 
@@ -62,7 +62,7 @@ public class RedisMetadataStore implements MetadataStore {
 	 */
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		BoundValueOperations<String, String> ops = redisTemplate.boundValueOps(key);
+		BoundValueOperations<String, String> ops = this.redisTemplate.boundValueOps(key);
 		return ops.get();
 	}
 }
