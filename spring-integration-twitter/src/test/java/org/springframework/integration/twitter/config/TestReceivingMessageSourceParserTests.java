@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,9 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class TestReceivingMessageSourceParserTests {
-
-	
 
 	@Test
 	public void testReceivingAdapterConfigurationAutoStartup(){
@@ -47,9 +46,40 @@ public class TestReceivingMessageSourceParserTests {
 		assertNotNull(dms);
 
 		spca = ac.getBean("updateAdapter", SourcePollingChannelAdapter.class);
-		
+
 		spca = ac.getBean("updateAdapter", SourcePollingChannelAdapter.class);
 		TimelineReceivingMessageSource tms = TestUtils.getPropertyValue(spca, "source", TimelineReceivingMessageSource.class);
+		assertNotNull(tms);
+	}
+
+	@Test
+	public void testThatMessageSourcesAreRegisteredAsBeans(){
+		ApplicationContext ac = new ClassPathXmlApplicationContext("TestReceivingMessageSourceParser-context.xml", this.getClass());
+
+		MentionsReceivingMessageSource ms = ac.getBean("mentionAdapter.source", MentionsReceivingMessageSource.class);
+		assertNotNull(ms);
+
+		DirectMessageReceivingMessageSource dms = ac.getBean("dmAdapter.source", DirectMessageReceivingMessageSource.class);
+		assertNotNull(dms);
+
+		TimelineReceivingMessageSource tms = ac.getBean("updateAdapter.source", TimelineReceivingMessageSource.class);
+		assertNotNull(tms);
+	}
+
+	@Test
+	public void testThatMessageSourcesAreRegisteredAsBeansWithoutIds(){
+		ApplicationContext ac = new ClassPathXmlApplicationContext("TestReceivingMessageSourceParserWithoutIds-context.xml", this.getClass());
+
+		final String mentionAdapterSourceId = "org.springframework.integration.twitter.inbound.MentionsReceivingMessageSource#0.source";
+		MentionsReceivingMessageSource ms = ac.getBean(mentionAdapterSourceId, MentionsReceivingMessageSource.class);
+		assertNotNull(ms);
+
+		final String dmAdapterSourceId = "org.springframework.integration.twitter.inbound.DirectMessageReceivingMessageSource#0.source";
+		DirectMessageReceivingMessageSource dms = ac.getBean(dmAdapterSourceId, DirectMessageReceivingMessageSource.class);
+		assertNotNull(dms);
+
+		final String updateAdapterSourceId = "org.springframework.integration.twitter.inbound.TimelineReceivingMessageSource#0.source";
+		TimelineReceivingMessageSource tms = ac.getBean(updateAdapterSourceId, TimelineReceivingMessageSource.class);
 		assertNotNull(tms);
 	}
 
