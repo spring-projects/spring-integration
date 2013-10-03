@@ -19,6 +19,7 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -31,15 +32,22 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public abstract class AbstractPollingInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanMetadataElement source = this.parseSource(element, parserContext);
 		if (source == null) {
 			parserContext.getReaderContext().error("failed to parse source", element);
 		}
+
+		String channelAdapterId = this.resolveId(element, (AbstractBeanDefinition) source, parserContext);
+		String sourceBeanName = channelAdapterId + ".source";
+		parserContext.getRegistry().registerBeanDefinition(sourceBeanName, (BeanDefinition) source);
+
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(SourcePollingChannelAdapterFactoryBean.class);
 		adapterBuilder.addPropertyValue("source", source);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,9 @@ import org.springframework.social.twitter.api.Twitter;
  */
 public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public MentionsReceivingMessageSource(Twitter twitter) {
-		super(twitter);
+	public MentionsReceivingMessageSource(Twitter twitter, String metadataKey) {
+		super(twitter, metadataKey);
 	}
-
 
 	@Override
 	public String getComponentType() {

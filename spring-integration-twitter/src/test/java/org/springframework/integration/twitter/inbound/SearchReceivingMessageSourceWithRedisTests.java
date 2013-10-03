@@ -19,6 +19,7 @@ package org.springframework.integration.twitter.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -30,13 +31,12 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.Message;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -52,25 +52,27 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 3.0
  */
 public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTests {
 
 	private SourcePollingChannelAdapter twitterSearchAdapter;
-	private RedisConnectionFactory redisConnectionFactory;
-	private StringRedisTemplate redisTemplate;
 
-	private AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+	private MetadataStore metadataStore;
+
+	private PollableChannel tweets;
 
 	@Before
 	public void setup() {
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 		context.register(SearchReceivingMessageSourceWithRedisTestsConfig.class);
 		context.registerShutdownHook();
 		context.refresh();
 
-		this.redisConnectionFactory = context.getBean(RedisConnectionFactory.class);
 		this.twitterSearchAdapter = context.getBean(SourcePollingChannelAdapter.class);
-		this.redisTemplate = new StringRedisTemplate(redisConnectionFactory);
+		this.metadataStore = context.getBean(MetadataStore.class);
+		this.tweets = context.getBean("inbound_twitter", PollableChannel.class);
 	}
 
 	/**
@@ -81,50 +83,47 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 	@RedisAvailable
 	public void testPollForTweetsThreeResultsWithRedisMetadataStore() throws Exception {
 
-		final MetadataStore metadataStore = TestUtils.getPropertyValue(twitterSearchAdapter, "source.metadataStore", MetadataStore.class);
+		MetadataStore metadataStore = TestUtils.getPropertyValue(this.twitterSearchAdapter, "source.metadataStore", MetadataStore.class);
 		assertTrue("Exptected metadataStore to be an instance of RedisMetadataStore", metadataStore instanceof RedisMetadataStore);
+		assertSame(this.metadataStore, metadataStore);
 
-		/*
-		 * The metadataKey is automatically generated. To ensure that we use the
-		 * the correct key, we retrieve it from the adapter.
-		 */
-		final String metadataKey = TestUtils.getPropertyValue(twitterSearchAdapter, "source.metadataKey", String.class);
+		String metadataKey = TestUtils.getPropertyValue(twitterSearchAdapter, "source.metadataKey", String.class);
 
-		/*
-		 * As we had to retrieve the metadataKey from the adapter. The metdataStore
-		 * was already invoked and the id retrieved from Redis before we had a chance
-		 * to reset possibly pre-existing values.
-		 *
-		 * Rather than deleting the value, we have to set a value, because "null" values
-		 * returned from the MetadataStore are ignored by the onInit() method in
-		 * the AbstractTwitterMessageSource. */
-		redisTemplate.opsForValue().set(metadataKey, "-1");
-		assertEquals("-1", redisTemplate.opsForValue().get(metadataKey));
+		assertEquals("twitterSearchAdapter", metadataKey);
+		this.metadataStore.remove(metadataKey);
 
-		final SearchReceivingMessageSource source = TestUtils.getPropertyValue(twitterSearchAdapter, "source", SearchReceivingMessageSource.class);
+		this.twitterSearchAdapter.start();
 
-		/* We need to call onInit() in order to update the id from the metadataStore. */
-		source.onInit();
-
-		final Message<?> message1 = source.receive();
-		final Message<?> message2 = source.receive();
-		final Message<?> message3 = source.receive();
+		assertNotNull(this.tweets.receive(1000));
+		assertNotNull(this.tweets.receive(1000));
+		assertNotNull(this.tweets.receive(1000));
 
 		/* We received 3 messages so far. When invoking receive() again the search
 		 * will return again the 3 test Tweets but as we already processed them
 		 * no message (null) is returned. */
-		final Message<?> message4 = source.receive();
+		assertNull(this.tweets.receive(0));
 
-		assertNotNull(message1);
-		assertNotNull(message2);
-		assertNotNull(message3);
-		assertNull(message4);
-
-		final String persistedMetadataStoreValue = redisTemplate.opsForValue().get(metadataKey);
+		String persistedMetadataStoreValue = this.metadataStore.get(metadataKey);
 		assertNotNull(persistedMetadataStoreValue);
-		assertEquals("3", redisTemplate.opsForValue().get(metadataKey));
+		assertEquals("3", persistedMetadataStoreValue);
 
-		redisTemplate.delete(metadataKey);
+		this.twitterSearchAdapter.stop();
+
+		this.metadataStore.put(metadataKey, "1");
+
+		this.twitterSearchAdapter.start();
+
+		assertNotNull(this.tweets.receive(1000));
+		assertNotNull(this.tweets.receive(1000));
+
+		/* We received 3 messages so far. When invoking receive() again the search
+		 * will return again the 3 test Tweets but as we already processed them
+		 * no message (null) is returned. */
+		assertNull(this.tweets.receive(0));
+
+		persistedMetadataStoreValue = this.metadataStore.get(metadataKey);
+		assertNotNull(persistedMetadataStoreValue);
+		assertEquals("3", persistedMetadataStoreValue);
 	}
 
 	@Configuration

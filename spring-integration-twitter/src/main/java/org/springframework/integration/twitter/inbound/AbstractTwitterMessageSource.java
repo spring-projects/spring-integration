@@ -31,10 +31,11 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.store.metadata.MetadataStore;
 import org.springframework.integration.store.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
-import org.springframework.social.twitter.api.UserOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -44,23 +45,30 @@ import org.springframework.util.StringUtils;
  * messages when using the Twitter API. This class also handles keeping track of
  * the latest inbound message it has received and avoiding, where possible,
  * redelivery of duplicate messages. This functionality is enabled using the
- * {@link org.springframework.integration.store.MetadataStore} strategy.
+ * {@link org.springframework.integration.store.metadata.MetadataStore} strategy.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
 abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport implements MessageSource {
 
-	private volatile long lastPollForTweet;
+	private final Twitter twitter;
+
+	private final TweetComparator tweetComparator = new TweetComparator();
+
+	private final Object lastEnqueuedIdMonitor = new Object();
+
+	private final String metadataKey;
 
 	private volatile MetadataStore metadataStore;
 
-	private volatile String metadataKey;
+	private volatile long lastPollForTweet;
 
 	private final Queue<T> tweets = new LinkedBlockingQueue<T>();
 
@@ -70,25 +78,43 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile long lastProcessedId = -1;
 
-	private final Twitter twitter;
-
-	private final TweetComparator tweetComparator = new TweetComparator();
-
-	private final Object lastEnqueuedIdMonitor = new Object();
+	private volatile long pollSkipPeriod = 15000;
 
 
-	public AbstractTwitterMessageSource(Twitter twitter) {
+	public AbstractTwitterMessageSource(Twitter twitter, String metadataKey) {
+		this.metadataKey = metadataKey;
 		Assert.notNull(twitter, "twitter must not be null");
 		this.twitter = twitter;
 	}
 
+
+	void setMetadataStore(MetadataStore metadataStore) {
+		this.metadataStore = metadataStore;
+	}
+
+	void setPrefetchThreshold(int prefetchThreshold) {
+		this.prefetchThreshold = prefetchThreshold;
+	}
+
+	/**
+	 * If not set this value defaults to 15000 ms. Please also consult the Twitter
+	 * API on rate limiting at:
+	 *
+	 * https://dev.twitter.com/docs/rate-limiting/1.1
+	 *
+	 * @param pollSkipPeriod Must be >= 0
+	 */
+	public void setPollSkipPeriod(long pollSkipPeriod) {
+		Assert.isTrue(pollSkipPeriod >= 0L, "'pollSkipPeriod' must not be negative.");
+		this.pollSkipPeriod = pollSkipPeriod;
+	}
 
 	protected Twitter getTwitter() {
 		return this.twitter;
 	}
 
 	@Override
-	protected void onInit() throws Exception{
+	protected void onInit() throws Exception {
 		super.onInit();
 		if (this.metadataStore == null) {
 			// first try to look for a 'metadataStore' in the context
@@ -100,26 +126,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 				this.metadataStore = new SimpleMetadataStore();
 			}
 		}
-		StringBuilder metadataKeyBuilder = new StringBuilder();
-		if (StringUtils.hasText(this.getComponentType())) {
-			metadataKeyBuilder.append(this.getComponentType());
-		}
-		if (StringUtils.hasText(this.getComponentName())) {
-			metadataKeyBuilder.append("." + this.getComponentName());
-		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
-		}
 
-		if (this.twitter.isAuthorized()){
-			UserOperations userOperations = this.twitter.userOperations();
-			String profileId = String.valueOf(userOperations.getProfileId());
-			if (profileId != null) {
-				metadataKeyBuilder.append("." + profileId);
-			}
-		}
-
-		this.metadataKey = metadataKeyBuilder.toString();
 		String lastId = this.metadataStore.get(this.metadataKey);
 		// initialize the last status ID from the metadataStore
 		if (StringUtils.hasText(lastId)) {
@@ -134,7 +141,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		if (tweet == null) {
 			long currentTime = System.currentTimeMillis();
 			long elapsedTime = currentTime - this.lastPollForTweet;
-			if (elapsedTime < 15000) {
+			if (elapsedTime < this.pollSkipPeriod) {
 				// need to wait longer
 				return null;
 			}
@@ -204,6 +211,27 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	}
 
 
+	/**
+	 * Remove the metadata key and the corresponding value from the Metadata Store.
+	 */
+	@ManagedOperation(description="Remove the metadata key and the corresponding value from the Metadata Store.")
+	void resetMetadataStore() {
+		synchronized(this) {
+			this.metadataStore.remove(this.metadataKey);
+			this.lastProcessedId = -1L;
+			this.lastEnqueuedId = -1L;
+		}
+	}
+
+	/**
+	 *
+	 * @return {@code -1} if lastProcessedId is not set, yet.
+	 */
+	@ManagedAttribute
+	public long getLastProcessedId() {
+		return this.lastProcessedId;
+	}
+
 	private class TweetComparator implements Comparator<T> {
 
 		public int compare(T tweet1, T tweet2) {
@@ -230,6 +258,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 				throw new IllegalArgumentException("Uncomparable Twitter objects: " + tweet1 + " and " + tweet2);
 			}
 		}
+
 	}
 
 }

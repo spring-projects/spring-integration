@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for inbound Twitter Channel Adapters.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.0
  */
@@ -50,7 +50,10 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.genericBeanDefinition(TwitterTemplate.class);
 			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
 		}
+		builder.addConstructorArgValue(element.getAttribute(ID_ATTRIBUTE));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "poll-skip-period");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "metadata-store");
 		return builder.getBeanDefinition();
 	}
 

@@ -86,6 +86,11 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 		return this.metadata.getProperty(key);
 	}
 
+	@Override
+	public boolean remove(String key) {
+		return this.metadata.remove(key) != null;
+	}
+
 	public void destroy() throws Exception {
 		this.saveMetadata();
 	}

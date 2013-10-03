@@ -16,6 +16,9 @@
 
 package org.springframework.integration.store.metadata;
 
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedResource;
+
 /**
  * Strategy interface for storing metadata from certain adapters
  * to avoid duplicate delivery of messages, for example.
@@ -25,6 +28,7 @@ package org.springframework.integration.store.metadata;
  * @author Mark Fisher
  * @since 2.0
  */
+@ManagedResource
 public interface MetadataStore {
 
 	/**
@@ -35,6 +39,13 @@ public interface MetadataStore {
 	/**
 	 * Reads a value for the given key from this MetadataStore.
 	 */
+	@ManagedAttribute
 	String get(String key);
+
+	/**
+	 * Remove a value for the given key from this MetadataStore.
+	 */
+	@ManagedAttribute
+	boolean remove(String key);
 
 }

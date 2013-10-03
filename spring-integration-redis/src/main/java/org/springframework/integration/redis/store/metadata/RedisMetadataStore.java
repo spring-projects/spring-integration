@@ -65,4 +65,12 @@ public class RedisMetadataStore implements MetadataStore {
 		BoundValueOperations<String, String> ops = this.redisTemplate.boundValueOps(key);
 		return ops.get();
 	}
+
+	@Override
+	public boolean remove(String key) {
+		Assert.notNull(key, "'key' must not be null.");
+		this.redisTemplate.delete(key);
+		return true;
+	}
+
 }

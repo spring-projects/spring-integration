@@ -15,13 +15,11 @@
  */
 package org.springframework.integration.mongodb.config;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -52,8 +50,7 @@ public class MongoDbInboundChannelAdapterParser extends AbstractPollingInboundCh
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "entity-class");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-single-result");
 
-		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
-		return new RuntimeBeanReference(beanName);
+		return builder.getBeanDefinition();
 	}
+
 }
