@@ -132,6 +132,24 @@
 				For more information see <xref linkend="http-namespace"/>.
 			</para>
 		</section>
+		<section id="3.0-redis-meta-data-store">
+			<title>Redis Metadata Store</title>
+			<para>
+				A new Redis-based
+				<interfacename><ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html">MetadataStore</ulink></interfacename>
+				implementation was added. The <classname>RedisMetadataStore</classname> can
+				be used to maintain state of a <interfacename>MetadataStore</interfacename>
+				across application restarts. This new <interfacename>MetadataStore</interfacename>
+				implementation can be used with adapters such as:
+			</para>
+			<itemizedlist>
+				<listitem>Twitter Inbound Adapters</listitem>
+				<listitem>Feed Inbound Channel Adapter</listitem>
+			</itemizedlist>
+			<para>
+				For more information see <xref linkend="redis-metadata-store" />.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">

@@ -151,11 +151,22 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
   	restarts, you may use the <classname>PropertiesPersistingMetadataStore</classname> (which is backed by a properties file, and a persister
     strategy), or you may create your own custom implementation of the <classname>MetadataStore</classname> interface (e.g., JdbcMetadatStore)
     and configure it as a bean named 'metadataStore' within the Application Context.
+	</para>
+	<para>
+		As of <emphasis>Spring Integration 3.0</emphasis> a Redis-based
+		<interfacename>MetadataStore</interfacename> is available. The
+		<classname>RedisMetadataStore</classname> allows you to maintain persisted
+		metadata across Application Context restarts. For more information see <xref linkend="redis-metadata-store" />.
+	</para>
+	<warning>
+		Be careful when using the same Redis instance across multiple application
+		contexts as separate Twitter adapters may accidentally use the same persisted
+		key.
+	</warning>
     <programlisting language="xml"><![CDATA[<bean id="metadataStore" class="o.s.i.store.PropertiesPersistingMetadataStore"/>
 ]]></programlisting>
 The Poller that is configured as part of any Inbound Twitter Adapter (see below) will simply poll from this MetadataStore to determine the latest tweet
 received.
-  	</para>
   	<section id="inbound-twitter-update">
   		<title>Inbound Message Channel Adapter</title>
   		<para>

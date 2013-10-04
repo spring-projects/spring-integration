@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
+
+	<int:channel id="inbound_twitter"/>
+
+	<int-twitter:search-inbound-channel-adapter id="twitterSearchAdapter"
+			query="springintegration"
+			twitter-template="twitterTemplate"
+			channel="inbound_twitter"
+			auto-startup="false">
+		<int:poller fixed-rate="5000" max-messages-per-poll="3"/>
+	</int-twitter:search-inbound-channel-adapter>
+
+	<bean id="metadataStore" class="org.springframework.integration.redis.store.metadata.RedisMetadataStore">
+		<constructor-arg name="connectionFactory" ref="redisConnectionFactory"/>
+	</bean>
+
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+	</bean>
+</beans>
+
+

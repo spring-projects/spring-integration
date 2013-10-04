@@ -223,7 +223,36 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     the <code>valueSerializer</code> property of the <classname>RedisMessageStore</classname>.
     </para>
   </section>
-
+	<section id="redis-metadata-store">
+		<title>Redis Metadata Store</title>
+		<para>
+			As of <emphasis>Spring Integration 3.0</emphasis> a new Redis-based
+			<interfacename><ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html">MetadataStore</ulink></interfacename>
+			implementation is available. The <classname>RedisMetadataStore</classname> can
+			be used to maintain state of a <interfacename>MetadataStore</interfacename>
+			across application restarts. This new <interfacename>MetadataStore</interfacename>
+			implementation can be used with adapters such as:
+		</para>
+		<itemizedlist>
+			<listitem>Twitter Inbound Adapters</listitem>
+			<listitem>Feed Inbound Channel Adapter</listitem>
+		</itemizedlist>
+		<para>
+			In order to instruct these adapters to use the new <classname>RedisMetadataStore</classname>
+			simply declare a Spring bean using the bean name <emphasis role="bold">metadataStore</emphasis>.
+			The <emphasis>Twitter Inbound Channel Adapter</emphasis> and the
+			<emphasis>Feed Inbound Channel Adapter</emphasis> will both automatically
+			pick up and use the declared <classname>RedisMetadataStore</classname>.
+		</para>
+		<programlisting language="xml"><![CDATA[<bean name="metadataStore" class="o.s.i.redis.store.metadata.RedisMetadataStore">
+    <constructor-arg name="connectionFactory" ref="redisConnectionFactory"/>
+</bean>]]></programlisting>
+		<warning>
+			Be careful when using the same Redis instancce across multiple application
+			contexts as separate adapters may accidentally use the same persisted
+			key.
+		</warning>
+	</section>
   <section id="redis-store-inbound-channel-adapter">
         <title>RedisStore Inbound Channel Adapter</title>
 
