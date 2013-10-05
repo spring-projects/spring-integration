@@ -72,7 +72,13 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	public synchronized void send(Message<?> message) throws Exception {
 		Object object = this.getMapper().fromMessage(message);
 		this.lastSend = System.currentTimeMillis();
-		((Serializer<Object>) this.getSerializer()).serialize(object, this.socket.getOutputStream());
+		try {
+			((Serializer<Object>) this.getSerializer()).serialize(object, this.socket.getOutputStream());
+		}
+		catch (Exception e) {
+			this.closeConnection(true);
+			throw e;
+		}
 		this.afterSend(message);
 	}
 
