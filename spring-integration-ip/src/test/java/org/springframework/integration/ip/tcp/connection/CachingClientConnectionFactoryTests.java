@@ -20,6 +20,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -27,6 +29,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -39,12 +45,16 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -284,6 +294,84 @@ public class CachingClientConnectionFactoryTests {
 		assertEquals(2, cachingFactory.getIdleCount());
 		verify(mockConn1).close();
 		verify(mockConn2).close();
+	}
+
+	@Test
+	public void testExceptionOnSendNet() throws Exception {
+		TcpConnectionSupport conn1 = mockedTcpNetConnection();
+		TcpConnectionSupport conn2 = mockedTcpNetConnection();
+
+		CachingClientConnectionFactory cccf = createCCCFWith2Connections(conn1, conn2);
+		doTestCloseOnSendError(conn1, conn2, cccf);
+	}
+
+	@Test
+	public void testExceptionOnSendNio() throws Exception {
+		TcpConnectionSupport conn1 = mockedTcpNioConnection();
+		TcpConnectionSupport conn2 = mockedTcpNioConnection();
+
+		CachingClientConnectionFactory cccf = createCCCFWith2Connections(conn1, conn2);
+		doTestCloseOnSendError(conn1, conn2, cccf);
+	}
+
+	private void doTestCloseOnSendError(TcpConnection conn1, TcpConnection conn2,
+			CachingClientConnectionFactory cccf) throws Exception {
+		TcpConnection cached1 = cccf.getConnection();
+		try {
+			cached1.send(new GenericMessage<String>("foo"));
+			fail("Expected IOException");
+		}
+		catch (IOException e) {
+			assertEquals("Foo", e.getMessage());
+		}
+		// Before INT-3163 this failed with a timeout - connection not returned to pool after failure on send()
+		TcpConnection cached2 = cccf.getConnection();
+		assertTrue(cached1.getConnectionId().contains(conn1.getConnectionId()));
+		assertTrue(cached2.getConnectionId().contains(conn2.getConnectionId()));
+	}
+
+	private CachingClientConnectionFactory createCCCFWith2Connections(TcpConnectionSupport conn1, TcpConnectionSupport conn2)
+			throws Exception {
+		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
+		when(factory.isRunning()).thenReturn(true);
+		when(factory.getConnection()).thenReturn(conn1, conn2);
+		CachingClientConnectionFactory cccf = new CachingClientConnectionFactory(factory, 1);
+		cccf.setConnectionWaitTimeout(1);
+		cccf.start();
+		return cccf;
+	}
+
+	private TcpConnectionSupport mockedTcpNetConnection() throws IOException {
+		Socket socket = mock(Socket.class);
+		when(socket.isClosed()).thenReturn(true); // closed when next retrieved
+		OutputStream stream = mock(OutputStream.class);
+		doThrow(new IOException("Foo")).when(stream).write(Mockito.any(byte[].class));
+		when(socket.getOutputStream()).thenReturn(stream);
+		TcpNetConnection conn = new TcpNetConnection(socket, false, false, new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+			}
+		}, "foo");
+		conn.setMapper(new TcpMessageMapper());
+		conn.setSerializer(new ByteArrayCrLfSerializer());
+		return conn;
+	}
+
+	private TcpConnectionSupport mockedTcpNioConnection() throws Exception {
+		SocketChannel socketChannel = mock(SocketChannel.class);
+		new DirectFieldAccessor(socketChannel).setPropertyValue("open", false);
+		doThrow(new IOException("Foo")).when(socketChannel).write(Mockito.any(ByteBuffer.class));
+		when(socketChannel.socket()).thenReturn(mock(Socket.class));
+		TcpNioConnection conn = new TcpNioConnection(socketChannel, false, false, new ApplicationEventPublisher() {
+
+			@Override
+			public void publishEvent(ApplicationEvent event) {
+			}
+		}, "foo");
+		conn.setMapper(new TcpMessageMapper());
+		conn.setSerializer(new ByteArrayCrLfSerializer());
+		return conn;
 	}
 
 	private TcpConnectionSupport makeMockConnection(String name) {

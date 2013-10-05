@@ -100,6 +100,7 @@ public class TcpNetConnection extends TcpConnectionSupport {
 		}
 		catch (Exception e) {
 			this.publishConnectionExceptionEvent(e);
+			this.closeConnection(true);
 			throw e;
 		}
 		this.afterSend(message);

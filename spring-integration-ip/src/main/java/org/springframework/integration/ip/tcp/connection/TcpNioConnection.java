@@ -134,7 +134,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) throws Exception {
-		synchronized(this.getMapper()) {
+		synchronized(this.socketChannel) {
 			Object object = this.getMapper().fromMessage(message);
 			this.lastSend = System.currentTimeMillis();
 			try {
@@ -142,6 +142,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			}
 			catch (Exception e) {
 				this.publishConnectionExceptionEvent(e);
+				this.closeConnection(true);
 				throw e;
 			}
 			this.afterSend(message);

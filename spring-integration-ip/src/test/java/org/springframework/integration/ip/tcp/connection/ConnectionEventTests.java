@@ -24,7 +24,8 @@ import static org.mockito.Mockito.mock;
 
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -44,16 +45,17 @@ public class ConnectionEventTests {
 	@Test
 	public void test() throws Exception {
 		Socket socket = mock(Socket.class);
-		final AtomicReference<TcpConnectionEvent> theEvent = new AtomicReference<TcpConnectionEvent>();
+		final List<TcpConnectionEvent> theEvent = new ArrayList<TcpConnectionEvent>();
 		TcpNetConnection conn = new TcpNetConnection(socket, false, false, new ApplicationEventPublisher() {
 
 			public void publishEvent(ApplicationEvent event) {
-				theEvent.set((TcpConnectionEvent) event);
+				theEvent.add((TcpConnectionEvent) event);
 			}
 		}, "foo");
-		assertNotNull(theEvent.get());
-		assertTrue(theEvent.get() instanceof TcpConnectionOpenEvent);
-		assertTrue(theEvent.get().toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **OPENED**"));
+		assertTrue(theEvent.size() > 0);
+		assertNotNull(theEvent.get(0));
+		assertTrue(theEvent.get(0) instanceof TcpConnectionOpenEvent);
+		assertTrue(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **OPENED**"));
 		@SuppressWarnings("unchecked")
 		Serializer<Object> serializer = mock(Serializer.class);
 		RuntimeException toBeThrown = new RuntimeException("foo");
@@ -65,16 +67,17 @@ public class ConnectionEventTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {}
-		assertNotNull(theEvent.get());
-		assertTrue(theEvent.get() instanceof TcpConnectionExceptionEvent);
-		assertTrue(theEvent.get().toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
-		assertTrue(theEvent.get().toString().contains("cause=java.lang.RuntimeException: foo]"));
-		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get();
+		assertTrue(theEvent.size() > 1);
+		assertNotNull(theEvent.get(1));
+		assertTrue(theEvent.get(1) instanceof TcpConnectionExceptionEvent);
+		assertTrue(theEvent.get(1).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
+		assertTrue(theEvent.get(1).toString().contains("cause=java.lang.RuntimeException: foo]"));
+		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get(1);
 		assertNotNull(event.getCause());
 		assertSame(toBeThrown, event.getCause());
-		conn.close();
-		assertNotNull(theEvent.get());
-		assertTrue(theEvent.get().toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **CLOSED**"));
+		assertTrue(theEvent.size() > 2);
+		assertNotNull(theEvent.get(2));
+		assertTrue(theEvent.get(2).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **CLOSED**"));
 	}
 
 }
