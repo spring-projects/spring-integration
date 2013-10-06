@@ -50,9 +50,9 @@ public class GroovyRefreshTests {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
-		assertEquals("groovy-test-1", replyChannel.receive(0).getPayload());
-		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
 		assertEquals("groovy-test-0", replyChannel.receive(0).getPayload());
+		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
+		assertEquals("groovy-test-1", replyChannel.receive(0).getPayload());
 		assertNull(replyChannel.receive(0));
 	}
 
@@ -62,7 +62,7 @@ public class GroovyRefreshTests {
 			super.setValue(new CycleResource());
 		}
 	}
-	
+
 	private static class CycleResource extends AbstractResource {
 
 		private int count = -1;
@@ -71,12 +71,12 @@ public class GroovyRefreshTests {
 		public String getDescription() {
 			return "CycleResource";
 		}
-		
+
 		@Override
 		public String getFilename() throws IllegalStateException {
 			return "CycleResource";
 		}
-		
+
 		@Override
 		public long lastModified() throws IOException {
 			return -1;
@@ -88,6 +88,6 @@ public class GroovyRefreshTests {
 			}
 			return new ByteArrayInputStream(scripts[count].getBytes());
 		}
-		
+
 	}
 }
