@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor;
+import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
+import org.springframework.integration.config.annotation.SpelFunctionAnnotationPostProcessor;
 import org.springframework.util.StringUtils;
 
 /**
@@ -30,28 +33,41 @@ import org.springframework.util.StringUtils;
  * Adds a {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor}
  * and a {@link org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor}
  * to the application context.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition messagingAnnotationPostProcessorDef = new RootBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.annotation.MessagingAnnotationPostProcessor");
-		messagingAnnotationPostProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		String messagingAnnotationPostProcessorName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
-		parserContext.getRegistry().registerBeanDefinition(messagingAnnotationPostProcessorName, messagingAnnotationPostProcessorDef);
-		RootBeanDefinition publisherAnnotationPostProcessorDef = new RootBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.PublisherAnnotationBeanPostProcessor");
-		publisherAnnotationPostProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		RootBeanDefinition messagingAnnotationPostProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
+
+		RootBeanDefinition publisherAnnotationPostProcessorDef = new RootBeanDefinition(PublisherAnnotationBeanPostProcessor.class);
 		String defaultPublisherChannel = element.getAttribute("default-publisher-channel");
 		if (StringUtils.hasText(defaultPublisherChannel)) {
 			publisherAnnotationPostProcessorDef.getPropertyValues().add("defaultChannel", new RuntimeBeanReference(defaultPublisherChannel));
 		}
-		String publisherAnnotationPostProcessorName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
-		parserContext.getRegistry().registerBeanDefinition(publisherAnnotationPostProcessorName, publisherAnnotationPostProcessorDef);
+
+		RootBeanDefinition spelFunctionAnnotationPostProcessorDef = new RootBeanDefinition(SpelFunctionAnnotationPostProcessor.class);
+
+		RootBeanDefinition[] beanDefinitions = {
+				messagingAnnotationPostProcessorDef,
+				publisherAnnotationPostProcessorDef,
+				spelFunctionAnnotationPostProcessorDef
+		};
+
+		for (RootBeanDefinition definition : beanDefinitions) {
+			this.configureAndRegisterPostProcessor(parserContext, definition);
+		}
+
 		return null;
 	}
 
+	private void configureAndRegisterPostProcessor(ParserContext parserContext, RootBeanDefinition postProcessorDef) {
+		postProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		parserContext.getRegistry()
+				.registerBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".internal" + postProcessorDef.getBeanClass(),
+						postProcessorDef);
+	}
 
 }
