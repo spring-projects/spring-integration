@@ -16,10 +16,12 @@
 
 package org.springframework.integration.groovy.config;
 
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
 
@@ -56,13 +58,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class GroovyServiceActivatorTests {
-	
+
 	@Autowired
 	private MessageChannel referencedScriptInput;
 
 	@Autowired
 	private MessageChannel inlineScriptInput;
-	
+
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
 
@@ -97,7 +99,7 @@ public class GroovyServiceActivatorTests {
 		assertTrue(groovyCustomizer.executed);
 		assertNull(replyChannel.receive(0));
 	}
-	
+
 	@Test
 	public void withScriptVariableGenerator() throws Exception{
 		groovyCustomizer.executed = false;
@@ -159,7 +161,7 @@ public class GroovyServiceActivatorTests {
 	public void inlineScriptAndVariables() throws Exception{
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-context.xml", this.getClass());
 	}
-	
+
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void variablesAndScriptVariableGenerator() throws Exception{
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());

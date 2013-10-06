@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanIsAbstractException;
@@ -69,6 +70,7 @@ public class GroovyControlBusTests {
 
 	@Test
 	public void testOperationOfControlBus() { // long is > 3
+		adviceCalled = 0;
 		this.groovyCustomizer.executed = false;
 		Message<?> message = MessageBuilder.withPayload("def result = service.convert('aardvark'); def foo = headers.foo; result+foo").setHeader("foo", "bar").build();
 		this.input.send(message);
@@ -170,7 +172,7 @@ public class GroovyControlBusTests {
 
 	private static class MockRequestAttributes implements RequestAttributes {
 
-		private Map<String, Object> fakeRequest = new HashMap<String, Object>();
+		private final Map<String, Object> fakeRequest = new HashMap<String, Object>();
 
 		public Object getAttribute(String name, int scope) {
 			return fakeRequest.get(name);
