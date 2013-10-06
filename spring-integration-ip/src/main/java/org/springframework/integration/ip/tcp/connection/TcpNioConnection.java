@@ -118,10 +118,16 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) throws Exception {
-		synchronized(this.getMapper()) {
+		synchronized(this.socketChannel) {
 			Object object = this.getMapper().fromMessage(message);
 			this.lastSend = System.currentTimeMillis();
-			((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
+			try {
+				((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
+			}
+			catch (Exception e) {
+				this.closeConnection(true);
+				throw e;
+			}
 			this.afterSend(message);
 		}
 	}
