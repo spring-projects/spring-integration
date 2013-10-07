@@ -16,37 +16,32 @@
 
 package org.springframework.integration.groovy;
 
-import groovy.lang.GString;
-
 import java.util.Map;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
-import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+
+import groovy.lang.GString;
 
 /**
  * @author Dave Syer
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Stefan Reuter
+ * @author Artem Bilan
  * @since 2.0
  */
 public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> implements InitializingBean {
 
-	private final GroovyScriptFactory scriptFactory;
+	private final GroovyScriptExecutor scriptExecutor;
 
-	private final VariableBindingGroovyObjectCustomizerDecorator
-			customizerDecorator = new VariableBindingGroovyObjectCustomizerDecorator();
+	private final VariableBindingGroovyObjectCustomizerDecorator customizerDecorator =
+			new VariableBindingGroovyObjectCustomizerDecorator();
 
 	private volatile ScriptSource scriptSource;
 
@@ -58,7 +53,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
 		super();
 		this.scriptSource = scriptSource;
-		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizerDecorator);
+		this.scriptExecutor = new GroovyScriptExecutor(this.customizerDecorator);
 	}
 
 	/**
@@ -68,7 +63,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator) {
 		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
-		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizerDecorator);
+		this.scriptExecutor = new GroovyScriptExecutor(this.customizerDecorator);
 	}
 
 
@@ -87,22 +82,18 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		synchronized (this) {
-			if (!CollectionUtils.isEmpty(variables)) {
-				this.customizerDecorator.setVariables(variables);
-			}
-			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
-			return (result instanceof GString) ? result.toString() : result;
-		}
+		Object result = this.scriptExecutor.executeScript(scriptSource, variables);
+		return (result instanceof GString) ? result.toString() : result;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if (getBeanClassLoader() != null) {
-			this.scriptFactory.setBeanClassLoader(getBeanClassLoader());
+		if (this.getBeanClassLoader() != null) {
+			this.scriptExecutor.setBeanClassLoader(getBeanClassLoader());
 		}
-		if (getBeanFactory() != null) {
-			this.scriptFactory.setBeanFactory(getBeanFactory());
+		if (this.getBeanFactory() != null) {
+			this.scriptExecutor.setBeanFactory(getBeanFactory());
 		}
 	}
+
 }

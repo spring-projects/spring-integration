@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
 package org.springframework.integration.groovy;
 
 import static org.junit.Assert.assertEquals;
-
-import groovy.lang.GroovyObject;
-import groovy.lang.Script;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,12 +38,15 @@ import org.junit.Test;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
-import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.util.Assert;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.Script;
+
 /**
  * @author Dave Syer
+ * @author Artem Bilan
  */
 public class GroovyExpressionTests {
 
@@ -65,22 +65,22 @@ public class GroovyExpressionTests {
 	@Test
 	public void testScriptFactoryCustomizer() throws Exception {
 		Customizer customizer = new Customizer(Collections.singletonMap("name", (Object) "foo"));
-		GroovyScriptFactory factory = new GroovyScriptFactory("Groovy Script", customizer);
+		GroovyScriptExecutor executor = new GroovyScriptExecutor(customizer);
 		ResourceScriptSource scriptSource = new ResourceScriptSource(new NamedByteArrayResource("\"name=${name}\"".getBytes(), "InlineScript"));
-		Object scriptedObject = factory.getScriptedObject(scriptSource, null);
+		Object scriptedObject = executor.executeScript(scriptSource);
 		assertEquals("name=foo", scriptedObject.toString());
 		customizer.setMap(Collections.singletonMap("name", (Object) "bar"));
-		scriptedObject = factory.getScriptedObject(scriptSource, null);
+		scriptedObject = executor.executeScript(scriptSource);
 		assertEquals("name=bar", scriptedObject.toString());
 	}
 
 	@Test
 	public void testScriptFactoryCustomizerThreadSafety() throws Exception {
 		final Customizer customizer = new Customizer(Collections.singletonMap("name", (Object) "foo"));
-		final GroovyScriptFactory factory = new GroovyScriptFactory("Groovy Script", customizer);
+		final GroovyScriptExecutor executor = new GroovyScriptExecutor(customizer);
 		final ResourceScriptSource scriptSource = new ResourceScriptSource(new NamedByteArrayResource(
 				"\"name=${name}\"".getBytes(), "InlineScript"));
-		Object scriptedObject = factory.getScriptedObject(scriptSource, null);
+		Object scriptedObject = executor.executeScript(scriptSource);
 		assertEquals("name=foo", scriptedObject.toString());
 		CompletionService<String> completionService = new ExecutorCompletionService<String>(Executors.newFixedThreadPool(10));
 		for (int i = 0; i < 100; i++) {
@@ -90,7 +90,7 @@ public class GroovyExpressionTests {
 					Object scriptedObject;
 					synchronized (customizer) {
 						customizer.setMap(Collections.singletonMap("name", (Object) name));
-						scriptedObject = factory.getScriptedObject(scriptSource, null);
+						scriptedObject = executor.executeScript(scriptSource);
 					}
 					String result = scriptedObject.toString();
 					logger.debug("Result=" + result + " with name=" + name);
@@ -111,17 +111,17 @@ public class GroovyExpressionTests {
 	@Test
 	public void testScriptFactoryCustomizerStatic() throws Exception {
 		final Customizer customizer = new Customizer(Collections.singletonMap("name", (Object) "foo"));
-		final GroovyScriptFactory factory = new GroovyScriptFactory("Groovy Script", customizer);
+		final GroovyScriptExecutor executor = new GroovyScriptExecutor(customizer);
 		final ResourceScriptSource scriptSource = new ResourceScriptSource(new NamedByteArrayResource(
 				"\"name=${name}\"".getBytes(), "InlineScript"));
-		Object scriptedObject = factory.getScriptedObject(scriptSource, null);
+		Object scriptedObject = executor.executeScript(scriptSource);
 		assertEquals("name=foo", scriptedObject.toString());
 		CompletionService<String> completionService = new ExecutorCompletionService<String>(Executors.newFixedThreadPool(10));
 		for (int i = 0; i < 100; i++) {
 			final String name = "bar" + i;
 			completionService.submit(new Callable<String>() {
 				public String call() throws Exception {
-					Object scriptedObject = factory.getScriptedObject(scriptSource, null);
+					Object scriptedObject = executor.executeScript(scriptSource);
 					String result = scriptedObject.toString();
 					logger.debug("Result=" + result + " with name=" + name);
 					if (!("name=foo").equals(result)) {
@@ -141,7 +141,7 @@ public class GroovyExpressionTests {
 	@Test
 	public void testScriptFactoryCustomizerThreadSafetyWithNewScript() throws Exception {
 		final Customizer customizer = new Customizer(Collections.singletonMap("name", (Object) "foo"));
-		final GroovyScriptFactory factory = new GroovyScriptFactory("Groovy Script", customizer);
+		final GroovyScriptExecutor executor = new GroovyScriptExecutor(customizer);
 		CompletionService<String> completionService = new ExecutorCompletionService<String>(Executors.newFixedThreadPool(5));
 		for (int i = 0; i < 100; i++) {
 			final String name = "Bar" + i;
@@ -152,7 +152,7 @@ public class GroovyExpressionTests {
 						customizer.setMap(Collections.singletonMap("name", (Object) name));
 						ResourceScriptSource scriptSource = new ResourceScriptSource(new NamedByteArrayResource(
 								"\"name=${name}\"".getBytes(), "InlineScript" + name));
-						scriptedObject = factory.getScriptedObject(scriptSource, null);
+						scriptedObject = executor.executeScript(scriptSource);
 					}
 					String result = scriptedObject.toString();
 					logger.debug("Result=" + result + " with name=" + name);

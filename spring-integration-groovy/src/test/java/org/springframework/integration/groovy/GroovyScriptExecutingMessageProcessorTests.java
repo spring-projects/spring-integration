@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,37 @@ package org.springframework.integration.groovy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.core.io.AbstractResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scripting.RefreshableResourceScriptSource;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.Repeat;
+import org.springframework.util.StopWatch;
+
+import groovy.lang.Script;
 
 /**
  * @author Mark Fisher
@@ -176,6 +188,29 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		assertEquals("payload is 'hello'", result.toString());
 	}
 
+	@Test
+	public void testInt3166GroovyScriptExecutingMessageProcessorPerformance() throws Exception {
+		final Message<?> message = new GenericMessage<Object>("test");
+		ScriptSource scriptSource = new StaticScriptSource("Thread.sleep(100)", Script.class.getName());
+		final MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+		for (int i = 0; i < 10; i++) {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					processor.processMessage(message);
+				}
+			});
+		}
+		executor.shutdown();
+		assertTrue(executor.awaitTermination(2, TimeUnit.SECONDS));
+		stopWatch.stop();
+
+		assertThat(stopWatch.getTotalTimeMillis(), Matchers.lessThan(1000L));
+	}
 
 	private static class TestResource extends AbstractResource {
 

@@ -43,6 +43,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -90,7 +91,6 @@ public class GroovyServiceActivatorTests {
 		String value1 = (String) replyChannel.receive(0).getPayload();
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
-		System.out.println(value1 + "\n" + value2 + "\n" + value3);
 		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
 		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
 		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));
@@ -152,6 +152,8 @@ public class GroovyServiceActivatorTests {
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
+			assertEquals(ScriptCompilationException.class, cause.getClass());
+			cause = cause.getCause();
 			assertEquals(MissingPropertyException.class, cause.getClass());
 			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy.lang"));
 		    throw e;
