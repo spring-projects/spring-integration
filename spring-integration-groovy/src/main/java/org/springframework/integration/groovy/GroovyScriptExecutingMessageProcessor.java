@@ -16,40 +16,52 @@
 
 package org.springframework.integration.groovy;
 
-import groovy.lang.GString;
-
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
+import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
-import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.ClassUtils;
+
+import groovy.lang.Binding;
+import groovy.lang.GString;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import groovy.lang.Script;
 
 /**
+ * The {@link org.springframework.integration.handler.MessageProcessor} implementation
+ * to evaluate Groovy scripts.
+ *
  * @author Dave Syer
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Stefan Reuter
+ * @author Artem Bilan
  * @since 2.0
  */
-public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> implements InitializingBean {
+public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
-	private final GroovyScriptFactory scriptFactory;
+	private final VariableBindingGroovyObjectCustomizerDecorator customizerDecorator =
+			new VariableBindingGroovyObjectCustomizerDecorator();
 
-	private final VariableBindingGroovyObjectCustomizerDecorator
-			customizerDecorator = new VariableBindingGroovyObjectCustomizerDecorator();
+	private final Lock scriptLock = new ReentrantLock();
 
 	private volatile ScriptSource scriptSource;
 
+	private volatile GroovyClassLoader groovyClassLoader = new GroovyClassLoader(ClassUtils.getDefaultClassLoader());
+
+	private volatile Class<?> scriptClass;
 
 	/**
 	 * Create a processor for the given {@link ScriptSource} that will use a
@@ -58,7 +70,6 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
 		super();
 		this.scriptSource = scriptSource;
-		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizerDecorator);
 	}
 
 	/**
@@ -68,9 +79,21 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator) {
 		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
-		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizerDecorator);
 	}
 
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		super.setBeanClassLoader(classLoader);
+		this.groovyClassLoader = new GroovyClassLoader(classLoader);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		super.setBeanFactory(beanFactory);
+		if (beanFactory instanceof ConfigurableListableBeanFactory) {
+			((ConfigurableListableBeanFactory) beanFactory).ignoreDependencyType(MetaClass.class);
+		}
+	}
 
 	/**
 	 * Sets a {@link GroovyObjectCustomizer} for this processor.
@@ -87,22 +110,58 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		synchronized (this) {
-			if (!CollectionUtils.isEmpty(variables)) {
-				this.customizerDecorator.setVariables(variables);
+		this.parseScriptIfNecessary(scriptSource);
+		Object result = this.execute(variables);
+		return (result instanceof GString) ? result.toString() : result;
+	}
+
+
+	private void parseScriptIfNecessary(ScriptSource scriptSource) throws Exception {
+		if (this.scriptClass == null || scriptSource.isModified()) {
+			this.scriptLock.lockInterruptibly();
+			try {
+				// synchronized double check
+				if (this.scriptClass == null || scriptSource.isModified()) {
+					this.scriptClass = this.groovyClassLoader.parseClass(
+							scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
+				}
 			}
-			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
-			return (result instanceof GString) ? result.toString() : result;
+			finally {
+				this.scriptLock.unlock();
+			}
 		}
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (getBeanClassLoader() != null) {
-			this.scriptFactory.setBeanClassLoader(getBeanClassLoader());
+	private Object execute(Map<String, Object> variables) throws ScriptCompilationException {
+		try {
+			GroovyObject goo = (GroovyObject) this.scriptClass.newInstance();
+
+			GroovyObjectCustomizer groovyObjectCustomizer = this.customizerDecorator;
+			if (variables != null) {
+				// Override empty Script.Binding with new one with 'variables'
+				groovyObjectCustomizer = new BindingOverwriteGroovyObjectCustomizerDecorator(new Binding(variables));
+				((VariableBindingGroovyObjectCustomizerDecorator) groovyObjectCustomizer).setCustomizer(this.customizerDecorator);
+			}
+
+			if (goo instanceof Script) {
+				// Allow metaclass and other customization.
+				groovyObjectCustomizer.customize(goo);
+				// A Groovy script, probably creating an instance: let's execute it.
+				return ((Script) goo).run();
+			}
+			else {
+				// An instance of the scripted class: let's return it as-is.
+				return goo;
+			}
 		}
-		if (getBeanFactory() != null) {
-			this.scriptFactory.setBeanFactory(getBeanFactory());
+		catch (InstantiationException ex) {
+			throw new ScriptCompilationException(
+					this.scriptSource, "Could not instantiate Groovy script class: " + this.scriptClass.getName(), ex);
+		}
+		catch (IllegalAccessException ex) {
+			throw new ScriptCompilationException(
+					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(), ex);
 		}
 	}
+
 }
