@@ -333,11 +333,19 @@
 						<interfacename>HttpMessageConverter</interfacename>s after the custom message converters.
 					</listitem>
 					<listitem>
-						<emphasis role="bold">'If-(Un)Modified-Since' HTTP headers</emphasis> - previously,
+						<emphasis role="bold">'If-(Un)Modified-Since' HTTP Headers</emphasis> - previously,
 						'If-Modified-Since' and 'If-Unmodified-Since' HTTP headers were incorrectly processed
 						within from/to HTTP headers mapping in the <classname>DefaultHttpHeaderMapper</classname>.
 						Now, in addition correcting that issue, <classname>DefaultHttpHeaderMapper</classname> provides
 						date parsing from formatted strings for any HTTP headers that accept date-time values.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">Inbound Endpoint Expression Variables</emphasis> -
+						In addition to the existing <emphasis>#requestParams</emphasis> and <emphasis>#pathVariables</emphasis>,
+						the <code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code>
+						now support additional useful variables: <emphasis>#matrixVariables</emphasis>, <emphasis>#requestAttributes</emphasis>,
+						<emphasis>#requestHeaders</emphasis> and <emphasis>#cookies</emphasis>. These variables are available in
+						both payload and header expressions.
 					</listitem>
 				</itemizedlist>
 			</para>

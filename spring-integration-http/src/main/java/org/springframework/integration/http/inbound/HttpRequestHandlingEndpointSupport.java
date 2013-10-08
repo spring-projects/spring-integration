@@ -19,10 +19,12 @@ package org.springframework.integration.http.inbound;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -65,6 +67,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -210,8 +213,15 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Specifies a SpEL expression to evaluate in order to generate the Message payload.
 	 * The EvaluationContext will be populated with an HttpEntity instance as the root object,
-	 * and it may contain one or both of the <code>#pathVariables</code> and
-	 * <code>#queryParameters</code> variables if present. Those variables' values are Maps.
+	 * and it may contain variables:
+	 * <ul>
+	 * <li><code>#pathVariables</code></li>
+	 * <li><code>#requestParams</code></li>
+	 * <li><code>#requestAttributes</code></li>
+	 * <li><code>#requestHeaders</code></li>
+	 * <li><code>#matrixVariables</code></li>
+	 * <li><code>#cookies</code>
+	 * </ul>
 	 */
 	public void setPayloadExpression(Expression payloadExpression) {
 		this.payloadExpression = payloadExpression;
@@ -221,8 +231,15 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Specifies a Map of SpEL expressions to evaluate in order to generate the Message headers.
 	 * The keys in the map will be used as the header names. When evaluating the expression,
 	 * the EvaluationContext will be populated with an HttpEntity instance as the root object,
-	 * and it may contain one or both of the <code>#pathVariables</code> and
-	 * <code>#queryParameters</code> variables if present. Those variables' values are Maps.
+	 * and it may contain variables:
+	 * <ul>
+	 * <li><code>#pathVariables</code></li>
+	 * <li><code>#requestParams</code></li>
+	 * <li><code>#requestAttributes</code></li>
+	 * <li><code>#requestHeaders</code></li>
+	 * <li><code>#matrixVariables</code></li>
+	 * <li><code>#cookies</code>
+	 * </ul>
 	 */
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = headerExpressions;
@@ -379,8 +396,21 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			StandardEvaluationContext evaluationContext = this.createEvaluationContext();
 			evaluationContext.setRootObject(httpEntity);
 
+			evaluationContext.setVariable("requestAttributes", RequestContextHolder.currentRequestAttributes());
+
 			MultiValueMap<String, String> requestParams = this.convertParameterMap(servletRequest.getParameterMap());
 			evaluationContext.setVariable("requestParams", requestParams);
+
+			evaluationContext.setVariable("requestHeaders", new ServletServerHttpRequest(servletRequest).getHeaders());
+
+			Cookie[] requestCookies = servletRequest.getCookies();
+			if (!ObjectUtils.isEmpty(requestCookies)) {
+				Map<String, Cookie> cookies = new HashMap<String, Cookie>(requestCookies.length);
+				for (Cookie requestCookie : requestCookies) {
+					cookies.put(requestCookie.getName(), requestCookie);
+				}
+				evaluationContext.setVariable("cookies", cookies);
+			}
 
 			Map<String, String> pathVariables =
 					(Map<String, String>) servletRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
@@ -390,6 +420,17 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 					logger.debug("Mapped path variables: " + pathVariables);
 				}
 				evaluationContext.setVariable("pathVariables", pathVariables);
+			}
+
+			//TODO change it to HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE after upgrade to Spring 4.0
+			Map<String, MultiValueMap<String, String>> matrixVariables =
+					(Map<String, MultiValueMap<String, String>>) servletRequest.getAttribute(HandlerMapping.class.getName() + ".matrixVariables");
+
+			if (!CollectionUtils.isEmpty(matrixVariables)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Mapped matrix variables: " + matrixVariables);
+				}
+				evaluationContext.setVariable("matrixVariables", matrixVariables);
 			}
 
 			Map<String, Object> headers = this.headerMapper.toHeaders(request.getHeaders());

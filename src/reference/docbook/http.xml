@@ -354,9 +354,57 @@ By default the HTTP request will be generated using an instance of <classname>Si
 		</listitem>
 	</itemizedlist>
 
+	<para>
+		<para>
+		Since <emphasis>Spring Integration 3.0</emphasis>, in addition to the existing
+		<code>#pathVariables</code> and <code>#requestParams</code> variables being available in payload and header
+		expressions, other useful variables have been added.
+		</para>
+		<para>
+		The entire list of available expression variables:
+		</para>
+		<itemizedlist>
+			<listitem>
+				<emphasis>#requestParams</emphasis> - the <interfacename>MultiValueMap</interfacename> from the
+				<interfacename>ServletRequest</interfacename> <code>parameterMap</code>.
+			</listitem>
+			<listitem>
+				<emphasis>#pathVariables</emphasis> - the <interfacename>Map</interfacename> from URI Template placeholders and their values;
+			</listitem>
+			<listitem>
+				<emphasis>#matrixVariables</emphasis> - the <interfacename>Map</interfacename> of <interfacename>MultiValueMap</interfacename>
+				according to
+				<ulink url="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-ann-matrix-variables"
+						>Spring MVC Specification</ulink>. Note, <emphasis>#matrixVariables</emphasis> require Spring MVC 3.2 or higher;
+			</listitem>
+			<listitem>
+				<emphasis>#requestAttributes</emphasis> - the <interfacename>org.springframework.web.context.request.RequestAttributes</interfacename>
+				associated with the current Request;
+			</listitem>
+			<listitem>
+				<emphasis>#requestHeaders</emphasis> - the <classname>org.springframework.http.HttpHeaders</classname> object from the current Request;
+			</listitem>
+			<listitem>
+				<emphasis>#cookies</emphasis> - the <interfacename>Map&lt;String, Cookie&gt;</interfacename>
+				of <classname>javax.servlet.http.Cookie</classname>s from the current Request.
+			</listitem>
+		</itemizedlist>
+		<para>
+		Note, all these values (and others) can be accessed within expressions in the downstream message
+		flow via the <classname>ThreadLocal</classname> <interfacename>org.springframework.web.context.request.RequestAttributes</interfacename>
+		variable, if that message flow is single-threaded and lives within the request thread:
+		</para>
+		<programlisting language="xml"><![CDATA[<int-:transformer
+	expression="T(org.springframework.web.context.request.RequestContextHolder).
+	              requestAttributes.request.queryString"/>
+    ]]></programlisting>
+	</para>
+
 	<para><emphasis>Outbound</emphasis></para>
     <para>
-    To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
+    To configure the outbound gateway you can use the namespace support as well.
+	The following code snippet shows the different configuration options for an outbound Http gateway.
+	Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
     default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would
     contain the ResponseEntity as long as it's http status is a success (non-successful status codes will throw Exceptions).
 	If you are expecting a different type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
