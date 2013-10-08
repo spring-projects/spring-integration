@@ -321,6 +321,13 @@
 						Now, in addition correcting that issue, <classname>DefaultHttpHeaderMapper</classname> provides
 						date parsing from formatted strings for any HTTP headers that accept date-time values.
 					</listitem>
+					<listitem>
+						<emphasis role="bold">Inbound Endpoint expressionss variables</emphasis> -
+						<code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code>
+						alongside with <emphasis>#requestParams</emphasis> and <emphasis>#pathVariables</emphasis> now
+						have additional useful variables: <emphasis>#matrixVariables</emphasis>, <emphasis>#requestAttributes</emphasis>,
+						<emphasis>#requestHeaders</emphasis> and <emphasis>#cookies</emphasis>.
+					</listitem>
 				</itemizedlist>
 			</para>
 			<para>

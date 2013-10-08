@@ -17,22 +17,36 @@
 package org.springframework.integration.http.inbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.http.Cookie;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.AntPathMatcher;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
@@ -52,6 +66,9 @@ public class Int2312RequestMappingIntegrationTests {
 
 	@Autowired
 	private HandlerMapping handlerMapping;
+
+	@Autowired
+	private SubscribableChannel toLowerCaseChannel;
 
 	private HandlerAdapter handlerAdapter = new HttpRequestHandlerAdapter();
 
@@ -77,21 +94,56 @@ public class Int2312RequestMappingIntegrationTests {
 
 
 	@Test
+	@SuppressWarnings("unchecked")
+	//INT-1362
 	public void testURIVariablesAndHeaders() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		String testRequest = "aBc";
+		// TODO test it after upgrade to Spring 4.0
+		// String testRequest = "aBc;q1=1;q2=2";
 		String requestURI = "/test/" + testRequest;
 		request.setRequestURI(requestURI);
+		request.setContentType("text/plain");
+		final Map<String, String> params = new HashMap<String, String>();
+		params.put("foo", "bar");
+		request.setParameters(params);
+		request.setContent("hello".getBytes());
+		final Cookie cookie = new Cookie("foo", "bar");
+		request.setCookies(cookie);
+		request.addHeader("toLowerCase", true);
 
-		//See org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping#handleMatch
-		Map<String, String> uriTemplateVariables =
-				new AntPathMatcher().extractUriTemplateVariables(TEST_PATH, requestURI);
-		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVariables);
+		//See org.springframework.web.servlet.FrameworkServlet#initContextHolders
+		final RequestAttributes attributes = new ServletRequestAttributes(request);
+		RequestContextHolder.setRequestAttributes(attributes);
+
+		this.toLowerCaseChannel.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				MessageHeaders headers = message.getHeaders();
+
+				assertEquals(attributes, headers.get("requestAttributes"));
+
+				Object requestParams = headers.get("requestParams");
+				assertNotNull(requestParams);
+				assertEquals(params, ((MultiValueMap<String, String>) requestParams).toSingleValueMap());
+
+				// TODO test it after upgrade to Spring 4.0
+				// assertEquals(matrixVariables, headers.get("matrixVariables"));
+
+				Object requestHeaders = headers.get("requestHeaders");
+				assertNotNull(requestParams);
+				assertEquals(MediaType.TEXT_PLAIN, ((HttpHeaders) requestHeaders).getContentType());
+
+				Map<String, Cookie> cookies = (Map<String, Cookie>) headers.get("cookies");
+				assertEquals(1, cookies.size());
+				Cookie foo = cookies.get("foo");
+				assertNotNull(foo);
+				assertEquals(cookie, foo);
+			}
+		});
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
-
-		request.addHeader("toLowerCase", true);
 
 		Object handler = this.handlerMapping.getHandler(request).getHandler();
 		this.handlerAdapter.handle(request, response, handler);

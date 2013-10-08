@@ -20,12 +20,14 @@ import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -33,14 +35,13 @@ import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.SpelFunctionFactoryBean;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -462,6 +463,7 @@ public abstract class IntegrationNamespaceUtils {
 		}
 		return expressionDef;
 	}
+
 	public static void registerSpelFunctionBean(BeanDefinitionRegistry registry, String functionId, String className,
 												String methodSignature) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SpelFunctionFactoryBean.class)
@@ -469,6 +471,7 @@ public abstract class IntegrationNamespaceUtils {
 				.addConstructorArgValue(methodSignature);
 		registry.registerBeanDefinition(functionId, builder.getBeanDefinition());
 	}
+
 	public static BeanDefinition createExpressionDefIfAttributeDefined(String expressionElementName, Element element) {
 
 		Assert.hasText(expressionElementName, "'expressionElementName' must no be empty");
