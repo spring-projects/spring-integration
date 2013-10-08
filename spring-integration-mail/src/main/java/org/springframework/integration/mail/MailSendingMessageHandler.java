@@ -20,10 +20,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.messaging.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.mail.MailMessage;
@@ -31,21 +28,24 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
  * A {@link MessageHandler} implementation for sending mail.
- * 
+ *
  * <p>If the Message is an instance of {@link MailMessage}, it will be passed
  * as-is. If the Message payload is a byte array, it will be passed as an
  * attachment, and in that case, the {@link MailHeaders#ATTACHMENT_FILENAME}
  * header is required. Otherwise, a String type is expected, and its content
  * will be used as the text within a {@link SimpleMailMessage}.
- * 
+ *
  * @see MailHeaders
- * 
+ *
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -57,7 +57,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 
 	/**
 	 * Create a MailSendingMessageConsumer.
-	 * 
+	 *
 	 * @param mailSender the {@link JavaMailSender} instance to which this
 	 * adapter will delegate.
 	 */
@@ -67,6 +67,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 
+	@Override
 	protected final void handleMessageInternal(Message<?> message) {
 		MailMessage mailMessage = this.convertMessageToMailMessage(message);
 		if (mailMessage instanceof SimpleMailMessage) {
@@ -111,15 +112,15 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		this.applyHeadersToMailMessage(mailMessage, message.getHeaders());
 		return mailMessage;
 	}
-	
+
 	private MailMessage createMailMessageWithContentType(Message<String> message, String contentType){
 		MimeMessage mimeMessage = this.mailSender.createMimeMessage();
 		try {
 			mimeMessage.setContent(message.getPayload(), contentType);
 			return new MimeMailMessage(mimeMessage);
-		} 
+		}
 		catch (Exception e) {
-			throw new org.springframework.messaging.MessagingException("Failed to creaet MimeMessage with contentType: " + 
+			throw new org.springframework.messaging.MessagingException("Failed to creaet MimeMessage with contentType: " +
 																			contentType, e);
 		}
 	}
@@ -142,7 +143,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		}
 		catch (MessagingException e) {
 			throw new MessageMappingException(message, "failed to create MimeMessage", e);
-		}		
+		}
 	}
 
 	private void applyHeadersToMailMessage(MailMessage mailMessage, MessageHeaders headers) {
@@ -153,7 +154,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		String[] to = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
 		if (to != null){
 			mailMessage.setTo(to);
-		}	
+		}
 		if (mailMessage instanceof SimpleMailMessage) {
 			Assert.state(!ObjectUtils.isEmpty(((SimpleMailMessage) mailMessage).getTo()),
 					"No recipient has been provided on the MailMessage or the 'MailHeaders.TO' header.");
@@ -184,7 +185,7 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 				returnedHeaders = (String[]) value;
 			} else if (value instanceof String) {
 				returnedHeaders = StringUtils.commaDelimitedListToStringArray((String) value);
-			}	
+			}
 		}
 		if (returnedHeaders == null || ObjectUtils.isEmpty(returnedHeaders)){
 			returnedHeaders = null;

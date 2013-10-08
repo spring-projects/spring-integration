@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.messaging.MessageHeaders.IdGenerator;
 
 // TODO Discuss and agree where these should go. In SI or in Spring 4?
+/**
+ *
+ * @author Andy Wilkinson
+ * @since 4.0
+ *
+ */
 public class IdGenerators {
 
 	public static class JdkIdGenerator implements IdGenerator {
