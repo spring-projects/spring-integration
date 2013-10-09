@@ -25,7 +25,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
+public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -71,16 +71,15 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 
 	@Test
 	@RedisAvailable
-	public void testInboundChannelAdapterMessaging() throws Exception{
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
-		connectionFactory.afterPropertiesSet();
+	public void testInboundChannelAdapterMessaging() throws Exception {
+		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+
 		connectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
-		Thread.sleep(1000);
+
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
-		assertEquals("Hello Redis from foo", receiveChannel.receive(1000).getPayload());
+		assertEquals("Hello Redis from foo", receiveChannel.receive(2000).getPayload());
 		connectionFactory.getConnection().publish("bar".getBytes(), "Hello Redis from bar".getBytes());
-		assertEquals("Hello Redis from bar", receiveChannel.receive(1000).getPayload());
+		assertEquals("Hello Redis from bar", receiveChannel.receive(2000).getPayload());
 	}
 
 	@Test
