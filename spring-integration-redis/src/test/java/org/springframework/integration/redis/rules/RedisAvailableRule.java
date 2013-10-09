@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,22 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
-public final class RedisAvailableRule implements MethodRule{
+public final class RedisAvailableRule implements MethodRule {
 
 	private static final Log logger = LogFactory.getLog(RedisAvailableRule.class);
 
 	public static final int REDIS_PORT = 7379;
+
+	static ThreadLocal<LettuceConnectionFactory> connectionFactoryResource = new ThreadLocal<LettuceConnectionFactory>();
 
 	public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
 		return new Statement(){
@@ -42,10 +46,11 @@ public final class RedisAvailableRule implements MethodRule{
 				if (redisAvailable != null){
 					try {
 
-						JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+						LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 						connectionFactory.setPort(REDIS_PORT);
 						connectionFactory.afterPropertiesSet();
 						connectionFactory.getConnection();
+						connectionFactoryResource.set(connectionFactory);
 					} catch (Exception e) {
 						if (logger.isWarnEnabled()) {
 							logger.warn(String.format("Redis is not available on " +
@@ -54,10 +59,18 @@ public final class RedisAvailableRule implements MethodRule{
 						return;
 					}
 				}
-				base.evaluate();
+				try {
+					base.evaluate();
+				}
+				finally {
+					LettuceConnectionFactory connectionFactory = connectionFactoryResource.get();
+					connectionFactory.destroy();
+					connectionFactoryResource.remove();
+				}
 			}
 		};
 
 	}
 
 }
+

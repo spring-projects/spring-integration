@@ -8,7 +8,7 @@
 
 	<int-redis:inbound-channel-adapter
 		id="adapter" topics="foo, bar" channel="receiveChannel" error-channel="testErrorChannel"
-		message-converter="testConverter" 
+		message-converter="testConverter"
 		serializer="serializer"/>
 
 	<int:channel id="receiveChannel">
@@ -17,8 +17,8 @@
 
 	<int:channel id="testErrorChannel" />
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="7379" />
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
 
 	<bean id="testConverter"
@@ -27,7 +27,7 @@
 	<int-redis:inbound-channel-adapter
 		id="autoChannel" topics="foo, bar" error-channel="testErrorChannel"
 		message-converter="testConverter" />
-		
+
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 
 	<int:bridge input-channel="autoChannel" output-channel="nullChannel"/>

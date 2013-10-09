@@ -58,6 +58,7 @@ subprojects { subproject ->
 		mockitoVersion = '1.9.5'
 		eaioUUIDVersion = '3.2'
 
+
 		springVersionDefault = '3.1.4.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
@@ -435,6 +436,7 @@ project('spring-integration-redis') {
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		testCompile project(":spring-integration-test")
+		testCompile 'com.lambdaworks:lettuce:2.3.3'
 	}
 }
 

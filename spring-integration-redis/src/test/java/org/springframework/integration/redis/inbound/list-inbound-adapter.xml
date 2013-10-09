@@ -25,7 +25,7 @@
 			<int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
-	
+
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRollback"
 											connection-factory="redisConnectionFactory"
 											key-expression="'presidents'"
@@ -35,7 +35,7 @@
 			<int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
-	
+
 	<int:channel id="redisFailChannel"/>
 
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationAndRedisTemplate"
@@ -47,12 +47,12 @@
 		    <int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
-	
+
 	<int:transaction-synchronization-factory id="syncFactory">
 		<int:after-commit expression="#resource.attributes['store'].rename('bar')"/>
 		<int:after-rollback expression="#store.rename('baz')"/>
 	</int:transaction-synchronization-factory>
-	
+
 	<int-redis:store-inbound-channel-adapter id="listAdapterWithSynchronizationBeforeCommit"
 											redis-template="redisTemplate"
 											key-expression="'presidents'"
@@ -62,11 +62,11 @@
 		    <int:transactional synchronization-factory="syncFactory2"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
-	
+
 	<int:channel id="adapterErrors">
 		<int:queue/>
 	</int:channel>
-	
+
 	<int:transaction-synchronization-factory id="syncFactory2">
 		<int:before-commit expression="5/0"/>
 	</int:transaction-synchronization-factory>
@@ -85,10 +85,10 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="7379"/>
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
-	
+
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans>
