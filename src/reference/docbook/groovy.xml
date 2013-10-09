@@ -57,6 +57,8 @@
 
 	  Setting a custom GroovyObjectCustomizer is not mutually exclusive with <code>&lt;variable&gt;</code> sub-elements or
 	  the <code>script-variable-generator</code> attribute. It can also be provided when defining an inline script.
+      For more information regarding <code>&lt;variable&gt;</code> and <code>script-variable-generator</code> see the
+      paragraph '<emphasis>Script variable bindings</emphasis>' of <xref linkend="scripting-config"/>.
     </para>
   </section>
 
