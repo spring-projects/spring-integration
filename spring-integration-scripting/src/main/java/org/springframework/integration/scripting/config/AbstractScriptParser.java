@@ -24,8 +24,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.beans.factory.xml.XmlReaderContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
-import org.springframework.integration.scripting.ScriptSourceFactoryBean;
+import org.springframework.integration.scripting.RefreshableResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -33,11 +32,9 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * @author David Turanski
- * @author Artem Bilan
- * @since 2.1
+ *
  */
 public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionParser {
-
 	protected static final String LOCATION_ATTRIBUTE = "location";
 
 	protected static final String REFRESH_CHECK_DELAY_ATTRIBUTE = "refresh-check-delay";
@@ -93,7 +90,7 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 		}
 		if (!StringUtils.hasText(scriptVariableGeneratorName)) {
 			BeanDefinitionBuilder scriptVariableGeneratorBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(DefaultScriptVariableGenerator.class);
+					.genericBeanDefinition("org.springframework.integration.scripting.DefaultScriptVariableGenerator");
 			ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>();
 			for (Element childElement : variableElements) {
 				String variableName = childElement.getAttribute("name");
@@ -121,21 +118,24 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 		postProcess(builder, element, parserContext);
 	}
 
-	private Object resolveScriptLocation(Element element, XmlReaderContext readerContext, String scriptLocation) {
-		String refreshDelayText = element.getAttribute(REFRESH_CHECK_DELAY_ATTRIBUTE);
-		BeanDefinitionBuilder resourceScriptSourceBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(ScriptSourceFactoryBean.class);
-		resourceScriptSourceBuilder.addConstructorArgValue(scriptLocation);
-		if (StringUtils.hasText(refreshDelayText)) {
-			resourceScriptSourceBuilder.addConstructorArgValue(refreshDelayText);
-		}
-		return resourceScriptSourceBuilder.getBeanDefinition();
-	}
-
 	/**
 	 * Subclasses may override this no-op method to provide additional configuration.
 	 */
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+	}
+
+	private Object resolveScriptLocation(Element element, XmlReaderContext readerContext, String scriptLocation) {
+		String refreshDelayText = element.getAttribute(REFRESH_CHECK_DELAY_ATTRIBUTE);
+		String beanClassName = RefreshableResourceScriptSource.class.getName();
+		BeanDefinitionBuilder resourceScriptSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(beanClassName);
+		resourceScriptSourceBuilder.addConstructorArgValue(scriptLocation);
+		if (StringUtils.hasText(refreshDelayText)) {
+			resourceScriptSourceBuilder.addConstructorArgValue(refreshDelayText);
+		}
+		else {
+			resourceScriptSourceBuilder.addConstructorArgValue(-1L);
+		}
+		return resourceScriptSourceBuilder.getBeanDefinition();
 	}
 
 }

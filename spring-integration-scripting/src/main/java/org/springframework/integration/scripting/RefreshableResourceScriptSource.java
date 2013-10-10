@@ -52,12 +52,11 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 	}
 
 	public String getScriptAsString() throws IOException {
-		String script = this.script;
-		if (script == null) {
-			script = source.getScriptAsString();
-			this.script = script;
+		if (this.script == null || this.isModified()) {
+			this.lastModifiedChecked.set(System.currentTimeMillis());
+			this.script = source.getScriptAsString();
 		}
-		return script;
+		return this.script;
 	}
 
 	public String suggestedClassName() {
@@ -65,19 +64,14 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 	}
 
 	public boolean isModified() {
-		if (this.refreshDelay < 0) {
-			return false;
-		}
-		long time = System.currentTimeMillis();
-		if (this.refreshDelay == 0 || (time - this.lastModifiedChecked.get()) > this.refreshDelay) {
-			this.lastModifiedChecked.set(time);
-			boolean modified = this.source.isModified();
-			if (modified) {
-				this.script = null;
-			}
-			return modified;
-		}
-		return false;
+		return this.refreshDelay >= 0 &&
+				(System.currentTimeMillis() - this.lastModifiedChecked.get()) > this.refreshDelay &&
+				this.source.isModified();
+	}
+
+	@Override
+	public String toString() {
+		return this.source.toString();
 	}
 
 }

@@ -71,7 +71,6 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 					scriptEngine.put(entry.getKey(), entry.getValue());
 				}
 			}
-			scriptSource.isModified();
 			String script = scriptSource.getScriptAsString();
 			Date start = new Date();
 			if (logger.isDebugEnabled()) {

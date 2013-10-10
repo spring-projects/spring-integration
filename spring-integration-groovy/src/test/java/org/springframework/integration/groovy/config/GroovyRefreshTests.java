@@ -50,9 +50,9 @@ public class GroovyRefreshTests {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
-		assertEquals("groovy-test-0", replyChannel.receive(0).getPayload());
-		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
 		assertEquals("groovy-test-1", replyChannel.receive(0).getPayload());
+		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
+		assertEquals("groovy-test-0", replyChannel.receive(0).getPayload());
 		assertNull(replyChannel.receive(0));
 	}
 
