@@ -18,7 +18,6 @@ package org.springframework.integration.groovy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -31,7 +30,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -46,7 +44,6 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.Repeat;
-import org.springframework.util.StopWatch;
 
 import groovy.lang.Script;
 
@@ -191,11 +188,25 @@ public class GroovyScriptExecutingMessageProcessorTests {
 	@Test
 	public void testInt3166GroovyScriptExecutingMessageProcessorPerformance() throws Exception {
 		final Message<?> message = new GenericMessage<Object>("test");
-		ScriptSource scriptSource = new StaticScriptSource("Thread.sleep(100)", Script.class.getName());
-		final MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
+		final AtomicInteger var1 = new AtomicInteger();
+		final AtomicInteger var2 = new AtomicInteger();
+
+		String script =
+				"var1.incrementAndGet(); Thread.sleep(100); var2.set(Math.max(var1.get(), var2.get())); var1.decrementAndGet()";
+
+		ScriptSource scriptSource = new StaticScriptSource(script, Script.class.getName());
+		final MessageProcessor<Object> processor =
+				new GroovyScriptExecutingMessageProcessor(scriptSource, new ScriptVariableGenerator() {
+					@Override
+					public Map<String, Object> generateScriptVariables(Message<?> message) {
+						Map<String, Object> variables = new HashMap<String, Object>(2);
+						variables.put("var1", var1);
+						variables.put("var2", var2);
+						return variables;
+					}
+				});
+
 		ExecutorService executor = Executors.newFixedThreadPool(10);
 		for (int i = 0; i < 10; i++) {
 			executor.execute(new Runnable() {
@@ -206,10 +217,10 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			});
 		}
 		executor.shutdown();
-		assertTrue(executor.awaitTermination(2, TimeUnit.SECONDS));
-		stopWatch.stop();
+		assertTrue(executor.awaitTermination(3, TimeUnit.SECONDS));
 
-		assertThat(stopWatch.getTotalTimeMillis(), Matchers.lessThan(1000L));
+		assertTrue(var2.get() > 1);
+
 	}
 
 	private static class TestResource extends AbstractResource {

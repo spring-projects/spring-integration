@@ -94,16 +94,11 @@ public class GroovyScriptExecutor implements ScriptExecutor, BeanFactoryAware, B
 
 	private void parseScriptIfNecessary(ScriptSource scriptSource) throws Exception {
 		if (this.scriptClass == null || scriptSource.isModified()) {
-			// For double check in the locking block
-			this.scriptClass = null;
 			try {
 				this.scriptLock.lockInterruptibly();
 				try {
-					// Synchronized double check
-					if (this.scriptClass == null) {
-						this.scriptClass = this.groovyClassLoader.parseClass(
-								scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
-					}
+					this.scriptClass = this.groovyClassLoader.parseClass(
+							scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
 				}
 				finally {
 					this.scriptLock.unlock();
@@ -116,7 +111,7 @@ public class GroovyScriptExecutor implements ScriptExecutor, BeanFactoryAware, B
 		}
 	}
 
-	private Object execute(Class scriptClass, Map<String, Object> variables) throws Exception {
+	private Object execute(Class<?> scriptClass, Map<String, Object> variables) throws Exception {
 		GroovyObject goo = (GroovyObject) scriptClass.newInstance();
 
 		GroovyObjectCustomizer groovyObjectCustomizer = this.groovyObjectCustomizer;
@@ -140,4 +135,5 @@ public class GroovyScriptExecutor implements ScriptExecutor, BeanFactoryAware, B
 			return goo;
 		}
 	}
+
 }
