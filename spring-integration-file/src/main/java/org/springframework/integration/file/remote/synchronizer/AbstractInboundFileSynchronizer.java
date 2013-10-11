@@ -44,7 +44,7 @@ import org.springframework.util.ObjectUtils;
  * The implementation should run through any configured
  * {@link org.springframework.integration.file.filters.FileListFilter}s to
  * ensure the file entry is acceptable.
- * 
+ *
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -85,7 +85,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 * after copying to the local directory? By default this is false.
 	 */
 	private volatile boolean deleteRemoteFiles;
-
 
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
@@ -132,7 +131,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
-	
+
 	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
 	}
@@ -179,7 +178,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			}
 			return;
 		}
-				
+
 		File localFile = new File(localDirectory, localFileName);
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
@@ -211,7 +210,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 				catch (Exception ignored2) {
 				}
 			}
-			
+
 			if (tempFile.renameTo(localFile)) {
 				if (this.deleteRemoteFiles) {
 					session.remove(remoteFilePath);
@@ -222,7 +221,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			}
 		}
 	}
-	
+
 	private String generateLocalFileName(String remoteFileName){
 		if (this.localFilenameGeneratorExpression != null){
 			return this.localFilenameGeneratorExpression.getValue(evaluationContext, remoteFileName, String.class);
