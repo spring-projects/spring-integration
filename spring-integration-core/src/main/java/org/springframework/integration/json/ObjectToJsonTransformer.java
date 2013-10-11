@@ -109,6 +109,9 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 		else if (StringUtils.hasLength(this.contentType)) {
 			headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 		}
+
+		headers.putAll(this.jsonObjectMapper.getJavaTypeProperties(message.getPayload().getClass()));
+
 		messageBuilder.copyHeaders(headers);
 		return messageBuilder.build();
 	}

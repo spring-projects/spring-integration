@@ -22,6 +22,8 @@ import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 
 /**
@@ -33,9 +35,11 @@ public class JsonToObjectTransformerTests {
 
 	@Test
 	public void objectPayload() throws Exception {
-		JsonToObjectTransformer<TestPerson> transformer = new JsonToObjectTransformer<TestPerson>(TestPerson.class);
+		JsonToObjectTransformer transformer = new JsonToObjectTransformer(TestPerson.class);
 		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42,\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
-		TestPerson person = transformer.transformPayload(jsonString);
+		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
+		@SuppressWarnings("unchecked")
+		TestPerson person = (TestPerson) message.getPayload();
 		assertEquals("John", person.getFirstName());
 		assertEquals("Doe", person.getLastName());
 		assertEquals(42, person.getAge());
@@ -47,10 +51,12 @@ public class JsonToObjectTransformerTests {
 		ObjectMapper customMapper = new ObjectMapper();
 		customMapper.configure(Feature.ALLOW_UNQUOTED_FIELD_NAMES, Boolean.TRUE);
 		customMapper.configure(Feature.ALLOW_SINGLE_QUOTES, Boolean.TRUE);
-		JsonToObjectTransformer<TestPerson> transformer =
-				new JsonToObjectTransformer<TestPerson>(TestPerson.class, new JacksonJsonObjectMapper(customMapper));
+		JsonToObjectTransformer transformer =
+				new JsonToObjectTransformer(TestPerson.class, new JacksonJsonObjectMapper(customMapper));
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
-		TestPerson person = transformer.transformPayload(jsonString);
+		Message<?> message = transformer.transform(new GenericMessage<String>(jsonString));
+		@SuppressWarnings("unchecked")
+		TestPerson person = (TestPerson) message.getPayload();
 		assertEquals("John", person.getFirstName());
 		assertEquals("Doe", person.getLastName());
 		assertEquals(42, person.getAge());
@@ -60,7 +66,7 @@ public class JsonToObjectTransformerTests {
 	@SuppressWarnings("deprecation")
 	@Test(expected = IllegalArgumentException.class)
 	public void testInt2831IllegalArgument() throws Exception {
-		new JsonToObjectTransformer<String>(String.class, new Object());
+		new JsonToObjectTransformer(String.class, new Object());
 	}
 
 

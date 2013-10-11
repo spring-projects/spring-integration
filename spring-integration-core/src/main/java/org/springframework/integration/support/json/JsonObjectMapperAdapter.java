@@ -19,6 +19,8 @@ package org.springframework.integration.support.json;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Simple {@linkplain JsonObjectMapper} adapter implementation, if there is no need
@@ -53,4 +55,13 @@ public abstract class JsonObjectMapperAdapter<P> implements JsonObjectMapper<P> 
 		return null;
 	}
 
+	@Override
+	public Map<String, String> getJavaTypeProperties(Class<?> valueClass) throws Exception {
+		return new HashMap<String, String>();
+	}
+
+	@Override
+	public <T> T fromJson(String json, Map<String, Object> javaTypeProperties) throws Exception {
+		return null;
+	}
 }

@@ -19,6 +19,7 @@ package org.springframework.integration.support.json;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  * Strategy interface to convert an Object to/from the JSON representation.
@@ -29,6 +30,12 @@ import java.lang.reflect.Type;
  */
 public interface JsonObjectMapper<P> {
 
+	String CLASSID = "javaTypeId";
+
+	String CONTENT_CLASSID = "javaContentTypeId";
+
+	String KEY_CLASSID = "javaKeyTypeId";
+
 	String toJson(Object value) throws Exception;
 
 	void toJson(Object value, Writer writer) throws Exception;
@@ -37,6 +44,10 @@ public interface JsonObjectMapper<P> {
 
 	<T> T fromJson(Reader json, Class<T> valueType) throws Exception;
 
+	<T> T fromJson(String json, Map<String, Object> javaTypeProperties) throws Exception;
+
 	<T> T fromJson(P parser, Type valueType) throws Exception;
+
+	Map<String, String> getJavaTypeProperties(Class<?> valueClass) throws Exception;
 
 }
