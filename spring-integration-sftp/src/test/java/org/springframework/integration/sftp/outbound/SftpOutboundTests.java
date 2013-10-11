@@ -99,8 +99,11 @@ public class SftpOutboundTests {
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 
-		handler.handleMessage(new GenericMessage<String>("hello"));
+		handler.handleMessage(new GenericMessage<String>("String data"));
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
+		byte[] inFile = FileCopyUtils.copyToByteArray(file);
+		assertEquals("String data", new String(inFile));
+		file.delete();
 	}
 
 	@Test
@@ -116,8 +119,11 @@ public class SftpOutboundTests {
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 
-		handler.handleMessage(new GenericMessage<byte[]>("hello".getBytes()));
+		handler.handleMessage(new GenericMessage<byte[]>("byte[] data".getBytes()));
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
+		byte[] inFile = FileCopyUtils.copyToByteArray(file);
+		assertEquals("byte[] data", new String(inFile));
+		file.delete();
 	}
 
 	@Test //INT-2275
