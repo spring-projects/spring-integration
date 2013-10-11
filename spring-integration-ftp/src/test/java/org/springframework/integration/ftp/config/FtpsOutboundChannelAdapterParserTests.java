@@ -17,7 +17,6 @@
 package org.springframework.integration.ftp.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -47,7 +46,6 @@ public class FtpsOutboundChannelAdapterParserTests {
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(handler, "sessionFactory", DefaultFtpsSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(sf, "port"));
