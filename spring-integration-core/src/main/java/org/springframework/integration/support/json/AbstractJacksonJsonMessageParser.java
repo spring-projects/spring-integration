@@ -16,6 +16,8 @@
 
 package org.springframework.integration.support.json;
 
+import java.lang.reflect.Type;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -68,7 +70,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 		Class<?> headerType = this.messageMapper.getHeaderTypes().containsKey(headerName) ?
 				this.messageMapper.getHeaderTypes().get(headerName) : Object.class;
 		try {
-			return this.objectMapper.fromJson(parser, headerType);
+			return this.objectMapper.fromJson(parser, (Type) headerType);
 		}
 		catch (Exception e) {
 			throw new IllegalArgumentException("Mapping header '" + headerName + "' of JSON message '" +
