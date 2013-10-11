@@ -62,7 +62,7 @@ public class GroovyRefreshTests {
 			super.setValue(new CycleResource());
 		}
 	}
-	
+
 	private static class CycleResource extends AbstractResource {
 
 		private int count = -1;
@@ -71,12 +71,12 @@ public class GroovyRefreshTests {
 		public String getDescription() {
 			return "CycleResource";
 		}
-		
+
 		@Override
 		public String getFilename() throws IllegalStateException {
 			return "CycleResource";
 		}
-		
+
 		@Override
 		public long lastModified() throws IOException {
 			return -1;
@@ -88,6 +88,6 @@ public class GroovyRefreshTests {
 			}
 			return new ByteArrayInputStream(scripts[count].getBytes());
 		}
-		
+
 	}
 }

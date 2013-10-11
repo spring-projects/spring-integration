@@ -47,11 +47,11 @@
     </tip>
   </section>
 
-  <section>
+  <section id="amqp-inbound-channel-adapter">
     <title>Inbound Channel Adapter</title>
 
     <para>A configuration sample for an AMQP Inbound Channel Adapter is shown
-          below with all available parameters.</para>
+          below.</para>
     <programlisting language="xml"><![CDATA[<int-amqp:inbound-channel-adapter id="inboundAmqp"]]><co                id="amqp-inbound-channel-adapter-xml-01-co" linkends="amqp-inbound-channel-adapter-xml-01" /><![CDATA[
                                   channel="inboundChannel"]]><co        id="amqp-inbound-channel-adapter-xml-02-co" linkends="amqp-inbound-channel-adapter-xml-02" /><![CDATA[
                                   queue-names="si.test.queue"]]><co     id="amqp-inbound-channel-adapter-xml-03-co" linkends="amqp-inbound-channel-adapter-xml-03" /><![CDATA[
@@ -165,7 +165,20 @@ this list can also be simple patterns to be matched against the header names (e.
                       core responsibility of this Channel Adapter implementation,
                       the referenced listener container must NOT already have its
                       own MessageListener configured.
-                <emphasis>Optional</emphasis>.</para>
+                <emphasis>Optional</emphasis>.
+                <note>
+                  Note that when configuring an external container, you cannot use the <emphasis role="bold">Spring AMQP</emphasis>
+                  namespace to define the container. This is because the namespace requires at least one <code>&lt;listener/&gt;</code>
+                  element. In this environment, the listener is internal to the adapter. For this reason, you must define
+                  the container using a normal Spring <code>&lt;bean/&gt;</code> definition, such as:
+                  <programlisting language="xml"><![CDATA[
+<bean id="container"
+ class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+	<property name="connectionFactory" ref="connectionFactory" />
+	<property name="queueNames" value="foo.queue" />
+	<property name="defaultRequeueRejected" value="false"/>
+</bean>]]></programlisting>
+                </note></para>
             </callout>
             <callout arearefs="amqp-inbound-channel-adapter-xml-15-co" id="amqp-inbound-channel-adapter-xml-15">
                 <para>The MessageConverter to use when receiving AMQP Messages.
@@ -273,7 +286,7 @@ this list can also be simple patterns to be matched against the header names (e.
     <title>Outbound Channel Adapter</title>
 
     <para>A configuration sample for an AMQP Outbound Channel Adapter is shown
-          below with all available parameters.</para>
+          below.</para>
     <programlisting language="xml"><![CDATA[<int-amqp:outbound-channel-adapter id="outboundAmqp"]]><co              id="amqp-outbound-channel-adapter-xml-1-co" linkends="amqp-outbound-channel-adapter-xml-1" /><![CDATA[
                                channel="outboundChannel"]]><co      id="amqp-outbound-channel-adapter-xml-2-co" linkends="amqp-outbound-channel-adapter-xml-2" /><![CDATA[
                                amqp-template="myAmqpTemplate"]]><co id="amqp-outbound-channel-adapter-xml-3-co" linkends="amqp-outbound-channel-adapter-xml-3" /><![CDATA[
@@ -368,7 +381,7 @@ this list can also be simple patterns to be matched against the header names (e.
   <section>
       <title>Inbound Gateway</title>
       <para>A configuration sample for an AMQP Inbound Gateway is shown
-            below with all available parameters.</para>
+            below.</para>
       <programlisting language="xml"><![CDATA[<int-amqp:inbound-gateway id="inboundGateway"]]><co                    id="amqp-inbound-gateway-adapter-xml-1-co" linkends="amqp-inbound-gateway-adapter-xml-1" /><![CDATA[
                           request-channel="myRequestChannel"]]><co     id="amqp-inbound-gateway-adapter-xml-2-co" linkends="amqp-inbound-gateway-adapter-xml-2" /><![CDATA[
                           queue-names="si.test.queue"]]><co            id="amqp-inbound-gateway-adapter-xml-3-co" linkends="amqp-inbound-gateway-adapter-xml-3" /><![CDATA[
@@ -415,12 +428,16 @@ this list can also be simple patterns to be matched against the header names (e.
               </callout>
           </calloutlist>
       </para>
+      <para>
+        See the note in <xref linkend="amqp-inbound-channel-adapter"/> about configuring the <code>listener-container</code>
+        attribute.
+      </para>
   </section>
 
   <section>
       <title>Outbound Gateway</title>
       <para>A configuration sample for an AMQP Outbound Gateway is shown
-            below with all available parameters.</para>
+            below.</para>
       <programlisting language="xml"><![CDATA[<int-amqp:outbound-gateway id="inboundGateway"]]><co                id="amqp-outbound-gateway-adapter-xml-1-co" linkends="amqp-outbound-gateway-adapter-xml-1" /><![CDATA[
                            request-channel="myRequestChannel"]]><co id="amqp-outbound-gateway-adapter-xml-2-co" linkends="amqp-outbound-gateway-adapter-xml-2" /><![CDATA[
                            amqp-template=""]]><co                   id="amqp-outbound-gateway-adapter-xml-3-co" linkends="amqp-outbound-gateway-adapter-xml-3" /><![CDATA[

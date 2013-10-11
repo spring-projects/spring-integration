@@ -16,9 +16,12 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.*;
-import groovy.lang.GroovyObject;
-import groovy.lang.MissingPropertyException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -43,6 +46,9 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import groovy.lang.GroovyObject;
+import groovy.lang.MissingPropertyException;
 
 /**
  * @author Mark Fisher

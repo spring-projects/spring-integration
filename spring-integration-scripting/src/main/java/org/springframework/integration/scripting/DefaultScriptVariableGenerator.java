@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,10 @@ import org.springframework.messaging.Message;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * A default {@link ScriptVariableGenerator} implementation; used by script processors.
+ * The result of {@link #generateScriptVariables(Message)} is a {@link Map} of any provided {@code variables}
+ * plus {@code payload} and {@code headers} from the {@code Message} argument.
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0.2
@@ -53,7 +57,7 @@ public class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
 		if (!CollectionUtils.isEmpty(this.variableMap)) {
 			for (Map.Entry<String, Object> entry : this.variableMap.entrySet()) {
 				scriptVariables.put(entry.getKey(), entry.getValue());
-			}		
+			}
 		}
 		return scriptVariables;
 	}
