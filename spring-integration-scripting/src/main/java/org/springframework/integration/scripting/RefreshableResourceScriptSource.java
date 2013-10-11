@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.scripting.support.ResourceScriptSource;
 /**
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class RefreshableResourceScriptSource implements ScriptSource {
@@ -51,7 +52,10 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 	}
 
 	public String getScriptAsString() throws IOException {
-		this.script = source.getScriptAsString();
+		if (this.script == null || this.isModified()) {
+			this.lastModifiedChecked.set(System.currentTimeMillis());
+			this.script = source.getScriptAsString();
+		}
 		return this.script;
 	}
 
@@ -60,15 +64,14 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 	}
 
 	public boolean isModified() {
-		if (this.refreshDelay < 0) {
-			return false;
-		}
-		long time = System.currentTimeMillis();
-		if (this.refreshDelay == 0 || (time - this.lastModifiedChecked.get()) > this.refreshDelay) {
-			this.lastModifiedChecked.set(time);
-			return this.source.isModified();
-		}
-		return false;
+		return this.refreshDelay >= 0 &&
+				(System.currentTimeMillis() - this.lastModifiedChecked.get()) > this.refreshDelay &&
+				this.source.isModified();
+	}
+
+	@Override
+	public String toString() {
+		return this.source.toString();
 	}
 
 }
