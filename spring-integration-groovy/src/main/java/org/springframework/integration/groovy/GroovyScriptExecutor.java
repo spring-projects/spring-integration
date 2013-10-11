@@ -97,8 +97,11 @@ public class GroovyScriptExecutor implements ScriptExecutor, BeanFactoryAware, B
 			try {
 				this.scriptLock.lockInterruptibly();
 				try {
-					this.scriptClass = this.groovyClassLoader.parseClass(
-							scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
+					// synchronized double check
+					if (this.scriptClass == null || scriptSource.isModified()) {
+						this.scriptClass = this.groovyClassLoader.parseClass(
+								scriptSource.getScriptAsString(), scriptSource.suggestedClassName());
+					}
 				}
 				finally {
 					this.scriptLock.unlock();
