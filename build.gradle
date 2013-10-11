@@ -64,7 +64,8 @@ subprojects { subproject ->
 
 		springAmqpVersion = '1.2.0.RELEASE'
 		springDataMongoVersion = '1.1.1.RELEASE'
-		springDataRedisVersion = '1.0.5.RELEASE'
+		springDataRedisVersion = '1.1.0.RELEASE'
+		lettuceVersion = '2.3.3'
 		springGemfireVersion = '1.3.1.RELEASE'
 		springSecurityVersion = '3.1.3.RELEASE'
 		springSocialTwitterVersion = '1.0.5.RELEASE'
@@ -436,7 +437,7 @@ project('spring-integration-redis') {
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		testCompile project(":spring-integration-test")
-		testCompile 'com.lambdaworks:lettuce:2.3.3'
+		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 	}
 }
 
@@ -539,6 +540,7 @@ project('spring-integration-twitter') {
 		testCompile project(":spring-integration-test")
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
+		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 	}
 }
 

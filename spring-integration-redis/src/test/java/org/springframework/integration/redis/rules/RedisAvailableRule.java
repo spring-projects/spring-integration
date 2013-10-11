@@ -15,8 +15,7 @@
  */
 package org.springframework.integration.redis.rules;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.junit.Assume;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -27,49 +26,59 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
- *
  */
 public final class RedisAvailableRule implements MethodRule {
 
-	private static final Log logger = LogFactory.getLog(RedisAvailableRule.class);
-
-	public static final int REDIS_PORT = 7379;
+	public static final int REDIS_PORT = 6379;
 
 	static ThreadLocal<LettuceConnectionFactory> connectionFactoryResource = new ThreadLocal<LettuceConnectionFactory>();
 
 	public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
-		return new Statement(){
+		RedisAvailable redisAvailable = method.getAnnotation(RedisAvailable.class);
+		if (redisAvailable != null) {
+			LettuceConnectionFactory connectionFactory = null;
+			try {
+				connectionFactory = new LettuceConnectionFactory();
+				connectionFactory.setPort(REDIS_PORT);
+				connectionFactory.afterPropertiesSet();
+				connectionFactory.getConnection();
+				connectionFactoryResource.set(connectionFactory);
+			}
+			catch (Exception e) {
+				if (connectionFactory != null) {
+					connectionFactory.destroy();
+				}
+				return new Statement() {
+					@Override
+					public void evaluate() throws Throwable {
+						Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT, false);
+					}
+				};
+			}
 
-			@Override
-			public void evaluate() throws Throwable {
-				RedisAvailable redisAvailable = method.getAnnotation(RedisAvailable.class);
-				if (redisAvailable != null){
+			return new Statement() {
+				@Override
+				public void evaluate() throws Throwable {
 					try {
-
-						LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-						connectionFactory.setPort(REDIS_PORT);
-						connectionFactory.afterPropertiesSet();
-						connectionFactory.getConnection();
-						connectionFactoryResource.set(connectionFactory);
-					} catch (Exception e) {
-						if (logger.isWarnEnabled()) {
-							logger.warn(String.format("Redis is not available on " +
-									"port '%s'. Skipping the test.", REDIS_PORT));
+						base.evaluate();
+					}
+					finally {
+						LettuceConnectionFactory connectionFactory = connectionFactoryResource.get();
+						connectionFactoryResource.remove();
+						if (connectionFactory != null) {
+							connectionFactory.destroy();
 						}
-						return;
 					}
 				}
-				try {
-					base.evaluate();
-				}
-				finally {
-					LettuceConnectionFactory connectionFactory = connectionFactoryResource.get();
-					connectionFactory.destroy();
-					connectionFactoryResource.remove();
-				}
+			};
+		}
+
+		return new Statement() {
+			@Override
+			public void evaluate() throws Throwable {
+				base.evaluate();
 			}
 		};
-
 	}
 
 }

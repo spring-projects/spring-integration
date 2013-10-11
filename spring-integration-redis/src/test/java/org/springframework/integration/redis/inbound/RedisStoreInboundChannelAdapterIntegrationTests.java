@@ -19,6 +19,7 @@ package org.springframework.integration.redis.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -214,14 +215,17 @@ public class RedisStoreInboundChannelAdapterIntegrationTests extends RedisAvaila
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().rangeByScore(18, 18).size());
 
-		//TODO Lettuce client returns result of asyncCommand earlier, then command is delivered to Redis server.
-		Thread.sleep(1000);
-
 		// ... however other elements are still available 13-2=11
 		zsetAdapterNoScore.start();
 		message = (Message<RedisZSet<Object>>) redisChannel.receive(1000);
 		assertNotNull(message);
-		assertEquals(11, message.getPayload().size());
+
+		int n = 0;
+		while(n++ < 100 && message.getPayload().size() != 11) {
+			Thread.sleep(100);
+		}
+		assertTrue(n < 100);
+
 		zsetAdapterNoScore.stop();
 
 		context.close();
