@@ -217,7 +217,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			});
 		}
 		executor.shutdown();
-		assertTrue(executor.awaitTermination(3, TimeUnit.SECONDS));
+		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
 
 		assertTrue(var2.get() > 1);
 
