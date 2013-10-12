@@ -110,8 +110,6 @@ public class InboundEndpointTests {
 
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		org.springframework.amqp.core.Message amqpMessage = new JsonMessageConverter().toMessage(payload, amqpMessageProperties);
-		// TODO org.springframework.amqp.support.converter.SimpleMessageConverter should support 'application/json' contentType too.
-		amqpMessageProperties.setContentType("text/json");
 
 		MessageListener listener = (MessageListener) container.getMessageListener();
 		listener.onMessage(amqpMessage);

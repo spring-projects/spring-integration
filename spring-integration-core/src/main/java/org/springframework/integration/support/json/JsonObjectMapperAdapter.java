@@ -16,10 +16,8 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,12 +39,7 @@ public abstract class JsonObjectMapperAdapter<P> implements JsonObjectMapper<P> 
 	}
 
 	@Override
-	public <T> T fromJson(String json, Class<T> valueType) throws Exception {
-		return null;
-	}
-
-	@Override
-	public <T> T fromJson(Reader json, Class<T> valueType) throws Exception {
+	public <T> T fromJson(Object json, Class<T> valueType) throws Exception {
 		return null;
 	}
 
@@ -56,12 +49,12 @@ public abstract class JsonObjectMapperAdapter<P> implements JsonObjectMapper<P> 
 	}
 
 	@Override
-	public Map<String, String> getJavaTypeProperties(Class<?> valueClass) throws Exception {
-		return new HashMap<String, String>();
+	public <T> T fromJson(Object json, Map<String, Object> javaTypes) throws Exception {
+		return null;
 	}
 
 	@Override
-	public <T> T fromJson(String json, Map<String, Object> javaTypeProperties) throws Exception {
-		return null;
+	public void populateJavaTypes(Map<String, Object> map, Class<?> sourceClass) {
 	}
+
 }

@@ -110,7 +110,7 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 			headers.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 		}
 
-		headers.putAll(this.jsonObjectMapper.getJavaTypeProperties(message.getPayload().getClass()));
+		this.jsonObjectMapper.populateJavaTypes(headers, message.getPayload().getClass());
 
 		messageBuilder.copyHeaders(headers);
 		return messageBuilder.build();

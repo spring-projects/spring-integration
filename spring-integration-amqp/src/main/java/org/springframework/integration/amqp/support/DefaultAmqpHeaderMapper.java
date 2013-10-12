@@ -24,9 +24,9 @@ import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.support.converter.AbstractJavaTypeMapper;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
+import org.springframework.integration.json.JsonHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.util.StringUtils;
 
@@ -54,8 +54,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
-	private static final Map<String, String> JAVA_TYPE_HEADERS = new HashMap<String, String>(3);
-
 	static {
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.APP_ID);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.CLUSTER_ID);
@@ -75,15 +73,11 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.TIMESTAMP);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.TYPE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
+		STANDARD_HEADER_NAMES.add(JsonHeaders.TYPE_ID);
+		STANDARD_HEADER_NAMES.add(JsonHeaders.CONTENT_TYPE_ID);
+		STANDARD_HEADER_NAMES.add(JsonHeaders.KEY_TYPE_ID);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_CORRELATION);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_TO_STACK);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.CLASSID);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_CLASSID);
-		STANDARD_HEADER_NAMES.add(AmqpHeaders.KEY_CLASSID);
-
-		JAVA_TYPE_HEADERS.put(AmqpHeaders.CLASSID, AbstractJavaTypeMapper.DEFAULT_CLASSID_FIELD_NAME);
-		JAVA_TYPE_HEADERS.put(AmqpHeaders.CONTENT_CLASSID, AbstractJavaTypeMapper.DEFAULT_CONTENT_CLASSID_FIELD_NAME);
-		JAVA_TYPE_HEADERS.put(AmqpHeaders.KEY_CLASSID, AbstractJavaTypeMapper.DEFAULT_KEY_CLASSID_FIELD_NAME);
 	}
 
 	/**
@@ -170,6 +164,13 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 				headers.put(AmqpHeaders.USER_ID, userId);
 			}
 
+			for (String jsonHeader : JsonHeaders.HEADERS) {
+				Object value = amqpMessageProperties.getHeaders().get(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""));
+				if (value instanceof String && StringUtils.hasText((String) value)) {
+					headers.put(jsonHeader, value);
+				}
+			}
+
 			Object replyCorrelation = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER);
 			if (replyCorrelation instanceof String) {
 				if (StringUtils.hasText((String) replyCorrelation)) {
@@ -199,13 +200,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		Map<String, Object> headers = amqpMessageProperties.getHeaders();
 		headers.remove(AmqpHeaders.STACKED_CORRELATION_HEADER);
 		headers.remove(AmqpHeaders.STACKED_REPLY_TO_HEADER);
-
-		for (Map.Entry<String, String> entry : JAVA_TYPE_HEADERS.entrySet()) {
-			Object value = amqpMessageProperties.getHeaders().get(entry.getValue());
-			if (value != null) {
-				headers.put(entry.getKey(), value);
-			}
-		}
 
 		return headers;
 	}
@@ -294,12 +288,14 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			amqpMessageProperties.setUserId(userId);
 		}
 
-		for (Map.Entry<String, String> entry : JAVA_TYPE_HEADERS.entrySet()) {
-			String key = entry.getKey();
-			Object value = getHeaderIfAvailable(headers, key, Object.class);
+		for (String jsonHeader : JsonHeaders.HEADERS) {
+			Object value = getHeaderIfAvailable(headers, jsonHeader, Object.class);
 			if (value != null) {
-				headers.remove(key);
-				amqpMessageProperties.setHeader(entry.getValue(), value);
+				headers.remove(jsonHeader);
+				if (value instanceof Class<?>) {
+					value = ((Class<?>) value).getName();
+				}
+				amqpMessageProperties.setHeader(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
 			}
 		}
 

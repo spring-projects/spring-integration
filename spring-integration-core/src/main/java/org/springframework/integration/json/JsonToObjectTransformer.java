@@ -16,7 +16,9 @@
 
 package org.springframework.integration.json;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.Message;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
@@ -37,7 +39,7 @@ import org.springframework.util.ClassUtils;
  * @see JacksonJsonObjectMapperProvider
  * @since 2.0
  */
-public class JsonToObjectTransformer extends AbstractTransformer {
+public class JsonToObjectTransformer extends AbstractTransformer implements BeanClassLoaderAware {
 
 	private final Class<?> targetClass;
 
@@ -84,13 +86,23 @@ public class JsonToObjectTransformer extends AbstractTransformer {
 	}
 
 	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		if (this.jsonObjectMapper instanceof BeanClassLoaderAware) {
+			((BeanClassLoaderAware) this.jsonObjectMapper).setBeanClassLoader(classLoader);
+		}
+	}
+
+	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
-		String payload = (String) message.getPayload();
 		if (this.targetClass != null) {
-			return this.jsonObjectMapper.fromJson(payload, this.targetClass);
+			return this.jsonObjectMapper.fromJson(message.getPayload(), this.targetClass);
 		}
 		else {
-			return this.jsonObjectMapper.fromJson(payload, message.getHeaders());
+			Object result = this.jsonObjectMapper.fromJson(message.getPayload(), message.getHeaders());
+			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(result)
+					.copyHeaders(message.getHeaders())
+					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]));
+			return messageBuilder.build();
 		}
 	}
 

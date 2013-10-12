@@ -16,19 +16,21 @@
 
 package org.springframework.integration.support.json;
 
+import java.io.File;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.JavaType;
 
+import org.springframework.integration.json.JsonHeaders;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Jackson JSON-processor (@link http://jackson.codehaus.org) {@linkplain JsonObjectMapper} implementation.
@@ -38,7 +40,7 @@ import org.springframework.util.ClassUtils;
  * @author Artem Bilan
  * @since 3.0
  */
-public class JacksonJsonObjectMapper implements JsonObjectMapper<JsonParser> {
+public class JacksonJsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonParser, JavaType> {
 
 	private final ObjectMapper objectMapper;
 
@@ -51,6 +53,7 @@ public class JacksonJsonObjectMapper implements JsonObjectMapper<JsonParser> {
 		this.objectMapper = objectMapper;
 	}
 
+	@Override
 	public String toJson(Object value) throws Exception {
 		return this.objectMapper.writeValueAsString(value);
 	}
@@ -60,67 +63,72 @@ public class JacksonJsonObjectMapper implements JsonObjectMapper<JsonParser> {
 		this.objectMapper.writeValue(writer, value);
 	}
 
-	public <T> T fromJson(String json, Class<T> valueType) throws Exception {
-		return this.objectMapper.readValue(json, valueType);
-	}
-
-	@Override
-	public <T> T fromJson(String json, Map<String, Object> javaTypeProperties) throws Exception {
-		JavaType javaType = this.extractJavaType(javaTypeProperties);
-		return this.objectMapper.readValue(json, javaType);
-	}
-
-	@Override
-	public <T> T fromJson(Reader json, Class<T> valueType) throws Exception {
-		return this.objectMapper.readValue(json, valueType);
-	}
-
 	@Override
 	public <T> T fromJson(JsonParser parser, Type valueType) throws Exception {
-		return this.objectMapper.readValue(parser, this.objectMapper.constructType(valueType));
+		return this.objectMapper.readValue(parser, this.constructType(valueType));
 	}
 
 	@Override
-	public Map<String, String> getJavaTypeProperties(Class<?> valueClass) throws Exception {
-		JavaType javaType = this.objectMapper.constructType(valueClass);
-		Map<String, String> properties = new HashMap<String, String>();
-		properties.put(CLASSID, javaType.getRawClass().getName());
+	protected <T> T fromJson(Object json, JavaType type) throws Exception {
+		if (json instanceof String) {
+			return this.objectMapper.readValue((String) json, type);
+		}
+		else if(json instanceof byte[]) {
+			return this.objectMapper.readValue((byte[]) json, type);
+		}
+		else if (json instanceof File) {
+			return this.objectMapper.readValue((File) json, type);
+		}
+		else if (json instanceof URL) {
+			return this.objectMapper.readValue((URL) json, type);
+		}
+		else if (json instanceof InputStream) {
+			return this.objectMapper.readValue((InputStream) json, type);
+		}
+		else if (json instanceof Reader) {
+			return this.objectMapper.readValue((Reader) json, type);
+		}
+		else {
+			throw new IllegalArgumentException("'json' argument must be an instance of: " + supportedJsonTypes);
+		}
+	}
+
+	@Override
+	public void populateJavaTypes(Map<String, Object> map, Class<?> sourceClass) {
+		JavaType javaType = this.constructType(sourceClass);
+		map.put(JsonHeaders.TYPE_ID, javaType.getRawClass());
 
 		if (javaType.isContainerType() && !javaType.isArrayType()) {
-			properties.put(CONTENT_CLASSID, javaType.getContentType().getRawClass().getName());
+			map.put(JsonHeaders.CONTENT_TYPE_ID, javaType.getContentType().getRawClass());
 		}
 
 		if (javaType.getKeyType() != null) {
-			properties.put(KEY_CLASSID, javaType.getKeyType().getRawClass().getName());
+			map.put(JsonHeaders.KEY_TYPE_ID, javaType.getKeyType().getRawClass());
 		}
-		return properties;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private JavaType extractJavaType(Map<String, Object> javaTypeProperties) throws Exception {
-		JavaType classType = this.getClassIdType(javaTypeProperties, CLASSID);
+	@Override
+	protected JavaType constructType(Type type) {
+		return this.objectMapper.constructType(type);
+	}
+
+	@Override
+	@SuppressWarnings({ "unchecked" })
+	protected JavaType extractJavaType(Map<String, Object> javaTypes) throws Exception {
+		JavaType classType = this.createJavaType(javaTypes, JsonHeaders.TYPE_ID);
 		if (!classType.isContainerType() || classType.isArrayType()) {
 			return classType;
 		}
 
-		JavaType contentClassType = this.getClassIdType(javaTypeProperties, CONTENT_CLASSID);
+		JavaType contentClassType = this.createJavaType(javaTypes, JsonHeaders.CONTENT_TYPE_ID);
 		if (classType.getKeyType() == null) {
 			return this.objectMapper.getTypeFactory()
 					.constructCollectionType((Class<? extends Collection>) classType.getRawClass(), contentClassType);
 		}
 
-		JavaType keyClassType = this.getClassIdType(javaTypeProperties, KEY_CLASSID);
+		JavaType keyClassType = this.createJavaType(javaTypes, JsonHeaders.KEY_TYPE_ID);
 		return this.objectMapper.getTypeFactory()
 				.constructMapType((Class<? extends Map>) classType.getRawClass(), keyClassType, contentClassType);
-	}
-
-	private JavaType getClassIdType(Map<String, Object> javaTypeProperties, String javaTypeKey) throws Exception {
-		Object classId = javaTypeProperties.get(javaTypeKey);
-		if (classId == null) {
-			throw new IllegalArgumentException("Could not resolve '" + javaTypeKey + "' in 'javaTypeProperties'.");
-		} else {
-			return this.objectMapper.constructType(ClassUtils.forName(classId.toString(), this.getClass().getClassLoader()));
-		}
 	}
 
 }

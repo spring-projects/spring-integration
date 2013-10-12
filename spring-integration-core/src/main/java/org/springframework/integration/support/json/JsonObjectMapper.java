@@ -16,7 +16,6 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -30,24 +29,15 @@ import java.util.Map;
  */
 public interface JsonObjectMapper<P> {
 
-	String CLASSID = "javaTypeId";
-
-	String CONTENT_CLASSID = "javaContentTypeId";
-
-	String KEY_CLASSID = "javaKeyTypeId";
-
 	String toJson(Object value) throws Exception;
 
 	void toJson(Object value, Writer writer) throws Exception;
 
-	<T> T fromJson(String json, Class<T> valueType) throws Exception;
+	<T> T fromJson(Object json, Class<T> valueType) throws Exception;
 
-	<T> T fromJson(Reader json, Class<T> valueType) throws Exception;
-
-	<T> T fromJson(String json, Map<String, Object> javaTypeProperties) throws Exception;
+	<T> T fromJson(Object json, Map<String, Object> javaTypes) throws Exception;
 
 	<T> T fromJson(P parser, Type valueType) throws Exception;
 
-	Map<String, String> getJavaTypeProperties(Class<?> valueClass) throws Exception;
-
+	void populateJavaTypes(Map<String, Object> map, Class<?> sourceClass);
 }
