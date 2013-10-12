@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.ftp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -46,7 +45,6 @@ public class FtpsOutboundChannelAdapterParserTests {
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		CachingSessionFactory<?> cacheSf = TestUtils.getPropertyValue(handler, "sessionFactory", CachingSessionFactory.class);
 		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(cacheSf, "sessionFactory", DefaultFtpsSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));

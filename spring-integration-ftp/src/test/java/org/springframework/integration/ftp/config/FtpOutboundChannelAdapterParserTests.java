@@ -16,16 +16,17 @@
 
 package org.springframework.integration.ftp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -70,7 +71,6 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "directoryExpressionProcessor"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectoryExpressionProcessor"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		Object sfProperty = TestUtils.getPropertyValue(handler, "sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, sfProperty.getClass());
 		DefaultFtpSessionFactory sessionFactory = (DefaultFtpSessionFactory) sfProperty;
