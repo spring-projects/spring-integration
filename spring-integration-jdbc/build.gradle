@@ -26,7 +26,7 @@ task generateSql {
     doLast {
         ['hsqldb', 'h2', 'db2', 'derby', 'mysql', 'mysql-5_6_4',
          'oracle10g', 'postgresql', 'sqlserver', 'sybase'].each { dbType ->
-            ant.vppcopy(todir: generatedResourcesDir, overwrite: 'true') {
+            ant.vppcopy(todir: generatedResourcesDir) {
                 config {
                     context {
                         property key: 'includes', value: 'src/main/sql'
@@ -45,3 +45,7 @@ task generateSql {
 
 // tie schema generation to the build lifecycle
 compileJava.dependsOn generateSql
+
+task cleanSql (type: Delete) {
+	delete fileTree(dir: 'src/main/resources/org/springframework/integration/jdbc').include('*.sql').exclude('config', 'store/channel')
+}
