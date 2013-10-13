@@ -16,9 +16,9 @@ ext {
 	linkHomepage = 'http://www.springintegration.org/'
 	linkCi       = 'https://build.springsource.org/browse/INT'
 	linkIssue    = 'https://jira.springsource.org/browse/INT'
-	linkScmUrl           = 'https://github.com/SpringSource/spring-integration'
-	linkScmConnection    = 'git://github.com/SpringSource/spring-integration.git'
-	linkScmDevConnection = 'git@github.com:SpringSource/spring-integration.git'
+	linkScmUrl           = 'https://github.com/spring-projects/spring-integration'
+	linkScmConnection    = 'git://github.com/spring-projects/spring-integration.git'
+	linkScmDevConnection = 'git@github.com:spring-projects/spring-integration.git'
 }
 
 allprojects {
