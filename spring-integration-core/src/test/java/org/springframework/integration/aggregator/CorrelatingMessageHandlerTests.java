@@ -16,10 +16,19 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,14 +44,6 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Iwein Fuld
@@ -104,7 +105,7 @@ public class CorrelatingMessageHandlerTests {
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 
 		handler.setExpireGroupsUponCompletion(true);
-		
+
 		handler.handleMessage(message1);
 
 		try {
@@ -147,10 +148,9 @@ public class CorrelatingMessageHandlerTests {
 			}
 		});
 
-		Thread.sleep(20);
-		assertEquals(0, store.expireMessageGroups(10000));
+		assertTrue(bothMessagesHandled.await(10, TimeUnit.SECONDS));
 
-		bothMessagesHandled.await();
+		assertEquals(0, store.expireMessageGroups(10000));
 	}
 
 	@Test

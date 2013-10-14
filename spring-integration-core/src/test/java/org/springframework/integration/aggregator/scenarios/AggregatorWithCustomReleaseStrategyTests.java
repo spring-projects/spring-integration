@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,9 @@
  */
 package org.springframework.integration.aggregator.scenarios;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -23,9 +26,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
@@ -79,11 +79,11 @@ public class AggregatorWithCustomReleaseStrategyTests {
 
 		assertTrue("Sends failed to complete", latch.await(10, TimeUnit.SECONDS));
 
-		Message<?> message = resultChannel.receive(10);
+		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
 		while(message != null){
 			counter++;
-			message = resultChannel.receive(10);
+			message = resultChannel.receive(1000);
 		}
 		assertEquals(600, counter);
 	}
@@ -119,10 +119,10 @@ public class AggregatorWithCustomReleaseStrategyTests {
 
 		assertTrue("Sends failed to complete", latch.await(10, TimeUnit.SECONDS));
 
-		Message<?> message = resultChannel.receive(10);
+		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
 		while(message != null && ++counter < 7200){
-			message = resultChannel.receive(10);
+			message = resultChannel.receive(1000);
 		}
 		assertEquals(7200, counter);
 	}
