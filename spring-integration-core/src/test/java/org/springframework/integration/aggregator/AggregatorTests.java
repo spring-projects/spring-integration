@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2011 the original author or authors.
- * 
+ * Copyright 2002-2013 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -18,9 +18,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -59,12 +56,12 @@ public class AggregatorTests {
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
 		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
-		CountDownLatch latch = new CountDownLatch(3);
+
 		this.aggregator.handleMessage(message1);
 		this.aggregator.handleMessage(message2);
 		this.aggregator.handleMessage(message3);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> reply = replyChannel.receive(2000);
+
+		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull(reply);
 		assertEquals(reply.getPayload(), 105);
 	}
@@ -77,7 +74,7 @@ public class AggregatorTests {
 		Message<?> message = createMessage(3, "ABC", 2, 1, replyChannel, null);
 		this.aggregator.handleMessage(message);
 		this.store.expireMessageGroups(-10000);
-		Message<?> reply = replyChannel.receive(100);
+		Message<?> reply = replyChannel.receive(1000);
 		assertNull("No message should have been sent normally", reply);
 		Message<?> discardedMessage = discardChannel.receive(1000);
 		assertNotNull("A message should have been discarded", discardedMessage);
@@ -93,7 +90,7 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message1);
 		this.aggregator.handleMessage(message2);
 		this.store.expireMessageGroups(-10000);
-		Message<?> reply = replyChannel.receive(0);
+		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());
 	}
@@ -115,11 +112,11 @@ public class AggregatorTests {
 		aggregator.handleMessage(message4);
 		aggregator.handleMessage(message2);
 		@SuppressWarnings("unchecked")
-		Message<Integer> reply1 = (Message<Integer>) replyChannel1.receive(500);
+		Message<Integer> reply1 = (Message<Integer>) replyChannel1.receive(1000);
 		assertNotNull(reply1);
 		assertThat(reply1.getPayload(), is(105));
 		@SuppressWarnings("unchecked")
-		Message<Integer> reply2 = (Message<Integer>) replyChannel2.receive(500);
+		Message<Integer> reply2 = (Message<Integer>) replyChannel2.receive(1000);
 		assertNotNull(reply2);
 		assertThat(reply2.getPayload(), is(2431));
 	}
@@ -133,14 +130,14 @@ public class AggregatorTests {
 
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
-		assertEquals(1, replyChannel.receive(100).getPayload());
+		assertEquals(1, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(3, 2, 1, 1, replyChannel, null));
-		assertEquals(3, replyChannel.receive(100).getPayload());
+		assertEquals(3, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(4, 3, 1, 1, replyChannel, null));
-		assertEquals(4, replyChannel.receive(100).getPayload());
+		assertEquals(4, replyChannel.receive(1000).getPayload());
 		// next message with same correllation ID is discarded
 		this.aggregator.handleMessage(createMessage(2, 1, 1, 1, replyChannel, null));
-		assertEquals(2, discardChannel.receive(100).getPayload());
+		assertEquals(2, discardChannel.receive(1000).getPayload());
 	}
 
 	@Test
@@ -152,15 +149,15 @@ public class AggregatorTests {
 
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
-		assertEquals(1, replyChannel.receive(100).getPayload());
+		assertEquals(1, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(2, 2, 1, 1, replyChannel, null));
-		assertEquals(2, replyChannel.receive(100).getPayload());
+		assertEquals(2, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(3, 3, 1, 1, replyChannel, null));
-		assertEquals(3, replyChannel.receive(100).getPayload());
+		assertEquals(3, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(4, 4, 1, 1, replyChannel, null));
-		assertEquals(4, replyChannel.receive(100).getPayload());
+		assertEquals(4, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(5, 1, 1, 1, replyChannel, null));
-		assertEquals(5, replyChannel.receive(100).getPayload());
+		assertEquals(5, replyChannel.receive(1000).getPayload());
 		assertNull(discardChannel.receive(0));
 	}
 
@@ -177,15 +174,13 @@ public class AggregatorTests {
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
 		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
 		Message<?> message4 = createMessage(7, "ABC", 3, 3, replyChannel, null);
-		CountDownLatch latch = new CountDownLatch(4);
+
 		this.aggregator.handleMessage(message1);
 		this.aggregator.handleMessage(message2);
 		this.aggregator.handleMessage(message3);
 		this.aggregator.handleMessage(message4);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		// small wait to make sure the fourth message is received
-		Thread.sleep(10);
-		Message<?> reply = replyChannel.receive(0);
+
+		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull("A message should be aggregated", reply);
 		assertThat(((Integer) reply.getPayload()), is(105));
 	}
@@ -197,14 +192,14 @@ public class AggregatorTests {
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
 		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
 		Message<?> message4 = createMessage(7, "ABC", 3, 3, replyChannel, null);
-		CountDownLatch latch = new CountDownLatch(4);
+
 		this.aggregator.handleMessage(message1);
 		this.aggregator.handleMessage(message3);
 		// duplicated sequence number, either message3 or message4 should be rejected
 		this.aggregator.handleMessage(message4);
 		this.aggregator.handleMessage(message2);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> reply = replyChannel.receive(0);
+
+		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull("A message should be aggregated", reply);
 		assertThat(((Integer) reply.getPayload()), is(105));
 	}
@@ -219,7 +214,7 @@ public class AggregatorTests {
 		this.aggregator.handleMessage(message1);
 		this.aggregator.handleMessage(message2);
 		this.aggregator.handleMessage(message3);
-		Message<?> reply = replyChannel.receive(500);
+		Message<?> reply = replyChannel.receive(1000);
 		assertNull(reply);
 	}
 
