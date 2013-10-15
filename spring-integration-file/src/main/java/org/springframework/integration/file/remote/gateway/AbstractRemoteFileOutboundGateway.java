@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -170,7 +171,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private volatile String remoteFileSeparator = "/";
 
-	private volatile File localDirectory;
+	private volatile Expression localDirectoryExpression;
 
 	private volatile boolean autoCreateLocalDirectory = true;
 
@@ -225,7 +226,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param localDirectory the localDirectory to set
 	 */
 	public void setLocalDirectory(File localDirectory) {
-		this.localDirectory = localDirectory;
+		Assert.notNull(localDirectory, "localDirectory must not be null");
+		this.localDirectoryExpression = new LiteralExpression(localDirectory.getAbsolutePath());
+	}
+
+	public void setLocalDirectoryExpression(Expression localDirectoryExpression) {
+		this.localDirectoryExpression = localDirectoryExpression;
 	}
 
 	/**
@@ -271,28 +277,31 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		if (Command.GET.equals(this.command)
 				|| Command.MGET.equals(this.command)) {
-			Assert.notNull(this.localDirectory, "localDirectory must not be null");
-			try {
-				if (!this.localDirectory.exists()) {
-					if (this.autoCreateLocalDirectory) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
+			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
+			if (this.localDirectoryExpression instanceof LiteralExpression) {
+				File localDirectory = new File(this.localDirectoryExpression.getValue(String.class));
+				try {
+					if (!localDirectory.exists()) {
+						if (this.autoCreateLocalDirectory) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("The '" + localDirectory + "' directory doesn't exist; Will create.");
+							}
+							if (!localDirectory.mkdirs()) {
+								throw new IOException("Failed to make local directory: " + localDirectory);
+							}
 						}
-						if (!this.localDirectory.mkdirs()) {
-							throw new IOException("Failed to make local directory: " + this.localDirectory);
+						else {
+							throw new FileNotFoundException(localDirectory.getName());
 						}
-					}
-					else {
-						throw new FileNotFoundException(this.localDirectory.getName());
 					}
 				}
-			}
-			catch (RuntimeException e) {
-				throw e;
-			}
-			catch (Exception e) {
-				throw new MessagingException(
-						"Failure during initialization of: " + this.getComponentType(), e);
+				catch (RuntimeException e) {
+					throw e;
+				}
+				catch (Exception e) {
+					throw new MessagingException(
+							"Failure during initialization of: " + this.getComponentType(), e);
+				}
 			}
 		}
 		if (this.getBeanFactory() != null) {
@@ -341,12 +350,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Object doGet(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
-		String remoteFilename = getRemoteFilename(remoteFilePath);
-		String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
-		if (remoteDir.length() == 0) {
-			remoteDir = this.remoteFileSeparator;
-		}
-		File payload = get(requestMessage, session, remoteFilePath, remoteFilename, true);
+		String remoteFilename = this.getRemoteFilename(remoteFilePath);
+		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
+		File payload = this.get(requestMessage, session, remoteDir, remoteFilePath, remoteFilename, true);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
@@ -355,12 +361,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Object doMget(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
-		String remoteFilename = getRemoteFilename(remoteFilePath);
-		String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
-		if (remoteDir.length() == 0) {
-			remoteDir = this.remoteFileSeparator;
-		}
-		List<File> payload = mGet(requestMessage, session, remoteDir, remoteFilename);
+		String remoteFilename = this.getRemoteFilename(remoteFilePath);
+		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
+		List<File> payload = this.mGet(requestMessage, session, remoteDir, remoteFilename);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
@@ -369,12 +372,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Object doRm(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
-		String remoteFilename = getRemoteFilename(remoteFilePath);
-		String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
-		if (remoteDir.length() == 0) {
-			remoteDir = this.remoteFileSeparator;
-		}
-		boolean payload = rm(session, remoteFilePath);
+		String remoteFilename = this.getRemoteFilename(remoteFilePath);
+		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
+		boolean payload = this.rm(session, remoteFilePath);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
@@ -383,14 +383,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Object doMv(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
-		String remoteFilename = getRemoteFilename(remoteFilePath);
-		String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
+		String remoteFilename = this.getRemoteFilename(remoteFilePath);
+		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
 		String remoteFileNewPath = this.renameProcessor.processMessage(requestMessage);
 		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
-		if (remoteDir.length() == 0) {
-			remoteDir = this.remoteFileSeparator;
-		}
-		mv(session, remoteFilePath, remoteFileNewPath);
+
+		this.mv(session, remoteFilePath, remoteFileNewPath);
 		return MessageBuilder.withPayload(Boolean.TRUE)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 			.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
@@ -405,7 +403,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			Collection<F> filteredFiles = this.filterFiles(files);
 			for (F file : filteredFiles) {
 				if (file != null) {
-					if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
+					if (this.options.contains(Option.SUBDIRS) || !this.isDirectory(file)) {
 						lsFiles.add(file);
 					}
 				}
@@ -467,12 +465,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	/**
 	 * Copy a remote file to the configured local directory.
 	 *
+	 *
 	 * @param message
 	 * @param session
-	 * @param remoteFilePath
-	 * @throws IOException
+	 * @param remoteDir
+	 *@param remoteFilePath  @throws IOException
 	 */
-	protected File get(Message<?> message, Session<F> session, String remoteFilePath, String remoteFilename, boolean lsFirst)
+	protected File get(Message<?> message, Session<F> session, String remoteDir, String remoteFilePath, String remoteFilename, boolean lsFirst)
 			throws IOException {
 		F[] files = null;
 		if (lsFirst) {
@@ -481,7 +480,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				throw new MessagingException(remoteFilePath + " is not a file");
 			}
 		}
-		File localFile = new File(this.localDirectory, this.generateLocalFileName(message, remoteFilename));
+		File localFile = new File(this.generateLocalDirectory(message, remoteDir), this.generateLocalFileName(message, remoteFilename));
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
@@ -520,7 +519,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected List<File> mGet(Message<?> message, Session<F> session, String remoteDirectory,
 							  String remoteFilename) throws IOException {
-		String path = generateFullPath(remoteDirectory, remoteFilename);
+		String path = this.generateFullPath(remoteDirectory, remoteFilename);
 		String[] fileNames = session.listNames(path);
 		if (fileNames == null) {
 			fileNames = new String[0];
@@ -534,15 +533,24 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			File file;
 			if (fileName.contains(this.remoteFileSeparator) &&
 					fileName.startsWith(remoteDirectory)) { // the server returned the full path
-				file = this.get(message, session, fileName,
+				file = this.get(message, session, remoteDirectory, fileName,
 						fileName.substring(fileName.lastIndexOf(this.remoteFileSeparator)), false);
 			}
 			else {
-				file = this.get(message, session, generateFullPath(remoteDirectory, fileName), fileName, false);
+				file = this.get(message, session, remoteDirectory,
+						this.generateFullPath(remoteDirectory, fileName), fileName, false);
 			}
 			files.add(file);
 		}
 		return files;
+	}
+
+	private String getRemotePath(String remoteFilePath, String remoteFilename) {
+		String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
+		if (remoteDir.length() == 0) {
+			remoteDir = this.remoteFileSeparator;
+		}
+		return remoteDir;
 	}
 
 	private String generateFullPath(String remoteDirectory, String remoteFilename) {
@@ -586,6 +594,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			RemoteFileUtils.makeDirectories(remoteFileDirectory, session, this.remoteFileSeparator, this.logger);
 		}
 		session.rename(remoteFilePath, remoteFileNewPath);
+	}
+
+	private File generateLocalDirectory(Message<?> message, String remotePath) {
+		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		evaluationContext.setVariable("remotePath", remotePath);
+		// TODO Change 'desiredResultType' as 'File.class' after fix of SPR-10953.
+		File localDir = new File(this.localDirectoryExpression.getValue(evaluationContext, message, String.class));
+		if (!localDir.exists()) {
+			Assert.isTrue(localDir.mkdirs(), "Failed to make local directory: " + localDir);
+		}
+		return localDir;
 	}
 
 	private String generateLocalFileName(Message<?> message, String remoteFileName){
