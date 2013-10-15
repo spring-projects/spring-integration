@@ -42,6 +42,19 @@
 		</poller>
 	</service-activator>
 
+	<int:channel id="priorityChannel">
+		<int:priority-queue message-store="messageStore"/>
+	</int:channel>
+
+	<int:channel id="outputChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:bridge id="bridge" input-channel="priorityChannel" output-channel="outputChannel" auto-startup="false">
+		<int:poller fixed-rate="100"/>
+	</int:bridge>
+
+
 	<bean id="placeholderProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="location" value="classpath:int-${ENVIRONMENT:derby}.properties" />
 		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />

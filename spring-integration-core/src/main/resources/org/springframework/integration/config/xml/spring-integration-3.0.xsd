@@ -264,8 +264,25 @@
 					<![CDATA[
 	Allows you to specify the reference to the bean which implements java.util.Comparator&lt;Message&lt;?&gt;&gt;
 	interface and provides logic based on which Messages will be prioritized.
+	This attribute is mutually exclusive with the "message-store" attribute.
 					]]>
 				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-store" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a MessageGroupStore that can be used to buffer the messages. If a message store is
+					specified then it will store messages for this channel with a correlation key equal to the
+					channel name. Message are polled from this MessageGroupStore by 'priority' header.
+					This attribute is mutually
+					exclusive with the "comparator" attribute (only one can be specified).
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.store.MessageGroupStore" />
+					</tool:annotation>
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

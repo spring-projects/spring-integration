@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.config.xml;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -27,9 +29,9 @@ import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.store.MessageGroupQueue;
+import org.springframework.integration.store.PriorityMessageGroupQueue;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;channel&gt; element.
@@ -38,6 +40,7 @@ import org.w3c.dom.Element;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PointToPointChannelParser extends AbstractChannelParser {
 
@@ -57,21 +60,30 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
 				if (hasCapacity && hasQueueRef) {
 					parserContext.getReaderContext().error(
-							"The 'capacity' attribute is not allowed" + " when providing a 'ref' to a custom queue.",
+							"The 'capacity' attribute is not allowed when providing a 'ref' to a custom queue.",
 							element);
 				}
 			}
 			if (hasStoreRef && hasQueueRef) {
 				parserContext.getReaderContext().error(
-						"The 'message-store' attribute is not allowed" + " when providing a 'ref' to a custom queue.",
+						"The 'message-store' attribute is not allowed when providing a 'ref' to a custom queue.",
 						element);
 			}
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(PriorityChannel.class);
-			this.parseQueueCapacity(builder, queueElement);
+			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE));
+			if (!hasStoreRef) {
+				this.parseQueueCapacity(builder, queueElement);
+			}
 			String comparatorRef = queueElement.getAttribute("comparator");
-			if (StringUtils.hasText(comparatorRef)) {
+			boolean hasComparator = StringUtils.hasText(comparatorRef);
+			if (hasStoreRef && hasComparator) {
+				parserContext.getReaderContext().error(
+						"The 'comparator' attribute is not allowed when providing a 'message-store' attribute.",
+						element);
+			}
+			if (hasComparator) {
 				builder.addConstructorArgReference(comparatorRef);
 			}
 		}
@@ -171,8 +183,9 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel) {
 		String storeRef = queueElement.getAttribute("message-store");
 		if (StringUtils.hasText(storeRef)) {
-			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(MessageGroupQueue.class);
+			Class<?> groupQueueClass = DomUtils.nodeNameEquals(queueElement, "priority-queue") ?
+					PriorityMessageGroupQueue.class : MessageGroupQueue.class;
+			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder.genericBeanDefinition(groupQueueClass);
 			queueBuilder.addConstructorArgReference(storeRef);
 			queueBuilder.addConstructorArgValue(new TypedStringValue(storeRef).getValue() + ":" + channel);
 			parseQueueCapacity(queueBuilder, queueElement);

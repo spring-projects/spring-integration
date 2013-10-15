@@ -183,13 +183,22 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	public Message<?> pollMessageFromGroup(Object groupId) {
+		return this.doPollMessageFromGroup(groupId, false);
+	}
+
+	@Override
+	public Message<?> pollMessageFromGroupByPriority(Object groupId) {
+		return this.doPollMessageFromGroup(groupId, true);
+	}
+
+	private Message<?> doPollMessageFromGroup(Object groupId, boolean byPriority) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 
-			UUID firstId = messageGroupMetadata.firstId();
+			UUID firstId = byPriority ? messageGroupMetadata.firstIdByPriority() : messageGroupMetadata.firstId();
 			if (firstId != null){
 				messageGroupMetadata.remove(firstId);
 				messageGroupMetadata.setLastModified(System.currentTimeMillis());

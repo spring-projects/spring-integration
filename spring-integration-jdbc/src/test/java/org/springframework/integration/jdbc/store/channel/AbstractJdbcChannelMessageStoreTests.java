@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class AbstractJdbcChannelMessageStoreTests {
 
@@ -88,6 +89,29 @@ public class AbstractJdbcChannelMessageStoreTests {
 
 		assertNotNull(messageFromDb.getHeaders().get(JdbcChannelMessageStore.SAVED_KEY));
 		assertNotNull(messageFromDb.getHeaders().get(JdbcChannelMessageStore.CREATED_DATE_KEY));
+	}
+
+	public void testAddAndGetWithPriority() throws Exception {
+		final Message<String> message1 = MessageBuilder.withPayload("test1").setPriority(1).build();
+
+		final Message<String> message2 = MessageBuilder.withPayload("test2").setPriority(2).build();
+
+
+		messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message1);
+		messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message2);
+
+
+		Message<?> messageFromDb = messageStore.pollMessageFromGroupByPriority(TEST_MESSAGE_GROUP);
+
+		assertNotNull(messageFromDb);
+		assertEquals(message2.getHeaders().getId(), messageFromDb.getHeaders().getId());
+
+		messageFromDb = messageStore.pollMessageFromGroupByPriority(TEST_MESSAGE_GROUP);
+
+		assertNotNull(messageFromDb);
+		assertEquals(message1.getHeaders().getId(), messageFromDb.getHeaders().getId());
+
+
 	}
 
 }

@@ -119,6 +119,11 @@ public class MessageStoreTests {
 			return null;
 		}
 
+		@Override
+		public Message<?> pollMessageFromGroupByPriority(Object groupId) {
+			return null;
+		}
+
 		public int messageGroupSize(Object groupId) {
 			return 0;
 		}

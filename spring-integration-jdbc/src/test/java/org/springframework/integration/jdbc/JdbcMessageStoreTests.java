@@ -401,6 +401,35 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	public void testMessagePriorityPollingFromTheGroup() throws Exception {
+		String groupId = "X";
+
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("foo").build());
+		Thread.sleep(1);
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setPriority(3).build());
+		Thread.sleep(1);
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("baz").setPriority(2).build());
+
+		MessageGroup group = messageStore.getMessageGroup("X");
+		assertEquals(3, group.size());
+
+		Message<?> message1 = messageStore.pollMessageFromGroupByPriority("X");
+		assertNotNull(message1);
+		assertEquals("bar", message1.getPayload());
+
+		group = messageStore.getMessageGroup("X");
+		assertEquals(2, group.size());
+
+		Message<?> message2 = messageStore.pollMessageFromGroupByPriority("X");
+		assertNotNull(message2);
+		assertEquals("baz", message2.getPayload());
+
+		group = messageStore.getMessageGroup("X");
+		assertEquals(1, group.size());
+	}
+
+	@Test
+	@Transactional
 	public void testSameMessageToMultipleGroups() throws Exception {
 
 		final String group1Id = "group1";

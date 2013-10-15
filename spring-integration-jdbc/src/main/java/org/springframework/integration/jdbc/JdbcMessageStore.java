@@ -76,6 +76,7 @@ import org.springframework.util.StringUtils;
  * @author Matt Stine
  * @author Gunnar Hillert
  * @author Will Schipp
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -126,6 +127,17 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 					"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? " +
 					"and m.REGION = ?)"),
 
+		PRIORITY_POLL_FROM_GROUP("SELECT %PREFIX%MESSAGE.MESSAGE_ID, %PREFIX%MESSAGE.MESSAGE_BYTES from %PREFIX%MESSAGE " +
+				"where %PREFIX%MESSAGE.MESSAGE_ID = (SELECT min(m.MESSAGE_ID) from %PREFIX%MESSAGE m " +
+				"join %PREFIX%GROUP_TO_MESSAGE on m.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
+					"where CREATED_DATE = (SELECT min(CREATED_DATE) from %PREFIX%MESSAGE, %PREFIX%GROUP_TO_MESSAGE " +
+							"where %PREFIX%MESSAGE.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
+								"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? and %PREFIX%MESSAGE.REGION = ? " +
+								"and PRIORITY = (SELECT max(PRIORITY) from %PREFIX%MESSAGE, %PREFIX%GROUP_TO_MESSAGE " +
+											"where %PREFIX%MESSAGE.MESSAGE_ID = %PREFIX%GROUP_TO_MESSAGE.MESSAGE_ID " +
+												"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? and %PREFIX%MESSAGE.REGION = ?)) " +
+				"and %PREFIX%GROUP_TO_MESSAGE.GROUP_KEY = ? and m.REGION = ?)"),
+
 		GET_GROUP_INFO("SELECT COMPLETE, LAST_RELEASED_SEQUENCE, CREATED_DATE, UPDATED_DATE" +
 				" from %PREFIX%MESSAGE_GROUP where GROUP_KEY = ? and REGION=?"),
 
@@ -137,8 +149,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		DELETE_MESSAGE("DELETE from %PREFIX%MESSAGE where MESSAGE_ID=? and REGION=?"),
 
-		CREATE_MESSAGE("INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
-				+ " values (?, ?, ?, ?)"),
+		CREATE_MESSAGE("INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, PRIORITY, MESSAGE_BYTES)"
+				+ " values (?, ?, ?, ?, ?)"),
 
 		COUNT_ALL_GROUPS("SELECT COUNT(GROUP_KEY) from %PREFIX%MESSAGE_GROUP where REGION=?"),
 
@@ -336,7 +348,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 
 		final long createdDate = System.currentTimeMillis();
-		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
+		final Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
 
 		Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
@@ -344,18 +356,21 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
 
 		final String messageId = getKey(result.getHeaders().getId());
+		final Integer priority = result.getHeaders().getPriority();
 		final byte[] messageBytes = serializer.convert(result);
 
 		jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE), new PreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
+
 				if (logger.isDebugEnabled()){
 					logger.debug("Inserting message with id key=" + messageId);
 				}
 				ps.setString(1, messageId);
 				ps.setString(2, region);
 				ps.setTimestamp(3, new Timestamp(createdDate));
-				lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes);
+				ps.setLong(4, priority != null ? priority: 0);
+				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
 			}
 		});
 		return result;
@@ -570,6 +585,17 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@Override
+	public Message<?> pollMessageFromGroupByPriority(Object groupId) {
+		String key = getKey(groupId);
+
+		Message<?> polledMessage = this.doPriorityPollForMessage(key);
+		if (polledMessage != null){
+			this.removeMessageFromGroup(groupId, polledMessage);
+		}
+		return polledMessage;
+	}
+
+	@Override
 	public Iterator<MessageGroup> iterator() {
 
 		final Iterator<String> iterator = jdbcTemplate.query(getQuery(Query.LIST_GROUP_KEYS), new Object[] { region },
@@ -627,11 +653,23 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * This method executes a call to the DB to get the oldest Message in the MessageGroup
 	 * Override this method if need to. For example if you DB supports advanced function such as FIRST etc.
 	 *
+	 *
+	 *
 	 * @param groupIdKey String representation of message group ID
 	 * @return a message; could be null if query produced no Messages
 	 */
 	protected Message<?> doPollForMessage(String groupIdKey) {
 		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.POLL_FROM_GROUP), new Object[] { groupIdKey, region, groupIdKey, region }, mapper);
+		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
+		if (messages.size() > 0){
+			return messages.get(0);
+		}
+		return null;
+	}
+
+	private Message<?> doPriorityPollForMessage(String groupId) {
+		List<Message<?>> messages = jdbcTemplate.query(getQuery(Query.PRIORITY_POLL_FROM_GROUP),
+				new Object[] { groupId, region, groupId, region, groupId, region }, mapper);
 		Assert.isTrue(messages.size() == 0 || messages.size() == 1);
 		if (messages.size() > 0){
 			return messages.get(0);

@@ -37,12 +37,14 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.PriorityMessageGroupQueue;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -366,6 +368,25 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
 		input.send(m3);
 		assertNotNull(output.receive(1000));
+	}
+
+	@Test
+	@RedisAvailable
+	public void testInt1870PriorityChannel() throws Exception{
+		RedisConnectionFactory cf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(cf);
+
+		PriorityChannel channel = new PriorityChannel(new PriorityMessageGroupQueue(store, "priorityChannel"));
+
+		for (int priority : new int[] {10, 7, 0, -3, -99}) {
+			channel.send(MessageBuilder.withPayload("test:" + priority).setPriority(priority).build());
+		}
+
+		assertEquals("test:10", channel.receive(0).getPayload());
+		assertEquals("test:7", channel.receive(0).getPayload());
+		assertEquals("test:0", channel.receive(0).getPayload());
+		assertEquals("test:-3", channel.receive(0).getPayload());
+		assertEquals("test:-99", channel.receive(0).getPayload());
 	}
 
 }

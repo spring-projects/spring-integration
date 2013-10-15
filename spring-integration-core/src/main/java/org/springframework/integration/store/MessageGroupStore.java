@@ -125,6 +125,12 @@ public interface MessageGroupStore {
 	Message<?> pollMessageFromGroup(Object groupId);
 
 	/**
+	 * Polls Message from this {@link MessageGroup} by 'priority'
+	 * while also removing the polled {@link Message}
+	 */
+	Message<?> pollMessageFromGroupByPriority(Object groupId);
+
+	/**
 	 * Completes this MessageGroup. Completion of the MessageGroup generally means
 	 * that this group should not be allowing any more mutating operation to be performed on it.
 	 * For example any attempt to add/remove new Message form the group should not be allowed.

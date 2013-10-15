@@ -16,7 +16,6 @@ package org.springframework.integration.jdbc.store;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -33,6 +31,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
@@ -42,12 +41,12 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.jdbc.JdbcMessageStore;
+import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
 import org.springframework.integration.jdbc.store.channel.MySqlChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
-import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -412,6 +411,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
 
 		final String messageId = getKey(result.getHeaders().getId());
+		final Integer priority = result.getHeaders().getPriority();
 		final byte[] messageBytes = serializer.convert(result);
 
 		jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getCreateMessageQuery()), new PreparedStatementSetter() {
@@ -423,7 +423,8 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 				ps.setString(2, groupKey);
 				ps.setString(3, region);
 				ps.setLong(4, createdDate);
-				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
+				ps.setLong(5, priority != null ? priority : 0);
+				lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
 			}
 		});
 
@@ -444,9 +445,10 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * means the channel identifier.
 	 *
 	 * @param groupIdKey String representation of message group (Channel) ID
+	 * @param byPriority flag to indicate if message should be polled by 'priority'
 	 * @return a message; could be null if query produced no Messages
 	 */
-	protected Message<?> doPollForMessage(String groupIdKey) {
+	protected Message<?> doPollForMessage(String groupIdKey, boolean byPriority) {
 
 		final NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
 		final MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -461,10 +463,14 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		this.idCacheReadLock.lock();
 		try {
 			if (this.usingIdCache && !this.idCache.isEmpty()) {
-				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
+				query = getQuery(byPriority ?
+						this.channelMessageStoreQueryProvider.getPriorityPollFromGroupExcludeIdsQuery() :
+						this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
 				parameters.addValue("message_ids", idCache);
 			} else {
-				query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
+				query = getQuery(byPriority ?
+						this.channelMessageStoreQueryProvider.getPriorityPollFromGroupQuery() :
+						this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
 			}
 			messages = namedParameterJdbcTemplate.query(query, parameters, messageRowMapper);
 		}
@@ -589,7 +595,19 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	public Message<?> pollMessageFromGroup(Object groupId) {
 
 		final String key = getKey(groupId);
-		final Message<?> polledMessage = this.doPollForMessage(key);
+		final Message<?> polledMessage = this.doPollForMessage(key, false);
+
+		if (polledMessage != null){
+			this.removeMessageFromGroup(groupId, polledMessage);
+		}
+
+		return polledMessage;
+	}
+
+	@Override
+	public Message<?> pollMessageFromGroupByPriority(Object groupId) {
+		final String key = getKey(groupId);
+		final Message<?> polledMessage = this.doPollForMessage(key, true);
 
 		if (polledMessage != null){
 			this.removeMessageFromGroup(groupId, polledMessage);

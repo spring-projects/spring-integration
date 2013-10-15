@@ -39,8 +39,8 @@ public abstract class AbstractChannelMessageStoreQueryProvider implements Channe
 	}
 
 	public String getCreateMessageQuery() {
-		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_BYTES)"
-				+ " values (?, ?, ?, ?, ?)";
+		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, PRIORITY, MESSAGE_BYTES)"
+				+ " values (?, ?, ?, ?, ?, ?)";
 	}
 
 	public String getDeleteMessageGroupQuery() {
