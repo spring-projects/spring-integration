@@ -57,6 +57,7 @@ subprojects { subproject ->
 		log4jVersion = '1.2.12'
 		mockitoVersion = '1.9.5'
 		eaioUUIDVersion = '3.2'
+		ftpServerVersion = '1.0.6'
 
 		springVersionDefault = '3.1.4.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
@@ -239,6 +240,7 @@ project('spring-integration-ftp') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-test")
+		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	}
 }
 

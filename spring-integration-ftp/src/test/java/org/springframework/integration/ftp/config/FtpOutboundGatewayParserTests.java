@@ -77,7 +77,7 @@ public class FtpOutboundGatewayParserTests {
 		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
+		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
 		assertEquals(Command.LS, TestUtils.getPropertyValue(gateway, "command"));
@@ -100,7 +100,7 @@ public class FtpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "sessionFactory") instanceof CachingSessionFactory);
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
+		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertEquals(Command.GET, TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")

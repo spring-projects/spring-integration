@@ -415,6 +415,23 @@
 								Identifies directory path (e.g.,
 								"/local/mytransfers") where file will be
 								transferred TO.
+								This attribute is mutually exclusive with 'local-directory-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="local-directory-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies SpEL expression to
+								generate the directory path where file will be
+								transferred TO, when using 'get' and 'mget' commands.
+								The root object of the SpEL evaluation is the request Message,
+								but the name of the source
+								remote directory is also provided as the 'remoteDirectory' variable.
+								For example, a valid expression might be:
+								"'/local/' + #remoteDirectory.toUpperCase() + headers.foo".
+								Only used with 'get' and 'mget' commands.
+								This attribute is mutually exclusive with 'local-directory'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
