@@ -16,13 +16,15 @@
 
 package org.springframework.integration.mqtt.outbound;
 
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
-import org.springframework.integration.support.converter.MessageConverter;
+import org.springframework.integration.mqtt.support.MqttMessageConverter;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -43,7 +45,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 
 	private volatile boolean defaultRetained = false;
 
-	private volatile MessageConverter converter;
+	private volatile MqttMessageConverter converter;
 
 	private boolean running;
 
@@ -70,7 +72,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 		this.defaultRetained = defaultRetain;
 	}
 
-	public void setConverter(MessageConverter converter) {
+	public void setConverter(MqttMessageConverter converter) {
 		Assert.notNull(converter, "'converter' cannot be null");
 		this.converter = converter;
 	}
@@ -138,7 +140,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		this.connectIfNeeded();
 		String topic = (String) message.getHeaders().get(MqttHeaders.TOPIC);
-		Object mqttMessage = this.converter.fromMessage(message);
+		MqttMessage mqttMessage = this.converter.fromMessage(message, MqttMessage.class);
 		if (topic == null && this.defaultTopic == null) {
 			throw new MessageHandlingException(message,
 					"No '" + MqttHeaders.TOPIC + "' header and no default topic defined");

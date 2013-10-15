@@ -22,13 +22,13 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttMessageConverter;
-import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -74,7 +74,8 @@ public class MqttOutboundChannelAdapterParserTests {
 		assertEquals("bar", TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultTopic"));
 		assertEquals(1, TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultQos"));
 		assertTrue(TestUtils.getPropertyValue(withDefaultConverterHandler, "defaultRetained", Boolean.class));
-		MessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler, "converter", MessageConverter.class);
+		MqttMessageConverter defaultConverter = TestUtils.getPropertyValue(withDefaultConverterHandler, "converter",
+				MqttMessageConverter.class);
 		assertTrue(defaultConverter instanceof DefaultPahoMessageConverter);
 		assertEquals(1, TestUtils.getPropertyValue(defaultConverter, "defaultQos"));
 		assertTrue(TestUtils.getPropertyValue(defaultConverter, "defaultRetained", Boolean.class));

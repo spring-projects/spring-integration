@@ -15,10 +15,13 @@
  */
 package org.springframework.integration.mqtt.support;
 
+import java.lang.reflect.Type;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.springframework.integration.Message;
+
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.converter.MessageConversionException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConversionException;
 import org.springframework.util.Assert;
 
 
@@ -52,18 +55,16 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <P> Message<P> toMessage(Object object) {
-		return (Message<P>) toMessage(null, object);
+	public Message<?> toMessage(MqttMessage mqttMessage) {
+		return toMessage(null, mqttMessage);
 	}
 
-	public Message<String> toMessage(String topic, Object object) {
-		Assert.isInstanceOf(MqttMessage.class, object);
-		MqttMessage message = (MqttMessage) object;
+	public Message<String> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
-			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(new String(message.getPayload(), this.charset))
-					.setHeader(MqttHeaders.QOS, message.getQos())
-					.setHeader(MqttHeaders.DUPLICATE, message.isDuplicate())
-					.setHeader(MqttHeaders.RETAINED, message.isRetained());
+			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(new String(mqttMessage.getPayload(), this.charset))
+					.setHeader(MqttHeaders.QOS, mqttMessage.getQos())
+					.setHeader(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate())
+					.setHeader(MqttHeaders.RETAINED, mqttMessage.isRetained());
 			if (topic != null) {
 				messageBuilder.setHeader(MqttHeaders.TOPIC, topic);
 			}
@@ -75,7 +76,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 	}
 
 	@Override
-	public <P> Object fromMessage(Message<P> message) {
+	public MqttMessage fromMessage(Message<?> message, Type targetClass) {
 		Object payload = message.getPayload();
 		Assert.isTrue(payload instanceof byte[] || payload instanceof String);
 		byte[] payloadBytes;

@@ -15,8 +15,10 @@
  */
 package org.springframework.integration.mqtt.support;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.support.converter.MessageConverter;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConverter;
 
 /**
  * Extension of {@link MessageConverter} allowing the topic to be added as
@@ -25,7 +27,7 @@ import org.springframework.integration.support.converter.MessageConverter;
  * @since 1.0
  *
  */
-public interface MqttMessageConverter extends MessageConverter {
+public interface MqttMessageConverter extends MessageConverter<MqttMessage> {
 
-	Message<String> toMessage(String topic, Object object);
+	Message<String> toMessage(String topic, MqttMessage mqttMessage);
 }
