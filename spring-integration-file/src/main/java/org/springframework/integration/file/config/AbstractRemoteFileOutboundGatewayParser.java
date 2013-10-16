@@ -17,6 +17,7 @@ package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
@@ -53,7 +54,12 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		this.configureFilter(builder, element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "remote-file-separator");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "local-directory");
+
+		BeanDefinition localDirExpressionDef = IntegrationNamespaceUtils
+				.createExpressionDefinitionFromValueOrExpression("local-directory", "local-directory-expression",
+						parserContext, element, false);
+		builder.addPropertyValue("localDirectoryExpression", localDirExpressionDef);
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rename-expression");

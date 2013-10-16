@@ -433,7 +433,16 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 		defines a SpEL expression to generate the name of local file(s) during the transfer.
 		The root object of the evaluation context is the request Message but, in addition, the <code>remoteFileName</code>
 		variable is also available, which is particularly useful for <emphasis>mget</emphasis>, for
-		example: <code>local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.foo"</code>
+		example: <code>local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.foo"</code>.
+	  </para>
+	  <para>
+		The <emphasis>get</emphasis> and <emphasis>mget</emphasis> commands support
+		the <emphasis>local-directory-expression</emphasis> attribute. It
+		defines a SpEL expression to generate the name of local directory(ies) during the transfer.
+		The root object of the evaluation context is the request Message but, in addition, the <code>remoteDirectory</code>
+		variable is also available, which is particularly useful for <emphasis>mget</emphasis>, for
+		example: <code>local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.foo"</code>.
+		This attribute is mutually exclusive with <emphasis>local-directory</emphasis> attribute.
 	  </para>
 	  <para>
 		For all commands, the PATH that the command acts on is provided by the 'expression'
