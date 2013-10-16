@@ -24,13 +24,6 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ftpSessionFactory"
-		  class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<property name="host" value="localhost"/>
-		<property name="user" value="ftptest"/>
-		<property name="password" value="ftptest"/>
-	</bean>
-
 	<int:channel id="output">
 		<int:queue/>
 	</int:channel>
@@ -41,7 +34,7 @@
 							  request-channel="inboundGet"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="'/tmp/out' + #remotePath.toUpperCase()"
+							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remotePath.toUpperCase()"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -51,7 +44,7 @@
 							  request-channel="invalidDirExpression"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="'\' + #remotePath + '?:'"
+							  local-directory-expression="T(System).getProperty('file.separator') + #remotePath + '?:'"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMGet"/>
@@ -60,9 +53,21 @@
 							  request-channel="inboundMGet"
 							  command="mget"
 							  expression="payload"
-							  local-directory-expression="'/tmp/out' + #remotePath"
+							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remotePath"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
+	<bean id="ftpSessionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory" />
+	</bean>
+
+	<beans profile="realSSH">
+		<bean id="ftpSessionFactory"
+			  class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+			<property name="host" value="localhost"/>
+			<property name="user" value="ftptest"/>
+			<property name="password" value="ftptest"/>
+		</bean>
+	</beans>
 
 </beans>

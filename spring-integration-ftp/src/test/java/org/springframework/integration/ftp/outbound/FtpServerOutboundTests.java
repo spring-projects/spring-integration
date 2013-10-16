@@ -18,7 +18,6 @@ package org.springframework.integration.ftp.outbound;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -69,9 +68,8 @@ public class FtpServerOutboundTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testInt2866LocalDirectoryExpressionGET() {
-		String dir = "/ftpSource/";
+		String dir = "ftpSource/";
 		this.inboundGet.send(new GenericMessage<Object>(dir + "ftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
@@ -79,7 +77,7 @@ public class FtpServerOutboundTests {
 		assertThat(localFile.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 				Matchers.containsString(dir.toUpperCase()));
 
-		dir = "/ftpSource/subFtpSource/";
+		dir = "ftpSource/subFtpSource/";
 		this.inboundGet.send(new GenericMessage<Object>(dir + "subFtpSource1.txt"));
 		result = this.output.receive(1000);
 		assertNotNull(result);
@@ -104,7 +102,7 @@ public class FtpServerOutboundTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testInt2866LocalDirectoryExpressionMGET() {
-		String dir = "/ftpSource/";
+		String dir = "ftpSource/";
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
@@ -115,7 +113,7 @@ public class FtpServerOutboundTests {
 					Matchers.containsString(dir));
 		}
 
-		dir = "/ftpSource/subFtpSource/";
+		dir = "ftpSource/subFtpSource/";
 		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
 		result = this.output.receive(1000);
 		assertNotNull(result);

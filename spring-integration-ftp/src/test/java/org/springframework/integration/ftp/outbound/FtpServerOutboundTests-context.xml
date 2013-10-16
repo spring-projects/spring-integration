@@ -37,7 +37,7 @@
 							  request-channel="invalidDirExpression"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="'\' + #remotePath + '?:'"
+							  local-directory-expression="T(System).getProperty('file.separator') + #remotePath + '?:'"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMGet"/>

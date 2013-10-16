@@ -476,6 +476,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		F[] files = null;
 		if (lsFirst) {
 			files = session.list(remoteFilePath);
+			if (files == null) {
+				throw new MessagingException("Session returned null when listing " + remoteFilePath);
+			}
 			if (files.length != 1 || isDirectory(files[0]) || isLink(files[0])) {
 				throw new MessagingException(remoteFilePath + " is not a file");
 			}
