@@ -475,9 +475,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		The <emphasis>get</emphasis> and <emphasis>mget</emphasis> commands support
 		the <emphasis>local-directory-expression</emphasis> attribute. It
 		defines a SpEL expression to generate the name of local directory(ies) during the transfer.
-		The root object of the evaluation context is the request Message but, in addition, the <code>remotePath</code>
+		The root object of the evaluation context is the request Message but, in addition, the <code>remoteDirectory</code>
 		variable is also available, which is particularly useful for <emphasis>mget</emphasis>, for
-		example: <code>local-directory-expression="'/tmp/local/' + #remotePath.toUpperCase() + headers.foo"</code>.
+		example: <code>local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.foo"</code>.
 		This attribute is mutually exclusive with <emphasis>local-directory</emphasis> attribute.
 	  </para>
 	  <para>

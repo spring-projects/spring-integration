@@ -352,7 +352,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private Object doGet(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
 		String remoteFilename = this.getRemoteFilename(remoteFilePath);
-		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
+		String remoteDir = this.getRemoteDirectory(remoteFilePath, remoteFilename);
 		File payload = this.get(requestMessage, session, remoteDir, remoteFilePath, remoteFilename, true);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
@@ -363,7 +363,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private Object doMget(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
 		String remoteFilename = this.getRemoteFilename(remoteFilePath);
-		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
+		String remoteDir = this.getRemoteDirectory(remoteFilePath, remoteFilename);
 		List<File> payload = this.mGet(requestMessage, session, remoteDir, remoteFilename);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
@@ -374,7 +374,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private Object doRm(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
 		String remoteFilename = this.getRemoteFilename(remoteFilePath);
-		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
+		String remoteDir = this.getRemoteDirectory(remoteFilePath, remoteFilename);
 		boolean payload = this.rm(session, remoteFilePath);
 		return MessageBuilder.withPayload(payload)
 			.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
@@ -385,7 +385,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private Object doMv(Message<?> requestMessage, Session<F> session) throws IOException {
 		String remoteFilePath =  this.fileNameProcessor.processMessage(requestMessage);
 		String remoteFilename = this.getRemoteFilename(remoteFilePath);
-		String remoteDir = this.getRemotePath(remoteFilePath, remoteFilename);
+		String remoteDir = this.getRemoteDirectory(remoteFilePath, remoteFilename);
 		String remoteFileNewPath = this.renameProcessor.processMessage(requestMessage);
 		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
 
@@ -549,8 +549,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return files;
 	}
 
-	private String getRemotePath(String remoteFilePath, String remoteFilename) {
-		String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
+	private String getRemoteDirectory(String remoteFilePath, String remoteFilename) {
+		String remoteDir = remoteFilePath.substring(0, remoteFilePath.lastIndexOf(remoteFilename));
 		if (remoteDir.length() == 0) {
 			remoteDir = this.remoteFileSeparator;
 		}
@@ -600,9 +600,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		session.rename(remoteFilePath, remoteFileNewPath);
 	}
 
-	private File generateLocalDirectory(Message<?> message, String remotePath) {
+	private File generateLocalDirectory(Message<?> message, String remoteDirectory) {
 		EvaluationContext evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-		evaluationContext.setVariable("remotePath", remotePath);
+		evaluationContext.setVariable("remoteDirectory", remoteDirectory);
 		// TODO Change 'desiredResultType' as 'File.class' after fix of SPR-10953.
 		File localDir = new File(this.localDirectoryExpression.getValue(evaluationContext, message, String.class));
 		if (!localDir.exists()) {

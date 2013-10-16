@@ -248,7 +248,7 @@
 			</para>
 			<para>
 				The <code>local-directory-expression</code> attribute is now supported,
-				enabling the naming of local directories during transfer based on remote path.
+				enabling the naming of local directories during transfer based on remote directory.
 			</para>
 			<para>
 			    For more information, see <xref linkend="ftp-outbound-gateway"/> and <xref linkend="sftp-outbound-gateway"/>.

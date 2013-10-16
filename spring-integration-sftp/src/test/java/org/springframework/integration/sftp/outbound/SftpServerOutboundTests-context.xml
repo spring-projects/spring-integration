@@ -18,7 +18,7 @@
 							  request-channel="inboundGet"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remotePath.toUpperCase()"
+							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remoteDirectory.toUpperCase()"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -28,7 +28,7 @@
 							  request-channel="invalidDirExpression"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="T(java.io.File).separator + #remotePath + '?:'"
+							  local-directory-expression="T(java.io.File).separator + #remoteDirectory + '?:'"
 							  reply-channel="output"/>
 
 	<int:channel id="inboundMGet"/>
@@ -37,7 +37,7 @@
 							  request-channel="inboundMGet"
 							  command="mget"
 							  expression="payload"
-							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remotePath"
+							  local-directory-expression="'/tmp/sftpOutboundTests/' + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
