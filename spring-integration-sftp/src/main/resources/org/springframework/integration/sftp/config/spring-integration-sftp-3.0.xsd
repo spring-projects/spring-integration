@@ -414,7 +414,7 @@
 								Identifies directory path (e.g.,
 								"/local/mytransfers") where file will be
 								transferred TO.
-								This attribute is mutually exclusive with 'local-directory-expression'
+								This attribute is mutually exclusive with 'local-directory-expression'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -430,7 +430,7 @@
 								For example, a valid expression would be:
 								"'/local' + #remotePath.toUpperCase() + headers.foo".
 								Only used with 'get' and 'mget' commands.
-								This attribute is mutually exclusive with 'local-directory'
+								This attribute is mutually exclusive with 'local-directory'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

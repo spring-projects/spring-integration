@@ -244,8 +244,14 @@
 			<para>
 				The <code>local-filename-generator-expression</code> attribute is now supported,
 				enabling the naming of local files during transfer. By default, the same
-				name as the remote file is used. For more information, see
-				<xref linkend="ftp-outbound-gateway"/> and <xref linkend="sftp-outbound-gateway"/>.
+				name as the remote file is used.
+			</para>
+			<para>
+				The <code>local-directory-expression</code> attribute is now supported,
+				enabling the naming of local directories during transfer based on remote path.
+			</para>
+			<para>
+			    For more information, see <xref linkend="ftp-outbound-gateway"/> and <xref linkend="sftp-outbound-gateway"/>.
 			</para>
 		</section>
 		<section id="3.0-jdbc-mysql-v5_6_4">
