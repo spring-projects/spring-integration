@@ -226,8 +226,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param localDirectory the localDirectory to set
 	 */
 	public void setLocalDirectory(File localDirectory) {
-		Assert.notNull(localDirectory, "localDirectory must not be null");
-		this.localDirectoryExpression = new LiteralExpression(localDirectory.getAbsolutePath());
+		if (localDirectory != null) {
+			this.localDirectoryExpression = new LiteralExpression(localDirectory.getAbsolutePath());
+		}
 	}
 
 	public void setLocalDirectoryExpression(Expression localDirectoryExpression) {
@@ -279,7 +280,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
 			if (this.localDirectoryExpression instanceof LiteralExpression) {
-				File localDirectory = new File(this.localDirectoryExpression.getValue(String.class));
+				File localDirectory = new File(this.localDirectoryExpression.getExpressionString());
 				try {
 					if (!localDirectory.exists()) {
 						if (this.autoCreateLocalDirectory) {

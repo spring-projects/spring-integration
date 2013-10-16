@@ -130,16 +130,13 @@ public class FtpServerRule extends ExternalResource {
 		this.localFolder.create();
 
 		FtpServerFactory serverFactory = new FtpServerFactory();
-		ListenerFactory factory = new ListenerFactory();
-
-		factory.setPort(FTP_PORT);
-
 		serverFactory.setUserManager(new TestUserManager(this.ftpRootFolder.getAbsolutePath()));
 
+		ListenerFactory factory = new ListenerFactory();
+		factory.setPort(FTP_PORT);
 		serverFactory.addListener("default", factory.createListener());
 
 		server = serverFactory.createServer();
-
 		server.start();
 	}
 
@@ -173,7 +170,6 @@ public class FtpServerRule extends ExternalResource {
 					new WritePermission(),
 					new TransferRatePermission(1024, 1024)));
 			this.testUser.setHomeDirectory(homeDirectory);
-//			this.testUser.setMaxIdleTime(60000);
 			this.testUser.setName("TEST_USER");
 		}
 

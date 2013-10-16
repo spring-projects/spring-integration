@@ -125,8 +125,8 @@ public class FtpServerOutboundTests {
 		}
 	}
 
-	public static File localDirectory() {
-		return FTP_SERVER.getTargetLocalDirectory();
+	public static String localDirectory() {
+		return FTP_SERVER.getTargetLocalDirectory().getAbsolutePath() + File.separator;
 	}
 
 
