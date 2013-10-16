@@ -850,6 +850,11 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 	}
 
 	@Override
+	protected String getFilename(AbstractFileInfo<TestLsEntry> file) {
+		return file.getFilename();
+	}
+
+	@Override
 	protected long getModified(TestLsEntry file) {
 		return file.getModified();
 	}

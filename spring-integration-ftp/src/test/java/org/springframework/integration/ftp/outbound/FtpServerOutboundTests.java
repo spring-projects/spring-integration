@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ftp.outbound;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -60,6 +61,9 @@ public class FtpServerOutboundTests {
 
 	@Autowired
 	private DirectChannel inboundMGet;
+
+	@Autowired
+	private DirectChannel inboundMGetRecursive;
 
 	@Before
 	public void setup() {
@@ -123,6 +127,23 @@ public class FtpServerOutboundTests {
 			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 					Matchers.containsString(dir));
 		}
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt3172LocalDirectoryExpressionMGETRecursive() {
+		String dir = "ftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+		assertEquals(3, localFiles.size());
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+					Matchers.containsString(dir));
+		}
+
 	}
 
 	public static String localDirectory() {

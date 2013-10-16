@@ -309,6 +309,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				}
 			}
 		}
+		if (Command.MGET.equals(this.command)) {
+			Assert.isTrue(!(this.options.contains(Option.SUBDIRS)),
+					"Cannot use " + Option.SUBDIRS.toString() + " when using 'mget' use " + Option.RECURSIVE.toString() +
+					" to obtain files in subdirectories");
+		}
 		if (this.getBeanFactory() != null) {
 			this.fileNameProcessor.setBeanFactory(this.getBeanFactory());
 			this.renameProcessor.setBeanFactory(this.getBeanFactory());
@@ -539,6 +544,22 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected List<File> mGet(Message<?> message, Session<F> session, String remoteDirectory,
 							  String remoteFilename) throws IOException {
+		if (this.options.contains(Option.RECURSIVE)) {
+			if (logger.isWarnEnabled() && !("*".equals(remoteFilename))) {
+				logger.warn("File name pattern must be '*' when using recursion");
+			}
+			if (this.options.contains(Option.NAME_ONLY)) {
+				this.options.remove(Option.NAME_ONLY);
+			}
+			return mGetWithRecursion(message, session, remoteDirectory, remoteFilename);
+		}
+		else {
+			return mGetWithoutRecursion(message, session, remoteDirectory, remoteFilename);
+		}
+	}
+
+	private List<File> mGetWithoutRecursion(Message<?> message, Session<F> session, String remoteDirectory,
+			String remoteFilename) throws IOException {
 		String path = this.generateFullPath(remoteDirectory, remoteFilename);
 		String[] fileNames = session.listNames(path);
 		if (fileNames == null) {
@@ -560,6 +581,30 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				file = this.get(message, session, remoteDirectory,
 						this.generateFullPath(remoteDirectory, fileName), fileName, false);
 			}
+			files.add(file);
+		}
+		return files;
+	}
+
+	private List<File> mGetWithRecursion(Message<?> message, Session<F> session, String remoteDirectory,
+			String remoteFilename) throws IOException {
+		List<File> files = new ArrayList<File>();
+		@SuppressWarnings("unchecked")
+		List<AbstractFileInfo<F>> fileNames = (List<AbstractFileInfo<F>>) this.ls(session, remoteDirectory);
+		if (fileNames.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
+			throw new MessagingException("No files found at " + remoteDirectory
+					+ " with pattern " + remoteFilename);
+		}
+		for (AbstractFileInfo<F> lsEntry : fileNames) {
+			String fullFileName = remoteDirectory + this.getFilename(lsEntry);
+			/*
+			 * With recursion, the filename might contain subdirectory information
+			 * normalize each file separately.
+			 */
+			String fileName = this.getRemoteFilename(fullFileName);
+			String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
+			File file = this.get(message, session, actualRemoteDirectory,
+						fullFileName, fileName, false);
 			files.add(file);
 		}
 		return files;
@@ -641,6 +686,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	abstract protected boolean isLink(F file);
 
 	abstract protected String getFilename(F file);
+
+	abstract protected String getFilename(AbstractFileInfo<F> file);
 
 	abstract protected long getModified(F file);
 

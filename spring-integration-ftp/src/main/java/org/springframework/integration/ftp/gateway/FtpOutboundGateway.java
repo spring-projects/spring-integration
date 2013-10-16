@@ -56,6 +56,11 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	@Override
+	protected String getFilename(AbstractFileInfo<FTPFile> file) {
+		return file.getFilename();
+	}
+
+	@Override
 	protected long getModified(FTPFile file) {
 		return file.getTimestamp().getTimeInMillis();
 	}

@@ -50,5 +50,16 @@
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
+	<int:channel id="inboundMGetRecursive"/>
+
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMGetRecursive"
+							  command="mget"
+							  expression="payload"
+							  command-options="-R"
+							  local-directory-expression="#localDir() + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
+							  reply-channel="output"/>
+
 
 </beans>
