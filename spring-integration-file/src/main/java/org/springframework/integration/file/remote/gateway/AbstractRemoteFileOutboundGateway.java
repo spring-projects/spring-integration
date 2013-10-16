@@ -139,7 +139,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		/**
 		 * Throw an exception if no files returned (mget).
 		 */
-		EXCEPTION_WHEN_EMPTY("-x");
+		EXCEPTION_WHEN_EMPTY("-x"),
+		/**
+		 * Recursive (ls, mget)
+		 */
+		RECURSIVE("-R");
 
 		private String option;
 
@@ -398,21 +402,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	protected List<?> ls(Session<F> session, String dir) throws IOException {
-		List<F> lsFiles = new ArrayList<F>();
-		F[] files = session.list(dir);
-		if (!ObjectUtils.isEmpty(files)) {
-			Collection<F> filteredFiles = this.filterFiles(files);
-			for (F file : filteredFiles) {
-				if (file != null) {
-					if (this.options.contains(Option.SUBDIRS) || !this.isDirectory(file)) {
-						lsFiles.add(file);
-					}
-				}
-			}
-		}
-		else {
-			return lsFiles;
-		}
+		List<F> lsFiles = listFilesInRemoteDir(session, dir, "");
 		if (!this.options.contains(Option.LINKS)) {
 			purgeLinks(lsFiles);
 		}
@@ -439,6 +429,32 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			return canonicalFiles;
 		}
+	}
+
+	private List<F> listFilesInRemoteDir(Session<F> session, String directory, String subDirectory) throws IOException {
+		List<F> lsFiles = new ArrayList<F>();
+		F[] files = session.list(directory + subDirectory);
+		boolean recursing = this.options.contains(Option.RECURSIVE);
+		if (!ObjectUtils.isEmpty(files)) {
+			Collection<F> filteredFiles = this.filterFiles(files);
+			for (F file : filteredFiles) {
+				String fileName = this.getFilename(file);
+				if (file != null) {
+					if (this.options.contains(Option.SUBDIRS) || !this.isDirectory(file)) {
+						if (recursing && StringUtils.hasText(subDirectory)) {
+							lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
+						}
+						else {
+							lsFiles.add(file);
+						}
+					}
+					if (recursing && this.isDirectory(file)) {
+						lsFiles.addAll(listFilesInRemoteDir(session, directory,  subDirectory + fileName + File.separator));
+					}
+				}
+			}
+		}
+		return lsFiles;
 	}
 
 	protected final List<F> filterFiles(F[] files) {
@@ -630,4 +646,5 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
 
+	abstract protected F enhanceNameWithSubDirectory(F file, String directory);
 }

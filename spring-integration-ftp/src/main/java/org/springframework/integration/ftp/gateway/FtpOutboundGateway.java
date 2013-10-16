@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.net.ftp.FTPFile;
+
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -28,7 +29,7 @@ import org.springframework.integration.ftp.session.FtpFileInfo;
 
 /**
  * Outbound Gateway for performing remote file operations via FTP/FTPS.
- *  
+ *
  * @author Gary Russell
  * @since 2.1
  */
@@ -68,5 +69,12 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 		return canonicalFiles;
 
 	}
+
+	@Override
+	protected FTPFile enhanceNameWithSubDirectory(FTPFile file, String directory) {
+		file.setName(directory + file.getName());
+		return file;
+	}
+
 
 }

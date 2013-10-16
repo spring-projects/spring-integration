@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -29,7 +30,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Outbound Gateway for performing remote file operations via SFTP.
- * 
+ *
  * @author Gary Russell
  * @since 2.1
  */
@@ -71,6 +72,13 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	@Override
 	protected long getModified(LsEntry file) {
 		return ((long)file.getAttrs().getMTime()) * 1000;
+	}
+
+	@Override
+	protected LsEntry enhanceNameWithSubDirectory(LsEntry file, String directory) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(file);
+		accessor.setPropertyValue("filename", directory + file.getFilename());
+		return file;
 	}
 
 }

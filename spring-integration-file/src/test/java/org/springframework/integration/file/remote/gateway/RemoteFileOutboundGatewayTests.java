@@ -389,9 +389,6 @@ public class RemoteFileOutboundGatewayTests {
 		assertEquals("foo/bar", madeDirs.get(1));
 	}
 
-	/**
-	 * @return
-	 */
 	public TestLsEntry[] fileList() {
 		TestLsEntry[] files = new TestLsEntry[6];
 		files[0] = new TestLsEntry("f2", 123, false, false, 1234, "-r--r--r--");
@@ -420,6 +417,83 @@ public class RemoteFileOutboundGatewayTests {
 		assertEquals(2, out.getPayload().size());
 		assertSame(files[0], out.getPayload().get(0));
 		assertSame(files[1], out.getPayload().get(1));
+		assertEquals("testremote/x/",
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+	}
+
+	public TestLsEntry[] level1List() {
+		return new TestLsEntry[] {
+			new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--"),
+			new TestLsEntry("d1", 0, true, false, 12345, "drw-r--r--"),
+			new TestLsEntry("f2", 12345, false, false, 123456, "-rw-r--r--")
+		};
+	}
+
+	public TestLsEntry[] level2List() {
+		return new TestLsEntry[] {
+			new TestLsEntry("d2", 0, true, false, 12345, "drw-r--r--"),
+			new TestLsEntry("f3", 12345, false, false, 123456, "-rw-r--r--")
+		};
+	}
+
+	public TestLsEntry[] level3List() {
+		return new TestLsEntry[] {
+			new TestLsEntry("f4", 12345, false, false, 123456, "-rw-r--r--")
+		};
+	}
+
+	@Test
+	public void testLs_f_R() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		Session session = mock(Session.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "ls", "payload");
+		gw.setOptions("-f -R");
+		gw.afterPropertiesSet();
+		when(sessionFactory.getSession()).thenReturn(session);
+		TestLsEntry[] level1 = level1List();
+		TestLsEntry[] level2 = level2List();
+		TestLsEntry[] level3 = level3List();
+		when(session.list("testremote/x/")).thenReturn(level1);
+		when(session.list("testremote/x/d1/")).thenReturn(level2);
+		when(session.list("testremote/x/d1/d2/")).thenReturn(level3);
+		@SuppressWarnings("unchecked")
+		Message<List<TestLsEntry>> out = (Message<List<TestLsEntry>>) gw
+				.handleRequestMessage(new GenericMessage<String>("testremote/x"));
+		assertEquals(4, out.getPayload().size());
+		assertEquals("f1", out.getPayload().get(0).getFilename());
+		assertEquals("d1/d2/f4", out.getPayload().get(1).getFilename());
+		assertEquals("d1/f3", out.getPayload().get(2).getFilename());
+		assertEquals("f2", out.getPayload().get(3).getFilename());
+		assertEquals("testremote/x/",
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+	}
+
+	@Test
+	public void testLs_f_R_dirs() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		Session session = mock(Session.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "ls", "payload");
+		gw.setOptions("-f -R -dirs");
+		gw.afterPropertiesSet();
+		when(sessionFactory.getSession()).thenReturn(session);
+		TestLsEntry[] level1 = level1List();
+		TestLsEntry[] level2 = level2List();
+		TestLsEntry[] level3 = level3List();
+		when(session.list("testremote/x/")).thenReturn(level1);
+		when(session.list("testremote/x/d1/")).thenReturn(level2);
+		when(session.list("testremote/x/d1/d2/")).thenReturn(level3);
+		@SuppressWarnings("unchecked")
+		Message<List<TestLsEntry>> out = (Message<List<TestLsEntry>>) gw
+				.handleRequestMessage(new GenericMessage<String>("testremote/x"));
+		assertEquals(6, out.getPayload().size());
+		assertEquals("f1", out.getPayload().get(0).getFilename());
+		assertEquals("d1", out.getPayload().get(1).getFilename());
+		assertEquals("d1/d2", out.getPayload().get(2).getFilename());
+		assertEquals("d1/d2/f4", out.getPayload().get(3).getFilename());
+		assertEquals("d1/f3", out.getPayload().get(4).getFilename());
+		assertEquals("f2", out.getPayload().get(5).getFilename());
 		assertEquals("testremote/x/",
 				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 	}
@@ -786,18 +860,24 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 		return new ArrayList<AbstractFileInfo<TestLsEntry>>(files);
 	}
 
+	@Override
+	protected TestLsEntry enhanceNameWithSubDirectory(TestLsEntry file, String directory) {
+		file.setFilename(directory + file.getFilename());
+		return file;
+	}
+
 }
 
 class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 
-	private final String filename;
-	private final int size;
+	private volatile String filename;
+	private final long size;
 	private final boolean dir;
 	private final boolean link;
 	private final long modified;
 	private final String permissions;
 
-	public TestLsEntry(String filename, int size, boolean dir, boolean link,
+	public TestLsEntry(String filename, long size, boolean dir, boolean link,
 			long modified, String permissions) {
 		this.filename = filename;
 		this.size = size;
@@ -833,6 +913,10 @@ class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 
 	public TestLsEntry getFileInfo() {
 		return this;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
 	}
 
 }
