@@ -289,7 +289,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	protected void onInit() {
 		super.onInit();
 		Assert.notNull(this.command, "command must not be null");
-		if (Command.RM.equals(this.command) || Command.MGET.equals(this.command) ||
+		if (Command.RM.equals(this.command) ||
 				Command.GET.equals(this.command)) {
 			Assert.isNull(this.filter, "Filters are not supported with the rm, get, and mget commands");
 		}

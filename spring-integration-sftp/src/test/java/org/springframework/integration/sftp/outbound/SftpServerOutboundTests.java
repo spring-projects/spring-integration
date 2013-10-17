@@ -229,4 +229,24 @@ public class SftpServerOutboundTests {
 
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt3172LocalDirectoryExpressionMGETRecursiveFiltered() {
+		String dir = "sftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+		// should have filtered sftpSource2.txt
+		assertEquals(2, localFiles.size());
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+					Matchers.containsString(dir));
+		}
+		assertThat(localFiles.get(1).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+				Matchers.containsString(dir + "subSftpSource"));
+
+	}
+
 }

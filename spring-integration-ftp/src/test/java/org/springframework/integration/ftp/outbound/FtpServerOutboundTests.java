@@ -26,7 +26,6 @@ import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.ftp.FtpServerRule;
+import org.springframework.integration.ftp.TesFtpServer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -47,9 +46,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FtpServerOutboundTests {
 
-	@Rule
 	@Autowired
-	public FtpServerRule ftpServer;
+	public TesFtpServer ftpServer;
 
 	@Autowired
 	private PollableChannel output;
@@ -66,10 +64,13 @@ public class FtpServerOutboundTests {
 	@Autowired
 	private DirectChannel inboundMGetRecursive;
 
+	@Autowired
+	private DirectChannel inboundMGetRecursiveFiltered;
+
 	@Before
 	public void setup() {
-		FtpServerRule.recursiveDelete(ftpServer.getTargetLocalDirectory());
-		FtpServerRule.recursiveDelete(ftpServer.getTargetFtpDirectory());
+		TesFtpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
+		TesFtpServer.recursiveDelete(ftpServer.getTargetFtpDirectory());
 	}
 
 	@Test
@@ -145,6 +146,26 @@ public class FtpServerOutboundTests {
 					Matchers.containsString(dir));
 		}
 		assertThat(localFiles.get(2).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+				Matchers.containsString(dir + "subFtpSource"));
+
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt3172LocalDirectoryExpressionMGETRecursiveFiltered() {
+		String dir = "ftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+		// should have filtered ftpSource2.txt
+		assertEquals(2, localFiles.size());
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+					Matchers.containsString(dir));
+		}
+		assertThat(localFiles.get(1).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 				Matchers.containsString(dir + "subFtpSource"));
 
 	}

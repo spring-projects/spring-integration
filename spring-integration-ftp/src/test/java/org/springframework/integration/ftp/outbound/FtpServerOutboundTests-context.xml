@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ftpServer" class="org.springframework.integration.ftp.FtpServerRule">
+	<bean id="ftpServer" class="org.springframework.integration.ftp.TesFtpServer">
 		<constructor-arg value="FtpServerOutboundTests"/>
 	</bean>
 
@@ -56,5 +56,16 @@
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
+	<int:channel id="inboundMGetRecursiveFiltered"/>
+
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMGetRecursive"
+							  command="mget"
+							  expression="payload"
+							  command-options="-R"
+							  filename-regex="(subFtpSource|.*1.txt)"
+							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory"
+							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
+							  reply-channel="output"/>
 
 </beans>

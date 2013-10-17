@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.Authentication;
@@ -32,7 +35,6 @@ import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
 import org.apache.ftpserver.usermanager.impl.TransferRatePermission;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
-import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.context.annotation.Bean;
@@ -49,7 +51,7 @@ import org.springframework.integration.test.util.SocketUtils;
  * @since 3.0
  */
 @Configuration
-public class FtpServerRule extends ExternalResource {
+public class TesFtpServer {
 
 	private final int ftpPort = SocketUtils.findAvailableServerSocket();
 
@@ -69,7 +71,7 @@ public class FtpServerRule extends ExternalResource {
 
 	private volatile FtpServer server;
 
-	public FtpServerRule(final String root) {
+	public TesFtpServer(final String root) {
 		this.ftpFolder = new TemporaryFolder() {
 
 			@Override
@@ -146,8 +148,8 @@ public class FtpServerRule extends ExternalResource {
 		return factory;
 	}
 
-	@Override
-	protected void before() throws Throwable {
+	@PostConstruct
+	public void before() throws Throwable {
 		this.ftpFolder.create();
 		this.localFolder.create();
 
@@ -163,8 +165,8 @@ public class FtpServerRule extends ExternalResource {
 	}
 
 
-	@Override
-	protected void after() {
+	@PreDestroy
+	public void after() {
 		this.server.stop();
 		this.ftpFolder.delete();
 		this.localFolder.delete();
