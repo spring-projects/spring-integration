@@ -369,7 +369,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	  </para>
 	  <para>
 	    When using the recursive option (<code>-R</code>), the <code>fileName</code> includes any subdirectory
-	    elements, representing a relative path to the file (relative to the remoe directory). If the <code>-dirs</code>
+	    elements, representing a relative path to the file (relative to the remote directory). If the <code>-dirs</code>
 	    option is included, each recursed directory is also returned as an element in the list. In this case,
 	    it is recommended that the <code>-1</code> is not used because you would not be able to determine files Vs.
 	    directories, which is achievable using the <code>FileInfo</code> objects.

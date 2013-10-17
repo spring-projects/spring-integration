@@ -87,21 +87,6 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	@Test
-	public void testBadFilterMGet() throws Exception {
-		SessionFactory sessionFactory = mock(SessionFactory.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-				(sessionFactory, "mget", "payload");
-		gw.setFilter(new TestPatternFilter(""));
-		try {
-			gw.onInit();
-			fail("Exception expected");
-		}
-		catch (IllegalArgumentException e) {
-			assertTrue(e.getMessage().startsWith("Filters are not supported"));
-		}
-	}
-
-	@Test
 	public void testBadFilterRm() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
