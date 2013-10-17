@@ -107,5 +107,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
 			<interfacename>MetadataStore</interfacename> interface (e.g. JdbcMetadataStore)
 			and configure it as bean in the Application Context.
 		</para>
+		<note>
+			The key used to persist the latest <emphasis>published date</emphasis> is auto-generated
+			and consists of <emphasis role="bold">component type + component name + ".source" + feedUrl</emphasis>.
+			For example, if you use a Feed Inbound Channel Adapter with an
+			id of <code>myadapter</code>, then the metadata store key may look like
+			<emphasis role="bold">feed:inbound-channel-adapter.myadapter.source.http://feeds.bbci.co.uk/news/rss.xml</emphasis>.
+		</note>
 	</section>
 </chapter>

@@ -165,8 +165,18 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 	</warning>
     <programlisting language="xml"><![CDATA[<bean id="metadataStore" class="o.s.i.store.PropertiesPersistingMetadataStore"/>
 ]]></programlisting>
-The Poller that is configured as part of any Inbound Twitter Adapter (see below) will simply poll from this MetadataStore to determine the latest tweet
-received.
+	<para>
+		The Poller that is configured as part of any Inbound Twitter Adapter (see below)
+		will simply poll from this MetadataStore to determine the latest tweet received.
+	</para>
+	<note>
+		The key used to persist the latest Tweet timestamp is auto-generated
+		and consists of <emphasis role="bold">component type + component name + ".source" + profileId (if using authorization)</emphasis>.
+		For example, if you use a Twitter Search Inbound Channel Adapter with an
+		id of <code>myadapter</code>, then the metadata store key may look like
+		<emphasis role="bold">twitter:search-inbound-channel-adapter.myadapter.source.123456789</emphasis>.
+	</note>
+
   	<section id="inbound-twitter-update">
   		<title>Inbound Message Channel Adapter</title>
   		<para>

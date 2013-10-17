@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.springframework.integration.feed.config;
 
 import org.w3c.dom.Element;
-
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -45,7 +46,14 @@ public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChann
 			sourceBuilder.addConstructorArgReference(feedFetcherRef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
-		return sourceBuilder.getBeanDefinition();
+
+		final String channelAdapterId = this.resolveId(element, sourceBuilder.getRawBeanDefinition(), parserContext);
+		final String sourceBeanName = channelAdapterId + ".source";
+
+		parserContext.getRegistry().registerBeanDefinition(sourceBeanName, sourceBuilder.getBeanDefinition());
+
+		return new RuntimeBeanReference(sourceBeanName);
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors
+ * Copyright 2002-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.twitter.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
@@ -29,11 +28,13 @@ import org.springframework.integration.twitter.inbound.SearchReceivingMessageSou
 import org.springframework.integration.twitter.inbound.TimelineReceivingMessageSource;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for inbound Twitter Channel Adapters.
- * 
+ *
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  * @since 2.0
  */
 public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -51,9 +52,14 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
-		return builder.getBeanDefinition();
-	}
 
+		final String channelAdapterId = this.resolveId(element, builder.getRawBeanDefinition(), parserContext);
+		final String sourceBeanName = channelAdapterId + ".source";
+
+		parserContext.getRegistry().registerBeanDefinition(sourceBeanName, builder.getBeanDefinition());
+
+		return new RuntimeBeanReference(sourceBeanName);
+	}
 
 	private static Class<?> determineClass(Element element, ParserContext parserContext) {
 		Class<?> clazz = null;
