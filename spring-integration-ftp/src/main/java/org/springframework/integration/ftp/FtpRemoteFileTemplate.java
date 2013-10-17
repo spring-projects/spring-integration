@@ -13,31 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.file.remote;
+package org.springframework.integration.ftp;
 
-import java.io.IOException;
 
-import org.springframework.integration.file.remote.session.Session;
+import org.apache.commons.net.ftp.FTPClient;
+
+import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.session.SessionFactory;
 
 /**
- * Callback invoked by {@code RemoteFileOperations.execute()} - allows multiple operations
- * on a session.
- *
  * @author Gary Russell
  * @since 3.0
  *
  */
-public interface SessionCallback<F, T> {
+public class FtpRemoteFileTemplate extends RemoteFileTemplate<FTPClient> {
 
-	/**
-	 * Called within the context of a session.
-	 * Perform some operation(s) on the session. The caller will take
-	 * care of closing the session after this method exits.
-	 *
-	 * @param session The session.
-	 * @return The result of type T.
-	 * @throws IOException
-	 */
-	T doInSession(Session<F> session) throws IOException;
+	public FtpRemoteFileTemplate(SessionFactory<FTPClient> sessionFactory) {
+		super(sessionFactory);
+	}
 
 }

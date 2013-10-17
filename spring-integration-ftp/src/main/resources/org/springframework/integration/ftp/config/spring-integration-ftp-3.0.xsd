@@ -26,73 +26,6 @@
 					<xsd:all>
 						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
-					<xsd:attribute name="remote-directory-expression"
-						type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide a SpEL expression which
-								will compute the directory
-								path where the files will be transferred to
-								(e.g., "headers.['remote_dir'] +
-								'/myTransfers'");
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="temporary-remote-directory-expression"
-						type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide a SpEL expression which
-								will compute the temporary directory
-								path where files will be transferred to before they are moved to the remote-directory
-								(e.g., "headers.['remote_dir'] +
-								'/temp/myTransfers'");
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="auto-create-directory" type="xsd:string"
-						default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specify whether to automatically create the
-								remote target directory if
-								it doesn't exist.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="remote-filename-generator" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to specify a reference to
-								[org.springframework.integration.file.FileNameGenerator] bean.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type
-										type="org.springframework.integration.file.FileNameGenerator" />
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="remote-filename-generator-expression"
-						type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide SpEL expression which
-								will compute file name of
-								the remote file (e.g., assuming payload
-								is java.io.File
-								"payload.getName() + '.transfered'");
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="use-temporary-file-name" type="xsd:string" default="true">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to suppress using a temporary file name while writing the file.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="order" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -113,6 +46,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="int-file:remoteOutboundAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -268,7 +202,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="base-adapter-type">
+				<xsd:extension base="base-ftp-adapter-type">
 					<xsd:all>
 						<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 					</xsd:all>
@@ -379,7 +313,8 @@
 							<xsd:documentation>
 								Allows you to specify a reference to
 								[org.springframework.integration.file.filters.FileListFilter]
-								bean.
+								bean. This filter acts against the remote server view when using the 'ls'
+								or 'mget' commands.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -387,7 +322,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Allows you to provide file name pattern to
-								determine the file names retrieved by the ls command
+								determine the file names retrieved by the 'ls' and 'mget' commands
 								and is based
 								on simple pattern matching algorithm (e.g., "*.txt, fo*.txt"
 								etc.)
@@ -398,7 +333,43 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Allows you to provide Regular Expression to
-								determine the file names retrieved by the ls command.
+								determine the file names retrieved by the 'ls' and 'mget' commands.
+								(e.g.,
+								"f[o]+\.txt" etc.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-filter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.file.filters.FileListFilter" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Allows you to specify a reference to
+								[org.springframework.integration.file.filters.FileListFilter]
+								bean. This filter acts on the local file system when using the 'mput' command.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-pattern" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide file name pattern to
+								determine the file names sent by the 'mput' command
+								and is based
+								on simple pattern matching algorithm (e.g., "*.txt, fo*.txt"
+								etc.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-regex" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide Regular Expression to
+								determine the file names sent by the 'mput' command
 								(e.g.,
 								"f[o]+\.txt" etc.)
 							</xsd:documentation>
@@ -486,6 +457,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="int-file:remoteOutboundAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

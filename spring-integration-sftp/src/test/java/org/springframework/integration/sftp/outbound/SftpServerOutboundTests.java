@@ -16,6 +16,9 @@
 
 package org.springframework.integration.sftp.outbound;
 
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
@@ -97,6 +100,15 @@ public class SftpServerOutboundTests {
 
 	@Autowired
 	private DirectChannel inboundMGetRecursiveFiltered;
+
+	@Autowired
+	private DirectChannel inboundMPut;
+
+	@Autowired
+	private DirectChannel inboundMPutRecursive;
+
+	@Autowired
+	private DirectChannel inboundMPutRecursiveFiltered;
 
 	@Autowired
 	private SessionFactory<SftpFileInfo> sessionFactory;
@@ -351,6 +363,80 @@ public class SftpServerOutboundTests {
 			session2.remove("bar.txt");
 			session1.close();
 			session2.close();
+		}
+	}
+
+	@Test
+	public void testInt3088MPutNotRecursive() {
+		if (!sessionFactory.toString().startsWith("Mock for")) {
+			String dir = "sftpSource/";
+			this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+			while (output.receive(0) != null) { }
+			this.inboundMPut.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
+			@SuppressWarnings("unchecked")
+			Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+			assertNotNull(out);
+			assertEquals(2, out.getPayload().size());
+			assertThat(out.getPayload().get(0),
+					not(equalTo(out.getPayload().get(1))));
+			assertThat(
+					out.getPayload().get(0),
+					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt")));
+			assertThat(
+					out.getPayload().get(1),
+					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt")));
+		}
+	}
+
+	@Test
+	public void testInt3088MPutRecursive() {
+		if (!sessionFactory.toString().startsWith("Mock for")) {
+			String dir = "sftpSource/";
+			this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+			while (output.receive(0) != null) { }
+			this.inboundMPutRecursive.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
+			@SuppressWarnings("unchecked")
+			Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+			assertNotNull(out);
+			assertEquals(3, out.getPayload().size());
+			assertThat(out.getPayload().get(0),
+					not(equalTo(out.getPayload().get(1))));
+			assertThat(
+					out.getPayload().get(0),
+					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
+			assertThat(
+					out.getPayload().get(1),
+					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
+			assertThat(
+					out.getPayload().get(2),
+					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
+		}
+	}
+
+	@Test
+	public void testInt3088MPutRecursiveFiltered() {
+		if (!sessionFactory.toString().startsWith("Mock for")) {
+			String dir = "sftpSource/";
+			this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+			while (output.receive(0) != null) { }
+			this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
+			@SuppressWarnings("unchecked")
+			Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+			assertNotNull(out);
+			assertEquals(2, out.getPayload().size());
+			assertThat(out.getPayload().get(0),
+					not(equalTo(out.getPayload().get(1))));
+			assertThat(
+					out.getPayload().get(0),
+					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
+			assertThat(
+					out.getPayload().get(1),
+					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
 		}
 	}
 

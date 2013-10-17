@@ -64,6 +64,42 @@
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
+	<int:channel id="inboundMPut"/>
+
+	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMPut"
+							  command="mput"
+							  auto-create-directory="true"
+							  filename-pattern="*.txt"
+							  expression="payload"
+							  remote-directory="sftpTarget"
+							  reply-channel="output"/>
+
+	<int:channel id="inboundMPutRecursive"/>
+
+	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMPutRecursive"
+							  command="mput"
+							  command-options="-R"
+							  auto-create-directory="true"
+							  filename-pattern="*.txt"
+							  expression="payload"
+							  remote-directory="sftpTarget"
+							  reply-channel="output"/>
+
+	<int:channel id="inboundMPutRecursiveFiltered"/>
+
+	<int-sftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundMPutRecursiveFiltered"
+							  command="mput"
+							  command-options="-R"
+							  mput-regex="(.*1.txt|sub.*)"
+							  auto-create-directory="true"
+							  filename-pattern="*.txt"
+							  expression="payload"
+							  remote-directory="sftpTarget"
+							  reply-channel="output"/>
+
 	<bean id="ftpSessionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory" />
 	</bean>

@@ -101,7 +101,7 @@ public class TesFtpServer {
 				fos.close();
 
 				targetFtpDirectory = new File(ftpRootFolder, "ftpTarget");
-				targetFtpDirectory.mkdirs();
+				targetFtpDirectory.mkdir();
 			}
 		};
 		this.localFolder  = new TemporaryFolder() {
@@ -123,7 +123,7 @@ public class TesFtpServer {
 				file.createNewFile();
 
 				targetLocalDirectory = new File(rootFolder, "localTarget");
-				targetLocalDirectory.mkdirs();
+				targetLocalDirectory.mkdir();
 			}
 		};
 	}
@@ -183,14 +183,16 @@ public class TesFtpServer {
 	}
 
 
-	public static void recursiveDelete(File file) {
+	public void recursiveDelete(File file) {
 		File[] files = file.listFiles();
 		if (files != null) {
 			for (File each : files) {
 				recursiveDelete(each);
 			}
 		}
-		file.delete();
+		if (!(file.equals(this.targetFtpDirectory) || file.equals(this.targetLocalDirectory))) {
+			file.delete();
+		}
 	}
 
 
