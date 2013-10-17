@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.outbound;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -32,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
@@ -81,6 +83,9 @@ public class SftpServerOutboundTests {
 	private DirectChannel inboundMGet;
 
 	@Autowired
+	private DirectChannel inboundMGetRecursive;
+
+	@Autowired
 	private SessionFactory<SftpFileInfo> sessionFactory;
 
 	@Before
@@ -110,7 +115,9 @@ public class SftpServerOutboundTests {
 			LsEntry entry4 = mock(LsEntry.class);
 			SftpATTRS attrs4 = mock(SftpATTRS.class);
 			when(entry4.getAttrs()).thenReturn(attrs4);
-			when(entry4.getFilename()).thenReturn("subSftpSource1.txt");
+			// recursion uses a DFA to update the filename to include the subdirectory
+			new DirectFieldAccessor(entry4).setPropertyValue("filename", "subSftpSource1.txt");
+			when(entry4.getFilename()).thenCallRealMethod();
 			when(session.list("sftpSource/sftpSource1.txt")).thenReturn(new LsEntry[] {
 					entry1
 			});
@@ -201,6 +208,45 @@ public class SftpServerOutboundTests {
 			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 					Matchers.containsString(dir));
 		}
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt3172LocalDirectoryExpressionMGETRecursive() {
+		String dir = "sftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+		assertEquals(3, localFiles.size());
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+					Matchers.containsString(dir));
+		}
+		assertThat(localFiles.get(2).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+				Matchers.containsString(dir + "subSftpSource"));
+
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt3172LocalDirectoryExpressionMGETRecursiveFiltered() {
+		String dir = "sftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+		// should have filtered sftpSource2.txt
+		assertEquals(2, localFiles.size());
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+					Matchers.containsString(dir));
+		}
+		assertThat(localFiles.get(1).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+				Matchers.containsString(dir + "subSftpSource"));
+
 	}
 
 }

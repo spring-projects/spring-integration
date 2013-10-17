@@ -238,17 +238,25 @@
 		<section id="3.0-xFTP-gw">
 			<title>FTP, SFTP and FTPS Gateways</title>
 			<para>
-				The gateways now support the <code>mv</code> command, enabling the renaming of remote
-				files.
-			</para>
-			<para>
-				The <code>local-filename-generator-expression</code> attribute is now supported,
-				enabling the naming of local files during transfer. By default, the same
-				name as the remote file is used.
-			</para>
-			<para>
-				The <code>local-directory-expression</code> attribute is now supported,
-				enabling the naming of local directories during transfer based on the remote directory.
+				<itemizedlist>
+					<listitem>
+						The gateways now support the <code>mv</code> command, enabling the renaming of remote
+						files.
+					</listitem>
+					<listitem>
+						The gateways now support recursive <code>ls</code> and <code>mget</code> commands, enabling
+						the retrieval of a remote file tree.
+					</listitem>
+					<listitem>
+						The <code>local-filename-generator-expression</code> attribute is now supported,
+						enabling the naming of local files during transfer. By default, the same
+						name as the remote file is used.
+					</listitem>
+					<listitem>
+						The <code>local-directory-expression</code> attribute is now supported,
+						enabling the naming of local directories during transfer based on the remote directory.
+					</listitem>
+				</itemizedlist>
 			</para>
 			<para>
 			    For more information, see <xref linkend="ftp-outbound-gateway"/> and <xref linkend="sftp-outbound-gateway"/>.

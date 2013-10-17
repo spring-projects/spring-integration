@@ -351,6 +351,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 		  <listitem>-f - do not sort the list</listitem>
 		  <listitem>-dirs - include directories (excluded by default)</listitem>
 		  <listitem>-links - include symbolic links (excluded by default)</listitem>
+		  <listitem>-R - list the remote directory recursively</listitem>
 	    </itemizedlist>
 	  </para>
 	  <para>
@@ -365,6 +366,13 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	  <para>
 	    The remote directory that the <emphasis>ls</emphasis> command acted on is provided
 	    in the <classname>file_remoteDirectory</classname> header.
+	  </para>
+	  <para>
+	    When using the recursive option (<code>-R</code>), the <code>fileName</code> includes any subdirectory
+	    elements, representing a relative path to the file (relative to the remote directory). If the <code>-dirs</code>
+	    option is included, each recursed directory is also returned as an element in the list. In this case,
+	    it is recommended that the <code>-1</code> is not used because you would not be able to determine files Vs.
+	    directories, which is achievable using the <code>FileInfo</code> objects.
 	  </para>
 	  <para><emphasis role="bold">get</emphasis></para>
 	  <para>
@@ -399,6 +407,27 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	    for the filenames is
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
+	  <note>
+	    <title>Notes for when using recursion (<code>-R</code>)</title>
+	    <para>
+	      The pattern is ignored, and <code>*</code> is assumed. By
+	      default, the entire remote tree is retrieved. However, files in the tree can be filtered, by providing a
+	      <classname>FileListFilter</classname>; directories in the tree can also be filtered this way.
+	      A <classname>FileListFilter</classname> can be provided by reference or by <code>filename-pattern</code>
+	      or <code>filename-regex</code> attributes. For example,
+	      <code>filename-regex="(subDir|.*1.txt)"</code> will retrieve all files ending with <code>1.txt</code> in the
+	      remote directory and the subdirectory <code>subDir</code>. If a subdirectory is filtered, no additional
+	      traversal of that subdirectory is performed.
+	    </para>
+	    <para>
+	      The <code>-dirs</code> option is not allowed (the recursive mget uses the recursive <code>ls</code> to
+	      obtain the directory tree and the directories themselves cannot be included in the list).
+	    </para>
+	    <para>
+	      Typically, you would use the <code>#remoteDirectory</code> variable in the <code>local-directory-expression</code>
+	      so that the remote directory structure is retained locally.
+	    </para>
+	  </note>
 	  <para><emphasis role="bold">rm</emphasis></para>
 	  <para>
 	    The <emphasis>rm</emphasis> command has no options.
