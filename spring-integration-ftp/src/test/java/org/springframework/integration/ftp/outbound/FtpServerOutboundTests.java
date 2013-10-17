@@ -143,6 +143,8 @@ public class FtpServerOutboundTests {
 			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 					Matchers.containsString(dir));
 		}
+		assertThat(localFiles.get(2).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+				Matchers.containsString(dir + "subFtpSource"));
 
 	}
 
