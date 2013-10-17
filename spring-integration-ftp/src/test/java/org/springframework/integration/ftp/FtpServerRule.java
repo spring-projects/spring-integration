@@ -35,15 +35,23 @@ import org.apache.ftpserver.usermanager.impl.WritePermission;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.test.util.SocketUtils;
 
 /**
+ * Embedded FTP Server for test cases; exposes an associated session factory
+ * as a @Bean.
+ *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
+@Configuration
 public class FtpServerRule extends ExternalResource {
 
-	public static int FTP_PORT = SocketUtils.findAvailableServerSocket();
+	private final int ftpPort = SocketUtils.findAvailableServerSocket();
 
 	private final TemporaryFolder ftpFolder;
 
@@ -124,6 +132,20 @@ public class FtpServerRule extends ExternalResource {
 		return targetLocalDirectory;
 	}
 
+	public String getTargetLocalDirectoryName() {
+		return targetLocalDirectory.getAbsolutePath() + File.separator;
+	}
+
+	@Bean
+	public DefaultFtpSessionFactory ftpSessionFactory() {
+		DefaultFtpSessionFactory factory = new DefaultFtpSessionFactory();
+		factory.setHost("localhost");
+		factory.setPort(this.ftpPort);
+		factory.setUsername("foo");
+		factory.setPassword("foo");
+		return factory;
+	}
+
 	@Override
 	protected void before() throws Throwable {
 		this.ftpFolder.create();
@@ -133,7 +155,7 @@ public class FtpServerRule extends ExternalResource {
 		serverFactory.setUserManager(new TestUserManager(this.ftpRootFolder.getAbsolutePath()));
 
 		ListenerFactory factory = new ListenerFactory();
-		factory.setPort(FTP_PORT);
+		factory.setPort(ftpPort);
 		serverFactory.addListener("default", factory.createListener());
 
 		server = serverFactory.createServer();

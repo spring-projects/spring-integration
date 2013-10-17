@@ -8,14 +8,9 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
-		<property name="host" value="localhost"/>
-		<property name="port" value="#{T(org.springframework.integration.ftp.FtpServerRule).FTP_PORT}"/>
-		<property name="username" value="foo"/>
-		<property name="password" value="foo"/>
+	<bean id="ftpServer" class="org.springframework.integration.ftp.FtpServerRule">
+		<constructor-arg value="FtpServerOutboundTests"/>
 	</bean>
-
-	<int:spel-function id="localDir" class="org.springframework.integration.ftp.outbound.FtpServerOutboundTests" method="localDirectory"/>
 
 	<int:channel id="output">
 		<int:queue/>
@@ -27,7 +22,7 @@
 							  request-channel="inboundGet"
 							  command="get"
 							  expression="payload"
-							  local-directory-expression="#localDir() + #remoteDirectory.toUpperCase()"
+							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory.toUpperCase()"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -46,7 +41,7 @@
 							  request-channel="inboundMGet"
 							  command="mget"
 							  expression="payload"
-							  local-directory-expression="#localDir() + #remoteDirectory"
+							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 
@@ -57,7 +52,7 @@
 							  command="mget"
 							  expression="payload"
 							  command-options="-R"
-							  local-directory-expression="#localDir() + #remoteDirectory"
+							  local-directory-expression="@ftpServer.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
 

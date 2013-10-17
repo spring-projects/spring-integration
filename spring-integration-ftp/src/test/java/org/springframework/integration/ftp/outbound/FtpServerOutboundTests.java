@@ -26,7 +26,7 @@ import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -47,8 +47,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FtpServerOutboundTests {
 
-	@ClassRule
-	public static final FtpServerRule FTP_SERVER = new FtpServerRule(FtpServerOutboundTests.class.getSimpleName());
+	@Rule
+	@Autowired
+	public FtpServerRule ftpServer;
 
 	@Autowired
 	private PollableChannel output;
@@ -67,8 +68,8 @@ public class FtpServerOutboundTests {
 
 	@Before
 	public void setup() {
-		FtpServerRule.recursiveDelete(FTP_SERVER.getTargetLocalDirectory());
-		FtpServerRule.recursiveDelete(FTP_SERVER.getTargetFtpDirectory());
+		FtpServerRule.recursiveDelete(ftpServer.getTargetLocalDirectory());
+		FtpServerRule.recursiveDelete(ftpServer.getTargetFtpDirectory());
 	}
 
 	@Test
@@ -147,10 +148,5 @@ public class FtpServerOutboundTests {
 				Matchers.containsString(dir + "subFtpSource"));
 
 	}
-
-	public static String localDirectory() {
-		return FTP_SERVER.getTargetLocalDirectory().getAbsolutePath() + File.separator;
-	}
-
 
 }
