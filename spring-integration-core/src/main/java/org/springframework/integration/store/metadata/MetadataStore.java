@@ -44,8 +44,10 @@ public interface MetadataStore {
 
 	/**
 	 * Remove a value for the given key from this MetadataStore.
+	 * return the previous value associated with <tt>key</tt>, or
+	 *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
 	 */
 	@ManagedAttribute
-	boolean remove(String key);
+	String remove(String key);
 
 }

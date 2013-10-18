@@ -67,10 +67,11 @@ public class RedisMetadataStore implements MetadataStore {
 	}
 
 	@Override
-	public boolean remove(String key) {
+	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
+		String value = this.get(key);
 		this.redisTemplate.delete(key);
-		return true;
+		return value;
 	}
 
 }

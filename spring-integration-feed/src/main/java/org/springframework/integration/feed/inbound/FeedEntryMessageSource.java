@@ -95,7 +95,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		Assert.notNull(metadataKey, "metadataKey must not be null");
 		Assert.notNull(feedFetcher, "feedFetcher must not be null");
 		this.feedUrl = feedUrl;
-		this.metadataKey = metadataKey;
+		this.metadataKey = metadataKey + "." + this.feedUrl;
 		this.feedFetcher = feedFetcher;
 	}
 

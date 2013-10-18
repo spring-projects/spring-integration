@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -39,8 +39,9 @@ public class PollingAdapterMBeanTests {
 
 	@Test
 	public void testMessageSourceMBeanExists() throws Exception {
+		// System.err.println(server.queryNames(new ObjectName("*:type=MessageSource,*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.PollingAdapterMBean:type=MessageSource,*"), null);
-		assertEquals(2, names.size());
+		assertEquals(1, names.size());
 	}
 
 	public static class Source {

@@ -47,6 +47,7 @@ import org.springframework.social.twitter.api.SearchMetadata;
 import org.springframework.social.twitter.api.SearchOperations;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.UserOperations;
 import org.springframework.social.twitter.api.impl.SearchParameters;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
@@ -59,7 +60,11 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 
 	private SourcePollingChannelAdapter twitterSearchAdapter;
 
+	private AbstractTwitterMessageSource twitterMessageSource;
+
 	private MetadataStore metadataStore;
+
+	private String metadataKey;
 
 	private PollableChannel tweets;
 
@@ -71,8 +76,16 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 		context.refresh();
 
 		this.twitterSearchAdapter = context.getBean(SourcePollingChannelAdapter.class);
+		this.twitterMessageSource = context.getBean(AbstractTwitterMessageSource.class);
 		this.metadataStore = context.getBean(MetadataStore.class);
 		this.tweets = context.getBean("inbound_twitter", PollableChannel.class);
+
+		this.metadataKey = TestUtils.getPropertyValue(twitterSearchAdapter, "source.metadataKey", String.class);
+
+		// There is need to set a value, not 'remove' and re-init 'twitterMessageSource'
+		this.metadataStore.put(metadataKey, "-1");
+
+		this.twitterMessageSource.afterPropertiesSet();
 	}
 
 	/**
@@ -82,19 +95,15 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 	@Test
 	@RedisAvailable
 	public void testPollForTweetsThreeResultsWithRedisMetadataStore() throws Exception {
-
 		MetadataStore metadataStore = TestUtils.getPropertyValue(this.twitterSearchAdapter, "source.metadataStore", MetadataStore.class);
 		assertTrue("Exptected metadataStore to be an instance of RedisMetadataStore", metadataStore instanceof RedisMetadataStore);
 		assertSame(this.metadataStore, metadataStore);
 
-		String metadataKey = TestUtils.getPropertyValue(twitterSearchAdapter, "source.metadataKey", String.class);
-
-		assertEquals("twitterSearchAdapter", metadataKey);
-		this.metadataStore.remove(metadataKey);
+		assertEquals("twitterSearchAdapter.74", metadataKey);
 
 		this.twitterSearchAdapter.start();
 
-		assertNotNull(this.tweets.receive(1000));
+		assertNotNull(this.tweets.receive(10000));
 		assertNotNull(this.tweets.receive(1000));
 		assertNotNull(this.tweets.receive(1000));
 
@@ -111,14 +120,13 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 
 		this.metadataStore.put(metadataKey, "1");
 
+		this.twitterMessageSource.afterPropertiesSet();
+
 		this.twitterSearchAdapter.start();
 
 		assertNotNull(this.tweets.receive(1000));
 		assertNotNull(this.tweets.receive(1000));
 
-		/* We received 3 messages so far. When invoking receive() again the search
-		 * will return again the 3 test Tweets but as we already processed them
-		 * no message (null) is returned. */
 		assertNull(this.tweets.receive(0));
 
 		persistedMetadataStoreValue = this.metadataStore.get(metadataKey);
@@ -151,7 +159,15 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 			when(twitterTemplate.searchOperations()).thenReturn(so);
 			when(twitterTemplate.searchOperations().search(any(SearchParameters.class))).thenReturn(results);
 
+			when(twitterTemplate.isAuthorized()).thenReturn(true);
+
+			final UserOperations userOperations = mock(UserOperations.class);
+			when(twitterTemplate.userOperations()).thenReturn(userOperations);
+			when(userOperations.getProfileId()).thenReturn(74L);
+
 			return twitterTemplate;
 		}
+
 	}
+
 }

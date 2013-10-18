@@ -109,7 +109,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
 		</para>
 		<note>
 			The key used to persist the latest <emphasis>published date</emphasis> is the value of required
-			<code>id</code> attribute of Feed Inbound Channel Adapter component.
+			<code>id</code> attribute of Feed Inbound Channel Adapter component plus <code>feedUrl</code>
+			from adapter configuration.
 		</note>
 	</section>
 </chapter>

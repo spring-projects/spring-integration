@@ -36,6 +36,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.UserOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -68,8 +69,6 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile MetadataStore metadataStore;
 
-	private volatile long lastPollForTweet;
-
 	private final Queue<T> tweets = new LinkedBlockingQueue<T>();
 
 	private volatile int prefetchThreshold = 0;
@@ -78,35 +77,28 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile long lastProcessedId = -1;
 
-	private volatile long pollSkipPeriod = 15000;
-
 
 	public AbstractTwitterMessageSource(Twitter twitter, String metadataKey) {
-		this.metadataKey = metadataKey;
 		Assert.notNull(twitter, "twitter must not be null");
+		Assert.notNull(metadataKey, "metadataKey must not be null");
 		this.twitter = twitter;
+		if (this.twitter.isAuthorized()){
+			UserOperations userOperations = this.twitter.userOperations();
+			String profileId = String.valueOf(userOperations.getProfileId());
+			if (profileId != null) {
+				metadataKey += "." + profileId;
+			}
+		}
+		this.metadataKey = metadataKey;
 	}
 
 
-	void setMetadataStore(MetadataStore metadataStore) {
+	public void setMetadataStore(MetadataStore metadataStore) {
 		this.metadataStore = metadataStore;
 	}
 
-	void setPrefetchThreshold(int prefetchThreshold) {
+	public void setPrefetchThreshold(int prefetchThreshold) {
 		this.prefetchThreshold = prefetchThreshold;
-	}
-
-	/**
-	 * If not set this value defaults to 15000 ms. Please also consult the Twitter
-	 * API on rate limiting at:
-	 *
-	 * https://dev.twitter.com/docs/rate-limiting/1.1
-	 *
-	 * @param pollSkipPeriod Must be >= 0
-	 */
-	public void setPollSkipPeriod(long pollSkipPeriod) {
-		Assert.isTrue(pollSkipPeriod >= 0L, "'pollSkipPeriod' must not be negative.");
-		this.pollSkipPeriod = pollSkipPeriod;
 	}
 
 	protected Twitter getTwitter() {
@@ -139,16 +131,10 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	public Message<?> receive() {
 		T tweet = this.tweets.poll();
 		if (tweet == null) {
-			long currentTime = System.currentTimeMillis();
-			long elapsedTime = currentTime - this.lastPollForTweet;
-			if (elapsedTime < this.pollSkipPeriod) {
-				// need to wait longer
-				return null;
-			}
 			this.refreshTweetQueueIfNecessary();
 			tweet = this.tweets.poll();
-			this.lastPollForTweet = currentTime;
 		}
+
 		if (tweet != null) {
 			this.lastProcessedId = this.getIdForTweet(tweet);
 			this.metadataStore.put(this.metadataKey, String.valueOf(this.lastProcessedId));

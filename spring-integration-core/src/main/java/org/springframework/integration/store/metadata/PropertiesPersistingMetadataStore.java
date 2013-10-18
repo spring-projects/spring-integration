@@ -87,8 +87,9 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 	}
 
 	@Override
-	public boolean remove(String key) {
-		return this.metadata.remove(key) != null;
+	@SuppressWarnings("uchecked")
+	public String remove(String key) {
+		return (String) this.metadata.remove(key);
 	}
 
 	public void destroy() throws Exception {

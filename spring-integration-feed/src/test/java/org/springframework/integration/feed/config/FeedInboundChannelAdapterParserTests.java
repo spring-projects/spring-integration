@@ -188,8 +188,8 @@ public class FeedInboundChannelAdapterParserTests {
 		}
 
 		@Override
-		public boolean remove(String key) {
-			return false;
+		public String remove(String key) {
+			return null;
 		}
 	}
 

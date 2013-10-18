@@ -28,7 +28,7 @@
 						Plays a role:
 						- a bean id of Polling Endpoint;
 						- with suffix '.source' a bean id of MessageSource;
-						- represent a MetaDataStore key;
+						- represent a MetaDataStore key with suffix '.' + feedUrl - The URL for an RSS or ATOM feed.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

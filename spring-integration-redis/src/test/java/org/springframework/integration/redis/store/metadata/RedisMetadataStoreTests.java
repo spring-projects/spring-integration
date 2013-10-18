@@ -29,6 +29,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -59,7 +60,6 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testGetValueFromMetadataStore(){
-
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 		metadataStore.put("RedisMetadataStoreTests-GetValue", "Hello Redis");
@@ -71,7 +71,6 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testPersistEmptyStringToMetadataStore(){
-
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 		metadataStore.put("RedisMetadataStoreTests-PersistEmpty", "");
@@ -83,7 +82,6 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testPersistNullStringToMetadataStore(){
-
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 
@@ -143,4 +141,20 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 		fail("Expected an IllegalArgumentException to be thrown.");
 	}
+
+	@Test
+	@RedisAvailable
+	public void testRemoveFromMetadataStore(){
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+
+		String testKey = "RedisMetadataStoreTests-Remove";
+		String testValue = "Integration";
+
+		metadataStore.put(testKey, testValue);
+
+		assertEquals(testValue, metadataStore.remove(testKey));
+		assertNull(metadataStore.remove(testKey));
+	}
+
 }

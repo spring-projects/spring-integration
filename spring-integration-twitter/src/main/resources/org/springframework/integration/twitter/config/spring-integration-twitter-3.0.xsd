@@ -129,7 +129,7 @@
 					Plays a role:
 					- a bean id of Polling Endpoint;
 					- with suffix '.source' a bean id of MessageSource;
-					- represent a MetaDataStore key;
+					- represent a MetaDataStore key with suffix '.' + profileId from authorized Twitter user.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -171,14 +171,6 @@
 						<tool:expected-type type="org.springframework.integration.store.MetadataStore" />
 					</tool:annotation>
 				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="poll-skip-period" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Specifies the period in milliseconds, which must elapse before the next Twitter poll.
-					Default is 15000.
-				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

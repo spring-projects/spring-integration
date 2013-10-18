@@ -16,8 +16,6 @@ package org.springframework.integration.store.metadata;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.util.StringUtils;
-
 
 /**
  * Simple implementation of {@link MetadataStore} that uses an in-memory map only.
@@ -40,8 +38,8 @@ public class SimpleMetadataStore implements MetadataStore {
 	}
 
 	@Override
-	public boolean remove(String key) {
-		return StringUtils.hasText(metadata.remove(key));
+	public String remove(String key) {
+		return metadata.remove(key);
 	}
 
 }
