@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.Authentication;
@@ -32,18 +35,25 @@ import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
 import org.apache.ftpserver.usermanager.impl.TransferRatePermission;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
-import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.test.util.SocketUtils;
 
 /**
+ * Embedded FTP Server for test cases; exposes an associated session factory
+ * as a @Bean.
+ *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
-public class FtpServerRule extends ExternalResource {
+@Configuration
+public class TesFtpServer {
 
-	public static int FTP_PORT = SocketUtils.findAvailableServerSocket();
+	private final int ftpPort = SocketUtils.findAvailableServerSocket();
 
 	private final TemporaryFolder ftpFolder;
 
@@ -61,7 +71,7 @@ public class FtpServerRule extends ExternalResource {
 
 	private volatile FtpServer server;
 
-	public FtpServerRule(final String root) {
+	public TesFtpServer(final String root) {
 		this.ftpFolder = new TemporaryFolder() {
 
 			@Override
@@ -124,8 +134,22 @@ public class FtpServerRule extends ExternalResource {
 		return targetLocalDirectory;
 	}
 
-	@Override
-	protected void before() throws Throwable {
+	public String getTargetLocalDirectoryName() {
+		return targetLocalDirectory.getAbsolutePath() + File.separator;
+	}
+
+	@Bean
+	public DefaultFtpSessionFactory ftpSessionFactory() {
+		DefaultFtpSessionFactory factory = new DefaultFtpSessionFactory();
+		factory.setHost("localhost");
+		factory.setPort(this.ftpPort);
+		factory.setUsername("foo");
+		factory.setPassword("foo");
+		return factory;
+	}
+
+	@PostConstruct
+	public void before() throws Throwable {
 		this.ftpFolder.create();
 		this.localFolder.create();
 
@@ -133,7 +157,7 @@ public class FtpServerRule extends ExternalResource {
 		serverFactory.setUserManager(new TestUserManager(this.ftpRootFolder.getAbsolutePath()));
 
 		ListenerFactory factory = new ListenerFactory();
-		factory.setPort(FTP_PORT);
+		factory.setPort(ftpPort);
 		serverFactory.addListener("default", factory.createListener());
 
 		server = serverFactory.createServer();
@@ -141,8 +165,8 @@ public class FtpServerRule extends ExternalResource {
 	}
 
 
-	@Override
-	protected void after() {
+	@PreDestroy
+	public void after() {
 		this.server.stop();
 		this.ftpFolder.delete();
 		this.localFolder.delete();

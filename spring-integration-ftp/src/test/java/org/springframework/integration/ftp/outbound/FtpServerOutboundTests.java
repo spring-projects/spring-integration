@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ftp.outbound;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -25,7 +26,6 @@ import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.ftp.FtpServerRule;
+import org.springframework.integration.ftp.TesFtpServer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -46,8 +46,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FtpServerOutboundTests {
 
-	@ClassRule
-	public static final FtpServerRule FTP_SERVER = new FtpServerRule(FtpServerOutboundTests.class.getSimpleName());
+	@Autowired
+	public TesFtpServer ftpServer;
 
 	@Autowired
 	private PollableChannel output;
@@ -61,10 +61,16 @@ public class FtpServerOutboundTests {
 	@Autowired
 	private DirectChannel inboundMGet;
 
+	@Autowired
+	private DirectChannel inboundMGetRecursive;
+
+	@Autowired
+	private DirectChannel inboundMGetRecursiveFiltered;
+
 	@Before
 	public void setup() {
-		FtpServerRule.recursiveDelete(FTP_SERVER.getTargetLocalDirectory());
-		FtpServerRule.recursiveDelete(FTP_SERVER.getTargetFtpDirectory());
+		TesFtpServer.recursiveDelete(ftpServer.getTargetLocalDirectory());
+		TesFtpServer.recursiveDelete(ftpServer.getTargetFtpDirectory());
 	}
 
 	@Test
@@ -125,9 +131,43 @@ public class FtpServerOutboundTests {
 		}
 	}
 
-	public static String localDirectory() {
-		return FTP_SERVER.getTargetLocalDirectory().getAbsolutePath() + File.separator;
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt3172LocalDirectoryExpressionMGETRecursive() {
+		String dir = "ftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+		assertEquals(3, localFiles.size());
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+					Matchers.containsString(dir));
+		}
+		assertThat(localFiles.get(2).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+				Matchers.containsString(dir + "subFtpSource"));
+
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testInt3172LocalDirectoryExpressionMGETRecursiveFiltered() {
+		String dir = "ftpSource/";
+		this.inboundMGetRecursiveFiltered.send(new GenericMessage<Object>(dir + "*"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		List<File> localFiles = (List<File>) result.getPayload();
+		// should have filtered ftpSource2.txt
+		assertEquals(2, localFiles.size());
+
+		for (File file : localFiles) {
+			assertThat(file.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+					Matchers.containsString(dir));
+		}
+		assertThat(localFiles.get(1).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
+				Matchers.containsString(dir + "subFtpSource"));
+
+	}
 
 }
