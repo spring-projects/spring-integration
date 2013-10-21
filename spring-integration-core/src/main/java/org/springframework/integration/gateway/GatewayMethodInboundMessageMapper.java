@@ -68,6 +68,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
@@ -79,6 +80,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	private final Method method;
 
 	private final Map<String, Expression> headerExpressions;
+
+	private final Map<String, Expression> globalHeaderExpressions;
 
 	private final List<MethodParameter> parameterList;
 
@@ -96,9 +99,15 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
+		this(method, headerExpressions, null);
+	}
+
+	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
+			Map<String, Expression> globalHeaderExpressions) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.headerExpressions = headerExpressions;
+		this.globalHeaderExpressions = globalHeaderExpressions;
 		this.parameterList = getMethodParameterList(method);
 		this.payloadExpression = parsePayloadExpression(method);
 	}
@@ -194,23 +203,40 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 				? MessageBuilder.fromMessage((Message<?>) messageOrPayload)
 				: MessageBuilder.withPayload(messageOrPayload);
 		builder.copyHeadersIfAbsent(headers);
+		// Explicit headers in XML override any @Header annotations...
 		if (!CollectionUtils.isEmpty(this.headerExpressions)) {
-			Map<String, Object> evaluatedHeaders = new HashMap<String, Object>();
-			for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
-				Object value = entry.getValue().getValue(methodInvocationEvaluationContext);
-				if (value != null) {
-					evaluatedHeaders.put(entry.getKey(), value);
-				}
-			}
+			Map<String, Object> evaluatedHeaders = evaluateHeaders(methodInvocationEvaluationContext, this.headerExpressions);
 			builder.copyHeaders(evaluatedHeaders);
 		}
+		// ...whereas global (default) headers do not...
+		if (!CollectionUtils.isEmpty(this.globalHeaderExpressions)) {
+			Map<String, Object> evaluatedHeaders = evaluateHeaders(methodInvocationEvaluationContext, this.globalHeaderExpressions);
+			builder.copyHeadersIfAbsent(evaluatedHeaders);
+		}
 		return builder.build();
+	}
+
+	private Map<String, Object> evaluateHeaders(EvaluationContext methodInvocationEvaluationContext, Map<String, Expression> headerExpressions) {
+		Map<String, Object> evaluatedHeaders = new HashMap<String, Object>();
+		for (Map.Entry<String, Expression> entry : headerExpressions.entrySet()) {
+			Object value = entry.getValue().getValue(methodInvocationEvaluationContext);
+			if (value != null) {
+				evaluatedHeaders.put(entry.getKey(), value);
+			}
+		}
+		return evaluatedHeaders;
 	}
 
 	private StandardEvaluationContext createMethodInvocationEvaluationContext(Object[] arguments) {
 		StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		context.setVariable("args", arguments);
+
+		// TODO deprecated in 3.0/4.0 - retained for backwards compatibility
 		context.setVariable("method", this.method.getName());
+
+		context.setVariable("methodName", this.method.getName());
+		context.setVariable("methodString", this.method.toString());
+		context.setVariable("methodObject", this.method);
 		return context;
 	}
 

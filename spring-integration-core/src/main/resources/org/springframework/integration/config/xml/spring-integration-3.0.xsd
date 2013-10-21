@@ -516,7 +516,18 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
+			  <xsd:choice  minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="default-header" minOccurs="0" maxOccurs="unbounded" type="headerSubElementType">
+					<xsd:annotation>
+						<xsd:documentation>
+							<![CDATA[
+	Provides a mechanism to enrich the message with custom message headers. These default headers are created for
+	all methods on the service-interface (unless overridden by a specific method element).
+							]]>
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="method">
 					<xsd:annotation>
 						<xsd:documentation>
 							<![CDATA[
@@ -530,7 +541,7 @@
 								<xsd:annotation>
 									<xsd:documentation>
 										<![CDATA[
-				Provides mechanism to enrich content of the message with custom message headers. When this method is going to be invoked
+				Provides a mechanism to enrich the message with custom message headers. When this method is invoked,
 				the generated message will be enriched with these headers.
 										]]>
 									</xsd:documentation>
@@ -605,6 +616,7 @@
 						</xsd:attribute>
 					</xsd:complexType>
 				</xsd:element>
+			  </xsd:choice>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
 			<xsd:attribute name="service-interface" type="xsd:string" use="optional">
@@ -619,6 +631,17 @@
 							<tool:expected-type type="java.lang.Class" />
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="default-payload-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+										<![CDATA[
+				An expression that will be used to generate the payload for all methods in the service interface
+				unless explicitly overriden by a method declaration. Variables include #args, #methodName, #methodString
+				and #methodObject; a bean resolver is also available, enabling expressions like "@someBean(#args)".
+										]]>
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="default-request-channel" type="xsd:string">

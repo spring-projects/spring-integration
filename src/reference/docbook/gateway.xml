@@ -116,9 +116,10 @@ public interface Cafe {
 
      <programlisting language="xml"><![CDATA[<int:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
       default-request-channel="inputC">
+  <int:default-header name="calledMethod" expression="#methodName"/>
   <int:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
-      <int:method name="echoUpperCase" request-channel="inputB"/>
-      <int:method name="echoViaDefault"/>
+  <int:method name="echoUpperCase" request-channel="inputB"/>
+  <int:method name="echoViaDefault"/>
 </int:gateway>]]></programlisting>
 
     <para>
@@ -144,6 +145,33 @@ public interface Cafe {
     <para>
       In the above case you can clearly see how a different value will be set for the 'RESPONSE_TYPE'
       header based on the gateway's method.
+    </para>
+    <para><emphasis role="bold">Expressions and "Global" Headers</emphasis></para>
+    <para>
+      The <code>&lt;header/&gt;</code> element supports <code>expression</code> instead of <code>value</code>.
+      In which case the SpEL expression is evaluated to determine the value of the header. There is no
+      <code>#root</code> object but the following variables are available:
+      <itemizedlist>
+        <listitem>
+          #args - an <code>Object[]</code> containing the method arguments
+        </listitem>
+        <listitem>
+          #methodName - the name of the gateway method
+        </listitem>
+        <listitem>
+          #methodString - a String representation of the method (including return type and parameter types)
+        </listitem>
+        <listitem>
+          #methodObject - the <classname>java.reflect.Method</classname> object representing the method.
+        </listitem>
+      </itemizedlist>
+    </para>
+    <para>
+      Since 3.0, &lt;default-header/&gt;s can be defined to add headers to all messages produced
+      by the gateway, regardless of method invoked. Specific headers defined for a method take precendence
+      over default headers. Specific headers defined for a method here will override any <code>@Header</code> annotations
+      in the service interface. However, default headers will NOT override  any <code>@Header</code> annotations
+      in the service interface. The gateway now also supports a <code>default-payload-expression</code>.
     </para>
 
     </section>
