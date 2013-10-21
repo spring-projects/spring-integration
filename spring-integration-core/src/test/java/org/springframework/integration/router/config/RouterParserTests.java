@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.test.util.TestUtils;

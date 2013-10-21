@@ -25,7 +25,7 @@ import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 

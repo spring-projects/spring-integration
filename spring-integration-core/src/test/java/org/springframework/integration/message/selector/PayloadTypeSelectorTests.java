@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.selector.PayloadTypeSelector;
 
 /**

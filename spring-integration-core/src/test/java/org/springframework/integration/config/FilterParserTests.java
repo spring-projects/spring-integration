@@ -33,7 +33,7 @@ import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

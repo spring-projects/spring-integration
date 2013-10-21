@@ -29,7 +29,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

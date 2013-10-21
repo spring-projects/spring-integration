@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.messaging.Message;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
 /**

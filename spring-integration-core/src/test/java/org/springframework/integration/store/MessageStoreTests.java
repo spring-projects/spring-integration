@@ -26,7 +26,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.messaging.Message;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.store.MessageGroupStore.MessageGroupCallback;
 import org.springframework.test.util.ReflectionTestUtils;
 

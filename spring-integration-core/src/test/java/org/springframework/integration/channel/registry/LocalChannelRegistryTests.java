@@ -28,7 +28,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author David Turanski

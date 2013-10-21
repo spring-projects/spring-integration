@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,11 @@ import org.springframework.messaging.MessageHeaders;
  * Once created this object is immutable.
  *
  * @author Mark Fisher
+ *
+ * @deprecated - use spring-messaging GenericMessage - this remains only until we migrate XD to the latest snapshot
  */
-// TODO This class only exists so that it can make its super-class's constructors public.
+// TODO Remove
+@Deprecated
 public class GenericMessage<T> extends org.springframework.messaging.support.GenericMessage<T> implements Message<T> {
 
 	private static final long serialVersionUID = 3649200745084232821L;
@@ -59,6 +62,6 @@ public class GenericMessage<T> extends org.springframework.messaging.support.Gen
 
 	@Override
 	public MessageHeaders getHeaders() {
-		return (MessageHeaders)super.getHeaders();
+		return super.getHeaders();
 	}
 }

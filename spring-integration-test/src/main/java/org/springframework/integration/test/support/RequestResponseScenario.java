@@ -1,7 +1,7 @@
 package org.springframework.integration.test.support;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 /**
  * Defines a Spring Integration request response test scenario. All setter methods may

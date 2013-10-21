@@ -38,7 +38,7 @@ import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.outbound.JpaOutboundGateway;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.integration.jpa.support.PersistMode;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;

@@ -23,7 +23,7 @@ import java.io.InputStream;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * A pollable source for receiving bytes from an {@link InputStream}.

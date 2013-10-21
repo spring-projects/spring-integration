@@ -26,13 +26,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
@@ -94,7 +95,7 @@ public class MethodInvokingMessageHandlerTests {
 
 	private static class TestBean {
 
-		private BlockingQueue<String> queue;
+		private final BlockingQueue<String> queue;
 
 		public TestBean(BlockingQueue<String> queue) {
 			this.queue = queue;

@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.security.MockAuthenticationManager;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.security.access.AccessDecisionVoter;

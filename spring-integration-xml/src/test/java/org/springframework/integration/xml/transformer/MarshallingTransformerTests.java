@@ -29,7 +29,7 @@ import javax.xml.transform.dom.DOMResult;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.XmlMappingException;

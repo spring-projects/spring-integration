@@ -28,7 +28,7 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

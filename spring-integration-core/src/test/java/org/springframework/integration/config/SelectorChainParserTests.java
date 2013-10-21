@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.selector.MessageSelectorChain;
 import org.springframework.integration.selector.MessageSelectorChain.VotingStrategy;
 import org.springframework.test.context.ContextConfiguration;

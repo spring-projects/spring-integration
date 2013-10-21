@@ -30,7 +30,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.test.context.ContextConfiguration;

@@ -46,7 +46,7 @@ import org.springframework.integration.file.filters.AbstractSimplePatternFileLis
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;

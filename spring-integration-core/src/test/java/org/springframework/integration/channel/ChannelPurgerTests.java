@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher

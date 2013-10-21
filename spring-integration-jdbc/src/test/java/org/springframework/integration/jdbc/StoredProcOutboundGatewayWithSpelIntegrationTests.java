@@ -42,7 +42,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.jdbc.config.JdbcTypesEnum;
 import org.springframework.integration.jdbc.storedproc.User;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonMessageParser;
 import org.springframework.integration.support.json.JsonInboundMessageMapper;
