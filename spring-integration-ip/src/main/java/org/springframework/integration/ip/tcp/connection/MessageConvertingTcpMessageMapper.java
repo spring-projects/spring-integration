@@ -27,19 +27,19 @@ import org.springframework.util.Assert;
  */
 public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 
-	private final MessageConverter<Object> messageConverter;
+	private final MessageConverter messageConverter;
 
-	public MessageConvertingTcpMessageMapper(MessageConverter<Object> messageConverter) {
+	public MessageConvertingTcpMessageMapper(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messasgeConverter' must not be null");
 		this.messageConverter = messageConverter;
 	}
 
 	@Override
-	public Message<Object> toMessage(TcpConnection connection) throws Exception {
+	public Message<?> toMessage(TcpConnection connection) throws Exception {
 		Object data = connection.getPayload();
 		if (data != null) {
-			Message<Object> message = this.messageConverter.toMessage(data);
-			MessageBuilder<Object> messageBuilder = MessageBuilder.fromMessage(message);
+			Message<?> message = this.messageConverter.toMessage(data, null);
+			MessageBuilder<?> messageBuilder = MessageBuilder.fromMessage(message);
 			this.addStandardHeaders(connection, messageBuilder);
 			this.addCustomHeaders(connection, messageBuilder);
 			return messageBuilder.build();

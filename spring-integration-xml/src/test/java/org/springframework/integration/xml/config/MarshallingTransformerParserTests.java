@@ -17,21 +17,23 @@
 package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.dom.DOMResult;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.xml.transform.StringResult;
 
 /**
@@ -62,7 +64,7 @@ public class MarshallingTransformerParserTests  {
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "hello", doc.getDocumentElement().getTextContent());
 	}
-	
+
 	@Test
 	public void testDefaultWithResultTransformer() throws Exception {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerWithResultTransformer");
@@ -93,7 +95,7 @@ public class MarshallingTransformerParserTests  {
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof StringResult);
 	}
-	
+
 	@Test
 	public void testCustomResultFactory() throws Exception {
 		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerCustomResultFactory");
@@ -111,8 +113,10 @@ public class MarshallingTransformerParserTests  {
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		String expected = "[Payload=hello][Headers=";		
-		assertEquals("Wrong payload", expected, doc.getDocumentElement().getTextContent().substring(0, expected.length()));
+		String expected = "[Payload String content=hello]";
+		String actual = doc.getDocumentElement().getTextContent();
+		assertThat(actual, Matchers.containsString(expected));
+		assertThat(actual, Matchers.containsString("[Headers="));
 	}
 
 }

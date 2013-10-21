@@ -183,7 +183,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 		@SuppressWarnings({ "unused", "unchecked" })
 		public void handleMessage(String s) {
-			Message<?> siMessage = messageConverter.toMessage(s);
+			Message<?> siMessage = messageConverter.toMessage(s, null);
 			try {
 				dispatcher.dispatch(siMessage);
 			}

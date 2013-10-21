@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -203,7 +204,7 @@ public class ServiceActivatorParserTests {
 		GenericMessagingTemplate template = new GenericMessagingTemplate();
 		template.setDefaultDestination(channel);
 
-		return template.convertSendAndReceive(payload);
+		return template.convertSendAndReceive(payload, null);
 	}
 
 
@@ -232,9 +233,9 @@ public class ServiceActivatorParserTests {
 	@SuppressWarnings("unused")
 	private static class TestPerson {
 
-		private String firstName;
+		private final String firstName;
 
-		private String lastName;
+		private final String lastName;
 
 		public TestPerson(String firstName, String lastName) {
 			this.firstName = firstName;

@@ -54,7 +54,7 @@ public class TcpMessageMapper implements
 
 	private volatile boolean applySequence = false;
 
-	public Message<Object> toMessage(TcpConnection connection) throws Exception {
+	public Message<?> toMessage(TcpConnection connection) throws Exception {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {

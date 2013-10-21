@@ -102,7 +102,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	@SuppressWarnings("unchecked")
 	private Message<?> convertMessage(String s) {
-		return this.messageConverter.toMessage(s);
+		return this.messageConverter.toMessage(s, null);
 	}
 
 

@@ -29,6 +29,7 @@ import java.util.Map;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.EiMessageHeaderAccessor;
@@ -56,7 +57,7 @@ public class TcpMessageMapperTests {
 		when(connection.getHostName()).thenReturn("MyHost");
 		when(connection.getHostAddress()).thenReturn("1.1.1.1");
 		when(connection.getPort()).thenReturn(1234);
-		Message<Object> message = mapper.toMessage(connection);
+		Message<?> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals("MyHost", message
 				.getHeaders().get(IpHeaders.HOSTNAME));
@@ -101,7 +102,7 @@ public class TcpMessageMapperTests {
 				return null;
 			}
 		};
-		Message<Object> message = mapper.toMessage(connection);
+		Message<?> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals("MyHost", message
 				.getHeaders().get(IpHeaders.HOSTNAME));
@@ -163,7 +164,7 @@ public class TcpMessageMapperTests {
 				return null;
 			}
 		};
-		Message<Object> message = mapper.toMessage(connection);
+		Message<?> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals("MyHost", message
 				.getHeaders().get(IpHeaders.HOSTNAME));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package org.springframework.integration.support.converter;
 
-import java.lang.reflect.Type;
-
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.converter.MessageConversionException;
 import org.springframework.messaging.support.converter.MessageConverter;
 
@@ -30,7 +29,7 @@ import org.springframework.messaging.support.converter.MessageConverter;
  * @since 2.0
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleMessageConverter implements MessageConverter<Object> {
+public class SimpleMessageConverter implements MessageConverter {
 
 	private volatile InboundMessageMapper inboundMessageMapper;
 
@@ -65,7 +64,7 @@ public class SimpleMessageConverter implements MessageConverter<Object> {
 		this.outboundMessageMapper = (outboundMessageMapper != null) ? outboundMessageMapper : new DefaultOutboundMessageMapper();
 	}
 
-	public <P> Message<P> toMessage(Object object) {
+	public Message<?> toMessage(Object object, MessageHeaders headers) {
 		try {
 			return this.inboundMessageMapper.toMessage(object);
 		}
@@ -74,7 +73,7 @@ public class SimpleMessageConverter implements MessageConverter<Object> {
 		}
 	}
 
-	public Object fromMessage(Message<?> message, Type targetClass) {
+	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		try {
 			return this.outboundMessageMapper.fromMessage(message);
 		}

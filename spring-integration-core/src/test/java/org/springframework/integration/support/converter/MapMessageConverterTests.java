@@ -24,8 +24,9 @@ import static org.junit.Assert.fail;
 import java.util.Map;
 
 import org.junit.Test;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
@@ -56,17 +57,17 @@ public class MapMessageConverterTests {
 		assertNull(headers.get("baz"));
 
 		headers.put("baz", "qux");
-		message = converter.toMessage(map);
-		assertEquals("foo", message.getPayload());
-		assertEquals("baz", message.getHeaders().get("bar"));
-		assertEquals("qux", message.getHeaders().get("baz"));
+		Message<?> converted = converter.toMessage(map, null);
+		assertEquals("foo", converted.getPayload());
+		assertEquals("baz", converted.getHeaders().get("bar"));
+		assertEquals("qux", converted.getHeaders().get("baz"));
 
 		converter.setFilterHeadersInToMessage(true);
 
-		message = converter.toMessage(map);
-		assertEquals("foo", message.getPayload());
-		assertEquals("baz", message.getHeaders().get("bar"));
-		assertNull(message.getHeaders().get("baz"));
+		converted = converter.toMessage(map, null);
+		assertEquals("foo", converted.getPayload());
+		assertEquals("baz", converted.getHeaders().get("bar"));
+		assertNull(converted.getHeaders().get("baz"));
 	}
 
 	@Test
@@ -83,7 +84,7 @@ public class MapMessageConverterTests {
 		map.remove("payload");
 
 		try {
-			converter.toMessage(map);
+			converter.toMessage(map, null);
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
@@ -105,8 +106,8 @@ public class MapMessageConverterTests {
 		assertNotNull(headers);
 		assertEquals(0, headers.size());
 		map.remove("headers");
-		message = converter.toMessage(map);
-		assertEquals("foo", message.getPayload());
+		Message<?> converted = converter.toMessage(map, null);
+		assertEquals("foo", converted.getPayload());
 	}
 
 	@Test

@@ -196,7 +196,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		this.initializeIfNecessary();
 		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
-		return this.messagingTemplate.receiveAndConvert((PollableChannel) this.replyChannel);
+		return this.messagingTemplate.receiveAndConvert((PollableChannel) this.replyChannel, null);
 	}
 
 	protected Object sendAndReceive(Object object) {
@@ -221,7 +221,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		Throwable error = null;
 		try {
 			if (shouldConvert) {
-				reply = this.messagingTemplate.convertSendAndReceive(this.requestChannel, object, this.historyWritingPostProcessor);
+				reply = this.messagingTemplate.convertSendAndReceive(this.requestChannel, object, null, this.historyWritingPostProcessor);
 				if (reply instanceof Throwable) {
 					error = (Throwable) reply;
 				}
