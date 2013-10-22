@@ -187,6 +187,43 @@ public interface Cafe {
     </para>
 
     </section>
+    <section id="gateway-mapping">
+      <title>Mapping Method Arguments to a Message</title>
+      <para>
+        Using the configuration techniques in the previous section allows control of how method arguments are mapped
+        to message elements (payload and header(s)). When no explicit configuration is used, certain conventions are
+        used to perform the mapping. In some cases, these conventions cannot determine which argument is the payload
+        and which should be mapped to headers.
+      </para>
+      <programlisting language="java"><![CDATA[
+public String send1(Object foo, Map bar);
+
+public String send2(Map foo, Map bar);
+      ]]></programlisting>
+      <para>
+        In the first case, the convention will map the first argument to the payload (as long as it is not a
+        <code>Map</code>) and the contents of the second become headers.
+      </para>
+      <para>
+        In the second case (or the first when the argument for parameter <code>foo</code> is a <code>Map</code>),
+        the framework cannot determine
+        which argument should be the payload; mapping will fail. This can generally be resolved using a
+        <code>payload-expression</code>, a <code>@Payload</code> annotation and/or a <code>@Headers</code>
+        annotation.
+      </para>
+      <para>
+        Alternatively, and whenever the conventions break down, you can take the entire responsibility for
+        mapping the method calls to messages. To do this, implement an
+        <classname>InboundMessageMapper&lt;MethodArgHolder&gt;</classname> and provide it to the
+        <code>&lt;gateway/&gt;</code> using the <code>mapper</code> attribute. The
+        <classname>MethodArgHolder</classname> is a simple class wrapping the <classname>java.reflect.Method</classname>
+        instance and an <code>Object[]</code> containing the arguments. When providing a custom mapper,
+        the <code>default-payload-expression</code> attribute and <code>&lt;default-header/&gt;</code> elements
+        are not allowed on the gateway; similarly, the <code>payload-expression</code> attribute and
+        <code>&lt;header/&gt;</code> elements are not allowed on any <code>&lt;method/&gt;</code> elements.
+      </para>
+    </section>
+
     <section id="gateway-calling-no-argument-methods">
       <title>Invoking No-Argument Methods</title>
       <para>

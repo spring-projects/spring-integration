@@ -717,6 +717,22 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+										<![CDATA[
+					An InboundMessageMapper<MethodArgsHolder> to map the method arguments to a Message. When this
+					is provided, no payload-expressions or headers are allowed; the custom mapper is
+					responsible for creating the message.
+										]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.mapping.InboundMessageMapper" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

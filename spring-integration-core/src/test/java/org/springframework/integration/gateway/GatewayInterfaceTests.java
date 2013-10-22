@@ -40,6 +40,8 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Oleg Zhurakousky
@@ -238,6 +240,26 @@ public class GatewayInterfaceTests {
 		new GatewayProxyFactoryBean(NotAnInterface.class);
 	}
 
+	@Test
+	public void testWithCustomMapper() {
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
+		final AtomicBoolean called = new AtomicBoolean();
+		MessageHandler handler = new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				assertThat((String) message.getPayload(), equalTo("fizbuz"));
+				called.set(true);
+			}
+		};
+		channel.subscribe(handler);
+		Baz baz = ac.getBean(Baz.class);
+		baz.baz("hello");
+		assertTrue(called.get());
+	}
+
+
 
 	public interface Foo {
 		@Gateway(requestChannel="requestChannelFoo")
@@ -255,5 +277,19 @@ public class GatewayInterfaceTests {
 
 	public static class NotAnInterface {
 		public void fail(String payload){}
+	}
+
+	public interface Baz {
+
+		public void baz(String payload);
+	}
+
+	public static class BazMapper implements InboundMessageMapper<MethodArgsHolder> {
+
+		@Override
+		public Message<?> toMessage(MethodArgsHolder object) throws Exception {
+			return MessageBuilder.withPayload("fizbuz").build();
+		}
+
 	}
 }

@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -43,7 +44,7 @@ import org.springframework.util.xml.DomUtils;
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static String[] referenceAttributes = new String[] {
-		"default-request-channel", "default-reply-channel", "error-channel", "message-mapper", "async-executor"
+		"default-request-channel", "default-reply-channel", "error-channel", "message-mapper", "async-executor", "mapper"
 	};
 
 	private static String[] innerAttributes = new String[] {
@@ -93,9 +94,16 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
 		}
 
+		boolean hasMapper = StringUtils.hasText(element.getAttribute("mapper"));
+		boolean hasDefaultPayloadExpression = StringUtils.hasText(element.getAttribute("default-payload-expression"));
+		Assert.state(hasMapper ? !hasDefaultPayloadExpression : true, "'default-payload-expression' is not allowed when a 'mapper' is provided");
+
 		List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(element, "default-header");
-		if (!CollectionUtils.isEmpty(invocationHeaders)
-				|| StringUtils.hasText(element.getAttribute("default-payload-expression"))) {
+		boolean hasDefaultHeaders = !CollectionUtils.isEmpty(invocationHeaders);
+
+		Assert.state(hasMapper ? !hasDefaultHeaders : true, "default-header elements are not allowed when a 'mapper' is provided");
+
+		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.gateway.GatewayMethodMetadata");
 			this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
@@ -118,8 +126,11 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 			methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
 			methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement, "payload-expression");
+			Assert.state(hasMapper ? !StringUtils.hasText(element.getAttribute("payload-expression")) : true,
+						"'payload-expression' is not allowed when a 'mapper' is provided");
 			invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
 			if (!CollectionUtils.isEmpty(invocationHeaders)) {
+				Assert.state(!hasMapper, "header elements are not allowed when a 'mapper' is provided");
 				this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
 			}
 			methodMetadataMap.put(methodName, methodMetadataBuilder.getBeanDefinition());

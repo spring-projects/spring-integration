@@ -49,6 +49,7 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
@@ -104,6 +105,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	private volatile Map<String, GatewayMethodMetadata> methodMetadataMap;
 
 	private volatile GatewayMethodMetadata globalMethodMetadata;
+
+	private volatile InboundMessageMapper<MethodArgsHolder> argsMapper;
 
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
@@ -212,6 +215,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
+	}
+
+	public final void setMapper(InboundMessageMapper<MethodArgsHolder> mapper) {
+		this.argsMapper = mapper;
 	}
 
 	@Override
@@ -395,7 +402,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			}
 		}
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method, headerExpressions,
-				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null);
+				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
+				this.argsMapper);
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}
