@@ -7,7 +7,7 @@
 
 	<int:gateway id="sampleGateway"
 			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests.Bar"
-			default-request-channel="requestChannelBaz">
+			default-request-channel="requestChannelBaz" default-payload-expression="'foo'">
 		<int:default-header name="name" expression="#gatewayMethod.name"/>
 		<int:default-header name="string" expression="#gatewayMethod.toString()"/>
 		<int:default-header name="object" expression="#gatewayMethod"/>

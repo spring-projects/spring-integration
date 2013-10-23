@@ -155,6 +155,20 @@
 	<section id="3.0-general">
 		<title>General Changes</title>
 
+		<section id="3.0-gateway">
+			<title>&lt;gateway&gt; Changes</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						It is now possible to set common headers across all gateway methods, and more options
+						are provided for adding, to the message, information about which method was invoked.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information see <xref linkend="gateway"/>.
+			</para>
+		</section>
 		<section id="3.0-corr-endpoint-empty-groups">
 			<title>Aggregator 'empty-group-min-timeout' property</title>
 				<para><classname>AbstractCorrelatingMessageHandler</classname> provides a new property
