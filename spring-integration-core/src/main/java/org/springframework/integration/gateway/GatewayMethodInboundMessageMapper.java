@@ -234,9 +234,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		// TODO deprecated in 3.0/4.0 - retained for backwards compatibility
 		context.setVariable("method", this.method.getName());
 
-		context.setVariable("methodName", this.method.getName());
-		context.setVariable("methodString", this.method.toString());
-		context.setVariable("methodObject", this.method);
+		context.setVariable("gatewayMethod", this.method);
 		return context;
 	}
 

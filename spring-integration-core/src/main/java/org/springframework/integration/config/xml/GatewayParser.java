@@ -27,6 +27,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -52,7 +53,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.GatewayProxyFactoryBean";
+		return GatewayProxyFactoryBean.class.getName();
 	}
 
 	@Override
@@ -92,15 +93,16 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
 		}
 
-		BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.gateway.GatewayMethodMetadata");
 		List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(element, "default-header");
-		if (!CollectionUtils.isEmpty(invocationHeaders)) {
+		if (!CollectionUtils.isEmpty(invocationHeaders)
+				|| StringUtils.hasText(element.getAttribute("default-payload-expression"))) {
+			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.gateway.GatewayMethodMetadata");
 			this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, element,
+					"default-payload-expression", "payloadExpression");
+			builder.addPropertyValue("globalMethodMetadata", methodMetadataBuilder.getBeanDefinition());
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, element,
-				"default-payload-expression", "payloadExpression");
-		builder.addPropertyValue("globalMethodMetadata", methodMetadataBuilder.getBeanDefinition());
 
 		List<Element> elements = DomUtils.getChildElementsByTagName(element, "method");
 		ManagedMap<String, BeanDefinition> methodMetadataMap = null;
@@ -109,7 +111,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		}
 		for (Element methodElement : elements) {
 			String methodName = methodElement.getAttribute("name");
-			methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.gateway.GatewayMethodMetadata");
 			methodMetadataBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
 			methodMetadataBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
