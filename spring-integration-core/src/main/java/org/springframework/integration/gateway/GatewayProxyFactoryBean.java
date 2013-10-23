@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -100,8 +101,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private final Object initializationMonitor = new Object();
 
-	private Map<String, GatewayMethodMetadata> methodMetadataMap;
+	private volatile Map<String, GatewayMethodMetadata> methodMetadataMap;
 
+	private volatile GatewayMethodMetadata globalMethodMetadata;
 
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
@@ -202,6 +204,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	public void setMethodMetadataMap(Map<String, GatewayMethodMetadata> methodMetadataMap) {
 		this.methodMetadataMap = methodMetadataMap;
+	}
+
+	public void setGlobalMethodMetadata(GatewayMethodMetadata globalMethodMetadata) {
+		this.globalMethodMetadata = globalMethodMetadata;
 	}
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
@@ -339,7 +345,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		MessageChannel replyChannel = this.defaultReplyChannel;
 		Long requestTimeout = this.defaultRequestTimeout;
 		Long replyTimeout = this.defaultReplyTimeout;
-		String payloadExpression = null;
+		String payloadExpression = this.globalMethodMetadata != null ? this.globalMethodMetadata.getPayloadExpression()
+				: null;
 		Map<String, Expression> headerExpressions = null;
 		if (gatewayAnnotation != null) {
 			String requestChannelName = gatewayAnnotation.requestChannel();
@@ -387,7 +394,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 				}
 			}
 		}
-		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method, headerExpressions);
+		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method, headerExpressions,
+				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null);
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}
