@@ -16,6 +16,8 @@
 
 package org.springframework.integration.context;
 
+import java.util.Properties;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -44,6 +46,8 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
 	public static final String INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME = "integrationEvaluationContext";
+
+	public static final String INTEGRATION_PROPERTIES_BEAN_NAME = "integrationProperties";
 
 	/**
 	 * Return the {@link MetadataStore} bean whose name is "metadataStore".
@@ -102,6 +106,15 @@ public abstract class IntegrationContextUtils {
 			return null;
 		}
 		return beanFactory.getBean(beanName, type);
+	}
+
+	/**
+	 * @return the global {@link IntegrationContextUtils#INTEGRATION_PROPERTIES_BEAN_NAME}
+	 *         bean (if any) from provided {@code #beanFactory}, which represents the merged
+	 *         properties values from all 'META-INF/spring.integration.properties'.
+	 */
+	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
+		return getBeanOfType(beanFactory, INTEGRATION_PROPERTIES_BEAN_NAME, Properties.class);
 	}
 
 }
