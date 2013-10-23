@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import java.util.Set;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -58,7 +57,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadParsedAndProvidedKey() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -86,7 +85,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadParsedAndProvidedKeyAsHeader() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -114,7 +113,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@RedisAvailable
 	@Test(expected=MessageHandlingException.class)
 	public void testListWithListPayloadParsedAndNoKey() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<String> redisList =
 				new DefaultRedisList<String>(key, this.initTemplate(jcf, new RedisTemplate<String, String>()));
@@ -136,7 +135,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testListWithListPayloadAsSingleEntry() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisList<List<String>> redisList =
 				new DefaultRedisList<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
@@ -167,7 +166,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyDefault() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -205,7 +204,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrement() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -246,7 +245,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadParsedAndProvidedKeyScoreIncrementAsStringHeader() {// see INT-2775
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -287,7 +286,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testZsetWithListPayloadAsSingleEntryAndHeaderKeyHeaderScore() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisZSet<List<String>> redisZset =
 				new DefaultRedisZSet<List<String>>(key, this.initTemplate(jcf, new RedisTemplate<String, List<String>>()));
@@ -320,7 +319,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadParsedHeaderKey() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "presidents";
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>(key, this.initTemplate(jcf, new StringRedisTemplate()));
@@ -362,7 +361,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadPojoParsedHeaderKey() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "presidents";
 		RedisZSet<President> redisZset =
 				new DefaultRedisZSet<President>(key, this.initTemplate(jcf, new RedisTemplate<String, President>()));
@@ -405,7 +404,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testZsetWithMapPayloadPojoAsSingleEntryHeaderKey() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "presidents";
 		RedisZSet<Map<President, Double>> redisZset =
 				new DefaultRedisZSet<Map<President, Double>>(key, this.initTemplate(jcf, new RedisTemplate<String, Map<President, Double>>()));
@@ -435,7 +434,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test(expected=IllegalStateException.class)
 	@RedisAvailable
 	public void testListWithMapKeyExpression() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -447,7 +446,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test(expected=IllegalStateException.class)
 	@RedisAvailable
 	public void testSetWithMapKeyExpression() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -460,7 +459,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test(expected=IllegalStateException.class)
 	@RedisAvailable
 	public void testZsetWithMapKeyExpression() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -473,7 +472,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testMapWithMapKeyExpression() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);
@@ -491,7 +490,7 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests{
 	@Test
 	@RedisAvailable
 	public void testPropertiesWithMapKeyExpression() {
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		String key = "foo";
 		RedisStoreWritingMessageHandler handler =
 				new RedisStoreWritingMessageHandler(jcf);

@@ -17,11 +17,15 @@
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-import org.mockito.Mockito;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -36,6 +40,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class RedisChannelParserTests extends RedisAvailableTests{
 
@@ -44,8 +49,8 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 	public void testPubSubChannelConfig(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
-		JedisConnectionFactory connectionFactory =
-			TestUtils.getPropertyValue(redisChannel, "connectionFactory", JedisConnectionFactory.class);
+		RedisConnectionFactory connectionFactory =
+			TestUtils.getPropertyValue(redisChannel, "connectionFactory", RedisConnectionFactory.class);
 		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer", RedisSerializer.class);
 		assertEquals(connectionFactory, context.getBean("redisConnectionFactory"));
 		assertEquals(redisSerializer, context.getBean("redisSerializer"));
@@ -65,20 +70,17 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
 		final Message<?> m = new GenericMessage<String>("Hello Redis");
 
-		final Marker marker = Mockito.mock(Marker.class);
+		final CountDownLatch latch = new CountDownLatch(1);
 		redisChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				assertEquals(m.getPayload(), message.getPayload());
-				marker.mark();
+				latch.countDown();
 			}
 		});
 		redisChannel.send(m);
-		Thread.sleep(1000);
-		Mockito.verify(marker, Mockito.times(1)).mark();
+
+		assertTrue(latch.await(2, TimeUnit.SECONDS));
 		context.stop();
 	}
 
-	interface Marker {
-		void mark();
-	}
 }

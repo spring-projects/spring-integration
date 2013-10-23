@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 the original author or authors
+ * Copyright 2007-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -63,7 +63,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testListWithKeyAsHeader(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 
 		RedisList<String> redisList =
 				new DefaultRedisList<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
@@ -84,7 +84,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testListWithKeyAsHeaderSimple(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisList<String> redisList =
@@ -103,7 +103,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testListWithProvidedKey(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisList<String> redisList =
 				new DefaultRedisList<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
 		assertEquals(0, redisList.size());
@@ -123,7 +123,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadIncrement(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisZSet<String> redisZSet =
@@ -148,7 +148,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadOverwrite(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisZSet<String> redisZSet =
@@ -176,7 +176,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadIncrementBy2(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisZSet<String> redisZSet =
@@ -204,7 +204,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testZsetSimplePayloadOverwriteWithHeaderScore(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisZSet<String> redisZSet =
@@ -233,7 +233,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testMapToZsetWithProvidedKey(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisZSet<String> redisZset =
 				new DefaultRedisZSet<String>("presidents", this.initTemplate(jcf, new StringRedisTemplate()));
 		assertEquals(0, redisZset.size());
@@ -279,7 +279,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testMapToMapWithProvidedKey(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMap<String, String> redisMap =
 				new DefaultRedisMap<String, String>("pepboys",
 						this.initTemplate(jcf, new StringRedisTemplate()));
@@ -308,7 +308,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test(expected=MessageHandlingException.class) // map key is not provided
 	@RedisAvailable
 	public void testMapToMapAsSingleEntryWithKeyAsHeaderFail(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMap<String, Map<String, String>> redisMap =
 				new DefaultRedisMap<String, Map<String, String>>("pepboys",
 						this.initTemplate(jcf, new RedisTemplate<String, Map<String, Map<String, String>>>()));
@@ -330,7 +330,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test(expected=MessageHandlingException.class) // key is not provided
 	@RedisAvailable
 	public void testMapToMapNoKey(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisTemplate<String, Map<String, Map<String, String>>> redisTemplate = new RedisTemplate<String, Map<String, Map<String, String>>>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
@@ -354,7 +354,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testMapToMapAsSingleEntryWithKeyAsHeader(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisTemplate<String, Map<String, Map<String, String>>> redisTemplate = new RedisTemplate<String, Map<String, Map<String, String>>>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
@@ -384,7 +384,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testStoreSimpleStringInMap(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisMap<String, String> redisMap =
 				new DefaultRedisMap<String, String>("bar",
@@ -406,7 +406,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeader(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisSet<String> redisSet =
 				new DefaultRedisSet<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
 		assertEquals(0, redisSet.size());
@@ -426,7 +426,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeaderSimple(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisSet<String> redisSet =
 				new DefaultRedisSet<String>("foo", this.initTemplate(jcf, redisTemplate));
@@ -445,7 +445,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testSetWithKeyAsHeaderNotParsed(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
@@ -468,7 +468,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testPojoIntoSet(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisSet<String> redisSet =
 				new DefaultRedisSet<String>("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
 		assertEquals(0, redisSet.size());
@@ -485,7 +485,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testProperties(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisProperties redisProperties =
 				new RedisProperties("pepboys", this.initTemplate(jcf, new StringRedisTemplate()));
 
@@ -508,7 +508,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 	@Test
 	@RedisAvailable
 	public void testPropertiesSimple(){
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		RedisProperties redisProperties =
 				new RedisProperties("foo", this.initTemplate(jcf, redisTemplate));

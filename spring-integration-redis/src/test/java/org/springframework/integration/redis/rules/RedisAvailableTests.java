@@ -21,7 +21,8 @@ import org.junit.Rule;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisCallback;
@@ -31,21 +32,20 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class RedisAvailableTests {
+
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public JedisConnectionFactory getConnectionFactoryForTest(){
-		JedisConnectionFactory jcf = new JedisConnectionFactory();
-		jcf.setPort(7379);
-		jcf.afterPropertiesSet();
-		RedisTemplate rt = new RedisTemplate<UUID, Object>();
-		rt.setConnectionFactory(jcf);
+	public RedisConnectionFactory getConnectionFactoryForTest(){
+		LettuceConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
+		RedisTemplate<UUID, Object> rt = new RedisTemplate<UUID, Object>();
+		rt.setConnectionFactory(connectionFactory);
 		rt.afterPropertiesSet();
-		rt.execute(new RedisCallback() {
+		rt.execute(new RedisCallback<Object>() {
 
 			public Object doInRedis(RedisConnection connection)
 					throws DataAccessException {
@@ -53,13 +53,13 @@ public class RedisAvailableTests {
 				return null;
 			}
 		});
-		return jcf;
+		return connectionFactory;
 	}
 
-	protected void prepareList(JedisConnectionFactory jcf){
+	protected void prepareList(RedisConnectionFactory connectionFactory){
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(jcf);
+		redisTemplate.setConnectionFactory(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 		BoundListOperations<String, String> ops = redisTemplate.boundListOps("presidents");
 
@@ -80,10 +80,10 @@ public class RedisAvailableTests {
 		ops.rightPush("George Washington");
 	}
 
-	protected void prepareZset(JedisConnectionFactory jcf){
+	protected void prepareZset(RedisConnectionFactory connectionFactory){
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(jcf);
+		redisTemplate.setConnectionFactory(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
 		BoundZSetOperations<String, String> ops = redisTemplate.boundZSetOps("presidents");

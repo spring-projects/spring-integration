@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 the original author or authors
+ * Copyright 2007-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package org.springframework.integration.redis.outbound;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
@@ -31,24 +34,20 @@ import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author Mark Fisher
  * @since 2.1
  */
-public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
+public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 
-	@Test 
+	@Test
 	@RedisAvailable
 	public void testRedisPublishingMessageHandler() throws Exception {
 		int numToTest = 10;
 		String topic = "si.test.channel";
 		final CountDownLatch latch = new CountDownLatch(numToTest);
 
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
-		connectionFactory.afterPropertiesSet();
+		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		MessageListenerAdapter listener = new MessageListenerAdapter();
 		listener.setDelegate(new Listener(latch));
@@ -67,8 +66,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 		for (int i = 0; i < numToTest; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("test-" + i).build());
 		}
-		latch.await(3, TimeUnit.SECONDS);
-		assertEquals(0, latch.getCount());
+		assertTrue(latch.await(3, TimeUnit.SECONDS));
 		container.stop();
 	}
 

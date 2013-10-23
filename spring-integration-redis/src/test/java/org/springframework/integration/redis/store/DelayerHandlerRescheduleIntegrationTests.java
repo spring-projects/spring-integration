@@ -21,17 +21,20 @@ import static org.junit.Assert.fail;
 
 import java.util.concurrent.TimeUnit;
 
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableRule;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -47,8 +50,21 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 	public static final String DELAYER_ID = "delayerWithRedisMS";
 
+	public static LettuceConnectionFactory  connectionFactory;
+
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
+
+	@BeforeClass
+	public static void setup() {
+		connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.setPort(RedisAvailableRule.REDIS_PORT);
+		connectionFactory.afterPropertiesSet();
+	}
+
+	public static void tearDown() {
+		connectionFactory.destroy();
+	}
 
 	@Test
 	@RedisAvailable

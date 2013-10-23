@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 the original author or authors
+ * Copyright 2007-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -16,11 +16,17 @@
 
 package org.springframework.integration.redis.inbound;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.Message;
@@ -28,11 +34,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author Mark Fisher
@@ -42,7 +43,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	@Test 
+	@Test
 	@RedisAvailable
 	public void testRedisInboundChannelAdapter() throws Exception {
 		for (int iteration = 0; iteration < 10; iteration ++) {
@@ -55,9 +56,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		String redisChannelName = "testRedisInboundChannelAdapterChannel";
 		QueueChannel channel = new QueueChannel();
 
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
-		connectionFactory.afterPropertiesSet();
+		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(connectionFactory);
 		adapter.setTopics("testRedisInboundChannelAdapterChannel");
@@ -87,7 +86,6 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		assertEquals(numToTest, counter);
 		adapter.stop();
 		container.stop();
-		connectionFactory.destroy();
 	}
 
 	/**
