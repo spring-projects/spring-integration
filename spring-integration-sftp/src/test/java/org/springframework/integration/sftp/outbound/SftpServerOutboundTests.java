@@ -38,10 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -88,8 +87,9 @@ public class SftpServerOutboundTests {
 	@Autowired
 	private DirectChannel inboundMGetRecursiveFiltered;
 
+	@SuppressWarnings("rawtypes")
 	@Autowired
-	private SessionFactory<SftpFileInfo> sessionFactory;
+	private SessionFactory sessionFactory;
 
 	@Before
 	public void setup() throws Exception {
