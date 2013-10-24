@@ -217,6 +217,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		this.beanClassLoader = beanClassLoader;
 	}
 
+	/**
+	 * Provide a custom {@link InboundMessageMapper} to map from a method invocation
+	 * to a {@link Message}. The mapper must map from a {@link MethodArgsHolder}.
+	 * @param mapper the mapper.
+	 */
 	public final void setMapper(InboundMessageMapper<MethodArgsHolder> mapper) {
 		this.argsMapper = mapper;
 	}

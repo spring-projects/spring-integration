@@ -18,6 +18,11 @@ package org.springframework.integration.gateway;
 import java.lang.reflect.Method;
 
 /**
+ * Simple wrapper class containing a {@link Method} and an object
+ * array containing the arguments for an invocation of that method.
+ * Used by an InboundMessageMapper with this generic type to provide
+ * custom argument mapping when creating a message in a GatewayProxyFactoryBean.
+ *
  * @author Gary Russell
  * @since 3.0
  *
