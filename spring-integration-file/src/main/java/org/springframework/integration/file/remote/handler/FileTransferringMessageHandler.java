@@ -16,10 +16,13 @@
 
 package org.springframework.integration.file.remote.handler;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -35,7 +38,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,8 +68,6 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
 	private volatile boolean fileNameGeneratorSet;
-
-	private volatile File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = "UTF-8";
 
@@ -105,9 +105,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		return this.temporaryFileSuffix;
 	}
 
+	/**
+	 * @deprecated This property is no longer used; byte[] and String payloads are written directly
+	 */
+	@Deprecated
 	public void setTemporaryDirectory(File temporaryDirectory) {
-		Assert.notNull(temporaryDirectory, "temporaryDirectory must not be null");
-		this.temporaryDirectory = temporaryDirectory;
 	}
 
 	protected boolean isUseTemporaryFileName() {
@@ -158,81 +160,87 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		File file = this.redeemForStorableFile(message);
-		if (file != null && file.exists()) {
+		StreamHolder inputStreamHolder = this.payloadToInputStream(message);
+		if (inputStreamHolder != null) {
 			Session<F> session = this.sessionFactory.getSession();
+			String fileName = inputStreamHolder.getName();
 			try {
 				String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
 				String temporaryRemoteDirectory = remoteDirectory;
 				if (this.temporaryDirectoryExpressionProcessor != null){
 					temporaryRemoteDirectory = this.temporaryDirectoryExpressionProcessor.processMessage(message);
 				}
-				String fileName = this.fileNameGenerator.generateFileName(message);
-				this.sendFileToRemoteDirectory(file, temporaryRemoteDirectory, remoteDirectory, fileName, session);
+				fileName = this.fileNameGenerator.generateFileName(message);
+				this.sendFileToRemoteDirectory(inputStreamHolder.getStream(), temporaryRemoteDirectory, remoteDirectory, fileName, session);
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
-						"File [" + file + "] not found in local working directory; it was moved or deleted unexpectedly.", e);
+						"File [" + inputStreamHolder.getName() + "] not found in local working directory; it was moved or deleted unexpectedly.", e);
 			}
 			catch (IOException e) {
 				throw new MessageDeliveryException(message,
-						"Failed to transfer file [" + file + "] from local working directory to remote FTP directory.", e);
+						"Failed to transfer file [" + inputStreamHolder.getName() + " -> " + fileName + "] from local directory to remote directory.", e);
 			}
 			catch (Exception e) {
 				throw new MessageDeliveryException(message,
-						"Error handling message for file [" + file + "]", e);
+						"Error handling message for file [" + inputStreamHolder.getName() + " -> " + fileName + "]", e);
 			}
 			finally {
-				if (!(message.getPayload() instanceof File)) {
-					// we created the File, so we need to delete it
-					if (file.exists()) {
-						try {
-							file.delete();
-						}
-						catch (Throwable t) {
-							// ignore
-						}
-					}
-				}
 				if (session != null) {
 					session.close();
 				}
 			}
 		}
+		else {
+			// A null holder means a File payload that does not exist.
+			if (logger.isWarnEnabled()) {
+				logger.warn("File " + message.getPayload() + " does not exist");
+			}
+		}
 	}
 
-	private File redeemForStorableFile(Message<?> message) throws MessageDeliveryException {
+	private StreamHolder payloadToInputStream(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
-			File sendableFile = null;
+			InputStream dataInputStream = null;
+			String name = null;
 			if (payload instanceof File) {
-				sendableFile = (File) payload;
+				File inputFile = (File) payload;
+				if (inputFile.exists()) {
+					dataInputStream = new BufferedInputStream(new FileInputStream(inputFile));
+					name = inputFile.getAbsolutePath();
+				}
 			}
 			else if (payload instanceof byte[] || payload instanceof String) {
-				String tempFileName = this.fileNameGenerator.generateFileName(message) + ".tmp";
-				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
 				byte[] bytes = null;
 				if (payload instanceof String) {
 					bytes = ((String) payload).getBytes(this.charset);
+					name = "String payload";
 				}
 				else {
 					bytes = (byte[]) payload;
+					name = "byte[] payload";
 				}
-				FileCopyUtils.copy(bytes, sendableFile);
+				dataInputStream = new ByteArrayInputStream(bytes);
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
 							"java.io.File, java.lang.String, and byte[]");
 			}
-			return sendableFile;
+			if (dataInputStream == null) {
+				return null;
+			}
+			else {
+				return new StreamHolder(dataInputStream, name);
+			}
 		}
 		catch (Exception e) {
 			throw new MessageDeliveryException(message, "Failed to create sendable file.", e);
 		}
 	}
 
-	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<F> session)
-			throws FileNotFoundException, IOException {
+	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectory,
+			String remoteDirectory, String fileName, Session<F> session) throws FileNotFoundException, IOException {
 
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
 		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);
@@ -253,9 +261,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			}
 		}
 
-		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
-			session.write(fileInputStream, tempFilePath);
+			session.write(inputStream, tempFilePath);
 			// then rename it to its final name if necessary
 			if (useTemporaryFileName){
 			   session.rename(tempFilePath, remoteFilePath);
@@ -265,7 +272,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
 		}
 		finally {
-			fileInputStream.close();
+			inputStream.close();
 		}
 	}
 
@@ -277,6 +284,27 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			directoryPath += this.remoteFileSeparator;
 		}
 		return directoryPath;
+	}
+
+	private class StreamHolder {
+
+		private final InputStream stream;
+
+		private final String name;
+
+		private StreamHolder(InputStream stream, String name) {
+			this.stream = stream;
+			this.name = name;
+		}
+
+		public InputStream getStream() {
+			return stream;
+		}
+
+		public String getName() {
+			return name;
+		}
+
 	}
 
 }

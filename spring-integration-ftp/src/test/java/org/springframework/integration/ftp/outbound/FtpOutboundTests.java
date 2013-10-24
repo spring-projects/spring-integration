@@ -18,8 +18,11 @@ package org.springframework.integration.ftp.outbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -31,7 +34,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.junit.Before;
@@ -40,6 +46,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -53,6 +60,7 @@ import org.springframework.integration.file.remote.handler.FileTransferringMessa
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -92,8 +100,11 @@ public class FtpOutboundTests {
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage<String>("hello"));
+		handler.handleMessage(new GenericMessage<String>("String data"));
 		assertTrue(file.exists());
+		byte[] inFile = FileCopyUtils.copyToByteArray(file);
+		assertEquals("String data", new String(inFile));
+		file.delete();
 	}
 
 	@Test
@@ -112,8 +123,11 @@ public class FtpOutboundTests {
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage<byte[]>("hello".getBytes()));
+		handler.handleMessage(new GenericMessage<byte[]>("byte[] data".getBytes()));
 		assertTrue(file.exists());
+		byte[] inFile = FileCopyUtils.copyToByteArray(file);
+		assertEquals("byte[] data", new String(inFile));
+		file.delete();
 	}
 
 	@Test
@@ -139,6 +153,41 @@ public class FtpOutboundTests {
 
 		handler.handleMessage(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
+	}
+
+	@Test
+	public void testHandleMissingFileMessage() throws Exception {
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
+		handler.setFileNameGenerator(new FileNameGenerator() {
+			public String generateFileName(Message<?> message) {
+				return ((File)message.getPayload()).getName() + ".test";
+			}
+		});
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+
+		File srcFile = new File(UUID.randomUUID() + ".txt");
+
+		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
+		when(logger.isWarnEnabled()).thenReturn(true);
+		final AtomicReference<String> logged = new AtomicReference<String>();
+		doAnswer(new Answer<Object>(){
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				logged.set((String) invocation.getArguments()[0]);
+				invocation.callRealMethod();
+				return null;
+			}
+		}).when(logger).warn(Mockito.anyString());
+		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
+		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertNotNull(logged.get());
+		assertEquals("File " + srcFile.toString() + " does not exist", logged.get());
 	}
 
 	@Test //INT-2275

@@ -16,9 +16,9 @@ ext {
 	linkHomepage = 'http://www.springintegration.org/'
 	linkCi       = 'https://build.springsource.org/browse/INT'
 	linkIssue    = 'https://jira.springsource.org/browse/INT'
-	linkScmUrl           = 'https://github.com/SpringSource/spring-integration'
-	linkScmConnection    = 'git://github.com/SpringSource/spring-integration.git'
-	linkScmDevConnection = 'git@github.com:SpringSource/spring-integration.git'
+	linkScmUrl           = 'https://github.com/spring-projects/spring-integration'
+	linkScmConnection    = 'git://github.com/spring-projects/spring-integration.git'
+	linkScmDevConnection = 'git@github.com:spring-projects/spring-integration.git'
 }
 
 allprojects {
@@ -57,13 +57,16 @@ subprojects { subproject ->
 		log4jVersion = '1.2.12'
 		mockitoVersion = '1.9.5'
 		eaioUUIDVersion = '3.2'
+		ftpServerVersion = '1.0.6'
+
 
 		springVersionDefault = '4.0.0.M3'
 		springVersion = project.hasProperty('springVersion') ? getProperty('springVersion') : springVersionDefault
 
 		springAmqpVersion = '1.2.0.RELEASE'
 		springDataMongoVersion = '1.1.1.RELEASE'
-		springDataRedisVersion = '1.0.5.RELEASE'
+		springDataRedisVersion = '1.1.0.RELEASE'
+		lettuceVersion = '2.3.3'
 		springGemfireVersion = '1.3.1.RELEASE'
 		springSecurityVersion = '3.1.3.RELEASE'
 		springSocialTwitterVersion = '1.0.5.RELEASE'
@@ -240,6 +243,7 @@ project('spring-integration-ftp') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-test")
+		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	}
 }
 
@@ -436,6 +440,7 @@ project('spring-integration-redis') {
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		testCompile project(":spring-integration-test")
+		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 	}
 }
 
@@ -538,6 +543,7 @@ project('spring-integration-twitter') {
 		testCompile project(":spring-integration-test")
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
+		testCompile "com.lambdaworks:lettuce:$lettuceVersion"
 	}
 }
 

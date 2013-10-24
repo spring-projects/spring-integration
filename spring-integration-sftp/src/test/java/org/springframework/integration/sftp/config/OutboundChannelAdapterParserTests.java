@@ -17,16 +17,17 @@
 package org.springframework.integration.sftp.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -75,7 +76,6 @@ public class OutboundChannelAdapterParserTests {
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectoryExpressionProcessor"));
 		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		CachingSessionFactory<?> sessionFactory = TestUtils.getPropertyValue(handler, "sessionFactory", CachingSessionFactory.class);
 		DefaultSftpSessionFactory clientFactory = TestUtils.getPropertyValue(sessionFactory, "sessionFactory", DefaultSftpSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
@@ -108,7 +108,6 @@ public class OutboundChannelAdapterParserTests {
 		String fileNameGeneratorExpression = (String) TestUtils.getPropertyValue(generator, "expression");
 		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression);
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		assertNull(TestUtils.getPropertyValue(handler, "temporaryDirectoryExpressionProcessor"));
 
 	}

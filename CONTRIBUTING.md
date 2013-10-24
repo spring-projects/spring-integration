@@ -28,7 +28,7 @@ Once you've completed the web form, simply add the following in a comment on you
 
 ## Fork the Repository
 
-1. Go to [https://github.com/SpringSource/spring-integration](https://github.com/SpringSource/spring-integration)
+1. Go to [https://github.com/spring-projects/spring-integration](https://github.com/spring-projects/spring-integration)
 2. Hit the "fork" button and choose your own github account as the target
 3. For more detail see [http://help.github.com/fork-a-repo/](http://help.github.com/fork-a-repo/)
 
@@ -38,7 +38,7 @@ Once you've completed the web form, simply add the following in a comment on you
 2. `cd spring-integration`
 3. `git remote show`
 _you should see only 'origin' - which is the fork you created for your own github account_
-4. `git remote add upstream git@github.com:SpringSource/spring-integration.git`
+4. `git remote add upstream git@github.com:spring-projects/spring-integration.git`
 5. `git remote show`
 _you should now see 'upstream' in addition to 'origin' where 'upstream' is the SpringSource repository from which releases are built_
 6. `git fetch --all`
@@ -233,4 +233,4 @@ Add a JIRA issue link to your first commit comment of the pull request on the la
 
 [help documentation]: http://help.github.com/send-pull-requests
 [JIRA issue tracker]: https://jira.springsource.org/browse/INT
-[checking out and building]: https://github.com/SpringSource/spring-integration#checking-out-and-building
+[checking out and building]: https://github.com/spring-projects/spring-integration#checking-out-and-building

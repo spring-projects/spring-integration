@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,32 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.hamcrest.CoreMatchers.is;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Mark Fisher
@@ -53,7 +54,7 @@ public class ConcurrentAggregatorTests {
 
 	private AggregatingMessageHandler aggregator;
 
-	private MessageGroupStore store = new SimpleMessageStore();
+	private final MessageGroupStore store = new SimpleMessageStore();
 
 
 	@Before
@@ -76,7 +77,9 @@ public class ConcurrentAggregatorTests {
 				message2, latch));
 		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
 				message3, latch));
-		latch.await(10000, TimeUnit.MILLISECONDS);
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+
 		assertThat(latch.getCount(), is(0l));
 		Message<?> reply = replyChannel.receive(2000);
 		assertNotNull(reply);
@@ -101,7 +104,7 @@ public class ConcurrentAggregatorTests {
 		new AggregatorTestTask(this.aggregator, message1, latch).run();
 		new AggregatorTestTask(this.aggregator, message2, latch).run();
 		new AggregatorTestTask(this.aggregator, message3, latch).run();
-		Message<?> reply = replyChannel.receive(500);
+		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull(reply);
 		assertEquals("123456789", reply.getPayload());
 	}
@@ -117,13 +120,15 @@ public class ConcurrentAggregatorTests {
 		AggregatorTestTask task = new AggregatorTestTask(this.aggregator,
 				message, latch);
 		this.taskExecutor.execute(task);
-		latch.await(200, TimeUnit.MILLISECONDS);
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+
 		assertEquals("Task should have completed within timeout", 0, latch
 				.getCount());
-		Message<?> reply = replyChannel.receive(100);
+		Message<?> reply = replyChannel.receive(1000);
 		assertNull("No message should have been sent normally", reply);
         this.store.expireMessageGroups(-10000);
-		Message<?> discardedMessage = discardChannel.receive(100);
+		Message<?> discardedMessage = discardChannel.receive(1000);
 		assertNotNull("A message should have been discarded", discardedMessage);
 		assertEquals(message, discardedMessage);
 	}
@@ -142,11 +147,13 @@ public class ConcurrentAggregatorTests {
 				message2, latch);
 		this.taskExecutor.execute(task1);
 		this.taskExecutor.execute(task2);
-		latch.await(300, TimeUnit.MILLISECONDS);
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+
 		assertEquals("handlers should have been invoked within time limit", 0,
 				latch.getCount());
         this.store.expireMessageGroups(-10000);
-		Message<?> reply = replyChannel.receive(100);
+		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());
 		assertNull(task1.getException());
@@ -179,13 +186,15 @@ public class ConcurrentAggregatorTests {
 				message3, latch));
 		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
 				message4, latch));
-		latch.await(1000, TimeUnit.MILLISECONDS);
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+
 		@SuppressWarnings("unchecked")
-		Message<Integer> reply1 = (Message<Integer>) replyChannel1.receive(500);
+		Message<Integer> reply1 = (Message<Integer>) replyChannel1.receive(1000);
 		assertNotNull(reply1);
 		assertThat(reply1.getPayload(), is(105));
 		@SuppressWarnings("unchecked")
-		Message<Integer> reply2 = (Message<Integer>) replyChannel2.receive(500);
+		Message<Integer> reply2 = (Message<Integer>) replyChannel2.receive(1000);
 		assertNotNull(reply2);
 		assertThat(reply2.getPayload(), is(2431));
 	}
@@ -201,17 +210,17 @@ public class ConcurrentAggregatorTests {
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel,
 				null));
-		assertEquals(1, replyChannel.receive(100).getPayload());
+		assertEquals(1, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(3, 2, 1, 1, replyChannel,
 				null));
-		assertEquals(3, replyChannel.receive(100).getPayload());
+		assertEquals(3, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(4, 3, 1, 1, replyChannel,
 				null));
-		assertEquals(4, replyChannel.receive(100).getPayload());
+		assertEquals(4, replyChannel.receive(1000).getPayload());
 		// next message with same correlation ID is discarded
 		this.aggregator.handleMessage(createMessage(2, 1, 1, 1, replyChannel,
 				null));
-		assertEquals(2, discardChannel.receive(100).getPayload());
+		assertEquals(2, discardChannel.receive(1000).getPayload());
 	}
 
 	@Test
@@ -225,19 +234,19 @@ public class ConcurrentAggregatorTests {
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel,
 				null));
-		assertEquals(1, replyChannel.receive(100).getPayload());
+		assertEquals(1, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(2, 2, 1, 1, replyChannel,
 				null));
-		assertEquals(2, replyChannel.receive(100).getPayload());
+		assertEquals(2, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(3, 3, 1, 1, replyChannel,
 				null));
-		assertEquals(3, replyChannel.receive(100).getPayload());
+		assertEquals(3, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(4, 4, 1, 1, replyChannel,
 				null));
-		assertEquals(4, replyChannel.receive(100).getPayload());
+		assertEquals(4, replyChannel.receive(1000).getPayload());
 		this.aggregator.handleMessage(createMessage(5, 1, 1, 1, replyChannel,
 				null));
-		assertEquals(5, replyChannel.receive(100).getPayload());
+		assertEquals(5, replyChannel.receive(1000).getPayload());
 		assertNull(discardChannel.receive(0));
 	}
 
@@ -266,11 +275,14 @@ public class ConcurrentAggregatorTests {
 				message3, latch));
 		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator,
 				message4, latch));
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> reply = replyChannel.receive(100);
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+
+		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull("A message should be aggregated", reply);
 		assertThat(((Integer) reply.getPayload()), is(105));
 	}
+
 
 	private static Message<?> createMessage(Object payload,
 			Object correlationId, int sequenceSize, int sequenceNumber,
@@ -288,13 +300,13 @@ public class ConcurrentAggregatorTests {
 
 	private static class AggregatorTestTask implements Runnable {
 
-		private MessageHandler aggregator;
+		private final MessageHandler aggregator;
 
-		private Message<?> message;
+		private final Message<?> message;
 
 		private Exception exception;
 
-		private CountDownLatch latch;
+		private final CountDownLatch latch;
 
 		AggregatorTestTask(MessageHandler aggregator, Message<?> message,
 				CountDownLatch latch) {

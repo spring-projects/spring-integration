@@ -75,7 +75,7 @@ public class SftpOutboundGatewayParserTests {
 		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
+		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
@@ -97,7 +97,7 @@ public class SftpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "sessionFactory") instanceof CachingSessionFactory);
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
-		assertEquals(new File("local-test-dir"), TestUtils.getPropertyValue(gateway, "localDirectory"));
+		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
 		assertEquals(Command.GET, TestUtils.getPropertyValue(gateway, "command"));
 		assertFalse(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));

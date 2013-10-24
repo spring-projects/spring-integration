@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -34,9 +35,10 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;gateway/&gt; element.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
@@ -51,9 +53,10 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.GatewayProxyFactoryBean";
+		return GatewayProxyFactoryBean.class.getName();
 	}
-	
+
+	@Override
 	protected boolean shouldGenerateIdAsFallback() {
 		return true;
 	}
@@ -62,6 +65,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 	protected boolean isEligibleAttribute(String attributeName) {
 		return !ObjectUtils.containsElement(referenceAttributes, attributeName)
 				&& !ObjectUtils.containsElement(innerAttributes, attributeName)
+				&& !("default-payload-expression".equals(attributeName))
 				&& super.isEligibleAttribute(attributeName);
 	}
 
@@ -79,7 +83,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel", "defaultRequestChannel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "defaultReplyChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "defaultRequestTimeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "defaultReplyTimeout");		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "defaultReplyTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "async-executor");
 	}
@@ -88,6 +92,18 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		for (String attributeName : referenceAttributes) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
 		}
+
+		List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(element, "default-header");
+		if (!CollectionUtils.isEmpty(invocationHeaders)
+				|| StringUtils.hasText(element.getAttribute("default-payload-expression"))) {
+			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.gateway.GatewayMethodMetadata");
+			this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, element,
+					"default-payload-expression", "payloadExpression");
+			builder.addPropertyValue("globalMethodMetadata", methodMetadataBuilder.getBeanDefinition());
+		}
+
 		List<Element> elements = DomUtils.getChildElementsByTagName(element, "method");
 		ManagedMap<String, BeanDefinition> methodMetadataMap = null;
 		if (elements != null && elements.size() > 0) {
@@ -102,7 +118,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 			methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
 			methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement, "payload-expression");
-			List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
+			invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
 			if (!CollectionUtils.isEmpty(invocationHeaders)) {
 				this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
 			}

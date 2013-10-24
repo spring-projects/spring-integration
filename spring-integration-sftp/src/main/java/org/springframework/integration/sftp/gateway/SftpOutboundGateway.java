@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -29,7 +30,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Outbound Gateway for performing remote file operations via SFTP.
- * 
+ *
  * @author Gary Russell
  * @since 2.1
  */
@@ -60,6 +61,11 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	}
 
 	@Override
+	protected String getFilename(AbstractFileInfo<LsEntry> file) {
+		return file.getFilename();
+	}
+
+	@Override
 	protected List<AbstractFileInfo<LsEntry>> asFileInfoList(Collection<LsEntry> files) {
 		List<AbstractFileInfo<LsEntry>> canonicalFiles = new ArrayList<AbstractFileInfo<LsEntry>>();
 		for (LsEntry file : files) {
@@ -71,6 +77,13 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	@Override
 	protected long getModified(LsEntry file) {
 		return ((long)file.getAttrs().getMTime()) * 1000;
+	}
+
+	@Override
+	protected LsEntry enhanceNameWithSubDirectory(LsEntry file, String directory) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(file);
+		accessor.setPropertyValue("filename", directory + file.getFilename());
+		return file;
 	}
 
 }

@@ -27,7 +27,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -89,8 +88,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 * after copying to the local directory? By default this is false.
 	 */
 	private volatile boolean deleteRemoteFiles;
-
-	private volatile BeanFactory beanFactory;
 
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.

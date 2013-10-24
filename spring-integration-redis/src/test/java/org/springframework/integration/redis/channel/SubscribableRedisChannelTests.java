@@ -17,64 +17,79 @@ package org.springframework.integration.redis.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-import org.mockito.Mockito;
+
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.ReflectionUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
-public class SubscribableRedisChannelTests extends RedisAvailableTests{
+public class SubscribableRedisChannelTests extends RedisAvailableTests {
 
 
 	@Test
 	@RedisAvailable
-	public void pubSubChanneTest() throws Exception{
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
-		connectionFactory.afterPropertiesSet();
+	public void pubSubChannelTest() throws Exception{
+		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel");
 		channel.setBeanFactory(mock(BeanFactory.class));
 		channel.afterPropertiesSet();
 		channel.start();
-		MessageHandler handler = mock(MessageHandler.class);
+
+		RedisConnection connection = TestUtils.getPropertyValue(channel, "container.subscriptionTask.connection",
+				RedisConnection.class);
+
+		int n = 0;
+		while (n++ < 100 && !connection.isSubscribed()) {
+			Thread.sleep(100);
+		}
+		assertTrue(n < 100);
+
+		final CountDownLatch latch = new CountDownLatch(3);
+		MessageHandler handler = new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				latch.countDown();
+			}
+		};
 		channel.subscribe(handler);
 
 		channel.send(new GenericMessage<String>("1"));
 		channel.send(new GenericMessage<String>("2"));
 		channel.send(new GenericMessage<String>("3"));
-		Thread.sleep(1000);
-		verify(handler, times(3)).handleMessage(Mockito.any(Message.class));
-		channel.stop();
+		assertTrue(latch.await(5, TimeUnit.SECONDS));
 	}
 
 	@Test
 	@RedisAvailable
 	public void dispatcherHasNoSubscribersTest() throws Exception{
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
-		connectionFactory.setPort(7379);
-		connectionFactory.afterPropertiesSet();
+		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel.no.subs");
 		channel.setBeanName("dhnsChannel");

@@ -26,3 +26,4 @@ spring-integration-jms/activemq-data/
 spring-integration-samples/loanshark/application.log*
 target
 vf.gf.dmn-*
+/atlassian-ide-plugin.xml

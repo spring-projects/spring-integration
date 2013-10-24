@@ -17,18 +17,20 @@
 package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +38,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -57,7 +60,7 @@ public class CorrelatingMessageHandlerTests {
 	@Mock
 	private CorrelationStrategy correlationStrategy;
 
-	private ReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
+	private final ReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
 
 	@Mock
 	private MessageGroupProcessor processor;
@@ -65,7 +68,7 @@ public class CorrelatingMessageHandlerTests {
 	@Mock
 	private MessageChannel outputChannel;
 
-	private MessageGroupStore store = new SimpleMessageStore();
+	private final MessageGroupStore store = new SimpleMessageStore();
 
 
 	@Before
@@ -152,10 +155,9 @@ public class CorrelatingMessageHandlerTests {
 			}
 		});
 
-		Thread.sleep(20);
-		assertEquals(0, store.expireMessageGroups(10000));
+		assertTrue(bothMessagesHandled.await(10, TimeUnit.SECONDS));
 
-		bothMessagesHandled.await();
+		assertEquals(0, store.expireMessageGroups(10000));
 	}
 
 	@Test

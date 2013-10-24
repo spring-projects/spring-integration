@@ -5,7 +5,7 @@ Spring Integration
 
 To check out the project and build from source, do the following:
 
-    git clone git://github.com/SpringSource/spring-integration.git
+    git clone git://github.com/spring-projects/spring-integration.git
     cd spring-integration
     ./gradlew build
 
