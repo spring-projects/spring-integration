@@ -152,6 +152,12 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 
       <para>Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the
       <code>topics</code> attribute.</para>
+      <para>
+         Inbound adapters can use a <classname>RedisSerializer</classname> to deserialize the body of Redis Messages.
+         The <code>serializer</code> attribute of the <code>&lt;int-redis:inbound-channel-adapter&gt;</code> can be set to an
+         empty string, which results in a <code>null</code> value for the <classname>RedisSerializer</classname> property.
+         In this case the raw <code>byte[]</code> bodies of Redis Messages are provided as the message payloads.
+      </para>
     </section>
 
     <section id="redis-outbound-channel-adapter">
@@ -178,11 +184,16 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       a <classname>RedisConnectionFactory</classname> which was defined with '<code>redisConnectionFactory</code>' as its bean name.
       This example also includes the optional, custom <classname>MessageConverter</classname> (the '<code>testConverter</code>' bean).
       </para>
+      <para>
+         Since <emphasis>Spring Integration 3.0</emphasis>, the <code>&lt;int-redis:outbound-channel-adapter&gt;</code>,
+         as an alternative to the <code>topic</code> attribute, has the <code>topic-expression</code> attribute to determine
+         the Redis topic against the Message at runtime. These attributes are mutually exclusive.
+      </para>
     </section>
     <section id="redis-queue-inbound-channel-adapter">
        <title>Redis Queue Inbound Channel Adapter</title>
        <para>
-          Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Inbound Channel Adapter 
+          Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Inbound Channel Adapter
 		  is available to 'right pop' messages from a Redis List.
 		  The adapter is message-driven using an internal listener thread and does not use a poller.
 		<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-channel-adapter id="" ]]><co id="redis-m-d-c-a-id"/><![CDATA[

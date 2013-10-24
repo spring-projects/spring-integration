@@ -572,5 +572,23 @@
 			    result set respectively. For more information see <xref linkend="jpa"/>.
 			</para>
 		</section>
+		<section id="3.0-redis">
+			<title>Redis Adapters Changers</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						The Redis Inbound Channel Adapter can now use a <code>null</code> value for <code>serializer</code>
+						property, with the raw data being the message payload.
+					</listitem>
+					<listitem>
+						The Redis Outbound Channel Adapter now has the <code>topic-expression</code> property to determine
+						the Redis topic against the Message at runtime.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information, see <xref linkend="redis"/>.
+			</para>
+		</section>
 	</section>
 </chapter>
