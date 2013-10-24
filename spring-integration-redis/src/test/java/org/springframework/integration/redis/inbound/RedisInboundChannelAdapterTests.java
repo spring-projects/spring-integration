@@ -18,13 +18,16 @@ package org.springframework.integration.redis.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.Message;
@@ -35,6 +38,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
@@ -57,7 +61,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(connectionFactory);
-		adapter.setTopics("testRedisInboundChannelAdapterChannel");
+		adapter.setTopics(redisChannelName);
 		adapter.setOutputChannel(channel);
 		adapter.afterPropertiesSet();
 		adapter.start();
@@ -69,7 +73,6 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		for (int i = 0; i < numToTest; i++) {
 			String message = "test-" + i + " iteration " + iteration;
 			redisTemplate.convertAndSend(redisChannelName, message);
-			logger.debug("Sent " + message);
 		}
 		int counter = 0;
 		for (int i = 0; i < numToTest; i++) {
@@ -81,6 +84,42 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 			assertTrue(message.getPayload().toString().startsWith("test-"));
 			counter++;
 		}
+		assertEquals(numToTest, counter);
+		adapter.stop();
+
+		redisChannelName = "testRedisBytesInboundChannelAdapterChannel";
+
+		adapter.setTopics(redisChannelName);
+		adapter.setSerializer(null);
+		adapter.afterPropertiesSet();
+		adapter.start();
+
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
+
+		RedisTemplate<?, ?> template = new RedisTemplate();
+		template.setConnectionFactory(connectionFactory);
+		template.setEnableDefaultSerializer(false);
+		template.afterPropertiesSet();
+
+		for (int i = 0; i < numToTest; i++) {
+			String message = "test-" + i + " iteration " + iteration;
+			template.convertAndSend(redisChannelName, message.getBytes());
+		}
+
+		counter = 0;
+		for (int i = 0; i < numToTest; i++) {
+			Message<?> message = channel.receive(5000);
+			if (message == null){
+				throw new RuntimeException("Failed to receive message # " + i + " iteration " + iteration);
+			}
+			assertNotNull(message);
+			Object payload = message.getPayload();
+			assertThat(payload, Matchers.instanceOf(byte[].class));
+
+			assertTrue(new String((byte[]) payload).startsWith("test-"));
+			counter++;
+		}
+
 		assertEquals(numToTest, counter);
 		adapter.stop();
 	}

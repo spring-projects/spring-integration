@@ -46,7 +46,16 @@ public class RedisInboundChannelAdapterParser extends AbstractChannelAdapterPars
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "topics");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
+//		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
+		if (element.hasAttribute("serializer")) {
+			String serializer = element.getAttribute("serializer");
+			if (StringUtils.hasText(serializer)) {
+				builder.addPropertyReference("serializer", serializer);
+			}
+			else {
+				builder.addPropertyValue("serializer", null);
+			}
+		}
 		return builder.getBeanDefinition();
 	}
 

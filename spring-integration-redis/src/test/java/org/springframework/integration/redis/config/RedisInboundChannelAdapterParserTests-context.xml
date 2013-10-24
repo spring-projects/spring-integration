@@ -32,4 +32,7 @@
 
 	<int:bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
+	<int-redis:inbound-channel-adapter id="withoutSerializer" topics="foo" serializer=""/>
+
+
 </beans>
