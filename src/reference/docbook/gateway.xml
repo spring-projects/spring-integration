@@ -214,9 +214,9 @@ public String send2(Map foo, Map bar);
       <para>
         Alternatively, and whenever the conventions break down, you can take the entire responsibility for
         mapping the method calls to messages. To do this, implement an
-        <classname>InboundMessageMapper&lt;MethodArgHolder&gt;</classname> and provide it to the
-        <code>&lt;gateway/&gt;</code> using the <code>mapper</code> attribute. The
-        <classname>MethodArgHolder</classname> is a simple class wrapping the <classname>java.reflect.Method</classname>
+        <classname>MethodArgsMessageMapper</classname> and provide it to the
+        <code>&lt;gateway/&gt;</code> using the <code>mapper</code> attribute. The mapper maps a
+        <classname>MethodArgsHolder</classname>, which is a simple class wrapping the <classname>java.reflect.Method</classname>
         instance and an <code>Object[]</code> containing the arguments. When providing a custom mapper,
         the <code>default-payload-expression</code> attribute and <code>&lt;default-header/&gt;</code> elements
         are not allowed on the gateway; similarly, the <code>payload-expression</code> attribute and

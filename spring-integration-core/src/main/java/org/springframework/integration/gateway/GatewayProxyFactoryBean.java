@@ -49,7 +49,6 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
@@ -106,7 +105,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private volatile GatewayMethodMetadata globalMethodMetadata;
 
-	private volatile InboundMessageMapper<MethodArgsHolder> argsMapper;
+	private volatile MethodArgsMessageMapper argsMapper;
 
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
@@ -218,11 +217,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	}
 
 	/**
-	 * Provide a custom {@link InboundMessageMapper} to map from a method invocation
-	 * to a {@link Message}. The mapper must map from a {@link MethodArgsHolder}.
+	 * Provide a custom {@link MethodArgsMessageMapper} to map from a {@link MethodArgsHolder}
+	 * to a {@link Message}.
 	 * @param mapper the mapper.
 	 */
-	public final void setMapper(InboundMessageMapper<MethodArgsHolder> mapper) {
+	public final void setMapper(MethodArgsMessageMapper mapper) {
 		this.argsMapper = mapper;
 	}
 

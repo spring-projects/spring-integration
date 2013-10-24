@@ -40,7 +40,6 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -284,7 +283,7 @@ public class GatewayInterfaceTests {
 		public void baz(String payload);
 	}
 
-	public static class BazMapper implements InboundMessageMapper<MethodArgsHolder> {
+	public static class BazMapper implements MethodArgsMessageMapper {
 
 		@Override
 		public Message<?> toMessage(MethodArgsHolder object) throws Exception {

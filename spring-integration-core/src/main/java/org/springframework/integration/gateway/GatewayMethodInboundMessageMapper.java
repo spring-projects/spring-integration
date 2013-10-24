@@ -86,7 +86,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final List<MethodParameter> parameterList;
 
-	private final InboundMessageMapper<MethodArgsHolder> argsMapper;
+	private final MethodArgsMessageMapper argsMapper;
 
 	private volatile Expression payloadExpression;
 
@@ -105,7 +105,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
-			Map<String, Expression> globalHeaderExpressions, InboundMessageMapper<MethodArgsHolder> mapper) {
+			Map<String, Expression> globalHeaderExpressions, MethodArgsMessageMapper mapper) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.headerExpressions = headerExpressions;
@@ -258,7 +258,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return expression;
 	}
 
-	public class DefaultMethodArgsMessageMapper implements InboundMessageMapper<MethodArgsHolder> {
+	public class DefaultMethodArgsMessageMapper implements MethodArgsMessageMapper {
 
 		@Override
 		public Message<?> toMessage(MethodArgsHolder holder) throws Exception {
