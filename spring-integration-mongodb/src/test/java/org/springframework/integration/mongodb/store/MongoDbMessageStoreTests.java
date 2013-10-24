@@ -24,16 +24,17 @@ import static org.junit.Assert.assertTrue;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 
 import com.mongodb.Mongo;
 
@@ -125,7 +126,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 
-	@Test
+	@Test @Ignore
 	@MongoDbAvailable
 	public void testInt3153SequenceDetails() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
@@ -155,7 +156,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 	}
 
 	public static class Bar{
-		private String name;
+		private final String name;
 
 		public Bar(String name){
 			this.name = name;
@@ -167,7 +168,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 	}
 
 	public static class Baz{
-		private String name = "baz";
+		private final String name = "baz";
 
 		public String getName() {
 			return name;
@@ -175,7 +176,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 	}
 
 	public static class Abc{
-		private String name = "abx";
+		private final String name = "abx";
 
 		private Abc(){}
 
@@ -186,7 +187,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 
 	public static class Xyz{
 		@SuppressWarnings("unused")
-		private String name = "xyz";
+		private final String name = "xyz";
 
 		private Xyz(){}
 	}
