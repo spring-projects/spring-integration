@@ -19,13 +19,11 @@ package org.springframework.integration.redis.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -64,7 +62,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		RedisMessageListenerContainer container = waitUntilSubscribed(adapter);
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
@@ -85,34 +83,6 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		}
 		assertEquals(numToTest, counter);
 		adapter.stop();
-		container.stop();
-	}
-
-	/**
-	 * Wait until the container has subscribed to the queue and return a
-	 * reference to it, so we can stop it at the end of the test.
-	 */
-	protected RedisMessageListenerContainer waitUntilSubscribed(
-			RedisInboundChannelAdapter adapter) throws Exception {
-		RedisMessageListenerContainer container = (RedisMessageListenerContainer) TestUtils
-				.getPropertyValue(adapter, "container");
-		Object subscriptionTask = TestUtils.getPropertyValue(container, "subscriptionTask");
-		RedisConnection connection = (RedisConnection) TestUtils
-				.getPropertyValue(subscriptionTask, "connection");
-		int n = 0;
-		while (true) {
-			if (n++ > 50) {
-				fail("RMLC Failed to Subscribe");
-			}
-			if (connection.isSubscribed()) {
-				logger.debug("Subscribed OK");
-				break;
-			}
-			logger.debug("Waiting...");
-			Thread.sleep(100);
-		}
-		Thread.sleep(100); // Wait a little longer due to race condition in connection.isSubscribed()
-		return container;
 	}
 
 }

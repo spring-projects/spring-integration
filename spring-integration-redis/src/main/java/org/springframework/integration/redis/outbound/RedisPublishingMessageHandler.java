@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 the original author or authors
+ * Copyright 2007-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.redis.outbound;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
@@ -28,11 +28,12 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
-	private final StringRedisTemplate template;
+	private final RedisTemplate<?, ?> template;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
@@ -42,7 +43,10 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	public RedisPublishingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
-		this.template = new StringRedisTemplate(connectionFactory);
+		this.template = new RedisTemplate();
+		this.template.setConnectionFactory(connectionFactory);
+		this.template.setEnableDefaultSerializer(false);
+		this.template.afterPropertiesSet();
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
@@ -67,15 +71,17 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String topic = this.determineTopic(message);
 		Object value = this.messageConverter.fromMessage(message);
-		this.template.convertAndSend(topic, value.toString());
+
+		if (value instanceof byte[]) {
+			this.template.convertAndSend(topic, value);
+		}
+		else {
+			this.template.convertAndSend(topic, ((RedisSerializer<Object>) this.serializer).serialize(value));
+		}
 	}
 
-	@Override
-	protected void onInit() throws Exception {
-		this.template.setValueSerializer(this.serializer);
-		this.template.afterPropertiesSet();
-	}
 }

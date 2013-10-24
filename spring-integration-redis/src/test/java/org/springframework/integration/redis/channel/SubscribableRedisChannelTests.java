@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -53,7 +52,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void pubSubChannelTest() throws Exception{
+	public void pubSubChannelTest() throws Exception {
 		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel");
@@ -61,14 +60,7 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests {
 		channel.afterPropertiesSet();
 		channel.start();
 
-		RedisConnection connection = TestUtils.getPropertyValue(channel, "container.subscriptionTask.connection",
-				RedisConnection.class);
-
-		int n = 0;
-		while (n++ < 100 && !connection.isSubscribed()) {
-			Thread.sleep(100);
-		}
-		assertTrue(n < 100);
+		this.awaitContainerSubscribed(TestUtils.getPropertyValue(channel, "container", RedisMessageListenerContainer.class));
 
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler = new MessageHandler() {

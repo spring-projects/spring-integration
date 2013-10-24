@@ -36,6 +36,7 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
@@ -45,7 +46,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 	public void testRedisPublishingMessageHandler() throws Exception {
 		int numToTest = 10;
 		String topic = "si.test.channel";
-		final CountDownLatch latch = new CountDownLatch(numToTest);
+		final CountDownLatch latch = new CountDownLatch(numToTest * 2);
 
 		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
@@ -59,14 +60,20 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 		container.afterPropertiesSet();
 		container.addMessageListener(listener, Collections.<Topic>singletonList(new ChannelTopic(topic)));
 		container.start();
-		Thread.sleep(1000);
+
+		this.awaitContainerSubscribed(container);
 
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
 		handler.setDefaultTopic(topic);
+
 		for (int i = 0; i < numToTest; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("test-" + i).build());
 		}
-		assertTrue(latch.await(3, TimeUnit.SECONDS));
+
+		for (int i = 0; i < numToTest; i++) {
+			handler.handleMessage(MessageBuilder.withPayload(("test-" + i).getBytes()).build());
+		}
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		container.stop();
 	}
 
