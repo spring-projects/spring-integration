@@ -163,6 +163,10 @@
 						It is now possible to set common headers across all gateway methods, and more options
 						are provided for adding, to the message, information about which method was invoked.
 					</listitem>
+					<listitem>
+						It is now possible to entirely customize the way that gateway method calls are mapped
+						to messages.
+					</listitem>
 				</itemizedlist>
 			</para>
 			<para>
