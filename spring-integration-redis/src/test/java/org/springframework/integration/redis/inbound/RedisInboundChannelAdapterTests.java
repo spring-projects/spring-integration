@@ -21,8 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -42,8 +40,6 @@ import org.springframework.integration.test.util.TestUtils;
  * @since 2.1
  */
 public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Test
 	@RedisAvailable
@@ -96,7 +92,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 
 		this.awaitContainerSubscribed(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
 
-		RedisTemplate<?, ?> template = new RedisTemplate();
+		RedisTemplate<?, ?> template = new RedisTemplate<Object, Object>();
 		template.setConnectionFactory(connectionFactory);
 		template.setEnableDefaultSerializer(false);
 		template.afterPropertiesSet();

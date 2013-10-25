@@ -152,6 +152,12 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 
       <para>Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the
       <code>topics</code> attribute.</para>
+      <para>
+         Inbound adapters can apply <classname>RedisSerializer</classname> to deserialize body of Redis Messages.
+		 The <code>serializer</code> attribute of <code>&lt;int-redis:inbound-channel-adapter&gt;</code> can apply
+         empty value, which determines as <code>null</code> value for <classname>RedisSerializer</classname> property.
+         In this case the body of Redis Messages return as <code>byte[]</code>.
+      </para>
     </section>
 
     <section id="redis-outbound-channel-adapter">
@@ -177,6 +183,12 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       As you can see the configuration is similar to the Redis Inbound Channel Adapter. The adapter is implicitly injected with
       a <classname>RedisConnectionFactory</classname> which was defined with '<code>redisConnectionFactory</code>' as its bean name.
       This example also includes the optional, custom <classname>MessageConverter</classname> (the '<code>testConverter</code>' bean).
+      </para>
+      <para>
+         Since <emphasis>Spring Integration 3.0</emphasis> <code>&lt;int-redis:outbound-channel-adapter&gt;</code>,
+         alongside with <code>topic</code> attribute, has <code>topic-expression</code> attribute to determine
+         Redis topic against Message at runtime. These attributes are not mutually exclusive: if adapter can't
+		 evaluate expression or evaluation result is <code>null</code>, the adapter does fallback to <code>defaultTopic</code>, if any.
       </para>
     </section>
     <section id="redis-queue-inbound-channel-adapter">

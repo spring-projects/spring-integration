@@ -20,18 +20,23 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.EvaluationException;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  * @since 2.1
  */
-public class RedisPublishingMessageHandler extends AbstractMessageHandler {
+public class RedisPublishingMessageHandler extends AbstractMessageHandler implements IntegrationEvaluationContextAware {
 
 	private final RedisTemplate<?, ?> template;
 
@@ -39,14 +44,22 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private volatile String defaultTopic;
 
+	private volatile Expression topicExpression;
+
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
+	private EvaluationContext evaluationContext;
 
 	public RedisPublishingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
-		this.template = new RedisTemplate();
+		this.template = new RedisTemplate<Object, Object>();
 		this.template.setConnectionFactory(connectionFactory);
 		this.template.setEnableDefaultSerializer(false);
 		this.template.afterPropertiesSet();
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
@@ -63,8 +76,24 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 		this.defaultTopic = defaultTopic;
 	}
 
+	public void setTopicExpression(Expression topicExpression) {
+		this.topicExpression = topicExpression;
+	}
+
 	private String determineTopic(Message<?> message) {
-		// TODO: add support for determining topic by evaluating SpEL against the Message
+		if (this.topicExpression != null) {
+			try {
+				String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
+				if (StringUtils.hasText(topic)) {
+					return topic;
+				}
+			}
+			catch (EvaluationException e) {
+				// fallback to 'defaultTopic'
+			}
+
+		}
+
 		Assert.hasText(this.defaultTopic, "Failed to determine Redis topic " +
 				"from Message, and no defaultTopic has been provided.");
 		return this.defaultTopic;

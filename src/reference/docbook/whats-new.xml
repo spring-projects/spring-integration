@@ -572,5 +572,23 @@
 			    result set respectively. For more information see <xref linkend="jpa"/>.
 			</para>
 		</section>
+		<section id="3.0-xFTP-gw">
+			<title>Redis Adapters Changers</title>
+			<para>
+				<itemizedlist>
+					<listitem>
+						The Redis Inbound Channel Adapter now can apply <code>null</code> value for <code>serializer</code>
+						property.
+					</listitem>
+					<listitem>
+						The Redis Outbound Channel Adapter now has <code>topic-expression</code> property to determine
+						Redis topic against Message at runtime.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information, see <xref linkend="redis"/>.
+			</para>
+		</section>
 	</section>
 </chapter>

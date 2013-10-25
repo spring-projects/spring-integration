@@ -174,7 +174,8 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<xsd:documentation>
-						Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer
+						Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer.
+						This attribute can apply an empty value, which determines as a 'null' for underlying adapter.
 						</xsd:documentation>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
@@ -197,7 +198,20 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
-					<xsd:attribute name="topic" type="xsd:string"/>
+					<xsd:attribute name="topic" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Specifies the Redis topic.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="topic-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Specifies the SpEL expression to determine Redis topic against Message at runtime.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="message-converter" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[

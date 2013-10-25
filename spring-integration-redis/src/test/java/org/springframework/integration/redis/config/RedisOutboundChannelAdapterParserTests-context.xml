@@ -12,12 +12,19 @@
 	<int-redis:outbound-channel-adapter id="outboundAdapter"
 			channel="sendChannel"
 			topic="foo"
+			topic-expression="headers.topic"
 			message-converter="testConverter"
 			serializer="serializer"/>
 
 	<int-redis:inbound-channel-adapter channel="receiveChannel" topics="foo"/>
 
 	<int:channel id="receiveChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int-redis:inbound-channel-adapter channel="barChannel" topics="bar"/>
+
+	<int:channel id="barChannel">
 		<int:queue/>
 	</int:channel>
 

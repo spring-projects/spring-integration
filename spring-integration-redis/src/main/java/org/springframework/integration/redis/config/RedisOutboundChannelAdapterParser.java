@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,15 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
+ * Parser for the {@code <outbound-channel-adapter/>} component.
+ *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.1
@@ -34,8 +38,7 @@ public class RedisOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.redis.outbound.RedisPublishingMessageHandler");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisPublishingMessageHandler.class);
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "redisConnectionFactory";
@@ -44,6 +47,14 @@ public class RedisOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "topic", "defaultTopic");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
+		String topicExpression = element.getAttribute("topic-expression");
+		if (StringUtils.hasText(topicExpression)) {
+			AbstractBeanDefinition topicExpressionDefinition =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+							.addConstructorArgValue(topicExpression)
+							.getBeanDefinition();
+			builder.addPropertyValue("topicExpression", topicExpressionDefinition);
+		}
 		return builder.getBeanDefinition();
 	}
 
