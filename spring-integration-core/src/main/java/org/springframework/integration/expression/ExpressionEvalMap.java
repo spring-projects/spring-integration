@@ -23,10 +23,13 @@ import java.util.Set;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.util.Assert;
 
 /**
  * <p>
- * An immutable {@link AbstractMap} implementation that wraps a Map<String, Expression>
+ * An immutable {@link AbstractMap} implementation that wraps a {@code Map<String, Object>},
+ * where values must be instances of {@link String} or {@link Expression},
  * and evaluates an {@code expression} for the provided {@code key} from the underlying
  * {@code original} Map.
  * </p>
@@ -38,16 +41,18 @@ import org.springframework.expression.Expression;
  * <p>
  * A {@link ExpressionEvalMapBuilder} must be used to instantiate this class
  * via its {@link #from(Map)} method:
+ * <pre class="code">
  * {@code
- * ExpressionEvalMap evalMap = ExpressionEvalMap
- *				.from(expressions)
-				.usingCallback(new EvaluationCallback() {
-						Object evaluate(Expression expression) {
-							// return some expression evaluation
-						}
-					})
-				.build();
- * }
+ *ExpressionEvalMap evalMap = ExpressionEvalMap
+ *	.from(expressions)
+ *	.usingCallback(new EvaluationCallback() {
+ *		Object evaluate(Expression expression) {
+ *			// return some expression evaluation
+ *		}
+ *	})
+ *	.build();
+ *}
+ * </pre>
  * </p>
  * <p>
  * Thread-safety depends on the original underlying Map.
@@ -68,11 +73,11 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 	};
 
-	private final Map<String, Expression> original;
+	private final Map<String, ?> original;
 
 	private final EvaluationCallback evaluationCallback;
 
-	private ExpressionEvalMap(Map<String, Expression> original, EvaluationCallback evaluationCallback) {
+	private ExpressionEvalMap(Map<String, ?> original, EvaluationCallback evaluationCallback) {
 		this.original = original;
 		this.evaluationCallback = evaluationCallback;
 	}
@@ -83,8 +88,20 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	 */
 	@Override
 	public Object get(Object key) {
-		Expression expression = original.get(key);
-		if (expression != null) {
+		Object value = original.get(key);
+		if (value != null) {
+			Expression expression;
+			if (value instanceof Expression) {
+				expression = (Expression) value;
+			}
+			else if (value instanceof String) {
+				expression = new LiteralExpression((String) value);
+			}
+			else {
+				throw new IllegalArgumentException("Values must be "
+						+ "'java.lang.String' or 'org.springframework.expression.Expression'; the value type for key "
+						+ key + " is : " + value.getClass());
+			}
 			return this.evaluationCallback.evaluate(expression);
 		}
 		return null;
@@ -136,7 +153,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	}
 
 	@Override
-	public void putAll(Map<? extends String, ? extends Object> m) {
+	public void putAll(Map<? extends String, ?> m) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -155,7 +172,13 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		throw new UnsupportedOperationException();
 	}
 
-	public static ExpressionEvalMapBuilder from(Map<String, Expression> expressions) {
+	@Override
+	public String toString() {
+		return this.original.toString();
+	}
+
+	public static ExpressionEvalMapBuilder from(Map<String, ?> expressions) {
+		Assert.notNull(expressions, "'expressions' must not be null.");
 		return new ExpressionEvalMapBuilder(expressions);
 	}
 
@@ -205,7 +228,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	 */
 	public static final class ExpressionEvalMapBuilder {
 
-		private final Map<String, Expression> expressions;
+		private final Map<String, ?> expressions;
 
 		private EvaluationCallback evaluationCallback;
 
@@ -219,7 +242,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 		private final ExpressionEvalMapFinalBuilder finalBuilder = new ExpressionEvalMapFinalBuilderImpl();
 
-		private ExpressionEvalMapBuilder(Map<String, Expression> expressions) {
+		private ExpressionEvalMapBuilder(Map<String, ?> expressions) {
 			this.expressions = expressions;
 		}
 

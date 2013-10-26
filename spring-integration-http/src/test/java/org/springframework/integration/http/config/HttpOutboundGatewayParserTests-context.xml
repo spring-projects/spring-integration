@@ -40,7 +40,13 @@
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 
-	<outbound-gateway id="withUrlExpression" url-expression="'http://localhost/test1'" request-channel="requests"/>
+	<util:map id="uriVariables">
+		<beans:entry key="foo1" value="bar1"/>
+		<beans:entry key="foo2" value="bar2"/>
+	</util:map>
+
+	<outbound-gateway id="withUrlExpression" url-expression="'http://localhost/test1'" request-channel="requests"
+					  uri-variables-expression="@uriVariables"/>
 
 	<outbound-gateway id="withAdvice" url-expression="'http://localhost/test1'" request-channel="requests">
 		<request-handler-advice-chain>

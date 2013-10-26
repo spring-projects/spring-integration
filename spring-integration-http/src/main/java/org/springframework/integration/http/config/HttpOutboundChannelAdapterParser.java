@@ -77,7 +77,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		HttpAdapterParsingUtils.setExpectedResponseOrExpression(element, parserContext, builder);
-		HttpAdapterParsingUtils.configureUriVariableExpressions(builder, element);
+		HttpAdapterParsingUtils.configureUriVariableExpressions(builder, parserContext, element);
 		return builder.getBeanDefinition();
 	}
 

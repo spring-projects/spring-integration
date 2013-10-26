@@ -87,7 +87,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
-		HttpAdapterParsingUtils.configureUriVariableExpressions(builder, element);
+		HttpAdapterParsingUtils.configureUriVariableExpressions(builder, parserContext, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "transfer-cookies");
 		return builder;
 	}

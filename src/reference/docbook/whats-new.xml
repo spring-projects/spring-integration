@@ -431,6 +431,13 @@
 						<emphasis>#requestHeaders</emphasis> and <emphasis>#cookies</emphasis>. These variables are available in
 						both payload and header expressions.
 					</listitem>
+					<listitem>
+						<emphasis role="bold">Outbound Endpoint 'uri-variables-expression'</emphasis> - HTTP Outbound Endpoints
+						now support the <code>uri-variables-expression</code> attribute to specify
+						an <interfacename>Expression</interfacename> to evaluate a <interfacename>Map</interfacename>
+						for all URI variable placeholders within URL template. This allows selection of a different
+						map of expressions based on the outgoing message.
+					</listitem>
 				</itemizedlist>
 			</para>
 			<para>

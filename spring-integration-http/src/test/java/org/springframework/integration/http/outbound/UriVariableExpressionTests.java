@@ -17,6 +17,7 @@
 package org.springframework.integration.http.outbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -35,7 +36,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Dave Syer
@@ -62,14 +65,13 @@ public class UriVariableExpressionTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		Message<?> message = new GenericMessage<Object>("bar");
-		Exception exception = null;
 		try {
 			handler.handleMessage(message);
+			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			exception = e;
+			assertEquals("intentional", e.getCause().getMessage());
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
 		assertEquals("http://test/bar", uriHolder.get().toString());
 	}
 
@@ -92,15 +94,45 @@ public class UriVariableExpressionTests {
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Message<?> message = new GenericMessage<Object>("bar");
-		Exception exception = null;
 		try {
-			handler.handleMessage(message);
+			handler.handleMessage(new GenericMessage<Object>("bar"));
+			fail("Exception expected.");
 		}
 		catch (Exception e) {
-			exception = e;
+			assertEquals("intentional", e.getCause().getMessage());
 		}
-		assertEquals("intentional", exception.getCause().getMessage());
+		assertEquals("http://test/bar", uriHolder.get().toString());
+	}
+
+	@Test
+	public void testInt3055UriVariablesExpression() throws Exception {
+		final AtomicReference<URI> uriHolder = new AtomicReference<URI>();
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
+
+		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
+			@Override
+			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+				uriHolder.set(uri);
+				throw new RuntimeException("intentional");
+			}
+		});
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setUriVariablesExpression(new SpelExpressionParser().parseExpression("headers.uriVariables"));
+		handler.afterPropertiesSet();
+
+		Map<String, String> expressions = new HashMap<String, String>();
+		expressions.put("foo", "bar");
+
+		Map<String, ?> expressionsMap = ExpressionEvalMap.from(expressions).usingSimpleCallback().build();
+
+		try {
+			handler.handleMessage(MessageBuilder.withPayload("test").setHeader("uriVariables", expressionsMap).build());
+			fail("Exception expected.");
+		}
+		catch (Exception e) {
+			assertEquals("intentional", e.getCause().getMessage());
+		}
+
 		assertEquals("http://test/bar", uriHolder.get().toString());
 	}
 
