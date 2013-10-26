@@ -521,6 +521,35 @@ By default the HTTP request will be generated using an instance of <classname>Si
       of that method will be used as the value for the URI variable named 'zipCode'.
   </para>
   <para>
+      Since <emphasis>Spring Integration 3.0</emphasis> HTTP Outbound Endpoints support
+      <code>uri-variables-expression</code> attribute to specify the <interfacename>Expression</interfacename>
+      which should be evaluated as a <interfacename>Map</interfacename> for all URI variable placeholders within URL template.
+      This attribute is mutually exclusive with <code>&lt;uri-variable/&gt;</code> sub-element:
+   <programlisting language="xml"><![CDATA[<int-http:outbound-gateway
+     url="http://foo.host/{foo}/bars/{bar}"
+     request-channel="trafficChannel"
+     http-method="GET"
+     uri-variables-expression="@uriVariablesBean.populate(#root)"
+     expected-response-type="java.lang.String"/>]]></programlisting>
+where <code>uriVariablesBean</code> is:
+   <programlisting language="java"><![CDATA[public class UriVariablesBean {
+
+        public Map<String, String> populate(Message<?> message) {
+            Map<String, String> variables = new HashMap<String, String>();
+            if (message.getHeaders().get("authenticated", Boolean.class)) {
+               variables.put("foo", "foo1");
+               variables.put("bar", "bar1");
+            }
+            else {
+               variables.put("foo", "anonymous");
+               variables.put("bar", "anonymous");
+            }
+            return variables;
+        }
+
+}]]></programlisting>
+  </para>
+  <para>
     <emphasis>Controlling URI Encoding</emphasis>
   </para>
   <para>

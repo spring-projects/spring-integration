@@ -111,6 +111,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
+	private volatile Expression uriVariablesExpression;
+
+
+
 	/**
 	 * Create a handler that will send requests to the provided URI.
 	 */
@@ -281,6 +285,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
+	 * Set the {@link Expression} to evaluate against the outbound message
+	 * a {@link Map} of URI variables placeholders in a URI template.
+	 */
+	public void setUriVariablesExpression(Expression uriVariablesExpression) {
+		this.uriVariablesExpression = uriVariablesExpression;
+	}
+
+	/**
 	 * Set to true if you wish 'Set-Cookie' headers in responses to be
 	 * transferred as 'Cookie' headers in subsequent interactions for
 	 * a message.
@@ -351,11 +363,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			Class<?> expectedResponseType = this.determineExpectedResponseType(requestMessage);
 
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
-			Map<String, Object> uriVariables = ExpressionEvalMap
-					.from(this.uriVariableExpressions)
-					.usingEvaluationContext(this.evaluationContext)
-					.withRoot(requestMessage)
-					.build();
+			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
 			UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).buildAndExpand(uriVariables);
 			URI realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, expectedResponseType);
@@ -554,7 +562,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return HttpMethod.valueOf(strHttpMethod);
 	}
 
-
 	private Class<?> determineExpectedResponseType(Message<?> requestMessage) throws Exception{
 		Class<?> expectedResponseType = null;
 		String expectedResponseTypeName = null;
@@ -566,6 +573,19 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 		return expectedResponseType;
 
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, ?> determineUriVariables(Message<?> requestMessage) {
+		if (this.uriVariablesExpression != null) {
+			return this.uriVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
+		}
+		else {
+			return ExpressionEvalMap.from(this.uriVariableExpressions)
+					.usingEvaluationContext(this.evaluationContext)
+					.withRoot(requestMessage)
+					.build();
+		}
 	}
 
 }
