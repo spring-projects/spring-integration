@@ -60,6 +60,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testGetValueFromMetadataStore(){
+
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 		metadataStore.put("RedisMetadataStoreTests-GetValue", "Hello Redis");
@@ -71,6 +72,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testPersistEmptyStringToMetadataStore(){
+
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 		metadataStore.put("RedisMetadataStoreTests-PersistEmpty", "");
@@ -82,6 +84,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testPersistNullStringToMetadataStore(){
+
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 
