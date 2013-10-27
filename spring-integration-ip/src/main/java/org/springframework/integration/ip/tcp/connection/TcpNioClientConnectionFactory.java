@@ -101,6 +101,10 @@ public class TcpNioClientConnectionFactory extends
 		this.channelMap.put(socketChannel, connection);
 		newChannels.add(socketChannel);
 		selector.wakeup();
+		if (!this.isSingleUse()) {
+			this.setTheConnection(connection);
+		}
+		connection.publishConnectionOpenEvent();
 		return wrappedConnection;
 	}
 

@@ -47,10 +47,10 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		this.checkActive();
 		if (this.isSingleUse()) {
 			return obtainConnection();
-		} else {
+		}
+		else {
 			synchronized(this) {
 				TcpConnectionSupport connection = obtainConnection();
-				this.setTheConnection(connection);
 				return connection;
 			}
 		}

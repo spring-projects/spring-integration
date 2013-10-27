@@ -66,6 +66,10 @@ public class TcpNetClientConnectionFactory extends
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
 		this.harvestClosedConnections();
+		if (!this.isSingleUse()) {
+			this.setTheConnection(connection);
+		}
+		connection.publishConnectionOpenEvent();
 		return connection;
 	}
 
