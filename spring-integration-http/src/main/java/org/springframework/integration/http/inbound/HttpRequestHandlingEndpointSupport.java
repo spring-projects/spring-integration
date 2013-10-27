@@ -213,8 +213,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	/**
 	 * Specifies a SpEL expression to evaluate in order to generate the Message payload.
 	 * The EvaluationContext will be populated with an HttpEntity instance as the root object,
-	 * and it may contain one or both of the <code>#pathVariables</code> and
-	 * <code>#queryParameters</code> variables if present. Those variables' values are Maps.
+	 * and it may contain variables:
+	 * - <code>#pathVariables</code>;
+	 * - <code>#requestParams</code>;
+	 * - <code>#requestAttributes</code>;
+	 * - <code>#requestHeaders</code>;
+	 * - <code>#matrixVariables</code>;
+	 * - <code>#cookies</code>.
 	 */
 	public void setPayloadExpression(Expression payloadExpression) {
 		this.payloadExpression = payloadExpression;
@@ -224,8 +229,13 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * Specifies a Map of SpEL expressions to evaluate in order to generate the Message headers.
 	 * The keys in the map will be used as the header names. When evaluating the expression,
 	 * the EvaluationContext will be populated with an HttpEntity instance as the root object,
-	 * and it may contain one or both of the <code>#pathVariables</code> and
-	 * <code>#queryParameters</code> variables if present. Those variables' values are Maps.
+	 * and it may contain variables:
+	 * - <code>#pathVariables</code>;
+	 * - <code>#requestParams</code>;
+	 * - <code>#requestAttributes</code>;
+	 * - <code>#requestHeaders</code>;
+	 * - <code>#matrixVariables</code>;
+	 * - <code>#cookies</code>.
 	 */
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = headerExpressions;
