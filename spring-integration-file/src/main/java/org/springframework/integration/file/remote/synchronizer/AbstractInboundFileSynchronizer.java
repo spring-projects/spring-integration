@@ -50,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer,
@@ -228,6 +229,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 					}
 				}
 			}
+			localFile.setLastModified(getModified(remoteFile));
 		}
 	}
 
@@ -241,5 +243,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	protected abstract boolean isFile(F file);
 
 	protected abstract String getFilename(F file);
+
+	protected abstract long getModified(F file);
 
 }

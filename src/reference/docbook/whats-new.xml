@@ -249,6 +249,9 @@
 				the file system, can now be configured.
 			</para>
 			<para>
+				Now Inbound Channel Adapters are preserve file change timestamp in local files.
+			</para>
+			<para>
 				For more information, see
 				<xref linkend="ftp-inbound"/> and <xref linkend="sftp-inbound"/>.
 			</para>

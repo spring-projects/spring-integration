@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,8 +30,10 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Calendar;
 import java.util.Vector;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Test;
 
@@ -49,6 +52,7 @@ import com.jcraft.jsch.SftpATTRS;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizerTests {
@@ -93,9 +97,11 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
 		assertEquals("a.test", atestFile.getPayload().getName());
+		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
 		Message<File> btestFile =  ms.receive();
 		assertNotNull(btestFile);
 		assertEquals("b.test", btestFile.getPayload().getName());
+		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
 		Message<File> nothing =  ms.receive();
 		assertNull(nothing);
 
@@ -120,6 +126,10 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 					LsEntry lsEntry = mock(LsEntry.class);
 					SftpATTRS attributes = mock(SftpATTRS.class);
 					when(lsEntry.getAttrs()).thenReturn(attributes);
+
+					Calendar calendar = Calendar.getInstance();
+					calendar.add(Calendar.DATE, 1);
+					when(lsEntry.getAttrs().getMTime()).thenReturn(new Long(calendar.getTimeInMillis() / 1000).intValue());
 					when(lsEntry.getFilename()).thenReturn(fileName);
 					sftpEntries.add(lsEntry);
 					when(channel.get("remote-test-dir/"+fileName)).thenReturn(new FileInputStream("remote-test-dir/" + fileName));
