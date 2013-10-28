@@ -24,12 +24,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Abstract class for client connection factories; client connection factories
  * establish outgoing connections.
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
 public abstract class AbstractClientConnectionFactory extends AbstractConnectionFactory {
 
-	protected final ReadWriteLock theConnectionLock = new ReentrantReadWriteLock();
+	private final ReadWriteLock theConnectionLock = new ReentrantReadWriteLock();
 
 	private volatile TcpConnectionSupport theConnection;
 
@@ -52,7 +53,73 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		return this.obtainConnection();
 	}
 
-	protected abstract TcpConnectionSupport obtainConnection() throws Exception;
+	protected TcpConnectionSupport obtainConnection() throws Exception {
+		if (!this.isSingleUse()) {
+			TcpConnectionSupport connection = this.obtainSharedConnection();
+			if (connection != null) {
+				return connection;
+			}
+		}
+		return this.obtainNewConnection();
+	}
+
+	protected final TcpConnectionSupport obtainSharedConnection() throws InterruptedException {
+		boolean locked = false;
+		this.theConnectionLock.readLock().lockInterruptibly();
+		locked = true;
+		try {
+			TcpConnectionSupport theConnection = this.getTheConnection();
+			if (theConnection != null && theConnection.isOpen()) {
+				return theConnection;
+			}
+		}
+		finally {
+			if (locked) {
+				this.theConnectionLock.readLock().unlock();
+				locked = false;
+			}
+		}
+		return null;
+	}
+
+	protected final TcpConnectionSupport obtainNewConnection() throws Exception {
+		boolean locked = false;
+		boolean singleUse = !this.isSingleUse();
+		if (singleUse) {
+			this.theConnectionLock.writeLock().lockInterruptibly();
+			locked = true;
+		}
+		try {
+			TcpConnectionSupport connection;
+			if (singleUse) {
+				// Another write lock holder might have created a new one by now.
+				connection = this.obtainSharedConnection();
+				if (connection != null) {
+					return connection;
+				}
+			}
+
+			if (logger.isDebugEnabled()) {
+				logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
+			}
+
+			connection = buildNewConnection();
+			if (singleUse) {
+				this.setTheConnection(connection);
+			}
+			connection.publishConnectionOpenEvent();
+			return connection;
+		}
+		finally {
+			if (locked) {
+				this.theConnectionLock.writeLock().unlock();
+			}
+		}
+	}
+
+	protected TcpConnectionSupport buildNewConnection() throws Exception {
+		throw new UnsupportedOperationException("Factories that don't override this class' obtainConnection() must implement this method");
+	}
 
 	/**
 	 * Transfers attributes such as (de)serializers, singleUse etc to a new connection.
