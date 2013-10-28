@@ -98,7 +98,7 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 	}
 
 	@Override
-	public final void doInit() {
+	protected void doInit() {
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
 		}

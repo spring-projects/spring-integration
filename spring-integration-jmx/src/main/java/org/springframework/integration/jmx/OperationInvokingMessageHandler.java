@@ -102,7 +102,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	}
 
 	@Override
-	public final void doInit() {
+	protected void doInit() {
 		Assert.notNull(this.server, "MBeanServer is required.");
 	}
 

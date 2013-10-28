@@ -459,7 +459,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
-	public final void doInit() {
+	protected void doInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;

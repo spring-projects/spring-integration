@@ -218,7 +218,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
-	public final void doInit() {
+	protected void doInit() {
 
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 

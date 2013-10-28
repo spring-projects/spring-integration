@@ -291,7 +291,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	@Override
-	public void doInit() {
+	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 
 		ConversionService conversionService = this.getConversionService();
