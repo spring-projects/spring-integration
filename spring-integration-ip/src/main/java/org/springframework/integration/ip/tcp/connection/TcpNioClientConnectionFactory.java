@@ -79,33 +79,60 @@ public class TcpNioClientConnectionFactory extends
 				throw new Exception("Factory failed to start");
 			}
 		}
-		TcpConnectionSupport theConnection = this.getTheConnection();
-		if (theConnection != null && theConnection.isOpen()) {
-			return theConnection;
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening new socket channel connection to " + this.getHost() + ":" + this.getPort());
-		}
-		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.getHost(), this.getPort()));
-		setSocketAttributes(socketChannel.socket());
-		TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(
-				socketChannel, false, this.isLookupHost(), this.getApplicationEventPublisher(), this.getComponentName());
-		connection.setUsingDirectBuffers(this.usingDirectBuffers);
-		connection.setTaskExecutor(this.getTaskExecutor());
-		TcpConnectionSupport wrappedConnection = wrapConnection(connection);
-		initializeConnection(wrappedConnection, socketChannel.socket());
-		socketChannel.configureBlocking(false);
-		if (this.getSoTimeout() > 0) {
-			connection.setLastRead(System.currentTimeMillis());
-		}
-		this.channelMap.put(socketChannel, connection);
-		newChannels.add(socketChannel);
-		selector.wakeup();
+
+		boolean locked = false;
 		if (!this.isSingleUse()) {
-			this.setTheConnection(connection);
+			this.theConnectionLock.readLock().lockInterruptibly();
+			locked = true;
 		}
-		connection.publishConnectionOpenEvent();
-		return wrappedConnection;
+		try {
+			TcpConnectionSupport theConnection = this.getTheConnection();
+			if (theConnection != null && theConnection.isOpen()) {
+				return theConnection;
+			}
+		}
+		finally {
+			if (locked) {
+				this.theConnectionLock.readLock().unlock();
+				locked = false;
+			}
+		}
+
+		if (!this.isSingleUse()) {
+			this.theConnectionLock.writeLock().lockInterruptibly();
+			locked = true;
+		}
+
+		try {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Opening new socket channel connection to " + this.getHost() + ":" + this.getPort());
+			}
+			SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.getHost(), this.getPort()));
+			setSocketAttributes(socketChannel.socket());
+			TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(
+					socketChannel, false, this.isLookupHost(), this.getApplicationEventPublisher(), this.getComponentName());
+			connection.setUsingDirectBuffers(this.usingDirectBuffers);
+			connection.setTaskExecutor(this.getTaskExecutor());
+			TcpConnectionSupport wrappedConnection = wrapConnection(connection);
+			initializeConnection(wrappedConnection, socketChannel.socket());
+			socketChannel.configureBlocking(false);
+			if (this.getSoTimeout() > 0) {
+				connection.setLastRead(System.currentTimeMillis());
+			}
+			this.channelMap.put(socketChannel, connection);
+			newChannels.add(socketChannel);
+			selector.wakeup();
+			if (!this.isSingleUse()) {
+				this.setTheConnection(connection);
+			}
+			connection.publishConnectionOpenEvent();
+			return wrappedConnection;
+		}
+		finally {
+			if (locked) {
+				this.theConnectionLock.writeLock().unlock();
+			}
+		}
 	}
 
 	/**

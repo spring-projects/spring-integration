@@ -17,6 +17,8 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.net.Socket;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Abstract class for client connection factories; client connection factories
@@ -27,7 +29,9 @@ import java.net.Socket;
  */
 public abstract class AbstractClientConnectionFactory extends AbstractConnectionFactory {
 
-	private TcpConnectionSupport theConnection;
+	protected final ReadWriteLock theConnectionLock = new ReentrantReadWriteLock();
+
+	private volatile TcpConnectionSupport theConnection;
 
 	/**
 	 * Constructs a factory that will established connections to the host and port.
@@ -45,15 +49,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 */
 	public TcpConnectionSupport getConnection() throws Exception {
 		this.checkActive();
-		if (this.isSingleUse()) {
-			return obtainConnection();
-		}
-		else {
-			synchronized(this) {
-				TcpConnectionSupport connection = obtainConnection();
-				return connection;
-			}
-		}
+		return this.obtainConnection();
 	}
 
 	protected abstract TcpConnectionSupport obtainConnection() throws Exception;

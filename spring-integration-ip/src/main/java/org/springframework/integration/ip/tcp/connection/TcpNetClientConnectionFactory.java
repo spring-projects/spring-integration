@@ -51,26 +51,52 @@ public class TcpNetClientConnectionFactory extends
 	 */
 	@Override
 	protected TcpConnectionSupport obtainConnection() throws Exception {
-		TcpConnectionSupport theConnection = this.getTheConnection();
-		if (theConnection != null && theConnection.isOpen()) {
-			return theConnection;
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
-		}
-		Socket socket = createSocket(this.getHost(), this.getPort());
-		setSocketAttributes(socket);
-		TcpConnectionSupport connection = new TcpNetConnection(socket, false, this.isLookupHost(),
-				this.getApplicationEventPublisher(), this.getComponentName());
-		connection = wrapConnection(connection);
-		initializeConnection(connection, socket);
-		this.getTaskExecutor().execute(connection);
-		this.harvestClosedConnections();
+		boolean locked = false;
 		if (!this.isSingleUse()) {
-			this.setTheConnection(connection);
+			this.theConnectionLock.readLock().lockInterruptibly();
+			locked = true;
 		}
-		connection.publishConnectionOpenEvent();
-		return connection;
+		try {
+			TcpConnectionSupport theConnection = this.getTheConnection();
+			if (theConnection != null && theConnection.isOpen()) {
+				return theConnection;
+			}
+		}
+		finally {
+			if (locked) {
+				this.theConnectionLock.readLock().unlock();
+				locked = false;
+			}
+		}
+
+		if (!this.isSingleUse()) {
+			this.theConnectionLock.writeLock().lockInterruptibly();
+			locked = true;
+		}
+		try {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
+			}
+
+			Socket socket = createSocket(this.getHost(), this.getPort());
+			setSocketAttributes(socket);
+			TcpConnectionSupport connection = new TcpNetConnection(socket, false, this.isLookupHost(),
+					this.getApplicationEventPublisher(), this.getComponentName());
+			connection = wrapConnection(connection);
+			initializeConnection(connection, socket);
+			this.getTaskExecutor().execute(connection);
+			this.harvestClosedConnections();
+			if (!this.isSingleUse()) {
+				this.setTheConnection(connection);
+			}
+			connection.publishConnectionOpenEvent();
+			return connection;
+		}
+		finally {
+			if (locked) {
+				this.theConnectionLock.writeLock().unlock();
+			}
+		}
 	}
 
 	@Override
