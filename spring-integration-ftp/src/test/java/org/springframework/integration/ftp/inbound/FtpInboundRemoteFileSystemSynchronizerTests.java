@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -30,10 +31,12 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -51,6 +54,7 @@ import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class FtpInboundRemoteFileSystemSynchronizerTests {
@@ -80,6 +84,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		ftpSessionFactory.setHost("foo.com");
 		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
+		synchronizer.setPreserveTimestamp(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new FtpRegexPatternFileListFilter(".*\\.test$"));
 		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
@@ -98,9 +103,15 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
 		assertEquals("A.TEST.a", atestFile.getPayload().getName());
+		// The test remote files are created with the current timestamp + 1 day.
+		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
+
 		Message<File> btestFile =  ms.receive();
 		assertNotNull(btestFile);
 		assertEquals("B.TEST.a", btestFile.getPayload().getName());
+		// The test remote files are created with the current timestamp + 1 day.
+		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
+
 		Message<File> nothing =  ms.receive();
 		assertNull(nothing);
 
@@ -127,6 +138,9 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 					FTPFile file = new FTPFile();
 					file.setName(fileName);
 					file.setType(FTPFile.FILE_TYPE);
+					Calendar calendar = Calendar.getInstance();
+					calendar.add(Calendar.DATE, 1);
+					file.setTimestamp(calendar);
 					ftpFiles.add(file);
 					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName) , Mockito.any(OutputStream.class))).thenReturn(true);
 				}
