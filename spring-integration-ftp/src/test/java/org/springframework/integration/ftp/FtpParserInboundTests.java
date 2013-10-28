@@ -15,19 +15,28 @@
  */
 package org.springframework.integration.ftp;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessagingException;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class FtpParserInboundTests {
@@ -43,10 +52,22 @@ public class FtpParserInboundTests {
 		assertTrue(new File("target/foo").exists());
 		assertTrue(!new File("target/bar").exists());
 	}
-	@Test(expected=BeanCreationException.class)
+	@Test
 	public void testLocalFilesAutoCreationFalse() throws Exception{
 		assertTrue(!new File("target/bar").exists());
-		new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass());
+		try {
+			new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass());
+			fail("BeansException expected.");
+		}
+		catch (BeansException e) {
+			Throwable cause = e.getCause();
+			assertThat(cause, Matchers.instanceOf(BeanCreationException.class));
+			cause = cause.getCause();
+			assertThat(cause, Matchers.instanceOf(MessagingException.class));
+			cause = cause.getCause();
+			assertThat(cause, Matchers.instanceOf(FileNotFoundException.class));
+			assertEquals("bar", cause.getMessage());
+		}
 	}
 
 	@After
