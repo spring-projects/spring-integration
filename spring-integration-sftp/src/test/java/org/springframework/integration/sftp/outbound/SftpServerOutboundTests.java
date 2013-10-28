@@ -87,9 +87,8 @@ public class SftpServerOutboundTests {
 	@Autowired
 	private DirectChannel inboundMGetRecursiveFiltered;
 
-	@SuppressWarnings("rawtypes")
 	@Autowired
-	private SessionFactory sessionFactory;
+	private SessionFactory<?> sessionFactory;
 
 	@Before
 	public void setup() throws Exception {

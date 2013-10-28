@@ -126,7 +126,7 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 
-	@Test @Ignore
+	@Test
 	@MongoDbAvailable
 	public void testInt3153SequenceDetails() throws Exception{
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
