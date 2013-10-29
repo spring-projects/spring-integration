@@ -12,15 +12,14 @@
  */
 package org.springframework.integration.jdbc;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import javax.sql.DataSource;
 
 import org.junit.Assert;
-
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
+
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 
@@ -42,7 +41,7 @@ public class JdbcOutboundGatewayTests {
 
 		try {
 			jdbcOutboundGateway.setMaxRowsPerPoll(10);
-			jdbcOutboundGateway.onInit();
+			jdbcOutboundGateway.afterPropertiesSet();
 
 		} catch (IllegalArgumentException e) {
 			assertEquals("If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.", e.getMessage());

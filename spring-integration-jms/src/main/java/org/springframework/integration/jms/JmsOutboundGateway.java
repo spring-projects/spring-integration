@@ -459,7 +459,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
-	public final void onInit() {
+	protected void doInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
@@ -469,7 +469,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					^ this.requestDestinationName != null
 					^ this.requestDestinationExpressionProcessor != null,
 					"Exactly one of 'requestDestination', 'requestDestinationName', or 'requestDestinationExpression' is required.");
-			super.onInit();
 			if (this.requestDestinationExpressionProcessor != null) {
 				this.requestDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
 				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());

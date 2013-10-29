@@ -196,8 +196,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	@Override
-	protected void onInit() {
-		super.onInit();
+	protected void doInit() {
 		if (this.messageStore == null) {
 			this.messageStore = new SimpleMessageStore();
 		}

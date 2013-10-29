@@ -62,12 +62,8 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	}
 
-	/**
-	 *
-	 */
 	@Override
-	protected void onInit() {
-		super.onInit();
+	protected void doInit() {
 		this.jpaExecutor.setBeanFactory(this.getBeanFactory());
 	}
 
