@@ -16,7 +16,6 @@ package org.springframework.integration.jdbc.store;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -24,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -33,6 +31,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
@@ -42,12 +41,12 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.jdbc.JdbcMessageStore;
+import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.DerbyChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
 import org.springframework.integration.jdbc.store.channel.MySqlChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider;
-import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -592,7 +591,9 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 		final Message<?> polledMessage = this.doPollForMessage(key);
 
 		if (polledMessage != null){
-			this.removeMessageFromGroup(groupId, polledMessage);
+			if (!this.doRemoveMessageFromGroup(groupId, polledMessage)) {
+				return null;
+			}
 		}
 
 		return polledMessage;
@@ -607,18 +608,26 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 */
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 
+		this.doRemoveMessageFromGroup(groupId, messageToRemove);
+
+		return getMessageGroup(groupId);
+	}
+
+	private boolean doRemoveMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		final UUID id = messageToRemove.getHeaders().getId();
 
 		int updated = jdbcTemplate.update(getQuery(channelMessageStoreQueryProvider.getDeleteMessageQuery()), new Object[] { getKey(id), getKey(groupId), region }, new int[] {
 					Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
 
-		if (updated != 0) {
+		boolean result = updated != 0;
+		if (result) {
 			logger.debug(String.format("Message with id '%s' was deleted.", id));
-		} else {
+		}
+		else {
 			logger.warn(String.format("Message with id '%s' was not deleted.", id));
 		}
 
-		return getMessageGroup(groupId);
+		return result;
 	}
 
 	/**
