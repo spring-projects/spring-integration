@@ -76,7 +76,7 @@ public class ConsumerConfiguration<K, V> {
 								}
 							}
 						} catch (ConsumerTimeoutException cte) {
-							LOGGER.info("Consumer timed out");
+							LOGGER.debug("Consumer timed out");
 						}
 						return rawMessages;
 					}

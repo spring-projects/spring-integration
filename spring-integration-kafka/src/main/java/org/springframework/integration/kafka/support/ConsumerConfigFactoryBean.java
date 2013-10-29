@@ -16,6 +16,9 @@
 package org.springframework.integration.kafka.support;
 
 import kafka.consumer.ConsumerConfig;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.FactoryBean;
 
 import java.util.Properties;
@@ -26,24 +29,41 @@ import java.util.Properties;
  */
 public class ConsumerConfigFactoryBean<K,V> implements FactoryBean<ConsumerConfig> {
 
+	private static final Log LOGGER = LogFactory.getLog(ConsumerConfigFactoryBean.class);
 	private final ConsumerMetadata<K,V> consumerMetadata;
 	private final ZookeeperConnect zookeeperConnect;
+    private Properties consumerProperties = new Properties();
 
 	public ConsumerConfigFactoryBean(final ConsumerMetadata<K,V> consumerMetadata,
-									 final ZookeeperConnect zookeeperConnect){
+			final ZookeeperConnect zookeeperConnect, final Properties consumerProperties) {
 		this.consumerMetadata = consumerMetadata;
 		this.zookeeperConnect = zookeeperConnect;
+		if (consumerProperties != null) {
+			this.consumerProperties = consumerProperties;
+		}
 	}
+
+    public ConsumerConfigFactoryBean(final ConsumerMetadata consumerMetadata, final ZookeeperConnect zookeeperConnect) {
+        this(consumerMetadata, zookeeperConnect, null);
+    }
 
 	@Override
 	public ConsumerConfig getObject() throws Exception {
 		final Properties properties = new Properties();
+		properties.putAll(consumerProperties);
 		properties.put("zookeeper.connect", zookeeperConnect.getZkConnect());
 		properties.put("zookeeper.session.timeout.ms", zookeeperConnect.getZkSessionTimeout());
 		properties.put("zookeeper.sync.time.ms", zookeeperConnect.getZkSyncTime());
-		properties.put("auto.commit.interval.ms", consumerMetadata.getAutoCommitInterval());
-		properties.put("consumer.timeout.ms", consumerMetadata.getConsumerTimeout());
+
+		// Overriding the default value of -1, which will make the consumer to
+		// wait indefinitely
+		if (!properties.containsKey("consumer.timeout.ms")) {
+			properties.put("consumer.timeout.ms", consumerMetadata.getConsumerTimeout());
+		}
+
 		properties.put("group.id", consumerMetadata.getGroupId());
+
+        LOGGER.info("Using consumer properties => " + properties);
 
 		return new ConsumerConfig(properties);
 	}

@@ -14,9 +14,21 @@
         <constructor-arg type="java.lang.Class" value="java.lang.String"/>
     </bean>
 
+    <bean id="consumerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="properties">
+			<props>
+				<prop key="auto.offset.reset">largest</prop>
+                <prop key="socket.receive.buffer.bytes">10485760</prop> <!-- 10M -->
+                <prop key="fetch.message.max.bytes">5242880</prop>
+				<prop key="auto.commit.interval.ms">1000</prop>
+			</props>
+		</property>
+	</bean>
+
     <int-kafka:consumer-context id="consumerContext"
                                 consumer-timeout="4000"
-                                zookeeper-connect="zookeeperConnect">
+                                zookeeper-connect="zookeeperConnect"
+                                consumer-properties="consumerProperties">
         <int-kafka:consumer-configurations>
             <int-kafka:consumer-configuration group-id="default1"
                                               value-decoder="valueDecoder"
