@@ -426,6 +426,11 @@
 			threads, may not materialize as expected. For example Apache Derby is
 			problematic in that regard.
 		</para>
+		<para>
+			To achieve the better JDBC queue throughput and avoid issues when different threads may poll the same
+			<interfacename>Message</interfacename> from queue it is recommended to use <code>usingIdCache = true</code>
+			property of <classname>JdbcChannelMessageStore</classname> for databases without MVCC:
+		</para>
 		<programlisting language="xml"><![CDATA[…
 <bean id="queryProvider"
     class="o.s.i.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider"/>
