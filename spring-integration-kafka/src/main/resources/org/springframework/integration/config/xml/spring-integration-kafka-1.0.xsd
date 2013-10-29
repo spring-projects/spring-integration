@@ -206,6 +206,14 @@
                 </xsd:element>
             </xsd:sequence>
             <xsd:attribute name="id" type="xsd:string" use="required"/>
+            <xsd:attribute name="producer-properties" use="optional"
+                           type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kafka producer properties to use for all producers
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 
@@ -347,6 +355,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Kafka Server Bean Name
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="consumer-properties" use="optional"
+                           type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kafka consumer properties to use for all consumers
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>

@@ -20,7 +20,11 @@ import kafka.producer.ProducerConfig;
 import kafka.producer.ProducerPool;
 import kafka.producer.async.DefaultEventHandler;
 import kafka.producer.async.EventHandler;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.FactoryBean;
+
 import scala.collection.mutable.HashMap;
 
 import java.util.Properties;
@@ -31,17 +35,29 @@ import java.util.Properties;
  */
 public class ProducerFactoryBean<K,V> implements FactoryBean<Producer<K,V>> {
 
+    private static final Log LOGGER = LogFactory.getLog(ProducerFactoryBean.class);
+
 	private final String brokerList;
 	private final ProducerMetadata<K,V> producerMetadata;
+    private Properties producerProperties = new Properties();
 
-	public ProducerFactoryBean(final ProducerMetadata<K,V> producerMetadata, final String brokerList){
+    public ProducerFactoryBean(final ProducerMetadata<K, V> producerMetadata, final String brokerList,
+            final Properties producerProperties) {
 		this.producerMetadata = producerMetadata;
 		this.brokerList = brokerList;
+		if (producerProperties != null) {
+			this.producerProperties = producerProperties;
+		}
+    }
+
+    public ProducerFactoryBean(final ProducerMetadata<K, V> producerMetadata, final String brokerList) {
+        this(producerMetadata, brokerList, null);
 	}
 
 	@Override
 	public Producer<K, V> getObject() throws Exception {
 		final Properties props = new Properties();
+		props.putAll(producerProperties);
 		props.put("metadata.broker.list", brokerList);
 		props.put("compression.codec", producerMetadata.getCompressionCodec());
 
@@ -52,6 +68,7 @@ public class ProducerFactoryBean<K,V> implements FactoryBean<Producer<K,V>> {
 			}
 		}
 
+        LOGGER.info("Using producer properties => " + props);
 		final ProducerConfig config = new ProducerConfig(props);
 		final EventHandler<K, V> eventHandler = new DefaultEventHandler<K, V>(config,
 				producerMetadata.getPartitioner() == null ? new DefaultPartitioner<K>() : producerMetadata.getPartitioner(),

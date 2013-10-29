@@ -17,6 +17,7 @@ package org.springframework.integration.kafka.support;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,6 +33,7 @@ import org.springframework.integration.Message;
 public class KafkaProducerContext<K,V> implements BeanFactoryAware {
 	private static final Log LOGGER = LogFactory.getLog(KafkaProducerContext.class);
 	private Map<String, ProducerConfiguration<K,V>> topicsConfiguration;
+	private Properties producerProperties;
 
 	public void send(final Message<?> message) throws Exception {
 		final ProducerConfiguration<K,V> producerConfiguration =
@@ -64,5 +66,20 @@ public class KafkaProducerContext<K,V> implements BeanFactoryAware {
 		topicsConfiguration =
 				(Map<String, ProducerConfiguration<K,V>>) (Object)
 				((ListableBeanFactory)beanFactory).getBeansOfType(ProducerConfiguration.class);
+	}
+
+	/**
+	 * @param producerProperties
+	 *            The producerProperties to set.
+	 */
+	public void setProducerProperties(Properties producerProperties) {
+		this.producerProperties = producerProperties;
+	}
+
+	/**
+	 * @return Returns the producerProperties.
+	 */
+	public Properties getProducerProperties() {
+		return producerProperties;
 	}
 }

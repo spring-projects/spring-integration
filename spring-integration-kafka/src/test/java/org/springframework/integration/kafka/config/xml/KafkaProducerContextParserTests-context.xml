@@ -5,7 +5,17 @@
        xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <int-kafka:producer-context id="producerContext">
+	<bean id="producerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="properties">
+			<props>
+				<prop key="topic.metadata.refresh.interval.ms">3600000</prop>
+                <prop key="message.send.max.retries">5</prop>
+                <prop key="send.buffer.bytes">5242880</prop>
+			</props>
+		</property>
+	</bean>
+
+    <int-kafka:producer-context id="producerContext" producer-properties="producerProperties">
         <int-kafka:producer-configurations>
             <int-kafka:producer-configuration broker-list="localhost:9092"
                                            key-class-type="java.lang.String"
