@@ -18,11 +18,16 @@ package org.springframework.integration.jmx;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -151,6 +156,23 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("processorTestInputChannel,processorTestService", reply.getHeaders().get("history").toString());
 	}
 
+	@Test
+	public void testFailOnDoubleReference() {
+		try {
+			new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-fail-context.xml",
+					this.getClass());
+			fail("Expected exception due to 2 endpoints referencing the same bean");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(BeanCreationException.class));
+			assertThat(e.getCause(), Matchers.instanceOf(BeanCreationException.class));
+			assertThat(e.getCause().getCause(), Matchers.instanceOf(IllegalArgumentException.class));
+			assertThat(e.getCause().getCause().getMessage(),
+					Matchers.containsString("An AbstractReplyProducingMessageHandler may only be referenced once"));
+		}
+
+	}
+
 	private interface Foo {
 
 		public String foo(String in);
@@ -181,7 +203,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		public void handleMessage(Message<?> requestMessage) {
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
-			assertEquals("doDispatch", st[28].getMethodName());
+			assertEquals("doDispatch", st[16].getMethodName());
 		}
 	}
 

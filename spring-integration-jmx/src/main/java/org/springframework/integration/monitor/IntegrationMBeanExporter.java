@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.management.DynamicMBean;
@@ -80,6 +81,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.FieldCallback;
+import org.springframework.util.ReflectionUtils.FieldFilter;
 
 /**
  * <p>
@@ -246,6 +249,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		if (bean instanceof MessageHandler) {
+			if (this.handlerInAnonymousWrapper(bean) != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Skipping " + beanName + " because it wraps another handler");
+				}
+				return bean;
+			}
 			SimpleMessageHandlerMetrics monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
@@ -280,6 +289,33 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		return bean;
 
+	}
+
+	private MessageHandler handlerInAnonymousWrapper(final Object bean) {
+		if (bean != null && bean.getClass().isAnonymousClass()) {
+			final AtomicReference<MessageHandler> wrapped = new AtomicReference<MessageHandler>();
+			ReflectionUtils.doWithFields(bean.getClass(), new FieldCallback() {
+
+				@Override
+				public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+					field.setAccessible(true);
+					Object handler = field.get(bean);
+					if (handler instanceof MessageHandler) {
+						wrapped.set((MessageHandler) handler);
+					}
+				}
+			}, new FieldFilter() {
+
+				@Override
+				public boolean matches(Field field) {
+					return field.getName().startsWith("val$");
+				}
+			});
+			return wrapped.get();
+		}
+		else {
+			return null;
+		}
 	}
 
 	/**
@@ -996,7 +1032,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			catch (Exception e) {
 				logger.trace("Could not get handler from bean = " + beanName);
 			}
-			if (field == monitor.getMessageHandler()) {
+			Object wrapped = this.extractTarget(this.handlerInAnonymousWrapper(field));
+			if (field == monitor.getMessageHandler() || wrapped == monitor.getMessageHandler()) {
 				name = beanName;
 				endpointName = beanName;
 				break;

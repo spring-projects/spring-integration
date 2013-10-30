@@ -73,7 +73,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 			}
 			/*
 			 * Return a reply-producing message handler so that we still get 'produced no reply' messages
-			 * and the super class will inject the advice chain to advise the handler if needed.
+			 * and the super class will inject the advice chain to advise the handler method if needed.
 			 */
 			handler = new AbstractReplyProducingMessageHandler() {
 
