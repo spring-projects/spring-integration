@@ -77,10 +77,10 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		if (this.targetObject != null) {
 			Assert.state(this.expression == null,
 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
-			boolean targetIsDirectReplyProducingHandler = this.extractTypeIfPossible(targetObject,
-										AbstractReplyProducingMessageHandler.class) != null
-							&& this.canBeUsedDirect(
-									(AbstractReplyProducingMessageHandler) targetObject) // give subclasses a say
+			AbstractReplyProducingMessageHandler actualHandler = this.extractTypeIfPossible(targetObject,
+										AbstractReplyProducingMessageHandler.class);
+			boolean targetIsDirectReplyProducingHandler = actualHandler != null
+							&& this.canBeUsedDirect(actualHandler) // give subclasses a say
 							&& this.methodIsHandleMessageOrEmpty(this.targetMethodName);
 			if (this.targetObject instanceof MessageProcessor<?>) {
 				handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
@@ -89,9 +89,9 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 				if (logger.isDebugEnabled()) {
 					logger.debug("Wiring handler (" + beanName + ") directly into endpoint");
 				}
+				this.checkReuse(actualHandler);
+				this.postProcessReplyProducer(actualHandler);
 				handler = (MessageHandler) targetObject;
-				this.checkReuse((AbstractReplyProducingMessageHandler) handler);
-				this.postProcessReplyProducer((AbstractReplyProducingMessageHandler) handler);
 			}
 			else {
 				handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);
@@ -120,7 +120,7 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 	}
 
 	private void checkReuse(AbstractReplyProducingMessageHandler replyHandler) {
-		Assert.isTrue(!referencedReplyProducers.contains(targetObject),
+		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
 				"An AbstractReplyProducingMessageHandler may only be referenced once (" +
 				replyHandler.getComponentName() + ") - use scope=\"prototype\"");
 		referencedReplyProducers.add(replyHandler);
