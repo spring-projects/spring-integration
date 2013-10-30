@@ -235,13 +235,23 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="delete-remote-files" type="xsd:string">
+					<xsd:attribute name="delete-remote-files" type="xsd:string" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
 								Specify whether to delete the remote source
 								file after copying.
 								By default, the remote files will NOT be
 								deleted.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="preserve-timestamp" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify whether to preserve modified timestamp from the remote source
+								file to the local file after copying.
+								By default, the remote timestamp will NOT be
+								preserved.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

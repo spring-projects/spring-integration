@@ -85,6 +85,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 		SftpInboundFileSynchronizer synchronizer = spy(new SftpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
+		synchronizer.setPreserveTimestamp(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new SftpRegexPatternFileListFilter(".*\\.test$"));
 		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
@@ -97,11 +98,15 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
 		assertEquals("a.test", atestFile.getPayload().getName());
+		// The test remote files are created with the current timestamp + 1 day.
 		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
+
 		Message<File> btestFile =  ms.receive();
 		assertNotNull(btestFile);
 		assertEquals("b.test", btestFile.getPayload().getName());
+		// The test remote files are created with the current timestamp + 1 day.
 		assertThat(atestFile.getPayload().lastModified(), Matchers.greaterThan(System.currentTimeMillis()));
+
 		Message<File> nothing =  ms.receive();
 		assertNull(nothing);
 

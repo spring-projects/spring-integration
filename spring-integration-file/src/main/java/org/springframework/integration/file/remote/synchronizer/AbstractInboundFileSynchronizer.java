@@ -19,7 +19,6 @@ package org.springframework.integration.file.remote.synchronizer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -91,6 +90,12 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	private volatile boolean deleteRemoteFiles;
 
 	/**
+	 * Should we <em>transfer</em> the remote file <b>timestamp</b>
+	 * to the local file? By default this is false.
+	 */
+	private volatile boolean  preserveTimestamp;
+
+	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 */
 	public AbstractInboundFileSynchronizer(SessionFactory<F> sessionFactory) {
@@ -128,6 +133,10 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.deleteRemoteFiles = deleteRemoteFiles;
 	}
 
+	public void setPreserveTimestamp(boolean preserveTimestamp) {
+		this.preserveTimestamp = preserveTimestamp;
+	}
+
 	@Override
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
@@ -150,7 +159,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		Session<F> session = null;
 		try {
 			session = this.sessionFactory.getSession();
-			Assert.state(session != null, "failed to acquire a Session");
+			Assert.notNull(session, "failed to acquire a Session");
 			F[] files = session.list(this.remoteDirectory);
 			if (!ObjectUtils.isEmpty(files)) {
 				Collection<F> filteredFiles = this.filterFiles(files);
@@ -193,7 +202,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
-			InputStream inputStream = null;
 			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
 			try {
 				session.read(remoteFilePath, fileOutputStream);
@@ -207,13 +215,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 				}
 			}
 			finally {
-				try {
-					if (inputStream != null) {
-						inputStream.close();
-					}
-				}
-				catch (Exception ignored1) {
-				}
 				try {
 					fileOutputStream.close();
 				}
@@ -229,7 +230,9 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 					}
 				}
 			}
-			localFile.setLastModified(getModified(remoteFile));
+			if (this.preserveTimestamp) {
+				localFile.setLastModified(getModified(remoteFile));
+			}
 		}
 	}
 
