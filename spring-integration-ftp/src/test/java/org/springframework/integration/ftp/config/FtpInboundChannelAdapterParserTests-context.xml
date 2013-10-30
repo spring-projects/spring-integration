@@ -7,20 +7,21 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
 
-	<bean id="ftpSessionFactory" 
+	<bean id="ftpSessionFactory"
 		class="org.springframework.integration.ftp.config.FtpInboundChannelAdapterParserTests.TestSessionFactoryBean"/>
 
 	<bean id="csf" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
 		<constructor-arg ref="ftpSessionFactory"/>
 	</bean>
-	
+
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
-				channel="ftpChannel" 
+				channel="ftpChannel"
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				auto-create-local-directory="true"
 				auto-startup="false"
 				delete-remote-files="true"
+				preserve-timestamp="true"
 				filename-pattern="*.txt"
 				local-directory="."
 				remote-file-separator=""
@@ -39,7 +40,7 @@
 	</bean>
 
 	<bean id="acceptAllFilter" class="org.springframework.integration.file.filters.AcceptAllFileListFilter" />
-	
+
 	<int:transaction-synchronization-factory id="syncFactory">
 		<int:after-commit expression="'foo'" channel="successChannel"/>
 		<int:after-rollback expression="'bar'" channel="failureChannel"/>
@@ -48,13 +49,13 @@
 	<int:channel id="successChannel" />
 
 	<int:channel id="failureChannel" />
-	
+
 	<bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="java.util.Comparator"/>
 	</bean>
 
 	<int-ftp:inbound-channel-adapter
-				channel="ftpChannel" 
+				channel="ftpChannel"
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				auto-create-local-directory="true"
@@ -66,7 +67,7 @@
 	</int-ftp:inbound-channel-adapter>
 
 	<int-ftp:inbound-channel-adapter id="simpleAdapterWithCachedSessions"
-				channel="ftpChannel" 
+				channel="ftpChannel"
 				session-factory="csf"
 				local-directory="."
 				remote-directory="foo/bar">
@@ -76,7 +77,7 @@
 	<int:channel id="ftpChannel">
 		<int:queue/>
 	</int:channel>
-	
+
 	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
 	</bean>
@@ -89,7 +90,7 @@
 	</int-ftp:inbound-channel-adapter>
 
 	<int:bridge input-channel="autoChannel" output-channel="nullChannel" />
-	
+
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans>

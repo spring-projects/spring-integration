@@ -22,11 +22,11 @@
 	<channel id="requestChannel">
 		<queue/>
 	</channel>
-	
+
 	<beans:bean id="pattern" class="java.util.regex.Pattern" factory-method="compile">
 		<beans:constructor-arg value="."/>
 	</beans:bean>
-	
+
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
 		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
@@ -49,14 +49,15 @@
 			temporary-file-suffix=".bar"
 			comparator="comparator"
 			local-filter="acceptAllFilter"
-			delete-remote-files="${delete.remote.files}">
+			delete-remote-files="${delete.remote.files}"
+			preserve-timestamp="true">
 		<poller fixed-rate="1000">
 			<transactional synchronization-factory="syncFactory"/>
 		</poller>
 	</sftp:inbound-channel-adapter>
 
 	<beans:bean id="acceptAllFilter" class="org.springframework.integration.file.filters.AcceptAllFileListFilter" />
-	
+
 	<transaction-synchronization-factory id="syncFactory">
 		<after-commit expression="'foo'" channel="successChannel"/>
 		<after-rollback expression="'bar'" channel="failureChannel"/>
@@ -118,7 +119,7 @@
 	</sftp:inbound-channel-adapter>
 
 	<bridge input-channel="autoChannel" output-channel="nullChannel" />
-	
+
 	<beans:bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 
 </beans:beans>
