@@ -64,7 +64,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			if (this.getLocalAddress() == null) {
 				theServerSocket = createServerSocket(this.getPort(), this.getBacklog(), null);
-			} else {
+			}
+			else {
 				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
 				theServerSocket = createServerSocket(this.getPort(), this.getBacklog(), whichNic);
 			}
@@ -80,7 +81,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				 */
 				try {
 					socket = serverSocket.accept();
-				} catch (SocketTimeoutException ste) {
+				}
+				catch (SocketTimeoutException ste) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Timed out on accept; continuing");
 					}
@@ -104,9 +106,11 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 					this.initializeConnection(connection, socket);
 					this.getTaskExecutor().execute(connection);
 					this.harvestClosedConnections();
+					connection.publishConnectionOpenEvent();
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// don't log an error if we had a good socket once and now it's closed
 			if (e instanceof SocketException && theServerSocket != null) {
 				logger.warn("Server Socket closed");

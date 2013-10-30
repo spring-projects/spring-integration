@@ -13,9 +13,9 @@
 
 	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 
-	<int-ip:tcp-connection-factory id="server"
+	<int-ip:tcp-connection-factory id="serverNet"
 		type="server"
-		using-nio="true"
+		using-nio="false"
 		single-use="true"
 		port="#{tcpIpUtils.findAvailableServerSocket(10000)}"
 		task-executor="exec"
@@ -23,18 +23,44 @@
 		so-timeout="20000"
 	/>
 
-	<int-ip:tcp-connection-factory id="client"
+	<int-ip:tcp-connection-factory id="clientNet"
 		type="client"
 		host="localhost"
-		port="#{server.port}"
+		port="#{serverNet.port}"
 		single-use="true"
 		lookup-host="false"
 		so-timeout="100000"
 	/>
 
-	<int-ip:tcp-inbound-gateway id="looper"
+	<int-ip:tcp-connection-factory id="serverNio"
+		type="server"
+		using-nio="true"
+		single-use="true"
+		port="#{tcpIpUtils.findAvailableServerSocket(20000)}"
+		task-executor="exec"
+		lookup-host="false"
+		so-timeout="20000"
+	/>
+
+	<int-ip:tcp-connection-factory id="clientNio"
+		type="client"
+		host="localhost"
+		using-nio="true"
+		port="#{serverNio.port}"
+		single-use="true"
+		lookup-host="false"
+		so-timeout="100000"
+	/>
+
+	<int-ip:tcp-inbound-gateway id="gwNet"
 		request-channel="serverSideChannel"
-		connection-factory="server"
+		connection-factory="serverNet"
+		reply-timeout="1"
+		/>
+
+	<int-ip:tcp-inbound-gateway id="gwNio"
+		request-channel="serverSideChannel"
+		connection-factory="serverNio"
 		reply-timeout="1"
 		/>
 

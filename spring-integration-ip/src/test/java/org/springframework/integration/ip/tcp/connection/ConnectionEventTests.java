@@ -52,10 +52,10 @@ public class ConnectionEventTests {
 				theEvent.add((TcpConnectionEvent) event);
 			}
 		}, "foo");
-		assertTrue(theEvent.size() > 0);
-		assertNotNull(theEvent.get(0));
-		assertTrue(theEvent.get(0) instanceof TcpConnectionOpenEvent);
-		assertTrue(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **OPENED**"));
+		/*
+		 *  Open is not published by the connection itself; the factory publishes it after initialization.
+		 *  See ConnectionToConnectionTests.
+		 */
 		@SuppressWarnings("unchecked")
 		Serializer<Object> serializer = mock(Serializer.class);
 		RuntimeException toBeThrown = new RuntimeException("foo");
@@ -67,17 +67,17 @@ public class ConnectionEventTests {
 			fail("Expected exception");
 		}
 		catch (Exception e) {}
-		assertTrue(theEvent.size() > 1);
-		assertNotNull(theEvent.get(1));
-		assertTrue(theEvent.get(1) instanceof TcpConnectionExceptionEvent);
-		assertTrue(theEvent.get(1).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
-		assertTrue(theEvent.get(1).toString().contains("cause=java.lang.RuntimeException: foo]"));
-		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get(1);
+		assertTrue(theEvent.size() > 0);
+		assertNotNull(theEvent.get(0));
+		assertTrue(theEvent.get(0) instanceof TcpConnectionExceptionEvent);
+		assertTrue(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
+		assertTrue(theEvent.get(0).toString().contains("cause=java.lang.RuntimeException: foo]"));
+		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get(0);
 		assertNotNull(event.getCause());
 		assertSame(toBeThrown, event.getCause());
-		assertTrue(theEvent.size() > 2);
-		assertNotNull(theEvent.get(2));
-		assertTrue(theEvent.get(2).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **CLOSED**"));
+		assertTrue(theEvent.size() > 1);
+		assertNotNull(theEvent.get(1));
+		assertTrue(theEvent.get(1).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "] **CLOSED**"));
 	}
 
 }

@@ -65,10 +65,16 @@ public class ConnectionToConnectionTests {
 	AbstractApplicationContext ctx;
 
 	@Autowired
-	private AbstractClientConnectionFactory client;
+	private AbstractClientConnectionFactory clientNet;
 
 	@Autowired
-	private AbstractServerConnectionFactory server;
+	private AbstractServerConnectionFactory serverNet;
+
+	@Autowired
+	private AbstractClientConnectionFactory clientNio;
+
+	@Autowired
+	private AbstractServerConnectionFactory serverNio;
 
 	@Autowired
 	private QueueChannel serverSideChannel;
@@ -90,9 +96,19 @@ public class ConnectionToConnectionTests {
 		ctx.close();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testConnect() throws Exception {
+	public void testConnectNet() throws Exception {
+		testConnectGuts(this.clientNet, this.serverNet, "gwNet", true);
+	}
+
+	@Test
+	public void testConnectNio() throws Exception {
+		testConnectGuts(this.clientNio, this.serverNio, "gwNio", false);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void testConnectGuts(AbstractClientConnectionFactory client, AbstractServerConnectionFactory server,
+			String gatewayName, boolean expectExceptionOnClose) throws Exception {
 		TestingUtilities.waitListening(server, null);
 		client.start();
 		for (int i = 0; i < 100; i++) {
@@ -102,7 +118,7 @@ public class ConnectionToConnectionTests {
 			assertNotNull(message);
 			MessageHistory history = MessageHistory.read(message);
 			//org.springframework.integration.test.util.TestUtils
-			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
+			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, gatewayName, 0);
 			assertNotNull(componentHistoryRecord);
 			assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
 			assertNotNull(message);
@@ -116,7 +132,7 @@ public class ConnectionToConnectionTests {
 		Message<TcpConnectionEvent> eventMessage;
 		while ((eventMessage = (Message<TcpConnectionEvent>) events.receive(1000)) != null) {
 			TcpConnectionEvent event = eventMessage.getPayload();
-			if ("client".equals(event.getConnectionFactoryName())) {
+			if (event.getConnectionFactoryName().startsWith("client")) {
 				if (event instanceof TcpConnectionOpenEvent) {
 					clientOpens++;
 				}
@@ -127,7 +143,7 @@ public class ConnectionToConnectionTests {
 					clientExceptions++;
 				}
 			}
-			else if ("server".equals(event.getConnectionFactoryName())) {
+			else if (event.getConnectionFactoryName().startsWith("server")) {
 				if (event instanceof TcpConnectionOpenEvent) {
 					serverOpens++;
 				}
@@ -138,7 +154,9 @@ public class ConnectionToConnectionTests {
 		}
 		assertEquals(100, clientOpens);
 		assertEquals(100, clientCloses);
-		assertEquals(100, clientExceptions);
+		if (expectExceptionOnClose) {
+			assertEquals(100, clientExceptions);
+		}
 		assertEquals(100, serverOpens);
 		assertEquals(100, serverCloses);
 	}
@@ -146,16 +164,16 @@ public class ConnectionToConnectionTests {
 	@Test
 	public void testConnectRaw() throws Exception {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
-		client.setSerializer(serializer);
-		server.setDeserializer(serializer);
-		client.start();
-		TcpConnection connection = client.getConnection();
+		clientNet.setSerializer(serializer);
+		serverNet.setDeserializer(serializer);
+		clientNet.start();
+		TcpConnection connection = clientNet.getConnection();
 		connection.send(MessageBuilder.withPayload("Test").build());
 		Message<?> message = serverSideChannel.receive(10000);
 		assertNotNull(message);
 		MessageHistory history = MessageHistory.read(message);
 		//org.springframework.integration.test.util.TestUtils
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "gwNet", 0);
 		assertNotNull(componentHistoryRecord);
 		assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
 		assertNotNull(message);
@@ -164,16 +182,16 @@ public class ConnectionToConnectionTests {
 
 	@Test
 	public void testLookup() throws Exception {
-		client.start();
-		TcpConnection connection = client.getConnection();
+		clientNet.start();
+		TcpConnection connection = clientNet.getConnection();
 		assertFalse(connection.getConnectionId().contains("localhost"));
 		connection.close();
-		client.setLookupHost(true);
-		connection = client.getConnection();
+		clientNet.setLookupHost(true);
+		connection = clientNet.getConnection();
 		assertTrue(connection.getConnectionId().contains("localhost"));
 		connection.close();
-		client.setLookupHost(false);
-		connection = client.getConnection();
+		clientNet.setLookupHost(false);
+		connection = clientNet.getConnection();
 		assertFalse(connection.getConnectionId().contains("localhost"));
 		connection.close();
 	}
