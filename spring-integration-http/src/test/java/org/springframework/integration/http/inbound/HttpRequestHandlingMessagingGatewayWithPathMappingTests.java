@@ -32,6 +32,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.AntPathMatcher;
@@ -45,7 +46,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Artem Bilan
  * @author Biju Kunjummen
  */
-public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
+public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends AbstractHttpInboundTests {
 
 	private static ExpressionParser PARSER = new SpelExpressionParser();
 

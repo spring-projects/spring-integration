@@ -38,6 +38,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,7 +59,7 @@ import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
 //INT-2312
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class Int2312RequestMappingIntegrationTests {
+public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTests {
 
 	public static final String TEST_PATH = "/test/{value}";
 
@@ -149,6 +150,8 @@ public class Int2312RequestMappingIntegrationTests {
 		this.handlerAdapter.handle(request, response, handler);
 		final String testResponse = response.getContentAsString();
 		assertEquals(testRequest.toLowerCase(), testResponse);
+
+		RequestContextHolder.resetRequestAttributes();
 	}
 
 	@Test

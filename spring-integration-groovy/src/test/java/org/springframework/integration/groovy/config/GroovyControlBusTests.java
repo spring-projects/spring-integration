@@ -16,11 +16,10 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import groovy.lang.GroovyObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +29,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanIsAbstractException;
@@ -47,6 +47,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+
+import groovy.lang.GroovyObject;
 
 
 /**
@@ -115,6 +117,8 @@ public class GroovyControlBusTests {
 		Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
 		this.input.send(message);
 		assertEquals("cat", output.receive(0).getPayload());
+
+		RequestContextHolder.resetRequestAttributes();
 	}
 
 	@Test //INT-2567
