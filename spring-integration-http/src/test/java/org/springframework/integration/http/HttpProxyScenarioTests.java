@@ -137,6 +137,7 @@ public class HttpProxyScenarioTests {
 		assertEquals(ifModifiedSince, headers.get("If-Modified-Since"));
 		assertEquals(ifUnmodifiedSince, headers.get("If-Unmodified-Since"));
 
+		RequestContextHolder.resetRequestAttributes();
 	}
 
 }

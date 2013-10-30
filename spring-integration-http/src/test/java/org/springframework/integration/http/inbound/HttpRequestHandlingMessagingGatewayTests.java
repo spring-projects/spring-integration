@@ -16,9 +16,9 @@
 
 package org.springframework.integration.http.inbound;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -43,6 +43,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -58,7 +59,7 @@ import org.springframework.util.SerializationUtils;
  * @author Biju Kunjummen
  * @since 2.0
  */
-public class HttpRequestHandlingMessagingGatewayTests {
+public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboundTests {
 
 	@Test
 	@SuppressWarnings("unchecked")

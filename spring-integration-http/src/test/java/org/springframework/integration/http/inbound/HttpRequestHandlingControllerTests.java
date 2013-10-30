@@ -39,6 +39,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -54,7 +55,7 @@ import org.springframework.web.servlet.View;
  * @author Biju Kunjummen
  * @since 2.0
  */
-public class HttpRequestHandlingControllerTests {
+public class HttpRequestHandlingControllerTests extends AbstractHttpInboundTests {
 
 	@Test
 	public void sendOnly() throws Exception {

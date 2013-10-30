@@ -16,9 +16,9 @@
 
 package org.springframework.integration.groovy.config;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import groovy.lang.GroovyObject;
 
@@ -30,6 +30,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanIsAbstractException;
@@ -115,6 +116,8 @@ public class GroovyControlBusTests {
 		Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
 		this.input.send(message);
 		assertEquals("cat", output.receive(0).getPayload());
+
+		RequestContextHolder.resetRequestAttributes();
 	}
 
 	@Test //INT-2567
@@ -180,7 +183,7 @@ public class GroovyControlBusTests {
 
 	private static class MockRequestAttributes implements RequestAttributes {
 
-		private Map<String, Object> fakeRequest = new HashMap<String, Object>();
+		private final Map<String, Object> fakeRequest = new HashMap<String, Object>();
 
 		public Object getAttribute(String name, int scope) {
 			return fakeRequest.get(name);
