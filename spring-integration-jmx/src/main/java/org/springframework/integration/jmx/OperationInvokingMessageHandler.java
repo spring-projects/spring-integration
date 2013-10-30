@@ -69,6 +69,18 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 
 	private volatile String operationName;
 
+	private static final Map<Class<?>, String> primitiveWrapperToPrimitiveTypeName = new HashMap<Class<?>, String>();
+
+	static {
+		primitiveWrapperToPrimitiveTypeName.put(Boolean.class, "boolean");
+		primitiveWrapperToPrimitiveTypeName.put(Byte.class, "byte");
+		primitiveWrapperToPrimitiveTypeName.put(Character.class, "char");
+		primitiveWrapperToPrimitiveTypeName.put(Double.class, "double");
+		primitiveWrapperToPrimitiveTypeName.put(Float.class, "float");
+		primitiveWrapperToPrimitiveTypeName.put(Integer.class, "int");
+		primitiveWrapperToPrimitiveTypeName.put(Long.class, "long");
+		primitiveWrapperToPrimitiveTypeName.put(Short.class, "short");
+	}
 
 	/**
 	 * Provide a reference to the MBeanServer within which the MBean
@@ -135,7 +147,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 								 */
 								value = paramsFromMessage.get("p" + (index + 1));
 							}
-							if (value != null && value.getClass().getName().equals(paramInfo.getType())) {
+							if (value != null && valueTypeMatchesParameterType(value, paramInfo)) {
 								values[index] = value;
 								signature[index] = paramInfo.getType();
 								index++;
@@ -152,15 +164,26 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 			}
 			throw new MessagingException(requestMessage, "failed to find JMX operation '"
 					+ operationName + "' on MBean [" + objectName + "] of type [" + mbeanInfo.getClassName()
-					+ "] with " + paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet());
+					+ "] with " + paramsFromMessage.size() + " parameters: " + paramsFromMessage);
 		}
 		catch (JMException e) {
 			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
 					operationName + "' on MBean [" + objectName + "]" + " with " +
-					paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet(), e);
+					paramsFromMessage.size() + " parameters: " + paramsFromMessage, e);
 		}
 		catch (IOException e) {
 			throw new MessageHandlingException(requestMessage, "IOException on MBeanServerConnection", e);
+		}
+	}
+
+	private boolean valueTypeMatchesParameterType(Object value, MBeanParameterInfo paramInfo) {
+		Class<? extends Object> valueClass = value.getClass();
+		if (valueClass.getName().equals(paramInfo.getType())) {
+			return true;
+		}
+		else {
+			String primitiveTypeName = primitiveWrapperToPrimitiveTypeName.get(valueClass);
+			return primitiveTypeName != null && primitiveTypeName.equals(paramInfo.getType());
 		}
 	}
 
