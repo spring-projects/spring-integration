@@ -416,6 +416,7 @@
 			to configure the associated <classname>Poller</classname> with a
 			<interfacename>TaskExecutor</interfacename> reference.
 		</para>
+		<important>
 		<para>
 			Keep in mind, though, that if you use a JDBC backed <emphasis>Message Channel</emphasis> and
 			you are planning on polling the channel and consequently the message
@@ -428,9 +429,11 @@
 		</para>
 		<para>
 			To achieve the better JDBC queue throughput and avoid issues when different threads may poll the same
-			<interfacename>Message</interfacename> from queue it is recommended to use <code>usingIdCache = true</code>
-			property of <classname>JdbcChannelMessageStore</classname> for databases without MVCC:
+			<interfacename>Message</interfacename> from queue it is <emphasis role="bold">important</emphasis>
+			to use <code>usingIdCache = true</code> property of <classname>JdbcChannelMessageStore</classname>
+			for databases without MVCC:
 		</para>
+		</important>
 		<programlisting language="xml"><![CDATA[…
 <bean id="queryProvider"
     class="o.s.i.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider"/>
@@ -464,6 +467,7 @@
 
 <int:channel id="outputChannel" />
 …]]></programlisting>
+
 	</section>
     <section>
       <title>Initializing the Database</title>
