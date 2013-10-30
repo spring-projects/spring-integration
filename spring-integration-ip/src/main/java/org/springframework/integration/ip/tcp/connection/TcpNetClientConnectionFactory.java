@@ -44,20 +44,8 @@ public class TcpNetClientConnectionFactory extends
 		super(host, port);
 	}
 
-	/**
-	 * @throws IOException
-	 * @throws SocketException
-	 * @throws Exception
-	 */
 	@Override
-	protected TcpConnectionSupport obtainConnection() throws Exception {
-		TcpConnectionSupport theConnection = this.getTheConnection();
-		if (theConnection != null && theConnection.isOpen()) {
-			return theConnection;
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
-		}
+	protected TcpConnectionSupport buildNewConnection() throws IOException, SocketException, Exception {
 		Socket socket = createSocket(this.getHost(), this.getPort());
 		setSocketAttributes(socket);
 		TcpConnectionSupport connection = new TcpNetConnection(socket, false, this.isLookupHost(),
