@@ -17,8 +17,10 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.hamcrest.Matchers;
@@ -35,6 +37,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.StackTraceUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -95,7 +98,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("TEST", reply.getPayload());
 		assertEquals("replyingHandlerTestInputChannel,replyingHandlerTestService", reply.getHeaders().get("history").toString());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName()); // close to the metal
+		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("Dispatcher", "MethodInvokerHelper", st)); // close to the metal
 	}
 
 	@Test
@@ -108,7 +111,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("optimizedRefReplyingHandlerTestInputChannel,optimizedRefReplyingHandlerTestService",
 				reply.getHeaders().get("history").toString());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName());
+		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("Dispatcher", "MethodInvokerHelper", st)); // close to the metal
 	}
 
 	@Test
@@ -120,7 +123,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("TEST", reply.getPayload());
 		assertEquals("replyingHandlerWithStandardMethodTestInputChannel,replyingHandlerWithStandardMethodTestService", reply.getHeaders().get("history").toString());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName()); // close to the metal
+		assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("Dispatcher", "MethodInvokerHelper", st)); // close to the metal
 	}
 
 	@Test
@@ -183,6 +186,10 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		}
 
 		public String foo(String in) {
+			Exception e = new RuntimeException();
+			StackTraceElement[] st = e.getStackTrace();
+			// use this to test that StackTraceUtils works as expected and returns false
+			assertFalse(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("Dispatcher", "MethodInvokerHelper", st));
 			return "bar";
 		}
 
@@ -195,7 +202,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		public void handleMessage(Message<?> requestMessage) {
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
-			assertEquals("doDispatch", st[4].getMethodName());
+			assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("Dispatcher", "MethodInvokerHelper", st)); // close to the metal
 		}
 	}
 
