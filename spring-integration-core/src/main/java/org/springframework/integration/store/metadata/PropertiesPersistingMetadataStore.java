@@ -16,10 +16,14 @@
 
 package org.springframework.integration.store.metadata;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -37,6 +41,7 @@ import org.springframework.util.DefaultPropertiesPersister;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class PropertiesPersistingMetadataStore implements MetadataStore, InitializingBean, DisposableBean {
@@ -86,9 +91,9 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 	}
 
 	private void saveMetadata() {
-		FileOutputStream outputStream = null;
+		OutputStream outputStream = null;
 		try {
-			outputStream = new FileOutputStream(this.file);
+			outputStream = new BufferedOutputStream(new FileOutputStream(this.file));
 			this.persister.store(this.metadata, outputStream, "Last feed entry");
 		}
 		catch (IOException e) {
@@ -104,15 +109,15 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 			}
 			catch (IOException e) {
 				// not fatal for the functionality of the component
-				logger.warn("Failed to close FileOutputStream to " + this.file.getAbsolutePath(), e);
+				logger.warn("Failed to close OutputStream to " + this.file.getAbsolutePath(), e);
 			}
 		}
 	}
 
 	private void loadMetadata() {
-		FileInputStream inputStream = null;
+		InputStream inputStream = null;
 		try {
-			inputStream = new FileInputStream(this.file);
+			inputStream = new BufferedInputStream(new FileInputStream(this.file));
 			this.persister.load(this.metadata, inputStream);
 		}
 		catch (Exception e) {
@@ -128,7 +133,7 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 			}
 			catch (Exception e2) {
 				// non fatal
-				logger.warn("Failed to close FileInputStream for: " + this.file.getAbsolutePath());
+				logger.warn("Failed to close InputStream for: " + this.file.getAbsolutePath());
 			}
 		}
 	}
