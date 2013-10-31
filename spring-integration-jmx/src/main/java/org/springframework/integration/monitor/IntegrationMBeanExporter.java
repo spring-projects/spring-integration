@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.management.DynamicMBean;
@@ -80,6 +81,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.FieldCallback;
+import org.springframework.util.ReflectionUtils.FieldFilter;
 
 /**
  * <p>
@@ -106,6 +109,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Helena Edelson
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
@@ -217,7 +221,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		super.setBeanFactory(beanFactory);
-		Assert.isTrue(beanFactory instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
+		Assert.isInstanceOf(ListableBeanFactory.class, beanFactory, "A ListableBeanFactory is required.");
 		this.beanFactory = (ListableBeanFactory) beanFactory;
 	}
 
@@ -246,6 +250,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		if (bean instanceof MessageHandler) {
+			if (this.handlerInAnonymousWrapper(bean) != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Skipping " + beanName + " because it wraps another handler");
+				}
+				return bean;
+			}
 			SimpleMessageHandlerMetrics monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
@@ -280,6 +290,33 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		return bean;
 
+	}
+
+	private MessageHandler handlerInAnonymousWrapper(final Object bean) {
+		if (bean != null && bean.getClass().isAnonymousClass()) {
+			final AtomicReference<MessageHandler> wrapped = new AtomicReference<MessageHandler>();
+			ReflectionUtils.doWithFields(bean.getClass(), new FieldCallback() {
+
+				@Override
+				public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+					field.setAccessible(true);
+					Object handler = field.get(bean);
+					if (handler instanceof MessageHandler) {
+						wrapped.set((MessageHandler) handler);
+					}
+				}
+			}, new FieldFilter() {
+
+				@Override
+				public boolean matches(Field field) {
+					return wrapped.get() == null && field.getName().startsWith("val$");
+				}
+			});
+			return wrapped.get();
+		}
+		else {
+			return null;
+		}
 	}
 
 	/**
@@ -987,19 +1024,21 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		String source = "endpoint";
 		Object endpoint = null;
 
+		MessageHandler messageHandler = monitor.getMessageHandler();
+
 		for (String beanName : names) {
 			endpoint = beanFactory.getBean(beanName);
-			Object field = null;
 			try {
-				field = extractTarget(getField(endpoint, "handler"));
+				Object field = extractTarget(getField(endpoint, "handler"));
+				if (field == messageHandler ||
+						this.extractTarget(this.handlerInAnonymousWrapper(field)) == messageHandler) {
+					name = beanName;
+					endpointName = beanName;
+					break;
+				}
 			}
 			catch (Exception e) {
 				logger.trace("Could not get handler from bean = " + beanName);
-			}
-			if (field == monitor.getMessageHandler()) {
-				name = beanName;
-				endpointName = beanName;
-				break;
 			}
 		}
 		if (name != null && endpoint != null && name.startsWith("_org.springframework.integration")) {
@@ -1044,11 +1083,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		if (name == null) {
-			if (monitor.getMessageHandler() instanceof NamedComponent) {
-				name = ((NamedComponent) monitor.getMessageHandler()).getComponentName();
+			if (messageHandler instanceof NamedComponent) {
+				name = ((NamedComponent) messageHandler).getComponentName();
 			}
 			if (name == null) {
-				name = monitor.getMessageHandler().toString();
+				name = messageHandler.toString();
 			}
 			source = "handler";
 		}
