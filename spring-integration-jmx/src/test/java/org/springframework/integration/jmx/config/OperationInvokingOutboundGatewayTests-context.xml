@@ -33,9 +33,16 @@
 		</jmx:request-handler-advice-chain>
 	</jmx:operation-invoking-outbound-gateway>
 
-	<si:chain input-channel="jmxOutboundGatewayInsideChain" output-channel="withReplyChannelOutput">
+	<si:channel id="primitiveChannel"/>
+
+	<jmx:operation-invoking-outbound-gateway request-channel="primitiveChannel"
+			reply-channel="withReplyChannelOutput"
+			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
+			operation-name="testPrimitiveArgs"/>
+
+	<si:chain id="operationInvokingWithinChain" input-channel="jmxOutboundGatewayInsideChain" output-channel="withReplyChannelOutput">
 		<jmx:operation-invoking-outbound-gateway operation-name="testWithReturn"
-						object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"/>
+												 object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"/>
 	</si:chain>
 
 	<jmx:operation-invoking-outbound-gateway request-channel="withNoReplyChannel"

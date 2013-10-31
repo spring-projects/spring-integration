@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 @ManagedResource
@@ -42,11 +43,16 @@ public class TestBean {
 	public void test(String text) {
 		this.messages.add(text);
 	}
-	
+
 	@ManagedOperation
 	public List<String> testWithReturn(String text) {
 		this.messages.add(text);
 		return messages;
+	}
+
+	@ManagedOperation
+	public void testPrimitiveArgs(boolean bool, long time, int foo) {
+		this.messages.add(bool + " " + time + " " + foo);
 	}
 
 }
