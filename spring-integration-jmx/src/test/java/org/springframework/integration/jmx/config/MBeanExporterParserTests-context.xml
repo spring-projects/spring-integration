@@ -18,11 +18,14 @@
 	<jmx:mbean-export id="integratioMbeanExporter" 
 					  server="mbs" 
 					  default-domain="tests.MBeanExpoerterParser"
-					  object-name-static-properties="appProperties"/>
+					  object-name-static-properties="appProperties"
+					  naming-strategy="keyNamer"/>
 					  
 	<util:properties id="appProperties">
 		<prop key="foo">foo</prop>
 		<prop key="bar">bar</prop>
 	</util:properties>
+
+	<bean id="keyNamer" class="org.springframework.jmx.export.naming.KeyNamingStrategy" />
 
 </beans>

@@ -204,6 +204,18 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="naming-strategy" use="optional">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jmx.export.naming.ObjectNamingStrategy" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								An ObjectNamingStrategy to generate the MBean ObjectName.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

@@ -18,6 +18,7 @@ package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
@@ -57,6 +58,7 @@ public class MBeanExporterParserTests {
 		assertTrue(properties.containsKey("foo"));
 		assertTrue(properties.containsKey("bar"));
 		assertEquals(server, exporter.getServer());
+		assertSame(context.getBean("keyNamer"), TestUtils.getPropertyValue(exporter, "namingStrategy"));
 		exporter.destroy();
 	}
 

@@ -167,7 +167,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final MetadataMBeanInfoAssembler assembler = new MetadataMBeanInfoAssembler(attributeSource);
 
-	private final MetadataNamingStrategy namingStrategy = new MetadataNamingStrategy(attributeSource);
+	private final MetadataNamingStrategy defaultNamingStrategy = new MetadataNamingStrategy(attributeSource);
 
 	private String[] componentNamePatterns = { "*" };
 
@@ -183,7 +183,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
 		setAutodetect(false);
-		setNamingStrategy(namingStrategy);
+		setNamingStrategy(defaultNamingStrategy);
 		setAssembler(assembler);
 	}
 
@@ -210,7 +210,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 */
 	public void setDefaultDomain(String domain) {
 		this.domain = domain;
-		this.namingStrategy.setDefaultDomain(domain);
+		this.defaultNamingStrategy.setDefaultDomain(domain);
 	}
 
 	public void setComponentNamePatterns(String[] componentNamePatterns) {

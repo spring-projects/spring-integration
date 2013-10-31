@@ -366,6 +366,35 @@
 					</tbody>
 				</tgroup>
 			</table>
+
+			<para>
+				Custom elements can be appended to the object name by providing a reference to a
+				<classname>Properties</classname> object in the <code>object-name-static-properties</code> attribute.
+			</para>
+			<para>
+				Also, since Spring Integration 3.0, you can use a custom <classname>ObjectNamingStrategy</classname>
+				using the <code>naming-strategy</code> attribute. This permits greater control over the naming of the
+				MBeans. For example, some users have expressed a desire for all Integration MBeans to be grouped under
+				an 'Integration' type. A simple custom naming strategy implementation might be:
+			</para>
+<programlisting language="java"><![CDATA[public class Namer implements ObjectNamingStrategy {
+
+	private final ObjectNamingStrategy realNamer = new KeyNamingStrategy();
+	@Override
+	public ObjectName getObjectName(Object managedBean, String beanKey) throws MalformedObjectNameException {
+		String actualBeanKey = beanKey.replace("type=", "type=Integration,componentType=");
+		return realNamer.getObjectName(managedBean, actualBeanKey);
+	}
+
+}]]></programlisting>
+			<para>
+				The <code>beanKey</code> argument contains a String containing the standard object name (including any
+				additional static properties).
+				This example simply moves the standard 'type' part to 'componentType' and sets the 'type' to 'Integration',
+				enabling the ability to query all Integration MBeans in one query:
+				<code>"my.domain:type=Integration,*</code>. This also groups the beans under one tree entry under the
+				domain in tools like VisualVM.
+			</para>
 		</section>
 
 		<section id="jmx-channel-features">
