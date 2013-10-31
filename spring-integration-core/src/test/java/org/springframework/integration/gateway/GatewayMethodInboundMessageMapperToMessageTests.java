@@ -34,6 +34,7 @@ import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -78,7 +79,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertEquals("bar", message.getHeaders().get("foo"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageMappingException.class)
 	public void toMessageWithPayloadAndRequiredHeaderButNullValue() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeader", String.class, String.class);
@@ -134,7 +135,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertEquals("test", message.getPayload());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageMappingException.class)
 	public void toMessageWithPayloadAndHeadersMapWithNonStringKey() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
@@ -166,7 +167,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertEquals("bar", message.getHeaders().get("foo"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageMappingException.class)
 	public void toMessageWithMessageParameterAndRequiredHeaderButNullValue() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndHeader", Message.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
@@ -197,7 +198,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		assertNull(message.getHeaders().get("foo"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageMappingException.class)
 	public void noArgs() throws Exception {
 		Method method = TestService.class.getMethod("noArgs", new Class<?>[] {});
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
@@ -205,7 +206,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		mapper.toMessage(new Object[] {});
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageMappingException.class)
 	public void onlyHeaders() throws Exception {
 		Method method = TestService.class.getMethod("onlyHeaders", String.class, String.class);
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);

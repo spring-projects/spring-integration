@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2013 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
 
 /**
  * Base {@link MessageProcessor} for scripting implementations to extend.
- * 
+ *
  * @author Mark Fisher
  * @author Stefan Reuter
  * @since 2.0
@@ -36,9 +36,9 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 
 	private final ScriptVariableGenerator scriptVariableGenerator;
 
-	private volatile ClassLoader beanClassLoader;
+	protected volatile ClassLoader beanClassLoader;
 
-	private volatile BeanFactory beanFactory;
+	protected volatile BeanFactory beanFactory;
 
 	protected AbstractScriptExecutingMessageProcessor() {
 		this.scriptVariableGenerator = new DefaultScriptVariableGenerator();
@@ -48,7 +48,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 		Assert.notNull(scriptVariableGenerator, "scriptVariableGenerator must not be null");
 		this.scriptVariableGenerator = scriptVariableGenerator;
 	}
-	
+
 
 	/**
 	 * Executes the script and returns the result.
@@ -69,23 +69,15 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 		this.beanClassLoader = classLoader;
 	}
 
-	protected ClassLoader getBeanClassLoader() {
-		return this.beanClassLoader;
-	}
-
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
-	protected BeanFactory getBeanFactory() {
-		return this.beanFactory;
-	}
-
 	/**
 	 * Subclasses must implement this method to create a script source,
 	 * optionally using the message to locate or create the script.
-	 * 
+	 *
 	 * @param message the message being processed
 	 * @return a ScriptSource to use to create a script
 	 */

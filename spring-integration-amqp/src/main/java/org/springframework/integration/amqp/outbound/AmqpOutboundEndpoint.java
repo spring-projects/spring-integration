@@ -82,8 +82,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	private volatile MessageChannel returnChannel;
 
 	@Override
-	protected void onInit() {
-		super.onInit();
+	protected void doInit() {
 		Assert.state(exchangeNameExpression == null || exchangeName == null,
 				"Either an exchangeName or an exchangeNameExpression can be provided, but not both");
 		Assert.state(this.confirmCorrelationExpression == null || !this.expectReply,
@@ -116,7 +115,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		}
 		if (this.returnChannel != null) {
 			Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for publisher returns");
-			(		(RabbitTemplate) this.amqpTemplate).setReturnCallback(this);
+			((RabbitTemplate) this.amqpTemplate).setReturnCallback(this);
 		}
 	}
 
@@ -289,7 +288,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 
 	public void returnedMessage(org.springframework.amqp.core.Message message, int replyCode, String replyText,
 			String exchange, String routingKey) {
-		// safe to cast; we asserted we have a RabbitTemplate in onInit()
+		// safe to cast; we asserted we have a RabbitTemplate in doInit()
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		Object returnedObject = converter.fromMessage(message);
 		MessageBuilder<?> builder = (returnedObject instanceof Message)

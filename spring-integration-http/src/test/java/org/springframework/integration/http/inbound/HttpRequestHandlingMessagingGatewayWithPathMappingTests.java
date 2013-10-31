@@ -27,11 +27,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessagingException;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.AntPathMatcher;
@@ -45,7 +46,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Artem Bilan
  * @author Biju Kunjummen
  */
-public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
+public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends AbstractHttpInboundTests {
 
 	private static ExpressionParser PARSER = new SpelExpressionParser();
 

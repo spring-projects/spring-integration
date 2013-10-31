@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.jmx;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -23,13 +23,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -70,7 +72,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 	private EventDrivenConsumer processorTestService;
 
 	@Autowired
-	private TestMessageProcessor testMessageProcessor;
+	private MessageProcessor<?> testMessageProcessor;
 
 	@Test
 	public void testGateway() {
@@ -90,7 +92,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("TEST", reply.getPayload());
 		assertEquals("replyingHandlerTestInputChannel,replyingHandlerTestService", reply.getHeaders().get("history").toString());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName()); // close to the metal
+		assertEquals("doDispatch", st[15].getMethodName()); // close to the metal
 	}
 
 	@Test
@@ -103,7 +105,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("optimizedRefReplyingHandlerTestInputChannel,optimizedRefReplyingHandlerTestService",
 				reply.getHeaders().get("history").toString());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName());
+		assertEquals("doDispatch", st[15].getMethodName());
 	}
 
 	@Test
@@ -115,7 +117,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("TEST", reply.getPayload());
 		assertEquals("replyingHandlerWithStandardMethodTestInputChannel,replyingHandlerWithStandardMethodTestService", reply.getHeaders().get("history").toString());
 		StackTraceElement[] st = (StackTraceElement[]) reply.getHeaders().get("callStack");
-		assertEquals("doDispatch", st[3].getMethodName()); // close to the metal
+		assertEquals("doDispatch", st[15].getMethodName()); // close to the metal
 	}
 
 	@Test
@@ -138,7 +140,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 //	INT-2399
 	@Test
 	public void testMessageProcessor() {
-		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.processor");
+		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.h.advised.targetSource.target.processor");
 		assertSame(testMessageProcessor, processor);
 
 		QueueChannel replyChannel = new QueueChannel();
@@ -149,9 +151,14 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("processorTestInputChannel,processorTestService", reply.getHeaders().get("history").toString());
 	}
 
+	private interface Foo {
+
+		public String foo(String in);
+
+	}
 
 	@SuppressWarnings("unused")
-	private static class TestReplyingMessageHandler extends AbstractReplyProducingMessageHandler {
+	private static class TestReplyingMessageHandler extends AbstractReplyProducingMessageHandler implements Foo {
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
@@ -174,15 +181,15 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		public void handleMessage(Message<?> requestMessage) {
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
-			assertEquals("doDispatch", st[4].getMethodName());
+			assertEquals("doDispatch", st[28].getMethodName());
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static class TestMessageProcessor implements MessageProcessor<String> {
 
 		private String prefix;
 
-		@SuppressWarnings("unused")
 		public void setPrefix(String prefix) {
 			this.prefix = prefix;
 		}

@@ -54,5 +54,44 @@
 
 	<int:logging-channel-adapter id="loggit" log-full-message="true" level="ERROR"/>
 
+	<task:executor id="threadPoolTaskExecutor" pool-size="100"/>
+
+	<bean id="messageStore" class="org.springframework.integration.jdbc.store.JdbcChannelMessageStore">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="region" value="CONCURRENT_POLL"/>
+		<property name="channelMessageStoreQueryProvider" ref="queryProvider"/>
+	</bean>
+
+	<int:channel id="first">
+		<int:queue message-store="messageStore"/>
+	</int:channel>
+
+	<int:channel id="second">
+		<int:queue message-store="messageStore"/>
+	</int:channel>
+
+	<int:bridge input-channel="first" output-channel="second">
+		<int:poller fixed-rate="200" task-executor="threadPoolTaskExecutor" max-messages-per-poll="3">
+			<int:transactional transaction-manager="transactionManager"/>
+		</int:poller>
+	</int:bridge>
+
+	<bean id="successfulLatch" class="java.util.concurrent.CountDownLatch">
+		<constructor-arg value="10"/>
+	</bean>
+
+	<int:outbound-channel-adapter channel="second" expression="@successfulLatch.countDown()">
+		<int:poller fixed-delay="1000">
+			<int:transactional transaction-manager="transactionManager"/>
+		</int:poller>
+	</int:outbound-channel-adapter>
+
+	<bean id="errorAtomicInteger" class="java.util.concurrent.atomic.AtomicInteger"/>
+
+	<int:service-activator input-channel="errorChannel" output-channel="nullChannel"
+						   expression="@errorAtomicInteger.incrementAndGet()">
+		<int:poller fixed-delay="1000"/>
+	</int:service-activator>
+
 </beans>
 

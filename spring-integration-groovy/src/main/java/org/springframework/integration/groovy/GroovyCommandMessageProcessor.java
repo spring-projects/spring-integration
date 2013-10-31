@@ -13,9 +13,6 @@
 
 package org.springframework.integration.groovy;
 
-import groovy.lang.Binding;
-import groovy.lang.GString;
-
 import java.util.Map;
 
 import org.springframework.messaging.Message;
@@ -28,6 +25,9 @@ import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import groovy.lang.Binding;
+import groovy.lang.GString;
 
 /**
  * @author Dave Syer
@@ -109,11 +109,11 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 			customizerDecorator.setVariables(variables);
 		}
 		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), customizerDecorator);
-		if (getBeanClassLoader() != null) {
-			factory.setBeanClassLoader(getBeanClassLoader());
+		if (this.beanClassLoader != null) {
+			factory.setBeanClassLoader(this.beanClassLoader);
 		}
-		if (getBeanFactory() != null) {
-			factory.setBeanFactory(getBeanFactory());
+		if (this.beanFactory != null) {
+			factory.setBeanFactory(this.beanFactory);
 		}
 		Object result = factory.getScriptedObject(scriptSource, null);
 		return (result instanceof GString) ? result.toString() : result;

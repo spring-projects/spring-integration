@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,34 @@ package org.springframework.integration.groovy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.core.io.AbstractResource;
 import org.springframework.messaging.Message;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scripting.RefreshableResourceScriptSource;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.Repeat;
+
+import groovy.lang.Script;
 
 /**
  * @author Mark Fisher
@@ -176,6 +185,43 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		assertEquals("payload is 'hello'", result.toString());
 	}
 
+	@Test
+	public void testInt3166GroovyScriptExecutingMessageProcessorPerformance() throws Exception {
+		final Message<?> message = new GenericMessage<Object>("test");
+
+		final AtomicInteger var1 = new AtomicInteger();
+		final AtomicInteger var2 = new AtomicInteger();
+
+		String script =
+				"var1.incrementAndGet(); Thread.sleep(100); var2.set(Math.max(var1.get(), var2.get())); var1.decrementAndGet()";
+
+		ScriptSource scriptSource = new StaticScriptSource(script, Script.class.getName());
+		final MessageProcessor<Object> processor =
+				new GroovyScriptExecutingMessageProcessor(scriptSource, new ScriptVariableGenerator() {
+					@Override
+					public Map<String, Object> generateScriptVariables(Message<?> message) {
+						Map<String, Object> variables = new HashMap<String, Object>(2);
+						variables.put("var1", var1);
+						variables.put("var2", var2);
+						return variables;
+					}
+				});
+
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+		for (int i = 0; i < 10; i++) {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					processor.processMessage(message);
+				}
+			});
+		}
+		executor.shutdown();
+		assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+
+		assertTrue(var2.get() > 1);
+
+	}
 
 	private static class TestResource extends AbstractResource {
 

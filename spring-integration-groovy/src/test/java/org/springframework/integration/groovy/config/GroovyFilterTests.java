@@ -97,6 +97,7 @@ public class GroovyFilterTests {
 		assertTrue(this.groovyFilterMessageHandler instanceof MessageFilter);
 		MessageSelector selector = TestUtils.getPropertyValue(this.groovyFilterMessageHandler, "selector",
 				MethodInvokingSelector.class);
+		@SuppressWarnings("rawtypes")
 		MessageProcessor messageProcessor = TestUtils.getPropertyValue(selector, "messageProcessor", MessageProcessor.class);
 		//before it was MethodInvokingMessageProcessor
 		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);

@@ -78,7 +78,7 @@ public class RemoteFileOutboundGatewayTests {
 				(sessionFactory, "get", "payload");
 		gw.setFilter(new TestPatternFilter(""));
 		try {
-			gw.onInit();
+			gw.afterPropertiesSet();
 			fail("Exception expected");
 		}
 		catch (IllegalArgumentException e) {
@@ -93,7 +93,7 @@ public class RemoteFileOutboundGatewayTests {
 				(sessionFactory, "rm", "payload");
 		gw.setFilter(new TestPatternFilter(""));
 		try {
-			gw.onInit();
+			gw.afterPropertiesSet();
 			fail("Exception expected");
 		}
 		catch (IllegalArgumentException e) {

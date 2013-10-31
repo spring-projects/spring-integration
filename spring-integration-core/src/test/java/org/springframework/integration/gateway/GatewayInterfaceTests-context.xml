@@ -20,4 +20,10 @@
 	<int:channel id="requestChannelBar"/>
 	<int:channel id="requestChannelBaz"/>
 
+	<int:gateway id="customMappedGateway"
+			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests.Baz"
+			default-request-channel="requestChannelBaz" mapper="mapper"/>
+
+	<bean id="mapper" class="org.springframework.integration.gateway.GatewayInterfaceTests$BazMapper"/>
+
 </beans>

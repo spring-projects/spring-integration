@@ -163,6 +163,10 @@
 						It is now possible to set common headers across all gateway methods, and more options
 						are provided for adding, to the message, information about which method was invoked.
 					</listitem>
+					<listitem>
+						It is now possible to entirely customize the way that gateway method calls are mapped
+						to messages.
+					</listitem>
 				</itemizedlist>
 			</para>
 			<para>
@@ -243,6 +247,10 @@
 				For users that wish the behavior of the <classname>AcceptOnceFileListFilter</classname>
 				to be maintained across JVM executions, a custom filter that retains state, perhaps on
 				the file system, can now be configured.
+			</para>
+			<para>
+				Inbound Channel Adapters now support the <code>preserve-timestamp</code> attribute, which
+				sets the local file modified timestamp to the timestamp from the server (default false).
 			</para>
 			<para>
 				For more information, see
@@ -329,11 +337,19 @@
 						<interfacename>HttpMessageConverter</interfacename>s after the custom message converters.
 					</listitem>
 					<listitem>
-						<emphasis role="bold">'If-(Un)Modified-Since' HTTP headers</emphasis> - previously,
+						<emphasis role="bold">'If-(Un)Modified-Since' HTTP Headers</emphasis> - previously,
 						'If-Modified-Since' and 'If-Unmodified-Since' HTTP headers were incorrectly processed
 						within from/to HTTP headers mapping in the <classname>DefaultHttpHeaderMapper</classname>.
 						Now, in addition correcting that issue, <classname>DefaultHttpHeaderMapper</classname> provides
 						date parsing from formatted strings for any HTTP headers that accept date-time values.
+					</listitem>
+					<listitem>
+						<emphasis role="bold">Inbound Endpoint Expression Variables</emphasis> -
+						In addition to the existing <emphasis>#requestParams</emphasis> and <emphasis>#pathVariables</emphasis>,
+						the <code>&lt;http:inbound-gateway/&gt;</code> and <code>&lt;http:inbound-channel-adapter/&gt;</code>
+						now support additional useful variables: <emphasis>#matrixVariables</emphasis>, <emphasis>#requestAttributes</emphasis>,
+						<emphasis>#requestHeaders</emphasis> and <emphasis>#cookies</emphasis>. These variables are available in
+						both payload and header expressions.
 					</listitem>
 				</itemizedlist>
 			</para>

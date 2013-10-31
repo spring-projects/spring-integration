@@ -46,4 +46,9 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		return (file != null ? file.getFilename() : null);
 	}
 
+	@Override
+	protected long getModified(LsEntry file) {
+		return (long) file.getAttrs().getMTime() * 1000;
+	}
+
 }

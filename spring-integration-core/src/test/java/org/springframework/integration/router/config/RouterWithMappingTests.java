@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,17 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,10 +42,10 @@ public class RouterWithMappingTests {
 
 	@Autowired
 	private MessageChannel expressionRouter;
-	
+
 	@Autowired
-	@Qualifier("spelRouter")
-	private ConsumerEndpointFactoryBean spelRouter;
+	@Qualifier("spelRouter.handler")
+	private AbstractMappingMessageRouter spelRouterHandler;
 
 	@Autowired
 	private MessageChannel pojoRouter;
@@ -87,8 +86,7 @@ public class RouterWithMappingTests {
 		assertNull(fooChannelForExpression.receive(0));
 		assertNull(barChannelForExpression.receive(0));
 		// validate dynamics
-		AbstractMappingMessageRouter router = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(spelRouter, "handler");
-		router.setChannelMapping("baz", "fooChannelForExpression");
+		spelRouterHandler.setChannelMapping("baz", "fooChannelForExpression");
 		expressionRouter.send(message3);
 		assertNull(defaultChannelForExpression.receive(10));
 		assertNotNull(fooChannelForExpression.receive(10));

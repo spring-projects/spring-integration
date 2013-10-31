@@ -12,27 +12,32 @@
  */
 package org.springframework.integration.jdbc.store.channel;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import javax.sql.DataSource;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Assert;
+import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Assert;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -62,7 +67,18 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 	protected TestService testService;
 
 	@Autowired
+	@Qualifier("store")
 	protected JdbcChannelMessageStore jdbcChannelMessageStore;
+
+	@Autowired
+	private MessageChannel first;
+
+	@Autowired
+	private CountDownLatch successfulLatch;
+
+	@Autowired
+	private AtomicInteger errorAtomicInteger;
+
 
 	public void test() throws InterruptedException {
 
@@ -141,7 +157,9 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 								return true;
 							}
 						});
-						if (!result) return false;
+						if (!result) {
+							return false;
+						}
 					}
 
 					return true;
@@ -155,6 +173,16 @@ abstract class AbstractTxTimeoutMessageStoreTests {
 
 		executorService.shutdown();
 		assertTrue(executorService.awaitTermination(5, TimeUnit.SECONDS));
+	}
+
+	public void testInt3181ConcurrentPolling() throws InterruptedException {
+		for (int i = 0; i < 10; i++) {
+			this.first.send(new GenericMessage<Object>("test"));
+		}
+
+		assertTrue(this.successfulLatch.await(5, TimeUnit.SECONDS));
+
+		assertEquals(0, errorAtomicInteger.get());
 	}
 
 }

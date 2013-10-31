@@ -107,6 +107,7 @@ public class GroovyRouterTests {
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
 		assertTrue(this.groovyRouterMessageHandler instanceof MethodInvokingRouter);
+		@SuppressWarnings("rawtypes")
 		MessageProcessor messageProcessor = TestUtils.getPropertyValue(this.groovyRouterMessageHandler,
 				"messageProcessor", MessageProcessor.class);
 		//before it was MethodInvokingMessageProcessor

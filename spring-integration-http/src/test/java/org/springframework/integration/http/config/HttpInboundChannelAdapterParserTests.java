@@ -18,11 +18,11 @@ package org.springframework.integration.http.config;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -36,11 +36,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -48,6 +46,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
@@ -74,7 +73,7 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class HttpInboundChannelAdapterParserTests {
+public class HttpInboundChannelAdapterParserTests extends AbstractHttpInboundTests {
 
 	@Autowired
 	private PollableChannel requests;

@@ -82,10 +82,11 @@ public class GroovySplitterTests {
 
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
-	    assertTrue(this.groovySplitterMessageHandler instanceof MethodInvokingSplitter);
-	    MessageProcessor messageProcessor = TestUtils.getPropertyValue(this.groovySplitterMessageHandler,
+		assertTrue(this.groovySplitterMessageHandler instanceof MethodInvokingSplitter);
+		@SuppressWarnings("rawtypes")
+		MessageProcessor messageProcessor = TestUtils.getPropertyValue(this.groovySplitterMessageHandler,
 				"messageProcessor", MessageProcessor.class);
-	    //before it was MethodInvokingMessageProcessor
+		//before it was MethodInvokingMessageProcessor
 		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);
 	}
 

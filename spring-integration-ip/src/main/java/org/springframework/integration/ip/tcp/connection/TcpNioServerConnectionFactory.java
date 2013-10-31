@@ -168,6 +168,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				connection.setLastRead(now);
 				this.channelMap.put(channel, connection);
 				channel.register(selector, SelectionKey.OP_READ, connection);
+				connection.publishConnectionOpenEvent();
 			}
 			catch (Exception e) {
 				logger.error("Exception accepting new connection", e);

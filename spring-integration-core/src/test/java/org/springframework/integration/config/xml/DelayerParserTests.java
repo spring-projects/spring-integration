@@ -23,16 +23,20 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.expression.Expression;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -48,6 +52,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 1.0.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -100,7 +105,7 @@ public class DelayerParserTests {
 	}
 
 	@Test //INT-2649
-	public void transactionalSubElement() {
+	public void transactionalSubElement() throws Exception {
 		Object endpoint = context.getBean("delayerWithTransactional");
 		DelayHandler delayHandler = TestUtils.getPropertyValue(endpoint, "handler", DelayHandler.class);
 		List<?> adviceChain = TestUtils.getPropertyValue(delayHandler, "delayedAdviceChain", List.class);
@@ -109,7 +114,8 @@ public class DelayerParserTests {
 		assertTrue(advice instanceof TransactionInterceptor);
 		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) advice).getTransactionAttributeSource();
 		assertTrue(transactionAttributeSource instanceof MatchAlwaysTransactionAttributeSource);
-		TransactionDefinition definition = transactionAttributeSource.getTransactionAttribute(null, null);
+		Method method = MessageHandler.class.getMethod("handleMessage", Message.class);
+		TransactionDefinition definition = transactionAttributeSource.getTransactionAttribute(method, null);
 		assertEquals(TransactionDefinition.PROPAGATION_REQUIRED, definition.getPropagationBehavior());
 		assertEquals(TransactionDefinition.ISOLATION_DEFAULT, definition.getIsolationLevel());
 		assertEquals(TransactionDefinition.TIMEOUT_DEFAULT, definition.getTimeout());

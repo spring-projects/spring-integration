@@ -26,7 +26,15 @@
 					 request-channel="toLowerCaseChannel"
 					 payload-expression="#pathVariables.value">
 		<int-http:request-mapping headers="toLowerCase"/>
+
+		<int-http:header name="requestAttributes" expression="#requestAttributes"/>
+		<int-http:header name="requestParams" expression="#requestParams"/>
+		<int-http:header name="requestHeaders" expression="#requestHeaders"/>
+		<int-http:header name="matrixVariables" expression="#matrixVariables"/>
+		<int-http:header name="cookies" expression="#cookies"/>
 	</int-http:inbound-gateway>
+
+	<int:publish-subscribe-channel id="toLowerCaseChannel"/>
 
 	<int:transformer input-channel="toLowerCaseChannel" expression="payload.toLowerCase()"/>
 

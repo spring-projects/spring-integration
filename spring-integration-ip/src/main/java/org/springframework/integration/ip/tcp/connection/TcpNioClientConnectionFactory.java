@@ -18,7 +18,6 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
@@ -61,13 +60,9 @@ public class TcpNioClientConnectionFactory extends
 		super(host, port);
 	}
 
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws SocketException
-	 */
 	@Override
-	protected TcpConnectionSupport obtainConnection() throws Exception {
+	protected void checkActive() throws IOException {
+		super.checkActive();
 		int n = 0;
 		while (this.selector == null) {
 			try {
@@ -76,16 +71,13 @@ public class TcpNioClientConnectionFactory extends
 				Thread.currentThread().interrupt();
 			}
 			if (n++ > 600) {
-				throw new Exception("Factory failed to start");
+				throw new IOException("Factory failed to start");
 			}
 		}
-		TcpConnectionSupport theConnection = this.getTheConnection();
-		if (theConnection != null && theConnection.isOpen()) {
-			return theConnection;
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening new socket channel connection to " + this.getHost() + ":" + this.getPort());
-		}
+	}
+
+	@Override
+	protected TcpConnectionSupport buildNewConnection() throws Exception {
 		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.getHost(), this.getPort()));
 		setSocketAttributes(socketChannel.socket());
 		TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(

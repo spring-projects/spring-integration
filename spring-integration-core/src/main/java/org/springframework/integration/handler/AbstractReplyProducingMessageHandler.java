@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.core.MessageProducer;
@@ -114,7 +115,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 
 	@Override
-	protected void onInit() {
+	protected final void onInit() {
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(getBeanFactory());
 		}
@@ -125,6 +126,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
 		}
+		this.doInit();
+	}
+
+	protected void doInit() {
 	}
 
 	/**

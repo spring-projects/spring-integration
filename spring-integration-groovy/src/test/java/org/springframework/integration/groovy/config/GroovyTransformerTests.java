@@ -88,11 +88,12 @@ public class GroovyTransformerTests {
 
 	@Test
 	public void testInt2433VerifyRiddingOfMessageProcessorsWrapping() {
-	    assertTrue(this.groovyTransformerMessageHandler instanceof MessageTransformingHandler);
-	    Transformer transformer = TestUtils.getPropertyValue(this.groovyTransformerMessageHandler, "transformer", Transformer.class);
-	    assertTrue(transformer instanceof AbstractMessageProcessingTransformer);
-	    MessageProcessor messageProcessor = TestUtils.getPropertyValue(transformer, "messageProcessor", MessageProcessor.class);
-	    //before it was MethodInvokingMessageProcessor
+		assertTrue(this.groovyTransformerMessageHandler instanceof MessageTransformingHandler);
+		Transformer transformer = TestUtils.getPropertyValue(this.groovyTransformerMessageHandler, "transformer", Transformer.class);
+		assertTrue(transformer instanceof AbstractMessageProcessingTransformer);
+		@SuppressWarnings("rawtypes")
+		MessageProcessor messageProcessor = TestUtils.getPropertyValue(transformer, "messageProcessor", MessageProcessor.class);
+		//before it was MethodInvokingMessageProcessor
 		assertTrue(messageProcessor instanceof GroovyScriptExecutingMessageProcessor);
 	}
 }

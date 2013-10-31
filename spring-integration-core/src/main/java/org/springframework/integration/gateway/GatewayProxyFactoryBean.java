@@ -105,6 +105,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private volatile GatewayMethodMetadata globalMethodMetadata;
 
+	private volatile MethodArgsMessageMapper argsMapper;
+
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
 	 * If none is set, it will fall back to the default service interface type,
@@ -212,6 +214,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
+	}
+
+	/**
+	 * Provide a custom {@link MethodArgsMessageMapper} to map from a {@link MethodArgsHolder}
+	 * to a {@link Message}.
+	 * @param mapper the mapper.
+	 */
+	public final void setMapper(MethodArgsMessageMapper mapper) {
+		this.argsMapper = mapper;
 	}
 
 	@Override
@@ -395,7 +406,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			}
 		}
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method, headerExpressions,
-				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null);
+				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
+				this.argsMapper);
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}
