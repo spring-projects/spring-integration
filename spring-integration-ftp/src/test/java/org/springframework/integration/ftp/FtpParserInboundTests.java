@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessagingException;
+import org.springframework.messaging.MessagingException;
 
 /**
  * @author Oleg Zhurakousky

@@ -33,12 +33,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.http.AbstractHttpInboundTests;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,7 +71,7 @@ public class Int2312RequestMappingIntegrationTests extends AbstractHttpInboundTe
 	@Autowired
 	private SubscribableChannel toLowerCaseChannel;
 
-	private HandlerAdapter handlerAdapter = new HttpRequestHandlerAdapter();
+	private final HandlerAdapter handlerAdapter = new HttpRequestHandlerAdapter();
 
 	@Test
 	public void testMultiplePathsTheSameEndpoint() throws Exception {
