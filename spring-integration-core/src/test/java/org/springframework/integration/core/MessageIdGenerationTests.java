@@ -39,12 +39,12 @@ import org.springframework.util.StopWatch;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
-
 public class MessageIdGenerationTests {
 
 	@Test
-	public void testCustomIdGenerationWithParentRegistrar() throws Exception{
+	public void testCustomIdGenerationWithParentRegistrar() throws Exception {
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
 
@@ -58,7 +58,7 @@ public class MessageIdGenerationTests {
 	}
 
 	@Test
-	public void testCustomIdGenerationWithParentChileIndependentCreation() throws Exception{
+	public void testCustomIdGenerationWithParentChildIndependentCreation() throws Exception {
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		GenericXmlApplicationContext child = new GenericXmlApplicationContext();
 		child.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context.xml");
@@ -89,7 +89,7 @@ public class MessageIdGenerationTests {
 	}
 
 	@Test
-	public void testCustomIdGenerationWithChildRegistrar() throws Exception{
+	public void testCustomIdGenerationWithChildRegistrar() throws Exception {
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
@@ -98,13 +98,13 @@ public class MessageIdGenerationTests {
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
 		verify(idGenerator, atLeastOnce()).generateId();
-		parent.close();
 		child.close();
+		parent.close();
 		this.assertDestroy();
 	}
 
 	@Test
-	public void testCustomIdGenerationWithChildRegistrarClosed() throws Exception{
+	public void testCustomIdGenerationWithChildRegistrarClosed() throws Exception {
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
@@ -120,7 +120,7 @@ public class MessageIdGenerationTests {
 
 	// similar to the last test, but should not fail because child AC is closed before second child AC is started
 	@Test
-	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrarsOneAtTheTime() throws Exception{
+	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrarsOneAtTheTime() throws Exception {
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
 
 		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
@@ -142,7 +142,7 @@ public class MessageIdGenerationTests {
 
 	@Test
 	@Ignore
-	public void performanceTest(){
+	public void performanceTest() {
 		int times = 1000000;
 		StopWatch watch = new StopWatch();
 		watch.start();
