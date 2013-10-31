@@ -37,6 +37,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -68,19 +69,6 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	private volatile ObjectName objectName;
 
 	private volatile String operationName;
-
-	private static final Map<Class<?>, String> primitiveWrapperToPrimitiveTypeName = new HashMap<Class<?>, String>();
-
-	static {
-		primitiveWrapperToPrimitiveTypeName.put(Boolean.class, "boolean");
-		primitiveWrapperToPrimitiveTypeName.put(Byte.class, "byte");
-		primitiveWrapperToPrimitiveTypeName.put(Character.class, "char");
-		primitiveWrapperToPrimitiveTypeName.put(Double.class, "double");
-		primitiveWrapperToPrimitiveTypeName.put(Float.class, "float");
-		primitiveWrapperToPrimitiveTypeName.put(Integer.class, "int");
-		primitiveWrapperToPrimitiveTypeName.put(Long.class, "long");
-		primitiveWrapperToPrimitiveTypeName.put(Short.class, "short");
-	}
 
 	/**
 	 * Provide a reference to the MBeanServer within which the MBean
@@ -182,8 +170,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 			return true;
 		}
 		else {
-			String primitiveTypeName = primitiveWrapperToPrimitiveTypeName.get(valueClass);
-			return primitiveTypeName != null && primitiveTypeName.equals(paramInfo.getType());
+			Class<?> primitiveType = ClassUtils.resolvePrimitiveType(valueClass);
+			return primitiveType != null && primitiveType.getName().equals(paramInfo.getType());
 		}
 	}
 
