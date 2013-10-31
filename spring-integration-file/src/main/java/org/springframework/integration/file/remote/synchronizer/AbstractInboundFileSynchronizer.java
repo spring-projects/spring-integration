@@ -16,9 +16,11 @@
 
 package org.springframework.integration.file.remote.synchronizer;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -202,9 +204,9 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
-			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
+			OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
 			try {
-				session.read(remoteFilePath, fileOutputStream);
+				session.read(remoteFilePath, outputStream);
 			}
 			catch (Exception e) {
 				if (e instanceof RuntimeException){
@@ -216,7 +218,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			}
 			finally {
 				try {
-					fileOutputStream.close();
+					outputStream.close();
 				}
 				catch (Exception ignored2) {
 				}

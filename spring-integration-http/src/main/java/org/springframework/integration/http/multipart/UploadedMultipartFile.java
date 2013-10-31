@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.multipart;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,8 +30,9 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * A {@link MultipartFile} implementation that represents an uploaded File.
  * The actual file content either exists in memory (in a byte array) or in a File.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class UploadedMultipartFile implements MultipartFile {
@@ -94,7 +96,7 @@ public class UploadedMultipartFile implements MultipartFile {
 		if (this.bytes != null) {
 			return new ByteArrayInputStream(this.bytes);
 		}
-		return new FileInputStream(this.file);
+		return new BufferedInputStream(new FileInputStream(this.file));
 	}
 
 	public String getOriginalFilename() {
