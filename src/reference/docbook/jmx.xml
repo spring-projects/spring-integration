@@ -81,7 +81,7 @@
 			relatively simple. It only requires a JMX ObjectName in its
 			configuration as shown below.
 		</para>
-		<programlisting language="xml"><![CDATA[<context:mbean:export/>
+		<programlisting language="xml"><![CDATA[<context:mbean-export/>
 
 <int-jmx:notification-publishing-channel-adapter id="adapter"
     channel="channel"
@@ -106,7 +106,7 @@
 			key. On the other hand, you can rely on a fallback <emphasis>default-notification-type</emphasis>
 			attribute provided in the configuration.
 		</para>
-		<programlisting language="xml"><![CDATA[<context:mbean:export/>
+		<programlisting language="xml"><![CDATA[<context:mbean-export/>
 
 <int-jmx:notification-publishing-channel-adapter id="adapter"
     channel="channel"
@@ -242,7 +242,8 @@
 			and a domain name (if desired). The domain can be left out, in which
 			case the default domain is <emphasis>org.springframework.integration</emphasis>.
 		</para>
-		<programlisting language="xml"><![CDATA[<int-jmx:mbean-export default-domain="my.company.domain" server="mbeanServer"/>
+		<programlisting language="xml"><![CDATA[<int-jmx:mbean-export id="integrationMBeanExporter"
+            default-domain="my.company.domain" server="mbeanServer"/>
 
 <bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
     <property name="locateExistingServerIfPossible" value="true"/>
@@ -250,7 +251,7 @@
 		<para>
 			Once the exporter is defined, start up your application with:
 		</para>
-		<screen>-Dcom.sun.management.jmxremote
+		<screen>    -Dcom.sun.management.jmxremote
     -Dcom.sun.management.jmxremote.port=6969
     -Dcom.sun.management.jmxremote.ssl=false
     -Dcom.sun.management.jmxremote.authenticate=false</screen>
@@ -262,16 +263,20 @@
 			sophisticated features than JConsole.)
 		</para>
 
-		<para>
+		<important>
+		  <para>
 			The MBean exporter is orthogonal to the one provided in Spring core
 			- it registers message channels and message handlers, but not itself. You
 			can expose the exporter itself, and certain other components in Spring
 			Integration, using the standard <literal>&lt;context:mbean-export/&gt;</literal>
-			tag. The exporter has a couple of useful metrics attached to it, for
+			tag. The exporter has a some metrics attached to it, for
 			instance a count of the number of active handlers and the number of
-			queued messages (these would both be important if you wanted to
-			shutdown the context without losing any messages).
-		</para>
+			queued messages.
+		  </para>
+		  <para>
+		    It also has a useful operation, as discussed in <xref linkend="jmx-mbean-shutdown"/>.
+		  </para>
+		</important>
 
 		<section id="jmx-mbean-features">
 			<title>MBean ObjectNames</title>
