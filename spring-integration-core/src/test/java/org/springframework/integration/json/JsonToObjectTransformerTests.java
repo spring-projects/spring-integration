@@ -22,9 +22,9 @@ import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.json.JacksonJsonObjectMapper;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher

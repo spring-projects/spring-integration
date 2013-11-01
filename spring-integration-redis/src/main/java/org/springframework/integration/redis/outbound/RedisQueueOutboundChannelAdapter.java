@@ -24,9 +24,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.Message;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**

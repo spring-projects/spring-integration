@@ -33,14 +33,14 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.integration.Message;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.integration.json.ObjectToJsonTransformer;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transformer.Transformer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 import com.rabbitmq.client.Channel;
 

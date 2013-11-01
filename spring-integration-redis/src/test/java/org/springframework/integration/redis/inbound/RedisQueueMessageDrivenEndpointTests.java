@@ -29,14 +29,14 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Gunnar Hillert
@@ -135,7 +135,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertThat(((Exception) receive.getPayload()).getMessage(), Matchers.containsString("Deserialization of Message failed."));
 		assertThat(((Exception) receive.getPayload()).getCause(), Matchers.instanceOf(ClassCastException.class));
 		assertThat(((Exception) receive.getPayload()).getCause().getMessage(),
-				Matchers.containsString("java.lang.String cannot be cast to org.springframework.integration.Message"));
+				Matchers.containsString("java.lang.String cannot be cast to org.springframework.messaging.Message"));
 
 
 		endpoint.stop();
