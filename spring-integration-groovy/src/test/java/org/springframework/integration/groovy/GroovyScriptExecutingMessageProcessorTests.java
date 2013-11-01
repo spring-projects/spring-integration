@@ -19,6 +19,7 @@ package org.springframework.integration.groovy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import groovy.lang.Script;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,18 +35,16 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.core.io.AbstractResource;
-import org.springframework.messaging.Message;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scripting.RefreshableResourceScriptSource;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.test.annotation.Repeat;
-
-import groovy.lang.Script;
 
 /**
  * @author Mark Fisher
@@ -59,7 +58,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 	@Rule
 	public RepeatProcessor repeater = new RepeatProcessor(4);
 
-	private AtomicInteger countHolder = new AtomicInteger();
+	private final AtomicInteger countHolder = new AtomicInteger();
 
 	@Test
 	@Repeat(20)
@@ -236,6 +235,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			this.filename = filename;
 		}
 
+		@Override
 		public long lastModified() throws IOException {
 			return lastModified;
 		}
