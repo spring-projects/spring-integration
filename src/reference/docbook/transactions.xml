@@ -205,7 +205,7 @@ public interface TransactionSynchronizationProcessor {
 }]]></programlisting>
 
         The factory is responsible for creating a
-        <ulink url="http://static.springsource.org/spring-framework/docs/3.1.2.RELEASE/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html">TransactionSynchronization</ulink>
+        <ulink url="http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html">TransactionSynchronization</ulink>
         object. You can implement your own, or use the one provided by the framework:
         <classname>DefaultTransactionSynchronizationFactory</classname>. This implementation returns a
         <classname>TransactionSynchronization</classname> that delegates to a default implementation of
