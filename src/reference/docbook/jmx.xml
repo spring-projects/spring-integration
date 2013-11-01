@@ -366,6 +366,46 @@
 					</tbody>
 				</tgroup>
 			</table>
+
+			<para>
+				Custom elements can be appended to the object name by providing a reference to a
+				<classname>Properties</classname> object in the <code>object-name-static-properties</code> attribute.
+			</para>
+			<para>
+				Also, since <emphasis>Spring Integration 3.0</emphasis>, you can use a custom
+				<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html"
+				>ObjectNamingStrategy</ulink>
+				using the <code>object-naming-strategy</code> attribute. This permits greater control over the naming of the
+				MBeans. For example, to group all Integration MBeans under
+				an 'Integration' type. A simple custom naming strategy implementation might be:
+			</para>
+<programlisting language="java"><![CDATA[public class Namer implements ObjectNamingStrategy {
+
+	private final ObjectNamingStrategy realNamer = new KeyNamingStrategy();
+	@Override
+	public ObjectName getObjectName(Object managedBean, String beanKey) throws MalformedObjectNameException {
+		String actualBeanKey = beanKey.replace("type=", "type=Integration,componentType=");
+		return realNamer.getObjectName(managedBean, actualBeanKey);
+	}
+
+}]]></programlisting>
+			<para>
+				The <code>beanKey</code> argument is a String containing the standard object name beginning with
+				the <code>default-domain</code> and including any additional static properties.
+				This example simply moves the standard <code>type</code> part to <code>componentType</code> and
+				sets the <code>type</code> to 'Integration',
+				enabling selection of all Integration MBeans in one query:
+				<code>"my.domain:type=Integration,*</code>. This also groups the beans under one tree entry under the
+				domain in tools like VisualVM.
+			</para>
+			<note>
+				The default naming strategy is a
+				<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html"
+				>MetadataNamingStrategy</ulink>. The exporter propagates the <code>default-domain</code> to that object to allow it
+				to generate a fallback object name if parsing of the bean key fails. If your custom naming strategy is a
+				<classname>MetadataNamingStrategy</classname> (or subclass), the exporter will <emphasis role="bold">not</emphasis>
+				propagate the <code>default-domain</code>; you will need to configure it on your strategy bean.
+			</note>
 		</section>
 
 		<section id="jmx-channel-features">
