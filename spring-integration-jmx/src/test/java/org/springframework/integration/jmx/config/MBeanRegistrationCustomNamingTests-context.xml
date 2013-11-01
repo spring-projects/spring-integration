@@ -13,7 +13,7 @@
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
 	<jmx:mbean-export id="integrationMbeanExporter" server="mbs" default-domain="test.MBeanRegistration"
-		naming-strategy="namer" />
+		object-naming-strategy="namer" />
 
 	<bean id="namer" class="org.springframework.integration.jmx.config.MBeanRegistrationCustomNamingTests$Namer" />
 
@@ -22,7 +22,7 @@
 	<int:channel id="testChannel" />
 	
 	<int:service-activator id="service" input-channel="testChannel" method="get">
-		<bean class="org.springframework.integration.jmx.config.MBeanRegistrationTests$Source"/>
+		<bean class="org.springframework.integration.jmx.config.MBeanRegistrationCustomNamingTests$Source"/>
 	</int:service-activator>
 	
 	<int:logging-channel-adapter id="logger" channel="testChannel"/>

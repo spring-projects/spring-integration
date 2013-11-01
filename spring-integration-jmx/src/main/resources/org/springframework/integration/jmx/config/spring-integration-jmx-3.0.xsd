@@ -204,7 +204,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="naming-strategy" use="optional">
+					<xsd:attribute name="object-naming-strategy" use="optional">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -212,7 +212,8 @@
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
-								An ObjectNamingStrategy to generate the MBean ObjectName.
+								An ObjectNamingStrategy to generate the MBean's ObjectName. See the reference documentation
+								for details of the default ObjectName. Also see 'object-name-static-properties'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

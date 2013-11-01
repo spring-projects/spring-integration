@@ -19,7 +19,7 @@
 					  server="mbs" 
 					  default-domain="tests.MBeanExpoerterParser"
 					  object-name-static-properties="appProperties"
-					  naming-strategy="keyNamer"/>
+					  object-naming-strategy="keyNamer"/>
 					  
 	<util:properties id="appProperties">
 		<prop key="foo">foo</prop>
