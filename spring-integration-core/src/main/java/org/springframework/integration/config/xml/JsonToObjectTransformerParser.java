@@ -16,12 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.json.JsonToObjectTransformer;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -39,7 +39,9 @@ public class JsonToObjectTransformerParser extends AbstractTransformerParser {
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String type = element.getAttribute("type");
 		String objectMapper = element.getAttribute("object-mapper");
-		builder.addConstructorArgValue(type);
+		if (StringUtils.hasText(type)) {
+			builder.addConstructorArgValue(type);
+		}
 		if (StringUtils.hasText(objectMapper)) {
 			builder.addConstructorArgReference(objectMapper);
 		}

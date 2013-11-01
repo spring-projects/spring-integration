@@ -16,10 +16,13 @@
 
 package org.springframework.integration.json;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.integration.Message;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
 import org.springframework.integration.support.json.JsonObjectMapper;
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
+import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -36,13 +39,17 @@ import org.springframework.util.ClassUtils;
  * @see JacksonJsonObjectMapperProvider
  * @since 2.0
  */
-public class JsonToObjectTransformer<T> extends AbstractPayloadTransformer<String, T> {
+public class JsonToObjectTransformer extends AbstractTransformer implements BeanClassLoaderAware {
 
-	private final Class<T> targetClass;
+	private final Class<?> targetClass;
 
 	private final JsonObjectMapper<?> jsonObjectMapper;
 
-	public JsonToObjectTransformer(Class<T> targetClass) {
+	public JsonToObjectTransformer() {
+		this((Class<?>) null);
+	}
+
+	public JsonToObjectTransformer(Class<?> targetClass) {
 		this(targetClass, null);
 	}
 
@@ -52,8 +59,7 @@ public class JsonToObjectTransformer<T> extends AbstractPayloadTransformer<Strin
 	 * @deprecated in favor of {@link #JsonToObjectTransformer(Class, JsonObjectMapper)}
 	 */
 	@Deprecated
-	public JsonToObjectTransformer(Class<T> targetClass, Object objectMapper) throws ClassNotFoundException {
-		Assert.notNull(targetClass, "targetClass must not be null");
+	public JsonToObjectTransformer(Class<?> targetClass, Object objectMapper) throws ClassNotFoundException {
 		this.targetClass = targetClass;
 		if (objectMapper != null) {
 			try {
@@ -70,15 +76,34 @@ public class JsonToObjectTransformer<T> extends AbstractPayloadTransformer<Strin
 		}
 	}
 
-	public JsonToObjectTransformer(Class<T> targetClass, JsonObjectMapper<?> jsonObjectMapper) {
-		Assert.notNull(targetClass, "targetClass must not be null");
+	public JsonToObjectTransformer(JsonObjectMapper<?> jsonObjectMapper) {
+		this(null, jsonObjectMapper);
+	}
+
+	public JsonToObjectTransformer(Class<?> targetClass, JsonObjectMapper<?> jsonObjectMapper) {
 		this.targetClass = targetClass;
 		this.jsonObjectMapper = (jsonObjectMapper != null) ? jsonObjectMapper : JacksonJsonObjectMapperProvider.newInstance();
 	}
 
 	@Override
-	protected T transformPayload(String payload) throws Exception {
-		return this.jsonObjectMapper.fromJson(payload, this.targetClass);
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		if (this.jsonObjectMapper instanceof BeanClassLoaderAware) {
+			((BeanClassLoaderAware) this.jsonObjectMapper).setBeanClassLoader(classLoader);
+		}
+	}
+
+	@Override
+	protected Object doTransform(Message<?> message) throws Exception {
+		if (this.targetClass != null) {
+			return this.jsonObjectMapper.fromJson(message.getPayload(), this.targetClass);
+		}
+		else {
+			Object result = this.jsonObjectMapper.fromJson(message.getPayload(), message.getHeaders());
+			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(result)
+					.copyHeaders(message.getHeaders())
+					.removeHeaders(JsonHeaders.HEADERS.toArray(new String[3]));
+			return messageBuilder.build();
+		}
 	}
 
 }
