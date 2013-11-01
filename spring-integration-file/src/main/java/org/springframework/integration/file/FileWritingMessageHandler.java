@@ -16,11 +16,15 @@
 
 package org.springframework.integration.file;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 
 import org.apache.commons.logging.Log;
@@ -329,12 +333,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
 		if (FileExistsMode.APPEND.equals(this.fileExistsMode)){
 			File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
-			final FileOutputStream fos = new FileOutputStream(fileToWriteTo, true);
-			final FileInputStream fis = new FileInputStream(sourceFile);
+			final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, true));
+			final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
 			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 				@Override
 				protected void whileLocked() throws IOException {
-					FileCopyUtils.copy(fis, fos);
+					FileCopyUtils.copy(bis, bos);
 				}
 			};
 			whileLockedProcessor.doWhileLocked();
@@ -362,11 +366,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final FileOutputStream fos = new FileOutputStream(fileToWriteTo, append);
+		final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append));
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 			@Override
 			protected void whileLocked() throws IOException {
-				FileCopyUtils.copy(bytes, fos);
+				FileCopyUtils.copy(bytes, bos);
 			}
 
 		};
@@ -380,7 +384,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
-		final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset);
+		final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset));
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry, fileToWriteTo.getAbsolutePath()){
 			@Override
 			protected void whileLocked() throws IOException {

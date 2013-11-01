@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package org.springframework.integration.file.transformer;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 
 import org.springframework.util.Assert;
@@ -26,8 +28,9 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * A payload transformer that copies a File's contents to a String.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class FileToStringTransformer extends AbstractFilePayloadTransformer<String> {
 
@@ -45,7 +48,7 @@ public class FileToStringTransformer extends AbstractFilePayloadTransformer<Stri
 
 	@Override
 	protected final String transformFile(File file) throws Exception {
-		InputStreamReader reader = new InputStreamReader(new FileInputStream(file), this.charset);
+		Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), this.charset));
 		return FileCopyUtils.copyToString(reader);
 	}
 

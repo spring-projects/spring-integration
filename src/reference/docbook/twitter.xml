@@ -124,7 +124,7 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
   	<link linkend="http://support.twitter.com/groups/31-twitter-basics/topics/109-tweets-messages/articles/119138-types-of-tweets-and-where-they-appear">twitter messages, or tweets</link>
   	</para>
   	<para>
-  	The current release of Spring Integration provides support for receiving tweets as <emphasis>Timeline Updates</emphasis>,
+    <emphasis>Spring Integration version 2.0 and above</emphasis> provides support for receiving tweets as <emphasis>Timeline Updates</emphasis>,
   	<emphasis>Direct Messages</emphasis>, <emphasis>Mention Messages</emphasis> as well as Search Results.
   	</para>
   	<para>
@@ -241,7 +241,7 @@ received.
   	Twitter outbound channel adapters allow you to send Twitter Messages, or tweets.
   	</para>
   	<para>
-  	The current release of Spring Integration supports sending <emphasis>Status Update Messages</emphasis> and <emphasis>Direct Messages</emphasis>.
+    <emphasis>Spring Integration version 2.0 and above</emphasis> supports sending <emphasis>Status Update Messages</emphasis> and <emphasis>Direct Messages</emphasis>.
     Twitter outbound channel adapters will take the Message payload and send it as a Twitter message. Currently the only supported payload type is
     <classname>String</classname>, so consider adding a <emphasis>transformer</emphasis> if the payload of the incoming message is not a String.
   	</para>

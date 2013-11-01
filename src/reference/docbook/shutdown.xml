@@ -58,4 +58,22 @@
 		If no time is left when we get to step 6, it probably means some thread is hung; in which case, the
 		operation attempts a forced shutdown on all schedulers and executors before exiting.
 	</note>
+	<para>
+		As discussed in <xref linkend="jmx-mbean-shutdown"/> this operation can be invoked using JMX. If you
+		wish to programmatically invoke the method, you will need to inject, or otherwise get a reference to,
+		the <classname>IntegrationMBeanExporter</classname>. If no <code>id</code> attribute is provided on
+		the <code>&lt;int-jmx:mbean-export/></code> definition, the bean will have a generated name. This
+		name contains a random component to avoid <classname>ObjectName</classname> collisions if multiple
+		Spring Integration contexts exist in the same JVM (MBeanServer).
+	</para>
+	<para>
+		For this reason, if you wish to invoke the method programmatically, it is recommended that you
+		provide the exporter with an <code>id</code> attribute so it can easily be accessed in the
+		application context.
+	</para>
+	<para>
+		Finally, the operation can be invoked using the <code>&lt;control-bus&gt;</code>; see the
+		<ulink url="https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/monitoring"
+		>monitoring Spring Integration sample application</ulink> for details.
+	</para>
 </section>

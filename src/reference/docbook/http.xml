@@ -66,7 +66,7 @@
   custom <interfacename>HttpMessageConverter</interfacename> to add the default converters after the custom converters.
   By default this flag is set to false, meaning that the custom converters replace the default list.
       </para>
-      <para>Starting with this release MultiPart File support was implemented. If the request has been wrapped as a
+      <para>Starting with <emphasis>Spring Integration 2.0</emphasis>, MultiPart File support is implemented. If the request has been wrapped as a
     <emphasis>MultipartHttpServletRequest</emphasis>, when using the default converters, that request will be converted
     to a Message payload that is a MultiValueMap containing values that may be byte arrays, Strings, or instances of
     Spring's <interfacename>MultipartFile</interfacename> depending on the content type of the individual parts.
@@ -619,7 +619,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
    </para>
    <para>
        <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/HttpComponentsClientHttpRequestFactory.html">HttpComponentsClientHttpRequestFactory</ulink></classname>
-       - Uses <ulink url="http://hc.apache.org/httpcomponents-client-ga/httpclient/">Apache HttpComponents HttpClient</ulink> (Since Spring 3.1)
+       - Uses <ulink url="http://hc.apache.org/httpcomponents-client-ga/">Apache HttpComponents HttpClient</ulink> (Since Spring 3.1)
    </para>
    <para>
        <classname><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/http/client/CommonsClientHttpRequestFactory.html">ClientHttpRequestFactory</ulink></classname>
@@ -651,6 +651,13 @@ By default the HTTP request will be generated using an instance of <classname>Si
 	       instead.
        </para>
    </note>
+
+   <important>
+       When using the <emphasis>Apache HttpComponents HttpClient</emphasis> with a Pooling Connection Manager, be aware that, by
+       default, the connection manager will create no more than 2 concurrent connections per given route and no more than 20 connections
+       in total. For many real-world applications these limits may prove too constraining. Refer to the Apache documentation
+       (link above) for information about configuring this important component.
+   </important>
 
    <para>
        Here is an example of how to configure an <emphasis>HTTP Outbound Gateway</emphasis>

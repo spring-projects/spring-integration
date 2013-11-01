@@ -134,79 +134,6 @@ public class JsonToObjectTransformerParserTests {
 	}
 
 
-	static class TestPerson {
-
-		private String firstName;
-
-		private String lastName;
-
-		private int age;
-
-		private TestAddress address;
-
-
-		public String getFirstName() {
-			return this.firstName;
-		}
-
-		public void setFirstName(String firstName) {
-			this.firstName = firstName;
-		}
-
-		public void setLastName(String lastName) {
-			this.lastName = lastName;
-		}
-
-		public String getLastName() {
-			return this.lastName;
-		}
-
-		public void setAge(int age) {
-			this.age = age;
-		}
-
-		public int getAge() {
-			return this.age;
-		}
-
-		public void setAddress(TestAddress address) {
-			this.address = address;
-		}
-
-		public TestAddress getAddress() {
-			return this.address;
-		}
-
-		@Override
-		public String toString() {
-			return "name=" + this.firstName + " " + this.lastName
-					+ ", age=" + this.age + ", address=" + this.address;
-		}
-	}
-
-
-	static class TestAddress {
-
-		private int number;
-
-		private String street;
-
-
-		public void setNumber(int number) {
-			this.number = number;
-		}
-
-		public void setStreet(String street) {
-			this.street = street;
-		}
-
-		@Override
-		public String toString() {
-			return this.number + " " + this.street;
-		}
-	}
-
-
 	static class CustomObjectMapper extends ObjectMapper {
 
 		public CustomObjectMapper() {
@@ -219,8 +146,8 @@ public class JsonToObjectTransformerParserTests {
 	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter {
 
 		@Override
-		public Object fromJson(String json, Class valueType) throws Exception {
-			return new TestJsonContainer(json);
+		public Object fromJson(Object json, Class valueType) throws Exception {
+			return new TestJsonContainer((String) json);
 		}
 	}
 

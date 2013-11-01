@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.remote.gateway;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -521,9 +522,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
-			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
+			BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
 			try {
-				session.read(remoteFilePath, fileOutputStream);
+				session.read(remoteFilePath, outputStream);
 			}
 			catch (Exception e) {
 				if (e instanceof RuntimeException){
@@ -535,7 +536,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			finally {
 				try {
-					fileOutputStream.close();
+					outputStream.close();
 				}
 				catch (Exception ignored2) {
 					//Ignore it

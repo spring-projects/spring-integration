@@ -63,12 +63,23 @@
 		<section id="3.0-jmx">
 			<title>JMX Support</title>
 			<para>
-				A new <code>&lt;int-jmx:tree-polling-channel-adapter/&gt;</code> is provided; this
-				adapter queries the JMX MBean tree and sends a message with a payload that is the
-				graph of objects that matches the query. By default the MBeans are mapped to
-				primitives and simple Objects like Map, List and arrays - permitting simple
-				transformation, for example, to JSON
-				<xref linkend="jmx"/>.
+				<itemizedlist>
+					<listitem>
+						A new <code>&lt;int-jmx:tree-polling-channel-adapter/&gt;</code> is provided; this
+						adapter queries the JMX MBean tree and sends a message with a payload that is the
+						graph of objects that matches the query. By default the MBeans are mapped to
+						primitives and simple Objects like Map, List and arrays - permitting simple
+						transformation, for example, to JSON.
+					</listitem>
+					<listitem>
+						The <classname>IntegrationMBeanExporter</classname> now allows the configuration of
+						a custom <classname>ObjectNamingStrategy</classname> using the <code>naming-strategy</code>
+						attribute.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information, see <xref linkend="jmx"/>.
 			</para>
 		</section>
 		<section id="3.0-tail">
@@ -314,10 +325,20 @@
 		<section id="3.0-json-transformers">
 			<title>Jackson Support (JSON)</title>
 			<para>
-				A new abstraction for JSON conversion has been introduced. Implementations for Jackson 1.x
-				and Jackson 2 are currently provided, with the version being determined by presence on
-				the classpath. Previously, only Jackson 1.x was supported. For more information,
-				see 'JSON Transformers' in <xref linkend="transformer"/>.
+				<itemizedlist>
+					<listitem>
+						A new abstraction for JSON conversion has been introduced. Implementations for Jackson 1.x
+						and Jackson 2 are currently provided, with the version being determined by presence on
+						the classpath. Previously, only Jackson 1.x was supported.
+					</listitem>
+					<listitem>
+						The <classname>ObjectToJsonTransformer</classname> and <classname>JsonToObjectTransformer</classname>
+						now emit/consume headers containing type information.
+					</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				For more information, see 'JSON Transformers' in <xref linkend="transformer"/>.
 			</para>
 		</section>
 		<section id="3.0-http-endpointss">

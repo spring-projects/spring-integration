@@ -22,19 +22,19 @@
 	<service-activator id="replyingHandlerWithStandardMethodTestService"
 		 input-channel="replyingHandlerWithStandardMethodTestInputChannel"
 		 method="handleMessage">
-		 <beans:bean
+		 <beans:bean id="innerReplyingHandler"
 			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestReplyingMessageHandler"/>
 	</service-activator>
 
 	<service-activator id="replyingHandlerWithOtherMethodTestService"
 		 input-channel="replyingHandlerWithOtherMethodTestInputChannel"
 		 method="foo">
-		 <beans:bean
+		 <beans:bean id="innerReplyingHandlerFoo"
 			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestReplyingMessageHandler"/>
 	</service-activator>
 
 	<service-activator id="handlerTestService" input-channel="handlerTestInputChannel">
-		<beans:bean
+		<beans:bean id="innerHandler"
 			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageHandler"/>
 	</service-activator>
 

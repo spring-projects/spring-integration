@@ -81,7 +81,7 @@
 			relatively simple. It only requires a JMX ObjectName in its
 			configuration as shown below.
 		</para>
-		<programlisting language="xml"><![CDATA[<context:mbean:export/>
+		<programlisting language="xml"><![CDATA[<context:mbean-export/>
 
 <int-jmx:notification-publishing-channel-adapter id="adapter"
     channel="channel"
@@ -106,7 +106,7 @@
 			key. On the other hand, you can rely on a fallback <emphasis>default-notification-type</emphasis>
 			attribute provided in the configuration.
 		</para>
-		<programlisting language="xml"><![CDATA[<context:mbean:export/>
+		<programlisting language="xml"><![CDATA[<context:mbean-export/>
 
 <int-jmx:notification-publishing-channel-adapter id="adapter"
     channel="channel"
@@ -242,7 +242,8 @@
 			and a domain name (if desired). The domain can be left out, in which
 			case the default domain is <emphasis>org.springframework.integration</emphasis>.
 		</para>
-		<programlisting language="xml"><![CDATA[<int-jmx:mbean-export default-domain="my.company.domain" server="mbeanServer"/>
+		<programlisting language="xml"><![CDATA[<int-jmx:mbean-export id="integrationMBeanExporter"
+            default-domain="my.company.domain" server="mbeanServer"/>
 
 <bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
     <property name="locateExistingServerIfPossible" value="true"/>
@@ -250,7 +251,7 @@
 		<para>
 			Once the exporter is defined, start up your application with:
 		</para>
-		<screen>-Dcom.sun.management.jmxremote
+		<screen>    -Dcom.sun.management.jmxremote
     -Dcom.sun.management.jmxremote.port=6969
     -Dcom.sun.management.jmxremote.ssl=false
     -Dcom.sun.management.jmxremote.authenticate=false</screen>
@@ -262,16 +263,20 @@
 			sophisticated features than JConsole.)
 		</para>
 
-		<para>
+		<important>
+		  <para>
 			The MBean exporter is orthogonal to the one provided in Spring core
 			- it registers message channels and message handlers, but not itself. You
 			can expose the exporter itself, and certain other components in Spring
 			Integration, using the standard <literal>&lt;context:mbean-export/&gt;</literal>
-			tag. The exporter has a couple of useful metrics attached to it, for
+			tag. The exporter has a some metrics attached to it, for
 			instance a count of the number of active handlers and the number of
-			queued messages (these would both be important if you wanted to
-			shutdown the context without losing any messages).
-		</para>
+			queued messages.
+		  </para>
+		  <para>
+		    It also has a useful operation, as discussed in <xref linkend="jmx-mbean-shutdown"/>.
+		  </para>
+		</important>
 
 		<section id="jmx-mbean-features">
 			<title>MBean ObjectNames</title>
@@ -361,6 +366,46 @@
 					</tbody>
 				</tgroup>
 			</table>
+
+			<para>
+				Custom elements can be appended to the object name by providing a reference to a
+				<classname>Properties</classname> object in the <code>object-name-static-properties</code> attribute.
+			</para>
+			<para>
+				Also, since <emphasis>Spring Integration 3.0</emphasis>, you can use a custom
+				<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/ObjectNamingStrategy.html"
+				>ObjectNamingStrategy</ulink>
+				using the <code>object-naming-strategy</code> attribute. This permits greater control over the naming of the
+				MBeans. For example, to group all Integration MBeans under
+				an 'Integration' type. A simple custom naming strategy implementation might be:
+			</para>
+<programlisting language="java"><![CDATA[public class Namer implements ObjectNamingStrategy {
+
+	private final ObjectNamingStrategy realNamer = new KeyNamingStrategy();
+	@Override
+	public ObjectName getObjectName(Object managedBean, String beanKey) throws MalformedObjectNameException {
+		String actualBeanKey = beanKey.replace("type=", "type=Integration,componentType=");
+		return realNamer.getObjectName(managedBean, actualBeanKey);
+	}
+
+}]]></programlisting>
+			<para>
+				The <code>beanKey</code> argument is a String containing the standard object name beginning with
+				the <code>default-domain</code> and including any additional static properties.
+				This example simply moves the standard <code>type</code> part to <code>componentType</code> and
+				sets the <code>type</code> to 'Integration',
+				enabling selection of all Integration MBeans in one query:
+				<code>"my.domain:type=Integration,*</code>. This also groups the beans under one tree entry under the
+				domain in tools like VisualVM.
+			</para>
+			<note>
+				The default naming strategy is a
+				<ulink url="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jmx/export/naming/MetadataNamingStrategy.html"
+				>MetadataNamingStrategy</ulink>. The exporter propagates the <code>default-domain</code> to that object to allow it
+				to generate a fallback object name if parsing of the bean key fails. If your custom naming strategy is a
+				<classname>MetadataNamingStrategy</classname> (or subclass), the exporter will <emphasis role="bold">not</emphasis>
+				propagate the <code>default-domain</code>; you will need to configure it on your strategy bean.
+			</note>
 		</section>
 
 		<section id="jmx-channel-features">

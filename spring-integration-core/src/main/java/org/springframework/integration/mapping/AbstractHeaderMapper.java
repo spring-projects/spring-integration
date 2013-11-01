@@ -26,6 +26,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.integration.json.JsonHeaders;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -248,7 +250,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		if (!type.isAssignableFrom(value.getClass())) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("skipping header '" + name + "' since it is not of expected type [" + type + "], it is [" +
-                        value.getClass() + "]");
+						value.getClass() + "]");
 			}
 			return null;
 		}
@@ -271,8 +273,13 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 */
 	private String addPrefixIfNecessary(String prefix, String propertyName) {
 		String headerName = propertyName;
-		if (StringUtils.hasText(prefix) && !headerName.startsWith(prefix) && !headerName.equals(MessageHeaders.CONTENT_TYPE)) {
+		if (StringUtils.hasText(prefix) && !headerName.startsWith(prefix) &&
+				!headerName.equals(MessageHeaders.CONTENT_TYPE) &&
+				(!JsonHeaders.HEADERS.contains(headerName) || !JsonHeaders.HEADERS.contains(JsonHeaders.PREFIX + headerName))) {
 			headerName = prefix + propertyName;
+		}
+		if (JsonHeaders.HEADERS.contains(JsonHeaders.PREFIX + headerName)) {
+			headerName = JsonHeaders.PREFIX + headerName;
 		}
 		return headerName;
 	}

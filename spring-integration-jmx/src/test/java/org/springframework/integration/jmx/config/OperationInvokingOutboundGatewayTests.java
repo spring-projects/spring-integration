@@ -17,31 +17,40 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
+import org.springframework.integration.jmx.OperationInvokingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.jmx.OperationInvokingMessageHandler;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  *
  */
 @ContextConfiguration
@@ -49,15 +58,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class OperationInvokingOutboundGatewayTests {
 
 	@Autowired
-	@Qualifier("withReplyChannel")
 	private MessageChannel withReplyChannel;
 
 	@Autowired
-	@Qualifier("withReplyChannelOutput")
+	private MessageChannel primitiveChannel;
+
+	@Autowired
 	private PollableChannel withReplyChannelOutput;
 
 	@Autowired
-	@Qualifier("withNoReplyChannel")
 	private MessageChannel withNoReplyChannel;
 
 	@Autowired
@@ -91,6 +100,42 @@ public class OperationInvokingOutboundGatewayTests {
 	}
 
 	@Test
+	public void gatewayWithPrimitiveArgs() throws Exception {
+		primitiveChannel.send(new GenericMessage<Object[]>(new Object[] { true, 0L, 1 }));
+		assertEquals(1, testBean.messages.size());
+		List<Object> argList = new ArrayList<Object>();
+		argList.add(false);
+		argList.add(123L);
+		argList.add(42);
+		primitiveChannel.send(new GenericMessage<List<Object>>(argList));
+		assertEquals(2, testBean.messages.size());
+		Map<String, Object> argMap = new HashMap<String, Object>();
+		argMap.put("p1", true);
+		argMap.put("p2", 0L);
+		argMap.put("p3", 42);
+		primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
+		assertEquals(3, testBean.messages.size());
+		argMap.put("p2", true);
+		argMap.put("p1", 0L);
+		argMap.put("p3", 42);
+		try {
+			primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
+			fail("Expected Exception");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(MessagingException.class));
+			assertThat(e.getMessage(), Matchers.containsString("failed to find JMX operation"));
+		}
+		// TODO: Uncomment when Spring Framework minimum is 3.2.3
+//		argMap = new HashMap<String, Object>();
+//		argMap.put("bool", true);
+//		argMap.put("time", 0L);
+//		argMap.put("foo", 42);
+//		primitiveChannel.send(new GenericMessage<Map<String, Object>>(argMap));
+//		assertEquals(4, testBean.messages.size());
+	}
+
+	@Test
 	public void gatewayWithNoReplyChannel() throws Exception {
 		withNoReplyChannel.send(new GenericMessage<String>("1"));
 		assertEquals(1, testBean.messages.size());
@@ -102,7 +147,7 @@ public class OperationInvokingOutboundGatewayTests {
 
 	@Test //INT-1029, INT-2822
 	public void testOutboundGatewayInsideChain() throws Exception {
-		List handlers = TestUtils.getPropertyValue(this.operationInvokingWithinChain, "handlers", List.class);
+		List<?> handlers = TestUtils.getPropertyValue(this.operationInvokingWithinChain, "handlers", List.class);
 		assertEquals(1, handlers.size());
 		Object handler = handlers.get(0);
 		assertTrue(handler instanceof OperationInvokingMessageHandler);

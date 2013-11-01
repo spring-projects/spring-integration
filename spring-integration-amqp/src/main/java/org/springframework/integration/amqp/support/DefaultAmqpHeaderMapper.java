@@ -26,6 +26,7 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.integration.EiMessageHeaderAccessor;
 import org.springframework.integration.amqp.AmqpHeaders;
+import org.springframework.integration.json.JsonHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.util.StringUtils;
 
@@ -45,6 +46,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
@@ -70,6 +73,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.TIMESTAMP);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.TYPE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
+		STANDARD_HEADER_NAMES.add(JsonHeaders.TYPE_ID);
+		STANDARD_HEADER_NAMES.add(JsonHeaders.CONTENT_TYPE_ID);
+		STANDARD_HEADER_NAMES.add(JsonHeaders.KEY_TYPE_ID);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_CORRELATION);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.SPRING_REPLY_TO_STACK);
 	}
@@ -157,6 +163,14 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (StringUtils.hasText(userId)) {
 				headers.put(AmqpHeaders.USER_ID, userId);
 			}
+
+			for (String jsonHeader : JsonHeaders.HEADERS) {
+				Object value = amqpMessageProperties.getHeaders().get(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""));
+				if (value instanceof String && StringUtils.hasText((String) value)) {
+					headers.put(jsonHeader, value);
+				}
+			}
+
 			Object replyCorrelation = amqpMessageProperties.getHeaders().get(AmqpHeaders.STACKED_CORRELATION_HEADER);
 			if (replyCorrelation instanceof String) {
 				if (StringUtils.hasText((String) replyCorrelation)) {
@@ -186,6 +200,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		Map<String, Object> headers = amqpMessageProperties.getHeaders();
 		headers.remove(AmqpHeaders.STACKED_CORRELATION_HEADER);
 		headers.remove(AmqpHeaders.STACKED_REPLY_TO_HEADER);
+
 		return headers;
 	}
 
@@ -272,6 +287,18 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (StringUtils.hasText(userId)) {
 			amqpMessageProperties.setUserId(userId);
 		}
+
+		for (String jsonHeader : JsonHeaders.HEADERS) {
+			Object value = getHeaderIfAvailable(headers, jsonHeader, Object.class);
+			if (value != null) {
+				headers.remove(jsonHeader);
+				if (value instanceof Class<?>) {
+					value = ((Class<?>) value).getName();
+				}
+				amqpMessageProperties.setHeader(jsonHeader.replaceFirst(JsonHeaders.PREFIX, ""), value.toString());
+			}
+		}
+
 		String replyCorrelation = getHeaderIfAvailable(headers, AmqpHeaders.SPRING_REPLY_CORRELATION, String.class);
 		if (StringUtils.hasLength(replyCorrelation)) {
 			amqpMessageProperties.setHeader("spring_reply_correlation", replyCorrelation);
