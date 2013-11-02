@@ -28,7 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.json.JsonHeaders;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;

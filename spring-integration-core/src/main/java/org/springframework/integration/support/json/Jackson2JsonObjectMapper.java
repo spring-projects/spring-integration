@@ -25,7 +25,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.integration.json.JsonHeaders;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.core.JsonParser;

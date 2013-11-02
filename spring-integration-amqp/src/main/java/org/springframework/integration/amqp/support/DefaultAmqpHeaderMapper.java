@@ -26,8 +26,8 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
-import org.springframework.integration.json.JsonHeaders;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.StringUtils;
 
 /**
