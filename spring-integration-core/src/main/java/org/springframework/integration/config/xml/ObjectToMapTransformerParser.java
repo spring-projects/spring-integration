@@ -33,5 +33,8 @@ public class ObjectToMapTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        if (element.hasAttribute("flatten-map")) {
+            builder.addPropertyValue("shouldFlattenKeys", element.getAttribute("flatten-map"));
+        }
 	}
 }
