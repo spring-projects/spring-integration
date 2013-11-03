@@ -40,6 +40,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.util.Assert.isInstanceOf;
+
 
 /**
  * @author Oleg Zhurakousky
@@ -56,6 +58,14 @@ public class ObjectToMapTransformerParserTests {
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
+
+    @Autowired
+    @Qualifier("nestedInput")
+    private MessageChannel nestedInput;
+
+    @Autowired
+    @Qualifier("nestedOutput")
+    private PollableChannel nestedOutput;
 
 
 	@SuppressWarnings("unchecked")
@@ -89,6 +99,22 @@ public class ObjectToMapTransformerParserTests {
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
 		directInput.send(message);
 	}
+
+    @Test
+    public void testObjectToNotFlattenedMapTransformer() {
+        Employee employee = this.buildEmployee();
+
+        Message<Employee> message = MessageBuilder.withPayload(employee).build();
+        nestedInput.send(message);
+
+        Message<Map<String, Object>> outputMessage = (Message<Map<String, Object>>) nestedOutput.receive();
+        Map<String, Object> transformedMap = outputMessage.getPayload();
+        assertNotNull(outputMessage.getPayload());
+
+        assertEquals(employee.getCompanyName(), transformedMap.get("companyName"));
+        isInstanceOf(Map.class, transformedMap.get("companyAddress"));
+        isInstanceOf(List.class, transformedMap.get("departments"));
+    }
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Employee buildEmployee(){

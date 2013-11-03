@@ -15,4 +15,11 @@
 
 	<object-to-map-transformer input-channel="directInput" output-channel="output"/>
 
+    <channel id="nestedInput"/>
+
+    <channel id="nestedOutput">
+        <queue capacity="1"/>
+    </channel>
+
+    <object-to-map-transformer input-channel="nestedInput" output-channel="nestedOutput" flatten-map="false" />
 </beans:beans>

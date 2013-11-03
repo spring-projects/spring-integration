@@ -2169,6 +2169,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="specialized-transformer-type">
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+                    <xsd:attribute name="flatten-map" type="xsd:boolean" use="optional" default="true"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
