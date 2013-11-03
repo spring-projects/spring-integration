@@ -46,6 +46,7 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Mauro Franceschini
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
