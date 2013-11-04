@@ -121,10 +121,11 @@
         <para>
           When a message transitions through an application, each time it is
           mutated (e.g. by a transformer) a new message id is assigned. The message id is
-          a <code>UUID</code>. Beginning with Spring Integration 3.0, the default strategy
-          used for id generation is to use the <code>com.eaio.uuid</code> package to
-          generate Type 1 UUIDs. This is much more efficient than the previous
-          <code>java.util.UUID.randomUUID()</code> implementation.
+          a <code>UUID</code>. Beginning with <emphasis>Spring Integration 3.0</emphasis>,
+          the default strategy used for id generation is more efficient than the previous
+          <code>java.util.UUID.randomUUID()</code> implementation. It uses simple random
+          numbers based on a secure random seed, instead of creating a secure random
+          number each time.
         </para>
         <para>
           A different UUID generation strategy can be selected by declaring a bean that implements
@@ -147,11 +148,6 @@
           can be used in cases where a UUID is not really needed and a simple incrementing
           value is sufficient.
         </para>
-        <important>
-          The default strategy of creating Type 1 UUIDs may present security concerns for some users
-          because the UUID contains the MAC address of a network interface on the platform. For these
-          users, an alternate strategy should be selected.
-        </important>
     </section>
   </section>
 

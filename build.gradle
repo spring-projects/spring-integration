@@ -56,7 +56,6 @@ subprojects { subproject ->
 		junitVersion = '4.11'
 		log4jVersion = '1.2.12'
 		mockitoVersion = '1.9.5'
-		eaioUUIDVersion = '3.2'
 		ftpServerVersion = '1.0.6'
 
 
@@ -194,7 +193,6 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.retry:spring-retry:$springRetryVersion"
-		compile "com.eaio.uuid:uuid:$eaioUUIDVersion"
 		compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion", optional)
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile('com.jayway.jsonpath:json-path:0.8.1', optional)

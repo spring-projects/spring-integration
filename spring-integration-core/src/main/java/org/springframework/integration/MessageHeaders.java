@@ -20,20 +20,21 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.eaio.uuid.UUIDGen;
 
 /**
  * The headers for a {@link Message}.<br>
@@ -55,6 +56,7 @@ import com.eaio.uuid.UUIDGen;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Rossen Stoyanchev
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
 
@@ -63,6 +65,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
 	private static volatile IdGenerator idGenerator = null;
+
+	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
 
 	/**
 	 * The key for the Message ID. This is an automatically generated UUID and
@@ -100,13 +104,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
-		if (MessageHeaders.idGenerator == null) {
-			UUID uuid = new UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode());
-			this.headers.put(ID, uuid);
-		}
-		else {
-			this.headers.put(ID, MessageHeaders.idGenerator.generateId());
-		}
+		IdGenerator generatorToUse = (idGenerator != null) ? idGenerator : defaultIdGenerator;
+		this.headers.put(ID, generatorToUse.generateId());
 
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
@@ -284,6 +283,38 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		}
 
 	}
+
+    /**
+     * A variation of {@link UUID#randomUUID()} that uses {@link SecureRandom} only for
+     * the initial seed and {@link Random} thereafter, which provides better performance
+     * in exchange for less securely random id's.
+     */
+    public static class AlternativeJdkIdGenerator implements IdGenerator {
+
+            private final Random random;
+
+            public AlternativeJdkIdGenerator() {
+                    byte[] seed = new SecureRandom().generateSeed(8);
+                    this.random = new Random(new BigInteger(seed).longValue());
+            }
+
+            public UUID generateId() {
+
+                    byte[] randomBytes = new byte[16];
+                    this.random.nextBytes(randomBytes);
+
+                    long mostSigBits = 0;
+                    for (int i = 0; i < 8; i++) {
+                            mostSigBits = (mostSigBits << 8) | (randomBytes[i] & 0xff);
+                    }
+                    long leastSigBits = 0;
+                    for (int i = 8; i < 16; i++) {
+                            leastSigBits = (leastSigBits << 8) | (randomBytes[i] & 0xff);
+                    }
+
+                    return new UUID(mostSigBits, leastSigBits);
+            }
+    }
 
 	public static class SimpleIncrementingIdGenerator implements IdGenerator {
 
