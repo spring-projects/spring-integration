@@ -143,8 +143,8 @@
 				For more information see <xref linkend="http-namespace"/>.
 			</para>
 		</section>
-		<section id="3.0-redis-meta-data-store">
-			<title>Redis Metadata Store</title>
+		<section id="3.0-redis-new-components">
+			<title>Redis: New Components</title>
 			<para>
 				A new Redis-based
 				<interfacename><ulink url="http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/store/MetadataStore.html">MetadataStore</ulink></interfacename>
@@ -158,7 +158,12 @@
 				<listitem>Feed Inbound Channel Adapter</listitem>
 			</itemizedlist>
 			<para>
-				For more information see <xref linkend="redis-metadata-store" />.
+				A new queue-based components was added. The <code>&lt;int-redis:queue-inbound-channel-adapter/&gt;</code>
+				and the	<code>&lt;int-redis:queue-outbound-channel-adapter/&gt;</code> components are provided
+				to perform 'right pop' and 'left push' operations on Redis List, respectively.
+			</para>
+			<para>
+				For more information see <xref linkend="redis" />.
 			</para>
 		</section>
 	</section>

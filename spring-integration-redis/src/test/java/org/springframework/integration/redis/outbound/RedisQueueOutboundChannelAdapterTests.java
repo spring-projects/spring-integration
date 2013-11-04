@@ -24,7 +24,10 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -32,17 +35,33 @@ import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.Jackson2JsonMessageParser;
+import org.springframework.integration.support.json.JsonInboundMessageMapper;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @since 3.0
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
+
+	@Autowired
+	private RedisConnectionFactory connectionFactory;
+
+	@Autowired
+	@Qualifier("toRedisQueueChannel")
+	private MessageChannel sendChannel;
+
 
 	@Test
 	@RedisAvailable
@@ -50,15 +69,13 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter";
 
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
-
-		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
 
 		String payload = "testing";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
 
 		RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
 		Object result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
@@ -70,7 +87,7 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		handler.handleMessage(MessageBuilder.withPayload(payload2).build());
 
 		RedisTemplate<String, ?> redisTemplate2 = new RedisTemplate<String, Object>();
-		redisTemplate2.setConnectionFactory(connectionFactory);
+		redisTemplate2.setConnectionFactory(this.connectionFactory);
 		redisTemplate2.setEnableDefaultSerializer(false);
 		redisTemplate2.setKeySerializer(new StringRedisSerializer());
 		redisTemplate2.setValueSerializer(new JdkSerializationRedisSerializer());
@@ -88,16 +105,14 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
-
-		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
 		handler.setExtractPayload(false);
 
 		Message<String> message = MessageBuilder.withPayload("testing").build();
 		handler.handleMessage(message);
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
-		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
@@ -116,13 +131,11 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.testRedisQueueOutboundChannelAdapter2";
 
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
-
-		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, connectionFactory);
+		final RedisQueueOutboundChannelAdapter handler = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
 		handler.setSerializer(new JacksonJsonRedisSerializer<Object>(Object.class));
 
 		RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.afterPropertiesSet();
 
 		handler.handleMessage(new GenericMessage<Object>(Arrays.asList("foo", "bar", "baz")));
@@ -138,6 +151,26 @@ public class RedisQueueOutboundChannelAdapterTests extends RedisAvailableTests {
 		assertNotNull(result);
 
 		assertEquals("\"test\"", result);
+	}
+
+	@Test
+	@RedisAvailable
+	public void testInt3017IntegrationOutbound() throws Exception {
+
+		final String queueName = "si.test.Int3017IntegrationOutbound";
+
+		GenericMessage<Object> message = new GenericMessage<Object>(queueName);
+		this.sendChannel.send(message);
+
+		RedisTemplate<String, String> redisTemplate = new StringRedisTemplate();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.afterPropertiesSet();
+
+		String result = redisTemplate.boundListOps(queueName).rightPop(5000, TimeUnit.MILLISECONDS);
+		assertNotNull(result);
+		InboundMessageMapper<String> mapper = new JsonInboundMessageMapper(String.class, new Jackson2JsonMessageParser());
+		Message<?> resultMessage = mapper.toMessage(result);
+		assertEquals(message.getPayload(), resultMessage.getPayload());
 	}
 
 }

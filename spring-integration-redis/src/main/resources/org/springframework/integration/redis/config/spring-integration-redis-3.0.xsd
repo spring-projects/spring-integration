@@ -82,10 +82,8 @@
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for executing
-	JMS listener invokers. Default is a SimpleAsyncTaskExecutor in case of a
-	DefaultMessageListenerContainer, using internally managed threads. For a
-	SimpleMessageListenerContainer, listeners will always get invoked within the
-	JMS provider's receive thread by default.
+	Redis listener invokers. Default is a SimpleAsyncTaskExecutor in case of a
+	RedisMessageListenerContainer, using internally managed threads.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -322,6 +320,145 @@
 									<tool:expected-type type="org.springframework.data.redis.core.RedisTemplate"/>
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="queue-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Message Driven Endpoint for listening a Redis queue.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisAdapterType">
+					<xsd:attribute name="queue" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+								Redis queue name.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="error-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+						Identifies channel that error messages will be sent to if a failure occurs in this
+						Endpoint's process. If no "error-channel" reference is provided, this Endpoint will
+						propagate Exceptions to the caller. To completely suppress Exceptions, provide a
+						reference to the "nullChannel" here.
+					]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer.
+									Can be specified as empty value, which means a 'null' for Endpoint's 'serializer' property.
+									It is useful in cases of receiving just 'byte[]' as a Message payload.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="receive-timeout" type="xsd:string" default="1000">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify the timeout in milliseconds to wait the result of
+								'rightPop' operation on Redis queue.
+								Default is 1 second.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expect-message" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify if 'byte[]' from Redis message should be deserialized
+								as entire Spring Integration Message or not.
+								If this attribute is 'true', the 'serializer' must not be empty string.
+								Default is 'false'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for executing
+								listening task on Redis queue. Default is a SimpleAsyncTaskExecutor.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.util.concurrent.Executor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="queue-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Redis Queue Message-sending Channel Adapter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="redisAdapterType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="queue" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Specifies the name of the Redis queue.
+								This attribute is mutually exclusive with 'queue-expression' attribute.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="queue-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Specifies the expression to determine the name of the Redis queue
+								against the Message at runtime.
+								This attribute is mutually exclusive with 'queue' attribute.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Specifies the order for invocation when this adapter is connected as a
+								subscriber to a SubscribableChannel.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to an instance of org.springframework.data.redis.serializer.RedisSerializer
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify if Message payload or entire Message will be send to the Redis queue.
+								Default is 'true'.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
