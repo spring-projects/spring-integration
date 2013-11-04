@@ -95,7 +95,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		String listenerBeanName = this.parseMessageListener(element, parserContext);
 		builder.addConstructorArgReference(containerBeanName);
 		builder.addConstructorArgReference(listenerBeanName);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
 	}
 
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext) {

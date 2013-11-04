@@ -84,7 +84,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler imp
 
 	@Override
 	public String getComponentType() {
-		return "int-redis:outbound-channel-adapter";
+		return "redis:outbound-channel-adapter";
 	}
 
 	@Override

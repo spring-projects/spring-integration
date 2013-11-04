@@ -179,6 +179,160 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       This example also includes the optional, custom <classname>MessageConverter</classname> (the '<code>testConverter</code>' bean).
       </para>
     </section>
+    <section id="redis-queue-inbound-channel-adapter">
+       <title>Redis Queue Inbound Channel Adapter</title>
+       <para>
+          Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Inbound Channel Adapter 
+		  is available to 'right pop' messages from a Redis List.
+		  The adapter is message-driven using an internal listener thread and does not use a poller.
+		<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-channel-adapter id="" ]]><co id="redis-m-d-c-a-id"/><![CDATA[
+                    channel="" ]]><co id="redis-m-d-c-a-channel"/><![CDATA[
+                    auto-startup="" ]]><co id="redis-m-d-c-a-autoStartup"/><![CDATA[
+                    phase="" ]]><co id="redis-m-d-c-a-phase"/><![CDATA[
+                    connection-factory="" ]]><co id="redis-m-d-c-a-connectionFactory"/><![CDATA[
+                    queue="" ]]><co id="redis-m-d-c-a-queue"/><![CDATA[
+                    error-channel="" ]]><co id="redis-m-d-c-a-errorChannel"/><![CDATA[
+                    serializer="" ]]><co id="redis-m-d-c-a-serializer"/><![CDATA[
+                    receive-timeout="" ]]><co id="redis-m-d-c-a-receiveTimeout"/><![CDATA[
+                    expect-message="" ]]><co id="redis-m-d-c-a-expectMessage"/><![CDATA[
+                    task-executor=""/> ]]><co id="redis-m-d-c-a-task-executor"/>
+		</programlisting>
+		<calloutlist>
+			<callout arearefs="redis-m-d-c-a-id">
+				<para>
+				   The component bean name. If the <code>channel</code> attribute isn't provided a <classname>DirectChannel</classname>
+                   is created and registered with application context with this <code>id</code> attribute as the bean name.
+				   In this case, the endpoint itself is registered with the bean name <code>id + '.adapter'</code>.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-channel">
+				<para>
+					The <interfacename>MessageChannel</interfacename> to which to send <interfacename>Message</interfacename>s from this Endpoint.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-autoStartup">
+				<para>
+					A <interfacename>SmartLifecycle</interfacename> attribute to specify whether this Endpoint should start automatically after
+					the application context start or not. Default is <code>true</code>.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-phase">
+				<para>
+					A <interfacename>SmartLifecycle</interfacename> attribute to specify the <emphasis>phase</emphasis> in which
+					this Endpoint will be started. Default is <code>0</code>.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-connectionFactory">
+				<para>
+				   A reference to a <interfacename>RedisConnectionFactory</interfacename> bean. Defaults to
+				   <code>redisConnectionFactory</code>.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-queue">
+				<para>
+				   The name of the Redis List on which the queue-based 'right pop' operation is performed to get Redis messages.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-errorChannel">
+				<para>
+					The <interfacename>MessageChannel</interfacename> to which to send <interfacename>ErrorMessage</interfacename>s with
+					<interfacename>Exception</interfacename>s from the listening task of the Endpoint.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-serializer">
+				<para>
+				   The <interfacename>RedisSerializer</interfacename> bean reference. Can be an empty string, which means 'no serializer'.
+				   In this case the raw <code>byte[]</code> from the inbound Redis message is sent to the <code>channel</code> as the
+				   <interfacename>Message</interfacename> payload. By default it is a <classname>JdkSerializationRedisSerializer</classname>.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-receiveTimeout">
+				<para>
+					The timeout in milliseconds for 'right pop' operation to wait for a Redis message from the queue. Default is 1 second.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-expectMessage">
+				<para>
+				   Specify if this Endpoint expects data from the Redis queue to contain entire <interfacename>Message</interfacename>s.
+				   If this attribute is set to <code>true</code>, the <code>serializer</code> can't be an empty string because messages
+				   require some form of deserialization (JDK serialization by default).
+				   Default is <code>false</code>.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-task-executor">
+				<para>
+				   A reference to a Spring <interfacename>TaskExecutor</interfacename> (or standard JDK 1.5+ <interfacename>Executor</interfacename>)
+				   bean. It is used for the underlying listening task. By default a <classname>SimpleAsyncTaskExecutor</classname>
+				   is used.
+				</para>
+			</callout>
+		</calloutlist>
+		</para>
+    </section>
+     <section id="redis-queue-outbound-channel-adapter">
+		  <title>Redis Queue Outbound Channel Adapter</title>
+		  <para>
+			  Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Outbound Channel Adapter
+			   is available to 'left push' to a Redis List from Spring Integration messages:
+			  <programlisting language="xml"><![CDATA[<int-redis:queue-outbound-channel-adapter id="" ]]><co id="redis-q-u-c-a-id"/><![CDATA[
+                    channel="" ]]><co id="redis-q-u-c-a-channel"/><![CDATA[
+                    connection-factory="" ]]><co id="redis-q-u-c-a-connectionFactory"/><![CDATA[
+                    queue="" ]]><co id="redis-q-u-c-a-queue"/><![CDATA[
+                    queue-expression="" ]]><co id="redis-q-u-c-a-queueExpression"/><![CDATA[
+                    serializer="" ]]><co id="redis-q-u-c-a-serializer"/><![CDATA[
+                    extract-payload="" />]]><co id="redis-q-u-c-a-extractPayload"/>
+			  </programlisting>
+			  <calloutlist>
+				  <callout arearefs="redis-q-u-c-a-id">
+					  <para>
+						  The component bean name. If the <code>channel</code> attribute isn't provided, a <classname>DirectChannel</classname>
+						  is created and registered with the application context with this <code>id</code> attribute as the bean name.
+						  In this case, the endpoint is registered with the bean name <code>id + '.adapter'</code>.
+					  </para>
+				  </callout>
+				  <callout arearefs="redis-q-u-c-a-channel">
+					  <para>
+						  The <interfacename>MessageChannel</interfacename> from which this Endpoint receives <interfacename>Message</interfacename>s.
+					  </para>
+				  </callout>
+				  <callout arearefs="redis-q-u-c-a-connectionFactory">
+					  <para>
+						   A reference to a <interfacename>RedisConnectionFactory</interfacename> bean. Defaults to
+						   <code>redisConnectionFactory</code>.
+					  </para>
+				  </callout>
+				  <callout arearefs="redis-q-u-c-a-queue">
+					  <para>
+						  The name of the Redis List on which the queue-based 'left push' operation is performed to send Redis messages.
+						  This attribute is mutually exclusive with <code>queue-expression</code>.
+					  </para>
+				  </callout>
+				  <callout arearefs="redis-q-u-c-a-queueExpression">
+					  <para>
+						  A SpEL <interfacename>Expression</interfacename> to determine the name of the Redis List
+						  using the incoming <interfacename>Message</interfacename> at runtime as the <code>#root</code> variable.
+						  This attribute is mutually exclusive with <code>queue</code>.
+					  </para>
+				  </callout>
+				  <callout arearefs="redis-m-d-c-a-serializer">
+					  <para>
+						  A <interfacename>RedisSerializer</interfacename> bean reference.
+						  By default it is a <classname>JdkSerializationRedisSerializer</classname>.
+						  However, for <classname>String</classname> payloads, a <classname>StringRedisSerializer</classname>
+						  is used, if a <code>serializer</code> reference isn't provided.
+					  </para>
+				  </callout>
+				 <callout arearefs="redis-q-u-c-a-extractPayload">
+					  <para>
+						  Specify if this Endpoint should send just the <emphasis>payload</emphasis> to the Redis queue,
+						  or the entire <interfacename>Message</interfacename>.
+						  Default is <code>true
+					  </code>.
+					  </para>
+				  </callout>
+			  </calloutlist>
+		  </para>
+	  </section>
   </section>
 
   <section id="redis-message-store">

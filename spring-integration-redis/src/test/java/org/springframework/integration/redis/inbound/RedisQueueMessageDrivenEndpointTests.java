@@ -21,15 +21,22 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -37,13 +44,30 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @since 3.0
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
+
+	@Autowired
+	private RedisConnectionFactory connectionFactory;
+
+	@Autowired
+	private PollableChannel fromChannel;
+
+	@Autowired
+	private MessageChannel symmetricalInputChannel;
+
+	@Autowired
+	private PollableChannel symmetricalOutputChannel;
+
 
 	@Test
 	@RedisAvailable
@@ -52,10 +76,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		String queueName = "si.test.redisQueueInboundChannelAdapterTests";
 
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
-
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
-		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
@@ -71,7 +93,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		PollableChannel channel = new QueueChannel();
 
-		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, connectionFactory);
+		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
+		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
 		endpoint.setReceiveTimeout(1000);
 		endpoint.afterPropertiesSet();
@@ -86,7 +109,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertEquals(payload2, receive.getPayload());
 
 		endpoint.stop();
-		this.waitUntilListening(endpoint);
 	}
 
 	@Test
@@ -96,10 +118,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		final String queueName = "si.test.redisQueueInboundChannelAdapterTests2";
 
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
-
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
-		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
@@ -115,7 +135,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		PollableChannel errorChannel = new QueueChannel();
 
-		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, connectionFactory);
+		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
+		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setExpectMessage(true);
 		endpoint.setOutputChannel(channel);
 		endpoint.setErrorChannel(errorChannel);
@@ -139,19 +160,38 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 
 		endpoint.stop();
-		this.waitUntilListening(endpoint);
 	}
 
+	@Test
+	@RedisAvailable
+	public void testInt3017IntegrationInbound() throws Exception {
 
-	public void waitUntilListening(RedisQueueMessageDrivenEndpoint endpoint) throws Exception {
-		int n = 0;
-		while (endpoint.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				throw new Exception("RedisQueueMessageDrivenEndpoint failed to stop.");
-			}
-		}
+		String payload = new Date().toString();
 
+		RedisTemplate<String, String> redisTemplate = new StringRedisTemplate();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.afterPropertiesSet();
+
+		redisTemplate.boundListOps("si.test.Int3017IntegrationInbound").leftPush("{\"payload\":\"" + payload + "\",\"headers\":{}}");
+
+		Message<?> receive = this.fromChannel.receive(2000);
+		assertNotNull(receive);
+		assertEquals(payload, receive.getPayload());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testInt3017IntegrationSymmetrical() throws Exception {
+		UUID payload = UUID.randomUUID();
+		Message<UUID> message = MessageBuilder.withPayload(payload)
+				.setHeader("redis_queue", "si.test.Int3017IntegrationSymmetrical")
+				.build();
+
+		this.symmetricalInputChannel.send(message);
+
+		Message<?> receive = this.symmetricalOutputChannel.receive(2000);
+		assertNotNull(receive);
+		assertEquals(payload, receive.getPayload());
 	}
 
 }
