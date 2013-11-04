@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.store.metadata;
+package org.springframework.integration.metadata;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

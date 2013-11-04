@@ -21,7 +21,7 @@
 		<int:poller fixed-rate="100" max-messages-per-poll="3"/>
 	</int-twitter:search-inbound-channel-adapter>
 
-	<bean id="redisMetadataStore" class="org.springframework.integration.redis.store.metadata.RedisMetadataStore">
+	<bean id="redisMetadataStore" class="org.springframework.integration.redis.metadata.RedisMetadataStore">
 		<constructor-arg name="connectionFactory" ref="redisConnectionFactory"/>
 	</bean>
 

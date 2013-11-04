@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.store.metadata;
+package org.springframework.integration.metadata;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;

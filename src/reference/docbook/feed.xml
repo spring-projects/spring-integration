@@ -62,14 +62,14 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/feed
   		Spring Integration provides a convenient mechanism to eliminate the need to worry about duplicate entries.
         Each feed entry will have a <emphasis>published date</emphasis> field. Every time a new Message is generated and sent,
         Spring Integration will store the value of the latest <emphasis>published date</emphasis> in an instance of the
-        <classname>org.springframework.integration.store.MetadataStore</classname> strategy. The MetadataStore interface is
+        <classname>org.springframework.integration.metadata.MetadataStore</classname> strategy. The MetadataStore interface is
         designed to store various types of generic meta-data (e.g., published date of the last feed entry that has been processed)
         to help components such as this Feed adapter deal with duplicates.
    	</para>
 	<para>
 		The default rule for locating this metadata store is as follows:
 		<emphasis>Spring Integration</emphasis> will look for a bean of type
-		<classname>org.springframework.integration.store.MetadataStore</classname> in
+		<classname>org.springframework.integration.metadata.MetadataStore</classname> in
 		the ApplicationContext. If one is found then it will be used, otherwise
 		it will create a new instance of <classname>SimpleMetadataStore</classname>
 		which is an in-memory implementation that will only persist metadata within

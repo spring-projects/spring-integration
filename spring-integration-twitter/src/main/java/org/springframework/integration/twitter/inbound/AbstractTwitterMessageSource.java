@@ -28,8 +28,8 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.store.metadata.MetadataStore;
-import org.springframework.integration.store.metadata.SimpleMetadataStore;
+import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
  * messages when using the Twitter API. This class also handles keeping track of
  * the latest inbound message it has received and avoiding, where possible,
  * redelivery of duplicate messages. This functionality is enabled using the
- * {@link org.springframework.integration.store.metadata.MetadataStore} strategy.
+ * {@link org.springframework.integration.metadata.MetadataStore} strategy.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky

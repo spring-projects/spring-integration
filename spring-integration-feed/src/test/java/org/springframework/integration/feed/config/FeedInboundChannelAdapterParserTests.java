@@ -44,7 +44,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.store.metadata.MetadataStore;
+import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;

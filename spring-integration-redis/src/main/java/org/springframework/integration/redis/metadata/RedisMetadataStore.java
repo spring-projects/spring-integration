@@ -11,13 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.redis.store.metadata;
+package org.springframework.integration.redis.metadata;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.store.metadata.MetadataStore;
+import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.util.Assert;
 
 /**
