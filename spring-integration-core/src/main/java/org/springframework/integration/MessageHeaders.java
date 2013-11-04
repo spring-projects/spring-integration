@@ -41,11 +41,11 @@ import org.apache.commons.logging.LogFactory;
  * IMPORTANT: MessageHeaders are immutable. Any mutating operation (e.g., put(..), putAll(..) etc.)
  * will result in {@link UnsupportedOperationException}
  * To create MessageHeaders instance use fluent MessageBuilder API
- * <pre>
+ * <pre class="code">
  * MessageBuilder.withPayload("foo").setHeader("key1", "value1").setHeader("key2", "value2");
  * </pre>
  * or create an instance of GenericMessage passing payload as {@link Object} and headers as a regular {@link Map}
- * <pre>
+ * <pre class="code">
  * Map headers = new HashMap();
  * headers.put("key1", "value1");
  * headers.put("key2", "value2");

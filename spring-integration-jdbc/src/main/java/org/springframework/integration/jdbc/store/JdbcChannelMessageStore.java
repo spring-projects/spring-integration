@@ -76,12 +76,6 @@ import org.springframework.util.StringUtils;
  * This message store shall be used for message channels only.
  * </p>
  * <p>
- * <strong>NOTICE</strong>: This implementation may change for Spring Integration
- * 3.0. It is provided for use-cases where the current {@link JdbcMessageStore}
- * is not delivering the desired performance characteristics.
- * </p>
- *
- * <p>
  * As such, the {@link JdbcChannelMessageStore} uses database specific SQL queries.
  * </p>
  * <p>
@@ -89,8 +83,8 @@ import org.springframework.util.StringUtils;
  * database table only. The SQL scripts to create the necessary table are packaged
  * under <code>org/springframework/integration/jdbc/messagestore/channel/schema-*.sql</code>,
  * where <code>*</code> denotes the target database type.
- * </p
- * >
+ * </p>
+ *
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @since 2.2
@@ -331,7 +325,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * <p>For this to work, you must setup the corresponding
 	 * {@link TransactionSynchronizationFactory}:</p>
 	 *
-	 * <pre>
+	 * <pre class="code">
 	 * {@code
 	 * <int:transaction-synchronization-factory id="syncFactory">
 	 *     <int:after-commit   expression="@jdbcChannelMessageStore.removeFromIdCache(headers.id.toString())" />
@@ -343,7 +337,7 @@ public class JdbcChannelMessageStore extends AbstractMessageGroupStore implement
 	 * This {@link TransactionSynchronizationFactory} is then referenced in the
 	 * transaction configuration of the poller:
 	 *
-	 * <pre>
+	 * <pre class="code">
 	 * {@code
 	 * <int:poller fixed-delay="300" receive-timeout="500"
 	 *     max-messages-per-poll="1" task-executor="pool">
