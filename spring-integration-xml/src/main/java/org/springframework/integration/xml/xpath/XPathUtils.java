@@ -1,0 +1,130 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.xml.xpath;
+
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import org.springframework.integration.xml.DefaultXmlPayloadConverter;
+import org.springframework.integration.xml.XmlPayloadConverter;
+import org.springframework.util.Assert;
+import org.springframework.xml.xpath.NodeMapper;
+import org.springframework.xml.xpath.XPathException;
+import org.springframework.xml.xpath.XPathExpression;
+import org.springframework.xml.xpath.XPathExpressionFactory;
+
+/**
+ * Utility class for 'xpath' conventions.
+ *
+ * @author Artem Bilan
+ * @since 3.0
+ */
+public final class XPathUtils {
+
+	public static final String STRING = "string";
+
+	public static final String BOOLEAN = "boolean";
+
+	public static final String NUMBER = "number";
+
+	public static final String NODE = "node";
+
+	public static final String NODE_LIST = "node_list";
+
+	public static final String DOCUMENT_LIST = "document_list";
+
+	private static List<String> RESULT_TYPES = Arrays.asList(STRING, BOOLEAN, NUMBER, NODE, NODE_LIST, DOCUMENT_LIST);
+
+	private static XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
+
+	private static DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+
+	/**
+	 * Utility method to evaluate an xpath on the provided object.
+	 * Delegates evaluation to {@link XPathExpression}.
+	 * Note this method is used as {@code #xpath()} SpEL function.
+	 *
+	 * @param xpath     'xpath' expression String
+	 * @param o         the xml Object for evaluaton
+	 * @param resultArg optional parameter to represent the result of xpath evaluation.
+	 *                  Can applies only one element, which can be an instance of {@link NodeMapper} or
+	 *                  one of String constants: "string", "boolean", "number", "node" or "node_list"
+	 * @return the appropriate result of xpath
+	 * @throws IllegalArgumentException - if provided arguments aren't appropriate types or values;
+	 *         MessagingException - if provided object can't be convert to {@link Node};
+	 *         XPathException - if can't evaluate an xpath expression.
+	 */
+	@SuppressWarnings({"unchecked"})
+	public static <T> T evaluate(String xpath, Object o, Object... resultArg) {
+		Object resultType = null;
+		if (resultArg != null && resultArg.length > 0) {
+			Assert.isTrue(resultArg.length == 1, "'resultArg' can contains only one element.");
+			Assert.noNullElements(resultArg, "'resultArg' can't contains 'null' elements.");
+			resultType = resultArg[0];
+		}
+
+		XPathExpression expression = XPathExpressionFactory.createXPathExpression(xpath);
+		Node node = converter.convertToNode(o);
+
+		if (resultType == null) {
+			return (T) expression.evaluateAsString(node);
+		}
+		else if (resultType instanceof NodeMapper<?>) {
+			return (T) expression.evaluateAsObject(node, (NodeMapper<?>) resultType);
+		}
+		else if (resultType instanceof String && RESULT_TYPES.contains(resultType)) {
+			String resType = (String) resultType;
+			if (DOCUMENT_LIST.equals(resType)) {
+				List<Node> nodeList = (List<Node>) XPathEvaluationType.NODE_LIST_RESULT.evaluateXPath(expression, node);
+				try {
+					DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+					List<Node> documents = new ArrayList<Node>(nodeList.size());
+					for (Node n : nodeList) {
+						Document document = documentBuilder.newDocument();
+						document.appendChild(document.importNode(n, true));
+						documents.add(document);
+					}
+					return (T) documents;
+				}
+				catch (ParserConfigurationException e) {
+					throw new XPathException("Unable to create 'documentBuilder'.", e);
+				}
+			}
+			else {
+				XPathEvaluationType evaluationType = XPathEvaluationType.valueOf(resType.toUpperCase() + "_RESULT");
+				return (T) evaluationType.evaluateXPath(expression, node);
+			}
+		}
+		else {
+			throw new IllegalArgumentException("'resultArg[0]' can be an instance of 'NodeMapper<?>' " +
+					"or one of supported String constants: " + RESULT_TYPES);
+		}
+	}
+
+	private XPathUtils() {
+	}
+
+}

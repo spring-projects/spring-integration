@@ -174,6 +174,31 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			}
 		}
 
+		String xpathBeanName = "xpath";
+		alreadyRegistered = false;
+		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBean(xpathBeanName);
+		}
+		else {
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(xpathBeanName);
+		}
+		if (!alreadyRegistered) {
+			Class<?> jsonPathClass = null;
+			try {
+				jsonPathClass = ClassUtils.forName(IntegrationNamespaceUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils",
+						parserContext.getReaderContext().getBeanClassLoader());
+			}
+			catch (ClassNotFoundException e) {
+				logger.debug("SpEL function '#xpath' isn't registered: there is no spring-integration-xml.jar on the classpath.");
+			}
+
+			if (jsonPathClass != null) {
+				IntegrationNamespaceUtils.registerSpelFunctionBean(parserContext.getRegistry(), xpathBeanName,
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".xml.xpath.XPathUtils", "evaluate");
+			}
+		}
+
+
 		this.doRegisterBuiltInBeans(parserContext);
 	}
 

@@ -35,6 +35,9 @@
             <para><emphasis><link linkend='xml-xpath-filter'>XPath Filter</link></emphasis></para>
         </listitem>
         <listitem>
+            <para><emphasis><link linkend='xpath-spel-function'>#xpath SpEL Function</link></emphasis></para>
+        </listitem>
+        <listitem>
             <para><emphasis><link linkend='xml-validating-filter'>Validating Filter</link></emphasis></para>
         </listitem>
 
@@ -1252,6 +1255,32 @@
         </callout>
 	</calloutlist></para>
   </section>
+
+	<section id="xpath-spel-function">
+		<title>#xpath SpEL Function</title>
+		<para>
+			Spring Integration since version <emphasis>3.0</emphasis> provides the <code>#xpath</code>
+			built-in SpEL function, based on invocation of static method <code>XPathUtils.evaluate(...)</code>.
+			This method delegates to the <interfacename>org.springframework.xml.xpath.XPathExpression</interfacename>.
+			The following shows some usage examples:
+			<programlisting language="xml"><![CDATA[<transformer expression="#xpath('/name', payload)"/>
+
+<filter expression="#xpath(headers.xpath, payload, 'boolean')"/>
+
+<splitter expression="#xpath('//book', payload, 'document_list')"/>
+
+<router expression="#xpath('/person/@age', payload, 'number')">
+	<mapping channel="output1" value="16"/>
+	<mapping channel="output2" value="45"/>
+</router>]]></programlisting>
+			#xpath also supports the third optional parameter for converting the result of the xpath evaluation:
+			the one of of String constants <code>'string'</code>, <code>'boolean'</code>, <code>'number'</code>,
+			<code>'node'</code>, <code>'node_list'</code> and <code>'document_list'</code> or an
+			<interfacename>org.springframework.xml.xpath.NodeMapper</interfacename> instance.
+			By default the <code>#xpath</code> SpEL function return a String representation of xpath evaluation.
+			For more information see <xref linkend="spel"/>.
+		</para>
+	</section>
 
   <section id="xml-validating-filter">
     <title>XML Validating Filter</title>
