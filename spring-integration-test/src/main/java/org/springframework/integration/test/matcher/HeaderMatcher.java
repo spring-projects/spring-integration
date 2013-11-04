@@ -15,17 +15,18 @@
  */
 package org.springframework.integration.test.matcher;
 
-import org.hamcrest.Description;
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
-import org.junit.Assert;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
+import static org.hamcrest.CoreMatchers.is;
 
 import java.util.Date;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
+import org.junit.Assert;
+
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * Are the {@link MessageHeaders} of a {@link Message} containing any entry
@@ -35,30 +36,34 @@ import static org.hamcrest.CoreMatchers.is;
  * entry:
  * <p>
  *
- * <pre>
- * ANY_HEADER_KEY = &quot;foo&quot;;
- * ANY_HEADER_VALUE = &quot;bar&quot;;
+ * <pre class="code">
+ * {@code
+ * ANY_HEADER_KEY = "foo";
+ * ANY_HEADER_VALUE = "bar";
  * assertThat(message, hasEntry(ANY_HEADER_KEY, ANY_HEADER_VALUE));
  * assertThat(message, hasEntry(ANY_HEADER_KEY, is(String.class)));
  * assertThat(message, hasEntry(ANY_HEADER_KEY, notNullValue()));
  * assertThat(message, hasEntry(ANY_HEADER_KEY, is(ANY_HEADER_VALUE)));
+ * }
  * </pre>
  * <p>
  * For multiple entries to match all:
  * <p>
- * <pre>
- * Map&lt;String, Object&gt; expectedInHeaderMap = new HashMap&lt;String, Object&gt;();
+ * <pre class="code">
+ * {@code
+ * Map<String, Object> expectedInHeaderMap = new HashMap<String, Object>();
  * expectedInHeaderMap.put(ANY_HEADER_KEY, ANY_HEADER_VALUE);
  * expectedInHeaderMap.put(OTHER_HEADER_KEY, is(OTHER_HEADER_VALUE));
  * assertThat(message, HeaderMatcher.hasAllEntries(expectedInHeaderMap));
+ * }
  * </pre>
  *
  * <p>
  * For a single key:
  * <p>
  *
- * <pre>
- * ANY_HEADER_KEY = &quot;foo&quot;;
+ * <pre class="code">
+ * ANY_HEADER_KEY = "foo";
  * assertThat(message, HeaderMatcher.hasKey(ANY_HEADER_KEY));
  * </pre>
  *

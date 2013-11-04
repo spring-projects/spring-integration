@@ -52,13 +52,15 @@ import org.springframework.util.Assert;
  * the configuration by removing channels that can be created implicitly.
  * <p>
  *
- * <pre>
- * &lt;chain&gt;
- *     &lt;filter ref=&quot;someFilter&quot;/&gt;
- *     &lt;bean class=&quot;SomeMessageHandlerImplementation&quot;/&gt;
- *     &lt;transformer ref=&quot;someTransformer&quot;/&gt;
- *     &lt;aggregator ... /&gt;
- * &lt;/chain&gt;
+ * <pre class="code">
+ * {@code
+ * <chain>
+ *     <filter ref="someFilter"/>
+ *     <bean class="SomeMessageHandlerImplementation"/>
+ *     <transformer ref="someTransformer"/>
+ *     <aggregator ... />
+ * </chain>
+ * }
  * </pre>
  *
  * @author Mark Fisher
