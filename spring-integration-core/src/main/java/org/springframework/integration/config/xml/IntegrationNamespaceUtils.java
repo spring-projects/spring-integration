@@ -172,9 +172,19 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
 			String attributeName, String propertyName) {
-		String attributeValue = element.getAttribute(attributeName);
-		if (StringUtils.hasText(attributeValue)) {
-			builder.addPropertyReference(propertyName, attributeValue);
+		setReferenceIfAttributeDefined(builder, element, attributeName, propertyName, false);
+	}
+
+	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
+			String attributeName, String propertyName, boolean emptyStringAllowed) {
+		if (element.hasAttribute(attributeName)) {
+			String attributeValue = element.getAttribute(attributeName);
+			if (StringUtils.hasText(attributeValue)) {
+				builder.addPropertyReference(propertyName, attributeValue);
+			}
+			else if (emptyStringAllowed) {
+				builder.addPropertyValue(propertyName, null);
+			}
 		}
 	}
 
@@ -198,8 +208,13 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
 			String attributeName) {
+		setReferenceIfAttributeDefined(builder, element, attributeName, false);
+	}
+
+	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder, Element element,
+			String attributeName, boolean emptyStringAllowed) {
 		setReferenceIfAttributeDefined(builder, element, attributeName,
-				Conventions.attributeNameToPropertyName(attributeName));
+				Conventions.attributeNameToPropertyName(attributeName), emptyStringAllowed);
 	}
 
 	/**

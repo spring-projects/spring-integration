@@ -15,10 +15,11 @@
  */
 package org.springframework.integration.redis.inbound;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,6 +32,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -52,7 +54,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 
 	private MessageChannel errorChannel;
 
-	private volatile TaskExecutor taskExecutor;
+	private volatile Executor taskExecutor;
 
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
 
@@ -117,7 +119,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
+	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 
@@ -138,7 +140,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-") + this.getComponentType());
 		}
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
-			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+			MessagePublishingErrorHandler errorHandler =
+					new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(this.getBeanFactory()));
 			errorHandler.setDefaultErrorChannel(this.errorChannel);
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
@@ -146,14 +149,25 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 
 	@Override
 	public String getComponentType() {
-		return "int-redis:message-driven-channel-adapter";
+		return "redis:queue-inbound-channel-adapter";
 	}
 
 	@SuppressWarnings("unchecked")
 	private void popMessageAndSend() {
 		Message<Object> message = null;
 
-		byte[] value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+		byte[] value = null;
+		try {
+			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+		}
+		catch (RedisSystemException e) {
+			if (this.active) {
+				throw e;
+			}
+			else {
+				logger.error(e);
+			}
+		}
 
 		if (value != null) {
 			if (this.expectMessage) {
