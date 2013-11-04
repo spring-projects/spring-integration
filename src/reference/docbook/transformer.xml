@@ -184,10 +184,33 @@ public class Kid {
    // setters and getters are omitted
 }]]></programlisting>
     </para>
+	<para>
+	If you need to create a "structured" map, you can provide the 'flatten' attribute. The default value for this
+	attribute is 'true' meaning the default behavior; if you provide a 'false' value, then the structure will be a
+	map of maps.
+	</para>
+	<para>
+	For example:
+	<programlisting language="java"><![CDATA[public class Parent {
+	private Child child;
+	private String name;
+	// setters and getters are omitted
+}
+
+public class Child {
+	private String name;
+	private List<String> nickNames;
+	// setters and getters are omitted
+}]]></programlisting>
+	... will be transformed to a Map which looks like this:
+	<code>{name=George, child={name=Jenna, nickNames=[Bimbo, ...]}}</code>
+	</para>
     <para>
     To configure these transformers, Spring Integration provides namespace support
     Object-to-Map:
 <programlisting language="xml"><![CDATA[<int:object-to-map-transformer input-channel="directInput" output-channel="output"/>]]></programlisting>
+  or
+<programlisting language="xml"><![CDATA[<int:object-to-map-transformer input-channel="directInput" output-channel="output" flatten="false"/>]]></programlisting>
     Map-to-Object
 <programlisting language="xml"><![CDATA[<int:map-to-object-transformer input-channel="input" 
                          output-channel="output" 

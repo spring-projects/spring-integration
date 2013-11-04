@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +41,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Mauro Franceschini
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -56,6 +59,14 @@ public class ObjectToMapTransformerParserTests {
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
+
+    @Autowired
+    @Qualifier("nestedInput")
+    private MessageChannel nestedInput;
+
+    @Autowired
+    @Qualifier("nestedOutput")
+    private PollableChannel nestedOutput;
 
 
 	@SuppressWarnings("unchecked")
@@ -88,6 +99,23 @@ public class ObjectToMapTransformerParserTests {
 		child.setParent(parent);
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
 		directInput.send(message);
+	}
+
+	@Test
+	public void testObjectToNotFlattenedMapTransformer(){
+		Employee employee = this.buildEmployee();
+
+		Message<Employee> message = MessageBuilder.withPayload(employee).build();
+		nestedInput.send(message);
+
+		@SuppressWarnings("unchecked")
+		Message<Map<String, Object>> outputMessage = (Message<Map<String, Object>>) nestedOutput.receive(1000);
+		Map<String, Object> transformedMap = outputMessage.getPayload();
+		assertNotNull(outputMessage.getPayload());
+
+		assertEquals(employee.getCompanyName(), transformedMap.get("companyName"));
+		assertThat(transformedMap.get("companyAddress"), Matchers.instanceOf(Map.class));
+		assertThat(transformedMap.get("departments"), Matchers.instanceOf(List.class));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
