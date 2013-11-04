@@ -171,7 +171,7 @@ public class SpelTransformerIntegrationTests {
 
 		@Override
 		public Class<?>[] getSpecificTargetClasses() {
-			return new Class[] {Foo.class};
+			return new Class<?>[] {Foo.class};
 		}
 
 		@Override

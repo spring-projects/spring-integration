@@ -117,8 +117,9 @@
 			<title>SpEL Functions Support</title>
 			<para>
 				To customize the SpEL <interfacename>EvaluationContext</interfacename> with static
-				<classname>Method</classname> functions the new <code>&lt;spel-function/&gt;</code>
-				component is introduced. For more information see <xref linkend="spel-functions" />.
+				<classname>Method</classname> functions, the new <code>&lt;spel-function/&gt;</code>
+				component is introduced. Two built-in functions are also provided (<code>#jsonPath</code>
+				and <code>#xpath</code>). For more information see <xref linkend="spel-functions" />.
 			</para>
 		</section>
 		<section id="3.0-spel-property-accessors">

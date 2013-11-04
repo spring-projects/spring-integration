@@ -301,6 +301,7 @@ public class ChainParserTests {
 		final AtomicReference<String> log = new AtomicReference<String>();
 		when(logger.isWarnEnabled()).thenReturn(true);
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				log.set((String) invocation.getArguments()[0]);
 				return null;
@@ -394,7 +395,7 @@ public class ChainParserTests {
 		assertTrue(this.beanFactory.containsBean("recipientListRouterChain$child.recipientListRouterWithinChain.handler"));
 
 		MessageHandlerChain chain = this.beanFactory.getBean("headerEnricherChain.handler", MessageHandlerChain.class);
-		List handlers = TestUtils.getPropertyValue(chain, "handlers", List.class);
+		List<?> handlers = TestUtils.getPropertyValue(chain, "handlers", List.class);
 
 		assertTrue(handlers.get(0) instanceof MessageTransformingHandler);
 		assertEquals("headerEnricherChain$child.headerEnricherWithinChain", TestUtils.getPropertyValue(handlers.get(0), "componentName"));

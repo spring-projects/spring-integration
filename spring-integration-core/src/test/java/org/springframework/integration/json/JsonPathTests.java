@@ -28,14 +28,11 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.hamcrest.Matchers;
-
-import com.jayway.jsonpath.Criteria;
-import com.jayway.jsonpath.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,8 +48,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import com.jayway.jsonpath.Criteria;
+import com.jayway.jsonpath.Filter;
+
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 @ContextConfiguration(classes = JsonPathTests.JsonPathTestsContextConfiguration.class, loader = AnnotationConfigContextLoader.class)
@@ -69,7 +70,9 @@ public class JsonPathTests {
 	public static void setUp() throws IOException {
 		ClassPathResource jsonResource = new ClassPathResource("JsonPathTests.json", JsonPathTests.class);
 		JSON_FILE = jsonResource.getFile();
-		JSON = new Scanner(JSON_FILE).useDelimiter("\\Z").next();
+		Scanner scanner = new Scanner(JSON_FILE);
+		JSON = scanner.useDelimiter("\\Z").next();
+		scanner.close();
 		testMessage = new GenericMessage<String>(JSON);
 	}
 
@@ -208,7 +211,7 @@ public class JsonPathTests {
 	public static class JsonPathTestsContextConfiguration {
 
 		@Bean
-		public Filter jsonPathFilter() {
+		public Filter<?> jsonPathFilter() {
 			return  Filter.filter(Criteria.where("isbn").exists(true).and("category").ne("fiction"));
 		}
 
