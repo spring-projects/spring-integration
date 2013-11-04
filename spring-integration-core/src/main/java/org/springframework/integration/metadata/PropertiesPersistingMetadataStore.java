@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.store.metadata;
+package org.springframework.integration.metadata;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -84,6 +84,12 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 
 	public String get(String key) {
 		return this.metadata.getProperty(key);
+	}
+
+	@Override
+	@SuppressWarnings("uchecked")
+	public String remove(String key) {
+		return (String) this.metadata.remove(key);
 	}
 
 	public void destroy() throws Exception {

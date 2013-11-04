@@ -22,7 +22,29 @@
 			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
-			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attribute name="id" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						Plays a role:
+						- a bean id of Polling Endpoint;
+						- with suffix '.source' a bean id of MessageSource;
+						- represent a MetaDataStore key with suffix '.' + feedUrl - The URL for an RSS or ATOM feed.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Identifies channel attached to this adapter, where messages will be sent to by this adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 			<xsd:attribute name="url" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -54,7 +76,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.store.MetadataStore" />
+							<tool:expected-type type="org.springframework.integration.metadata.MetadataStore" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

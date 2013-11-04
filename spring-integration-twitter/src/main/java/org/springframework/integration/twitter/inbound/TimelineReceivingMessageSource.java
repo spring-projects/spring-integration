@@ -22,7 +22,7 @@ import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
 
 /**
- * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume 
+ * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume
  * given account's timeline as messages. It has support for dynamic throttling of API requests.
  *
  * @author Josh Long
@@ -31,14 +31,13 @@ import org.springframework.social.twitter.api.Twitter;
  */
 public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public TimelineReceivingMessageSource(Twitter twitter) {
-		super(twitter);
+	public TimelineReceivingMessageSource(Twitter twitter, String metadataKey) {
+		super(twitter, metadataKey);
 	}
-
 
 	@Override
 	 public String getComponentType() {
-		return "twitter:inbound-channel-adapter";  
+		return "twitter:inbound-channel-adapter";
 	}
 
 	@Override

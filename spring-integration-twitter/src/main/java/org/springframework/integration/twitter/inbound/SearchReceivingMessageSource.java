@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,9 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 	private volatile String query;
 
 
-	public SearchReceivingMessageSource(Twitter twitter) {
-		super(twitter);
+	public SearchReceivingMessageSource(Twitter twitter, String metadataKey) {
+		super(twitter, metadataKey);
 	}
-
 
 	public void setQuery(String query) {
 		Assert.hasText(query, "'query' must not be null");
@@ -47,7 +46,7 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 
 	@Override
 	 public String getComponentType() {
-		return "twitter:search-inbound-channel-adapter";  
+		return "twitter:search-inbound-channel-adapter";
 	}
 
 	@Override

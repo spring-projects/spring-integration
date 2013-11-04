@@ -60,9 +60,8 @@ public class FtpParserInboundTests {
 			fail("BeansException expected.");
 		}
 		catch (BeansException e) {
+			assertThat(e, Matchers.instanceOf(BeanCreationException.class));
 			Throwable cause = e.getCause();
-			assertThat(cause, Matchers.instanceOf(BeanCreationException.class));
-			cause = cause.getCause();
 			assertThat(cause, Matchers.instanceOf(MessagingException.class));
 			cause = cause.getCause();
 			assertThat(cause, Matchers.instanceOf(FileNotFoundException.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -31,20 +32,23 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(final Element element, final ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.feed.inbound.FeedEntryMessageSource");
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(FeedEntryMessageSource.class);
 		sourceBuilder.addConstructorArgValue(element.getAttribute("url"));
+		sourceBuilder.addConstructorArgValue(element.getAttribute(ID_ATTRIBUTE));
 		String feedFetcherRef = element.getAttribute("feed-fetcher");
 		if (StringUtils.hasText(feedFetcherRef)) {
 			sourceBuilder.addConstructorArgReference(feedFetcherRef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
+
 		return sourceBuilder.getBeanDefinition();
 	}
 

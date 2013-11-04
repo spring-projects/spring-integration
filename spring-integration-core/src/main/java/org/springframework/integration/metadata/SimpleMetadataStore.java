@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.store.metadata;
+package org.springframework.integration.metadata;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +35,11 @@ public class SimpleMetadataStore implements MetadataStore {
 
 	public String get(String key) {
 		return this.metadata.get(key);
+	}
+
+	@Override
+	public String remove(String key) {
+		return metadata.remove(key);
 	}
 
 }
