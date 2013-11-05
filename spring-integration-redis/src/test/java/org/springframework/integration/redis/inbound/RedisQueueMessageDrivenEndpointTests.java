@@ -29,7 +29,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -67,7 +70,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 	@Autowired
 	private PollableChannel symmetricalOutputChannel;
-
 
 	@Test
 	@RedisAvailable
@@ -158,7 +160,6 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		assertThat(((Exception) receive.getPayload()).getCause().getMessage(),
 				Matchers.containsString("java.lang.String cannot be cast to org.springframework.integration.Message"));
 
-
 		endpoint.stop();
 	}
 
@@ -192,6 +193,51 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		Message<?> receive = this.symmetricalOutputChannel.receive(2000);
 		assertNotNull(receive);
 		assertEquals(payload, receive.getPayload());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testInt3196Recovery() throws Exception {
+		String queueName = "test.si.Int3196Recovery";
+		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+		QueueChannel channel = new QueueChannel();
+		PollableChannel errorChannel = new QueueChannel();
+
+		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, connectionFactory);
+		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
+		endpoint.setOutputChannel(channel);
+		endpoint.setErrorChannel(errorChannel);
+		endpoint.setReceiveTimeout(1000);
+		endpoint.setRecoveryInterval(500);
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+
+		Thread.sleep(100);
+
+		((DisposableBean) connectionFactory).destroy();
+
+		Message<?> receive = errorChannel.receive(1000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), Matchers.instanceOf(RedisSystemException.class));
+
+		((InitializingBean) connectionFactory).afterPropertiesSet();
+
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		redisTemplate.setConnectionFactory(this.connectionFactory);
+		redisTemplate.setEnableDefaultSerializer(false);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+		redisTemplate.afterPropertiesSet();
+
+		String payload = "testing";
+
+		redisTemplate.boundListOps(queueName).leftPush(payload);
+
+		receive = channel.receive(1000);
+		assertNotNull(receive);
+		assertEquals(payload, receive.getPayload());
+
+		endpoint.stop();
 	}
 
 }

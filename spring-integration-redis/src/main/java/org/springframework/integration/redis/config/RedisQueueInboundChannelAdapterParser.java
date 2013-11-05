@@ -18,11 +18,10 @@ package org.springframework.integration.redis.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
 import org.springframework.util.StringUtils;
@@ -33,29 +32,11 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @since 3.0
  */
-public class RedisQueueInboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
+public class RedisQueueInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return RedisQueueMessageDrivenEndpoint.class;
-	}
-
-	@Override
-	protected final String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
-			throws BeanDefinitionStoreException {
-		String id = element.getAttribute("id");
-		if (!element.hasAttribute("channel")) {
-			// the created channel will get the 'id', so the adapter's bean name includes a suffix
-			id = id + ".adapter";
-		}
-		else if (!StringUtils.hasText(id)) {
-			id = parserContext.getReaderContext().generateBeanName(definition);
-		}
-		return id;
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisQueueMessageDrivenEndpoint.class);
 		builder.addConstructorArgValue(element.getAttribute("queue"));
 
 		String connectionFactory = element.getAttribute("connection-factory");
@@ -69,15 +50,9 @@ public class RedisQueueInboundChannelAdapterParser extends AbstractSingleBeanDef
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expect-message");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
-
-		String channelName = element.getAttribute("channel");
-		if (!StringUtils.hasText(channelName)) {
-			channelName = IntegrationNamespaceUtils.createDirectChannel(element, parserContext);
-		}
 		builder.addPropertyReference("outputChannel", channelName);
 
+		return builder.getBeanDefinition();
 	}
 
 }

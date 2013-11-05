@@ -50,6 +50,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 
 	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
 
+	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
+
 	private final BoundListOperations<String, byte[]> boundListOperations;
 
 	private MessageChannel errorChannel;
@@ -61,6 +63,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 	private volatile boolean expectMessage = false;
 
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
+
+	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private volatile boolean active;
 
@@ -129,6 +133,10 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 		this.errorChannel = errorChannel;
 	}
 
+	public void setRecoveryInterval(long recoveryInterval) {
+		this.recoveryInterval = recoveryInterval;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -156,18 +164,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 	private void popMessageAndSend() {
 		Message<Object> message = null;
 
-		byte[] value = null;
-		try {
-			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
-		}
-		catch (RedisSystemException e) {
-			if (this.active) {
-				throw e;
-			}
-			else {
-				logger.error(e);
-			}
-		}
+		byte[] value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 
 		if (value != null) {
 			if (this.expectMessage) {
@@ -214,6 +211,21 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 	}
 
 	/**
+	 * Sleep according to the specified recovery interval.
+	 * Called between recovery attempts.
+	 */
+	protected void sleepBeforeRecoveryAttempt() {
+		if (this.recoveryInterval > 0) {
+			try {
+				Thread.sleep(this.recoveryInterval);
+			}
+			catch (InterruptedException interEx) {
+				logger.debug("Thread interrupted while sleeping the recovery interval");
+			}
+		}
+	}
+
+	/**
 	 * Returns the size of the Queue specified by {@link #boundListOperations}. The queue is
 	 * represented by a Redis list. If the queue does not exist <code>0</code>
 	 * is returned. See also http://redis.io/commands/llen
@@ -242,6 +254,16 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 			try {
 				while (RedisQueueMessageDrivenEndpoint.this.active) {
 					RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
+				}
+			}
+			catch (RedisSystemException e) {
+				if (RedisQueueMessageDrivenEndpoint.this.active) {
+					RedisQueueMessageDrivenEndpoint.this.listening = false;
+					RedisQueueMessageDrivenEndpoint.this.sleepBeforeRecoveryAttempt();
+					throw e;
+				}
+				else {
+					logger.error(e);
 				}
 			}
 			finally {
