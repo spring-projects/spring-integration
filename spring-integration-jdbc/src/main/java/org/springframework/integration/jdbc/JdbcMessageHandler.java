@@ -38,7 +38,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * {@link SqlParameterSourceFactory} abstraction, the default implementation of which wraps the message so that its bean
  * properties can be referred to by name in the query string E.g.
  *
- * <pre>
+ * <pre class="code">
  * INSERT INTO FOOS (MESSAGE_ID, PAYLOAD) VALUES (:headers[id], :payload)
  * </pre>
  *
@@ -101,6 +101,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	/**
 	 * Executes the update, passing the message into the {@link SqlParameterSourceFactory}.
 	 */
+	@Override
 	protected void handleMessageInternal(Message<?> message) throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
 		List<? extends Map<String, Object>> keys = executeUpdateQuery(message, keysGenerated);

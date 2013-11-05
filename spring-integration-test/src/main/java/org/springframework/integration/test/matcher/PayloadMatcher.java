@@ -20,6 +20,7 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -29,17 +30,20 @@ import org.springframework.messaging.Message;
  * A Junit example using {@link Assert#assertThat(Object, Matcher)} could look
  * like this to test a payload value:
  * <p>
- * <pre>
- * ANY_PAYLOAD = new BigDecimal(&quot;1.123&quot;);
- * Message&lt;BigDecimal message = MessageBuilder.withPayload(ANY_PAYLOAD).build();
+ * <pre class="code">
+ * {@code
+ * ANY_PAYLOAD = new BigDecimal("1.123");
+ * Message<BigDecimal message = MessageBuilder.withPayload(ANY_PAYLOAD).build();
  * assertThat(message, hasPayload(ANY_PAYLOjAD));
+ * }
  * </pre>
+ *
  * <p>
  * An example using {@link Assert#assertThat(Object, Matcher)} delegating to
  * another {@link Matcher}.
  * <p>
- * <pre>
- * ANY_PAYLOAD = new BigDecimal(&quot;1.123&quot;);
+ * <pre class="code">
+ * ANY_PAYLOAD = new BigDecimal("1.123");
  * assertThat(message, PayloadMatcher.hasPayload(is(BigDecimal.class)));
  * assertThat(message, PayloadMatcher.hasPayload(notNullValue()));
  * assertThat(message, not((PayloadMatcher.hasPayload(is(String.class))))); *

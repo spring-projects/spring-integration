@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
@@ -43,7 +44,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.store.metadata.MetadataStore;
+import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -83,6 +84,7 @@ public class FeedInboundChannelAdapterParserTests {
 		context.destroy();
 	}
 
+
 	public void validateSuccessfulHttpConfigurationWithCustomMetadataStore() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
@@ -98,7 +100,7 @@ public class FeedInboundChannelAdapterParserTests {
 
 	@Test
 	public void validateSuccessfulNewsRetrievalWithFileUrlAndMessageHistory() throws Exception {
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "message-store.properties");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "metadata-store.properties");
 		if (persisterFile.exists()) {
 			persisterFile.delete();
 		}
@@ -117,26 +119,6 @@ public class FeedInboundChannelAdapterParserTests {
 				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(0)).countDown();
-		context.destroy();
-	}
-
-	@Test
-	public void validateSuccessfulNewsRetrievalWithFileUrlNoPersistentIdentifier() throws Exception{
-		//Test file samples.rss has 3 news items
-		latch = spy(new CountDownLatch(3));
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());
-		latch.await(5, TimeUnit.SECONDS);
-		verify(latch, times(3)).countDown();
-		context.destroy();
-
-		// since we are not deleting the persister file
-		// in this iteration no new feeds will be received and the latch will timeout
-		latch = spy(new CountDownLatch(3));
-		context = new ClassPathXmlApplicationContext(
-				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());
-		latch.await(5, TimeUnit.SECONDS);
-		verify(latch, times(3)).countDown();
 		context.destroy();
 	}
 
@@ -202,6 +184,11 @@ public class FeedInboundChannelAdapterParserTests {
 		}
 
 		public String get(String key) {
+			return null;
+		}
+
+		@Override
+		public String remove(String key) {
 			return null;
 		}
 	}

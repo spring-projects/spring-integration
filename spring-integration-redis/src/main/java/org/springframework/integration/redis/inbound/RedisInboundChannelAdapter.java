@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 the original author or authors
+ * Copyright 2007-2013 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1
  */
-@SuppressWarnings("rawtypes")
 public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
@@ -53,7 +53,6 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
-		Assert.notNull(serializer, "'serializer' must not be null");
 		this.serializer = serializer;
 	}
 
@@ -100,17 +99,16 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.container.stop();
 	}
 
-	@SuppressWarnings("unchecked")
-	private Message<?> convertMessage(String s) {
-		return this.messageConverter.toMessage(s, null);
+	private Message<?> convertMessage(Object object) {
+		return this.messageConverter.toMessage(object, null);
 	}
 
 
 	private class MessageListenerDelegate {
 
 		@SuppressWarnings("unused")
-		public void handleMessage(String s) {
-			sendMessage(convertMessage(s));
+		public void handleMessage(Object object) {
+			sendMessage(convertMessage(object));
 		}
 	}
 

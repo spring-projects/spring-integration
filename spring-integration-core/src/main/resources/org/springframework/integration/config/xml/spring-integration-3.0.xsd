@@ -2169,6 +2169,15 @@
 			<xsd:complexContent>
 				<xsd:extension base="specialized-transformer-type">
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+					<xsd:attribute name="flatten" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies if the result Map of Maps should be transformed further to flat keys of
+								object's property paths.
+								Default is 'true'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

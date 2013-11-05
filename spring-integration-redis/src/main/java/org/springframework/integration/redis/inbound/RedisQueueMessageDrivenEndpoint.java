@@ -15,10 +15,12 @@
  */
 package org.springframework.integration.redis.inbound;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,7 +29,9 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.redis.event.RedisExceptionEvent;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -44,21 +48,27 @@ import org.springframework.util.Assert;
  * @since 3.0
  */
 @ManagedResource
-public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
+public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport implements ApplicationEventPublisherAware {
 
 	public static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
 
+	public static final long DEFAULT_RECOVERY_INTERVAL = 5000;
+
 	private final BoundListOperations<String, byte[]> boundListOperations;
 
-	private MessageChannel errorChannel;
+	private volatile ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile TaskExecutor taskExecutor;
+	private volatile MessageChannel errorChannel;
+
+	private volatile Executor taskExecutor;
 
 	private volatile RedisSerializer<?> serializer = new JdkSerializationRedisSerializer();
 
 	private volatile boolean expectMessage = false;
 
 	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
+
+	private volatile long recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private volatile boolean active;
 
@@ -77,6 +87,11 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
 		this.boundListOperations = template.boundListOps(queueName);
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
@@ -117,7 +132,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
+	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 
@@ -125,6 +140,10 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 	public void setErrorChannel(MessageChannel errorChannel) {
 		super.setErrorChannel(errorChannel);
 		this.errorChannel = errorChannel;
+	}
+
+	public void setRecoveryInterval(long recoveryInterval) {
+		this.recoveryInterval = recoveryInterval;
 	}
 
 	@Override
@@ -138,7 +157,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-") + this.getComponentType());
 		}
 		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
-			MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
+			MessagePublishingErrorHandler errorHandler =
+					new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(this.getBeanFactory()));
 			errorHandler.setDefaultErrorChannel(this.errorChannel);
 			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
 		}
@@ -146,14 +166,24 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 
 	@Override
 	public String getComponentType() {
-		return "int-redis:message-driven-channel-adapter";
+		return "redis:queue-inbound-channel-adapter";
 	}
 
 	@SuppressWarnings("unchecked")
 	private void popMessageAndSend() {
 		Message<Object> message = null;
 
-		byte[] value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+		byte[] value = null;
+		try {
+			value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+		}
+		catch (Exception e) {
+			logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval + " milliseconds.", e);
+			this.listening = false;
+			this.sleepBeforeRecoveryAttempt();
+			this.publishException(e);
+			return;
+		}
 
 		if (value != null) {
 			if (this.expectMessage) {
@@ -183,6 +213,32 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 		if (!this.active) {
 			this.active = true;
 			this.restart();
+		}
+	}
+
+	/**
+	 * Sleep according to the specified recovery interval.
+	 * Called between recovery attempts.
+	 */
+	private void sleepBeforeRecoveryAttempt() {
+		if (this.recoveryInterval > 0) {
+			try {
+				Thread.sleep(this.recoveryInterval);
+			}
+			catch (InterruptedException e) {
+				logger.debug("Thread interrupted while sleeping the recovery interval");
+			}
+		}
+	}
+
+	private void publishException(Exception e) {
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new RedisExceptionEvent(this, e));
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("No application event publisher for exception: " + e.getMessage());
+			}
 		}
 	}
 

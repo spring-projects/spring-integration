@@ -43,7 +43,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler imp
 
 	private final Expression queueNameExpression;
 
-	private EvaluationContext evaluationContext;
+	private volatile EvaluationContext evaluationContext;
 
 	private volatile boolean extractPayload = true;
 
@@ -84,7 +84,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler imp
 
 	@Override
 	public String getComponentType() {
-		return "int-redis:outbound-channel-adapter";
+		return "redis:outbound-channel-adapter";
 	}
 
 	@Override

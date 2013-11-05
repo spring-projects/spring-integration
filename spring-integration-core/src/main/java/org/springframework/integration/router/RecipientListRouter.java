@@ -27,11 +27,13 @@ import org.springframework.integration.core.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
- * <pre>
- * &lt;recipient-list-router id="simpleRouter" input-channel="routingChannelA"&gt;
- *     &lt;recipient channel="channel1"/&gt;
- *     &lt;recipient channel="channel2"/&gt;
- * &lt;/recipient-list-router&gt;
+ * <pre class="code">
+ * {@code
+ * <recipient-list-router id="simpleRouter" input-channel="routingChannelA">
+ *     <recipient channel="channel1"/>
+ *     <recipient channel="channel2"/>
+ * </recipient-list-router>
+ * }
  * </pre>
  * <p>
  * A Message Router that sends Messages to a list of recipient channels. The

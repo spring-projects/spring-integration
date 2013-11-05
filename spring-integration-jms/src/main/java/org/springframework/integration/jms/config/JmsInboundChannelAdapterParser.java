@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,15 @@ package org.springframework.integration.jms.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;inbound-channel-adapter/&gt; element of the 'jms' namespace. 
- * 
+ * Parser for the &lt;inbound-channel-adapter/&gt; element of the 'jms' namespace.
+ *
  * @author Mark Fisher
  */
 public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -87,9 +84,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
-		BeanDefinition beanDefinition = builder.getBeanDefinition();
-		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
-		return new BeanComponentDefinition(beanDefinition, beanName);
+		return builder.getBeanDefinition();
 	}
 
 }

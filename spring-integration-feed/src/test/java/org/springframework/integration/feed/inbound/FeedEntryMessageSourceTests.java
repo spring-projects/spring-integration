@@ -25,8 +25,9 @@ import java.net.URL;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
 import org.springframework.messaging.Message;
-import org.springframework.integration.store.metadata.PropertiesPersistingMetadataStore;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.fetcher.FeedFetcher;
@@ -52,14 +53,14 @@ public class FeedEntryMessageSourceTests {
 	@Test(expected=IllegalArgumentException.class)
 	public void testFailureWhenNotInitialized() throws Exception {
 		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url);
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo");
 		feedEntrySource.receive();
 	}
 
 	@Test
 	public void testReceiveFeedWithNoEntries() throws Exception {
 		URL url = new URL("file:src/test/java/org/springframework/integration/feed/empty.rss");
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, this.feedFetcher);
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.afterPropertiesSet();
 		assertNull(feedEntrySource.receive());
@@ -68,7 +69,7 @@ public class FeedEntryMessageSourceTests {
 	@Test
 	public void testReceiveFeedWithEntriesSorted() throws Exception {
 		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
-		FeedEntryMessageSource source = new FeedEntryMessageSource(url, this.feedFetcher);
+		FeedEntryMessageSource source = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		source.setComponentName("feedReader");
 		source.afterPropertiesSet();
 		Message<SyndEntry> message1 = source.receive();
@@ -87,7 +88,7 @@ public class FeedEntryMessageSourceTests {
 	@Test
 	public void testReceiveFeedWithRealEntriesAndRepeatWithPersistentMetadataStore() throws Exception {
 		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, this.feedFetcher);
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
@@ -111,7 +112,7 @@ public class FeedEntryMessageSourceTests {
 		metadataStore.afterPropertiesSet();
 
 		// now test that what's been read is no longer retrieved
-		feedEntrySource = new FeedEntryMessageSource(url, this.feedFetcher);
+		feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.afterPropertiesSet();
@@ -127,7 +128,7 @@ public class FeedEntryMessageSourceTests {
 	@Test
 	public void testReceiveFeedWithRealEntriesAndRepeatNoPersistentMetadataStore() throws Exception {
 		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
-		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, this.feedFetcher);
+		FeedEntryMessageSource feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.afterPropertiesSet();
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
@@ -146,7 +147,7 @@ public class FeedEntryMessageSourceTests {
 
 		// UNLIKE the previous test
 		// now test that what's been read is read AGAIN
-		feedEntrySource = new FeedEntryMessageSource(url, this.feedFetcher);
+		feedEntrySource = new FeedEntryMessageSource(url, "foo", this.feedFetcher);
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.afterPropertiesSet();
 		entry1 = feedEntrySource.receive().getPayload();

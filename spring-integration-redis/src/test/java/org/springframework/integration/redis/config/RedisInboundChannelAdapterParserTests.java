@@ -17,6 +17,8 @@
 package org.springframework.integration.redis.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
@@ -68,6 +70,10 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
+
+		Object bean = context.getBean("withoutSerializer.adapter");
+		assertNotNull(bean);
+		assertNull(TestUtils.getPropertyValue(bean, "serializer"));
 	}
 
 	@Test

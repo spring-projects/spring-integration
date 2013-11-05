@@ -33,7 +33,7 @@ import org.hamcrest.core.IsEqual;
  * It is possible to match a single entry by value or matcher like this:
  * </p>
  *
- * <pre>
+ * <pre class="code">
  * assertThat(map, hasEntry(SOME_KEY, is(SOME_VALUE)));
  * assertThat(map, hasEntry(SOME_KEY, is(String.class)));
  * assertThat(map, hasEntry(SOME_KEY, notNullValue()));
@@ -43,16 +43,18 @@ import org.hamcrest.core.IsEqual;
  * It's also possible to match multiple entries in a map:
  * </p>
  *
- * <pre>
- * Map&lt;String, Object&gt; expectedInMap = new HashMap&lt;String, Object&gt;();
+ * <pre class="code">
+ * {@code
+ * Map<String, Object> expectedInMap = new HashMap<String, Object>();
  * expectedInMap.put(SOME_KEY, SOME_VALUE);
  * expectedInMap.put(OTHER_KEY, is(OTHER_VALUE));
  * assertThat(map, hasAllEntries(expectedInMap));
+ * }
  * </pre>
  *
  * <p>If you only need to verify the existence of a key:</p>
  *
- * <pre>
+ * <pre class="code">
  * assertThat(map, hasKey(SOME_KEY));
  * </pre>
  *

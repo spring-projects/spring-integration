@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.integration.file.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -27,7 +28,6 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.locking.NioFileLocker;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;inbound-channel-adapter&gt; element of the 'file' namespace.
@@ -53,9 +53,8 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 			builder.addPropertyReference("locker", lockerBeanName);
 		}
 		builder.addPropertyReference("filter", filterBeanName);
-		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
-		return new RuntimeBeanReference(beanName);
+
+		return builder.getBeanDefinition();
 	}
 
 	private String registerLocker(Element element, ParserContext parserContext) {

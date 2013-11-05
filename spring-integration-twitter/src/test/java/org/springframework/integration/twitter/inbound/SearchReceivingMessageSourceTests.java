@@ -34,9 +34,9 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.messaging.Message;
-import org.springframework.integration.store.metadata.SimpleMetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
 import org.springframework.social.twitter.api.SearchMetadata;
 import org.springframework.social.twitter.api.SearchOperations;
 import org.springframework.social.twitter.api.SearchResults;
@@ -66,7 +66,7 @@ public class SearchReceivingMessageSourceTests {
 										               prop.getProperty("z_oleg.oauth.consumerSecret"),
 										               prop.getProperty("z_oleg.oauth.accessToken"),
 										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
-		SearchReceivingMessageSource tSource = new SearchReceivingMessageSource(template);
+		SearchReceivingMessageSource tSource = new SearchReceivingMessageSource(template, "foo");
 		tSource.setQuery(SEARCH_QUERY);
 		tSource.afterPropertiesSet();
 		for (int i = 0; i < 50; i++) {
@@ -84,14 +84,14 @@ public class SearchReceivingMessageSourceTests {
 	@Test
 	public void testSearchReceivingMessageSourceInit() {
 
-		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(new TwitterTemplate("test"));
+		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(new TwitterTemplate("test"), "foo");
 		messageSource.setComponentName("twitterSearchMessageSource");
 
 		final Object metadataStore = TestUtils.getPropertyValue(messageSource, "metadataStore");
 		final Object metadataKey = TestUtils.getPropertyValue(messageSource, "metadataKey");
 
 		assertNull(metadataStore);
-		assertNull(metadataKey);
+		assertNotNull(metadataKey);
 
 		messageSource.afterPropertiesSet();
 
@@ -101,7 +101,7 @@ public class SearchReceivingMessageSourceTests {
 		assertNotNull(metadataStoreInitialized);
 		assertTrue(metadataStoreInitialized instanceof SimpleMetadataStore);
 		assertNotNull(metadataKeyInitialized);
-		assertEquals("twitter:search-inbound-channel-adapter.twitterSearchMessageSource", metadataKeyInitialized);
+		assertEquals("foo", metadataKeyInitialized);
 
 		final Twitter twitter = TestUtils.getPropertyValue(messageSource, "twitter", Twitter.class);
 
@@ -123,7 +123,7 @@ public class SearchReceivingMessageSourceTests {
 		when(twitterTemplate.searchOperations()).thenReturn(so);
 		when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 20, 0, 0)).thenReturn(null);
 
-		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
+		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate, "foo");
 		messageSource.setQuery(SEARCH_QUERY);
 
 		final String setQuery = TestUtils.getPropertyValue(messageSource, "query", String.class);
@@ -165,7 +165,7 @@ public class SearchReceivingMessageSourceTests {
 		SearchParameters params = new SearchParameters(SEARCH_QUERY).count(20).sinceId(0);
 		when(twitterTemplate.searchOperations().search(params)).thenReturn(results);
 
-		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
+		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate, "foo");
 
 		messageSource.setQuery(SEARCH_QUERY);
 

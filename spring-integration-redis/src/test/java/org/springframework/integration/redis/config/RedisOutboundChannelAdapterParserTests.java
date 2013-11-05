@@ -25,15 +25,17 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
+import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -59,7 +61,9 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 				new DirectFieldAccessor(adapter).getPropertyValue("handler");
 		assertEquals("outboundAdapter", adapter.getComponentName());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
-		assertEquals("foo", accessor.getPropertyValue("defaultTopic"));
+		Object topicExpression = accessor.getPropertyValue("topicExpression");
+		assertNotNull(topicExpression);
+		assertEquals("headers['topic'] ?: 'foo'", ((Expression) topicExpression).getExpressionString());
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
@@ -72,6 +76,13 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 		sendChannel.send(new GenericMessage<String>("Hello Redis"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		Message<?> message = receiveChannel.receive(5000);
+		assertNotNull(message);
+		assertEquals("Hello Redis", message.getPayload());
+
+		sendChannel = context.getBean("sendChannel", MessageChannel.class);
+		sendChannel.send(MessageBuilder.withPayload("Hello Redis").setHeader("topic", "bar").build());
+		receiveChannel = context.getBean("barChannel", QueueChannel.class);
+		message = receiveChannel.receive(5000);
 		assertNotNull(message);
 		assertEquals("Hello Redis", message.getPayload());
 	}

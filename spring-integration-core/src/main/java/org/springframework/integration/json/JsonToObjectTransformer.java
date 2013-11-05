@@ -17,6 +17,7 @@
 package org.springframework.integration.json;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.JacksonJsonObjectMapper;
 import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;

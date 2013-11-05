@@ -29,7 +29,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.JavaType;
 
-import org.springframework.integration.json.JsonHeaders;
+import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
 
 /**

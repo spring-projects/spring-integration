@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.redis.rules;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.UUID;
 
 import org.junit.Rule;
@@ -28,6 +30,8 @@ import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -40,7 +44,7 @@ public class RedisAvailableTests {
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
-	public RedisConnectionFactory getConnectionFactoryForTest(){
+	protected RedisConnectionFactory getConnectionFactoryForTest(){
 		LettuceConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
 		RedisTemplate<UUID, Object> rt = new RedisTemplate<UUID, Object>();
 		rt.setConnectionFactory(connectionFactory);
@@ -54,6 +58,17 @@ public class RedisAvailableTests {
 			}
 		});
 		return connectionFactory;
+	}
+
+	protected void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
+		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
+				RedisConnection.class);
+
+		int n = 0;
+		while (n++ < 100 && !connection.isSubscribed()) {
+			Thread.sleep(100);
+		}
+		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
 	}
 
 	protected void prepareList(RedisConnectionFactory connectionFactory){

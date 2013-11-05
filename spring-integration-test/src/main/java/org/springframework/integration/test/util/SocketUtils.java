@@ -47,7 +47,7 @@ public final class SocketUtils {
 	 * the need to use the methods of this class multiple times from within your
 	 * Spring Application Context XML file using SpEL. Of course you can do:
 	 *
-	 * <pre>
+	 * <pre class="code">
 	 * {@code
 	 * ...port="#{T(org.springframework.integration.test.util.SocketUtils).findAvailableServerSocket(12000)}"
 	 * }
@@ -57,7 +57,7 @@ public final class SocketUtils {
 	 * This will be acceptable for single use, but if you need to invoke the
 	 * methods numerous time, you may instead want to do this:
 	 *
-	 * <pre>
+	 * <pre class="code">
 	 * {@code
 	 * <bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
 	 *

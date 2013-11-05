@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -62,9 +60,8 @@ public class RedisStoreInboundChannelAdapterParser extends AbstractPollingInboun
 						parserContext, element, atLeastOneRequired);
 		builder.addConstructorArgValue(expressionDef);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "collection-type");
-		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
-		return new RuntimeBeanReference(beanName);
+
+		return builder.getBeanDefinition();
 	}
 
 }

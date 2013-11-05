@@ -30,8 +30,8 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.store.metadata.MetadataStore;
-import org.springframework.integration.store.metadata.SimpleMetadataStore;
+import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -52,6 +52,7 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
  * @author Josh Long
  * @author Mario Gray
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
@@ -62,7 +63,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
 
-	private volatile String metadataKey;
+	private final String metadataKey;
 
 	private volatile MetadataStore metadataStore;
 
@@ -82,17 +83,19 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	 * If the feed URL has a protocol other than http*, consider providing a custom implementation of the
 	 * {@link FeedFetcher} via the alternate constructor.
 	 */
-	public FeedEntryMessageSource(URL feedUrl) {
-		this(feedUrl, new HttpURLFeedFetcher(HashMapFeedInfoCache.getInstance()));
+	public FeedEntryMessageSource(URL feedUrl, String metadataKey) {
+		this(feedUrl, metadataKey, new HttpURLFeedFetcher(HashMapFeedInfoCache.getInstance()));
 	}
 
 	/**
 	 * Creates a FeedEntryMessageSource that will use the provided FeedFetcher to read from the given feed URL.
 	 */
-	public FeedEntryMessageSource(URL feedUrl, FeedFetcher feedFetcher) {
+	public FeedEntryMessageSource(URL feedUrl, String metadataKey, FeedFetcher feedFetcher) {
 		Assert.notNull(feedUrl, "feedUrl must not be null");
+		Assert.notNull(metadataKey, "metadataKey must not be null");
 		Assert.notNull(feedFetcher, "feedFetcher must not be null");
 		this.feedUrl = feedUrl;
+		this.metadataKey = metadataKey + "." + this.feedUrl;
 		this.feedFetcher = feedFetcher;
 	}
 
@@ -130,18 +133,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 				this.metadataStore = new SimpleMetadataStore();
 			}
 		}
-		StringBuilder metadataKeyBuilder = new StringBuilder();
-		if (StringUtils.hasText(this.getComponentType())) {
-			metadataKeyBuilder.append(this.getComponentType() + ".");
-		}
-		if (StringUtils.hasText(this.getComponentName())) {
-			metadataKeyBuilder.append(this.getComponentName() + ".");
-		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("FeedEntryMessageSource has no name. MetadataStore key might not be unique.");
-		}
-		metadataKeyBuilder.append(this.feedUrl);
-		this.metadataKey = metadataKeyBuilder.toString();
+
 		String lastTimeValue = this.metadataStore.get(this.metadataKey);
 		if (StringUtils.hasText(lastTimeValue)) {
 			this.lastTime = Long.parseLong(lastTimeValue);
@@ -237,6 +229,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 			}
 			return (date2 == null) ? 1 : 0;
 		}
+
 	}
 
 
@@ -258,6 +251,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 				}
 			}
 		}
+
 	}
 
 }

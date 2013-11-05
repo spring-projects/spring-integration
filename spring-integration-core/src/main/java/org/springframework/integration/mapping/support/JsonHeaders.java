@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.json;
+package org.springframework.integration.mapping.support;
 
 import java.util.Arrays;
 import java.util.Collection;

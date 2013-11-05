@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.hamcrest.Matcher;
 import org.mockito.Mockito;
+
 import org.springframework.messaging.Message;
 
 /**
@@ -38,22 +39,26 @@ import org.springframework.messaging.Message;
  * With {@link Mockito#verify(Object)}:
  * </p>
  *
- * <pre>
+ * <pre class="code">
+ * {@code
  * &#064;Mock
  * MessageHandler handler;
  * ...
  * handler.handleMessage(message);
  * verify(handler).handleMessage(messageWithPayload(SOME_PAYLOAD));
  * verify(handler).handleMessage(messageWithPayload(is(SOME_CLASS)));
+ * }
  * </pre>
  * <p>
  * With {@link Mockito#when(Object)}:
  * </p>
  *
- * <pre>
+ * <pre class="code">
+ * {@code
  * ...
  * when(channel.send(messageWithPayload(SOME_PAYLOAD))).thenReturn(true);
  * assertThat(channel.send(message), is(true));
+ * }
  * </pre>
  *
  * @author Alex Peters
@@ -64,12 +69,12 @@ public class MockitoMessageMatchers {
 
 	@SuppressWarnings("unchecked")
 	public static <T> Message<T> messageWithPayload(Matcher<T> payloadMatcher) {
-		return (Message<T>) argThat(hasPayload(payloadMatcher));
+		return argThat(hasPayload(payloadMatcher));
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> Message<T> messageWithPayload(T payload) {
-		return (Message<T>) argThat(hasPayload(payload));
+		return argThat(hasPayload(payload));
 	}
 
 	public static Message<?> messageWithHeaderEntry(String key, Object value) {
