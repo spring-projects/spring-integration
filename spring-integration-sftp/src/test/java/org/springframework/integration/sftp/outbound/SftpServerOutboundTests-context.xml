@@ -77,4 +77,19 @@
 		</bean>
 	</beans>
 
+	<beans profile="realSSHSharedSession">
+		<bean id="ftpSessionFactory" 
+				class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+			<constructor-arg>
+				<bean
+			  		class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+					<constructor-arg value="true"/>
+					<property name="host" value="localhost"/>
+					<property name="user" value="ftptest"/>
+					<property name="password" value="ftptest"/>
+				</bean>
+			</constructor-arg>
+		</bean>
+	</beans>
+
 </beans>

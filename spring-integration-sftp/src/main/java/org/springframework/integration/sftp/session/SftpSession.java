@@ -220,8 +220,8 @@ class SftpSession implements Session<LsEntry> {
 		try {
 			if (!this.jschSession.isConnected()) {
 				this.jschSession.connect();
-				this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 			}
+			this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 			if (this.channel != null && !this.channel.isConnected()) {
 				this.channel.connect();
 			}
@@ -230,4 +230,5 @@ class SftpSession implements Session<LsEntry> {
 			throw new IllegalStateException("failed to connect", e);
 		}
 	}
+
 }

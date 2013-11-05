@@ -17,15 +17,19 @@
 package org.springframework.integration.sftp.outbound;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +40,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -52,16 +57,20 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpATTRS;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class SftpOutboundTests {
 
@@ -204,6 +213,69 @@ public class SftpOutboundTests {
 		assertEquals("/foo", madeDirs.get(0));
 		assertEquals("/foo/bar", madeDirs.get(1));
 		assertEquals("/foo/bar/baz", madeDirs.get(2));
+	}
+
+	@Test
+	public void testSharedSession() throws Exception {
+		JSch jsch = spy(new JSch());
+		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class);
+		ctor.setAccessible(true);
+		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch));
+		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch));
+		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
+		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
+		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
+		ChannelSftp channel1 = spy(new ChannelSftp());
+		ChannelSftp channel2 = spy(new ChannelSftp());
+		new DirectFieldAccessor(channel1).setPropertyValue("session", jschSession1);
+		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
+		when(jschSession1.openChannel("sftp")).thenReturn(channel1, channel2);
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, true);
+		factory.setHost("host");
+		factory.setUser("foo");
+		factory.setPassword("bar");
+		noopConnect(channel1);
+		noopConnect(channel2);
+		Session<LsEntry> s1 = factory.getSession();
+		Session<LsEntry> s2 = factory.getSession();
+		assertSame(TestUtils.getPropertyValue(s1, "jschSession"), TestUtils.getPropertyValue(s2, "jschSession"));
+	}
+
+	@Test
+	public void testNotSharedSession() throws Exception {
+		JSch jsch = spy(new JSch());
+		Constructor<com.jcraft.jsch.Session> ctor = com.jcraft.jsch.Session.class.getDeclaredConstructor(JSch.class);
+		ctor.setAccessible(true);
+		com.jcraft.jsch.Session jschSession1 = spy(ctor.newInstance(jsch));
+		com.jcraft.jsch.Session jschSession2 = spy(ctor.newInstance(jsch));
+		new DirectFieldAccessor(jschSession1).setPropertyValue("isConnected", true);
+		new DirectFieldAccessor(jschSession2).setPropertyValue("isConnected", true);
+		when(jsch.getSession("foo", "host", 22)).thenReturn(jschSession1, jschSession2);
+		ChannelSftp channel1 = spy(new ChannelSftp());
+		ChannelSftp channel2 = spy(new ChannelSftp());
+		new DirectFieldAccessor(channel1).setPropertyValue("session", jschSession1);
+		new DirectFieldAccessor(channel2).setPropertyValue("session", jschSession1);
+		when(jschSession1.openChannel("sftp")).thenReturn(channel1);
+		when(jschSession2.openChannel("sftp")).thenReturn(channel2);
+		DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(jsch, false);
+		factory.setHost("host");
+		factory.setUser("foo");
+		factory.setPassword("bar");
+		noopConnect(channel1);
+		noopConnect(channel2);
+		Session<LsEntry> s1 = factory.getSession();
+		Session<LsEntry> s2 = factory.getSession();
+		assertNotSame(TestUtils.getPropertyValue(s1, "jschSession"), TestUtils.getPropertyValue(s2, "jschSession"));
+	}
+
+	private void noopConnect(ChannelSftp channel1) throws JSchException {
+		doAnswer(new Answer<Object>() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return null;
+			}
+		}).when(channel1).connect();
 	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {

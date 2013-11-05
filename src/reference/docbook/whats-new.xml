@@ -243,6 +243,11 @@
 			    For more information, see
 			    <xref linkend="ftp-session-caching"/> and <xref linkend="sftp-session-caching"/>.
 			</para>
+			<para>
+				The <classname>DefaultSftpSessionFactory</classname> (in conjunction with a
+				<classname>CachingSessionFactory</classname>) now supports multiplexing channels over
+				a single SSH connection (SFTP Only).
+			</para>
 		</section>
 		<section id="3.0-xFTP-ib">
 			<title>FTP, SFTP and FTPS Inbound Adapters</title>

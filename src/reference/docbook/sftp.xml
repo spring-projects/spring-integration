@@ -59,6 +59,24 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		However, Spring Integration also supports the caching of SFTP
 		sessions, please see <xref linkend="sftp-session-caching"/> for more information.
 	</para>
+	<important>
+		<para>
+			JSch supports multiple channels (operations) over a connection to the server. By default,
+			the Spring Integration session factory uses a separate physical connection for each channel.
+			Since <emphasis>Spring Integration 3.0</emphasis>, you can now configure the session factory
+			(using a boolean constructor arg - default <code>false</code>) to use a single connection
+			to the server and create multiple <code>JSch</code> channels on that single connection.
+		</para>
+		<para>
+			When using this feature, you must wrap the session factory in a caching session
+			factory, as described below, so that the connection is not physically closed when
+			an operation completes.
+		</para>
+		<para>
+			The connection will be refreshed if it is found to be disconnected when a new operation
+			obtains a session.
+		</para>
+	</important>
 	<note>
 		If you experience connectivity problems and would like to trace Session
 		creation as well as see which Sessions are polled you may enable it by
@@ -78,6 +96,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			<para>
 				Below you will find all properties that are exposed by the
 				<classname><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html">DefaultSftpSessionFactory</ulink></classname>.
+			</para>
+			<para><emphasis role="bold">isSharedSession (constructor argument)</emphasis></para>
+			<para>
+				When true, a single connection will be used and <code>JSch Channels</code> will be multiplexed.
+				Defaults to false.
 			</para>
 			<para><emphasis role="bold">clientVersion</emphasis></para>
 			<para>

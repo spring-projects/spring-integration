@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.sftp.session;
 
 import java.util.Properties;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
@@ -39,6 +40,7 @@ import com.jcraft.jsch.UserInfo;
  * @author Mario Gray
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  *
  * @since 2.0
  */
@@ -76,9 +78,35 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 
 	private volatile Boolean enableDaemonThread;
 
+	private final JSch jsch;
 
-	private final JSch jsch = new JSch();
+	private final boolean isSharedSession;
 
+	private volatile com.jcraft.jsch.Session sharedJschSession;
+
+	private final ReentrantReadWriteLock sharedSessionLock = new ReentrantReadWriteLock();
+
+
+	public DefaultSftpSessionFactory() {
+		this(false);
+	}
+
+	/**
+	 * @param isSharedSession
+	 */
+	public DefaultSftpSessionFactory(boolean isSharedSession) {
+		this(new JSch(), isSharedSession);
+	}
+
+	/**
+	 * Intended for use in tests so the jsch can be mocked.
+	 * @param jsch
+	 * @param isSharedSession
+	 */
+	public DefaultSftpSessionFactory(JSch jsch, boolean isSharedSession) {
+		this.jsch = jsch;
+		this.isSharedSession = isSharedSession;
+	}
 
 	/**
 	 * The url of the host you want connect to. This is a mandatory property.
@@ -257,7 +285,33 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 		Assert.isTrue(StringUtils.hasText(this.password) || this.privateKey != null,
 				"either a password or a private key is required");
 		try {
-			com.jcraft.jsch.Session jschSession = this.initJschSession();
+			com.jcraft.jsch.Session jschSession;
+			if (this.isSharedSession) {
+				this.sharedSessionLock.readLock().lock();
+				boolean readLocked = true;
+				try {
+					if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
+						this.sharedSessionLock.readLock().unlock();
+						readLocked = false;
+						this.sharedSessionLock.writeLock().lock();
+						if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
+							this.sharedJschSession = initJschSession();
+						}
+					}
+				}
+				finally {
+					if (readLocked) {
+						this.sharedSessionLock.readLock().unlock();
+					}
+					else {
+						this.sharedSessionLock.writeLock().unlock();
+					}
+				}
+				jschSession = this.sharedJschSession;
+			}
+			else {
+				jschSession = this.initJschSession();
+			}
 			SftpSession sftpSession = new SftpSession(jschSession);
 			sftpSession.connect();
 			return sftpSession;
