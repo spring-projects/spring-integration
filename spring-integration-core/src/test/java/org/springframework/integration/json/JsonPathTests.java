@@ -39,11 +39,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -208,7 +208,7 @@ public class JsonPathTests {
 	public static class JsonPathTestsContextConfiguration {
 
 		@Bean
-		public Filter jsonPathFilter() {
+		public Filter<?> jsonPathFilter() {
 			return  Filter.filter(Criteria.where("isbn").exists(true).and("category").ne("fiction"));
 		}
 

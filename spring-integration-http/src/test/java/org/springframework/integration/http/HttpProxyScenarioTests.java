@@ -111,7 +111,7 @@ public class HttpProxyScenarioTests {
 			public ResponseEntity<?> answer(InvocationOnMock invocation) throws Throwable {
 				URI uri = (URI) invocation.getArguments()[0];
 				assertEquals(new URI("http://testServer/test?foo=bar&FOO=BAR"), uri);
-				HttpEntity<?> httpEntity = (HttpEntity) invocation.getArguments()[2];
+				HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 				HttpHeaders httpHeaders = httpEntity.getHeaders();
 				assertEquals(ifModifiedSince, httpHeaders.getIfNotModifiedSince());
 				assertEquals(ifUnmodifiedSinceValue, httpHeaders.getFirst("If-Unmodified-Since"));
