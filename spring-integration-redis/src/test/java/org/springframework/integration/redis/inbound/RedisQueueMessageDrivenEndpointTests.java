@@ -32,6 +32,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -199,11 +200,10 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testInt3196Recovery() throws Exception {
 		String queueName = "test.si.Int3196Recovery";
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 		QueueChannel channel = new QueueChannel();
 		PollableChannel errorChannel = new QueueChannel();
 
-		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, connectionFactory);
+		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
 		endpoint.setErrorChannel(errorChannel);
@@ -214,13 +214,13 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		Thread.sleep(100);
 
-		((DisposableBean) connectionFactory).destroy();
+		((DisposableBean) this.connectionFactory).destroy();
 
 		Message<?> receive = errorChannel.receive(1000);
 		assertNotNull(receive);
-		assertThat(receive.getPayload(), Matchers.instanceOf(RedisSystemException.class));
+		assertThat(receive.getPayload(), Matchers.anyOf(Matchers.instanceOf(RedisConnectionFailureException.class), Matchers.instanceOf(RedisSystemException.class)));
 
-		((InitializingBean) connectionFactory).afterPropertiesSet();
+		((InitializingBean) this.connectionFactory).afterPropertiesSet();
 
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);

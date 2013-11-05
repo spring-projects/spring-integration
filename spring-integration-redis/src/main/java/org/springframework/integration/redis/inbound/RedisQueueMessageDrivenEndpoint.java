@@ -19,6 +19,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.dao.NonTransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundListOperations;
@@ -214,12 +216,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 	 * Sleep according to the specified recovery interval.
 	 * Called between recovery attempts.
 	 */
-	protected void sleepBeforeRecoveryAttempt() {
+	private void sleepBeforeRecoveryAttempt() {
 		if (this.recoveryInterval > 0) {
 			try {
 				Thread.sleep(this.recoveryInterval);
 			}
-			catch (InterruptedException interEx) {
+			catch (InterruptedException e) {
 				logger.debug("Thread interrupted while sleeping the recovery interval");
 			}
 		}
@@ -256,10 +258,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 					RedisQueueMessageDrivenEndpoint.this.popMessageAndSend();
 				}
 			}
-			catch (RedisSystemException e) {
+			catch (NonTransientDataAccessException e) {
 				if (RedisQueueMessageDrivenEndpoint.this.active) {
-					RedisQueueMessageDrivenEndpoint.this.listening = false;
-					RedisQueueMessageDrivenEndpoint.this.sleepBeforeRecoveryAttempt();
+					if (e instanceof RedisConnectionFailureException || e instanceof RedisSystemException) {
+						RedisQueueMessageDrivenEndpoint.this.listening = false;
+						RedisQueueMessageDrivenEndpoint.this.sleepBeforeRecoveryAttempt();
+					}
 					throw e;
 				}
 				else {
