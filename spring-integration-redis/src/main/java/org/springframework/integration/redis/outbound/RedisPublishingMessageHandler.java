@@ -21,15 +21,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -40,14 +39,13 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 
 	private final RedisTemplate<?, ?> template;
 
+	private EvaluationContext evaluationContext;
+
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
-	private volatile String defaultTopic;
+	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
 	private volatile Expression topicExpression;
-
-	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
-	private EvaluationContext evaluationContext;
 
 	public RedisPublishingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -72,37 +70,29 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 		this.messageConverter = messageConverter;
 	}
 
+	/**
+	 * @deprecated in favor of {@code #setTopicExpression}
+	 */
+	@Deprecated
 	public void setDefaultTopic(String defaultTopic) {
-		this.defaultTopic = defaultTopic;
+		Assert.hasText(defaultTopic, "'defaultTopic' must not be empty string.");
+		this.setTopicExpression(new LiteralExpression(defaultTopic));
 	}
 
 	public void setTopicExpression(Expression topicExpression) {
+		Assert.notNull(topicExpression, "'topicExpression' must not be null.");
 		this.topicExpression = topicExpression;
 	}
 
-	private String determineTopic(Message<?> message) {
-		if (this.topicExpression != null) {
-			try {
-				String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
-				if (StringUtils.hasText(topic)) {
-					return topic;
-				}
-			}
-			catch (EvaluationException e) {
-				// fallback to 'defaultTopic'
-			}
-
-		}
-
-		Assert.hasText(this.defaultTopic, "Failed to determine Redis topic " +
-				"from Message, and no defaultTopic has been provided.");
-		return this.defaultTopic;
+	@Override
+	protected void onInit() throws Exception {
+		Assert.notNull(topicExpression, "'topicExpression' must not be null.");
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		String topic = this.determineTopic(message);
+		String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 		Object value = this.messageConverter.fromMessage(message);
 
 		if (value instanceof byte[]) {

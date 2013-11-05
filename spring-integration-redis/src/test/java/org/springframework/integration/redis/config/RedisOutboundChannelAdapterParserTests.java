@@ -62,10 +62,9 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
 				new DirectFieldAccessor(adapter).getPropertyValue("handler");
 		assertEquals("outboundAdapter", adapter.getComponentName());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
-		assertEquals("foo", accessor.getPropertyValue("defaultTopic"));
 		Object topicExpression = accessor.getPropertyValue("topicExpression");
 		assertNotNull(topicExpression);
-		assertEquals("headers.topic", ((Expression) topicExpression).getExpressionString());
+		assertEquals("headers['topic'] ?: 'foo'", ((Expression) topicExpression).getExpressionString());
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));

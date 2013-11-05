@@ -202,6 +202,7 @@
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								Specifies the Redis topic.
+								This attribute is mutually exclusive with 'topic-expression' attribute.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -209,6 +210,7 @@
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								Specifies the SpEL expression to determine Redis topic against Message at runtime.
+								This attribute is mutually exclusive with 'topic' attribute.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

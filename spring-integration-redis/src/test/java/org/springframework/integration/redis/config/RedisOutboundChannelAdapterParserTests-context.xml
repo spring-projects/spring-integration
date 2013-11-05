@@ -11,8 +11,7 @@
 
 	<int-redis:outbound-channel-adapter id="outboundAdapter"
 			channel="sendChannel"
-			topic="foo"
-			topic-expression="headers.topic"
+			topic-expression="headers['topic'] ?: 'foo'"
 			message-converter="testConverter"
 			serializer="serializer"/>
 

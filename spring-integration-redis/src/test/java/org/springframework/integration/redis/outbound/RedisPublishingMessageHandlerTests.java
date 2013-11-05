@@ -30,6 +30,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
@@ -64,7 +65,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 		this.awaitContainerSubscribed(container);
 
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
-		handler.setDefaultTopic(topic);
+		handler.setTopicExpression(new LiteralExpression(topic));
 
 		for (int i = 0; i < numToTest; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("test-" + i).build());
@@ -90,6 +91,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests {
 		public void handleMessage(String s) {
 			this.latch.countDown();
 		}
+
 	}
 
 }

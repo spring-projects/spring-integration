@@ -18,10 +18,10 @@ package org.springframework.integration.redis.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.1
  */
 public class RedisOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -44,17 +45,14 @@ public class RedisOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 			connectionFactory = "redisConnectionFactory";
 		}
 		builder.addConstructorArgReference(connectionFactory);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "topic", "defaultTopic");
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
-		String topicExpression = element.getAttribute("topic-expression");
-		if (StringUtils.hasText(topicExpression)) {
-			AbstractBeanDefinition topicExpressionDefinition =
-					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
-							.addConstructorArgValue(topicExpression)
-							.getBeanDefinition();
-			builder.addPropertyValue("topicExpression", topicExpressionDefinition);
-		}
+
+		BeanDefinition topicExpression = IntegrationNamespaceUtils
+				.createExpressionDefinitionFromValueOrExpression("topic", "topic-expression", parserContext, element, true);
+		builder.addPropertyValue("topicExpression", topicExpression);
+
 		return builder.getBeanDefinition();
 	}
 

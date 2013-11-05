@@ -187,14 +187,13 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       <para>
          Since <emphasis>Spring Integration 3.0</emphasis> <code>&lt;int-redis:outbound-channel-adapter&gt;</code>,
          alongside with <code>topic</code> attribute, has <code>topic-expression</code> attribute to determine
-         Redis topic against Message at runtime. These attributes are not mutually exclusive: if adapter can't
-		 evaluate expression or evaluation result is <code>null</code>, the adapter does fallback to <code>defaultTopic</code>, if any.
+         Redis topic against Message at runtime. These attributes are mutually exclusive.
       </para>
     </section>
     <section id="redis-queue-inbound-channel-adapter">
        <title>Redis Queue Inbound Channel Adapter</title>
        <para>
-          Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Inbound Channel Adapter 
+          Since <emphasis>Spring Integration 3.0</emphasis>, a Queue Inbound Channel Adapter
 		  is available to 'right pop' messages from a Redis List.
 		  The adapter is message-driven using an internal listener thread and does not use a poller.
 		<programlisting language="xml"><![CDATA[<int-redis:queue-inbound-channel-adapter id="" ]]><co id="redis-m-d-c-a-id"/><![CDATA[
