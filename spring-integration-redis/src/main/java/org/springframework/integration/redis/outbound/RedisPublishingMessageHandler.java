@@ -39,7 +39,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 
 	private final RedisTemplate<?, ?> template;
 
-	private EvaluationContext evaluationContext;
+	private volatile EvaluationContext evaluationContext;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
@@ -77,6 +77,11 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler implem
 	public void setDefaultTopic(String defaultTopic) {
 		Assert.hasText(defaultTopic, "'defaultTopic' must not be empty string.");
 		this.setTopicExpression(new LiteralExpression(defaultTopic));
+	}
+
+	public void setTopic(String topic) {
+		Assert.hasText(topic, "'topic' must not be empty string.");
+		this.setTopicExpression(new LiteralExpression(topic));
 	}
 
 	public void setTopicExpression(Expression topicExpression) {
