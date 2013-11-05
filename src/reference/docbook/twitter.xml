@@ -17,11 +17,11 @@
       subscribers who are known as followers.
     </para>
     <para>
-    	<important>
-    	Previous versions of Spring Integration were dependent upon the <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>,
-    	but with the release of <link linkend="http://www.springsource.org/spring-social">Spring Social 1.0 GA</link>,
-    	Spring Integration, as of version 2.1, now builds directly upon Spring Social's Twitter support, instead of Twitter4J.
-    	</important>
+		<important>
+		Versions of Spring Integration prior to 2.1 were dependent upon the <ulink url="http://twitter4j.org">Twitter4J API</ulink>,
+		but with the release of <ulink url="http://projects.spring.io/spring-social">Spring Social 1.0 GA</ulink>,
+		Spring Integration, as of version 2.1, now builds directly upon Spring Social's Twitter support, instead of Twitter4J.
+		</important>
     </para>
 
     <para>
@@ -39,9 +39,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   	<para>
   	The Twitter API allows for both authenticated and anonymous operations. For authenticated operations Twitter uses OAuth
   	- an authentication protocol that allows users to approve an application to act on their behalf without
-  	sharing their password. More information can be found at <link linkend="http://oauth.net/">http://oauth.net/</link> or
-  	in this article <link linkend="http://hueniverse.com/oauth/">http://hueniverse.com/oauth/</link> from Hueniverse.
-  	Please also see <link linkend="http://dev.twitter.com/pages/oauth_faq">OAuth FAQ</link> for more information about OAuth and Twitter.
+	sharing their password. More information can be found at <ulink url="http://oauth.net">http://oauth.net</ulink> or
+	in this article <ulink url="http://hueniverse.com/oauth">http://hueniverse.com/oauth</ulink> from Hueniverse.
+	Please also see <ulink url="http://dev.twitter.com/pages/oauth_faq">OAuth FAQ</ulink> for more information about OAuth and Twitter.
   	</para>
   	<para>
   	In order to use OAuth authentication/authorization with Twitter you must create a new Application on the Twitter Developers site.
@@ -50,7 +50,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   	<para>
   	<itemizedlist>
           <listitem>
-            <para>Go to <link linkend="http://dev.twitter.com/">http://dev.twitter.com/</link></para>
+            <para>Go to <ulink url="http://dev.twitter.com">http://dev.twitter.com</ulink></para>
           </listitem>
           <listitem>
             <para>Click on the <code>Register an app</code> link and fill out all required fields on the form provided;
@@ -121,21 +121,28 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
   	<title>Twitter Inbound Adapters</title>
   	<para>
   	Twitter inbound adapters allow you to receive Twitter Messages. There are several types of
-  	<link linkend="http://support.twitter.com/groups/31-twitter-basics/topics/109-tweets-messages/articles/119138-types-of-tweets-and-where-they-appear">twitter messages, or tweets</link>
+	<ulink url="http://support.twitter.com/articles/119138-types-of-tweets-and-where-they-appear">twitter messages, or tweets</ulink>
   	</para>
   	<para>
     <emphasis>Spring Integration version 2.0 and above</emphasis> provides support for receiving tweets as <emphasis>Timeline Updates</emphasis>,
   	<emphasis>Direct Messages</emphasis>, <emphasis>Mention Messages</emphasis> as well as Search Results.
   	</para>
-  	<para>
-  	Every Inbound Twitter Channel Adapter is a <emphasis>Polling Consumer</emphasis> which means you have to provide a poller
-  	configuration. However, there is one important thing you must understand about Twitter since its inner-workings are slightly
-  	different than other polling consumers. Twitter defines a concept of Rate Limiting. You can read more about
-  	it here: <link linkend="http://dev.twitter.com/pages/rate-limiting">Rate Limiting</link>. In a nutshell, Rate Limiting
-  	is the way Twitter manages how often an application can poll for updates. You should consider this when setting your
-    poller intervals, but we are also doing a few things to limit excessively aggressive polling within our adapters.
-  	</para>
-  	<para>
+    <important>
+      <para>
+         Every Inbound Twitter Channel Adapter is a <emphasis>Polling Consumer</emphasis> which means you have to provide a poller
+         configuration.
+         Twitter defines a concept of Rate Limiting. You can read more
+         about it here: <ulink url="https://dev.twitter.com/docs/rate-limiting/1.1">Rate Limiting</ulink>. In a nutshell,
+         Rate Limiting is a mechanism that Twitter uses to manage how often an application can poll for updates. You should consider this when
+         setting your poller intervals so that the adapter polls in compliance with the Twitter policies.
+      </para>
+      <para>
+         With Spring Integration prior to <emphasis>version 3.0</emphasis>, a hard-coded limit within the adapters was used to ensure
+         the polling interval could not be less than 15 seconds. This is no longer the case and the poller configuration is
+         applied directly.
+      </para>
+    </important>
+    <para>
   	Another issue that we need to worry about is handling duplicate Tweets. The same adapter (e.g., Search or Timeline Update)
   	while polling on Twitter may receive the same values more than once. For example if you keep searching on Twitter with the same search
   	criteria you'll end up with the same set of tweets unless some other new tweet that matches your search criteria was posted
