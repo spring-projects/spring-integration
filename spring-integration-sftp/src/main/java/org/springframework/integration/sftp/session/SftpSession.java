@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.NestedIOException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
@@ -61,6 +62,7 @@ class SftpSession implements Session<LsEntry> {
 	}
 
 
+	@Override
 	public boolean remove(String path) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
@@ -72,6 +74,7 @@ class SftpSession implements Session<LsEntry> {
 		}
 	}
 
+	@Override
 	public LsEntry[] list(String path) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
@@ -92,6 +95,7 @@ class SftpSession implements Session<LsEntry> {
 		return new LsEntry[0];
 	}
 
+	@Override
 	public String[] listNames(String path) throws IOException {
 		LsEntry[] entries = this.list(path);
 		List<String> names = new ArrayList<String>();
@@ -107,6 +111,7 @@ class SftpSession implements Session<LsEntry> {
 	}
 
 
+	@Override
 	public void read(String source, OutputStream os) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
@@ -114,10 +119,26 @@ class SftpSession implements Session<LsEntry> {
 			FileCopyUtils.copy(is, os);
 		}
 		catch (SftpException e) {
-			throw new NestedIOException("failed to read file", e);
+			throw new NestedIOException("failed to read file " + source, e);
 		}
 	}
 
+	@Override
+	public InputStream readRaw(String source) throws IOException {
+		try {
+			return this.channel.get(source);
+		}
+		catch (SftpException e) {
+			throw new NestedIOException("failed to read file " + source, e);
+		}
+	}
+
+	@Override
+	public boolean finalizeRaw() throws IOException {
+		return true;
+	}
+
+	@Override
 	public void write(InputStream inputStream, String destination) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
@@ -128,38 +149,41 @@ class SftpSession implements Session<LsEntry> {
 		}
 	}
 
+	@Override
 	public void close() {
 		if (this.jschSession.isConnected()) {
 			this.jschSession.disconnect();
 		}
 	}
 
+	@Override
 	public boolean isOpen() {
 		return this.jschSession.isConnected();
 	}
 
+	@Override
 	public void rename(String pathFrom, String pathTo) throws IOException {
-		try {	
+		try {
 			this.channel.rename(pathFrom, pathTo);
-		} 
+		}
 		catch (SftpException sftpex) {
 			if (logger.isDebugEnabled()){
-				logger.debug("Initial File rename failed, possibly because file already exists. Will attempt to delete file: " 
+				logger.debug("Initial File rename failed, possibly because file already exists. Will attempt to delete file: "
 						+ pathTo + " and execute rename again.");
 			}
-			try {			
+			try {
 				this.remove(pathTo);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Delete file: " + pathTo + " succeeded. Will attempt rename again");
-				}		
-			} 
+				}
+			}
 			catch (IOException ioex) {
 				throw new NestedIOException("Failed to delete file " + pathTo, ioex);
 			}
 			try {
 				// attempt to rename again
 				this.channel.rename(pathFrom, pathTo);
-			} 
+			}
 			catch (SftpException sftpex2) {
 				throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex2);
 			}
@@ -169,8 +193,9 @@ class SftpSession implements Session<LsEntry> {
 		}
 	}
 
+	@Override
 	public boolean mkdir(String remoteDirectory) throws IOException {
-		try {	
+		try {
 			this.channel.mkdir(remoteDirectory);
 		}
 		catch (SftpException e) {
@@ -179,6 +204,7 @@ class SftpSession implements Session<LsEntry> {
 		return true;
 	}
 
+	@Override
 	public boolean exists(String path) {
 		try {
 			this.channel.lstat(path);
@@ -189,7 +215,7 @@ class SftpSession implements Session<LsEntry> {
 		}
 		return false;
 	}
-	
+
 	void connect() {
 		try {
 			if (!this.jschSession.isConnected()) {

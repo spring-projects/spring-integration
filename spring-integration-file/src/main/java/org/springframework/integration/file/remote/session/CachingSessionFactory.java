@@ -65,14 +65,17 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
 		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
+			@Override
 			public Session<F> createForPool() {
 				return CachingSessionFactory.this.sessionFactory.getSession();
 			}
 
+			@Override
 			public boolean isStale(Session<F> session) {
 				return !session.isOpen();
 			}
 
+			@Override
 			public void removedFromPool(Session<F> session) {
 				session.close();
 			}
@@ -100,6 +103,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	/**
 	 * Get a session from the pool (or block if none available).
 	 */
+	@Override
 	public Session<F> getSession() {
 		return new CachedSession(this.pool.getItem());
 	}
@@ -107,6 +111,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	/**
 	 * Remove (close) any unused sessions in the pool.
 	 */
+	@Override
 	public void destroy() {
 		this.pool.removeAllIdleItems();
 	}
@@ -122,6 +127,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 			this.targetSession = targetSession;
 		}
 
+		@Override
 		public synchronized void close() {
 			if (released) {
 				if (logger.isDebugEnabled()){
@@ -137,41 +143,61 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 			}
 		}
 
+		@Override
 		public boolean remove(String path) throws IOException{
 			return this.targetSession.remove(path);
 		}
 
+		@Override
 		public F[] list(String path) throws IOException{
 			return this.targetSession.list(path);
 		}
 
+		@Override
 		public void read(String source, OutputStream os) throws IOException{
 			this.targetSession.read(source, os);
 		}
 
+		@Override
 		public void write(InputStream inputStream, String destination) throws IOException{
 			this.targetSession.write(inputStream, destination);
 		}
 
+		@Override
 		public boolean isOpen() {
 			return this.targetSession.isOpen();
 		}
 
+		@Override
 		public void rename(String pathFrom, String pathTo) throws IOException {
 			this.targetSession.rename(pathFrom, pathTo);
 		}
 
+		@Override
 		public boolean mkdir(String directory) throws IOException {
 			return this.targetSession.mkdir(directory);
 		}
 
+		@Override
 		public boolean exists(String path) throws IOException{
 			return this.targetSession.exists(path);
 		}
 
+		@Override
 		public String[] listNames(String path) throws IOException {
 			return this.targetSession.listNames(path);
 		}
+
+		@Override
+		public InputStream readRaw(String source) throws IOException {
+			return this.targetSession.readRaw(source);
+		}
+
+		@Override
+		public boolean finalizeRaw() throws IOException {
+			return this.targetSession.finalizeRaw();
+		}
+
 	}
 
 }

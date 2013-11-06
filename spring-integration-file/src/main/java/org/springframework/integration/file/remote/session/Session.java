@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,21 +35,36 @@ public interface Session<T> {
 	boolean remove(String path) throws IOException;
 
 	T[] list(String path) throws IOException;
-	
+
 	void read(String source, OutputStream outputStream) throws IOException;
 
 	void write(InputStream inputStream, String destination) throws IOException;
-	
+
 	boolean mkdir(String directory) throws IOException;
-	
+
 	void rename(String pathFrom, String pathTo) throws IOException;
 
 	void close();
-	
+
 	boolean isOpen();
-	
+
 	boolean exists(String path) throws IOException;
 
 	String[] listNames(String path) throws IOException;
+
+	/**
+	 * Retrieve a remote file as a raw {@link InputStream}.
+	 * @param source The path of the remote file
+	 * @return The raw inputStream.
+	 */
+	InputStream readRaw(String source) throws IOException;
+
+	/**
+	 * Invoke after closing the InputStream from {@link #readRaw(String)}.
+	 * Required by some session providers.
+	 * @return true if successful.
+	 * @throws IOException
+	 */
+	boolean finalizeRaw() throws IOException;
 
 }
