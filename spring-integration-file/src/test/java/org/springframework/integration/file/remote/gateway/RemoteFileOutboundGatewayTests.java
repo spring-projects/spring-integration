@@ -55,7 +55,6 @@ import org.springframework.integration.support.MessageBuilder;
 /**
  * @author Gary Russell
  * @since 2.1
- *
  */
 @SuppressWarnings("rawtypes")
 public class RemoteFileOutboundGatewayTests {
@@ -63,11 +62,11 @@ public class RemoteFileOutboundGatewayTests {
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
 
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testBad() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "bad", "payload");
+				(sessionFactory, "bad", "payload");
 		gw.afterPropertiesSet();
 	}
 
@@ -106,7 +105,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = fileList();
@@ -128,6 +127,7 @@ public class RemoteFileOutboundGatewayTests {
 
 	/**
 	 * Test a wildcard mget where the full path is returned for each file
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -138,19 +138,25 @@ public class RemoteFileOutboundGatewayTests {
 	private void testMGetWildGuts(final String path1, final String path2) {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "mget", "payload");
-		gw.setLocalDirectory(new File(this.tmpDir ));
+				(sessionFactory, "mget", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
 		when(sessionFactory.getSession()).thenReturn(new Session() {
 			int n;
+
+			@Override
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public Object[] list(String path) throws IOException {
 				return null;
 			}
+
+			@Override
 			public void read(String source, OutputStream outputStream)
 					throws IOException {
 				if (n++ == 0) {
@@ -161,25 +167,49 @@ public class RemoteFileOutboundGatewayTests {
 				}
 				outputStream.write("testData".getBytes());
 			}
+
+			@Override
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
+
+			@Override
 			public boolean mkdir(String directory) throws IOException {
 				return false;
 			}
+
+			@Override
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
 			}
+
+			@Override
 			public void close() {
 			}
+
+			@Override
 			public boolean isOpen() {
 				return false;
 			}
+
+			@Override
 			public boolean exists(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public String[] listNames(String path) throws IOException {
-				return new String[] {path1, path2};
+				return new String[]{path1, path2};
+			}
+
+			@Override
+			public InputStream readRaw(String source) throws IOException {
+				return null;
+			}
+
+			@Override
+			public boolean finalizeRaw() throws IOException {
+				return false;
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -196,40 +226,69 @@ public class RemoteFileOutboundGatewayTests {
 	public void testMGetSingle() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "mget", "payload");
-		gw.setLocalDirectory(new File(this.tmpDir ));
+				(sessionFactory, "mget", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
 		when(sessionFactory.getSession()).thenReturn(new Session() {
+			@Override
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public Object[] list(String path) throws IOException {
 				return null;
 			}
+
+			@Override
 			public void read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testData".getBytes());
 			}
+
+			@Override
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
+
+			@Override
 			public boolean mkdir(String directory) throws IOException {
 				return false;
 			}
+
+			@Override
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
 			}
+
+			@Override
 			public void close() {
 			}
+
+			@Override
 			public boolean isOpen() {
 				return false;
 			}
+
+			@Override
 			public boolean exists(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public String[] listNames(String path) throws IOException {
-				return new String[] {"f1"};
+				return new String[]{"f1"};
+			}
+
+			@Override
+			public InputStream readRaw(String source) throws IOException {
+				return null;
+			}
+
+			@Override
+			public boolean finalizeRaw() throws IOException {
+				return false;
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -241,46 +300,75 @@ public class RemoteFileOutboundGatewayTests {
 				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 	}
 
-	@Test(expected=MessagingException.class)
+	@Test(expected = MessagingException.class)
 	public void testMGetEmpty() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "mget", "payload");
-		gw.setLocalDirectory(new File(this.tmpDir ));
+				(sessionFactory, "mget", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.setOptions("   -x   ");
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
 		when(sessionFactory.getSession()).thenReturn(new Session() {
+			@Override
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public Object[] list(String path) throws IOException {
 				return null;
 			}
+
+			@Override
 			public void read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testData".getBytes());
 			}
+
+			@Override
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
+
+			@Override
 			public boolean mkdir(String directory) throws IOException {
 				return false;
 			}
+
+			@Override
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
 			}
+
+			@Override
 			public void close() {
 			}
+
+			@Override
 			public boolean isOpen() {
 				return false;
 			}
+
+			@Override
 			public boolean exists(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public String[] listNames(String path) throws IOException {
 				return new String[0];
+			}
+
+			@Override
+			public InputStream readRaw(String source) throws IOException {
+				return null;
+			}
+
+			@Override
+			public boolean finalizeRaw() throws IOException {
+				return false;
 			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("testremote/*"));
@@ -290,7 +378,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testMove() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "mv", "payload");
+				(sessionFactory, "mv", "payload");
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
 		final AtomicReference<String> args = new AtomicReference<String>();
@@ -302,7 +390,7 @@ public class RemoteFileOutboundGatewayTests {
 				return null;
 			}
 		}).when(session).rename(anyString(), anyString());
-		when (sessionFactory.getSession()).thenReturn(session);
+		when(sessionFactory.getSession()).thenReturn(session);
 		Message<String> requestMessage = MessageBuilder.withPayload("foo")
 				.setHeader(FileHeaders.RENAME_TO, "bar")
 				.build();
@@ -316,7 +404,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testMoveWithExpression() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "mv", "payload");
+				(sessionFactory, "mv", "payload");
 		gw.setRenameExpression("payload.substring(1)");
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
@@ -329,7 +417,7 @@ public class RemoteFileOutboundGatewayTests {
 				return null;
 			}
 		}).when(session).rename(anyString(), anyString());
-		when (sessionFactory.getSession()).thenReturn(session);
+		when(sessionFactory.getSession()).thenReturn(session);
 		Message<?> out = (Message<?>) gw.handleRequestMessage(new GenericMessage<String>("foo"));
 		assertEquals("oo", out.getHeaders().get(FileHeaders.RENAME_TO));
 		assertEquals("foo", out.getHeaders().get(FileHeaders.REMOTE_FILE));
@@ -341,7 +429,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testMoveWithMkDirs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "mv", "payload");
+				(sessionFactory, "mv", "payload");
 		gw.setRenameExpression("'foo/bar/baz'");
 		gw.afterPropertiesSet();
 		Session<?> session = mock(Session.class);
@@ -356,12 +444,13 @@ public class RemoteFileOutboundGatewayTests {
 		}).when(session).rename(anyString(), anyString());
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				madeDirs.add((String) invocation.getArguments()[0]);
 				return null;
 			}
 		}).when(session).mkdir(anyString());
-		when (sessionFactory.getSession()).thenReturn(session);
+		when(sessionFactory.getSession()).thenReturn(session);
 		Message<String> requestMessage = MessageBuilder.withPayload("foo")
 				.setHeader(FileHeaders.RENAME_TO, "bar")
 				.build();
@@ -390,7 +479,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-f");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -407,23 +496,23 @@ public class RemoteFileOutboundGatewayTests {
 	}
 
 	public TestLsEntry[] level1List() {
-		return new TestLsEntry[] {
-			new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--"),
-			new TestLsEntry("d1", 0, true, false, 12345, "drw-r--r--"),
-			new TestLsEntry("f2", 12345, false, false, 123456, "-rw-r--r--")
+		return new TestLsEntry[]{
+				new TestLsEntry("f1", 123, false, false, 1234, "-r--r--r--"),
+				new TestLsEntry("d1", 0, true, false, 12345, "drw-r--r--"),
+				new TestLsEntry("f2", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
 
 	public TestLsEntry[] level2List() {
-		return new TestLsEntry[] {
-			new TestLsEntry("d2", 0, true, false, 12345, "drw-r--r--"),
-			new TestLsEntry("f3", 12345, false, false, 123456, "-rw-r--r--")
+		return new TestLsEntry[]{
+				new TestLsEntry("d2", 0, true, false, 12345, "drw-r--r--"),
+				new TestLsEntry("f3", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
 
 	public TestLsEntry[] level3List() {
-		return new TestLsEntry[] {
-			new TestLsEntry("f4", 12345, false, false, 123456, "-rw-r--r--")
+		return new TestLsEntry[]{
+				new TestLsEntry("f4", 12345, false, false, 123456, "-rw-r--r--")
 		};
 	}
 
@@ -432,7 +521,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-f -R");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -459,7 +548,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-f -R -dirs");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -488,7 +577,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		TestLsEntry[] files = new TestLsEntry[0];
@@ -504,7 +593,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-1");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -523,7 +612,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -f");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -542,7 +631,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -dirs");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -562,7 +651,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -dirs -links");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -583,7 +672,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -a -f -dirs -links");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -606,7 +695,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "ls", "payload");
+				(sessionFactory, "ls", "payload");
 		gw.setOptions("-1 -a -f -dirs -links");
 		gw.setFilter(new TestPatternFilter("*4"));
 		gw.afterPropertiesSet();
@@ -624,44 +713,74 @@ public class RemoteFileOutboundGatewayTests {
 	public void testGet() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "get", "payload");
-		gw.setLocalDirectory(new File(this.tmpDir ));
+				(sessionFactory, "get", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
-		when(sessionFactory.getSession()).thenReturn(new Session(){
+		when(sessionFactory.getSession()).thenReturn(new Session() {
 			private boolean open = true;
+
+			@Override
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
+
+			@Override
 			public void read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
 			}
+
+			@Override
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
+
+			@Override
 			public boolean mkdir(String directory) throws IOException {
 				return true;
 			}
+
+			@Override
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
 			}
+
+			@Override
 			public void close() {
 				open = false;
 			}
+
+			@Override
 			public boolean isOpen() {
 				return open;
 			}
+
+			@Override
 			public boolean exists(String path) throws IOException {
 				return true;
 			}
+
+			@Override
 			public String[] listNames(String path) throws IOException {
 				return null;
+			}
+
+			@Override
+			public InputStream readRaw(String source) throws IOException {
+				return null;
+			}
+
+			@Override
+			public boolean finalizeRaw() throws IOException {
+				return false;
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -680,7 +799,7 @@ public class RemoteFileOutboundGatewayTests {
 	public void testGet_P() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "get", "payload");
+				(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.setOptions("-P");
 		gw.afterPropertiesSet();
@@ -688,40 +807,70 @@ public class RemoteFileOutboundGatewayTests {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MONTH, -1);
 		final Date modified = new Date(cal.getTime().getTime() / 1000 * 1000);
-		when(sessionFactory.getSession()).thenReturn(new Session(){
+		when(sessionFactory.getSession()).thenReturn(new Session() {
 			private boolean open = true;
+
+			@Override
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
 				};
 			}
+
+			@Override
 			public void read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
 			}
+
+			@Override
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
+
+			@Override
 			public boolean mkdir(String directory) throws IOException {
 				return true;
 			}
+
+			@Override
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
 			}
+
+			@Override
 			public void close() {
 				open = false;
 			}
+
+			@Override
 			public boolean isOpen() {
 				return open;
 			}
+
+			@Override
 			public boolean exists(String path) throws IOException {
 				return true;
 			}
+
+			@Override
 			public String[] listNames(String path) throws IOException {
 				return null;
+			}
+
+			@Override
+			public InputStream readRaw(String source) throws IOException {
+				return null;
+			}
+
+			@Override
+			public boolean finalizeRaw() throws IOException {
+				return false;
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -743,43 +892,73 @@ public class RemoteFileOutboundGatewayTests {
 		new File(this.tmpDir + "/x").delete();
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "get", "payload");
+				(sessionFactory, "get", "payload");
 		gw.setLocalDirectory(new File(this.tmpDir + "/x"));
 		gw.afterPropertiesSet();
-		when(sessionFactory.getSession()).thenReturn(new Session(){
+		when(sessionFactory.getSession()).thenReturn(new Session() {
 			private boolean open = true;
+
+			@Override
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
+
+			@Override
 			public TestLsEntry[] list(String path) throws IOException {
-				return new TestLsEntry[] {
+				return new TestLsEntry[]{
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
+
+			@Override
 			public void read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
 			}
+
+			@Override
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
+
+			@Override
 			public boolean mkdir(String directory) throws IOException {
 				return true;
 			}
+
+			@Override
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
 			}
+
+			@Override
 			public void close() {
 				open = false;
 			}
+
+			@Override
 			public boolean isOpen() {
 				return open;
 			}
+
+			@Override
 			public boolean exists(String path) throws IOException {
 				return true;
 			}
+
+			@Override
 			public String[] listNames(String path) throws IOException {
 				return null;
+			}
+
+			@Override
+			public InputStream readRaw(String source) throws IOException {
+				return null;
+			}
+
+			@Override
+			public boolean finalizeRaw() throws IOException {
+				return false;
 			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));
@@ -793,7 +972,7 @@ public class RemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "rm", "payload");
+				(sessionFactory, "rm", "payload");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		when(session.remove("testremote/x/f1")).thenReturn(Boolean.TRUE);
@@ -812,9 +991,9 @@ public class RemoteFileOutboundGatewayTests {
 
 class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
-			String command, String expression) {
+										 String command, String expression) {
 		super(sessionFactory, Command.toCommand(command), expression);
 		this.setBeanFactory(mock(BeanFactory.class));
 	}
@@ -868,7 +1047,7 @@ class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 	private final String permissions;
 
 	public TestLsEntry(String filename, long size, boolean dir, boolean link,
-			long modified, String permissions) {
+					   long modified, String permissions) {
 		this.filename = filename;
 		this.size = size;
 		this.dir = dir;
@@ -877,30 +1056,37 @@ class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 		this.permissions = permissions;
 	}
 
+	@Override
 	public boolean isDirectory() {
 		return this.dir;
 	}
 
+	@Override
 	public long getModified() {
 		return this.modified;
 	}
 
+	@Override
 	public String getFilename() {
 		return this.filename;
 	}
 
+	@Override
 	public boolean isLink() {
 		return this.link;
 	}
 
+	@Override
 	public long getSize() {
 		return this.size;
 	}
 
+	@Override
 	public String getPermissions() {
 		return this.permissions;
 	}
 
+	@Override
 	public TestLsEntry getFileInfo() {
 		return this;
 	}
@@ -911,7 +1097,7 @@ class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 
 }
 
-class TestPatternFilter extends AbstractSimplePatternFileListFilter<TestLsEntry>{
+class TestPatternFilter extends AbstractSimplePatternFileListFilter<TestLsEntry> {
 
 	public TestPatternFilter(String path) {
 		super(path);
