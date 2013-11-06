@@ -500,7 +500,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
   <section id="ftp-session-caching">
 	<title>FTP Session Caching</title>
 	<important>
-		Starting with version 3.0, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
+		Starting with <emphasis>Spring Integration version 3.0</emphasis>, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
 		is no longer supported on endpoints. You must now use a <classname>CachingSessionFactory</classname> (see below) if you
 		wish to cache sessions.
 	</important>
@@ -532,5 +532,10 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
 
 	</para>
+  	<para>
+  		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
+  		now provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
+  		sessions are closed when they are returned to the cache.
+  	</para>
   </section>
 </chapter>

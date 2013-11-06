@@ -73,6 +73,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			an operation completes.
 		</para>
 		<para>
+			If the cache is reset, the session is disconnected only when the last channel is closed.
+		</para>
+		<para>
 			The connection will be refreshed if it is found to be disconnected when a new operation
 			obtains a session.
 		</para>
@@ -206,7 +209,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   <section id="sftp-session-caching">
   	<title>SFTP Session Caching</title>
 	<important>
-		Starting with version 3.0, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
+		Starting with <emphasis>Spring Integration version 3.0</emphasis>, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
 		is no longer supported on endpoints. You must now use a <classname>CachingSessionFactory</classname> (see below) if you
 		wish to cache sessions.
 	</important>
@@ -239,6 +242,13 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	In the above example you see a <classname>CachingSessionFactory</classname> created with the
 	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
 
+  	</para>
+  	<para>
+  		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
+  		now provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
+  		sessions are closed when they are returned to the cache. When using <code>sharedSession=true</code>, the channel is
+  		closed and the shared session is closed only when the last channel is closed.
+		New requests for sessions will establish new sessions as necessary.
   	</para>
   </section>
 

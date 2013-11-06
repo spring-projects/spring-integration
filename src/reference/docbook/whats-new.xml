@@ -244,6 +244,11 @@
 			    <xref linkend="ftp-session-caching"/> and <xref linkend="sftp-session-caching"/>.
 			</para>
 			<para>
+				The <classname>CachingConnectionFactory</classname> now provides a new method
+				<code>resetCache()</code>. This immediately closes idle sessions and causes in-use
+				sessions to be closed as and when they are returned to the cache.
+			</para>
+			<para>
 				The <classname>DefaultSftpSessionFactory</classname> (in conjunction with a
 				<classname>CachingSessionFactory</classname>) now supports multiplexing channels over
 				a single SSH connection (SFTP Only).

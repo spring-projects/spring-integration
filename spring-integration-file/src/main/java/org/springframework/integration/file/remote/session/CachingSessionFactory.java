@@ -45,6 +45,10 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	private final SimplePool<Session<F>> pool;
 
+	private final boolean isSharedSessionCapable;
+
+	private volatile long sharedSessionEpoch;
+
 	/**
 	 * Create a CachingSessionFactory with an unlimited number of sessions.
 	 * @param sessionFactory the underlying session factory.
@@ -80,6 +84,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 				session.close();
 			}
 		});
+		this.isSharedSessionCapable = sessionFactory instanceof SharedSessionCapable;
 	}
 
 
@@ -116,27 +121,50 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		this.pool.removeAllIdleItems();
 	}
 
+	/**
+	 * Clear the cache of sessions; also any in-use sessions will be closed when
+	 * returned to the cache.
+	 */
+	public void resetCache() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
+		}
+		this.sharedSessionEpoch = System.currentTimeMillis();
+		if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
+			((SharedSessionCapable) this.sessionFactory).resetSharedSession();
+		}
+		this.pool.removeAllIdleItems();
+	}
 
 	private class CachedSession implements Session<F> {
 
 		private final Session<F> targetSession;
 
-		private boolean released;
+		private volatile boolean released;
+
+		private final long epoch;
 
 		private CachedSession(Session<F> targetSession) {
 			this.targetSession = targetSession;
+			epoch = System.currentTimeMillis();
 		}
 
 		@Override
 		public synchronized void close() {
 			if (released) {
 				if (logger.isDebugEnabled()){
-					logger.debug("Session already released.");
+					logger.debug("Session " + targetSession + " already released.");
 				}
 			}
 			else {
 				if (logger.isDebugEnabled()){
-					logger.debug("Releasing Session back to the pool.");
+					logger.debug("Releasing Session " + targetSession + " back to the pool.");
+				}
+				if (this.epoch < CachingSessionFactory.this.sharedSessionEpoch) {
+					if (logger.isDebugEnabled()){
+						logger.debug("Closing session " + targetSession + " after reset.");
+					}
+					this.targetSession.close();
 				}
 				pool.releaseItem(targetSession);
 				released = true;

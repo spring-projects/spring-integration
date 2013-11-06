@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.NestedIOException;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.sftp.session.DefaultSftpSessionFactory.JSchSessionWrapper;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -53,14 +54,24 @@ class SftpSession implements Session<LsEntry> {
 
 	private final com.jcraft.jsch.Session jschSession;
 
+	private final JSchSessionWrapper wrapper;
+
 	private volatile ChannelSftp channel;
+
+	private volatile boolean closed;
 
 
 	public SftpSession(com.jcraft.jsch.Session jschSession) {
 		Assert.notNull(jschSession, "jschSession must not be null");
 		this.jschSession = jschSession;
+		this.wrapper = null;
 	}
 
+	public SftpSession(DefaultSftpSessionFactory.JSchSessionWrapper wrapper) {
+		Assert.notNull(wrapper, "wrapper must not be null");
+		this.jschSession = wrapper.getSession();
+		this.wrapper = wrapper;
+	}
 
 	@Override
 	public boolean remove(String path) throws IOException {
@@ -151,14 +162,21 @@ class SftpSession implements Session<LsEntry> {
 
 	@Override
 	public void close() {
-		if (this.jschSession.isConnected()) {
-			this.jschSession.disconnect();
+		this.closed = true;
+		if (this.wrapper != null) {
+			this.channel.disconnect();
+			this.wrapper.close();
+		}
+		else {
+			if (this.jschSession.isConnected()) {
+				this.jschSession.disconnect();
+			}
 		}
 	}
 
 	@Override
 	public boolean isOpen() {
-		return this.jschSession.isConnected();
+		return !this.closed && this.jschSession.isConnected();
 	}
 
 	@Override

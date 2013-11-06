@@ -17,12 +17,14 @@
 package org.springframework.integration.sftp.session;
 
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.remote.session.SharedSessionCapable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -44,7 +46,7 @@ import com.jcraft.jsch.UserInfo;
  *
  * @since 2.0
  */
-public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
+public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, SharedSessionCapable {
 
 	private volatile String host;
 
@@ -82,7 +84,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 
 	private final boolean isSharedSession;
 
-	private volatile com.jcraft.jsch.Session sharedJschSession;
+	private volatile JSchSessionWrapper sharedJschSession;
 
 	private final ReentrantReadWriteLock sharedSessionLock = new ReentrantReadWriteLock();
 
@@ -285,7 +287,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 		Assert.isTrue(StringUtils.hasText(this.password) || this.privateKey != null,
 				"either a password or a private key is required");
 		try {
-			com.jcraft.jsch.Session jschSession;
+			JSchSessionWrapper jschSession;
 			if (this.isSharedSession) {
 				this.sharedSessionLock.readLock().lock();
 				try {
@@ -294,7 +296,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 						this.sharedSessionLock.writeLock().lock();
 						try {
 							if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
-								this.sharedJschSession = initJschSession();
+								this.sharedJschSession = new JSchSessionWrapper(initJschSession());
 							}
 						}
 						finally {
@@ -304,15 +306,16 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 					}
 				}
 				finally {
-						this.sharedSessionLock.readLock().unlock();
+					this.sharedSessionLock.readLock().unlock();
 				}
 				jschSession = this.sharedJschSession;
 			}
 			else {
-				jschSession = this.initJschSession();
+				jschSession = new JSchSessionWrapper(initJschSession());
 			}
 			SftpSession sftpSession = new SftpSession(jschSession);
 			sftpSession.connect();
+			jschSession.addChannel();
 			return sftpSession;
 		}
 		catch (Exception e) {
@@ -380,6 +383,16 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 		return jschSession;
 	}
 
+	@Override
+	public final boolean isSharedSession() {
+		return this.isSharedSession;
+	}
+
+	@Override
+	public void resetSharedSession() {
+		Assert.state(this.isSharedSession, "Shared sessions are not being used");
+		this.sharedJschSession = null;
+	}
 
 	/**
 	 * this is a simple, optimistic implementation of the UserInfo interface.
@@ -423,4 +436,38 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 		}
 	}
 
+	/**
+	 * A wrapper for a JSch session that maintains a channel count and
+	 * physically disconnects when the last channel is closed.
+	 *
+	 */
+	public class JSchSessionWrapper {
+
+		private final com.jcraft.jsch.Session session;
+
+		private final AtomicInteger channels = new AtomicInteger();
+
+		JSchSessionWrapper(com.jcraft.jsch.Session session) {
+			this.session = session;
+		}
+
+		public void addChannel() {
+			this.channels.incrementAndGet();
+		}
+
+		public void close() {
+			if (channels.decrementAndGet() <= 0) {
+				this.session.disconnect();
+			}
+		}
+
+		public final com.jcraft.jsch.Session getSession() {
+			return session;
+		}
+
+		public boolean isConnected() {
+			return session.isConnected();
+		}
+
+	}
 }
