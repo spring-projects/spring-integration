@@ -46,7 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisMessageDrivenEndpointParserTests {
+public class RedisQueueInboundChannelAdapterParserTests {
 
 	@Autowired
 	@Qualifier("redisConnectionFactory")
@@ -90,6 +90,7 @@ public class RedisMessageDrivenEndpointParserTests {
 		assertEquals("si.test.Int3017.Inbound1", TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations.key"));
 		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "expectMessage", Boolean.class));
 		assertEquals(new Long(1000), TestUtils.getPropertyValue(this.defaultAdapter, "receiveTimeout", Long.class));
+		assertEquals(new Long(5000), TestUtils.getPropertyValue(this.defaultAdapter, "recoveryInterval", Long.class));
 		assertNull(TestUtils.getPropertyValue(this.defaultAdapter, "errorChannel"));
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "taskExecutor"), Matchers.instanceOf(ErrorHandlingTaskExecutor.class));
 		assertThat(TestUtils.getPropertyValue(this.defaultAdapter, "serializer"), Matchers.instanceOf(JdkSerializationRedisSerializer.class));
@@ -103,6 +104,7 @@ public class RedisMessageDrivenEndpointParserTests {
 		assertEquals("si.test.Int3017.Inbound2", TestUtils.getPropertyValue(this.customAdapter, "boundListOperations.key"));
 		assertTrue(TestUtils.getPropertyValue(this.customAdapter, "expectMessage", Boolean.class));
 		assertEquals(new Long(2000), TestUtils.getPropertyValue(this.customAdapter, "receiveTimeout", Long.class));
+		assertEquals(new Long(3000), TestUtils.getPropertyValue(this.customAdapter, "recoveryInterval", Long.class));
 		assertSame(this.errorChannel, TestUtils.getPropertyValue(this.customAdapter, "errorChannel"));
 		assertSame(this.taskExecutor, TestUtils.getPropertyValue(this.customAdapter, "taskExecutor"));
 		assertSame(this.serializer, TestUtils.getPropertyValue(this.customAdapter, "serializer"));
