@@ -535,7 +535,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
   	<para>
   		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
   		now provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
-  		sessions are closed when they are returned to the cache.
+		sessions are closed when they are returned to the cache. New requests for sessions will establish new sessions as necessary.
   	</para>
   </section>
 </chapter>

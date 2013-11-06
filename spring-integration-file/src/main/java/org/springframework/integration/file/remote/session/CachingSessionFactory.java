@@ -142,11 +142,11 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 		private volatile boolean released;
 
-		private final long epoch;
+		private final long created;
 
 		private CachedSession(Session<F> targetSession) {
 			this.targetSession = targetSession;
-			epoch = System.currentTimeMillis();
+			created = System.currentTimeMillis();
 		}
 
 		@Override
@@ -160,7 +160,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 				if (logger.isDebugEnabled()){
 					logger.debug("Releasing Session " + targetSession + " back to the pool.");
 				}
-				if (this.epoch < CachingSessionFactory.this.sharedSessionEpoch) {
+				if (this.created < CachingSessionFactory.this.sharedSessionEpoch) {
 					if (logger.isDebugEnabled()){
 						logger.debug("Closing session " + targetSession + " after reset.");
 					}
