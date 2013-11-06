@@ -288,24 +288,23 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 			com.jcraft.jsch.Session jschSession;
 			if (this.isSharedSession) {
 				this.sharedSessionLock.readLock().lock();
-				boolean readLocked = true;
 				try {
 					if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
 						this.sharedSessionLock.readLock().unlock();
-						readLocked = false;
 						this.sharedSessionLock.writeLock().lock();
-						if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
-							this.sharedJschSession = initJschSession();
+						try {
+							if (this.sharedJschSession == null || !this.sharedJschSession.isConnected()) {
+								this.sharedJschSession = initJschSession();
+							}
+						}
+						finally {
+							this.sharedSessionLock.readLock().lock();
+							this.sharedSessionLock.writeLock().unlock();
 						}
 					}
 				}
 				finally {
-					if (readLocked) {
 						this.sharedSessionLock.readLock().unlock();
-					}
-					else {
-						this.sharedSessionLock.writeLock().unlock();
-					}
 				}
 				jschSession = this.sharedJschSession;
 			}
