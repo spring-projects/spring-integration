@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
 	<int-redis:inbound-channel-adapter
-		id="adapter" topics="foo, bar" channel="receiveChannel" error-channel="testErrorChannel"
+		id="adapter" topics="foo" topic-patterns="f*, b*" channel="receiveChannel" error-channel="testErrorChannel"
 		message-converter="testConverter"
 		serializer="serializer"/>
 
@@ -25,14 +25,14 @@
 		class="org.springframework.integration.redis.config.RedisInboundChannelAdapterParserTests$TestMessageConverter" />
 
 	<int-redis:inbound-channel-adapter
-		id="autoChannel" topics="foo, bar" error-channel="testErrorChannel"
-		message-converter="testConverter" />
+		id="autoChannel" topics="foo1, bar1" error-channel="testErrorChannel"
+		message-converter="testConverter" auto-startup="false"/>
 
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
 
 	<int:bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
-	<int-redis:inbound-channel-adapter id="withoutSerializer" topics="foo" serializer=""/>
+	<int-redis:inbound-channel-adapter id="withoutSerializer" topics="foo" auto-startup="false" serializer=""/>
 
 
 </beans>
