@@ -143,4 +143,20 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		gateway.stop();
 	}
 
+	@Test
+	public void testGatewayWithContainerClass() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithContainerClass.xml", this.getClass());
+		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("adapterWithIdleConsumerLimit");
+		gateway.start();
+		FooContainer container = TestUtils.getPropertyValue(gateway, "listenerContainer", FooContainer.class);
+		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
+		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
+		gateway.stop();
+	}
+
+	public static final class FooContainer extends DefaultMessageListenerContainer {
+
+	}
+
 }

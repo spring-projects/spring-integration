@@ -26,6 +26,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.util.StringUtils;
 
 /**
@@ -100,7 +101,11 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 	}
 
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext) {
+		String containerClass = element.getAttribute("container-class");
 		if (element.hasAttribute("container")) {
+			if (StringUtils.hasText(containerClass)) {
+				parserContext.getReaderContext().error("Cannot have both 'container' and 'container-class'", element);
+			}
 			for (String containerAttribute : containerAttributes) {
 				if (element.hasAttribute(containerAttribute)) {
 					parserContext.getReaderContext().error("The '" + containerAttribute +
@@ -110,8 +115,13 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			return element.getAttribute("container");
 		}
 		// otherwise, we build a DefaultMessageListenerContainer instance
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.jms.listener.DefaultMessageListenerContainer");
+		BeanDefinitionBuilder builder;
+		if (StringUtils.hasText(containerClass)) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(containerClass);
+		}
+		else {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageListenerContainer.class);
+		}
 		String destinationAttribute = this.expectReply ? "request-destination" : "destination";
 		String destinationNameAttribute = this.expectReply ? "request-destination-name" : "destination-name";
 		String pubSubDomainAttribute = this.expectReply ? "request-pub-sub-domain" : "pub-sub-domain";

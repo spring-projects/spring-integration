@@ -1201,9 +1201,30 @@
 			<xsd:extension base="jmsInboundAdapterType">
 				<xsd:attribute name="container" type="xsd:string">
 					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+			A reference to a custom listener container implementation.
+			Note that a custom container class will typically be a subclass of DefaultMessageListenerContainer.
+			This attribute is mutually exclusive with 'container'.
+						]]></xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
 								<tool:expected-type type="org.springframework.jms.listener.AbstractMessageListenerContainer"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="container-class" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+			A custom listener container implementation class as fully qualified class name.
+			Default is Spring's standard DefaultMessageListenerContainer.
+			Note that a custom container class will typically be a subclass of this
+			standard container class. This attribute is mutually exclusive with 'container'.
+						]]></xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation>
+								<tool:expected-type type="java.lang.Class"/>
+								<tool:assignable-to type="org.springframework.jms.listener.AbstractMessageListenerContainer"/>
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
