@@ -156,7 +156,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 			String beanName = this.getComponentName();
 			this.taskExecutor = new SimpleAsyncTaskExecutor((beanName == null ? "" : beanName + "-") + this.getComponentType());
 		}
-		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor) && this.getBeanFactory() != null) {
 			MessagePublishingErrorHandler errorHandler =
 					new MessagePublishingErrorHandler(new BeanFactoryMessageChannelDestinationResolver(this.getBeanFactory()));
 			errorHandler.setDefaultErrorChannel(this.errorChannel);
