@@ -147,6 +147,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="topic-patterns" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Redis topic patterns as a comma-delimited list of Strings.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="message-converter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[

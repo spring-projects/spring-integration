@@ -584,6 +584,10 @@
 						The Redis Outbound Channel Adapter now has the <code>topic-expression</code> property to determine
 						the Redis topic against the Message at runtime.
 					</listitem>
+					<listitem>
+						The Redis Inbound Channel Adapter, alongside with the <code>topics</code> attribute,
+						now has the <code>topic-patterns</code> attribute.
+					</listitem>
 				</itemizedlist>
 			</para>
 			<para>
