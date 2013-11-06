@@ -21,7 +21,9 @@ import java.util.List;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -35,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 public class RedisInboundChannelAdapter extends MessageProducerSupport {
@@ -44,6 +47,8 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile String[] topics;
+
+	private volatile String[] topicPatterns;
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
@@ -60,6 +65,10 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.topics = topics;
 	}
 
+	public void setTopicPatterns(String... topicPatterns) {
+		this.topicPatterns = topicPatterns;
+	}
+
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		this.messageConverter = messageConverter;
@@ -73,13 +82,32 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.notEmpty(this.topics, "at least one topis is required for subscription");
+		boolean hasTopics = false;
+		if (this.topics != null) {
+			Assert.noNullElements(this.topics, "at least one topic is required for subscription.");
+			hasTopics = true;
+		}
+		boolean hasPatterns = false;
+		if (this.topicPatterns != null) {
+			Assert.noNullElements(this.topicPatterns, "at least one topic pattern is required for subscription.");
+			hasPatterns = true;
+
+		}
+		Assert.state(hasTopics || hasPatterns, "at least one topic or topic pattern is required for subscription.");
+
 		MessageListenerDelegate delegate = new MessageListenerDelegate();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
 		adapter.setSerializer(this.serializer);
-		List<ChannelTopic> topicList = new ArrayList<ChannelTopic>();
-		for (String topic : this.topics) {
-			topicList.add(new ChannelTopic(topic));
+		List<Topic> topicList = new ArrayList<Topic>();
+		if (hasTopics) {
+			for (String topic : this.topics) {
+				topicList.add(new ChannelTopic(topic));
+			}
+		}
+		if (hasPatterns) {
+			for (String pattern : this.topicPatterns) {
+				topicList.add(new PatternTopic(pattern));
+			}
 		}
 		adapter.afterPropertiesSet();
 		this.container.addMessageListener(adapter, topicList);

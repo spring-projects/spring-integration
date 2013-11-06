@@ -150,8 +150,15 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       Redis Messages and the Spring Integration Message payloads. The default is a <code>SimpleMessageConverter</code>.
       </para>
 
-      <para>Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the
-      <code>topics</code> attribute.</para>
+      <para>
+       Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the
+       <code>topics</code> attribute.
+	  </para>
+      <para>
+        Since <emphasis>Spring Integration 3.0</emphasis>, Inbound Adapter, alongside with the <code>topics</code> attribute,
+        now has the <code>topic-patterns</code> attribute. This attribute can also apply comma-delimited set of Redis topic patterns.
+		For more information regarding Redis publish/subscription, see <ulink url="http://redis.io/topics/pubsub">Redis Pub/Sub</ulink>.
+      </para>
       <para>
          Inbound adapters can use a <classname>RedisSerializer</classname> to deserialize the body of Redis Messages.
          The <code>serializer</code> attribute of the <code>&lt;int-redis:inbound-channel-adapter&gt;</code> can be set to an

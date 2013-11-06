@@ -73,6 +73,18 @@ public class RedisAvailableTests {
 		assertTrue("RedisMessageListenerContainer Failed to Subscribe", n < 100);
 	}
 
+	protected void awaitContainerSubscribedWithPatterns(RedisMessageListenerContainer container) throws Exception {
+		this.awaitContainerSubscribed(container);
+		RedisConnection connection = TestUtils.getPropertyValue(container, "subscriptionTask.connection",
+				RedisConnection.class);
+
+		int n = 0;
+		while (n++ < 100 && connection.getSubscription().getPatterns().size() == 0) {
+			Thread.sleep(100);
+		}
+		assertTrue("RedisMessageListenerContainer Failed to Subscribe with patterns", n < 100);
+	}
+
 	protected void prepareList(RedisConnectionFactory connectionFactory){
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate();
@@ -121,4 +133,5 @@ public class RedisAvailableTests {
 		ops.add("Abraham Lincoln", 19);
 		ops.add("George Washington", 18);
 	}
+
 }
