@@ -392,6 +392,15 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="recovery-interval" type="xsd:string" default="5000">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify the timeout in milliseconds to sleep the listener task after catching
+								an Exception on Redis operation before 'restart' the listener task.
+								Default is 5 second.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="expect-message" type="xsd:string" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
