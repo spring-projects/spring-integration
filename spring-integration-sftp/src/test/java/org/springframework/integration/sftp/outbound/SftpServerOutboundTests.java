@@ -19,10 +19,12 @@ package org.springframework.integration.sftp.outbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -44,6 +46,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpATTRS;
@@ -56,10 +59,10 @@ import com.jcraft.jsch.SftpATTRS;
  * <pre class="code">
  *  $ tree sftpSource/
  *  sftpSource/
- *  ├── sftpSource1.txt
- *  ├── sftpSource2.txt
+ *  ├── sftpSource1.txt - contains 'source1'
+ *  ├── sftpSource2.txt - contains 'source2'
  *  └── subSftpSource
- *      └── subSftpSource1.txt
+ *      └── subSftpSource1.txt - contains 'subSource1'
  * </pre>
  *
  * @author Artem Bilan
@@ -251,5 +254,27 @@ public class SftpServerOutboundTests {
 				Matchers.containsString(dir + "subSftpSource"));
 
 	}
+
+	/**
+	 * Only runs with a real server (see class javadocs).
+	 */
+	@Test
+	public void testInt3100RawGET() throws Exception {
+		if (!sessionFactory.toString().startsWith("Mock for")) {
+			Session<?> session = this.sessionFactory.getSession();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource1.txt"), baos);
+			assertTrue(session.finalizeRaw());
+			assertEquals("source1", new String(baos.toByteArray()));
+
+			baos = new ByteArrayOutputStream();
+			FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource2.txt"), baos);
+			assertTrue(session.finalizeRaw());
+			assertEquals("source2", new String(baos.toByteArray()));
+
+			session.close();
+		}
+	}
+
 
 }

@@ -17,6 +17,7 @@
 package org.springframework.integration.ftp;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -82,13 +83,22 @@ public class TesFtpServer {
 				sourceFtpDirectory.mkdir();
 				File file = new File(sourceFtpDirectory, "ftpSource1.txt");
 				file.createNewFile();
+				FileOutputStream fos = new FileOutputStream(file);
+				fos.write("source1".getBytes());
+				fos.close();
 				file = new File(sourceFtpDirectory, "ftpSource2.txt");
 				file.createNewFile();
+				fos = new FileOutputStream(file);
+				fos.write("source2".getBytes());
+				fos.close();
 
 				File subSourceFtpDirectory = new File(sourceFtpDirectory, "subFtpSource");
 				subSourceFtpDirectory.mkdir();
 				file = new File(subSourceFtpDirectory, "subFtpSource1.txt");
 				file.createNewFile();
+				fos = new FileOutputStream(file);
+				fos.write("subSource1".getBytes());
+				fos.close();
 
 				targetFtpDirectory = new File(ftpRootFolder, "ftpTarget");
 				targetFtpDirectory.mkdirs();
