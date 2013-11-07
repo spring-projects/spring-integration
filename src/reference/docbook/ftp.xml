@@ -154,6 +154,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
     filename-pattern="*.txt"
     remote-directory="some/remote/path"
     remote-file-separator="/"
+    preserve-timestamp="true"
     local-filename-generator-expression="#this.toUpperCase() + '.a'"
     local-filter="myFilter"
     local-directory=".">
@@ -172,7 +173,11 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	that's what it ultimately generates with the transferred file as its payload. So, the root object of the SpEL Evaluation Context
 	is the original name of the remote file (String).
 	</para>
-
+	<para>
+	Starting with <emphasis>Spring Integration 3.0</emphasis>, you can specify the <code>preserve-timestamp</code>
+	attribute (default <code>false</code>); when <code>true</code>, the local file's modified timestamp will be set to the value
+	retrieved from the server; otherwise it will be set to the current time.
+	</para>
   	<para>
 	Sometimes file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be
 	sufficient. If this is the case, you can use the <code>filename-regex</code> attribute to specify a Regular Expression
@@ -500,8 +505,8 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
   <section id="ftp-session-caching">
 	<title>FTP Session Caching</title>
 	<important>
-		Starting with version 3.0, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
-		is no longer supported on endpoints. You must now use a <classname>CachingSessionFactory</classname> (see below) if you
+		Starting with <emphasis>Spring Integration version 3.0</emphasis>, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
+		is no longer supported on endpoints. You must use a <classname>CachingSessionFactory</classname> (see below) if you
 		wish to cache sessions.
 	</important>
 	<para>
@@ -531,6 +536,11 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	In the above example you see a <classname>CachingSessionFactory</classname> created with the
 	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
 
+	</para>
+	<para>
+		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
+		provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
+		sessions are closed when they are returned to the cache. New requests for sessions will establish new sessions as necessary.
 	</para>
   </section>
 </chapter>
