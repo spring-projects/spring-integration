@@ -174,7 +174,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	is the original name of the remote file (String).
 	</para>
 	<para>
-	Starting with <emphasis>Spring Integration 3.0</emphasis>, you can now specify the <code>preserve-timestamp</code>
+	Starting with <emphasis>Spring Integration 3.0</emphasis>, you can specify the <code>preserve-timestamp</code>
 	attribute (default <code>false</code>); when <code>true</code>, the local file's modified timestamp will be set to the value
 	retrieved from the server; otherwise it will be set to the current time.
 	</para>
@@ -506,7 +506,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	<title>FTP Session Caching</title>
 	<important>
 		Starting with <emphasis>Spring Integration version 3.0</emphasis>, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
-		is no longer supported on endpoints. You must now use a <classname>CachingSessionFactory</classname> (see below) if you
+		is no longer supported on endpoints. You must use a <classname>CachingSessionFactory</classname> (see below) if you
 		wish to cache sessions.
 	</important>
 	<para>
@@ -539,7 +539,7 @@ protected void postProcessClientBeforeConnect(T client) throws IOException {
 	</para>
 	<para>
 		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
-		now provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
+		provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
 		sessions are closed when they are returned to the cache. New requests for sessions will establish new sessions as necessary.
 	</para>
   </section>

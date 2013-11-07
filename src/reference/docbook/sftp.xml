@@ -63,7 +63,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		<para>
 			JSch supports multiple channels (operations) over a connection to the server. By default,
 			the Spring Integration session factory uses a separate physical connection for each channel.
-			Since <emphasis>Spring Integration 3.0</emphasis>, you can now configure the session factory
+			Since <emphasis>Spring Integration 3.0</emphasis>, you can configure the session factory
 			(using a boolean constructor arg - default <code>false</code>) to use a single connection
 			to the server and create multiple <code>JSch</code> channels on that single connection.
 		</para>
@@ -210,7 +210,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	<title>SFTP Session Caching</title>
 	<important>
 		Starting with <emphasis>Spring Integration version 3.0</emphasis>, sessions are no longer cached by default; the <code>cache-sessions</code> attribute
-		is no longer supported on endpoints. You must now use a <classname>CachingSessionFactory</classname> (see below) if you
+		is no longer supported on endpoints. You must use a <classname>CachingSessionFactory</classname> (see below) if you
 		wish to cache sessions.
 	</important>
 	<para>
@@ -245,7 +245,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	</para>
 	<para>
 		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
-		now provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
+		provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
 		sessions are closed when they are returned to the cache. When using <code>isSharedSession=true</code>, the channel is
 		closed, and the shared session is closed only when the last channel is closed.
 		New requests for sessions will establish new sessions as necessary.
@@ -287,7 +287,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	is the original name of the remote file (String).
 	</para>
 	<para>
-	Starting with <emphasis>Spring Integration 3.0</emphasis>, you can now specify the <code>preserve-timestamp</code>
+	Starting with <emphasis>Spring Integration 3.0</emphasis>, you can specify the <code>preserve-timestamp</code>
 	attribute (default <code>false</code>); when <code>true</code>, the local file's modified timestamp will be set to the value
 	retrieved from the server; otherwise it will be set to the current time.
 	</para>

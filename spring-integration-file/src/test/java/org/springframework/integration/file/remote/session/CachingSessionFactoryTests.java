@@ -132,5 +132,16 @@ public class CachingSessionFactoryTests {
 			return null;
 		}
 
+		@Override
+		public InputStream readRaw(String source) throws IOException {
+			return null;
+		}
+
+		@Override
+		public boolean finalizeRaw() throws IOException {
+			return false;
+		}
+
 	}
+
 }

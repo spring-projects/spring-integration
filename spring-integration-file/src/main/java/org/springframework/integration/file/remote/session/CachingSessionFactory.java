@@ -110,7 +110,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 */
 	@Override
 	public Session<F> getSession() {
-		return new CachedSession(this.pool.getItem());
+		return new CachedSession(this.pool.getItem(), this.sharedSessionEpoch);
 	}
 
 	/**
@@ -125,14 +125,25 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * Clear the cache of sessions; also any in-use sessions will be closed when
 	 * returned to the cache.
 	 */
-	public void resetCache() {
+	public synchronized void resetCache() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
 		}
-		this.sharedSessionEpoch = System.currentTimeMillis();
 		if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
 			((SharedSessionCapable) this.sessionFactory).resetSharedSession();
 		}
+		long sharedSessionEpoch = System.nanoTime();
+		/*
+		 * Spin until we get a new value - nano precision but may be lower resolution.
+		 * We reset the epoch AFTER resetting the shared session so there is no possibility
+		 * of an "old" session being created in the new epoch. There is a slight possibility
+		 * that a "new" session might appear in the old epoch and thus be closed when returned to
+		 * the cache.
+		 */
+		while (sharedSessionEpoch == this.sharedSessionEpoch) {
+			sharedSessionEpoch = System.nanoTime();
+		}
+		this.sharedSessionEpoch = sharedSessionEpoch;
 		this.pool.removeAllIdleItems();
 	}
 
@@ -142,11 +153,14 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 		private volatile boolean released;
 
-		private final long created;
+		/**
+		 * The epoch in which this session was created.
+		 */
+		private final long sharedSessionEpoch;
 
-		private CachedSession(Session<F> targetSession) {
+		private CachedSession(Session<F> targetSession, long sharedSessionEpoch) {
 			this.targetSession = targetSession;
-			created = System.currentTimeMillis();
+			this.sharedSessionEpoch = sharedSessionEpoch;
 		}
 
 		@Override
@@ -160,7 +174,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 				if (logger.isDebugEnabled()){
 					logger.debug("Releasing Session " + targetSession + " back to the pool.");
 				}
-				if (this.created < CachingSessionFactory.this.sharedSessionEpoch) {
+				if (this.sharedSessionEpoch != CachingSessionFactory.this.sharedSessionEpoch) {
 					if (logger.isDebugEnabled()){
 						logger.debug("Closing session " + targetSession + " after reset.");
 					}

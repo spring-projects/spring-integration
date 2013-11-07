@@ -31,7 +31,7 @@ public interface SharedSessionCapable {
 	public abstract boolean isSharedSession();
 
 	/**
-	 * Resets the shared session so the next {@link #getSession()} will return a session
+	 * Resets the shared session so the next {@code #getSession()} will return a session
 	 * using a new connection.
 	 */
 	public abstract void resetSharedSession();
