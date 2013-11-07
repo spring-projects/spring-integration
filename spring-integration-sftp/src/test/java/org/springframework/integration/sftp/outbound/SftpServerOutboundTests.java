@@ -18,14 +18,22 @@ package org.springframework.integration.sftp.outbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -38,11 +46,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpATTRS;
@@ -55,10 +65,10 @@ import com.jcraft.jsch.SftpATTRS;
  * <pre class="code">
  *  $ tree sftpSource/
  *  sftpSource/
- *  ├── sftpSource1.txt
- *  ├── sftpSource2.txt
+ *  ├── sftpSource1.txt - contains 'source1'
+ *  ├── sftpSource2.txt - contains 'source2'
  *  └── subSftpSource
- *      └── subSftpSource1.txt
+ *      └── subSftpSource1.txt - contains 'subSource1'
  * </pre>
  *
  * @author Artem Bilan
@@ -156,6 +166,11 @@ public class SftpServerOutboundTests {
 
 	@Test
 	public void testInt2866LocalDirectoryExpressionGET() {
+		Session<?> session = null;
+		boolean sharedSession = "realSSHSharedSession".equals(System.getProperty("spring.profiles.active"));
+		if (sharedSession) {
+			session = this.sessionFactory.getSession();
+		}
 		String dir = "sftpSource/";
 		this.inboundGet.send(new GenericMessage<Object>(dir + "sftpSource1.txt"));
 		Message<?> result = this.output.receive(1000);
@@ -171,6 +186,11 @@ public class SftpServerOutboundTests {
 		localFile = (File) result.getPayload();
 		assertThat(localFile.getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 				Matchers.containsString(dir.toUpperCase()));
+		if (sharedSession) {
+			Session<?> session2 = this.sessionFactory.getSession();
+			assertSame(TestUtils.getPropertyValue(session, "targetSession.jschSession"),
+					TestUtils.getPropertyValue(session2, "targetSession.jschSession"));
+		}
 	}
 
 	@Test
@@ -249,6 +269,88 @@ public class SftpServerOutboundTests {
 		assertThat(localFiles.get(1).getPath().replaceAll(java.util.regex.Matcher.quoteReplacement(File.separator), "/"),
 				Matchers.containsString(dir + "subSftpSource"));
 
+	}
+
+	/**
+	 * Only runs with a real server (see class javadocs).
+	 */
+	@Test
+	public void testInt3100RawGET() throws Exception {
+		if (!sessionFactory.toString().startsWith("Mock for")) {
+			Session<?> session = this.sessionFactory.getSession();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource1.txt"), baos);
+			assertTrue(session.finalizeRaw());
+			assertEquals("source1", new String(baos.toByteArray()));
+
+			baos = new ByteArrayOutputStream();
+			FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource2.txt"), baos);
+			assertTrue(session.finalizeRaw());
+			assertEquals("source2", new String(baos.toByteArray()));
+
+			session.close();
+		}
+	}
+
+	@Test
+	public void testInt3047ConcurrentSharedSession() throws Exception {
+		if ("realSSHSharedSession".equals(System.getProperty("spring.profiles.active"))) {
+			final Session<?> session1 = this.sessionFactory.getSession();
+			final Session<?> session2 = this.sessionFactory.getSession();
+			final PipedInputStream pipe1 = new PipedInputStream();
+			PipedOutputStream out1 = new PipedOutputStream(pipe1);
+			final PipedInputStream pipe2 = new PipedInputStream();
+			PipedOutputStream out2 = new PipedOutputStream(pipe2);
+			final CountDownLatch latch1 = new CountDownLatch(1);
+			final CountDownLatch latch2 = new CountDownLatch(1);
+			Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						session1.write(pipe1, "foo.txt");
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+					latch1.countDown();
+				}
+			});
+			Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						session2.write(pipe2, "bar.txt");
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+					latch2.countDown();
+				}
+			});
+
+			out1.write('a');
+			out2.write('b');
+			out1.write('c');
+			out2.write('d');
+			out1.write('e');
+			out2.write('f');
+			out1.close();
+			out2.close();
+			assertTrue(latch1.await(10, TimeUnit.SECONDS));
+			assertTrue(latch2.await(10, TimeUnit.SECONDS));
+			ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
+			ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
+			session1.read("foo.txt", bos1);
+			session2.read("bar.txt", bos2);
+			assertEquals("ace", new String(bos1.toByteArray()));
+			assertEquals("bdf", new String(bos2.toByteArray()));
+			session1.remove("foo.txt");
+			session2.remove("bar.txt");
+			session1.close();
+			session2.close();
+		}
 	}
 
 }

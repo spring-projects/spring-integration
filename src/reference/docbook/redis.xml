@@ -150,8 +150,15 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
       Redis Messages and the Spring Integration Message payloads. The default is a <code>SimpleMessageConverter</code>.
       </para>
 
-      <para>Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the
-      <code>topics</code> attribute.</para>
+      <para>
+       Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the
+       <code>topics</code> attribute.
+	  </para>
+      <para>
+        Since <emphasis>Spring Integration 3.0</emphasis>, the Inbound Adapter, in addition to the existing <code>topics</code> attribute,
+        now has the <code>topic-patterns</code> attribute. This attribute contains a comma-delimited set of Redis topic patterns.
+        For more information regarding Redis publish/subscribe, see <ulink url="http://redis.io/topics/pubsub">Redis Pub/Sub</ulink>.
+      </para>
       <para>
          Inbound adapters can use a <classname>RedisSerializer</classname> to deserialize the body of Redis Messages.
          The <code>serializer</code> attribute of the <code>&lt;int-redis:inbound-channel-adapter&gt;</code> can be set to an
@@ -205,6 +212,7 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
                     error-channel="" ]]><co id="redis-m-d-c-a-errorChannel"/><![CDATA[
                     serializer="" ]]><co id="redis-m-d-c-a-serializer"/><![CDATA[
                     receive-timeout="" ]]><co id="redis-m-d-c-a-receiveTimeout"/><![CDATA[
+                    recovery-interval="" ]]><co id="redis-m-d-c-a-recoveryInterval"/><![CDATA[
                     expect-message="" ]]><co id="redis-m-d-c-a-expectMessage"/><![CDATA[
                     task-executor=""/> ]]><co id="redis-m-d-c-a-task-executor"/>
 		</programlisting>
@@ -247,7 +255,9 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 			<callout arearefs="redis-m-d-c-a-errorChannel">
 				<para>
 					The <interfacename>MessageChannel</interfacename> to which to send <interfacename>ErrorMessage</interfacename>s with
-					<interfacename>Exception</interfacename>s from the listening task of the Endpoint.
+					<interfacename>Exception</interfacename>s from the listening task of the Endpoint. By default
+					the underlying <classname>MessagePublishingErrorHandler</classname> uses the
+					default <code>errorChannel</code> from the application context.
 				</para>
 			</callout>
 			<callout arearefs="redis-m-d-c-a-serializer">
@@ -260,6 +270,12 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 			<callout arearefs="redis-m-d-c-a-receiveTimeout">
 				<para>
 					The timeout in milliseconds for 'right pop' operation to wait for a Redis message from the queue. Default is 1 second.
+				</para>
+			</callout>
+			<callout arearefs="redis-m-d-c-a-recoveryInterval">
+				<para>
+					The time in milliseconds for which the listener task should sleep after exceptions on the 'right pop' operation,
+					before restarting the listener task.
 				</para>
 			</callout>
 			<callout arearefs="redis-m-d-c-a-expectMessage">
@@ -342,6 +358,22 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
 					  </para>
 				  </callout>
 			  </calloutlist>
+		  </para>
+	  </section>
+	  <section id="redis-application-events">
+		  <title>Redis Application Events</title>
+		  <para>
+			  Since <emphasis>Spring Integration 3.0</emphasis>, the Redis module provides an implementation
+			  of <classname>IntegrationEvent</classname> - which, in turn, is a
+			  <interfacename>org.springframework.context.ApplicationEvent</interfacename>. The <classname>RedisExceptionEvent</classname>
+			  encapsulates an <classname>Exception</classname>s from Redis operations (with the Endpoint being the <code>source</code>
+			  of the event). For example, the <code>&lt;int-redis:queue-inbound-channel-adapter/&gt;</code>
+			  emits those events after catching <classname>Exception</classname>s from the <code>BoundListOperations.rightPop</code>
+			  operation.
+			  The exception may be any generic <classname>org.springframework.data.redis.RedisSystemException</classname> or
+			  a <classname>org.springframework.data.redis.RedisConnectionFailureException</classname>.
+			  Handling these events using an <code>&lt;int-event:inbound-channel-adapter/&gt;</code> can be useful to determine
+			  problems with background Redis tasks and to take administrative actions.
 		  </para>
 	  </section>
   </section>

@@ -87,12 +87,21 @@
       message-driven Channel Adapter with a <classname>Destination</classname> reference.
       <programlisting language="xml"><![CDATA[<int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel"/>]]></programlisting>
       <note>
+       <para>
         The Message-Driven adapter also accepts several properties that pertain to the MessageListener container.
-        These values are only considered if you do not provide an actual 'container' reference. In that case,
+        These values are only considered if you do not provide a <code>container</code> reference. In that case,
         an instance of DefaultMessageListenerContainer will be created and configured based on these properties.
         For example, you can specify the "transaction-manager" reference, the "concurrent-consumers" value, and
         several other property references and values. Refer to the JavaDoc and Spring Integration's JMS Schema
-        (spring-integration-jms.xsd) for more detail.
+        (spring-integration-jms.xsd) for more details.
+       </para>
+       <para>
+        If you have a custom listener container implementation (usually a subclass of
+        <classname>DefaultMessageListenerContainer</classname>), you can either provide a reference to an instance
+        of it using the <code>container</code> attribute, or simply provide its fully qualified class name using
+        the <code>container-class</code> attribute. In that case, the attributes on the adapter
+        are transferred to an instance of your custom container.
+       </para>
       </note>
     </para>
     <para>

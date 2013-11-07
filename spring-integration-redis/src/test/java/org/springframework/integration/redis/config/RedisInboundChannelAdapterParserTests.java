@@ -20,7 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -29,12 +31,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -59,7 +63,6 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	private RedisInboundChannelAdapter autoChannelAdapter;
 
 	@Test
-	@RedisAvailable
 	public void validateConfiguration() {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
 		assertEquals("adapter", adapter.getComponentName());
@@ -79,18 +82,24 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testInboundChannelAdapterMessaging() throws Exception {
+		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
+		this.awaitContainerSubscribedWithPatterns(TestUtils.getPropertyValue(adapter, "container", RedisMessageListenerContainer.class));
+
 		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 
 		connectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
+		connectionFactory.getConnection().publish("bar".getBytes(), "Hello Redis from bar".getBytes());
 
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
-		assertEquals("Hello Redis from foo", receiveChannel.receive(2000).getPayload());
-		connectionFactory.getConnection().publish("bar".getBytes(), "Hello Redis from bar".getBytes());
-		assertEquals("Hello Redis from bar", receiveChannel.receive(2000).getPayload());
+		for (int i = 0; i < 3; i++) {
+			Message<?> receive = receiveChannel.receive(2000);
+			assertNotNull(receive);
+			assertThat(receive.getPayload(), Matchers.<Object> isOneOf("Hello Redis from foo", "Hello Redis from bar"));
+		}
+
 	}
 
 	@Test
-	@RedisAvailable
 	public void testAutoChannel() {
 		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}

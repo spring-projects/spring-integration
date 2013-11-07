@@ -45,6 +45,10 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	private final SimplePool<Session<F>> pool;
 
+	private final boolean isSharedSessionCapable;
+
+	private volatile long sharedSessionEpoch;
+
 	/**
 	 * Create a CachingSessionFactory with an unlimited number of sessions.
 	 * @param sessionFactory the underlying session factory.
@@ -65,18 +69,22 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
 		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.PoolItemCallback<Session<F>>() {
+			@Override
 			public Session<F> createForPool() {
 				return CachingSessionFactory.this.sessionFactory.getSession();
 			}
 
+			@Override
 			public boolean isStale(Session<F> session) {
 				return !session.isOpen();
 			}
 
+			@Override
 			public void removedFromPool(Session<F> session) {
 				session.close();
 			}
 		});
+		this.isSharedSessionCapable = sessionFactory instanceof SharedSessionCapable;
 	}
 
 
@@ -100,78 +108,138 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	/**
 	 * Get a session from the pool (or block if none available).
 	 */
+	@Override
 	public Session<F> getSession() {
-		return new CachedSession(this.pool.getItem());
+		return new CachedSession(this.pool.getItem(), this.sharedSessionEpoch);
 	}
 
 	/**
 	 * Remove (close) any unused sessions in the pool.
 	 */
+	@Override
 	public void destroy() {
 		this.pool.removeAllIdleItems();
 	}
 
+	/**
+	 * Clear the cache of sessions; also any in-use sessions will be closed when
+	 * returned to the cache.
+	 */
+	public synchronized void resetCache() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Cache reset; idle sessions will be removed, in-use sessions will be closed when returned");
+		}
+		if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
+			((SharedSessionCapable) this.sessionFactory).resetSharedSession();
+		}
+		long sharedSessionEpoch = System.nanoTime();
+		/*
+		 * Spin until we get a new value - nano precision but may be lower resolution.
+		 * We reset the epoch AFTER resetting the shared session so there is no possibility
+		 * of an "old" session being created in the new epoch. There is a slight possibility
+		 * that a "new" session might appear in the old epoch and thus be closed when returned to
+		 * the cache.
+		 */
+		while (sharedSessionEpoch == this.sharedSessionEpoch) {
+			sharedSessionEpoch = System.nanoTime();
+		}
+		this.sharedSessionEpoch = sharedSessionEpoch;
+		this.pool.removeAllIdleItems();
+	}
 
 	private class CachedSession implements Session<F> {
 
 		private final Session<F> targetSession;
 
-		private boolean released;
+		private volatile boolean released;
 
-		private CachedSession(Session<F> targetSession) {
+		/**
+		 * The epoch in which this session was created.
+		 */
+		private final long sharedSessionEpoch;
+
+		private CachedSession(Session<F> targetSession, long sharedSessionEpoch) {
 			this.targetSession = targetSession;
+			this.sharedSessionEpoch = sharedSessionEpoch;
 		}
 
+		@Override
 		public synchronized void close() {
 			if (released) {
 				if (logger.isDebugEnabled()){
-					logger.debug("Session already released.");
+					logger.debug("Session " + targetSession + " already released.");
 				}
 			}
 			else {
 				if (logger.isDebugEnabled()){
-					logger.debug("Releasing Session back to the pool.");
+					logger.debug("Releasing Session " + targetSession + " back to the pool.");
+				}
+				if (this.sharedSessionEpoch != CachingSessionFactory.this.sharedSessionEpoch) {
+					if (logger.isDebugEnabled()){
+						logger.debug("Closing session " + targetSession + " after reset.");
+					}
+					this.targetSession.close();
 				}
 				pool.releaseItem(targetSession);
 				released = true;
 			}
 		}
 
+		@Override
 		public boolean remove(String path) throws IOException{
 			return this.targetSession.remove(path);
 		}
 
+		@Override
 		public F[] list(String path) throws IOException{
 			return this.targetSession.list(path);
 		}
 
+		@Override
 		public void read(String source, OutputStream os) throws IOException{
 			this.targetSession.read(source, os);
 		}
 
+		@Override
 		public void write(InputStream inputStream, String destination) throws IOException{
 			this.targetSession.write(inputStream, destination);
 		}
 
+		@Override
 		public boolean isOpen() {
 			return this.targetSession.isOpen();
 		}
 
+		@Override
 		public void rename(String pathFrom, String pathTo) throws IOException {
 			this.targetSession.rename(pathFrom, pathTo);
 		}
 
+		@Override
 		public boolean mkdir(String directory) throws IOException {
 			return this.targetSession.mkdir(directory);
 		}
 
+		@Override
 		public boolean exists(String path) throws IOException{
 			return this.targetSession.exists(path);
 		}
 
+		@Override
 		public String[] listNames(String path) throws IOException {
 			return this.targetSession.listNames(path);
 		}
+
+		@Override
+		public InputStream readRaw(String source) throws IOException {
+			return this.targetSession.readRaw(source);
+		}
+
+		@Override
+		public boolean finalizeRaw() throws IOException {
+			return this.targetSession.finalizeRaw();
+		}
+
 	}
 
 }

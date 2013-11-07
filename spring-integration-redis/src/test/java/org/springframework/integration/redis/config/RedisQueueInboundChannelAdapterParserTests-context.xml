@@ -28,6 +28,7 @@
 											  serializer="serializer"
 											  error-channel="errorChannel"
 											  receive-timeout="2000"
+											  recovery-interval="3000"
 											  task-executor="executor"
 											  auto-startup="false"
 											  phase="100"/>

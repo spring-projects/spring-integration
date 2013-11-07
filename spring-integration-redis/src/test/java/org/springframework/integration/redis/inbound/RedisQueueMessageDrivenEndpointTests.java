@@ -20,12 +20,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -213,6 +216,8 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		final List<ApplicationEvent> exceptionEvents = new ArrayList<ApplicationEvent>();
 
+		final CountDownLatch exceptionsLatch = new CountDownLatch(2);
+
 		RedisQueueMessageDrivenEndpoint endpoint = new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setApplicationEventPublisher(new ApplicationEventPublisher() {
@@ -220,6 +225,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 			@Override
 			public void publishEvent(ApplicationEvent event) {
 				exceptionEvents.add(event);
+				exceptionsLatch.countDown();
 			}
 		});
 		endpoint.setOutputChannel(channel);
@@ -228,16 +234,26 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
+		int n = 0;
+		do {
+			n++;
+			if (n == 100) {
+				break;
+			}
+			Thread.sleep(100);
+		} while (!endpoint.isListening());
+
+		assertTrue(n < 100);
+
 		((DisposableBean) this.connectionFactory).destroy();
 
-		Thread.sleep(300);
+		assertTrue(exceptionsLatch.await(10, TimeUnit.SECONDS));
 
-		assertThat(exceptionEvents.size(), Matchers.greaterThan(0));
 		for (ApplicationEvent exceptionEvent : exceptionEvents) {
 			assertThat(exceptionEvent, Matchers.instanceOf(RedisExceptionEvent.class));
 			assertSame(endpoint, exceptionEvent.getSource());
 			assertThat(((IntegrationEvent) exceptionEvent).getCause().getClass(),
-					Matchers.isIn(Arrays.<Class<? extends Throwable>> asList(RedisSystemException.class, RedisConnectionFailureException.class)));
+					Matchers.isIn(Arrays.<Class<? extends Throwable>>asList(RedisSystemException.class, RedisConnectionFailureException.class)));
 		}
 
 		((InitializingBean) this.connectionFactory).afterPropertiesSet();

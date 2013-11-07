@@ -19,8 +19,10 @@ package org.springframework.integration.ftp.outbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
 
@@ -31,12 +33,14 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.ftp.TesFtpServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Artem Bilan
@@ -169,5 +173,22 @@ public class FtpServerOutboundTests {
 				Matchers.containsString(dir + "subFtpSource"));
 
 	}
+
+	@Test
+	public void testInt3100RawGET() throws Exception {
+		Session<?> session = this.ftpServer.ftpSessionFactory().getSession();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		FileCopyUtils.copy(session.readRaw("ftpSource/ftpSource1.txt"), baos);
+		assertTrue(session.finalizeRaw());
+		assertEquals("source1", new String(baos.toByteArray()));
+
+		baos = new ByteArrayOutputStream();
+		FileCopyUtils.copy(session.readRaw("ftpSource/ftpSource2.txt"), baos);
+		assertTrue(session.finalizeRaw());
+		assertEquals("source2", new String(baos.toByteArray()));
+
+		session.close();
+	}
+
 
 }

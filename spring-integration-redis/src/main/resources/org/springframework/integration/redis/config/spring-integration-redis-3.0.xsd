@@ -147,6 +147,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="topic-patterns" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Redis topic patterns as a comma-delimited list of Strings.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="message-converter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -389,6 +396,15 @@
 								Specify the timeout in milliseconds to wait for the result of the
 								'rightPop' operation on Redis queue.
 								Default is 1 second.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="recovery-interval" type="xsd:string" default="5000">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify the time in milliseconds for which the listener task should sleep after catching
+								an Exception on a Redis operation, before restarting the listener task.
+								Default is 5 seconds.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

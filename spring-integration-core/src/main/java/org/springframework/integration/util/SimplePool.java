@@ -192,7 +192,7 @@ public class SimplePool<T> implements Pool<T> {
 		}
 		else if (this.callback.isStale(item)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Received a stale item, will attempt to get a new one.");
+				logger.debug("Received a stale item " + item + ", will attempt to get a new one.");
 			}
 			doRemoveItem(item);
 			item = doGetItem();
@@ -241,6 +241,9 @@ public class SimplePool<T> implements Pool<T> {
 	}
 
 	private void doRemoveItem(T item) {
+		if (logger.isDebugEnabled()){
+			logger.debug("Removing " + item + " from the pool");
+		}
 		this.allocated.remove(item);
 		this.inUse.remove(item);
 		this.callback.removedFromPool(item);

@@ -243,6 +243,16 @@
 			    For more information, see
 			    <xref linkend="ftp-session-caching"/> and <xref linkend="sftp-session-caching"/>.
 			</para>
+			<para>
+				The <classname>CachingConnectionFactory</classname> now provides a new method
+				<code>resetCache()</code>. This immediately closes idle sessions and causes in-use
+				sessions to be closed as and when they are returned to the cache.
+			</para>
+			<para>
+				The <classname>DefaultSftpSessionFactory</classname> (in conjunction with a
+				<classname>CachingSessionFactory</classname>) now supports multiplexing channels over
+				a single SSH connection (SFTP Only).
+			</para>
 		</section>
 		<section id="3.0-xFTP-ib">
 			<title>FTP, SFTP and FTPS Inbound Adapters</title>
@@ -583,6 +593,10 @@
 					<listitem>
 						The Redis Outbound Channel Adapter now has the <code>topic-expression</code> property to determine
 						the Redis topic against the Message at runtime.
+					</listitem>
+					<listitem>
+						The Redis Inbound Channel Adapter, in addition to the existing <code>topics</code> attribute,
+						now has the <code>topic-patterns</code> attribute.
 					</listitem>
 				</itemizedlist>
 			</para>
