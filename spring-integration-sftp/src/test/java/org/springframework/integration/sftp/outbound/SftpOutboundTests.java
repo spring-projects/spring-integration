@@ -73,7 +73,6 @@ import com.jcraft.jsch.SftpATTRS;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
- * @author Gary Russell
  */
 public class SftpOutboundTests {
 
@@ -206,6 +205,7 @@ public class SftpOutboundTests {
 		handler.afterPropertiesSet();
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(new Answer<Object>() {
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				madeDirs.add((String) invocation.getArguments()[0]);
 				return null;
@@ -341,6 +341,7 @@ public class SftpOutboundTests {
 				ChannelSftp channel = mock(ChannelSftp.class);
 
 				doAnswer(new Answer<Object>() {
+					@Override
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {
 						File file = new File((String)invocation.getArguments()[1]);
@@ -352,6 +353,7 @@ public class SftpOutboundTests {
 				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
 
 				doAnswer(new Answer<Object>() {
+					@Override
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {
 						File file = new File((String) invocation.getArguments()[0]);

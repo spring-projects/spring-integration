@@ -243,11 +243,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
 
   	</para>
-  	<para>
-  		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
-  		now provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
-  		sessions are closed when they are returned to the cache. When using <code>sharedSession=true</code>, the channel is
-  		closed and the shared session is closed only when the last channel is closed.
+	<para>
+		Starting with <emphasis>Spring Integration version 3.0</emphasis>, the <classname>CachingConnectionFactory</classname>
+		now provides a <code>resetCache()</code> method. When invoked, all idle sessions are immediately closed and in-use
+		sessions are closed when they are returned to the cache. When using <code>isSharedSession=true</code>, the channel is
+		closed, and the shared session is closed only when the last channel is closed.
 		New requests for sessions will establish new sessions as necessary.
   	</para>
   </section>
@@ -263,6 +263,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			channel="requestChannel"
 			filename-pattern="*.txt"
 			remote-directory="/foo/bar"
+			preserve-timestamp="true"
 			local-directory="file:target/foo"
 			auto-create-local-directory="true"
 			local-filename-generator-expression="#this.toUpperCase() + '.a'"
@@ -284,6 +285,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	is a <classname>Message</classname>, this inbound adapter does not yet have the Message at the time of evaluation since
 	that's what it ultimately generates with the transferred file as its payload. So, the root object of the SpEL Evaluation Context
 	is the original name of the remote file (String).
+	</para>
+	<para>
+	Starting with <emphasis>Spring Integration 3.0</emphasis>, you can now specify the <code>preserve-timestamp</code>
+	attribute (default <code>false</code>); when <code>true</code>, the local file's modified timestamp will be set to the value
+	retrieved from the server; otherwise it will be set to the current time.
 	</para>
   	<para>
 	Sometimes file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be
