@@ -18,8 +18,10 @@ package org.springframework.integration.jms.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -78,6 +80,22 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 	@Override
 	protected String getBeanClassName(Element element) {
 		return JmsMessageDrivenEndpoint.class.getName();
+	}
+
+	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+		String id = super.resolveId(element, definition, parserContext);
+
+		if (!this.expectReply && !element.hasAttribute("channel")) {
+			// the created channel will get the 'id', so the adapter's bean name includes a suffix
+			id = id + ".adapter";
+		}
+		if (!StringUtils.hasText(id)) {
+			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry());
+		}
+
+		return id;
 	}
 
 	@Override
@@ -208,7 +226,11 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		}
 		else {
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+			String channelName = element.getAttribute("channel");
+			if (!StringUtils.hasText(channelName)) {
+				channelName = IntegrationNamespaceUtils.createDirectChannel(element, parserContext);
+			}
+			builder.addPropertyReference("requestChannel", channelName);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout", "requestTimeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload", "extractRequestPayload");
 		}

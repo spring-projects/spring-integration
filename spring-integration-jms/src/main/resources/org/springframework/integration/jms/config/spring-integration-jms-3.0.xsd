@@ -1204,7 +1204,7 @@
 						<xsd:documentation><![CDATA[
 			A reference to a custom listener container implementation.
 			Note that a custom container class will typically be a subclass of DefaultMessageListenerContainer.
-			This attribute is mutually exclusive with 'container'.
+			This attribute is mutually exclusive with 'container-class'.
 						]]></xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
