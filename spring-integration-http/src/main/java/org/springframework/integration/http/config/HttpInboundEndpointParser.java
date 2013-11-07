@@ -17,6 +17,7 @@
 package org.springframework.integration.http.config;
 
 import java.util.List;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -74,7 +75,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			throws BeanDefinitionStoreException {
 		String id = super.resolveId(element, definition, parserContext);
 
-		if (!element.hasAttribute(getInputChannelAttributeName())) {
+		if (!this.expectReply && !element.hasAttribute("channel")) {
 			// the created channel will get the 'id', so the adapter's bean name includes a suffix
 			id = id + ".adapter";
 		}

@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
@@ -38,6 +39,7 @@ import org.springframework.jms.support.destination.JmsDestinationAccessor;
 /**
  * @author Mark Fisher
  * @author Michael Bannister
+ * @author Gary Russell
  */
 public class JmsMessageDrivenChannelAdapterParserTests {
 
@@ -87,7 +89,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	public void adapterWithTaskExecutor() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithTaskExecutor.xml", this.getClass());
-		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
+		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter.adapter", JmsMessageDrivenEndpoint.class);
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(endpoint, "listenerContainer",
 				DefaultMessageListenerContainer.class);
 		assertSame(context.getBean("exec"), TestUtils.getPropertyValue(container, "taskExecutor"));
@@ -95,52 +97,70 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testGatewayWithReceiveTimeout() {
+	public void testAdapterWithReceiveTimeout() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("adapterWithReceiveTimeout");
-		gateway.start();
+		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithReceiveTimeout.adapter");
+		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
-				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
 		assertEquals(1111L, new DirectFieldAccessor(container).getPropertyValue("receiveTimeout"));
-		gateway.stop();
+		adapter.stop();
 	}
 
 	@Test
-	public void testGatewayWithRecoveryInterval() {
+	public void testAdapterWithRecoveryInterval() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("adapterWithRecoveryInterval");
-		gateway.start();
+		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithRecoveryInterval.adapter");
+		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
-				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
 		assertEquals(2222L, new DirectFieldAccessor(container).getPropertyValue("recoveryInterval"));
-		gateway.stop();
+		adapter.stop();
 	}
 
 	@Test
-	public void testGatewayWithIdleTaskExecutionLimit() {
+	public void testAdapterWithIdleTaskExecutionLimit() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("adapterWithIdleTaskExecutionLimit");
-		gateway.start();
+		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithIdleTaskExecutionLimit.adapter");
+		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
-				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
 		assertEquals(7, new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit"));
-		gateway.stop();
+		adapter.stop();
 	}
 
 	@Test
-	public void testGatewayWithIdleConsumerLimit() {
+	public void testAdapterWithIdleConsumerLimit() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("adapterWithIdleConsumerLimit");
-		gateway.start();
+		JmsMessageDrivenEndpoint adapter = (JmsMessageDrivenEndpoint) context.getBean("adapterWithIdleConsumerLimit.adapter");
+		adapter.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
-				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+				new DirectFieldAccessor(adapter).getPropertyValue("listenerContainer");
 		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
 		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
-		gateway.stop();
+		adapter.stop();
+	}
+
+	@Test
+	public void testAdapterWithContainerClass() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithContainerClass.xml", this.getClass());
+		JmsMessageDrivenEndpoint adapter = context.getBean("adapterWithIdleConsumerLimit.adapter", JmsMessageDrivenEndpoint.class);
+		MessageChannel channel = context.getBean("adapterWithIdleConsumerLimit", MessageChannel.class);
+		assertSame(channel, TestUtils.getPropertyValue(adapter, "listener.gatewayDelegate.requestChannel"));
+		adapter.start();
+		FooContainer container = TestUtils.getPropertyValue(adapter, "listenerContainer", FooContainer.class);
+		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
+		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
+		adapter.stop();
+	}
+
+	public static final class FooContainer extends DefaultMessageListenerContainer {
+
 	}
 
 }
