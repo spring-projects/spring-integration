@@ -30,19 +30,28 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Queue;
 import java.util.Vector;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
+import org.springframework.integration.test.util.TestUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -59,6 +68,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	private static com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
 
+	@Before
 	@After
 	public void cleanup(){
 		File file = new File("test");
@@ -87,7 +97,16 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setPreserveTimestamp(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
-		synchronizer.setFilter(new SftpRegexPatternFileListFilter(".*\\.test$"));
+		SftpRegexPatternFileListFilter patternFilter = new SftpRegexPatternFileListFilter(".*\\.test$");
+		PropertiesPersistingMetadataStore store = new PropertiesPersistingMetadataStore();
+		store.setBaseDirectory("test");
+		SftpPersistentAcceptOnceFileListFilter persistFilter =
+				new SftpPersistentAcceptOnceFileListFilter(store, "foo");
+		List<FileListFilter<LsEntry>> filters = new ArrayList<FileListFilter<LsEntry>>();
+		filters.add(persistFilter);
+		filters.add(patternFilter);
+		CompositeFileListFilter<LsEntry> filter = new CompositeFileListFilter<LsEntry>(filters);
+		synchronizer.setFilter(filter);
 		synchronizer.setIntegrationEvaluationContext(ExpressionUtils.createStandardEvaluationContext());
 
 		SftpInboundFileSynchronizingMessageSource ms =
@@ -115,28 +134,48 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 		assertTrue(new File("test/a.test").exists());
 		assertTrue(new File("test/b.test").exists());
+
+		TestUtils.getPropertyValue(ms, "localFileListFilter.seen", Queue.class).clear();
+
+		new File("test/a.test").delete();
+		new File("test/b.test").delete();
+		// the remote filter should prevent a re-fetch
+		nothing =  ms.receive();
+		assertNull(nothing);
+
 	}
 
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 
+		private final Vector<LsEntry> sftpEntries = new Vector<LsEntry>();
+
+		private void init() {
+			String[] files = new File("remote-test-dir").list();
+			for (String fileName : files) {
+				LsEntry lsEntry = mock(LsEntry.class);
+				SftpATTRS attributes = mock(SftpATTRS.class);
+				when(lsEntry.getAttrs()).thenReturn(attributes);
+
+				Calendar calendar = Calendar.getInstance();
+				calendar.add(Calendar.DATE, 1);
+				when(lsEntry.getAttrs().getMTime()).thenReturn(new Long(calendar.getTimeInMillis() / 1000).intValue());
+				when(lsEntry.getFilename()).thenReturn(fileName);
+				when(lsEntry.getLongname()).thenReturn(fileName);
+				sftpEntries.add(lsEntry);
+			}
+		}
 
 		@Override
 		public Session<LsEntry> getSession() {
+			if (this.sftpEntries.size() == 0) {
+				this.init();
+			}
+
 			try {
 				ChannelSftp channel = mock(ChannelSftp.class);
 
 				String[] files = new File("remote-test-dir").list();
-				Vector<LsEntry> sftpEntries = new Vector<LsEntry>();
 				for (String fileName : files) {
-					LsEntry lsEntry = mock(LsEntry.class);
-					SftpATTRS attributes = mock(SftpATTRS.class);
-					when(lsEntry.getAttrs()).thenReturn(attributes);
-
-					Calendar calendar = Calendar.getInstance();
-					calendar.add(Calendar.DATE, 1);
-					when(lsEntry.getAttrs().getMTime()).thenReturn(new Long(calendar.getTimeInMillis() / 1000).intValue());
-					when(lsEntry.getFilename()).thenReturn(fileName);
-					sftpEntries.add(lsEntry);
 					when(channel.get("remote-test-dir/"+fileName)).thenReturn(new FileInputStream("remote-test-dir/" + fileName));
 				}
 				when(channel.ls("remote-test-dir")).thenReturn(sftpEntries);
@@ -148,4 +187,5 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 			}
 		}
 	}
+
 }

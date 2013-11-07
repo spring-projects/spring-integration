@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:p="http://www.springframework.org/schema/p" xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<!-- under test -->
+	<bean id="pollableFileSource" class="org.springframework.integration.file.FileReadingMessageSource"
+		  p:directory="file:${java.io.tmpdir}/FileReadingMessageSourcePersistentFilterIntegrationTests"
+		  p:filter-ref="persistentFilter"/>
+
+	<!-- persistent filter -->
+	<bean id="persistentFilter" class="org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter">
+		<constructor-arg ref="ppms" />
+		<constructor-arg value="frmsPersistTest" />
+	</bean>
+
+	<bean id="ppms" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore">
+		<property name="baseDirectory"
+			value="#{T(System).getProperty('java.io.tmpdir') + T(java.io.File).separator + 'FileReadingMessageSourcePersistentFilterIntegrationTests.meta'}"/>
+	</bean>
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
+</beans>

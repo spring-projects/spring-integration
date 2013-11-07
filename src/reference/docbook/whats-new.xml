@@ -604,5 +604,13 @@
 				For more information, see <xref linkend="redis"/>.
 			</para>
 		</section>
+		<section id="3.0-filelistfilter">
+			<title>Persistend File List Filters (file, (S)FTP)</title>
+			<para>
+				New <classname>FileListFilter</classname>s that use a persistent <classname>MetadataStore</classname> are
+				now available. These can be used to prevent duplicate files after a system restart. See
+				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information. 
+			</para>
+		</section>
 	</section>
 </chapter>
