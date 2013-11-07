@@ -28,6 +28,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -62,6 +63,7 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 		this.baseDirectory = baseDirectory;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		File baseDir = new File(baseDirectory);
 		baseDir.mkdirs();
@@ -78,20 +80,22 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 		this.loadMetadata();
 	}
 
+	@Override
 	public void put(String key, String value) {
 		this.metadata.setProperty(key, value);
 	}
 
+	@Override
 	public String get(String key) {
 		return this.metadata.getProperty(key);
 	}
 
 	@Override
-	@SuppressWarnings("uchecked")
 	public String remove(String key) {
 		return (String) this.metadata.remove(key);
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		this.saveMetadata();
 	}
@@ -100,12 +104,12 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 		OutputStream outputStream = null;
 		try {
 			outputStream = new BufferedOutputStream(new FileOutputStream(this.file));
-			this.persister.store(this.metadata, outputStream, "Last feed entry");
+			this.persister.store(this.metadata, outputStream, "Last entry");
 		}
 		catch (IOException e) {
 			// not fatal for the functionality of the component
-			logger.warn("Failed to persist feed entry. This may result in a duplicate "
-					+ "feed entry after this component is restarted.", e);
+			logger.warn("Failed to persist entry. This may result in a duplicate "
+					+ "entry after this component is restarted.", e);
 		}
 		finally {
 			try {
@@ -128,8 +132,8 @@ public class PropertiesPersistingMetadataStore implements MetadataStore, Initial
 		}
 		catch (Exception e) {
 			// not fatal for the functionality of the component
-			logger.warn("Failed to load feed entry from the persistent store. This may result in a duplicate " +
-					"feed entry after this component is restarted", e);
+			logger.warn("Failed to load entry from the persistent store. This may result in a duplicate " +
+					"entry after this component is restarted", e);
 		}
 		finally {
 			try {
