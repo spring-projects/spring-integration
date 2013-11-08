@@ -27,7 +27,7 @@ import org.springframework.messaging.support.converter.MessageConverter;
  * @since 1.0
  *
  */
-public interface MqttMessageConverter extends MessageConverter<MqttMessage> {
+public interface MqttMessageConverter extends MessageConverter {
 
 	Message<String> toMessage(String topic, MqttMessage mqttMessage);
 }

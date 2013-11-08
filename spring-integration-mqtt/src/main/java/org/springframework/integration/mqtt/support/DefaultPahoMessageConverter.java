@@ -15,12 +15,11 @@
  */
 package org.springframework.integration.mqtt.support;
 
-import java.lang.reflect.Type;
-
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.converter.MessageConversionException;
 import org.springframework.util.Assert;
 
@@ -54,11 +53,12 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public Message<?> toMessage(MqttMessage mqttMessage) {
-		return toMessage(null, mqttMessage);
+	public Message<?> toMessage(Object mqttMessage, MessageHeaders headers) {
+		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
+		return toMessage(null, (MqttMessage) mqttMessage);
 	}
 
+	@Override
 	public Message<String> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
 			MessageBuilder<String> messageBuilder = MessageBuilder.withPayload(new String(mqttMessage.getPayload(), this.charset))
@@ -76,7 +76,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter {
 	}
 
 	@Override
-	public MqttMessage fromMessage(Message<?> message, Type targetClass) {
+	public MqttMessage fromMessage(Message<?> message, Class<?> targetClass) {
 		Object payload = message.getPayload();
 		Assert.isTrue(payload instanceof byte[] || payload instanceof String);
 		byte[] payloadBytes;

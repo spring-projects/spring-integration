@@ -140,7 +140,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		this.connectIfNeeded();
 		String topic = (String) message.getHeaders().get(MqttHeaders.TOPIC);
-		MqttMessage mqttMessage = this.converter.fromMessage(message, MqttMessage.class);
+		MqttMessage mqttMessage = (MqttMessage) this.converter.fromMessage(message, MqttMessage.class);
 		if (topic == null && this.defaultTopic == null) {
 			throw new MessageHandlingException(message,
 					"No '" + MqttHeaders.TOPIC + "' header and no default topic defined");
