@@ -16,9 +16,16 @@
 
 package org.springframework.integration.config;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Assert;
@@ -48,14 +55,6 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.instanceOf;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Marius Bogoevici
@@ -123,14 +122,14 @@ public class AggregatorParserTests {
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertThat(consumer, is(instanceOf(AggregatingMessageHandler.class)));
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
-		Map<?, ?> map = (Map<?, ?>) new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
+		Object handlerMethods =  new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
 				.getPropertyValue("handlerMethods");
-		assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method", 1, map
-				.size());
-		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
-		assertTrue("Handler methods do not contain correct method: " + map, map.toString().contains(
-				"createSingleMessageFromGroup"));
+		assertNull(handlerMethods);
+		Object handlerMethod =  new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
+				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
+				.getPropertyValue("handlerMethod");
+		assertTrue(handlerMethod.toString().contains("createSingleMessageFromGroup"));
 		assertEquals("The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
 				releaseStrategy, accessor.getPropertyValue("releaseStrategy"));
 		assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
@@ -180,10 +179,10 @@ public class AggregatorParserTests {
 		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
 		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
 				.getPropertyValue("adapter")).getPropertyValue("delegate"));
-		Map<?, ?> map = (Map<?, ?>) releaseStrategyAccessor.getPropertyValue("handlerMethods");
-		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
-		assertTrue("Handler methods do not contain correct method: " + map, map.toString()
-				.contains("checkCompleteness"));
+		Object handlerMethods = releaseStrategyAccessor.getPropertyValue("handlerMethods");
+		assertNull(handlerMethods);
+		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
+		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
 		input.send(createMessage(1l, "correllationId", 4, 0, null));
 		input.send(createMessage(2l, "correllationId", 4, 1, null));
 		input.send(createMessage(3l, "correllationId", 4, 2, null));
@@ -205,10 +204,10 @@ public class AggregatorParserTests {
 		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
 		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
 				.getPropertyValue("adapter")).getPropertyValue("delegate"));
-		Map<?, ?> map = (Map<?, ?>) releaseStrategyAccessor.getPropertyValue("handlerMethods");
-		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
-		assertTrue("Handler methods do not contain correct method: " + map, map.toString()
-				.contains("checkCompleteness"));
+		Object handlerMethods = releaseStrategyAccessor.getPropertyValue("handlerMethods");
+		assertNull(handlerMethods);
+		Object handlerMethod = releaseStrategyAccessor.getPropertyValue("handlerMethod");
+		assertTrue(handlerMethod.toString().contains("checkCompleteness"));
 		input.send(createMessage(1l, "correllationId", 4, 0, null));
 		input.send(createMessage(2l, "correllationId", 4, 1, null));
 		input.send(createMessage(3l, "correllationId", 4, 2, null));
