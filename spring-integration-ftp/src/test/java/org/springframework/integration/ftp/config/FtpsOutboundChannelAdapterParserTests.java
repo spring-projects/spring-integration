@@ -44,9 +44,9 @@ public class FtpsOutboundChannelAdapterParserTests {
 		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("ftpOutbound", ((EventDrivenConsumer)consumer).getComponentName());
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(handler, "sessionFactory", DefaultFtpsSessionFactory.class);
+		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
+		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
+		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory", DefaultFtpsSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(sf, "port"));
 	}

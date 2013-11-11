@@ -64,15 +64,15 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("ftpOutbound", ((EventDrivenConsumer)consumer).getComponentName());
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
-		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
+		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileTemplate.remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
-		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
+		assertEquals(".foo", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
 		assertEquals("", remoteFileSeparator);
-		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
-		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "directoryExpressionProcessor"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectoryExpressionProcessor"));
-		Object sfProperty = TestUtils.getPropertyValue(handler, "sessionFactory");
+		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
+		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.directoryExpressionProcessor"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
+		Object sfProperty = TestUtils.getPropertyValue(handler, "remoteFileTemplate.sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, sfProperty.getClass());
 		DefaultFtpSessionFactory sessionFactory = (DefaultFtpSessionFactory) sfProperty;
 		assertEquals("localhost", TestUtils.getPropertyValue(sessionFactory, "host"));
@@ -99,7 +99,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		ApplicationContext ac = new ClassPathXmlApplicationContext(
 				"FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object adapter = ac.getBean("simpleAdapter");
-		Object sfProperty = TestUtils.getPropertyValue(adapter, "handler.sessionFactory");
+		Object sfProperty = TestUtils.getPropertyValue(adapter, "handler.remoteFileTemplate.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sfProperty.getClass());
 		Object innerSfProperty = TestUtils.getPropertyValue(sfProperty, "sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, innerSfProperty.getClass());
@@ -121,7 +121,7 @@ public class FtpOutboundChannelAdapterParserTests {
 				new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
 			FileTransferringMessageHandler<?> handler =
 					(FileTransferringMessageHandler<?>)TestUtils.getPropertyValue(ac.getBean("ftpOutbound3"), "handler");
-			assertFalse((Boolean)TestUtils.getPropertyValue(handler,"useTemporaryFileName"));
+			assertFalse((Boolean)TestUtils.getPropertyValue(handler,"remoteFileTemplate.useTemporaryFileName"));
 	}
 
 	@Test
@@ -131,16 +131,16 @@ public class FtpOutboundChannelAdapterParserTests {
 		Object consumer = ac.getBean("withBeanExpressions");
 		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
 		ExpressionEvaluatingMessageProcessor<?> dirExpProc = TestUtils.getPropertyValue(handler,
-				"directoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
+				"remoteFileTemplate.directoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
 		assertNotNull(dirExpProc);
 		Message<String> message = MessageBuilder.withPayload("qux").build();
 		assertEquals("foo", dirExpProc.processMessage(message));
 		ExpressionEvaluatingMessageProcessor<?> tempDirExpProc = TestUtils.getPropertyValue(handler,
-				"temporaryDirectoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
+				"remoteFileTemplate.temporaryDirectoryExpressionProcessor", ExpressionEvaluatingMessageProcessor.class);
 		assertNotNull(tempDirExpProc);
 		assertEquals("bar", tempDirExpProc.processMessage(message));
 		DefaultFileNameGenerator generator = TestUtils.getPropertyValue(handler,
-				"fileNameGenerator", DefaultFileNameGenerator.class);
+				"remoteFileTemplate.fileNameGenerator", DefaultFileNameGenerator.class);
 		assertNotNull(generator);
 		assertEquals("baz", generator.generateFileName(message));
 	}

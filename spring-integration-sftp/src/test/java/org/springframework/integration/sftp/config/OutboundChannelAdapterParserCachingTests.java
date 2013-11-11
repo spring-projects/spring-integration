@@ -44,13 +44,13 @@ public class OutboundChannelAdapterParserCachingTests {
 
 	@Test
 	public void cachingAdapter() {
-		Object sessionFactory = TestUtils.getPropertyValue(cachingAdapter, "handler.sessionFactory");
+		Object sessionFactory = TestUtils.getPropertyValue(cachingAdapter, "handler.remoteFileTemplate.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
 	}
 
 	@Test
 	public void nonCachingAdapter() {
-		Object sessionFactory = TestUtils.getPropertyValue(nonCachingAdapter, "handler.sessionFactory");
+		Object sessionFactory = TestUtils.getPropertyValue(nonCachingAdapter, "handler.remoteFileTemplate.sessionFactory");
 		assertEquals(DefaultSftpSessionFactory.class, sessionFactory.getClass());
 	}
 
