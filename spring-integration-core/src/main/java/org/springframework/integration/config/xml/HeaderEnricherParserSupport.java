@@ -29,11 +29,11 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.expression.DynamicExpression;
+import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.springframework.integration.expression.DynamicExpression;
-import org.springframework.integration.transformer.HeaderEnricher;
 
 /**
  * Base support class for 'header-enricher' parsers.
@@ -41,6 +41,7 @@ import org.springframework.integration.transformer.HeaderEnricher;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
@@ -49,6 +50,12 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 
 	private final Map<String, Class<?>> elementToTypeMap = new HashMap<String, Class<?>>();
 
+	private final static Map<String, String[]> cannedHeaderElementExpressions = new HashMap<String, String[]>();
+
+	static {
+		cannedHeaderElementExpressions.put("reply-channel-to-string", new String[] {"replyChannel",
+				"@integrationReplyChannelRegistry.channelToChannelName(headers.replyChannel)"});
+	}
 
 	@Override
 	protected final String getTransformerClassName() {
@@ -86,6 +93,8 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				Element headerElement = (Element) node;
 				String elementName = node.getLocalName();
 				Class<?> headerType = null;
+				String expression = null;
+				String overwrite = headerElement.getAttribute("overwrite");
 				if ("header".equals(elementName)) {
 					headerName = headerElement.getAttribute(NAME_ATTRIBUTE);
 				}
@@ -114,11 +123,20 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 					}
 				}
+				if (headerName == null) {
+					if (cannedHeaderElementExpressions.containsKey(elementName)) {
+						headerName = cannedHeaderElementExpressions.get(elementName)[0];
+						expression = cannedHeaderElementExpressions.get(elementName)[1];
+						overwrite = "true";
+					}
+				}
 				if (headerName != null) {
 					String value = headerElement.getAttribute("value");
 					String ref = headerElement.getAttribute(REF_ATTRIBUTE);
 					String method = headerElement.getAttribute(METHOD_ATTRIBUTE);
-					String expression = headerElement.getAttribute(EXPRESSION_ATTRIBUTE);
+					if (expression == null) {
+						expression = headerElement.getAttribute(EXPRESSION_ATTRIBUTE);
+					}
 
 					Element beanElement = null;
 					Element scriptElement = null;
@@ -236,7 +254,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 							valueProcessorBuilder.addConstructorArgReference(ref);
 						}
 					}
-					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, headerElement, "overwrite");
+					if (StringUtils.hasText(overwrite)) {
+						valueProcessorBuilder.addPropertyValue("overwrite", overwrite);
+					}
 					headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
 				}
 			}

@@ -166,6 +166,15 @@
 				For more information see <xref linkend="redis" />.
 			</para>
 		</section>
+		<section id="3.0-rcr">
+			<title>Reply Channel Registry</title>
+			<para>
+				It is now possible to instruct the framework to store a reply channel
+				in a registry for later resolution. This is useful for cases where
+				the <code>replyChannel</code> might be lost; for example when serializing
+				a message. See <xref linkend="header-enricher"/> for more information.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">

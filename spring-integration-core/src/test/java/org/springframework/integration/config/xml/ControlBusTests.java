@@ -16,8 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
@@ -30,6 +30,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.registry.ReplyChannelRegistry;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -52,6 +55,9 @@ public class ControlBusTests {
 	@Autowired
 	private PollableChannel output;
 
+	@Autowired
+	private ReplyChannelRegistry registry;
+
 	@Test
 	public void testDefaultEvaluationContext() {
 		Message<?> message = MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo").setHeader("foo", "bar").build();
@@ -71,6 +77,31 @@ public class ControlBusTests {
 		assertNotNull(outputChannel.receive(1000));
 	}
 
+	@Test
+	public void testControlReplyChannelReaper() throws InterruptedException {
+		MessagingTemplate messagingTemplate = new MessagingTemplate();
+		messagingTemplate.convertAndSend(input,
+				"@integrationReplyChannelRegistry.size()");
+		Message<?> result = this.output.receive(0);
+		assertNotNull(result);
+		assertEquals(new Integer(0), result.getPayload());
+		this.registry.setReaperDelay(10);
+		this.registry.channelToChannelName(new DirectChannel());
+		messagingTemplate.convertAndSend(input,
+				"@integrationReplyChannelRegistry.size()");
+		result = this.output.receive(0);
+		assertNotNull(result);
+		assertEquals(new Integer(1), result.getPayload());
+		Thread.sleep(100);
+		messagingTemplate.convertAndSend(input,
+				"@integrationReplyChannelRegistry.runReaper()");
+		messagingTemplate.convertAndSend(input,
+				"@integrationReplyChannelRegistry.size()");
+		result = this.output.receive(0);
+		assertNotNull(result);
+		assertEquals(new Integer(0), result.getPayload());
+		this.registry.setReaperDelay(60000);
+	}
 
 	public static class Service {
 

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.springframework.integration.context.IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
@@ -35,6 +33,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.registry.ReplyChannelRegistry;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -68,15 +67,18 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	private final NamespaceHandlerDelegate delegate = new NamespaceHandlerDelegate();
 
 
+	@Override
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.verifySchemaVersion(element, parserContext);
 		this.registerImplicitChannelCreator(parserContext);
 		this.registerIntegrationEvaluationContext(parserContext);
+		this.registerReplyChannelRegistry(parserContext);
 		this.registerBuiltInBeans(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
 
+	@Override
 	public final BeanDefinitionHolder decorate(Node source, BeanDefinitionHolder definition, ParserContext parserContext) {
 		return this.delegate.decorate(source, definition, parserContext);
 	}
@@ -127,10 +129,11 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			// unlike DefaultConfiguringBeanFactoryPostProcessor, we need one of these per registry
 			// therefore we need to call containsBeanDefinition(..) which does not consider the parent registry
 			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBeanDefinition(
-					INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+					IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(
+					IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
@@ -195,6 +198,33 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 	}
 
+    /**
+     * Register a ReplyChannelRegistry in the given BeanDefinitionRegistry.
+     */
+    private void registerReplyChannelRegistry(ParserContext parserContext) {
+		boolean alreadyRegistered = false;
+		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry())
+					.containsBean(IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(
+					IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
+            if (logger.isInfoEnabled()) {
+                    logger.info("No bean named '" + IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME +
+                                    "' has been explicitly defined. Therefore, a default ReplyChannelRegistry will be created.");
+            }
+            BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(ReplyChannelRegistry.class);
+			BeanDefinitionHolder replyChannelRegistryComponent = new BeanDefinitionHolder(
+					schedulerBuilder.getBeanDefinition(),
+					IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME);
+            BeanDefinitionReaderUtils.registerBeanDefinition(replyChannelRegistryComponent, parserContext.getRegistry());
+		}
+    }
+
+
 	protected final void registerBeanDefinitionDecorator(String elementName, BeanDefinitionDecorator decorator) {
 		this.delegate.doRegisterBeanDefinitionDecorator(elementName, decorator);
 	}
@@ -225,6 +255,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 	private class NamespaceHandlerDelegate extends NamespaceHandlerSupport {
 
+		@Override
 		public void init() {
 			AbstractIntegrationNamespaceHandler.this.init();
 		}

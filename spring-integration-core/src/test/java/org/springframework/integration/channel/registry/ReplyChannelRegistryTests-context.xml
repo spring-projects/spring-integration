@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:channel id="input" />
+
+	<int:header-enricher input-channel="input" output-channel="next">
+		<int:reply-channel-to-string />
+	</int:header-enricher>
+
+	<int:transformer input-channel="next">
+		<bean class="org.springframework.integration.channel.registry.ReplyChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:channel id="alreadyAString">
+		<int:queue />
+	</int:channel>
+</beans>
