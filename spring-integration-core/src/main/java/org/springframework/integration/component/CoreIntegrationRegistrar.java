@@ -47,7 +47,9 @@ public class CoreIntegrationRegistrar implements ImportBeanDefinitionRegistrar, 
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		this.registerJsonPathSpelFunction(registry);
+		if (!registry.isBeanNameInUse("jsonPath")) {
+			this.registerJsonPathSpelFunction(registry);
+		}
 	}
 
 	/**

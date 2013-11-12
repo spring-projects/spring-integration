@@ -18,6 +18,8 @@ package org.springframework.integration.config.xml;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -159,7 +161,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 	/**
 	 * Provides 'component-scan' style bean registrations for integration components.
-	 * Note, all components are registered only once in the parent application context.
+	 * Note, all components are registered only once in the root application context.
 	 * @param parserContext
 	 */
 	private void processIntegrationConfiguration(ParserContext parserContext) {
@@ -189,10 +191,15 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 					new PathMatchingResourcePatternResolver(parserContext.getReaderContext().getBeanClassLoader());
 			Properties properties = null;
 			try {
-				Resource[] resources = resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
+				Resource[] defaultResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.default.properties");
+				Resource[] userResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
+
+				List<Resource> resources = new LinkedList<Resource>(Arrays.asList(defaultResources));
+				resources.addAll(Arrays.asList(userResources));
+
 				PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
 				propertiesFactoryBean.setSingleton(false);
-				propertiesFactoryBean.setLocations(resources);
+				propertiesFactoryBean.setLocations(resources.toArray(new Resource[resources.size()]));
 				properties = propertiesFactoryBean.getObject();
 
 				BeanDefinitionBuilder integrationPropertiesBuilder = BeanDefinitionBuilder
@@ -288,4 +295,5 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 
 	}
+
 }

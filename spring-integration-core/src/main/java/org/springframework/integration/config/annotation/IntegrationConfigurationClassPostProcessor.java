@@ -18,7 +18,6 @@ package org.springframework.integration.config.annotation;
 
 import java.beans.Introspector;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
@@ -26,8 +25,7 @@ import org.springframework.integration.component.CoreIntegrationConfiguration;
 
 /**
  * A {@link ConfigurationClassPostProcessor} implementation to register integration annotated
- * components and remove their {@link BeanDefinition}s after registration to avoid double registration
- * in case of if {@code <context:component-scan/>} is presented in the application context.
+ * components only once globally, in root {@link org.springframework.context.ApplicationContext}.
  *
  * @author Artem Bilan
  * @since 3.0
