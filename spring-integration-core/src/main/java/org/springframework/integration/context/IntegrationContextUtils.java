@@ -45,7 +45,7 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME = "integrationEvaluationContext";
 
-	public static final String INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME = "integrationReplyChannelRegistry";
+	public static final String INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME = "integrationHeaderChannelRegistry";
 
 
 	/**

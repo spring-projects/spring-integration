@@ -90,7 +90,7 @@ public class ReplyChannelRegistryTests {
 
 	@Test
 	public void testExpire() throws Exception {
-		ReplyChannelRegistry registry = new ReplyChannelRegistry(50);
+		DefaultHeaderChannelRegistry registry = new DefaultHeaderChannelRegistry(50);
 		registry.setTaskScheduler(this.taskScheduler);
 		registry.start();
 		Thread.sleep(200);

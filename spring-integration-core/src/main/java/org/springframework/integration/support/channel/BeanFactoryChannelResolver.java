@@ -23,7 +23,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.channel.registry.ReplyChannelRegistry;
+import org.springframework.integration.channel.registry.HeaderChannelRegistry;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.Assert;
 
@@ -42,7 +42,7 @@ public class BeanFactoryChannelResolver implements ChannelResolver, BeanFactoryA
 
 	private volatile BeanFactory beanFactory;
 
-	private volatile ReplyChannelRegistry replyChannelRegistry;
+	private volatile HeaderChannelRegistry replyChannelRegistry;
 
 	/**
 	 * Create a new instance of the {@link BeanFactoryChannelResolver} class.
@@ -66,24 +66,24 @@ public class BeanFactoryChannelResolver implements ChannelResolver, BeanFactoryA
 	 */
 	public BeanFactoryChannelResolver(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.lookupReplyRegistry(beanFactory);
+		this.lookupHeaderChannelRegistry(beanFactory);
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
-		this.lookupReplyRegistry(beanFactory);
+		this.lookupHeaderChannelRegistry(beanFactory);
 	}
 
-	private void lookupReplyRegistry(BeanFactory beanFactory) {
+	private void lookupHeaderChannelRegistry(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 		try {
 			this.replyChannelRegistry = beanFactory.getBean(
-					IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME,
-					ReplyChannelRegistry.class);
+					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
+					HeaderChannelRegistry.class);
 		}
 		catch (Exception e) {
-			logger.error("No ReplyChannelRegistry found", e);
+			logger.error("No HeaderChannelRegistry found", e);
 		}
 	}
 

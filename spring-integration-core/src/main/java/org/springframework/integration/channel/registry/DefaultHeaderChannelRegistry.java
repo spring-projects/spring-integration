@@ -28,14 +28,12 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
- * Converts a reply channel to a name, retaining a reference to the reply channel. Allows a downstream
- * {@link BeanFactoryChannelResolver} to find the reply channel by name in the event the flow
+ * Converts a channel to a name, retaining a reference to the channel keyed by the name. Allows a downstream
+ * {@link BeanFactoryChannelResolver} to find the channel by name in the event the flow
  * serialized the message at some point. Channels are expired after a configurable delay
  * (60 seconds by default). The actual average expiry time will be 1.5x the delay.
  *
@@ -43,11 +41,12 @@ import org.springframework.util.Assert;
  * @since 3.0
  *
  */
-public class ReplyChannelRegistry extends IntegrationObjectSupport implements SmartLifecycle, Runnable {
+public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
+		implements HeaderChannelRegistry, SmartLifecycle, Runnable {
 
 	private static final int DEFAULT_REAPER_DELAY = 60000;
 
-	private final Map<String, MessageChannelWrapper> channels = new ConcurrentHashMap<String, ReplyChannelRegistry.MessageChannelWrapper>();
+	private final Map<String, MessageChannelWrapper> channels = new ConcurrentHashMap<String, DefaultHeaderChannelRegistry.MessageChannelWrapper>();
 
 	private static final AtomicLong id = new AtomicLong();
 
@@ -66,7 +65,7 @@ public class ReplyChannelRegistry extends IntegrationObjectSupport implements Sm
 	/**
 	 * Constructs a registry with the default delay for channel expiry.
 	 */
-	public ReplyChannelRegistry() {
+	public DefaultHeaderChannelRegistry() {
 		this(DEFAULT_REAPER_DELAY);
 	}
 
@@ -76,7 +75,7 @@ public class ReplyChannelRegistry extends IntegrationObjectSupport implements Sm
 	 *
 	 * @param reaperDelay the delay in milliseconds.
 	 */
-	public ReplyChannelRegistry(long reaperDelay) {
+	public DefaultHeaderChannelRegistry(long reaperDelay) {
 		this.setReaperDelay(reaperDelay);
 	}
 
@@ -85,13 +84,11 @@ public class ReplyChannelRegistry extends IntegrationObjectSupport implements Sm
 	 *
 	 * @param reaperDelay the delay in milliseconds.
 	 */
-	@ManagedAttribute
 	public final void setReaperDelay(long reaperDelay) {
 		Assert.isTrue(reaperDelay > 0, "'reaperDelay' must be > 0");
 		this.reaperDelay = reaperDelay;
 	}
 
-	@ManagedAttribute
 	public final long getReaperDelay() {
 		return reaperDelay;
 	}
@@ -111,11 +108,7 @@ public class ReplyChannelRegistry extends IntegrationObjectSupport implements Sm
 		return this.autoStartup;
 	}
 
-	/**
-	 *
-	 * @return the current size of the registry
-	 */
-	@ManagedAttribute
+	@Override
 	public final int size() {
 		return this.channels.size();
 	}
@@ -155,32 +148,27 @@ public class ReplyChannelRegistry extends IntegrationObjectSupport implements Sm
 		return this.running;
 	}
 
-	/**
-	 * Converts the channel to a name (String). If the channel is not a
-	 * {@link MessageChannel}, it is returned unchanged.
-	 *
-	 * @param channel The channel.
-	 * @return The channel name, or the channel if it is not a MessageChannel.
-	 */
+	@Override
 	public Object channelToChannelName(Object channel) {
 		if (channel != null && channel instanceof MessageChannel) {
-			String id = this.uuid + ReplyChannelRegistry.id.incrementAndGet();
-			channels.put(id, new MessageChannelWrapper((MessageChannel) channel));
+			String name = this.uuid + DefaultHeaderChannelRegistry.id.incrementAndGet();
+			channels.put(name, new MessageChannelWrapper((MessageChannel) channel));
 			if (logger.isDebugEnabled()) {
-				logger.debug("Resistered " + channel + " as " + id);
+				logger.debug("Resistered " + channel + " as " + name);
 			}
-			return id;
+			return name;
 		}
 		else {
 			return channel;
 		}
 	}
 
-	public MessageChannel channelNameToChannel(String id) {
-		if (id != null) {
-			MessageChannelWrapper messageChannelWrapper = this.channels.get(id);
+	@Override
+	public MessageChannel channelNameToChannel(String name) {
+		if (name != null) {
+			MessageChannelWrapper messageChannelWrapper = this.channels.get(name);
 			if (logger.isDebugEnabled() && messageChannelWrapper != null) {
-				logger.debug("Retrieved " + messageChannelWrapper.getChannel() + " with " + id);
+				logger.debug("Retrieved " + messageChannelWrapper.getChannel() + " with " + name);
 			}
 			return messageChannelWrapper == null ? null : messageChannelWrapper.getChannel();
 		}
@@ -190,7 +178,7 @@ public class ReplyChannelRegistry extends IntegrationObjectSupport implements Sm
 	/**
 	 * Cancel the scheduled reap task and run immediately; then reschedule.
 	 */
-	@ManagedOperation(description="Cancel the scheduled reap task and run immediately; then reschedule.")
+	@Override
 	public void runReaper() {
 		synchronized(this) {
 			this.reaperScheduledFuture.cancel(false);

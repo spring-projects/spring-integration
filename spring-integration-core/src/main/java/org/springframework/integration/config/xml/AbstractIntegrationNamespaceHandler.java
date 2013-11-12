@@ -33,7 +33,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.registry.ReplyChannelRegistry;
+import org.springframework.integration.channel.registry.DefaultHeaderChannelRegistry;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -72,7 +72,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		this.verifySchemaVersion(element, parserContext);
 		this.registerImplicitChannelCreator(parserContext);
 		this.registerIntegrationEvaluationContext(parserContext);
-		this.registerReplyChannelRegistry(parserContext);
+		this.registerHeaderChannelRegistry(parserContext);
 		this.registerBuiltInBeans(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
@@ -199,27 +199,27 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	}
 
     /**
-     * Register a ReplyChannelRegistry in the given BeanDefinitionRegistry.
+     * Register a DefaultHeaderChannelRegistry in the given BeanDefinitionRegistry, if necessary.
      */
-    private void registerReplyChannelRegistry(ParserContext parserContext) {
+    private void registerHeaderChannelRegistry(ParserContext parserContext) {
 		boolean alreadyRegistered = false;
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
 			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry())
-					.containsBean(IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME);
+					.containsBean(IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 		}
 		else {
 			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(
-					IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME);
+					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
             if (logger.isInfoEnabled()) {
-                    logger.info("No bean named '" + IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME +
-                                    "' has been explicitly defined. Therefore, a default ReplyChannelRegistry will be created.");
+                    logger.info("No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
+                                    "' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.");
             }
-            BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(ReplyChannelRegistry.class);
+            BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultHeaderChannelRegistry.class);
 			BeanDefinitionHolder replyChannelRegistryComponent = new BeanDefinitionHolder(
 					schedulerBuilder.getBeanDefinition(),
-					IntegrationContextUtils.INTEGRATION_REPLY_CHANNEL_REGISTRY_BEAN_NAME);
+					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
             BeanDefinitionReaderUtils.registerBeanDefinition(replyChannelRegistryComponent, parserContext.getRegistry());
 		}
     }

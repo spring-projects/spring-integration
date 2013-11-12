@@ -31,7 +31,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.registry.ReplyChannelRegistry;
+import org.springframework.integration.channel.registry.DefaultHeaderChannelRegistry;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -56,7 +56,7 @@ public class ControlBusTests {
 	private PollableChannel output;
 
 	@Autowired
-	private ReplyChannelRegistry registry;
+	private DefaultHeaderChannelRegistry registry;
 
 	@Test
 	public void testDefaultEvaluationContext() {
@@ -78,25 +78,25 @@ public class ControlBusTests {
 	}
 
 	@Test
-	public void testControlReplyChannelReaper() throws InterruptedException {
+	public void testControlHeaderChannelReaper() throws InterruptedException {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.convertAndSend(input,
-				"@integrationReplyChannelRegistry.size()");
+				"@integrationHeaderChannelRegistry.size()");
 		Message<?> result = this.output.receive(0);
 		assertNotNull(result);
 		assertEquals(new Integer(0), result.getPayload());
 		this.registry.setReaperDelay(10);
 		this.registry.channelToChannelName(new DirectChannel());
 		messagingTemplate.convertAndSend(input,
-				"@integrationReplyChannelRegistry.size()");
+				"@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
 		assertNotNull(result);
 		assertEquals(new Integer(1), result.getPayload());
 		Thread.sleep(100);
 		messagingTemplate.convertAndSend(input,
-				"@integrationReplyChannelRegistry.runReaper()");
+				"@integrationHeaderChannelRegistry.runReaper()");
 		messagingTemplate.convertAndSend(input,
-				"@integrationReplyChannelRegistry.size()");
+				"@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
 		assertNotNull(result);
 		assertEquals(new Integer(0), result.getPayload());

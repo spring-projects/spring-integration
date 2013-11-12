@@ -29,6 +29,7 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.DynamicExpression;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.util.ClassUtils;
@@ -50,11 +51,15 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 
 	private final Map<String, Class<?>> elementToTypeMap = new HashMap<String, Class<?>>();
 
-	private final static Map<String, String[]> cannedHeaderElementExpressions = new HashMap<String, String[]>();
+	private final static Map<String, String[][]> cannedHeaderElementExpressions = new HashMap<String, String[][]>();
 
 	static {
-		cannedHeaderElementExpressions.put("reply-channel-to-string", new String[] {"replyChannel",
-				"@integrationReplyChannelRegistry.channelToChannelName(headers.replyChannel)"});
+		cannedHeaderElementExpressions.put("reply-channel-to-string", new String[][] {
+				{"replyChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
+						+ ".channelToChannelName(headers.replyChannel)" },
+				{"errorChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
+						+ ".channelToChannelName(headers.replyChannel)" },
+		});
 	}
 
 	@Override
