@@ -16,6 +16,13 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -44,15 +52,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {
@@ -308,7 +307,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		assertTrue(((Message<?>)result).getPayload() instanceof Iterator<?>);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testTwoMethodsWithSameParameterTypesAmbiguous() {
 
 		@SuppressWarnings("unused")

@@ -20,18 +20,23 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -355,6 +360,56 @@ public class MethodInvokingMessageProcessorTests {
 		assertSame(RequestReplyExchanger.class, result);
 	}
 
+	@Test
+	public void testInt3199GenericTypeResolvingAndObjectMethod() throws Exception {
+
+		class Foo {
+
+			public String handleMessage(Message<Number> message) {
+				return "" + (message.getPayload().intValue() * 2);
+			}
+
+			public String objectMethod(Integer foo) {
+				return foo.toString();
+			}
+
+			public String voidMethod() {
+				return "foo";
+			}
+
+		}
+
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(new Foo(), (String) null, false);
+		assertEquals("4", helper.process(new GenericMessage<Object>(2L)));
+		assertEquals("1", helper.process(new GenericMessage<Object>(1)));
+		assertEquals("foo", helper.process(new GenericMessage<Object>(new Date())));
+	}
+
+	@Test
+	public void testInt3199GettersAmbiguity() throws Exception {
+
+		class Foo {
+
+			public String getFoo() {
+				return "foo";
+			}
+
+			public String getBar() {
+				return "foo";
+			}
+		}
+
+		try {
+			new MessagingMethodInvokerHelper(new Foo(), (String) null, false);
+			fail("IllegalArgumentException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
+			assertEquals("Found more than one method match for for empty parameter for 'payload'", e.getMessage());
+		}
+	}
+
+
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
 
@@ -528,5 +583,7 @@ public class MethodInvokingMessageProcessorTests {
 			this.lastArg = s;
 			return s;
 		}
+
 	}
+
 }
