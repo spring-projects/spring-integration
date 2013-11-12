@@ -409,6 +409,59 @@ public class MethodInvokingMessageProcessorTests {
 		}
 	}
 
+	@Test
+	public void testInt3199MessageMethods() throws Exception {
+
+		class Foo {
+
+			public String m1(Message<String> message) {
+				return message.getPayload();
+			}
+
+			public Integer m2(Message<Integer> message) {
+				return message.getPayload();
+			}
+
+			public Object m3(Message<?> message) {
+				return message.getPayload();
+			}
+
+		}
+
+		Foo targetObject = new Foo();
+
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+		assertEquals("foo", helper.process(new GenericMessage<Object>("foo")));
+		assertEquals(1, helper.process(new GenericMessage<Object>(1)));
+		assertEquals(targetObject, helper.process(new GenericMessage<Object>(targetObject)));
+	}
+
+	@Test
+	public void testInt3199TypedMethods() throws Exception {
+
+		class Foo {
+
+			public String m1(String payload) {
+				return payload;
+			}
+
+			public Integer m2(Integer payload) {
+				return payload;
+			}
+
+			public Object m3(Object payload) {
+				return payload;
+			}
+
+		}
+
+		Foo targetObject = new Foo();
+
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+		assertEquals("foo", helper.process(new GenericMessage<Object>("foo")));
+		assertEquals(1, helper.process(new GenericMessage<Object>(1)));
+		assertEquals(targetObject, helper.process(new GenericMessage<Object>(targetObject)));
+	}
 
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
