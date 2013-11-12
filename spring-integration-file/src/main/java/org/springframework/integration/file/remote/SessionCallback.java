@@ -15,32 +15,17 @@
  */
 package org.springframework.integration.file.remote;
 
-import org.springframework.integration.Message;
+import java.io.IOException;
+
+import org.springframework.integration.file.remote.session.Session;
 
 /**
- * Strategy for performing operations on remote files.
- *
  * @author Gary Russell
  * @since 3.0
  *
  */
-public interface RemoteFileOperations<F> {
+public interface SessionCallback<F, T> {
 
-	/**
-	 * Send a file to a remote server, based on information in a message.
-	 *
-	 * @param message The message
-	 * @throws Exception
-	 */
-	void send(Message<?> message);
-
-	/**
-	 * Execute the callback's doInSession method after obtaining a session.
-	 * Reliably closes the session when the method exits.
-	 *
-	 * @param callback the SessionCallback.
-	 * @return The result of the callback method.
-	 */
-	<T> T execute(SessionCallback<F, T> callback);
+	T doInSession(Session<F> session) throws IOException;
 
 }

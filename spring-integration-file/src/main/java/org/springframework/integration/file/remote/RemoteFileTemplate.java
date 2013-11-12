@@ -52,10 +52,13 @@ import org.springframework.util.StringUtils;
  * @since 3.0
  *
  */
-public class RemoteFileTemplate<F> implements RemoteFileOperations, InitializingBean, BeanFactoryAware {
+public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, InitializingBean, BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	/**
+	 * the {@link SessionFactory} for acquiring remote file Sessions.
+	 */
 	private final SessionFactory<F> sessionFactory;
 
 	private volatile String temporaryFileSuffix =".writing";
@@ -159,7 +162,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations, Initializing
 	}
 
 	@Override
-	public void send(Message<?> message) throws Exception {
+	public void send(Message<?> message) {
 		StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
 			Session<F> session = this.sessionFactory.getSession();
@@ -195,6 +198,31 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations, Initializing
 			// A null holder means a File payload that does not exist.
 			if (logger.isWarnEnabled()) {
 				logger.warn("File " + message.getPayload() + " does not exist");
+			}
+		}
+	}
+
+	@Override
+	public <T> T execute(SessionCallback<F, T> callback) {
+		Session<F> session = null;
+		try {
+			session = this.sessionFactory.getSession();
+			Assert.notNull(session, "failed to acquire a Session");
+			return callback.doInSession(session);
+		}
+		catch (IOException e) {
+			throw new MessagingException("Failed to execute on session", e);
+		}
+		finally {
+			if (session != null) {
+				try {
+					session.close();
+				}
+				catch (Exception ignored) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("failed to close Session", ignored);
+					}
+				}
 			}
 		}
 	}
