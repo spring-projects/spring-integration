@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.springframework.integration.context.IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,12 +39,12 @@ import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
-import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.config.IntegrationProperties;
+import org.springframework.integration.config.annotation.IntegrationConfigurationClassPostProcessor;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
@@ -137,11 +135,12 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
 			// unlike DefaultConfiguringBeanFactoryPostProcessor, we need one of these per registry
 			// therefore we need to call containsBeanDefinition(..) which does not consider the parent registry
-			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBeanDefinition(
-					INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+			alreadyRegistered = parserContext.getRegistry()
+					.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+			alreadyRegistered = parserContext.getRegistry()
+					.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
@@ -175,7 +174,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder postProcessorBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(ConfigurationClassPostProcessor.class);
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationClassPostProcessor.class);
 			postProcessorBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME,
 					postProcessorBuilder.getBeanDefinition());
@@ -208,16 +207,18 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			}
 
 			List<String> packagesToScan = new ArrayList<String>();
+			packagesToScan.add("org.springframework.integration.component");
+
+			String modulePrefix = IntegrationProperties.SCAN_MODULE.getKey();
 
 			if (!CollectionUtils.isEmpty(properties)) {
 				for (String key : properties.stringPropertyNames()) {
-					if (key.startsWith(IntegrationProperties.SCAN_MODULE.getKey()) && Boolean.parseBoolean(properties.getProperty(key))) {
-						packagesToScan.add("org.springframework.integration." + IntegrationProperties.SCAN_MODULE.getKey().length() + ".component");
+					if (key.startsWith(modulePrefix) && Boolean.parseBoolean(properties.getProperty(key))) {
+						packagesToScan.add("org.springframework.integration." +
+								key.substring(modulePrefix.length()) + ".component");
 					}
 				}
 			}
-
-			packagesToScan.add("org.springframework.integration.component");
 
 			scanner.scan(packagesToScan.toArray(new String[packagesToScan.size()]));
 		}
