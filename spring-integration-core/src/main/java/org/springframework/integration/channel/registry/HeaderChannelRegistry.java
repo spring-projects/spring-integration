@@ -16,10 +16,15 @@
 package org.springframework.integration.channel.registry;
 
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
 /**
+ * Implementations convert a channel to a name, retaining a reference to the channel keyed by the name. Allows a downstream
+ * {@link BeanFactoryChannelResolver} to find the channel by name in the event that the flow
+ * serialized the message at some point.
+ *
  * @author Gary Russell
  * @since 3.0
  *
@@ -27,7 +32,6 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 public interface HeaderChannelRegistry {
 
 	/**
-	 *
 	 * @return the current size of the registry
 	 */
 	@ManagedAttribute

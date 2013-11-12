@@ -1853,11 +1853,11 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="reply-channel-to-string">
+			<xsd:element name="header-channels-to-string">
 				<xsd:annotation>
 					<xsd:documentation>
-					Converts the 'replyChannel` header to a String after registering it in the ReplyChannelRegistry.
-					Use this when a message is serialized for any reason during a request/reply scenario. No changes are made
+					Converts the 'replyChannel' and 'errorChannel' headers to a String after registering it in the HeaderChannelRegistry.
+					Use this when a message is serialized for any reason. No changes are made
 					if the header does not exist, or if the header does not currently reference a MessageChannel.
 					</xsd:documentation>
 				</xsd:annotation>

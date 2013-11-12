@@ -8,14 +8,32 @@
 	<int:channel id="input" />
 
 	<int:header-enricher input-channel="input" output-channel="next">
-		<int:reply-channel-to-string />
+		<int:header-channels-to-string />
 	</int:header-enricher>
 
 	<int:transformer input-channel="next">
-		<bean class="org.springframework.integration.channel.registry.ReplyChannelRegistryTests$Foo" />
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:channel id="inputPolled">
+		<int:queue />
+	</int:channel>
+
+	<int:header-enricher input-channel="inputPolled" output-channel="nextPolled">
+		<int:header-channels-to-string />
+		<int:poller fixed-delay="100" />
+	</int:header-enricher>
+
+	<int:transformer input-channel="nextPolled">
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
 	</int:transformer>
 
 	<int:channel id="alreadyAString">
 		<int:queue />
 	</int:channel>
+
+	<int:channel id="alreadyAnotherString">
+		<int:queue />
+	</int:channel>
+
 </beans>

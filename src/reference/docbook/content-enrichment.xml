@@ -148,30 +148,33 @@
 			the incoming Message.
 	    </para>
 
-		<para><emphasis role="bold">Reply Channel Registry</emphasis></para>
+		<para><emphasis role="bold">Header Channel Registry</emphasis></para>
 
 		<para>
 			Starting with <emphasis>Spring Integration 3.0</emphasis>, a new sub-element
-			<code>&lt;int:reply-channel-to-string/&gt;</code> is available; it has no attributes.
-			This converts an existing <code>replyChannel</code> header (when it is a
-			<classname>MessageChanne</classname>) to a String and stores the reply channel in
-			a registry for later resolution when it is time to send a reply. This is useful
-			for cases where the <code>replyChannel</code> might be lost; for example when
+			<code>&lt;int:header-channels-to-string/&gt;</code> is available; it has no attributes.
+			This converts existing <code>replyChannel</code> and <code>errorChannel</code>
+			headers (when they are a
+			<classname>MessageChannel</classname>) to a String and stores the channel(s) in
+			a registry for later resolution when it is time to send a reply, or handle an error.
+			This is useful
+			for cases where the headers might be lost; for example when
 			serializing a message into a message store or when transporting the message
-			over JMS. If the <code>replyChannel</code> header does not already exist, or it
+			over JMS. If the header does not already exist, or it
 			is not a <classname>MessageChannel</classname>, no changes are made.
 		</para>
 
 		<para>
-			Use of this functionality requires the presence of a <classname>ReplyChannelRegistry</classname>
-			bean. By default, the framework creates one with the default expiry (60 seconds). Channels
+			Use of this functionality requires the presence of a <classname>HeaderChannelRegistry</classname>
+			bean. By default, the framework creates a <classname>DefaultHeaderChannelRegistry</classname>
+			with the default expiry (60 seconds). Channels
 			are removed from the registry after this time. To change this, simply define a bean
-			with id <code>integrationReplyChannelRegistry</code> and configure the required delay using
+			with id <code>integrationHeaderChannelRegistry</code> and configure the required delay using
 			a constructor argument (milliseconds).
 		</para>
 
 		<para>
-			The <classname>ReplyChannelRegistry</classname> has a <code>size()</code> method to
+			The <classname>HeaderChannelRegistry</classname> has a <code>size()</code> method to
 			determine the current size of the registry. The <code>runReaper()</code> method
 			cancels the current scheduled task and runs the reaper immediately; the task is
 			then scheduled to run again based on the current delay. These methods can be invoked
@@ -179,13 +182,15 @@
 			the following content to a control bus:
 		</para>
 
-		<programlisting><![CDATA["@integrationReplyChannelRegistry.runReaper()"]]></programlisting>
+		<programlisting><![CDATA["@integrationHeaderChannelRegistry.runReaper()"]]></programlisting>
 
 		<para>
 			This sub-element is a convenience only, and is the equivalent of specifying:
 		</para>
 		<programlisting language="xml"><![CDATA[<int:reply-channel
-	expression="@integrationReplyChannelRegistry.channelToChannelName(headers.replyChannel)"/>]]></programlisting>
+	expression="@integrationHeaderChannelRegistry.channelToChannelName(headers.replyChannel)"/>
+<int:error-channel
+	expression="@integrationHeaderChannelRegistry.channelToChannelName(headers.errorChannel)"/>]]></programlisting>
 
 		<tip>
 			For more examples for configuring header enrichers, see

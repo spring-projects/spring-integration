@@ -54,11 +54,11 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	private final static Map<String, String[][]> cannedHeaderElementExpressions = new HashMap<String, String[][]>();
 
 	static {
-		cannedHeaderElementExpressions.put("reply-channel-to-string", new String[][] {
+		cannedHeaderElementExpressions.put("header-channels-to-string", new String[][] {
 				{"replyChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
 						+ ".channelToChannelName(headers.replyChannel)" },
 				{"errorChannel", "@" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME
-						+ ".channelToChannelName(headers.replyChannel)" },
+						+ ".channelToChannelName(headers.errorChannel)" },
 		});
 	}
 
@@ -130,12 +130,27 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				}
 				if (headerName == null) {
 					if (cannedHeaderElementExpressions.containsKey(elementName)) {
-						headerName = cannedHeaderElementExpressions.get(elementName)[0];
-						expression = cannedHeaderElementExpressions.get(elementName)[1];
-						overwrite = "true";
+						for (int j = 0; j < cannedHeaderElementExpressions.get(elementName).length; j++) {
+							headerName = cannedHeaderElementExpressions.get(elementName)[j][0];
+							expression = cannedHeaderElementExpressions.get(elementName)[j][1];
+							overwrite = "true";
+							this.addHeader(element, headers, parserContext, headerName, headerElement, headerType,
+									expression, overwrite);
+						}
 					}
 				}
-				if (headerName != null) {
+				else {
+					this.addHeader(element, headers, parserContext, headerName, headerElement, headerType, expression,
+							overwrite);
+				}
+			}
+		}
+	}
+
+	private void addHeader(Element element, ManagedMap<String, Object> headers, ParserContext parserContext,
+			String headerName, Element headerElement, Class<?> headerType, String expression, String overwrite) {
+
+		// TODO: fix indentation during merge and remove this comment - indentation unchanged to ease review
 					String value = headerElement.getAttribute("value");
 					String ref = headerElement.getAttribute(REF_ATTRIBUTE);
 					String method = headerElement.getAttribute(METHOD_ATTRIBUTE);
@@ -263,9 +278,6 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						valueProcessorBuilder.addPropertyValue("overwrite", overwrite);
 					}
 					headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
-				}
-			}
-		}
 	}
 
 	/**

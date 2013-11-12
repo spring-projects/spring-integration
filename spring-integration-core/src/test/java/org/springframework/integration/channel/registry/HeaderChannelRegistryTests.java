@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.hamcrest.Matchers;
@@ -30,9 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
@@ -46,10 +49,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ReplyChannelRegistryTests {
+public class HeaderChannelRegistryTests {
 
 	@Autowired
 	MessageChannel input;
+
+	@Autowired
+	MessageChannel inputPolled;
 
 	@Autowired
 	QueueChannel alreadyAString;
@@ -61,13 +67,29 @@ public class ReplyChannelRegistryTests {
 	public void testReplace() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultChannel(this.input);
-		assertEquals("echo:foo", template.sendAndReceive(new GenericMessage<String>("foo")).getPayload());
+		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("foo"));
+		assertNotNull(reply);
+		assertEquals("echo:foo", reply.getPayload());
+	}
+
+	/**
+	 * MessagingTemplate sets the errorChannel to the replyChannel so it gets any async
+	 * exceptions via the default {@link MessagePublishingErrorHandler}.
+	 */
+	@Test
+	public void testReplaceError() {
+		MessagingTemplate template = new MessagingTemplate();
+		template.setDefaultChannel(this.inputPolled);
+		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("bar"));
+		assertNotNull(reply);
+		assertTrue(reply instanceof ErrorMessage);
 	}
 
 	@Test
 	public void testAlreadyAString() {
 		Message<String> requestMessage = MessageBuilder.withPayload("foo")
 				.setReplyChannelName("alreadyAString")
+				.setErrorChannelName("alreadyAnotherString")
 				.build();
 		this.input.send(requestMessage);
 		Message<?> reply = alreadyAString.receive(0);
@@ -106,6 +128,11 @@ public class ReplyChannelRegistryTests {
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			assertThat(requestMessage.getHeaders().getReplyChannel(),
 					Matchers.anyOf(instanceOf(String.class), Matchers.nullValue()));
+			assertThat(requestMessage.getHeaders().getErrorChannel(),
+					Matchers.anyOf(instanceOf(String.class), Matchers.nullValue()));
+			if (requestMessage.getPayload().equals("bar")) {
+				throw new RuntimeException("intentional");
+			}
 			return "echo:" + requestMessage.getPayload();
 		}
 	};

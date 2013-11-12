@@ -198,10 +198,10 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 	}
 
-    /**
-     * Register a DefaultHeaderChannelRegistry in the given BeanDefinitionRegistry, if necessary.
-     */
-    private void registerHeaderChannelRegistry(ParserContext parserContext) {
+	/**
+	 * Register a DefaultHeaderChannelRegistry in the given BeanDefinitionRegistry, if necessary.
+	 */
+	private void registerHeaderChannelRegistry(ParserContext parserContext) {
 		boolean alreadyRegistered = false;
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
 			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry())
@@ -212,17 +212,17 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
-            if (logger.isInfoEnabled()) {
-                    logger.info("No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
-                                    "' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.");
-            }
-            BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultHeaderChannelRegistry.class);
+			if (logger.isInfoEnabled()) {
+					logger.info("No bean named '" + IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME +
+									"' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.");
+			}
+			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultHeaderChannelRegistry.class);
 			BeanDefinitionHolder replyChannelRegistryComponent = new BeanDefinitionHolder(
 					schedulerBuilder.getBeanDefinition(),
 					IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME);
-            BeanDefinitionReaderUtils.registerBeanDefinition(replyChannelRegistryComponent, parserContext.getRegistry());
+			BeanDefinitionReaderUtils.registerBeanDefinition(replyChannelRegistryComponent, parserContext.getRegistry());
 		}
-    }
+	}
 
 
 	protected final void registerBeanDefinitionDecorator(String elementName, BeanDefinitionDecorator decorator) {

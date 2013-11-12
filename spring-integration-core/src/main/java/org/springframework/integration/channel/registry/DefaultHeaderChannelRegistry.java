@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 
 /**
  * Converts a channel to a name, retaining a reference to the channel keyed by the name. Allows a downstream
- * {@link BeanFactoryChannelResolver} to find the channel by name in the event the flow
+ * {@link BeanFactoryChannelResolver} to find the channel by name in the event that the flow
  * serialized the message at some point. Channels are expired after a configurable delay
  * (60 seconds by default). The actual average expiry time will be 1.5x the delay.
  *
@@ -103,9 +103,17 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		return this.phase;
 	}
 
+	public final void setPhase(int phase) {
+		this.phase = phase;
+	}
+
 	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
+	}
+
+	public final void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	@Override
