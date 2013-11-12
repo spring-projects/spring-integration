@@ -16,18 +16,13 @@
 
 package org.springframework.integration.config.annotation;
 
-import java.io.IOException;
+import java.beans.Introspector;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
-import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
-import org.springframework.core.type.classreading.MetadataReader;
-import org.springframework.core.type.classreading.MetadataReaderFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.integration.component.CoreIntegrationConfiguration;
 
 /**
  * A {@link ConfigurationClassPostProcessor} implementation to register integration annotated
@@ -39,46 +34,22 @@ import org.springframework.stereotype.Component;
  */
 public class IntegrationConfigurationClassPostProcessor extends ConfigurationClassPostProcessor {
 
-	private volatile MetadataReaderFactory metadataReaderFactory;
+	private volatile boolean processed;
 
 	@Override
-	public void setBeanClassLoader(ClassLoader beanClassLoader) {
-		super.setBeanClassLoader(beanClassLoader);
-		this.metadataReaderFactory = new CachingMetadataReaderFactory(beanClassLoader);
+	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+		if (!registry.isBeanNameInUse(Introspector.decapitalize(CoreIntegrationConfiguration.class.getSimpleName()))) {
+			super.postProcessBeanDefinitionRegistry(registry);
+		}
+		processed = true;
 	}
 
 	@Override
-	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
-		super.processConfigBeanDefinitions(registry);
-		for (String beanName : registry.getBeanDefinitionNames()) {
-			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
-			if (this.checkIntegrationConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
-				registry.removeBeanDefinition(beanName);
-			}
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		if (!this.processed &&
+				!beanFactory.containsBean(Introspector.decapitalize(CoreIntegrationConfiguration.class.getSimpleName()))) {
+			super.postProcessBeanFactory(beanFactory);
 		}
-	}
-
-	private boolean checkIntegrationConfigurationClassCandidate(BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
-
-		AnnotationMetadata metadata = null;
-		String className = beanDef.getBeanClassName();
-
-		if (className != null) {
-			try {
-				MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
-				metadata = metadataReader.getAnnotationMetadata();
-			}
-			catch (IOException ex) {
-				return false;
-			}
-		}
-
-		return metadata != null &&
-				metadata.getClassName().matches("org\\.springframework\\.integration\\.?\\w*\\.component.*") &&
-				(metadata.isAnnotated(Configuration.class.getName()) ||
-						(!metadata.isInterface() &&
-								(metadata.isAnnotated(Component.class.getName()) ||
-										metadata.hasAnnotatedMethods(Bean.class.getName()))));
 	}
 
 }

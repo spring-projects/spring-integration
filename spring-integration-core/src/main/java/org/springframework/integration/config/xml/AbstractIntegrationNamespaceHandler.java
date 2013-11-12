@@ -39,12 +39,12 @@ import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.config.IntegrationProperties;
-import org.springframework.integration.config.annotation.IntegrationConfigurationClassPostProcessor;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
@@ -174,7 +174,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder postProcessorBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationClassPostProcessor.class);
+					BeanDefinitionBuilder.genericBeanDefinition(ConfigurationClassPostProcessor.class);
 			postProcessorBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME,
 					postProcessorBuilder.getBeanDefinition());
