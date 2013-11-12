@@ -21,20 +21,28 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.net.ftp.FTPFile;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.file.remote.InputStreamCallback;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.ftp.TesFtpServer;
 import org.springframework.integration.message.GenericMessage;
@@ -188,6 +196,33 @@ public class FtpServerOutboundTests {
 		assertEquals("source2", new String(baos.toByteArray()));
 
 		session.close();
+	}
+
+	@Test
+	public void testRawGETWithTemplate() throws Exception {
+		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<FTPFile>(this.ftpServer.ftpSessionFactory());
+		template.setFileNameExpression(new SpelExpressionParser().parseExpression("payload"));
+		template.setBeanFactory(mock(BeanFactory.class));
+		template.afterPropertiesSet();
+		final ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
+		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource1.txt"), new InputStreamCallback() {
+
+			@Override
+			public void doInSession(InputStream stream) throws IOException {
+				FileCopyUtils.copy(stream, baos1);
+			}
+		}));
+		assertEquals("source1", new String(baos1.toByteArray()));
+
+		final ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource2.txt"), new InputStreamCallback() {
+
+			@Override
+			public void doInSession(InputStream stream) throws IOException {
+				FileCopyUtils.copy(stream, baos2);
+			}
+		}));
+		assertEquals("source2", new String(baos2.toByteArray()));
 	}
 
 
