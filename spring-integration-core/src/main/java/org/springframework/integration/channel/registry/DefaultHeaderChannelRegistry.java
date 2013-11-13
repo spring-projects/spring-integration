@@ -162,7 +162,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			String name = this.uuid + DefaultHeaderChannelRegistry.id.incrementAndGet();
 			channels.put(name, new MessageChannelWrapper((MessageChannel) channel));
 			if (logger.isDebugEnabled()) {
-				logger.debug("Resistered " + channel + " as " + name);
+				logger.debug("Registered " + channel + " as " + name);
 			}
 			return name;
 		}

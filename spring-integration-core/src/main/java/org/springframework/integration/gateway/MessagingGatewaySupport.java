@@ -285,7 +285,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 			}
 			AbstractEndpoint correlator = null;
 			BridgeHandler handler = new BridgeHandler();
-			handler.setBeanFactory(this.getBeanFactory());
+			if (this.getBeanFactory() != null) {
+				handler.setBeanFactory(this.getBeanFactory());
+			}
 			handler.afterPropertiesSet();
 			if (this.replyChannel instanceof SubscribableChannel) {
 				correlator = new EventDrivenConsumer(

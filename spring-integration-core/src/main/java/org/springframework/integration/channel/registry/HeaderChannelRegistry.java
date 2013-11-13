@@ -32,12 +32,6 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 public interface HeaderChannelRegistry {
 
 	/**
-	 * @return the current size of the registry
-	 */
-	@ManagedAttribute
-	public abstract int size();
-
-	/**
 	 * Converts the channel to a name (String). If the channel is not a
 	 * {@link MessageChannel}, it is returned unchanged.
 	 *
@@ -53,6 +47,12 @@ public interface HeaderChannelRegistry {
 	 * @return The channel, or null if there is no channel registered with the name.
 	 */
 	public abstract MessageChannel channelNameToChannel(String name);
+
+	/**
+	 * @return the current size of the registry
+	 */
+	@ManagedAttribute
+	public abstract int size();
 
 	/**
 	 * Cancel the scheduled reap task and run immediately; then reschedule.

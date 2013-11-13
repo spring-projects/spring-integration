@@ -13,11 +13,17 @@
 		<queue />
 	</channel>
 
+	<header-enricher input-channel="requests1" output-channel="requests">
+		<header-channels-to-string />
+	</header-enricher>
+
 	<channel id="requests"/>
 
+	<channel id="replies"/>
+
 	<enricher id="enricher" input-channel="input"
-	                        request-channel="requests" request-timeout="1234"
-	                        reply-timeout="9876"
+	                        request-channel="requests1" request-timeout="1234"
+	                        reply-timeout="9876" reply-channel="replies"
 	                        order="99" should-clone-payload="true" output-channel="output">
 		<property name="name" expression="payload.sourceName"/>
 		<property name="age" value="42"/>
