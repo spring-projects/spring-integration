@@ -35,6 +35,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -44,6 +46,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
@@ -52,7 +55,7 @@ import com.jayway.jsonpath.Filter;
  * @author Artem Bilan
  * @since 3.0
  */
-@ContextConfiguration
+@ContextConfiguration(classes = JsonPathTests.JsonPathTestsContextConfiguration.class, loader = AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JsonPathTests {
 
@@ -200,7 +203,9 @@ public class JsonPathTests {
 	}
 
 
-	public static class JsonPathConfiguration {
+	@Configuration
+	@ImportResource("classpath:org/springframework/integration/json/JsonPathTests-context.xml")
+	public static class JsonPathTestsContextConfiguration {
 
 		@Bean
 		public Filter jsonPathFilter() {

@@ -42,8 +42,7 @@ public class IntegrationConfigurationClassPostProcessor extends ConfigurationCla
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		if (!this.processed &&
-				!beanFactory.containsBean(AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+		if (!this.processed) {
 			super.postProcessBeanFactory(beanFactory);
 		}
 	}
