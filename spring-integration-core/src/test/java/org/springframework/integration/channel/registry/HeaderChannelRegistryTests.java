@@ -63,6 +63,12 @@ public class HeaderChannelRegistryTests {
 	@Autowired
 	TaskScheduler taskScheduler;
 
+	@Autowired
+	Gateway gatewayNoReplyChannel;
+
+	@Autowired
+	Gateway gatewayExplicitReplyChannel;
+
 	@Test
 	public void testReplace() {
 		MessagingTemplate template = new MessagingTemplate();
@@ -70,6 +76,20 @@ public class HeaderChannelRegistryTests {
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("foo"));
 		assertNotNull(reply);
 		assertEquals("echo:foo", reply.getPayload());
+	}
+
+	@Test
+	public void testReplaceGatewayWithNoReplyChannel() {
+		String reply = this.gatewayNoReplyChannel.exchange("foo");
+		assertNotNull(reply);
+		assertEquals("echo:foo", reply);
+	}
+
+	@Test
+	public void testReplaceGatewayWithExplicitReplyChannel() {
+		String reply = this.gatewayExplicitReplyChannel.exchange("foo");
+		assertNotNull(reply);
+		assertEquals("echo:foo", reply);
 	}
 
 	/**
@@ -137,4 +157,8 @@ public class HeaderChannelRegistryTests {
 		}
 	};
 
+	public interface Gateway {
+
+		String exchange(String foo);
+	}
 }

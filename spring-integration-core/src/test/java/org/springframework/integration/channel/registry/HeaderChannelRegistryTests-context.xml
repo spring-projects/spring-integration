@@ -36,4 +36,34 @@
 		<int:queue />
 	</int:channel>
 
+	<int:gateway id="gatewayNoReplyChannel"
+		service-interface="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Gateway"
+		default-request-channel="inputGateNoReplyChannel" />
+
+	<int:channel id="inputGateNoReplyChannel" />
+
+	<int:header-enricher input-channel="inputGateNoReplyChannel" output-channel="nextGateNoReplyChannel">
+		<int:header-channels-to-string />
+	</int:header-enricher>
+
+	<int:transformer input-channel="nextGateNoReplyChannel">
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:gateway id="gatewayExplicitReplyChannel"
+		service-interface="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Gateway"
+		default-request-channel="inputGateExplicitReplyChannel" default-reply-channel="reply" />
+
+	<int:channel id="inputGateExplicitReplyChannel" />
+
+	<int:header-enricher input-channel="inputGateExplicitReplyChannel" output-channel="nextGateExplicitReplyChannel">
+		<int:header-channels-to-string />
+	</int:header-enricher>
+
+	<int:transformer input-channel="nextGateExplicitReplyChannel" output-channel="reply">
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:channel id="reply" />
+
 </beans>
