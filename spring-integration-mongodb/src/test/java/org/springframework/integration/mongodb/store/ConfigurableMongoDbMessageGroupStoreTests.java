@@ -1,8 +1,5 @@
-
-
-package org.springframework.integration.mongodb.store;
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +13,37 @@ package org.springframework.integration.mongodb.store;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+package org.springframework.integration.mongodb.store;
 
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 
 import com.mongodb.Mongo;
+
 /**
- * @author Mark Fisher
- * @author Oleg Zhurakousky
- * @author Artem Bilan
+ * @author Amol Nayak
  *
  */
-public class MongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests{
+public class ConfigurableMongoDbMessageGroupStoreTests extends
+		AbstractMongoDbMessageGroupStoreTests {
 
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.mongodb.store.AbstractMongoDbMessageGroupStoreTests#getMessageGroupStore()
+	 */
+	@Override
+	protected MessageGroupStore getMessageGroupStore() throws Exception {
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		return new ConfigurableMongoDbMessageStore(mongoDbFactory);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.mongodb.store.AbstractMongoDbMessageGroupStoreTests#getMessageStore()
+	 */
 	@Override
 	protected MessageStore getMessageStore() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		return store;
+		return new ConfigurableMongoDbMessageStore(mongoDbFactory);
 	}
 }
