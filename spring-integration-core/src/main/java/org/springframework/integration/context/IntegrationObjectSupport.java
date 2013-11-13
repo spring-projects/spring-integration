@@ -175,12 +175,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * @see IntegrationContextUtils#getIntegrationProperties
 	 */
 	protected Properties getIntegrationProperties() {
-		if (this.beanFactory != null) {
-			return IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-		}
-		else {
-			return null;
-		}
+		return IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 	}
 
 	@Override
