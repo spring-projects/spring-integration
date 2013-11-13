@@ -7,6 +7,7 @@
             http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+
 	<logging-channel-adapter id="logger" expression="@foo"/>
 
 	<context:component-scan base-package="org.springframework.integration.component"/>

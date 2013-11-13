@@ -16,12 +16,10 @@
 
 package org.springframework.integration.config.annotation;
 
-import java.beans.Introspector;
-
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
-import org.springframework.integration.component.CoreIntegrationConfiguration;
 
 /**
  * A {@link ConfigurationClassPostProcessor} implementation to register integration annotated
@@ -36,7 +34,7 @@ public class IntegrationConfigurationClassPostProcessor extends ConfigurationCla
 
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
-		if (!registry.isBeanNameInUse(Introspector.decapitalize(CoreIntegrationConfiguration.class.getSimpleName()))) {
+		if (!registry.isBeanNameInUse(AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			super.postProcessBeanDefinitionRegistry(registry);
 		}
 		processed = true;
@@ -45,7 +43,7 @@ public class IntegrationConfigurationClassPostProcessor extends ConfigurationCla
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		if (!this.processed &&
-				!beanFactory.containsBean(Introspector.decapitalize(CoreIntegrationConfiguration.class.getSimpleName()))) {
+				!beanFactory.containsBean(AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			super.postProcessBeanFactory(beanFactory);
 		}
 	}
