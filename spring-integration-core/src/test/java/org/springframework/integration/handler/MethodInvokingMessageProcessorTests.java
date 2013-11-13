@@ -463,6 +463,32 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals(targetObject, helper.process(new GenericMessage<Object>(targetObject)));
 	}
 
+	@Test
+	public void testInt3199PrecedenceOfCandidates() throws Exception {
+
+		class Foo {
+
+			public Object m1(Message<String> message) {
+				fail("This method must not be invoked");
+				return message;
+			}
+
+			public Object m2(String payload) {
+				return payload;
+			}
+
+			public Object m3() {
+				return "FOO";
+			}
+		}
+
+		Foo targetObject = new Foo();
+
+		MessagingMethodInvokerHelper helper = new MessagingMethodInvokerHelper(targetObject, (String) null, false);
+		assertEquals("foo", helper.process(new GenericMessage<Object>("foo")));
+		assertEquals("FOO", helper.process(new GenericMessage<Object>(targetObject)));
+	}
+
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
 

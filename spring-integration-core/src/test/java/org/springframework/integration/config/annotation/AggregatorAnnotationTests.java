@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,18 @@
 
 package org.springframework.integration.config.annotation;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
+
 import java.lang.reflect.Method;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -35,16 +42,10 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
-
 /**
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class AggregatorAnnotationTests {
 
@@ -86,13 +87,12 @@ public class AggregatorAnnotationTests {
 		Object releaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
 		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
 		MethodInvokingReleaseStrategy releaseStrategyAdapter = (MethodInvokingReleaseStrategy) releaseStrategy;
-		Map<?, ?> map = (Map<?, ?>) new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
+		Object handlerMethods = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
 				.getPropertyValue("adapter")).getPropertyValue("delegate")).getPropertyValue("handlerMethods");
-		assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method", 1, map
-				.size());
-		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
-		assertTrue("Handler methods do not contain correct method: " + map, map.toString()
-				.contains("completionChecker"));
+		assertNull(handlerMethods);
+		Object handlerMethod = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
+				.getPropertyValue("adapter")).getPropertyValue("delegate")).getPropertyValue("handlerMethod");
+		assertTrue(handlerMethod.toString().contains("completionChecker"));
 	}
 
 	@Test
@@ -108,9 +108,10 @@ public class AggregatorAnnotationTests {
 				.getPropertyValue("processor")).getPropertyValue("delegate"));
 		Object targetObject = processorAccessor.getPropertyValue("targetObject");
 		assertSame(context.getBean(endpointName), targetObject);
-		Map<?, ?> handlerMethods = (Map<?, ?>) processorAccessor.getPropertyValue("handlerMethods");
-		assertEquals(1, handlerMethods.size());
-		DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethods.values().iterator().next());
+		assertNull(processorAccessor.getPropertyValue("handlerMethods"));
+		Object handlerMethod = processorAccessor.getPropertyValue("handlerMethod");
+		assertNotNull(handlerMethod);
+		DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethod);
 		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("method");
 		assertEquals("correlate", completionCheckerMethod.getName());
 	}
