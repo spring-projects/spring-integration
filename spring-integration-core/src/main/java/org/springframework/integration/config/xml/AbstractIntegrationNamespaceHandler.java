@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -62,6 +64,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHandler {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private static final String VERSION = "3.0";
 
@@ -227,7 +231,10 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 				}
 			}
 
-			scanner.scan(packagesToScan.toArray(new String[packagesToScan.size()]));
+			int integrationComponentsCount = scanner.scan(packagesToScan.toArray(new String[packagesToScan.size()]));
+			if (logger.isDebugEnabled()) {
+				logger.debug("Component Scanner has registered " + integrationComponentsCount + " Integration Components.");
+			}
 		}
 	}
 
