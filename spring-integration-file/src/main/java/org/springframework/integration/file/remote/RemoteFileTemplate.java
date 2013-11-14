@@ -177,10 +177,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
 		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
-			this.execute(new SessionCallback<F, Object>() {
+			this.execute(new SessionCallbackWithoutResult<F>() {
 
 				@Override
-				public Object doInSession(Session<F> session) throws IOException {
+				public void doInSessionWithoutResult(Session<F> session) throws IOException {
 					String fileName = inputStreamHolder.getName();
 					try {
 						String remoteDirectory = RemoteFileTemplate.this.directoryExpressionProcessor
@@ -207,7 +207,6 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 						throw new MessageDeliveryException(message, "Error handling message for file ["
 								+ inputStreamHolder.getName() + " -> " + fileName + "]", e);
 					}
-					return null;
 				}
 			});
 		}
@@ -235,10 +234,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		Assert.hasText(fromPath, "Old filename cannot be null or empty");
 		Assert.hasText(toPath, "New filename cannot be null or empty");
 
-		this.execute(new SessionCallback<F, Object>() {
+		this.execute(new SessionCallbackWithoutResult<F>() {
 
 			@Override
-			public Object doInSession(Session<F> session) throws IOException {
+			public void doInSessionWithoutResult(Session<F> session) throws IOException {
 				int lastSeparator = toPath.lastIndexOf(RemoteFileTemplate.this.remoteFileSeparator);
 				if (lastSeparator > 0) {
 					String remoteFileDirectory = toPath.substring(0, lastSeparator + 1);
@@ -246,31 +245,25 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 							RemoteFileTemplate.this.remoteFileSeparator, RemoteFileTemplate.this.logger);
 				}
 				session.rename(fromPath, toPath);
-				return null;
 			}
 		});
 	}
 
 
 	@Override
-	public boolean get(final Message<?> message, InputStreamCallback callback) {
+	public boolean get(final Message<?> message, final InputStreamCallback callback) {
 		Assert.notNull(this.fileNameProcessor, "'fileNameProcessor' needed to use get");
-		Session<F> session = null;
-		final String remotePath = this.fileNameProcessor.processMessage(message);
-		try {
-			session = this.sessionFactory.getSession();
-			Assert.notNull(session, "failed to acquire a Session");
-			callback.doInSession(session.readRaw(remotePath));
-			return session.finalizeRaw();
-		}
-		catch (IOException e) {
-			throw new MessagingException(message, e);
-		}
-		finally {
-			if (session != null) {
-				session.close();
+		return this.execute(new SessionCallback<F, Boolean>() {
+
+			@Override
+			public Boolean doInSession(Session<F> session) throws IOException {
+				final String remotePath = RemoteFileTemplate.this.fileNameProcessor.processMessage(message);
+				InputStream inputStream = session.readRaw(remotePath);
+				callback.doWithInputStream(inputStream);
+				inputStream.close();
+				return session.finalizeRaw();
 			}
-		}
+		});
 	}
 
 	@Override

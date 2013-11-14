@@ -19,12 +19,22 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * Callback for stream-based file retrieval using a RemoteFileOperations.
+ *
  * @author Gary Russell
  * @since 3.0
  *
  */
 public interface InputStreamCallback {
 
-	void doInSession(InputStream stream) throws IOException;
+	/**
+	 * Called with the InputStream for the remote file. The caller will
+	 * take care of closing the stream and finalizing the file retrieval operation after
+	 * this method exits.
+	 *
+	 * @param stream The InputStream.
+	 * @throws IOException
+	 */
+	void doWithInputStream(InputStream stream) throws IOException;
 
 }

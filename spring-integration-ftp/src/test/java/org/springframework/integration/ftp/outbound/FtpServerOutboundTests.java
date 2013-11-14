@@ -52,6 +52,8 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 3.0
  */
 @ContextConfiguration
@@ -208,7 +210,7 @@ public class FtpServerOutboundTests {
 		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource1.txt"), new InputStreamCallback() {
 
 			@Override
-			public void doInSession(InputStream stream) throws IOException {
+			public void doWithInputStream(InputStream stream) throws IOException {
 				FileCopyUtils.copy(stream, baos1);
 			}
 		}));
@@ -218,7 +220,7 @@ public class FtpServerOutboundTests {
 		assertTrue(template.get(new GenericMessage<String>("ftpSource/ftpSource2.txt"), new InputStreamCallback() {
 
 			@Override
-			public void doInSession(InputStream stream) throws IOException {
+			public void doWithInputStream(InputStream stream) throws IOException {
 				FileCopyUtils.copy(stream, baos2);
 			}
 		}));

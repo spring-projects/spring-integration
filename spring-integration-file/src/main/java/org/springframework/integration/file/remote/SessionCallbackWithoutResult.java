@@ -20,14 +20,20 @@ import java.io.IOException;
 import org.springframework.integration.file.remote.session.Session;
 
 /**
- * Callback invoked by {@code RemoteFileOperations.execute()) - allows multiple operations
- * on a session.
+ * Simple convenience implementation of {@link SessionCallback} for cases where
+ * no result is returned.
  *
  * @author Gary Russell
  * @since 3.0
  *
  */
-public interface SessionCallback<F, T> {
+public abstract class SessionCallbackWithoutResult<F> implements SessionCallback<F, Object> {
+
+	@Override
+	public Object doInSession(Session<F> session) throws IOException {
+		this.doInSessionWithoutResult(session);
+		return null;
+	}
 
 	/**
 	 * Called within the context of a session.
@@ -35,9 +41,8 @@ public interface SessionCallback<F, T> {
 	 * care of closing the session after this method exits.
 	 *
 	 * @param session The session.
-	 * @return The result of type T.
 	 * @throws IOException
 	 */
-	T doInSession(Session<F> session) throws IOException;
+	protected abstract void doInSessionWithoutResult(Session<F> session) throws IOException;
 
 }
