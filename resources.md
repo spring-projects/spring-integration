@@ -14,7 +14,7 @@ The [spring.io](http://spring.io/) site contains a *Getting Started* guide that 
 ## Books
 
 * **Mark Fisher, Jonas Partner, Marius Bogoevici, Iwein Fuld**: [Spring Integration in Action](http://www.manning.com/fisher/)
-* **Madhusudhan Konda**: <a target="_blank" [Just Spring Integration](http://www.amazon.com/dp/1449316085/)
+* **Madhusudhan Konda**: [Just Spring Integration](http://www.amazon.com/dp/1449316085/)
 * **Dr. Mark Lui, Mario Gray, Andy Chan, Josh Long**: [Pro Spring Integration](http://www.amazon.com/dp/1430233451/)
 
 <span id="articles"></span>
