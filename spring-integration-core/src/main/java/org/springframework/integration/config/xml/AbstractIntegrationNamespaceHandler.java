@@ -182,8 +182,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			BeanDefinitionBuilder postProcessorBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationClassPostProcessor.class);
 			postProcessorBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-			registry.registerBeanDefinition(INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME,
-					postProcessorBuilder.getBeanDefinition());
+			registry.registerBeanDefinition(INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME, postProcessorBuilder.getBeanDefinition());
 
 
 			ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry);

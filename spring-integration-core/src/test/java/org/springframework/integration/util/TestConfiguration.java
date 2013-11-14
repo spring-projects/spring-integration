@@ -14,29 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.component;
+package org.springframework.integration.util;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Artem Bilan
  * @since 3.0
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-public class IntegrationConfigurationWithoutScannerTests extends AbstractIntegrationConfigurationTests {
+@Configuration
+public class TestConfiguration {
 
-	@Override
-	@Test
-	public void testInt2500ConfigurationCreatedOnlyOnceNewAnnotations() {
-		super.testInt2500ConfigurationCreatedOnlyOnceNewAnnotations();
-	}
-
-	@Test
-	public void testInt2500ConfigurationCreatedOnlyOnceNewCtx() {
-		super.testInt2500ConfigurationCreatedOnlyOnceNewCtx();
+	@Bean
+	public String testBean() {
+		return "testBean";
 	}
 
 }

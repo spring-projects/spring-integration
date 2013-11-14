@@ -7,8 +7,17 @@
             http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<logging-channel-adapter id="logger" expression="@foo"/>
+	<beans:beans profile="scannerFirst">
+		<context:component-scan base-package="org.springframework.integration.component"/>
+	</beans:beans>
 
-	<context:component-scan base-package="org.springframework.integration.component"/>
+	<beans:beans>
+		<logging-channel-adapter id="logger" expression="@foo"/>
+	</beans:beans>
+
+
+	<beans:beans profile="scannerLast">
+		<context:component-scan base-package="org.springframework.integration.component"/>
+	</beans:beans>
 
 </beans:beans>

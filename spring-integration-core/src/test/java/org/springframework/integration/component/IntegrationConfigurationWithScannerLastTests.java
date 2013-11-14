@@ -16,61 +16,30 @@
 
 package org.springframework.integration.component;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Properties;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.support.AbstractRefreshableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
  * @since 3.0
  */
-@ContextConfiguration
+@ActiveProfiles("scannerLast")
 @RunWith(SpringJUnit4ClassRunner.class)
-public class IntegrationConfigurationWithScannerLastTests {
+public class IntegrationConfigurationWithScannerLastTests extends AbstractIntegrationConfigurationTests {
 
-	@Autowired
-	private TestIntegrationConfiguration configuration;
-
-	@Autowired
-	private MessageChannel logger;
-
-	@Autowired
-	@Qualifier(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME)
-	private Properties integrationProperties;
-
+	@Override
 	@Test
 	public void testInt2500ConfigurationCreatedOnlyOnceNewAnnotations() {
-		logger.send(new GenericMessage<Object>("test"));
-		assertEquals(new Integer(1), configuration.getBeanCount());
-		assertEquals("error", integrationProperties.getProperty("messagingTemplate.lateReply.logging.level"));
+		super.testInt2500ConfigurationCreatedOnlyOnceNewAnnotations();
 	}
 
 	@Test
 	public void testInt2500ConfigurationCreatedOnlyOnceNewCtx() {
-		AbstractRefreshableApplicationContext context = new ClassPathXmlApplicationContext(this.getClass().getSimpleName() + "-context.xml", this.getClass());
-		context.setAllowBeanDefinitionOverriding(false);
-		context.refresh();
-
-		TestIntegrationConfiguration configuration = context.getBean(TestIntegrationConfiguration.class);
-		MessageChannel logger = context.getBean("logger", MessageChannel.class);
-		Properties integrationProperties = context.getBean(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME, Properties.class);
-
-		logger.send(new GenericMessage<Object>("test"));
-		assertEquals(new Integer(1), configuration.getBeanCount());
-		assertEquals("error", integrationProperties.getProperty("messagingTemplate.lateReply.logging.level"));
+		super.testInt2500ConfigurationCreatedOnlyOnceNewCtx("scannerLast");
 	}
 
 }
+

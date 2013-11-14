@@ -16,7 +16,9 @@
 
 package org.springframework.integration.config.annotation;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import java.util.Set;
+
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
@@ -30,20 +32,16 @@ import org.springframework.context.annotation.ConfigurationClassPostProcessor;
  */
 public class IntegrationConfigurationClassPostProcessor extends ConfigurationClassPostProcessor {
 
-	private volatile boolean processed;
-
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
 		if (!registry.isBeanNameInUse(AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			super.postProcessBeanDefinitionRegistry(registry);
 		}
-		processed = true;
-	}
-
-	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		if (!this.processed) {
-			super.postProcessBeanFactory(beanFactory);
+		else {
+			DirectFieldAccessor dfa = new DirectFieldAccessor(this);
+			@SuppressWarnings("unchecked")
+			Set<Integer> registriesPostProcessed = (Set<Integer>) dfa.getPropertyValue("registriesPostProcessed");
+			registriesPostProcessed.add(System.identityHashCode(registry));
 		}
 	}
 
