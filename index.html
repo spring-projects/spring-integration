@@ -32,11 +32,9 @@ badges:
       icon: metrics
 
 ---
+
 <!DOCTYPE HTML>
 <html lang="en-US">
-
-<!-- Specify the parent of this project (or delete if none) to influence the rendering of the breadcrumb -->
-
 
 {% capture billboard_description %}
 
@@ -52,21 +50,13 @@ maintainable, testable code.
 
 {% capture main_content %}
 
-Using the [Spring Framework](/spring-framework/) encourages developers to code using interfaces and
-use dependency injection (DI) to provide a Plain Old Java Object (POJO) with the dependencies it needs
-to perform its tasks. __Spring Integration__ takes this concept one step further, where POJOs are wired
-together using a messaging paradigm and individual components may not be aware of other components in
-the application. Such an application is built by assembling fine-grained reusable components to form
-a higher level of functionality. WIth careful design, these flows can be modularized and also reused
-at an even higher level.
+## Introduction
 
-In addition to wiring together fine-grained components, Spring Integration provides a wide selection of
-channel adapters and gateways to communicate with external systems. Channel Adapters are used for one-way
-integration (send or receive); gateways are used for request/reply scenarios (inbound or outbound).
-For a full list of adapters and gateways, refer to the reference documentation.
+Using the [Spring Framework](/spring-framework/) encourages developers to code using interfaces and use dependency injection (DI) to provide a Plain Old Java Object (POJO) with the dependencies it needs to perform its tasks. __Spring Integration__ takes this concept one step further, where POJOs are wired together using a messaging paradigm and individual components may not be aware of other components in the application. Such an application is built by assembling fine-grained reusable components to form a higher level of functionality. WIth careful design, these flows can be modularized and also reused at an even higher level.
 
-The [Spring XD](/spring-xd/) project builds on Spring Integration, where Spring Integration modules
-are assembled into an XD Stream.
+In addition to wiring together fine-grained components, Spring Integration provides a wide selection of channel adapters and gateways to communicate with external systems. Channel Adapters are used for one-way integration (send or receive); gateways are used for request/reply scenarios (inbound or outbound). For a full list of adapters and gateways, refer to the reference documentation.
+
+The [Spring XD](/spring-xd/) project builds on Spring Integration, where Spring Integration modules are assembled into an XD Stream.
 
 ## Features
 
@@ -162,17 +152,22 @@ public interface TempConverter {
 
 ### Sample Projects
 
-An extensive array of [sample applications](https://github.com/SpringSource/spring-integration-samples) is available.
+* 50+ [Sample Applications](https://github.com/SpringSource/spring-integration-samples)
 
-### Other Resources
+### Extensions
 
-* A number of additional adapters and gateways have been [provided by the community](https://github.com/SpringSource/spring-integration-extensions).
-* Contributions are always welcome, either new modules in the [extensions repository](https://github.com/SpringSource/spring-integration-extensions)
-or new features for the core project. For more information see the [Contributor Guidelines](https://github.com/SpringSource/spring-integration/blob/master/CONTRIBUTING.md).
-* [Spring Integration in Action](http://www.manning.com/fisher/) by project founder [Mark Fisher](https://spring.io/team/mfisher) et al.
+* [Community provided Extensions](https://github.com/SpringSource/spring-integration-extensions)
+* **Contributions are welcome!**
+* See [Contributor Guidelines](https://github.com/SpringSource/spring-integration/blob/master/CONTRIBUTING.md).
+
+### Resources
+
+* [Guides](resources.html#guides)
+* [Books](resources.html#books)
+* [Articles](resources.html#articles)
+* [Videos](resources.html#videos)
 
 {% endcapture %}
-
 
 {% include project_page.html %}
 </html>
