@@ -41,15 +41,20 @@ public abstract class MongoDbAvailableTests {
 	public MongoDbAvailableRule redisAvailableRule = new MongoDbAvailableRule();
 
 
-	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionToDrop) throws Exception{
+	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) throws Exception{
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
+		return mongoDbFactory;
+	}
+
+	protected void cleanupCollections(MongoDbFactory mongoDbFactory, String... additionalCollectionsToDrop) {
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 		template.dropCollection("messages");
+		template.dropCollection("configurableStoreMessages");
 		template.dropCollection("data");
-		for (String additionalCollection : additionalCollectionToDrop) {
+		for(String additionalCollection:additionalCollectionsToDrop) {
 			template.dropCollection(additionalCollection);
 		}
-		return mongoDbFactory;
 	}
 
 	public Person createPerson(){
