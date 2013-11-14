@@ -20,7 +20,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -75,7 +74,7 @@ public class FtpOutboundGatewayParserTests {
 		FtpOutboundGateway gateway = TestUtils.getPropertyValue(gateway1,
 				"handler", FtpOutboundGateway.class);
 		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
+		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
@@ -97,8 +96,8 @@ public class FtpOutboundGatewayParserTests {
 		FtpOutboundGateway gateway = TestUtils.getPropertyValue(gateway2,
 				"handler", FtpOutboundGateway.class);
 		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
-		assertTrue(TestUtils.getPropertyValue(gateway, "sessionFactory") instanceof CachingSessionFactory);
+		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
+		assertTrue(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory") instanceof CachingSessionFactory);
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
@@ -130,7 +129,7 @@ public class FtpOutboundGatewayParserTests {
 	public void testGatewayMv() {
 		FtpOutboundGateway gateway = TestUtils.getPropertyValue(gateway3,
 				"handler", FtpOutboundGateway.class);
-		assertNotNull(TestUtils.getPropertyValue(gateway, "sessionFactory"));
+		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals(Command.MV, TestUtils.getPropertyValue(gateway, "command"));
 		assertEquals("'foo'", TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression"));
