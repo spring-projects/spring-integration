@@ -78,19 +78,19 @@ public class XPathTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testXPathUtils() {
-		Object result = evaluate("/parent/child/@name", XML);
+		Object result = evaluate(XML, "/parent/child/@name");
 		assertEquals("test", result);
 
-		result = evaluate("/parent/child/@name", XML, "string");
+		result = evaluate(XML, "/parent/child/@name", "string");
 		assertEquals("test", result);
 
-		result = evaluate("/parent/child/@age", XML, "number");
+		result = evaluate(XML, "/parent/child/@age", "number");
 		assertEquals((double) 42, result);
 
-		result = evaluate("/parent/child/@married = 'true'", XML, "boolean");
+		result = evaluate(XML, "/parent/child/@married = 'true'", "boolean");
 		assertEquals(Boolean.TRUE, result);
 
-		result = evaluate("/parent/child", XML, "node");
+		result = evaluate(XML, "/parent/child", "node");
 		assertThat(result, Matchers.instanceOf(Node.class));
 		Node node = (Node) result;
 		assertEquals("child", node.getLocalName());
@@ -98,7 +98,7 @@ public class XPathTests {
 		assertEquals("42", node.getAttributes().getNamedItem("age").getTextContent());
 		assertEquals("true", node.getAttributes().getNamedItem("married").getTextContent());
 
-		result = evaluate("/parent/child", "<parent><child name='foo'/><child name='bar'/></parent>", "node_list");
+		result = evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child", "node_list");
 		assertThat(result, Matchers.instanceOf(List.class));
 		List<Node> nodeList = (List<Node>) result;
 		assertEquals(2, nodeList.size());
@@ -109,7 +109,7 @@ public class XPathTests {
 		assertEquals("child", node2.getLocalName());
 		assertEquals("bar", node2.getAttributes().getNamedItem("name").getTextContent());
 
-		result = evaluate("/parent/child", "<parent><child name='foo'/><child name='bar'/></parent>", "document_list");
+		result = evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child", "document_list");
 		assertThat(result, Matchers.instanceOf(List.class));
 		List<Document> documentList = (List<Document>) result;
 		assertEquals(2, documentList.size());
@@ -120,11 +120,11 @@ public class XPathTests {
 		assertEquals("child", document2.getFirstChild().getLocalName());
 		assertEquals("bar", document2.getFirstChild().getAttributes().getNamedItem("name").getTextContent());
 
-		result = evaluate("/parent/child/@name", XML, new TestNodeMapper());
+		result = evaluate(XML, "/parent/child/@name", new TestNodeMapper());
 		assertEquals("test-mapped", result);
 
 		try {
-			evaluate("/parent/child", new Date());
+			evaluate(new Date(), "/parent/child");
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
@@ -133,7 +133,7 @@ public class XPathTests {
 		}
 
 		try {
-			evaluate("/parent/child", XML, "string", "number");
+			evaluate(XML, "/parent/child", "string", "number");
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
@@ -142,7 +142,7 @@ public class XPathTests {
 		}
 
 		try {
-			evaluate("/parent/child", XML, "foo");
+			evaluate(XML, "/parent/child", "foo");
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {

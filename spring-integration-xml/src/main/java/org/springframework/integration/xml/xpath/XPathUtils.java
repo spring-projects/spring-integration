@@ -67,10 +67,11 @@ public final class XPathUtils {
 	 * Delegates evaluation to {@link XPathExpression}.
 	 * Note this method is used as {@code #xpath()} SpEL function.
 	 *
-	 * @param xpath     'xpath' expression String
+	 *
 	 * @param o         the xml Object for evaluaton
+	 * @param xpath     'xpath' expression String
 	 * @param resultArg optional parameter to represent the result of xpath evaluation.
-	 *                  Can applies only one element, which can be an instance of {@link NodeMapper} or
+	 *                  Can applies only one element, which can be an instance of {@link org.springframework.xml.xpath.NodeMapper} or
 	 *                  one of String constants: "string", "boolean", "number", "node" or "node_list"
 	 * @return the appropriate result of xpath
 	 * @throws IllegalArgumentException - if provided arguments aren't appropriate types or values;
@@ -78,7 +79,7 @@ public final class XPathUtils {
 	 *         XPathException - if can't evaluate an xpath expression.
 	 */
 	@SuppressWarnings({"unchecked"})
-	public static <T> T evaluate(String xpath, Object o, Object... resultArg) {
+	public static <T> T evaluate(Object o, String xpath, Object... resultArg) {
 		Object resultType = null;
 		if (resultArg != null && resultArg.length > 0) {
 			Assert.isTrue(resultArg.length == 1, "'resultArg' can contains only one element.");

@@ -18,16 +18,16 @@
 	</int:channel>
 
 	<int:transformer input-channel="xpathTransformerInput" output-channel="channelA"
-					 expression="#xpath(headers.xpath, payload, @testNodeMapper)"/>
+					 expression="#xpath(payload, headers.xpath, @testNodeMapper)"/>
 
 	<int:filter input-channel="xpathFilterInput" output-channel="channelA" discard-channel="channelZ"
-			expression="#xpath('/name', payload, 'boolean')"/>
+			expression="#xpath(payload, '/name', 'boolean')"/>
 
 	<int:splitter input-channel="xpathSplitterInput" output-channel="channelA"
-			expression="#xpath('//book', payload, 'document_list')"/>
+			expression="#xpath(payload, '//book', 'document_list')"/>
 
 	<int:router input-channel="xpathRouterInput"
-				expression="#xpath('/name', payload)"
+				expression="#xpath(payload, '/name')"
 				resolution-required="false"
 				default-output-channel="channelZ">
 		<int:mapping value="A" channel="channelA"/>
