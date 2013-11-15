@@ -16,6 +16,8 @@
 
 package org.springframework.integration.context;
 
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -167,6 +169,13 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 */
 	public String getApplicationContextId() {
 		return this.applicationContext == null ? null : this.applicationContext.getId();
+	}
+
+	/**
+	 * @see IntegrationContextUtils#getIntegrationProperties
+	 */
+	protected Properties getIntegrationProperties() {
+		return IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
 	}
 
 	@Override

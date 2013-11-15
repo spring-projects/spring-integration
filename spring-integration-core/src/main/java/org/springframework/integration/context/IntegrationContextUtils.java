@@ -16,6 +16,8 @@
 
 package org.springframework.integration.context;
 
+import java.util.Properties;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -44,6 +46,10 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
 	public static final String INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME = "integrationEvaluationContext";
+
+	public static final String INTEGRATION_PROPERTIES_BEAN_NAME = "integrationProperties";
+
+	private static final Properties EMPTY_PROPERTIES = new Properties();
 
 	/**
 	 * Return the {@link MetadataStore} bean whose name is "metadataStore".
@@ -102,6 +108,26 @@ public abstract class IntegrationContextUtils {
 			return null;
 		}
 		return beanFactory.getBean(beanName, type);
+	}
+
+	/**
+	 * @return the global {@link IntegrationContextUtils#INTEGRATION_PROPERTIES_BEAN_NAME}
+	 *         bean from provided {@code #beanFactory}, which represents the merged
+	 *         properties values from all 'META-INF/spring.integration.default.properties'
+	 *         and 'META-INF/spring.integration.properties'.
+	 *         May return {@link IntegrationContextUtils#EMPTY_PROPERTIES} if there is no
+	 *         {@link IntegrationContextUtils#INTEGRATION_PROPERTIES_BEAN_NAME} bean within
+	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
+	 */
+	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
+		Properties properties = null;
+		if (beanFactory != null) {
+			properties = getBeanOfType(beanFactory, INTEGRATION_PROPERTIES_BEAN_NAME, Properties.class);
+		}
+		if (properties == null) {
+			properties = EMPTY_PROPERTIES;
+		}
+		return properties;
 	}
 
 }

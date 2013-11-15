@@ -16,7 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.springframework.integration.context.IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,8 +31,10 @@ import org.w3c.dom.Node;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionDecorator;
@@ -35,11 +42,17 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
+import org.springframework.integration.config.IntegrationProperties;
+import org.springframework.integration.config.annotation.IntegrationConfigurationClassPostProcessor;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
-import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -64,6 +77,8 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	private static final String DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME =
 			IntegrationNamespaceUtils.BASE_PACKAGE + ".internal" + DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME;
 
+	private static final String INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME =
+			"integrationConfigurationBeanFactoryPostProcessor";
 
 	private final NamespaceHandlerDelegate delegate = new NamespaceHandlerDelegate();
 
@@ -71,8 +86,8 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.verifySchemaVersion(element, parserContext);
 		this.registerImplicitChannelCreator(parserContext);
+		this.processIntegrationConfiguration(parserContext);
 		this.registerIntegrationEvaluationContext(parserContext);
-		this.registerBuiltInBeans(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
@@ -126,11 +141,12 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
 			// unlike DefaultConfiguringBeanFactoryPostProcessor, we need one of these per registry
 			// therefore we need to call containsBeanDefinition(..) which does not consider the parent registry
-			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBeanDefinition(
-					INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+			alreadyRegistered = parserContext.getRegistry()
+					.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
+			alreadyRegistered = parserContext.getRegistry()
+					.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
@@ -147,35 +163,78 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 	}
 
-	private void registerBuiltInBeans(ParserContext parserContext) {
-		String jsonPathBeanName = "jsonPath";
+	/**
+	 * Provides 'component-scan' style bean registrations for integration components.
+	 * Note, all components are registered only once in the root application context.
+	 * @param parserContext
+	 */
+	private void processIntegrationConfiguration(ParserContext parserContext) {
+		BeanDefinitionRegistry registry = parserContext.getRegistry();
 		boolean alreadyRegistered = false;
-		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
-			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBean(jsonPathBeanName);
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry).containsBean(INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME);
 		}
 		else {
-			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(jsonPathBeanName);
+			alreadyRegistered = registry.isBeanNameInUse(INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME);
 		}
+
 		if (!alreadyRegistered) {
-			Class<?> jsonPathClass = null;
+			BeanDefinitionBuilder postProcessorBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(IntegrationConfigurationClassPostProcessor.class);
+			postProcessorBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+			registry.registerBeanDefinition(INTEGRATION_CONFIGURATION_POSTPROCESSOR_BEAN_NAME, postProcessorBuilder.getBeanDefinition());
+
+
+			ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry);
+			scanner.setResourcePattern("*.class");
+			scanner.setIncludeAnnotationConfig(false);
+
+
+			ResourcePatternResolver resourceResolver =
+					new PathMatchingResourcePatternResolver(parserContext.getReaderContext().getBeanClassLoader());
+			Properties properties = null;
 			try {
-				jsonPathClass = ClassUtils.forName("com.jayway.jsonpath.JsonPath", parserContext.getReaderContext().getBeanClassLoader());
+				Resource[] defaultResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.default.properties");
+				Resource[] userResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
+
+				List<Resource> resources = new LinkedList<Resource>(Arrays.asList(defaultResources));
+				resources.addAll(Arrays.asList(userResources));
+
+				PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
+				propertiesFactoryBean.setSingleton(false);
+				propertiesFactoryBean.setLocations(resources.toArray(new Resource[resources.size()]));
+				properties = propertiesFactoryBean.getObject();
+
+				BeanDefinitionBuilder integrationPropertiesBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(PropertiesFactoryBean.class)
+						.addPropertyValue("properties", properties);
+
+				registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME,
+						integrationPropertiesBuilder.getBeanDefinition());
 			}
-			catch (ClassNotFoundException e) {
-				logger.debug("SpEL function '#jsonPath' isn't registered: there is no jayway json-path.jar on the classpath.");
+			catch (IOException e) {
+				parserContext.getReaderContext().warning("Cannot load 'spring.integration.properties' Resources.", null, e);
 			}
 
-			if (jsonPathClass != null) {
-				IntegrationNamespaceUtils.registerSpelFunctionBean(parserContext.getRegistry(), jsonPathBeanName,
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".json.JsonPathUtils", "evaluate");
+			List<String> packagesToScan = new ArrayList<String>();
+			packagesToScan.add("org.springframework.integration.component");
+
+			String modulePrefix = IntegrationProperties.SCAN_MODULE.getKey();
+
+			if (!CollectionUtils.isEmpty(properties)) {
+				for (String key : properties.stringPropertyNames()) {
+					if (key.startsWith(modulePrefix) && Boolean.parseBoolean(properties.getProperty(key))) {
+						packagesToScan.add("org.springframework.integration." +
+								key.substring(modulePrefix.length()) + ".component");
+					}
+				}
+			}
+
+			int integrationComponentsCount = scanner.scan(packagesToScan.toArray(new String[packagesToScan.size()]));
+			if (logger.isDebugEnabled()) {
+				logger.debug("Component Scanner has registered " + integrationComponentsCount + " Integration Components.");
 			}
 		}
-
-		this.doRegisterBuiltInBeans(parserContext);
-	}
-
-	protected void doRegisterBuiltInBeans(ParserContext parserContext) {
-
 	}
 
 	private void registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(ParserContext parserContext) {
@@ -242,4 +301,5 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 
 	}
+
 }
