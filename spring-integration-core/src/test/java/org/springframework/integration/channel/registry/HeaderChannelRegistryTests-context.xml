@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:channel id="input" />
+
+	<int:header-enricher input-channel="input" output-channel="next">
+		<int:header-channels-to-string />
+	</int:header-enricher>
+
+	<int:transformer input-channel="next">
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:channel id="inputPolled">
+		<int:queue />
+	</int:channel>
+
+	<int:header-enricher input-channel="inputPolled" output-channel="nextPolled">
+		<int:header-channels-to-string />
+		<int:poller fixed-delay="100" />
+	</int:header-enricher>
+
+	<int:transformer input-channel="nextPolled">
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:channel id="alreadyAString">
+		<int:queue />
+	</int:channel>
+
+	<int:channel id="alreadyAnotherString">
+		<int:queue />
+	</int:channel>
+
+	<int:gateway id="gatewayNoReplyChannel"
+		service-interface="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Gateway"
+		default-request-channel="inputGateNoReplyChannel" />
+
+	<int:channel id="inputGateNoReplyChannel" />
+
+	<int:header-enricher input-channel="inputGateNoReplyChannel" output-channel="nextGateNoReplyChannel">
+		<int:header-channels-to-string />
+	</int:header-enricher>
+
+	<int:transformer input-channel="nextGateNoReplyChannel">
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:gateway id="gatewayExplicitReplyChannel"
+		service-interface="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Gateway"
+		default-request-channel="inputGateExplicitReplyChannel" default-reply-channel="reply" />
+
+	<int:channel id="inputGateExplicitReplyChannel" />
+
+	<int:header-enricher input-channel="inputGateExplicitReplyChannel" output-channel="nextGateExplicitReplyChannel">
+		<int:header-channels-to-string />
+	</int:header-enricher>
+
+	<int:transformer input-channel="nextGateExplicitReplyChannel" output-channel="reply">
+		<bean class="org.springframework.integration.channel.registry.HeaderChannelRegistryTests$Foo" />
+	</int:transformer>
+
+	<int:channel id="reply" />
+
+</beans>
