@@ -176,13 +176,11 @@
 						</note>
 						For more information regarding JSON see 'JSON Transformers' in <xref linkend="transformer"/>.
 				</listitem>
+				<listitem>
+					<emphasis role="bold">#xpath</emphasis> - to evaluate an 'xpath' on some provided object.
+					For more information regarding xml and xpath see <xref linkend="xml"/>.
+				</listitem>
 				<!--<listitem>
-					<emphasis>#xpath</emphasis> - TBD
-				</listitem>
-				<listitem>
-					<emphasis>#request</emphasis> - TBD
-				</listitem>
-				<listitem>
 					<emphasis>#auth</emphasis> - TBD
 				</listitem>-->
 			</itemizedlist>
