@@ -52,10 +52,13 @@ import org.springframework.util.StringUtils;
  * @since 3.0
  *
  */
-public class RemoteFileTemplate<F> implements RemoteFileOperations, InitializingBean, BeanFactoryAware {
+public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, InitializingBean, BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	/**
+	 * the {@link SessionFactory} for acquiring remote file Sessions.
+	 */
 	private final SessionFactory<F> sessionFactory;
 
 	private volatile String temporaryFileSuffix =".writing";
@@ -67,6 +70,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations, Initializing
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
+
+	private volatile ExpressionEvaluatingMessageProcessor<String> fileNameProcessor;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
@@ -104,6 +109,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations, Initializing
 		this.temporaryDirectoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(temporaryRemoteDirectoryExpression, String.class);
 	}
 
+	public void setFileNameExpression(Expression fileNameExpression) {
+		Assert.notNull(fileNameExpression, "fileNameExpression must not be null");
+		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(fileNameExpression, String.class);
+	}
+
 	public String getTemporaryFileSuffix() {
 		return this.temporaryFileSuffix;
 	}
@@ -139,15 +149,19 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations, Initializing
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
 		BeanFactory beanFactory = this.beanFactory;
 		if (beanFactory != null) {
-			this.directoryExpressionProcessor.setBeanFactory(beanFactory);
+			if (this.directoryExpressionProcessor != null) {
+				this.directoryExpressionProcessor.setBeanFactory(beanFactory);
+			}
 			if (this.temporaryDirectoryExpressionProcessor != null) {
 				this.temporaryDirectoryExpressionProcessor.setBeanFactory(beanFactory);
 			}
 			if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(beanFactory);
+			}
+			if (this.fileNameProcessor != null) {
+				this.fileNameProcessor.setBeanFactory(beanFactory);
 			}
 		}
 		if (this.autoCreateDirectory){
@@ -159,42 +173,120 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations, Initializing
 	}
 
 	@Override
-	public void send(Message<?> message) throws Exception {
-		StreamHolder inputStreamHolder = this.payloadToInputStream(message);
+	public void send(final Message<?> message) {
+		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
+		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
-			Session<F> session = this.sessionFactory.getSession();
-			String fileName = inputStreamHolder.getName();
-			try {
-				String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
-				String temporaryRemoteDirectory = remoteDirectory;
-				if (this.temporaryDirectoryExpressionProcessor != null){
-					temporaryRemoteDirectory = this.temporaryDirectoryExpressionProcessor.processMessage(message);
+			this.execute(new SessionCallbackWithoutResult<F>() {
+
+				@Override
+				public void doInSessionWithoutResult(Session<F> session) throws IOException {
+					String fileName = inputStreamHolder.getName();
+					try {
+						String remoteDirectory = RemoteFileTemplate.this.directoryExpressionProcessor
+								.processMessage(message);
+						String temporaryRemoteDirectory = remoteDirectory;
+						if (RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor != null) {
+							temporaryRemoteDirectory = RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor
+									.processMessage(message);
+						}
+						fileName = RemoteFileTemplate.this.fileNameGenerator.generateFileName(message);
+						RemoteFileTemplate.this.sendFileToRemoteDirectory(inputStreamHolder.getStream(),
+								temporaryRemoteDirectory, remoteDirectory, fileName, session);
+					}
+					catch (FileNotFoundException e) {
+						throw new MessageDeliveryException(message, "File [" + inputStreamHolder.getName()
+								+ "] not found in local working directory; it was moved or deleted unexpectedly.", e);
+					}
+					catch (IOException e) {
+						throw new MessageDeliveryException(message, "Failed to transfer file ["
+								+ inputStreamHolder.getName() + " -> " + fileName
+								+ "] from local directory to remote directory.", e);
+					}
+					catch (Exception e) {
+						throw new MessageDeliveryException(message, "Error handling message for file ["
+								+ inputStreamHolder.getName() + " -> " + fileName + "]", e);
+					}
 				}
-				fileName = this.fileNameGenerator.generateFileName(message);
-				this.sendFileToRemoteDirectory(inputStreamHolder.getStream(), temporaryRemoteDirectory, remoteDirectory, fileName, session);
-			}
-			catch (FileNotFoundException e) {
-				throw new MessageDeliveryException(message,
-						"File [" + inputStreamHolder.getName() + "] not found in local working directory; it was moved or deleted unexpectedly.", e);
-			}
-			catch (IOException e) {
-				throw new MessageDeliveryException(message,
-						"Failed to transfer file [" + inputStreamHolder.getName() + " -> " + fileName + "] from local directory to remote directory.", e);
-			}
-			catch (Exception e) {
-				throw new MessageDeliveryException(message,
-						"Error handling message for file [" + inputStreamHolder.getName() + " -> " + fileName + "]", e);
-			}
-			finally {
-				if (session != null) {
-					session.close();
-				}
-			}
+			});
 		}
 		else {
 			// A null holder means a File payload that does not exist.
 			if (logger.isWarnEnabled()) {
 				logger.warn("File " + message.getPayload() + " does not exist");
+			}
+		}
+	}
+
+	@Override
+	public boolean remove(final String path) {
+		return this.execute(new SessionCallback<F, Boolean>() {
+
+			@Override
+			public Boolean doInSession(Session<F> session) throws IOException {
+				return session.remove(path);
+			}
+		});
+	}
+
+	@Override
+	public void rename(final String fromPath, final String toPath) {
+		Assert.hasText(fromPath, "Old filename cannot be null or empty");
+		Assert.hasText(toPath, "New filename cannot be null or empty");
+
+		this.execute(new SessionCallbackWithoutResult<F>() {
+
+			@Override
+			public void doInSessionWithoutResult(Session<F> session) throws IOException {
+				int lastSeparator = toPath.lastIndexOf(RemoteFileTemplate.this.remoteFileSeparator);
+				if (lastSeparator > 0) {
+					String remoteFileDirectory = toPath.substring(0, lastSeparator + 1);
+					RemoteFileUtils.makeDirectories(remoteFileDirectory, session,
+							RemoteFileTemplate.this.remoteFileSeparator, RemoteFileTemplate.this.logger);
+				}
+				session.rename(fromPath, toPath);
+			}
+		});
+	}
+
+
+	@Override
+	public boolean get(final Message<?> message, final InputStreamCallback callback) {
+		Assert.notNull(this.fileNameProcessor, "'fileNameProcessor' needed to use get");
+		return this.execute(new SessionCallback<F, Boolean>() {
+
+			@Override
+			public Boolean doInSession(Session<F> session) throws IOException {
+				final String remotePath = RemoteFileTemplate.this.fileNameProcessor.processMessage(message);
+				InputStream inputStream = session.readRaw(remotePath);
+				callback.doWithInputStream(inputStream);
+				inputStream.close();
+				return session.finalizeRaw();
+			}
+		});
+	}
+
+	@Override
+	public <T> T execute(SessionCallback<F, T> callback) {
+		Session<F> session = null;
+		try {
+			session = this.sessionFactory.getSession();
+			Assert.notNull(session, "failed to acquire a Session");
+			return callback.doInSession(session);
+		}
+		catch (IOException e) {
+			throw new MessagingException("Failed to execute on session", e);
+		}
+		finally {
+			if (session != null) {
+				try {
+					session.close();
+				}
+				catch (Exception ignored) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("failed to close Session", ignored);
+					}
+				}
 			}
 		}
 	}
@@ -240,7 +332,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations, Initializing
 	}
 
 	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectory,
-			String remoteDirectory, String fileName, Session<F> session) throws FileNotFoundException, IOException {
+			String remoteDirectory, String fileName, Session<F> session) throws IOException {
 
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
 		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);

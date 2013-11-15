@@ -18,12 +18,53 @@ package org.springframework.integration.file.remote;
 import org.springframework.integration.Message;
 
 /**
+ * Strategy for performing operations on remote files.
+ *
  * @author Gary Russell
  * @since 3.0
  *
  */
-public interface RemoteFileOperations {
+public interface RemoteFileOperations<F> {
 
-	public abstract void send(Message<?> message) throws Exception;
+	/**
+	 * Send a file to a remote server, based on information in a message.
+	 *
+	 * @param message The message
+	 * @throws Exception
+	 */
+	void send(Message<?> message);
+
+	/**
+	 * Retrieve a remote file as an InputStream, based on information in a message.
+	 *
+	 * @param callback the callback.
+	 * @return true if the operation was successful.
+	 */
+	boolean get(Message<?> message, InputStreamCallback callback);
+
+	/**
+	 * Remove a remote file.
+	 *
+	 * @param path The full path to the file.
+	 * @return true when successful
+	 */
+	boolean remove(String path);
+
+	/**
+	 * Rename a remote file, creating directories if needed.
+	 *
+	 * @param fromPath The current path.
+	 * @param toPath The new path.
+	 */
+	void rename(String fromPath, String toPath);
+
+	/**
+	 * Execute the callback's doInSession method after obtaining a session.
+	 * Reliably closes the session when the method exits.
+	 *
+	 * @param callback the SessionCallback.
+	 * @return The result of the callback method.
+	 */
+	<T> T execute(SessionCallback<F, T> callback);
 
 }
