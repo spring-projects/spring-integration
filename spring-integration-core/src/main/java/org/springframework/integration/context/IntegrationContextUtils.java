@@ -45,6 +45,9 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME = "integrationEvaluationContext";
 
+	public static final String INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME = "integrationHeaderChannelRegistry";
+
+
 	/**
 	 * Return the {@link MetadataStore} bean whose name is "metadataStore".
 	 * @param beanFactory BeanFactory for lookup, must not be null.

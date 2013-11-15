@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.gateway;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
@@ -41,8 +40,9 @@ import org.springframework.util.Assert;
  * {@link MessageChannel}s for sending, receiving, or request-reply operations.
  * Exposes setters for configuring request and reply {@link MessageChannel}s as
  * well as the timeout values for sending and receiving Messages.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class MessagingGatewaySupport extends AbstractEndpoint implements TrackableComponent {
 
@@ -84,7 +84,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	/**
 	 * Set the request channel.
-	 * 
+	 *
 	 * @param requestChannel the channel to which request messages will be sent
 	 */
 	public void setRequestChannel(MessageChannel requestChannel) {
@@ -94,7 +94,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Set the reply channel. If no reply channel is provided, this gateway will
 	 * always use an anonymous, temporary channel for handling replies.
-	 * 
+	 *
 	 * @param replyChannel the channel from which reply messages will be received
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
@@ -113,7 +113,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Set the timeout value for sending request messages. If not
 	 * explicitly configured, the default is one second.
-	 * 
+	 *
 	 * @param requestTimeout the timeout value in milliseconds
 	 */
 	public void setRequestTimeout(long requestTimeout) {
@@ -123,7 +123,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	/**
 	 * Set the timeout value for receiving reply messages. If not
 	 * explicitly configured, the default is one second.
-	 * 
+	 *
 	 * @param replyTimeout the timeout value in milliseconds
 	 */
 	public void setReplyTimeout(long replyTimeout) {
@@ -153,6 +153,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	 * Specify whether this gateway should be tracked in the Message History
 	 * of Messages that originate from its send or sendAndReceive operations.
 	 */
+	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
 	}
@@ -283,7 +284,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				return;
 			}
 			AbstractEndpoint correlator = null;
-			MessageHandler handler = new BridgeHandler();
+			BridgeHandler handler = new BridgeHandler();
+			if (this.getBeanFactory() != null) {
+				handler.setBeanFactory(this.getBeanFactory());
+			}
+			handler.afterPropertiesSet();
 			if (this.replyChannel instanceof SubscribableChannel) {
 				correlator = new EventDrivenConsumer(
 						(SubscribableChannel) this.replyChannel, handler);
@@ -320,6 +325,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private static class DefaultRequestMapper implements InboundMessageMapper<Object> {
 
+		@Override
 		public Message<?> toMessage(Object object) throws Exception {
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;
