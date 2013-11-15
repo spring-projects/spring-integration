@@ -16,6 +16,11 @@
 
 package org.springframework.integration.config.xml;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
@@ -24,8 +29,10 @@ import org.w3c.dom.Node;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionDecorator;
@@ -33,6 +40,9 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.channel.registry.DefaultHeaderChannelRegistry;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
@@ -72,10 +82,45 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		this.verifySchemaVersion(element, parserContext);
 		this.registerImplicitChannelCreator(parserContext);
 		this.registerIntegrationEvaluationContext(parserContext);
+		this.registerIntegrationProperties(parserContext);
 		this.registerHeaderChannelRegistry(parserContext);
 		this.registerBuiltInBeans(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
+	}
+
+	private void registerIntegrationProperties(ParserContext parserContext) {
+
+		boolean alreadyRegistered = false;
+		BeanDefinitionRegistry registry = parserContext.getRegistry();
+		if (registry instanceof ListableBeanFactory) {
+			alreadyRegistered = ((ListableBeanFactory) registry)
+					.containsBean(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = registry.isBeanNameInUse(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
+			ResourcePatternResolver resourceResolver =
+					new PathMatchingResourcePatternResolver(parserContext.getReaderContext().getBeanClassLoader());
+			try {
+				Resource[] defaultResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.default.properties");
+				Resource[] userResources = resourceResolver.getResources("classpath*:META-INF/spring.integration.properties");
+
+				List<Resource> resources = new LinkedList<Resource>(Arrays.asList(defaultResources));
+				resources.addAll(Arrays.asList(userResources));
+
+				BeanDefinitionBuilder integrationPropertiesBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(PropertiesFactoryBean.class)
+						.addPropertyValue("locations", resources);
+
+				registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME,
+						integrationPropertiesBuilder.getBeanDefinition());
+			}
+			catch (IOException e) {
+				parserContext.getReaderContext().warning("Cannot load 'spring.integration.properties' Resources.", null, e);
+			}
+		}
 	}
 
 	@Override
