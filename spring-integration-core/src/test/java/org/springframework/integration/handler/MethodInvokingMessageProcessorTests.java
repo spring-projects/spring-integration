@@ -405,7 +405,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 		catch (Exception e) {
 			assertThat(e, Matchers.instanceOf(IllegalArgumentException.class));
-			assertEquals("Found more than one method match for for empty parameter for 'payload'", e.getMessage());
+			assertEquals("Found more than one method match for empty parameter for 'payload'", e.getMessage());
 		}
 	}
 

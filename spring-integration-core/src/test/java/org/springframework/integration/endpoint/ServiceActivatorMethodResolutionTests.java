@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
 
 import java.util.Date;
@@ -120,7 +121,7 @@ public class ServiceActivatorMethodResolutionTests {
 
 		test = new GenericMessage<Object>("foo");
 		serviceActivator.handleMessage(test);
-		assertEquals("FOO", outputChannel.receive(10).getPayload());
+		assertNotEquals("FOO", outputChannel.receive(10).getPayload());
 	}
 
 

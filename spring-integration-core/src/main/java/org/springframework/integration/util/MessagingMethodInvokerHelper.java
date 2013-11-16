@@ -22,6 +22,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +57,7 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Payloads;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
@@ -292,7 +294,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		final Map<Class<?>, HandlerMethod> candidateMethods = new HashMap<Class<?>, HandlerMethod>();
 		final Map<Class<?>, HandlerMethod> candidateMessageMethods = new HashMap<Class<?>, HandlerMethod>();
 		final Map<Class<?>, HandlerMethod> fallbackMethods = new HashMap<Class<?>, HandlerMethod>();
+		final Map<Class<?>, HandlerMethod> fallbackMessageMethods = new HashMap<Class<?>, HandlerMethod>();
 		final AtomicReference<Class<?>> ambiguousFallbackType = new AtomicReference<Class<?>>();
+		final AtomicReference<Class<?>> ambiguousFallbackMessageGenericType = new AtomicReference<Class<?>>();
 		final Class<?> targetClass = this.getTargetClass(targetObject);
 		MethodFilter methodFilter = new UniqueMethodFilter(targetClass);
 		ReflectionUtils.doWithMethods(targetClass, new MethodCallback() {
@@ -342,7 +346,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						if (candidateMethods.containsKey(targetParameterType)) {
 							String exceptionMessage = "Found more than one method match for ";
 							if (Void.class.equals(targetParameterType)) {
-								exceptionMessage += "for empty parameter for 'payload'";
+								exceptionMessage += "empty parameter for 'payload'";
 							}
 							else {
 								exceptionMessage += "type [" + targetParameterType + "]";
@@ -353,13 +357,24 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					}
 				}
 				else {
-					if (fallbackMethods.containsKey(targetParameterType)) {
-						// we need to check for duplicate type matches,
-						// but only if we end up falling back
-						// and we'll only keep track of the first one
-						ambiguousFallbackType.compareAndSet(null, targetParameterType);
+					if (handlerMethod.isMessageMethod()) {
+						if (fallbackMessageMethods.containsKey(targetParameterType)) {
+							// we need to check for duplicate type matches,
+							// but only if we end up falling back
+							// and we'll only keep track of the first one
+							ambiguousFallbackMessageGenericType.compareAndSet(null, targetParameterType);
+						}
+						fallbackMessageMethods.put(targetParameterType, handlerMethod);
 					}
-					fallbackMethods.put(targetParameterType, handlerMethod);
+					else {
+						if (fallbackMethods.containsKey(targetParameterType)) {
+							// we need to check for duplicate type matches,
+							// but only if we end up falling back
+							// and we'll only keep track of the first one
+							ambiguousFallbackType.compareAndSet(null, targetParameterType);
+						}
+						fallbackMethods.put(targetParameterType, handlerMethod);
+					}
 				}
 			}
 		}, methodFilter);
@@ -369,14 +384,47 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
 			return handlerMethods;
 		}
+		if ((fallbackMethods.isEmpty() || ambiguousFallbackType.get() != null ||
+				fallbackMessageMethods.isEmpty() ||	ambiguousFallbackMessageGenericType.get() != null)
+				&& ServiceActivator.class.equals(annotationType)) {
+			// a Service Activator can fallback to RequestReplyExchanger.exchange(m)
+			List<Method> frameworkMethods = new ArrayList<Method>();
+			Class<?>[] allInterfaces = org.springframework.util.ClassUtils.getAllInterfacesForClass(targetClass);
+			for (Class<?> iface : allInterfaces) {
+				try {
+					if ("org.springframework.integration.gateway.RequestReplyExchanger".equals(iface.getName())) {
+						frameworkMethods.add(targetClass.getMethod("exchange", Message.class));
+					}
+				}
+				catch (Exception e) {
+					// should never happen (but would fall through to errors below)
+				}
+			}
+			if (frameworkMethods.size() == 1) {
+				HandlerMethod handlerMethod = new HandlerMethod(frameworkMethods.get(0), canProcessMessageList);
+				handlerMethods.put(CANDIDATE_METHODS, Collections.<Class<?>, HandlerMethod>singletonMap(Object.class, handlerMethod));
+				handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
+				return handlerMethods;
+			}
+		}
 
-		Assert.notEmpty(fallbackMethods, "Target object of type [" + this.targetObject.getClass()
-				+ "] has no eligible methods for handling Messages.");
+		try {
+			Assert.state(!fallbackMethods.isEmpty() || !fallbackMessageMethods.isEmpty(),
+					"Target object of type [" + this.targetObject.getClass() + "] has no eligible methods for handling Messages.");
+		}
+		catch (Exception e) {
+			//TODO backward compatibility
+			throw  new IllegalArgumentException(e.getMessage());
+		}
+
 		Assert.isNull(ambiguousFallbackType.get(), "Found ambiguous parameter type [" + ambiguousFallbackType
 				+ "] for method match: " + fallbackMethods.values());
+		Assert.isNull(ambiguousFallbackMessageGenericType.get(),
+				"Found ambiguous parameter type [" + ambiguousFallbackMessageGenericType + "] for method match: "
+						+ fallbackMethods.values());
 
 		handlerMethods.put(CANDIDATE_METHODS, fallbackMethods);
-		handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
+		handlerMethods.put(CANDIDATE_MESSAGE_METHODS, fallbackMessageMethods);
 		return handlerMethods;
 	}
 
