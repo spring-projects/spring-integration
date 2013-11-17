@@ -41,7 +41,7 @@ public abstract class MongoDbAvailableTests {
 	public MongoDbAvailableRule redisAvailableRule = new MongoDbAvailableRule();
 
 
-	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) throws Exception{
+	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
 		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
 		return mongoDbFactory;
@@ -52,12 +52,12 @@ public abstract class MongoDbAvailableTests {
 		template.dropCollection("messages");
 		template.dropCollection("configurableStoreMessages");
 		template.dropCollection("data");
-		for(String additionalCollection:additionalCollectionsToDrop) {
+		for (String additionalCollection : additionalCollectionsToDrop) {
 			template.dropCollection(additionalCollection);
 		}
 	}
 
-	public Person createPerson(){
+	public Person createPerson() {
 		Address address = new Address();
 		address.setCity("Philadelphia");
 		address.setStreet("2121 Rawn street");
@@ -69,7 +69,7 @@ public abstract class MongoDbAvailableTests {
 		return person;
 	}
 
-	public Person createPerson(String name){
+	public Person createPerson(String name) {
 		Address address = new Address();
 		address.setCity("Philadelphia");
 		address.setStreet("2121 Rawn street");
@@ -82,44 +82,61 @@ public abstract class MongoDbAvailableTests {
 	}
 
 	public static class Person {
+
 		private Address address;
+
 		private String name;
+
 		public Address getAddress() {
 			return address;
 		}
+
 		public void setAddress(Address address) {
 			this.address = address;
 		}
+
 		public String getName() {
 			return name;
 		}
+
 		public void setName(String name) {
 			this.name = name;
 		}
+
 	}
 
 	public static class Address {
+
 		private String street;
+
 		private String city;
+
 		private String state;
+
 		public String getStreet() {
 			return street;
 		}
+
 		public void setStreet(String street) {
 			this.street = street;
 		}
+
 		public String getCity() {
 			return city;
 		}
+
 		public void setCity(String city) {
 			this.city = city;
 		}
+
 		public String getState() {
 			return state;
 		}
+
 		public void setState(String state) {
 			this.state = state;
 		}
+
 	}
 
 	public static class TestMongoConverter extends MappingMongoConverter {
@@ -139,6 +156,7 @@ public abstract class MongoDbAvailableTests {
 		public <S> S read(Class<S> clazz, DBObject source) {
 			return super.read(clazz, source);
 		}
+
 	}
 
 }

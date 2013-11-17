@@ -17,9 +17,11 @@ package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.BeansException;
@@ -27,7 +29,11 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.core.serializer.support.DeserializingConverter;
+import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.IndexOperations;
@@ -81,8 +87,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 	private static final String GROUP_ID = "groupId";
 
-	private static final String CREATE_TIME = "createdTime";
-
 	private static final String LAST_MODIFIED_TIME = "lastModifiedTime";
 
 	private static final String LAST_RELEASED_SEQUENCE = "lastReleasedSequence";
@@ -94,10 +98,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	private final MongoDbFactory mongoDbFactory;
 
 	private volatile MongoTemplate mongoTemplate;
-
-	private volatile Converter<?, ?> messageToDbConverter;
-
-	private volatile Converter<?, ?> dbToMessageConverter;
 
 	private volatile MappingMongoConverter mappingMongoConverter;
 
@@ -141,44 +141,23 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		this.applicationContext = applicationContext;
 	}
 
-	public void setMessageToDbConverter(Converter<?, ?> messageToDbConverter) {
-		Assert.notNull("'messageToDbConverter' must not be null");
-		this.messageToDbConverter = messageToDbConverter;
-	}
-
-	public void setDbToMessageConverter(Converter<?, ?> dbToMessageConverter) {
-		Assert.notNull("'dbToMessageConverter' must not be null");
-		this.dbToMessageConverter = dbToMessageConverter;
-	}
-
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.mongoTemplate == null) {
 			if (this.mappingMongoConverter == null) {
 				this.mappingMongoConverter = new MappingMongoConverter(this.mongoDbFactory, new MongoMappingContext());
 				this.mappingMongoConverter.setApplicationContext(this.applicationContext);
-				Assert.state(!(this.messageToDbConverter != null ^ this.dbToMessageConverter != null),
-						"Both 'messageToDbConverter' and 'dbToMessageConverter' should be provided, or no one " +
-								"in case of 'mongoDbFactory' is configured. " +
-								"If these converters arn't provided 'MongoDbMessageBytesConverter' will be used by default");
 				List<Object> customConverters = new ArrayList<Object>();
 				customConverters.add(new MongoDbMessageBytesConverter());
 				this.mappingMongoConverter.setCustomConversions(new CustomConversions(customConverters));
 				this.mappingMongoConverter.afterPropertiesSet();
 			}
-			else {
-				Assert.state(this.messageToDbConverter != null | this.dbToMessageConverter != null,
-						"'messageToDbConverter' and 'dbToMessageConverter' can't provided, if 'mappingMongoConverter' is configured." +
-								"All conversion will rely on provided 'dbToMessageConverter'.");
-			}
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mappingMongoConverter);
-			this.mongoTemplate.setApplicationContext(this.applicationContext);
+			if (this.applicationContext != null) {
+				this.mongoTemplate.setApplicationContext(this.applicationContext);
+			}
 		}
-		else {
-			Assert.state(this.messageToDbConverter != null | this.dbToMessageConverter != null,
-					"'messageToDbConverter' and 'dbToMessageConverter' can't provided, if 'mongoTemplate' is configured." +
-							"All conversion will rely on provided 'mongoTemplate'.");
-		}
+
 		IndexOperations indexOperations = this.mongoTemplate.indexOps(this.collectionName);
 		indexOperations.ensureIndex(new Index(MESSAGE_ID, Order.ASCENDING));
 		indexOperations.ensureIndex(new Index(GROUP_ID, Order.ASCENDING).on(LAST_MODIFIED_TIME, Order.DESCENDING));
@@ -207,7 +186,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 			Message<?> saved = getMessage(message.getHeaders().getId());
 			if (saved != null) {
 				if (saved.equals(message)) {
-					return ;
+					return;
 				} // We need to save it under its own id
 			}
 		}
@@ -220,6 +199,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
 		// using reflection to set ID since it is immutable through MessageHeaders
 		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
+		innerMap.put(MessageHeaders.TIMESTAMP, message.getHeaders().get(MessageHeaders.TIMESTAMP));
 
 		document.setCreatedTime(createdDate);
 		this.mongoTemplate.insert(document, this.collectionName);
@@ -310,7 +290,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 		Query query = groupIdQuery(groupId).addCriteria(Criteria.where(MESSAGE_ID).is(messageToRemove.getHeaders().getId()));
 		this.mongoTemplate.remove(query, this.collectionName);
-		this.updateGroup(groupId);
+		this.updateGroup(groupId, lastModifiedUpdate());
 		return this.getMessageGroup(groupId);
 	}
 
@@ -320,6 +300,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Iterator<MessageGroup> iterator() {
 		Map<Object, MessageGroup> messageGroupMap = new HashMap<Object, MessageGroup>();
 		Query query = Query.query(Criteria.where(GROUP_ID).exists(true));
@@ -342,30 +323,24 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 		Message<?> message = null;
 		if (document != null) {
 			message = document.getMessage();
-			this.updateGroup(groupId);
+			this.updateGroup(groupId, lastModifiedUpdate());
 		}
 		return message;
 	}
 
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		Update update = lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE, sequenceNumber);
-		this.mongoTemplate.updateFirst(groupIdQuery(groupId), update, this.collectionName);
+		this.updateGroup(groupId, lastModifiedUpdate().set(LAST_RELEASED_SEQUENCE, sequenceNumber));
 	}
 
 	@Override
 	public void completeGroup(Object groupId) {
-		Update update = lastModifiedUpdate().set(COMPLETE, true);
-		this.mongoTemplate.updateFirst(groupIdQuery(groupId), update, this.collectionName);
+		this.updateGroup(groupId, lastModifiedUpdate().set(COMPLETE, true));
 	}
 
-	/**
-	 * Updates the last updated time stamp of the most recently updated message
-	 *
-	 * @param groupId
-	 */
-	private void updateGroup(Object groupId) {
-		this.mongoTemplate.updateFirst(groupIdQuery(groupId), lastModifiedUpdate(), MessageDocument.class);
+
+	private void updateGroup(Object groupId, Update update) {
+		this.mongoTemplate.updateFirst(groupIdQuery(groupId), update, this.collectionName);
 	}
 
 	private static Update lastModifiedUpdate() {
@@ -378,17 +353,18 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 	}
 
 	/**
-	 * The wrapper class that is used to store the {@link MessageGroup} as well as the
-	 * {@link MessageGroupStore} in a Mongo backed store
+	 * The entity class to wrap {@link Message} to the MongoDB document.
 	 */
 	private static class MessageDocument {
 
 		private final Message<?> message;
 
+		@SuppressWarnings("unused")
 		private final UUID messageId;
 
 		private volatile Long createdTime = 0L;
 
+		@SuppressWarnings("unused")
 		private volatile Object groupId;
 
 		private volatile Long lastModifiedTime = 0L;
@@ -403,7 +379,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 			this.messageId = message.getHeaders().getId();
 		}
 
-		public Message getMessage() {
+		public Message<?> getMessage() {
 			return message;
 		}
 
@@ -441,6 +417,37 @@ public class ConfigurableMongoDbMessageStore extends AbstractMessageGroupStore
 
 		public void setLastReleasedSequence(int lastReleasedSequence) {
 			this.lastReleasedSequence = lastReleasedSequence;
+		}
+
+	}
+
+	/**
+	 * A {@link GenericConverter} implementation to convert {@link Message} to
+	 * serialized {@link byte[]} to store {@link Message} to the MongoDB.
+	 * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link Message}.
+	 */
+	private static class MongoDbMessageBytesConverter implements GenericConverter {
+
+		private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
+
+		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
+
+		@Override
+		public Set<ConvertiblePair> getConvertibleTypes() {
+			Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>();
+			convertiblePairs.add(new ConvertiblePair(Message.class, byte[].class));
+			convertiblePairs.add(new ConvertiblePair(byte[].class, Message.class));
+			return convertiblePairs;
+		}
+
+		@Override
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+			if (Message.class.isAssignableFrom(sourceType.getObjectType())) {
+				return serializingConverter.convert(source);
+			}
+			else {
+				return deserializingConverter.convert((byte[]) source);
+			}
 		}
 
 	}

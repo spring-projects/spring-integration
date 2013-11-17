@@ -41,7 +41,7 @@ import com.mongodb.Mongo;
 
 /**
  * @author Amol Nayak
- *
+ * @author Artem Bilan
  */
 public class ConfigurableMongoDbMessageStoreTests extends AbstractMongoDbMessageStoreTests {
 

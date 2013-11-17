@@ -441,12 +441,12 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 //	}
 
 
-	@Test
-	@MongoDbAvailable
-	public void testWithAggregatorWithShutdown() throws Exception{
+	protected void testWithAggregatorWithShutdown(String config) throws Exception{
 		this.cleanupCollections(new SimpleMongoDbFactory(new Mongo(), "test"));
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("mongo-aggregator-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(config, this.getClass());
+		context.refresh();
+
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
 
@@ -458,7 +458,7 @@ public abstract class AbstractMongoDbMessageGroupStoreTests extends MongoDbAvail
 		assertNull(output.receive(1000));
 		context.close();
 
-		context = new ClassPathXmlApplicationContext("mongo-aggregator-config.xml", this.getClass());
+		context = new ClassPathXmlApplicationContext(config, this.getClass());
 		input = context.getBean("inputChannel", MessageChannel.class);
 		output = context.getBean("outputChannel", QueueChannel.class);
 

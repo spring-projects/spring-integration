@@ -177,6 +177,15 @@
 				a message. See <xref linkend="header-enricher"/> for more information.
 			</para>
 		</section>
+		<section id="3.0-configurable-mongo-MS">
+			<title>MongoDB support: New ConfigurableMongoDbMessageStore</title>
+			<para>
+				To provide more robust and flexible implementation of <interfacename>MessageStore</interfacename>
+				for MongoDB support has been introduced new <classname>ConfigurableMongoDbMessageStore</classname>
+				component. It doesn't have backward compatibility, but it is recommended to use it for new applications.
+				See <xref linkend="mongodb"/> for more information.
+			</para>
+		</section>
 	</section>
 
 	<section id="3.0-general">
@@ -620,7 +629,7 @@
 			<para>
 				New <classname>FileListFilter</classname>s that use a persistent <classname>MetadataStore</classname> are
 				now available. These can be used to prevent duplicate files after a system restart. See
-				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information. 
+				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information.
 			</para>
 		</section>
 	</section>

@@ -23,10 +23,9 @@ import static org.junit.Assert.fail;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
-
-import org.hamcrest.Matchers;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -56,10 +55,19 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 
 	@Test
 	@MongoDbAvailable
+	public void testWithMongoDbMessageStore() throws Exception {
+		this.testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationTests-context.xml");
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testWithConfigurableMongoDbMessageStore() throws Exception {
+		this.testDelayerHandlerRescheduleWithMongoDbMessageStore("DelayerHandlerRescheduleIntegrationConfigurableTests-context.xml");
+	}
+
 	@SuppressWarnings("unchecked")
-	public void testDelayerHandlerRescheduleWithMongoDbMessageStore() throws Exception {
-		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
-				"DelayerHandlerRescheduleIntegrationTests-context.xml", this.getClass());
+	private void testDelayerHandlerRescheduleWithMongoDbMessageStore(String config) throws Exception {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(config, this.getClass());
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		MessageGroupStore messageStore = context.getBean("messageStore", MessageGroupStore.class);
 

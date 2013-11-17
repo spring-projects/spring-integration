@@ -15,16 +15,29 @@
  */
 package org.springframework.integration.mongodb.store;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Map;
+
+import org.junit.Test;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.integration.Message;
+import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
+import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 
 /**
  * @author Amol Nayak
+ * @author Artem Bilan
  *
  */
 public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMessageGroupStoreTests {
@@ -49,6 +62,42 @@ public class ConfigurableMongoDbMessageGroupStoreTests extends AbstractMongoDbMe
 	@Override
 	protected MessageStore getMessageStore() throws Exception {
 		return this.getMessageGroupStore();
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testWithAggregatorWithShutdown() throws Exception {
+		super.testWithAggregatorWithShutdown("mongo-aggregator-confugurable-config.xml");
+	}
+
+	@Test
+	@MongoDbAvailable
+	public void testWithCustomConverter() throws Exception {
+		this.prepareMongoFactory("testConfigurableMongoDbMessageStore");
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("ConfigurableMongoDbMessageStore-CustomConverter.xml", this.getClass());
+		context.refresh();
+
+		TestGateway gateway = context.getBean(TestGateway.class);
+		String result = gateway.service("foo");
+		assertEquals("FOO", result);
+
+	}
+
+	public static interface TestGateway {
+
+		String service(String payload);
+
+	}
+
+	public static class MessageReadConverter implements Converter<DBObject, Message<?>> {
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public Message<?> convert(DBObject source) {
+			return MessageBuilder.withPayload(source.get("payload")).copyHeaders((Map<String,?>) source.get("headers")).build();
+		}
+
 	}
 
 }
