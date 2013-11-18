@@ -98,7 +98,32 @@
 </script:script>]]></programlisting>
 	As shown in the above example, you can bind a script variable either to a scalar value or a Spring bean reference. Note that
 	<code>payload</code> and <code>headers</code> will still be included as binding variables.
-
+  </para>
+  <para>
+	  With <emphasis>Spring Integration 3.0</emphasis>, in addition to the <code>variable</code> sub-element,
+	  the <code>variables</code> attribute has been introduced. This attribute and <code>variable</code> sub-elements
+	  aren't mutually exclusive and you can combine them within one <code>script</code> component. However variables must
+	  be unique, regardless of where they are defined. Also, since <emphasis>Spring Integration 3.0</emphasis>,
+	  variable bindings are allowed for inline scripts too:
+	  <programlisting language="xml">&lt;service-activator input-channel="input"&gt;
+	&lt;script:script lang="ruby" variables="foo=FOO, date-ref=dateBean"&gt;
+		&lt;script:variable name="bar" ref="barBean"/&gt;
+		&lt;script:variable name="baz" value="bar"/&gt;
+		&lt;![CDATA[
+   			payload.foo = foo
+   			payload.date = date
+   			payload.bar = bar
+   			payload.baz = baz
+  			payload
+		]]&gt;
+	&lt;/script:script&gt;
+&lt;/service-activator&gt;</programlisting>
+	  The example above shows a combination of an inline script, a <code>variable</code> sub-element and a <code>variables</code> attribute.
+	  The <code>variables</code> attribute is a comma-separated value, where each segment contains an '=' separated pair
+	  of the variable and its value. The variable name can be suffixed with <code>-ref</code>, as in the
+	  <code>date-ref</code> variable above. That means that the binding variable
+	  will have the name <code>date</code>, but the value will be a reference to the <code>dateBean</code> bean from the application context.
+	  This may be useful when using <emphasis>Property Placeholder Configuration</emphasis> or command line arguments.
   </para>
   <para>
     If you need more control over how variables are generated, you can implement your own Java class
@@ -115,7 +140,7 @@
     provide an implementation of <classname>ScriptVariableGenerator</classname> and reference it with the <code>script-variable-generator</code>
 	attribute:
    <programlisting language="xml"><![CDATA[<int-script:script location="foo/bar/MyScript.groovy"
-				script-variable-generator="variableGenerator"/>
+		script-variable-generator="variableGenerator"/>
 
 <bean id="variableGenerator" class="foo.bar.MyScriptVariableGenerator"/>]]></programlisting>
 	  If a <code>script-variable-generator</code> is not provided, script components use
@@ -124,7 +149,7 @@
 	  variables from the <code>Message</code> in its <code>generateScriptVariables(Message)</code> method.
 	  <important>
 	  You cannot provide both the <code>script-variable-generator</code> attribute and <code>&lt;variable&gt;</code> sub-element(s)
-	  as they are mutually exclusive. Also, custom variable bindings cannot be used with an inline script.
+	  as they are mutually exclusive.
 	  </important>
 	</para>
  </section>

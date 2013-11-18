@@ -667,5 +667,13 @@
 				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information.
 			</para>
 		</section>
+		<section id="3.0-scripting-variables">
+			<title>Scripting Support: Variables Changes</title>
+			<para>
+				A new <code>variables</code> attribute has been introduced for scripting components.
+				In addition, variable bindings are now allowed for inline scripts.
+				See <xref linkend="groovy"/> and <xref linkend="scripting"/> for more information.
+			</para>
+		</section>
 	</section>
 </chapter>

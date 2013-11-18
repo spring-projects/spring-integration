@@ -10,30 +10,38 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<service-activator input-channel="referencedScriptInput">
-		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy" 
+		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
 					   customizer="groovyCustomizer">
 			<groovy:variable name="foo" value="foo"/>
 			<groovy:variable name="bar" value="bar"/>
 			<groovy:variable name="date" ref="date"/>
 		</groovy:script>
 	</service-activator>
-	
-	
+
+
 	<service-activator input-channel="withScriptVariableGenerator">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
 					   script-variable-generator="scriptVarSource" customizer="groovyCustomizer"/>
 	</service-activator>
-	
-	<beans:bean id="groovyCustomizer" 
+
+	<beans:bean id="groovyCustomizer"
 			class="org.springframework.integration.groovy.config.GroovyServiceActivatorTests.MyGroovyCustomizer"/>
-	
-	<beans:bean id="scriptVarSource" 
+
+	<beans:bean id="scriptVarSource"
 		class="org.springframework.integration.groovy.config.GroovyServiceActivatorTests.SampleScriptVariSource"/>
 
 	<service-activator input-channel="inlineScriptInput">
-		<groovy:script customizer="groovyCustomizer">
+		<groovy:script customizer="groovyCustomizer" variables="date-ref=date">
 			<![CDATA[
-				return "inline-$payload"
+				return "inline-$payload : ${date.format('dd.mm.yyyy')}"
+			]]>
+		</groovy:script>
+	</service-activator>
+
+	<service-activator input-channel="scriptWithoutVariablesInput">
+		<groovy:script>
+			<![CDATA[
+				return "withoutVariables-$payload : ${date.format('dd.mm.yyyy')}"
 			]]>
 		</groovy:script>
 	</service-activator>
