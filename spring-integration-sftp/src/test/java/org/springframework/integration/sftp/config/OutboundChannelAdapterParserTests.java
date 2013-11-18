@@ -141,7 +141,7 @@ public class OutboundChannelAdapterParserTests {
 			fail("Exception expected");
 		}
 		catch (BeanDefinitionStoreException e) {
-			assertThat(e.getMessage(), Matchers.containsString("exactly one of 'remote-directory'"));
+			assertThat(e.getMessage(), Matchers.containsString("Only one of 'remote-directory'"));
 		}
 
 	}

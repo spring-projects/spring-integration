@@ -18,6 +18,7 @@ package org.springframework.integration.ftp.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -30,8 +31,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Command;
@@ -69,7 +72,13 @@ public class FtpOutboundGatewayParserTests {
 	AbstractEndpoint gateway3;
 
 	@Autowired
+	AbstractEndpoint gateway4;
+
+	@Autowired
 	AbstractEndpoint withBeanExpression;
+
+	@Autowired
+	FileNameGenerator generator;
 
 	private static volatile int adviceCalled;
 
@@ -77,7 +86,7 @@ public class FtpOutboundGatewayParserTests {
 	public void testGateway1() {
 		FtpOutboundGateway gateway = TestUtils.getPropertyValue(gateway1,
 				"handler", FtpOutboundGateway.class);
-		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
+		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileTemplate.remoteFileSeparator"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("local-test-dir", TestUtils.getPropertyValue(gateway, "localDirectoryExpression.literalValue"));
@@ -100,7 +109,7 @@ public class FtpOutboundGatewayParserTests {
 	public void testGateway2() throws Exception {
 		FtpOutboundGateway gateway = TestUtils.getPropertyValue(gateway2,
 				"handler", FtpOutboundGateway.class);
-		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileSeparator"));
+		assertEquals("X", TestUtils.getPropertyValue(gateway, "remoteFileTemplate.remoteFileSeparator"));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
 		assertTrue(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory") instanceof CachingSessionFactory);
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
@@ -139,7 +148,24 @@ public class FtpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals(Command.MV, TestUtils.getPropertyValue(gateway, "command"));
 		assertEquals("'foo'", TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression"));
+	}
+
+	@Test
+	public void testGatewayMPut() {
+		FtpOutboundGateway gateway = TestUtils.getPropertyValue(gateway4,
+				"handler", FtpOutboundGateway.class);
+		assertNotNull(TestUtils.getPropertyValue(gateway, "remoteFileTemplate.sessionFactory"));
+		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
+		assertEquals(Command.MPUT, TestUtils.getPropertyValue(gateway, "command"));
+		assertEquals("'foo'", TestUtils.getPropertyValue(gateway, "renameProcessor.expression.expression"));
 		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"), Matchers.instanceOf(RegexPatternFileListFilter.class));
+		assertSame(generator, TestUtils.getPropertyValue(gateway, "remoteFileTemplate.fileNameGenerator"));
+		assertEquals("/foo",
+				TestUtils.getPropertyValue(gateway, "remoteFileTemplate.directoryExpressionProcessor.expression", Expression.class)
+						.getExpressionString());
+		assertEquals("/bar",
+				TestUtils.getPropertyValue(gateway, "remoteFileTemplate.temporaryDirectoryExpressionProcessor.expression", Expression.class)
+						.getExpressionString());
 	}
 
 	@Test

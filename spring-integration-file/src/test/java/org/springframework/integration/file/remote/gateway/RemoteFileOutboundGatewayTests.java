@@ -1069,8 +1069,6 @@ public class RemoteFileOutboundGatewayTests {
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt")));
 		assertThat(out.get(1), anyOf(
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt")));
-		file1.delete();
-		file2.delete();
 	}
 
 	@Test
@@ -1096,8 +1094,8 @@ public class RemoteFileOutboundGatewayTests {
 				return null;
 			}
 		}).when(session).write(any(InputStream.class), anyString());
-		File file1 = tempFolder.newFile("baz.txt");
-		File file2 = tempFolder.newFile("qux.txt");
+		tempFolder.newFile("baz.txt");
+		tempFolder.newFile("qux.txt");
 		File dir1 = tempFolder.newFolder();
 		File file3 = File.createTempFile("foo", ".txt", dir1);
 
@@ -1114,10 +1112,6 @@ public class RemoteFileOutboundGatewayTests {
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt"), equalTo("foo/" + dir1.getName() + "/" + file3.getName())));
 		assertThat(out.get(2), anyOf(
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt"), equalTo("foo/" + dir1.getName() + "/" + file3.getName())));
-		file1.delete();
-		file2.delete();
-		file3.delete();
-		dir1.delete();
 	}
 
 }

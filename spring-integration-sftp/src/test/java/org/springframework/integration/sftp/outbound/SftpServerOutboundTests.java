@@ -54,6 +54,8 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.annotation.ProfileValueUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
@@ -121,7 +123,9 @@ public class SftpServerOutboundTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void setUpMocksIfNeeded() throws IOException {
-		if (sessionFactory.toString().startsWith("Mock for")) {
+		String profile = ProfileValueUtils.retrieveProfileValueSource(this.getClass()).get("spring.profiles.active");
+		boolean usingMocks = profile == null || ! profile.startsWith("realSSH");
+		if (usingMocks) {
 			Session session = mock(Session.class);
 			when(sessionFactory.getSession()).thenReturn(session);
 			LsEntry entry1 = mock(LsEntry.class);
@@ -288,156 +292,151 @@ public class SftpServerOutboundTests {
 	 * Only runs with a real server (see class javadocs).
 	 */
 	@Test
+	@IfProfileValue(name="spring.profiles.active", value="realSSH")
 	public void testInt3100RawGET() throws Exception {
-		if (!sessionFactory.toString().startsWith("Mock for")) {
-			Session<?> session = this.sessionFactory.getSession();
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource1.txt"), baos);
-			assertTrue(session.finalizeRaw());
-			assertEquals("source1", new String(baos.toByteArray()));
+		Session<?> session = this.sessionFactory.getSession();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource1.txt"), baos);
+		assertTrue(session.finalizeRaw());
+		assertEquals("source1", new String(baos.toByteArray()));
 
-			baos = new ByteArrayOutputStream();
-			FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource2.txt"), baos);
-			assertTrue(session.finalizeRaw());
-			assertEquals("source2", new String(baos.toByteArray()));
+		baos = new ByteArrayOutputStream();
+		FileCopyUtils.copy(session.readRaw("sftpSource/sftpSource2.txt"), baos);
+		assertTrue(session.finalizeRaw());
+		assertEquals("source2", new String(baos.toByteArray()));
 
-			session.close();
-		}
+		session.close();
 	}
 
 	@Test
+	@IfProfileValue(name="spring.profiles.active", value="realSSHSharedSession")
 	public void testInt3047ConcurrentSharedSession() throws Exception {
-		if ("realSSHSharedSession".equals(System.getProperty("spring.profiles.active"))) {
-			final Session<?> session1 = this.sessionFactory.getSession();
-			final Session<?> session2 = this.sessionFactory.getSession();
-			final PipedInputStream pipe1 = new PipedInputStream();
-			PipedOutputStream out1 = new PipedOutputStream(pipe1);
-			final PipedInputStream pipe2 = new PipedInputStream();
-			PipedOutputStream out2 = new PipedOutputStream(pipe2);
-			final CountDownLatch latch1 = new CountDownLatch(1);
-			final CountDownLatch latch2 = new CountDownLatch(1);
-			Executors.newSingleThreadExecutor().execute(new Runnable() {
+		final Session<?> session1 = this.sessionFactory.getSession();
+		final Session<?> session2 = this.sessionFactory.getSession();
+		final PipedInputStream pipe1 = new PipedInputStream();
+		PipedOutputStream out1 = new PipedOutputStream(pipe1);
+		final PipedInputStream pipe2 = new PipedInputStream();
+		PipedOutputStream out2 = new PipedOutputStream(pipe2);
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
 
-				@Override
-				public void run() {
-					try {
-						session1.write(pipe1, "foo.txt");
-					}
-					catch (IOException e) {
-						e.printStackTrace();
-					}
-					latch1.countDown();
+			@Override
+			public void run() {
+				try {
+					session1.write(pipe1, "foo.txt");
 				}
-			});
-			Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						session2.write(pipe2, "bar.txt");
-					}
-					catch (IOException e) {
-						e.printStackTrace();
-					}
-					latch2.countDown();
+				catch (IOException e) {
+					e.printStackTrace();
 				}
-			});
+				latch1.countDown();
+			}
+		});
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
 
-			out1.write('a');
-			out2.write('b');
-			out1.write('c');
-			out2.write('d');
-			out1.write('e');
-			out2.write('f');
-			out1.close();
-			out2.close();
-			assertTrue(latch1.await(10, TimeUnit.SECONDS));
-			assertTrue(latch2.await(10, TimeUnit.SECONDS));
-			ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
-			ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
-			session1.read("foo.txt", bos1);
-			session2.read("bar.txt", bos2);
-			assertEquals("ace", new String(bos1.toByteArray()));
-			assertEquals("bdf", new String(bos2.toByteArray()));
-			session1.remove("foo.txt");
-			session2.remove("bar.txt");
-			session1.close();
-			session2.close();
-		}
+			@Override
+			public void run() {
+				try {
+					session2.write(pipe2, "bar.txt");
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+				latch2.countDown();
+			}
+		});
+
+		out1.write('a');
+		out2.write('b');
+		out1.write('c');
+		out2.write('d');
+		out1.write('e');
+		out2.write('f');
+		out1.close();
+		out2.close();
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
+		ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
+		session1.read("foo.txt", bos1);
+		session2.read("bar.txt", bos2);
+		assertEquals("ace", new String(bos1.toByteArray()));
+		assertEquals("bdf", new String(bos2.toByteArray()));
+		session1.remove("foo.txt");
+		session2.remove("bar.txt");
+		session1.close();
+		session2.close();
 	}
 
 	@Test
+	@IfProfileValue(name="spring.profiles.active", value="realSSH")
 	public void testInt3088MPutNotRecursive() {
-		if (!sessionFactory.toString().startsWith("Mock for")) {
-			String dir = "sftpSource/";
-			this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
-			while (output.receive(0) != null) { }
-			this.inboundMPut.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
-			@SuppressWarnings("unchecked")
-			Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-			assertNotNull(out);
-			assertEquals(2, out.getPayload().size());
-			assertThat(out.getPayload().get(0),
-					not(equalTo(out.getPayload().get(1))));
-			assertThat(
-					out.getPayload().get(0),
-					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt")));
-			assertThat(
-					out.getPayload().get(1),
-					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt")));
-		}
+		String dir = "sftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		while (output.receive(0) != null) { }
+		this.inboundMPut.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
+		@SuppressWarnings("unchecked")
+		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+		assertNotNull(out);
+		assertEquals(2, out.getPayload().size());
+		assertThat(out.getPayload().get(0),
+				not(equalTo(out.getPayload().get(1))));
+		assertThat(
+				out.getPayload().get(0),
+				anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt")));
+		assertThat(
+				out.getPayload().get(1),
+				anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt")));
 	}
 
 	@Test
+	@IfProfileValue(name="spring.profiles.active", value="realSSH")
 	public void testInt3088MPutRecursive() {
-		if (!sessionFactory.toString().startsWith("Mock for")) {
-			String dir = "sftpSource/";
-			this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
-			while (output.receive(0) != null) { }
-			this.inboundMPutRecursive.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
-			@SuppressWarnings("unchecked")
-			Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-			assertNotNull(out);
-			assertEquals(3, out.getPayload().size());
-			assertThat(out.getPayload().get(0),
-					not(equalTo(out.getPayload().get(1))));
-			assertThat(
-					out.getPayload().get(0),
-					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
-							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
-			assertThat(
-					out.getPayload().get(1),
-					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
-							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
-			assertThat(
-					out.getPayload().get(2),
-					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
-							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
-		}
+		String dir = "sftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		while (output.receive(0) != null) { }
+		this.inboundMPutRecursive.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
+		@SuppressWarnings("unchecked")
+		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+		assertNotNull(out);
+		assertEquals(3, out.getPayload().size());
+		assertThat(out.getPayload().get(0),
+				not(equalTo(out.getPayload().get(1))));
+		assertThat(
+				out.getPayload().get(0),
+				anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+						equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
+		assertThat(
+				out.getPayload().get(1),
+				anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+						equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
+		assertThat(
+				out.getPayload().get(2),
+				anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+						equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
 	}
 
 	@Test
+	@IfProfileValue(name="spring.profiles.active", value="realSSH")
 	public void testInt3088MPutRecursiveFiltered() {
-		if (!sessionFactory.toString().startsWith("Mock for")) {
-			String dir = "sftpSource/";
-			this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
-			while (output.receive(0) != null) { }
-			this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
-			@SuppressWarnings("unchecked")
-			Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
-			assertNotNull(out);
-			assertEquals(2, out.getPayload().size());
-			assertThat(out.getPayload().get(0),
-					not(equalTo(out.getPayload().get(1))));
-			assertThat(
-					out.getPayload().get(0),
-					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
-							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
-			assertThat(
-					out.getPayload().get(1),
-					anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
-							equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
-		}
+		String dir = "sftpSource/";
+		this.inboundMGetRecursive.send(new GenericMessage<Object>(dir + "*"));
+		while (output.receive(0) != null) { }
+		this.inboundMPutRecursiveFiltered.send(new GenericMessage<File>(new File("/tmp/sftpOutboundTests/sftpSource")));
+		@SuppressWarnings("unchecked")
+		Message<List<String>> out = (Message<List<String>>) this.output.receive(1000);
+		assertNotNull(out);
+		assertEquals(2, out.getPayload().size());
+		assertThat(out.getPayload().get(0),
+				not(equalTo(out.getPayload().get(1))));
+		assertThat(
+				out.getPayload().get(0),
+				anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+						equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
+		assertThat(
+				out.getPayload().get(1),
+				anyOf(equalTo("sftpTarget/slocalTarget1.txt"), equalTo("sftpTarget/slocalTarget2.txt"),
+						equalTo("sftpTarget/subSftpSource/subSlocalTarget1.txt")));
 	}
 
 }

@@ -45,21 +45,19 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 
-		BeanDefinition templateDefintion = FileParserUtils.parseRemoteFileTemplate(element, false);
+		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, false);
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getGatewayClassName());
 
-		builder.addConstructorArgValue(templateDefintion);
+		builder.addConstructorArgValue(templateDefinition);
 
 		builder.addConstructorArgValue(element.getAttribute("command"));
 		builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "temporary-file-suffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		this.configureFilter(builder, element, parserContext, "filter", "filename", "filter");
 		this.configureFilter(builder, element, parserContext, "mput-filter", "mput", "mputFilter");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "remote-file-separator");
 
 		BeanDefinition localDirExpressionDef = IntegrationNamespaceUtils
 				.createExpressionDefinitionFromValueOrExpression("local-directory", "local-directory-expression",

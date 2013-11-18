@@ -66,11 +66,26 @@
 		expression="payload"
 		rename-expression="'foo'"
 		order="1"
-		mput-filter="mputFilter"
 		/>
 
-	<bean id="mputFilter" class="org.springframework.integration.file.filters.RegexPatternFileListFilter">
-		<constructor-arg value="(.*1.txt|sub*)"/>
+	<int-ftp:outbound-gateway id="gateway4"
+		session-factory="csf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		command="mput"
+		expression="payload"
+		remote-directory="/foo"
+		remote-file-separator="X"
+		auto-create-directory="true"
+		remote-filename-generator="fileNameGenerator"
+		temporary-remote-directory="/bar"
+		rename-expression="'foo'"
+		order="1"
+		mput-regex=".*"
+		/>
+
+	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
 	</bean>
 
 	<int-ftp:outbound-gateway id="withBeanExpression"

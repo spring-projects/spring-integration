@@ -198,13 +198,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected volatile Set<Option> options = new HashSet<Option>();
 
-	private volatile String remoteFileSeparator = "/";
-
 	private volatile Expression localDirectoryExpression;
 
 	private volatile boolean autoCreateLocalDirectory = true;
-
-	private volatile String temporaryFileSuffix = ".writing";
 
 	/**
 	 * A {@link FileListFilter} that runs against the <em>remote</em> file system view.
@@ -272,7 +268,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param remoteFileSeparator the remoteFileSeparator to set
 	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		this.remoteFileSeparator = remoteFileSeparator;
+		this.remoteFileTemplate.setRemoteFileSeparator(remoteFileSeparator);
 	}
 
 	/**
@@ -299,7 +295,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param temporaryFileSuffix the temporaryFileSuffix to set
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
-		this.temporaryFileSuffix = temporaryFileSuffix;
+		this.remoteFileTemplate.setTemporaryFileSuffix(temporaryFileSuffix);
 	}
 
 	/**
@@ -400,8 +396,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Object doLs(Message<?> requestMessage) {
 		String dir = this.fileNameProcessor.processMessage(requestMessage);
-		if (!dir.endsWith(this.remoteFileSeparator)) {
-			dir += this.remoteFileSeparator;
+		if (!dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
+			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		final String fullDir = dir;
 		List<?> payload = this.remoteFileTemplate.execute(new SessionCallback<F, List<?>>() {
@@ -514,14 +510,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		File[] files = file.listFiles();
 		List<File> filteredFiles = this.filterMputFiles(files);
 		List<String> replies = new ArrayList<String>();
-		for (File fyle : filteredFiles) {
-			if (!fyle.isDirectory()) {
-				String path = this.doPut(MessageBuilder.withPayload(fyle)
+		for (File filteredFile : filteredFiles) {
+			if (!filteredFile.isDirectory()) {
+				String path = this.doPut(MessageBuilder.withPayload(filteredFile)
 						.copyHeaders(requestMessage.getHeaders())
 						.build(), subDirectory);
 				if (path == null) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("File " + fyle.getAbsolutePath() + " removed before transfer; ignoring");
+						logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
 					}
 				}
 				else {
@@ -529,9 +525,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				}
 			}
 			else if (this.options.contains(Option.RECURSIVE)){
-				String newSubDirectory = (StringUtils.hasText(subDirectory) ? subDirectory + this.remoteFileSeparator
-						: "") + fyle.getName();
-				replies.addAll(this.putLocalDirectory(requestMessage, fyle, newSubDirectory));
+				String newSubDirectory = (StringUtils.hasText(subDirectory) ?
+						subDirectory + this.remoteFileTemplate.getRemoteFileSeparator() : "")
+					+ filteredFile.getName();
+				replies.addAll(this.putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
 			}
 		}
 		return replies;
@@ -585,7 +582,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						}
 					}
 					if (recursion && this.isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
-						lsFiles.addAll(listFilesInRemoteDir(session, directory,  subDirectory + fileName + this.remoteFileSeparator));
+						lsFiles.addAll(listFilesInRemoteDir(session, directory,  subDirectory + fileName
+								+ this.remoteFileTemplate.getRemoteFileSeparator()));
 					}
 				}
 			}
@@ -645,7 +643,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		File localFile = new File(this.generateLocalDirectory(message, remoteDir), this.generateLocalFileName(message, remoteFilename));
 		if (!localFile.exists()) {
-			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
+			String tempFileName = localFile.getAbsolutePath() + this.remoteFileTemplate.getTemporaryFileSuffix();
 			File tempFile = new File(tempFileName);
 			BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
 			try {
@@ -708,12 +706,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					+ " with pattern " + remoteFilename);
 		}
 		List<File> files = new ArrayList<File>();
+		String remoteFileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
 		for (String fileName : fileNames) {
 			File file;
-			if (fileName.contains(this.remoteFileSeparator) &&
+			if (fileName.contains(remoteFileSeparator) &&
 					fileName.startsWith(remoteDirectory)) { // the server returned the full path
 				file = this.get(message, session, remoteDirectory, fileName,
-						fileName.substring(fileName.lastIndexOf(this.remoteFileSeparator)), false);
+						fileName.substring(fileName.lastIndexOf(remoteFileSeparator)), false);
 			}
 			else {
 				file = this.get(message, session, remoteDirectory,
@@ -751,21 +750,22 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private String getRemoteDirectory(String remoteFilePath, String remoteFilename) {
 		String remoteDir = remoteFilePath.substring(0, remoteFilePath.lastIndexOf(remoteFilename));
 		if (remoteDir.length() == 0) {
-			remoteDir = this.remoteFileSeparator;
+			remoteDir = this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		return remoteDir;
 	}
 
 	private String generateFullPath(String remoteDirectory, String remoteFilename) {
 		String path;
-		if (this.remoteFileSeparator.equals(remoteDirectory)) {
+		String remoteFileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
+		if (remoteFileSeparator.equals(remoteDirectory)) {
 			path = remoteFilename;
 		}
-		else if (remoteDirectory.endsWith(this.remoteFileSeparator)) {
+		else if (remoteDirectory.endsWith(remoteFileSeparator)) {
 			path = remoteDirectory + remoteFilename;
 		}
 		else {
-			path = remoteDirectory + this.remoteFileSeparator + remoteFilename;
+			path = remoteDirectory + remoteFileSeparator + remoteFilename;
 		}
 		return path;
 	}
@@ -775,7 +775,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	protected String getRemoteFilename(String remoteFilePath) {
 		String remoteFileName;
-		int index = remoteFilePath.lastIndexOf(this.remoteFileSeparator);
+		int index = remoteFilePath.lastIndexOf(this.remoteFileTemplate.getRemoteFileSeparator());
 		if (index < 0) {
 			remoteFileName = remoteFilePath;
 		}

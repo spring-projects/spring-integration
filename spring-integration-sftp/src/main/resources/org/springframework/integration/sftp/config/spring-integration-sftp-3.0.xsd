@@ -314,6 +314,7 @@
 								[org.springframework.integration.file.filters.FileListFilter]
 								bean. This filter acts against the remote server view when using the 'ls'
 								or 'mget' commands.
+								Only one of 'filter', 'filename-pattern', or 'filename-regex' is allowed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -325,6 +326,7 @@
 								and is based
 								on simple pattern matching algorithm (e.g., "*.txt, fo*.txt"
 								etc.)
+								Only one of 'filter', 'filename-pattern', or 'filename-regex' is allowed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -335,6 +337,7 @@
 								determine the file names retrieved by the 'ls' and 'mget' commands.
 								(e.g.,
 								"f[o]+\.txt" etc.)
+								Only one of 'filter', 'filename-pattern', or 'filename-regex' is allowed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -350,6 +353,7 @@
 								Allows you to specify a reference to
 								[org.springframework.integration.file.filters.FileListFilter]
 								bean. This filter acts on the local file system when using the 'mput' command.
+								Only one of 'mput-filter', 'mput-pattern', or 'mput-regex' is allowed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -361,6 +365,7 @@
 								and is based
 								on simple pattern matching algorithm (e.g., "*.txt, fo*.txt"
 								etc.)
+								Only one of 'mput-filter', 'mput-pattern', or 'mput-regex' is allowed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -371,6 +376,7 @@
 								determine the file names sent by the 'mput' command
 								(e.g.,
 								"f[o]+\.txt" etc.)
+								Only one of 'mput-filter', 'mput-pattern', or 'mput-regex' is allowed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

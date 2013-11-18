@@ -38,7 +38,7 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(FileTransferringMessageHandler.class);
 
-		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, true);
+		BeanDefinition templateDefinition = FileParserUtils.parseRemoteFileTemplate(element, parserContext, true);
 
 		handlerBuilder.addConstructorArgValue(templateDefinition);
 		return handlerBuilder.getBeanDefinition();

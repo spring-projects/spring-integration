@@ -17,12 +17,9 @@ package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -36,11 +33,13 @@ import org.springframework.util.StringUtils;
  * @since 3.0
  *
  */
-public class FileParserUtils {
+public final class FileParserUtils {
 
-	private FileParserUtils() {}
+	private FileParserUtils() {
+	}
 
-	public static BeanDefinition parseRemoteFileTemplate(Element element, boolean atLeastOneRequired) {
+	public static BeanDefinition parseRemoteFileTemplate(Element element, ParserContext parserContext,
+			boolean atLeastOneRemoteDirectoryAttributeRequired) {
 		BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.genericBeanDefinition(RemoteFileTemplate.class);
 
 		templateBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
@@ -51,7 +50,17 @@ public class FileParserUtils {
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(templateBuilder, element, "auto-create-directory");
 
-		configureRemoteDirectories(element, templateBuilder, atLeastOneRequired);
+		BeanDefinition expressionDef =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("remote-directory",
+						"remote-directory-expression", parserContext, element, atLeastOneRemoteDirectoryAttributeRequired);
+		if (expressionDef != null) {
+			templateBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
+		}
+		expressionDef = IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("temporary-remote-directory",
+				"temporary-remote-directory-expression", parserContext, element, false);
+		if (expressionDef != null) {
+			templateBuilder.addPropertyValue("temporaryRemoteDirectoryExpression", expressionDef);
+		}
 
 		// configure remote FileNameGenerator
 		String remoteFileNameGenerator = element.getAttribute("remote-filename-generator");
@@ -60,14 +69,16 @@ public class FileParserUtils {
 		boolean hasRemoteFileNameGeneratorExpression = StringUtils.hasText(remoteFileNameGeneratorExpression);
 		if (hasRemoteFileNameGenerator || hasRemoteFileNameGeneratorExpression) {
 			if (hasRemoteFileNameGenerator && hasRemoteFileNameGeneratorExpression) {
-				throw new BeanDefinitionStoreException("at most one of 'remote-filename-generator-expression' or 'remote-filename-generator' " +
-						"is allowed on a remote file outbound adapter");
+				parserContext.getReaderContext().error(
+						"at most one of 'remote-filename-generator-expression' or 'remote-filename-generator' "
+								+ "is allowed on a remote file outbound adapter", element);
 			}
 			if (hasRemoteFileNameGenerator) {
 				templateBuilder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
 			}
 			else {
-				BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultFileNameGenerator.class);
+				BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(DefaultFileNameGenerator.class);
 				fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileNameGeneratorExpression);
 				templateBuilder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
 			}
@@ -75,43 +86,6 @@ public class FileParserUtils {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(templateBuilder, element, "charset");
 		templateBuilder.addPropertyValue("remoteFileSeparator", element.getAttribute("remote-file-separator"));
 		return templateBuilder.getBeanDefinition();
-	}
-
-	private static void configureRemoteDirectories(Element element, BeanDefinitionBuilder handlerBuilder,
-			boolean atLeastOneRequired) {
-		doConfigureRemoteDirectory(element, handlerBuilder, "remote-directory", "remote-directory-expression",
-				"remoteDirectoryExpression", atLeastOneRequired);
-		doConfigureRemoteDirectory(element, handlerBuilder, "temporary-remote-directory",
-				"temporary-remote-directory-expression", "temporaryRemoteDirectoryExpression", false);
-	}
-
-	private static void doConfigureRemoteDirectory(Element element, BeanDefinitionBuilder handlerBuilder,
-			String directoryAttribute, String directoryExpressionAttribute, String directoryExpressionPropertyName,
-			boolean atLeastOneRequired) {
-		String remoteDirectory = element.getAttribute(directoryAttribute);
-		String remoteDirectoryExpression = element.getAttribute(directoryExpressionAttribute);
-		boolean hasRemoteDirectory = StringUtils.hasText(remoteDirectory);
-		boolean hasRemoteDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
-		if (atLeastOneRequired) {
-			if (!(hasRemoteDirectory ^ hasRemoteDirectoryExpression)) {
-				throw new BeanDefinitionStoreException("exactly one of '" + directoryAttribute + "' or '"
-						+ directoryExpressionAttribute + "' " + "is required on a remote file outbound adapter");
-			}
-		}
-
-		BeanDefinition remoteDirectoryExpressionDefinition = null;
-		if (hasRemoteDirectory) {
-			remoteDirectoryExpressionDefinition = new RootBeanDefinition(LiteralExpression.class);
-			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectory);
-		}
-		else if (hasRemoteDirectoryExpression) {
-			remoteDirectoryExpressionDefinition = new RootBeanDefinition(ExpressionFactoryBean.class);
-			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(
-					remoteDirectoryExpression);
-		}
-		if (remoteDirectoryExpressionDefinition != null) {
-			handlerBuilder.addPropertyValue(directoryExpressionPropertyName, remoteDirectoryExpressionDefinition);
-		}
 	}
 
 }

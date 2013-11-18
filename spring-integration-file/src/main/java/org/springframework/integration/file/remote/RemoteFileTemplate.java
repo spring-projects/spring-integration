@@ -99,6 +99,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
+	public final String getRemoteFileSeparator() {
+		return remoteFileSeparator;
+	}
+
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
