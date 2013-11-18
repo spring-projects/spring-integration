@@ -10,30 +10,31 @@
 		http://www.springframework.org/schema/integration/scripting http://www.springframework.org/schema/integration/scripting/spring-integration-scripting.xsd">
 
 	<service-activator input-channel="referencedScriptInput">
-		<script:script 
+		<script:script
 				lang="python"
-				location="org/springframework/integration/scripting/config/jsr223/Jsr223ServiceActivatorTests.py">
+				location="org/springframework/integration/scripting/config/jsr223/Jsr223ServiceActivatorTests.py"
+				variables="foo2=#{'foo2'}, date2-ref=date">
 			<script:variable name="foo" value="foo"/>
 			<script:variable name="bar" value="bar"/>
 			<script:variable name="date" ref="date"/>
 		</script:script>
 	</service-activator>
-	
-	
+
+
 	<service-activator input-channel="withScriptVariableGenerator">
 		<script:script lang="ruby" location="org/springframework/integration/scripting/config/jsr223/Jsr223ServiceActivatorTests.rb"
 					   script-variable-generator="scriptVarSource"/>
 	</service-activator>
-	
-	
-	
-	<beans:bean id="scriptVarSource" 
-		class="org.springframework.integration.scripting.config.jsr223.Jsr223ServiceActivatorTests.SampleScriptVariSource"/>
+
+
+
+	<beans:bean id="scriptVarSource"
+		class="org.springframework.integration.scripting.config.jsr223.Jsr223ServiceActivatorTests$SampleScriptVariSource"/>
 
 	<service-activator input-channel="inlineScriptInput">
-		<script:script lang="ruby">
+		<script:script lang="ruby" variables="foo=#{'FOO'}, date-ref=date">
 			<![CDATA[
-				"inline-#{payload}"
+				"inline-#{payload} - #{foo} :#{date}"
 			]]>
 		</script:script>
 	</service-activator>
@@ -41,5 +42,5 @@
 	<beans:bean id="date" class="java.util.Date" scope="prototype">
 		<aop:scoped-proxy/>
 	</beans:bean>
-	
+
 </beans:beans>
