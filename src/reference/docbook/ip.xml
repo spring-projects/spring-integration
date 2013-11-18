@@ -626,7 +626,7 @@
      <note>
       <para>
        For the inbound gateway, care must be taken to retain, or populate, the
-       <emphasis>ip_connnection_id</emphasis> header because it is used to
+       <emphasis>ip_connectionId</emphasis> header because it is used to
        correlate the message to a connection. Messages that originate at the
        gateway will automatically have the header set. If the reply is
        constructed as a new message, you will need to set the header. The
@@ -760,7 +760,7 @@
      <note>
       <para>
        On the server side, care must be taken to populate the
-       <emphasis>ip_connnection_id</emphasis> header because it is used to
+       <emphasis>ip_connectionId</emphasis> header because it is used to
        correlate the message to a connection. Messages that originate at the
        inbound adapter will automatically have the header set. If you wish to
        construct other messages to send, you will need to set the header. The
@@ -1853,4 +1853,85 @@
       </table>
     </para>
   </section>
+  <section id="ip-msg-headers">
+	<title>IP Message Headers</title>
+	<para>
+		The following <code>MessageHeader</code>s are used by this module:
+	</para>
+	<table id="ip-msg-headers-tbl">
+		<tgroup cols="3">
+			<colspec align="left" />
+			<colspec colnum="1" colname="col1" colwidth="1*"/>
+			<colspec colnum="2" colname="col2" colwidth="1*"/>
+			<colspec colnum="3" colname="col3" colwidth="3*"/>
+			<thead>
+				<row>
+					<entry align="center">Header Name</entry>
+					<entry align="center">IpHeaders Constant</entry>
+					<entry align="left">Description</entry>
+				</row>
+			</thead>
+			<tbody>
+				<row>
+					<entry>ip_hostname</entry>
+					<entry>HOSTNAME</entry>
+					<entry>
+						The host name from which a TCP message or UDP packet was received. If
+	 					<code>lookupHost</code> is <code>false</code>, this will contain the ip address.
+					</entry>
+				</row>
+				<row>
+					<entry>ip_address</entry>
+					<entry>IP_ADDRESS</entry>
+					<entry>The ip address from which a TCP message or UDP packet was received.</entry>
+				</row>
+				<row>
+					<entry>ip_port</entry>
+					<entry>PORT</entry>
+					<entry>The remote port for a UDP packet.</entry>
+				</row>
+				<row>
+					<entry>ip_ackTo</entry>
+					<entry>ACKADDRESS</entry>
+					<entry>
+						The remote ip address to which UDP application-level acks will be sent. The
+	 					framework includes acknowledgment information in the data packet.
+					</entry>
+				</row>
+				<row>
+					<entry>ip_ackId</entry>
+					<entry>ACK_ID</entry>
+					<entry>
+						A correlation id for UDP application-level acks. The
+						framework includes acknowledgment information in the data packet.
+					</entry>
+				</row>
+				<row>
+					<entry>ip_tcp_remotePort</entry>
+					<entry>REMOTE_PORT</entry>
+					<entry>The remote port for a UDP packet.</entry>
+				</row>
+				<row>
+					<entry>ip_connectionId</entry>
+					<entry>CONNECTION_ID</entry>
+					<entry>
+						A unique identifier for a TCP connection; set by the framework for
+						inbound messages; when sending to a server-side inbound
+						channel adapter, or replying to an inbound gateway, this header is
+						required so the endpoint can determine which connection to send
+						the message to.
+					</entry>
+				</row>
+				<row>
+					<entry>ip_actualConnectionId</entry>
+					<entry>ACTUAL_CONNECTION_ID</entry>
+					<entry>
+						For information only - when using a cached or failover client connection
+						factory, contains the actual underlying connection id.
+					</entry>
+				</row>
+			</tbody>
+		</tgroup>
+	</table>
+</section>
 </chapter>
