@@ -252,6 +252,18 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	</para>
   </section>
 
+   <section id="sftp-rft">
+	<title>RemoteFileTemplate</title>
+	<para>
+		Starting with <emphasis>Spring Integration version 3.0</emphasis> a new abstraction is provided over the
+		<classname>SftpSession</classname> object. The template provides methods to send, retrieve (as an
+		<classname>InputStream</classname>), remove, and rename files. In addition an <code>execute</code>
+		method is provided allowing the caller to execute multiple operations on the session. In all cases,
+		the template takes care of reliably closing the session.
+		For more information, refer to the javadocs for <classname>RemoteFileTemplate</classname>.
+	</para>
+   </section>
+
    <section id="sftp-inbound">
   	<title>SFTP Inbound Channel Adapter</title>
   	<para>
@@ -437,6 +449,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		  <listitem>mget (retrieve file(s))</listitem>
 		  <listitem>rm (remove file(s))</listitem>
 		  <listitem>mv (move/rename file)</listitem>
+		  <listitem>put (send file)</listitem>
+		  <listitem>mput (send multiple files)</listitem>
 	    </itemizedlist>
 	  </para>
 	  <para><emphasis role="bold">ls</emphasis></para>
@@ -491,6 +505,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	  <para>
 	    <emphasis>mget</emphasis> retrieves multiple remote files based on a pattern and supports the following option:
 	    <itemizedlist>
+		  <listitem>-P - preserve the timestamps of the remote files</listitem>
 		  <listitem>-x - Throw an exception if no files match the pattern (otherwise an empty
 		  list is returned)</listitem>
 	    </itemizedlist>
@@ -526,6 +541,40 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	      so that the remote directory structure is retained locally.
 	    </para>
 	  </note>
+	  <para><emphasis role="bold">put</emphasis></para>
+	  <para>
+	    <emphasis>put</emphasis> sends a file to the remote server; the payload of the message can be a
+	    <classname>java.io.File</classname>, a <classname>byte[]</classname> or a <classname>String</classname>.
+	    A <code>remote-filename-generator</code> (or expression) is used to name the remote file. Other available attributes include
+	    <code>remote-directory</code>, <code>temporary-remote-directory</code> (and their <code>*-expression</code>)
+	    equivalents, <code>use-temporary-file-name</code>, and <code>auto-create-directory</code>. Refer to the
+	    schema documentation for more information.
+	  </para>
+	  <para>
+		The message payload resulting from a <emphasis>put</emphasis> operation is a
+		<classname>String</classname> representing the full path of the file on the server after transfer.
+	  </para>
+	  <para><emphasis role="bold">mput</emphasis></para>
+	  <para>
+	    <emphasis>mput</emphasis> sends multiple files to the server and supports the following option:
+	    <itemizedlist>
+		  <listitem>-R - Recursive - send all files (possibly filtered) in the directory and subdirectories</listitem>
+	    </itemizedlist>
+	  </para>
+	  <para>
+		The message payload must be a <classname>java.io.File</classname> representing a local directory.
+	  </para>
+	  <para>
+		The same attributes as the <code>put</code> command are supported. In addition, files in the local
+		directory can be filtered with one of <code>mput-pattern</code>, <code>mput-regex</code> or
+		<code>mput-filter</code>. The filter works with recursion, as long as the subdirectories themselves
+		pass the filter. Subdirectories that do not pass the filter are not recursed.
+	  </para>
+	  <para>
+		The message payload resulting from an <emphasis>mget</emphasis> operation is a
+		<classname>List&lt;String&gt;</classname>	object - a List of remote file paths resulting from
+		the transfer.
+	  </para>
 	  <para><emphasis role="bold">rm</emphasis></para>
 	  <para>
 	    The <emphasis>rm</emphasis> command has no options.
