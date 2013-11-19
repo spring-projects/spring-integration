@@ -89,8 +89,12 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	private volatile boolean noReadErrorOnClose;
 
 	public TcpConnectionSupport() {
+		this(null);
+	}
+
+	public TcpConnectionSupport(ApplicationEventPublisher applicationEventPublisher) {
 		this.server = false;
-		this.applicationEventPublisher = null;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/**
@@ -150,6 +154,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	/**
 	 * Closes this connection.
 	 */
+	@Override
 	public void close() {
 		if (this.sender != null) {
 			this.sender.removeDeadConnection(this);
@@ -203,6 +208,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 *
 	 * @return the deserializer
 	 */
+	@Override
 	public Deserializer<?> getDeserializer() {
 		return this.deserializer;
 	}
@@ -218,6 +224,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 *
 	 * @return the serializer
 	 */
+	@Override
 	public Serializer<?> getSerializer() {
 		return this.serializer;
 	}
@@ -266,6 +273,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	/**
 	 * @return the listener
 	 */
+	@Override
 	public TcpListener getListener() {
 		return this.listener;
 	}
@@ -289,26 +297,32 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 *
 	 * @return True if connection is used once.
 	 */
+	@Override
 	public boolean isSingleUse() {
 		return this.singleUse;
 	}
 
+	@Override
 	public boolean isServer() {
 		return server;
 	}
 
+	@Override
 	public long incrementAndGetConnectionSequence() {
 		return this.sequence.incrementAndGet();
 	}
 
+	@Override
 	public String getHostAddress() {
 		return this.hostAddress;
 	}
 
+	@Override
 	public String getHostName() {
 		return this.hostName;
 	}
 
+	@Override
 	public String getConnectionId() {
 		return this.connectionId;
 	}

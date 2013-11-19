@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.springframework.context.ApplicationContext;
+
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
@@ -60,7 +61,6 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
@@ -80,7 +80,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Artem Bilan
  * @since 2.0
  */
-public class TcpSendingMessageHandlerTests {
+public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTests {
 
 	private static final Log logger = LogFactory.getLog(TcpSendingMessageHandlerTests.class);
 
@@ -97,6 +97,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -118,6 +119,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -148,6 +150,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -169,6 +172,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -201,6 +205,7 @@ public class TcpSendingMessageHandlerTests {
 		handler.stop();
 		handler.start();
 		handler.stop();
+		adapter.stop();
 	}
 
 	@Test
@@ -209,6 +214,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -229,6 +235,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -262,6 +269,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -282,6 +290,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -312,6 +321,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -332,6 +342,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -365,6 +376,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -388,6 +400,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -418,6 +431,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -441,6 +455,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -474,6 +489,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -494,6 +510,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
@@ -523,6 +540,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -543,6 +561,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
@@ -576,6 +595,7 @@ public class TcpSendingMessageHandlerTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -597,6 +617,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -620,6 +641,7 @@ public class TcpSendingMessageHandlerTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -641,6 +663,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -664,6 +687,7 @@ public class TcpSendingMessageHandlerTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -686,6 +710,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -721,6 +746,7 @@ public class TcpSendingMessageHandlerTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -743,6 +769,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -779,6 +806,7 @@ public class TcpSendingMessageHandlerTests {
 		final AtomicBoolean done = new AtomicBoolean();
 		final List<Socket> serverSockets = new ArrayList<Socket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 100);
@@ -802,6 +830,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
@@ -845,6 +874,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -879,13 +909,15 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
-		     {new HelloWorldInterceptorFactory(),
-		      new HelloWorldInterceptorFactory()});
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {
+				newInterceptorFactory(),
+				newInterceptorFactory()
+		});
 		ccf.setInterceptorFactoryChain(fc);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -913,6 +945,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -942,11 +975,12 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {new HelloWorldInterceptorFactory()});
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {newInterceptorFactory()});
 		ccf.setInterceptorFactoryChain(fc);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -979,6 +1013,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
@@ -1013,13 +1048,15 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
-            		     {new HelloWorldInterceptorFactory(),
-               		      new HelloWorldInterceptorFactory()});
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {
+				newInterceptorFactory(),
+				newInterceptorFactory()
+		});
 		ccf.setInterceptorFactoryChain(fc);
 		ccf.setSingleUse(true);
 		ccf.start();
@@ -1037,6 +1074,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@Override
 			public void run() {
 				int i = 0;
 				try {
@@ -1070,13 +1108,15 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		noopPublisher(ccf);
 		ccf.setSerializer(new DefaultSerializer());
 		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
-		fc.setInterceptors(new TcpConnectionInterceptorFactory[]
-            		     {new HelloWorldInterceptorFactory(),
-               		      new HelloWorldInterceptorFactory()});
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {
+				newInterceptorFactory(),
+				newInterceptorFactory()
+		});
 		ccf.setInterceptorFactoryChain(fc);
 		ccf.setSingleUse(true);
 		ccf.start();
@@ -1090,7 +1130,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void testOutboundChannelAdapterWithinChain() throws Exception {
-		ApplicationContext ctx = new ClassPathXmlApplicationContext(
+		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"TcpOutboundChannelAdapterWithinChainTests-context.xml", this.getClass());
 		AbstractServerConnectionFactory scf = ctx.getBean(AbstractServerConnectionFactory.class);
 		TestingUtilities.waitListening(scf, null);
@@ -1101,6 +1141,7 @@ public class TcpSendingMessageHandlerTests {
 		Message<?> m = inbound.receive(1000);
 		assertNotNull(m);
 		assertEquals(testPayload, new String((byte[]) m.getPayload()));
+		ctx.destroy();
 	}
 
 	@Test
@@ -1109,6 +1150,7 @@ public class TcpSendingMessageHandlerTests {
 		AbstractConnectionFactory mockCcf = mock(AbstractClientConnectionFactory.class);
 		Mockito.doAnswer(new Answer<Object>() {
 
+			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				throw new SocketException("Failed to connect");
 			}
