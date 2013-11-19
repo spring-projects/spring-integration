@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package org.springframework.integration.file;
 
 import java.io.File;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.util.Assert;
@@ -34,13 +37,17 @@ import org.springframework.util.StringUtils;
  * associated with the header if no expression has been provided), it checks if
  * the Message payload is a File instance, and if so, it uses the same name.
  * Finally, it falls back to the Message ID and adds the suffix '.msg'.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implements FileNameGenerator {
 
-	private volatile String expression = "headers['" + FileHeaders.FILENAME + "']";
+	private static final String DEFAULT_EXPRESSION = "headers['" + FileHeaders.FILENAME + "']";
 
+	private final static ExpressionParser parser = new SpelExpressionParser();
+
+	private volatile Expression expression = parser.parseExpression(DEFAULT_EXPRESSION);
 
 	/**
 	 * Specify an expression to be evaluated against the Message
@@ -48,7 +55,7 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	 */
 	public void setExpression(String expression) {
 		Assert.hasText(expression, "expression must not be empty");
-		this.expression = expression;
+		this.expression = parser.parseExpression(expression);
 	}
 
 	/**
@@ -57,9 +64,10 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	 */
 	public void setHeaderName(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");
-		this.expression = "headers['" + headerName + "']";
+		this.expression = parser.parseExpression("headers['" + headerName + "']");
 	}
 
+	@Override
 	public String generateFileName(Message<?> message) {
 		Object filenameProperty = this.evaluateExpression(this.expression, message);
 		if (filenameProperty instanceof String && StringUtils.hasText((String) filenameProperty)) {

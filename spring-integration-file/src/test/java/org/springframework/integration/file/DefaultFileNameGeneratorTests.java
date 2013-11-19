@@ -123,6 +123,17 @@ public class DefaultFileNameGeneratorTests {
 	}
 
 	@Test
+	public void customExpressionTakesPrecedenceOverFilePayload() {
+		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
+		generator.setBeanFactory(mock(BeanFactory.class));
+		generator.setExpression("'foobar'");
+		File payload = new File("/some/path/ignore");
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		String filename = generator.generateFileName(message);
+		assertEquals("foobar", filename);
+	}
+
+	@Test
 	public void customHeaderNameTakesPrecedenceOverDefault() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
 		generator.setBeanFactory(mock(BeanFactory.class));

@@ -108,8 +108,9 @@ public class OutboundChannelAdapterParserTests {
 		assertNotNull(remoteDirectoryExpression);
 		assertEquals("'foo' + '/' + 'bar'", remoteDirectoryExpression.getExpressionString());
 		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator");
-		String fileNameGeneratorExpression = (String) TestUtils.getPropertyValue(generator, "expression");
-		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression);
+		Expression fileNameGeneratorExpression = TestUtils.getPropertyValue(generator, "expression", Expression.class);
+		assertNotNull(fileNameGeneratorExpression);
+		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression.getExpressionString());
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));
 		assertNull(TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryDirectoryExpressionProcessor"));
 
