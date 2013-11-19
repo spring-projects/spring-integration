@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.support.MessageBuilder;
@@ -50,12 +52,8 @@ public class HelloWorldInterceptor extends TcpConnectionInterceptorSupport {
 	public HelloWorldInterceptor() {
 	}
 
-	/**
-	 * @param hello
-	 * @param world
-	 */
-	public HelloWorldInterceptor(String hello, String world) {
-		super();
+	public HelloWorldInterceptor(String hello, String world, ApplicationEventPublisher applicationEventPublisher) {
+		super(applicationEventPublisher);
 		this.hello = hello;
 		this.world = world;
 	}
