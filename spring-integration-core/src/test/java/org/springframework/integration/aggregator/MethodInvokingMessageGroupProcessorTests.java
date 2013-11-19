@@ -308,10 +308,9 @@ public class MethodInvokingMessageGroupProcessorTests {
 		assertTrue(((Message<?>)result).getPayload() instanceof Iterator<?>);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testTwoMethodsWithSameParameterTypesAmbiguous() {
 
-		@SuppressWarnings("unused")
 		class AnnotatedParametersAggregator {
 			public Integer and(List<Integer> flags) {
 				int result = 0;
@@ -327,7 +326,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		new MethodInvokingMessageGroupProcessor(new AnnotatedParametersAggregator());
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedParametersAggregator());
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
+		Object result = processor.processMessageGroup(messageGroupMock);
+		Object payload = ((Message<?>) result).getPayload();
+		assertTrue(payload instanceof Integer);
+		assertEquals(7, payload);
 
 	}
 
