@@ -69,8 +69,8 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 	 * Override this method if you wish to use something other than the
 	 * modified timestamp to determine equality.
 	 * @param file The file.
-	 * @param value The current value for the key in the store
-	 * @return
+	 * @param value The current value for the key in the store.
+	 * @return true if equal.
 	 */
 	protected boolean isEqual(F file, String value) {
 		return Long.valueOf(value).longValue() == this.modified(file);

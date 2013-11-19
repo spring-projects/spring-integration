@@ -29,11 +29,24 @@ public interface RemoteFileOperations<F> {
 	/**
 	 * Send a file to a remote server, based on information in a message.
 	 *
-	 * @param message The message
+	 * @param message The message.
+	 * @return The remote path, or null if no local file was found.
 	 * @throws Exception
 	 */
-	void send(Message<?> message);
+	String send(Message<?> message);
 
+	/**
+	 * Send a file to a remote server, based on information in a message.
+	 * The subDirectory is appended to the remote directory evaluated from
+	 * the message.
+	 *
+	 * @param message The message.
+	 * @param subDirectory The sub directory.
+	 * @return The remote path, or null if no local file was found.
+	 * @throws Exception
+	 */
+
+	String send(Message<?> message, String subDirectory);
 	/**
 	 * Retrieve a remote file as an InputStream, based on information in a message.
 	 *

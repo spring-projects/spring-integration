@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.sftp.session.SftpFileInfo;
@@ -36,14 +37,14 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  */
 public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
 
-	/**
-	 * @param sessionFactory
-	 * @param command
-	 * @param expression
-	 */
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory, String command, String expression) {
 		super(sessionFactory, command, expression);
 	}
+
+	private SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate, String command, String expression) {
+		super(remoteFileTemplate, command, expression);
+	}
+
 
 	@Override
 	protected boolean isDirectory(LsEntry file) {

@@ -92,7 +92,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		/**
 		 * Move (rename) a remote file.
 		 */
-		MV("mv");
+		MV("mv"),
+
+		/**
+		 * Put a local file to the remote system.
+		 */
+		PUT("put"),
+
+		/**
+		 * Put multiple local files to the remote system.
+		 */
+		MPUT("mput");
 
 		private String command;
 
@@ -188,19 +198,20 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected volatile Set<Option> options = new HashSet<Option>();
 
-	private volatile String remoteFileSeparator = "/";
-
 	private volatile Expression localDirectoryExpression;
 
 	private volatile boolean autoCreateLocalDirectory = true;
 
-	private volatile String temporaryFileSuffix = ".writing";
-
 	/**
-	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
+	 * A {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
 	private volatile FileListFilter<F> filter;
 
+	/**
+	 * A {@link FileListFilter} that runs against the <em>local</em> file system view when
+	 * using MPUT.
+	 */
+	private volatile FileListFilter<File> mputFilter;
 
 	private volatile Expression localFilenameGeneratorExpression;
 
@@ -222,6 +233,23 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			new SpelExpressionParser().parseExpression(expression));
 	}
 
+	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, String command,
+			String expression) {
+		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
+		this.remoteFileTemplate = remoteFileTemplate;
+		this.command = Command.toCommand(command);
+		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
+			new SpelExpressionParser().parseExpression(expression));
+	}
+
+	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, Command command,
+			String expression) {
+		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
+		this.remoteFileTemplate = remoteFileTemplate;
+		this.command = command;
+		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<String>(
+			new SpelExpressionParser().parseExpression(expression));
+	}
 
 	/**
 	 * @param options the options to set
@@ -240,7 +268,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param remoteFileSeparator the remoteFileSeparator to set
 	 */
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		this.remoteFileSeparator = remoteFileSeparator;
+		this.remoteFileTemplate.setRemoteFileSeparator(remoteFileSeparator);
 	}
 
 	/**
@@ -267,7 +295,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param temporaryFileSuffix the temporaryFileSuffix to set
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
-		this.temporaryFileSuffix = temporaryFileSuffix;
+		this.remoteFileTemplate.setTemporaryFileSuffix(temporaryFileSuffix);
 	}
 
 	/**
@@ -275,6 +303,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
+	}
+
+	/**
+	 * @param filter the filter to set
+	 */
+	public void setMputFilter(FileListFilter<File> filter) {
+		this.mputFilter = filter;
 	}
 
 	public void setRenameExpression(String expression) {
@@ -350,6 +385,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			return doRm(requestMessage);
 		case MV:
 			return doMv(requestMessage);
+		case PUT:
+			return doPut(requestMessage);
+		case MPUT:
+			return doMput(requestMessage);
 		default:
 			return null;
 		}
@@ -357,8 +396,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Object doLs(Message<?> requestMessage) {
 		String dir = this.fileNameProcessor.processMessage(requestMessage);
-		if (!dir.endsWith(this.remoteFileSeparator)) {
-			dir += this.remoteFileSeparator;
+		if (!dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
+			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		final String fullDir = dir;
 		List<?> payload = this.remoteFileTemplate.execute(new SessionCallback<F, List<?>>() {
@@ -435,6 +474,66 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			.build();
 	}
 
+	private String doPut(Message<?> requestMessage) {
+		return this.doPut(requestMessage, null);
+	}
+
+	private String doPut(Message<?> requestMessage, String subDirectory) {
+		String path = this.remoteFileTemplate.send(requestMessage, subDirectory);
+		if (path == null) {
+			throw new MessagingException(requestMessage, "No local file found for " + requestMessage);
+		}
+		return path;
+	}
+
+	private Object doMput(Message<?> requestMessage) {
+		File file = null;
+		if (requestMessage.getPayload() instanceof File) {
+			file = (File) requestMessage.getPayload();
+		}
+		else if (requestMessage.getPayload() instanceof String) {
+			file = new File((String) requestMessage.getPayload());
+		}
+		else {
+			throw new IllegalArgumentException("Only File or String payloads allowed for 'mput'");
+		}
+		if (!file.isDirectory()) {
+			return this.doPut(requestMessage);
+		}
+		else {
+			List<String> replies = this.putLocalDirectory(requestMessage, file, null);
+			return replies;
+		}
+	}
+
+	private List<String> putLocalDirectory(Message<?> requestMessage, File file, String subDirectory) {
+		File[] files = file.listFiles();
+		List<File> filteredFiles = this.filterMputFiles(files);
+		List<String> replies = new ArrayList<String>();
+		for (File filteredFile : filteredFiles) {
+			if (!filteredFile.isDirectory()) {
+				String path = this.doPut(MessageBuilder.withPayload(filteredFile)
+						.copyHeaders(requestMessage.getHeaders())
+						.build(), subDirectory);
+				if (path == null) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
+					}
+				}
+				else {
+					replies.add(path);
+				}
+			}
+			else if (this.options.contains(Option.RECURSIVE)){
+				String newSubDirectory = (StringUtils.hasText(subDirectory) ?
+						subDirectory + this.remoteFileTemplate.getRemoteFileSeparator() : "")
+					+ filteredFile.getName();
+				replies.addAll(this.putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
+			}
+		}
+		return replies;
+	}
+
 	protected List<?> ls(Session<F> session, String dir) throws IOException {
 		List<F> lsFiles = listFilesInRemoteDir(session, dir, "");
 		if (!this.options.contains(Option.LINKS)) {
@@ -483,7 +582,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						}
 					}
 					if (recursion && this.isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
-						lsFiles.addAll(listFilesInRemoteDir(session, directory,  subDirectory + fileName + this.remoteFileSeparator));
+						lsFiles.addAll(listFilesInRemoteDir(session, directory,  subDirectory + fileName
+								+ this.remoteFileTemplate.getRemoteFileSeparator()));
 					}
 				}
 			}
@@ -493,6 +593,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
+	}
+
+	protected final List<File> filterMputFiles(File[] files) {
+		if (files == null) {
+			return Collections.emptyList();
+		}
+		return (this.mputFilter != null) ? this.mputFilter.filterFiles(files) : Arrays.asList(files);
 	}
 
 	protected void purgeLinks(List<F> lsFiles) {
@@ -536,7 +643,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		File localFile = new File(this.generateLocalDirectory(message, remoteDir), this.generateLocalFileName(message, remoteFilename));
 		if (!localFile.exists()) {
-			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
+			String tempFileName = localFile.getAbsolutePath() + this.remoteFileTemplate.getTemporaryFileSuffix();
 			File tempFile = new File(tempFileName);
 			BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
 			try {
@@ -599,12 +706,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					+ " with pattern " + remoteFilename);
 		}
 		List<File> files = new ArrayList<File>();
+		String remoteFileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
 		for (String fileName : fileNames) {
 			File file;
-			if (fileName.contains(this.remoteFileSeparator) &&
+			if (fileName.contains(remoteFileSeparator) &&
 					fileName.startsWith(remoteDirectory)) { // the server returned the full path
 				file = this.get(message, session, remoteDirectory, fileName,
-						fileName.substring(fileName.lastIndexOf(this.remoteFileSeparator)), false);
+						fileName.substring(fileName.lastIndexOf(remoteFileSeparator)), false);
 			}
 			else {
 				file = this.get(message, session, remoteDirectory,
@@ -642,21 +750,22 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private String getRemoteDirectory(String remoteFilePath, String remoteFilename) {
 		String remoteDir = remoteFilePath.substring(0, remoteFilePath.lastIndexOf(remoteFilename));
 		if (remoteDir.length() == 0) {
-			remoteDir = this.remoteFileSeparator;
+			remoteDir = this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		return remoteDir;
 	}
 
 	private String generateFullPath(String remoteDirectory, String remoteFilename) {
 		String path;
-		if (this.remoteFileSeparator.equals(remoteDirectory)) {
+		String remoteFileSeparator = this.remoteFileTemplate.getRemoteFileSeparator();
+		if (remoteFileSeparator.equals(remoteDirectory)) {
 			path = remoteFilename;
 		}
-		else if (remoteDirectory.endsWith(this.remoteFileSeparator)) {
+		else if (remoteDirectory.endsWith(remoteFileSeparator)) {
 			path = remoteDirectory + remoteFilename;
 		}
 		else {
-			path = remoteDirectory + this.remoteFileSeparator + remoteFilename;
+			path = remoteDirectory + remoteFileSeparator + remoteFilename;
 		}
 		return path;
 	}
@@ -666,7 +775,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	protected String getRemoteFilename(String remoteFilePath) {
 		String remoteFileName;
-		int index = remoteFilePath.lastIndexOf(this.remoteFileSeparator);
+		int index = remoteFilePath.lastIndexOf(this.remoteFileTemplate.getRemoteFileSeparator());
 		if (index < 0) {
 			remoteFileName = remoteFilePath;
 		}
@@ -709,4 +818,5 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
 
 	abstract protected F enhanceNameWithSubDirectory(F file, String directory);
+
 }

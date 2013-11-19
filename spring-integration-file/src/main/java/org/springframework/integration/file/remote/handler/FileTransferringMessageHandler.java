@@ -46,6 +46,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
 	}
 
+	public FileTransferringMessageHandler(RemoteFileTemplate<F> remoteFileTemplate) {
+		Assert.notNull(remoteFileTemplate, "remoteFileTemplate must not be null");
+		this.remoteFileTemplate = remoteFileTemplate;
+	}
+
 
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.remoteFileTemplate.setAutoCreateDirectory(autoCreateDirectory);

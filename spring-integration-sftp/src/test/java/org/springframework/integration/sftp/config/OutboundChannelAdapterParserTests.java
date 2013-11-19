@@ -21,11 +21,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.Set;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -131,9 +134,15 @@ public class OutboundChannelAdapterParserTests {
 		assertEquals(1, adviceCalled);
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
+	@Test
 	public void testFailWithRemoteDirAndExpression(){
-		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
+		try {
+			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
+			fail("Exception expected");
+		}
+		catch (BeanDefinitionStoreException e) {
+			assertThat(e.getMessage(), Matchers.containsString("Only one of 'remote-directory'"));
+		}
 
 	}
 

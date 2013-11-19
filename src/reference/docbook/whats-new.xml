@@ -299,26 +299,46 @@
 			<para>
 				<itemizedlist>
 					<listitem>
-						The gateways now support the <code>mv</code> command, enabling the renaming of remote
-						files.
+						The gateways now support the <emphasis role="bold">mv</emphasis> command, enabling
+						the renaming of remote files.
 					</listitem>
 					<listitem>
-						The gateways now support recursive <code>ls</code> and <code>mget</code> commands, enabling
+						The gateways now support recursive <emphasis role="bold">ls</emphasis> and
+						<emphasis role="bold">mget</emphasis> commands, enabling
 						the retrieval of a remote file tree.
 					</listitem>
 					<listitem>
+						The gateways now support <emphasis role="bold">put</emphasis> and
+						<emphasis role="bold">mput</emphasis> commands, enabling
+						sending file(s) to the remote server.
+					</listitem>
+					<listitem>
 						The <code>local-filename-generator-expression</code> attribute is now supported,
-						enabling the naming of local files during transfer. By default, the same
+						enabling the naming of local files during retrieval. By default, the same
 						name as the remote file is used.
 					</listitem>
 					<listitem>
 						The <code>local-directory-expression</code> attribute is now supported,
-						enabling the naming of local directories during transfer based on the remote directory.
+						enabling the naming of local directories during retrieval based on the remote directory.
 					</listitem>
 				</itemizedlist>
 			</para>
 			<para>
 			    For more information, see <xref linkend="ftp-outbound-gateway"/> and <xref linkend="sftp-outbound-gateway"/>.
+			</para>
+		</section>
+		<section id="3.0-remote-file-template">
+			<title>Remote File Template</title>
+			<para>
+				A new higher-level abstraction (<classname>RemoteFileTemplate</classname>) is provided over the
+				<interfacename>Session</interfacename> implementations used by the FTP and SFTP modules. While it is
+				used internally by endpoints, this abstraction can also be used programmatically and, like all
+				Spring <code>*Template</code> implemenations, reliably closes the underlying session while allowing
+				low level access to the session when needed.
+			</para>
+			<para>
+				For more information, see
+				<xref linkend="ftp-rft"/> and <xref linkend="sftp-rft"/>.
 			</para>
 		</section>
 		<section id="3.0-jdbc-mysql-v5_6_4">

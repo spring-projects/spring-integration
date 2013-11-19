@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
@@ -39,6 +40,11 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 			String expression) {
 		super(sessionFactory, command, expression);
 	}
+
+	private FtpOutboundGateway(RemoteFileTemplate<FTPFile> remoteFileTemplate, String command, String expression) {
+		super(remoteFileTemplate, command, expression);
+	}
+
 
 	@Override
 	protected boolean isDirectory(FTPFile file) {

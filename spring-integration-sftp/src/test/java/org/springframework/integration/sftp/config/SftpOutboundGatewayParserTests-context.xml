@@ -29,6 +29,7 @@
 		command-options="-1 -f"
 		expression="payload"
 		order="1"
+		mput-regex=".*"
 		/>
 
 	<bean id="fooString" class="java.lang.String">
@@ -49,6 +50,7 @@
 		order="2"
 		requires-reply="false"
 		local-filename-generator-expression="#remoteFileName.toUpperCase() + '.a' + @fooString"
+		mput-pattern="*"
 		/>
 
 	<int-sftp:outbound-gateway id="gateway3"
@@ -60,6 +62,30 @@
 		rename-expression="'foo'"
 		order="1"
 		/>
+
+	<int-sftp:outbound-gateway id="gateway4"
+		session-factory="csf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		command="mput"
+		expression="payload"
+		remote-directory="/foo"
+		remote-file-separator="X"
+		auto-create-directory="true"
+		remote-filename-generator="fileNameGenerator"
+		temporary-remote-directory="/bar"
+		rename-expression="'foo'"
+		order="1"
+		mput-filter="mputFilter"
+		/>
+
+	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	</bean>
+
+	<bean id="mputFilter" class="org.springframework.integration.file.filters.RegexPatternFileListFilter">
+		<constructor-arg value="(.*1.txt|sub*)"/>
+	</bean>
 
 	<int-sftp:outbound-gateway id="advised"
 		local-directory="local-test-dir"

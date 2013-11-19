@@ -99,6 +99,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
+	public final String getRemoteFileSeparator() {
+		return remoteFileSeparator;
+	}
+
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
@@ -173,18 +177,32 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public void send(final Message<?> message) {
+	public String send(final Message<?> message) {
+		return this.send(message, null);
+	}
+
+	@Override
+	public String send(final Message<?> message, final String subDirectory) {
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
 		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
-			this.execute(new SessionCallbackWithoutResult<F>() {
+			return this.execute(new SessionCallback<F, String>() {
 
 				@Override
-				public void doInSessionWithoutResult(Session<F> session) throws IOException {
+				public String doInSession(Session<F> session) throws IOException {
 					String fileName = inputStreamHolder.getName();
 					try {
 						String remoteDirectory = RemoteFileTemplate.this.directoryExpressionProcessor
 								.processMessage(message);
+						remoteDirectory = RemoteFileTemplate.this.normalizeDirectoryPath(remoteDirectory);
+						if (StringUtils.hasText(subDirectory)) {
+							if (subDirectory.startsWith(RemoteFileTemplate.this.remoteFileSeparator)) {
+								remoteDirectory += subDirectory.substring(1);
+							}
+							else {
+								remoteDirectory += RemoteFileTemplate.this.normalizeDirectoryPath(subDirectory);
+							}
+						}
 						String temporaryRemoteDirectory = remoteDirectory;
 						if (RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor != null) {
 							temporaryRemoteDirectory = RemoteFileTemplate.this.temporaryDirectoryExpressionProcessor
@@ -193,6 +211,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 						fileName = RemoteFileTemplate.this.fileNameGenerator.generateFileName(message);
 						RemoteFileTemplate.this.sendFileToRemoteDirectory(inputStreamHolder.getStream(),
 								temporaryRemoteDirectory, remoteDirectory, fileName, session);
+						return remoteDirectory + fileName;
 					}
 					catch (FileNotFoundException e) {
 						throw new MessageDeliveryException(message, "File [" + inputStreamHolder.getName()
@@ -215,6 +234,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			if (logger.isWarnEnabled()) {
 				logger.warn("File " + message.getPayload() + " does not exist");
 			}
+			return null;
 		}
 	}
 

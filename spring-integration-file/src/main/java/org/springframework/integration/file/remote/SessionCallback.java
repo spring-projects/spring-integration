@@ -20,7 +20,7 @@ import java.io.IOException;
 import org.springframework.integration.file.remote.session.Session;
 
 /**
- * Callback invoked by {@code RemoteFileOperations.execute()) - allows multiple operations
+ * Callback invoked by {@code RemoteFileOperations.execute()} - allows multiple operations
  * on a session.
  *
  * @author Gary Russell
