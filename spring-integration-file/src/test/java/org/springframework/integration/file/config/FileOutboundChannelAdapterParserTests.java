@@ -106,9 +106,9 @@ public class FileOutboundChannelAdapterParserTests {
 		assertThat(actual, is(expected));
 		DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
 		assertNotNull(fileNameGenerator);
-		String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
+		Expression expression = TestUtils.getPropertyValue(fileNameGenerator, "expression", Expression.class);
 		assertNotNull(expression);
-		assertEquals("'foo.txt'", expression);
+		assertEquals("'foo.txt'", expression.getExpressionString());
 		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
 	}
 
