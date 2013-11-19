@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.jpa.support;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
 /**
@@ -24,32 +27,29 @@ import org.springframework.util.Assert;
  * TODO Should we combine ProcedureParameter class and this class?
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  *
  */
 public class JpaParameter {
 
-	private String name;
-	private Object value;
-	private String expression;
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
-	public String getName() {
-		return this.name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public Object getValue() {
-		return this.value;
-	}
-	public void setValue(Object value) {
-		this.value = value;
-	}
-	public String getExpression() {
-		return this.expression;
-	}
-	public void setExpression(String expression) {
-		this.expression = expression;
+	private String name;
+
+	private Object value;
+
+	private String  expression;
+
+	private Expression spelExpression;
+
+	private Expression projectionExpression;
+
+	/**
+	 * Default constructor.
+	 */
+	public JpaParameter() {
+		super();
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class JpaParameter {
 
 		this.name = name;
 		this.value = value;
-		this.expression = expression;
+		this.setExpression(expression);
 	}
 
 	/**
@@ -77,16 +77,42 @@ public class JpaParameter {
 	 * @param expression If null, the value property must be set
 	 */
 	public JpaParameter(Object value, String expression) {
-		super();
-		this.value      = value;
-		this.expression = expression;
+		this.value = value;
+		this.setExpression(expression);
 	}
 
-	/**
-	 * Default constructor.
-	 */
-	public JpaParameter() {
-		super();
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Object getValue() {
+		return this.value;
+	}
+
+	public void setValue(Object value) {
+		this.value = value;
+	}
+
+	public String getExpression() {
+		return this.expression;
+	}
+
+	public Expression getSpelExpression() {
+		return this.spelExpression;
+	}
+
+	public Expression getProjectionExpression() {
+		return this.projectionExpression;
+	}
+
+	public void setExpression(String expression) {
+		this.expression = expression;
+		this.spelExpression = PARSER.parseExpression(expression);
+		this.projectionExpression = PARSER.parseExpression("#root.![" + expression + "]");
 	}
 
 	@Override
