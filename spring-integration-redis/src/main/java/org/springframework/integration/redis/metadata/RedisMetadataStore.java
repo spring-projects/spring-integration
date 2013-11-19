@@ -14,9 +14,10 @@
 package org.springframework.integration.redis.metadata;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.BoundHashOperations;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.support.collections.RedisProperties;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.util.Assert;
 
@@ -25,21 +26,58 @@ import org.springframework.util.Assert;
  * to achieve meta-data persistence across application restarts.
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 3.0
  */
 public class RedisMetadataStore implements MetadataStore {
 
-	private final StringRedisTemplate redisTemplate;
+	public static final String KEY = "MetaData";
+
+	private final RedisProperties properties;
 
 	/**
-	 * Initializes the {@link RedisTemplate}.
-	 * A {@link StringRedisTemplate} is used with default properties.
-	 *
-	 * @param connectionFactory Must not be null
+	 * Specifies the {@link RedisProperties} backend for this {@link MetadataStore}.
+	 */
+	public RedisMetadataStore(RedisProperties properties) {
+		Assert.notNull(properties, "'properties' must not be null.");
+		this.properties = properties;
+	}
+
+	/**
+	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory}
+	 * and default hash key - {@link #KEY}.
 	 */
 	public RedisMetadataStore(RedisConnectionFactory connectionFactory) {
+		this(connectionFactory, KEY);
+	}
+
+	/**
+	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory} and key.
+	 */
+	public RedisMetadataStore(RedisConnectionFactory connectionFactory, String key) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null.");
-		this.redisTemplate = new StringRedisTemplate(connectionFactory);
+		Assert.hasText(key, "'key' must not be empty.");
+		RedisOperations<String, String> redisTemplate = new StringRedisTemplate(connectionFactory);
+		BoundHashOperations<String, String, String> hashOperations = redisTemplate.boundHashOps(key);
+		this.properties = new RedisProperties(hashOperations);
+	}
+
+	/**
+	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory}
+	 * and default hash key - {@link #KEY}.
+	 */
+	public RedisMetadataStore(RedisOperations<String, ?> operations) {
+		this(operations, KEY);
+	}
+
+	/**
+	 * Initializes the {@link RedisProperties} by provided {@link RedisConnectionFactory} and key.
+	 */
+	public RedisMetadataStore(RedisOperations<String, ?> operations, String key) {
+		Assert.notNull(operations, "'operations' must not be null.");
+		Assert.hasText(key, "'key' must not be empty.");
+		BoundHashOperations<String, String, String> hashOperations = operations.boundHashOps(key);
+		this.properties = new RedisProperties(hashOperations);
 	}
 
 	/**
@@ -51,8 +89,7 @@ public class RedisMetadataStore implements MetadataStore {
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' must not be null.");
 		Assert.notNull(value, "'value' must not be null.");
-		BoundValueOperations<String, String> ops = this.redisTemplate.boundValueOps(key);
-		ops.set(value);
+		this.properties.put(key, value);
 	}
 
 	/**
@@ -62,16 +99,14 @@ public class RedisMetadataStore implements MetadataStore {
 	 */
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		BoundValueOperations<String, String> ops = this.redisTemplate.boundValueOps(key);
-		return ops.get();
+		return (String) this.properties.get(key);
 	}
 
 	@Override
+
 	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
-		String value = this.get(key);
-		this.redisTemplate.delete(key);
-		return value;
+		return (String) this.properties.remove(key);
 	}
 
 }

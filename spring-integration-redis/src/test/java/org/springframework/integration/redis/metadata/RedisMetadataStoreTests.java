@@ -22,7 +22,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -37,7 +37,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testGetNonExistingKeyValue(){
+	public void testGetNonExistingKeyValue() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 		String retrievedValue = metadataStore.get("does-not-exist");
@@ -46,20 +46,20 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testPersistKeyValue(){
+	public void testPersistKeyValue() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "foo");
 		metadataStore.put("RedisMetadataStoreTests-Spring", "Integration");
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(jcf);
-		BoundValueOperations<String, String> ops = redisTemplate.boundValueOps("RedisMetadataStoreTests-Spring");
+		BoundHashOperations<String,Object,Object> ops = redisTemplate.boundHashOps("foo");
 
-		assertEquals("Integration", ops.get());
+		assertEquals("Integration", ops.get("RedisMetadataStoreTests-Spring"));
 	}
 
 	@Test
 	@RedisAvailable
-	public void testGetValueFromMetadataStore(){
+	public void testGetValueFromMetadataStore() {
 
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
@@ -71,7 +71,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testPersistEmptyStringToMetadataStore(){
+	public void testPersistEmptyStringToMetadataStore() {
 
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
@@ -83,7 +83,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testPersistNullStringToMetadataStore(){
+	public void testPersistNullStringToMetadataStore() {
 
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
@@ -102,7 +102,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testPersistWithEmptyKeyToMetadataStore(){
+	public void testPersistWithEmptyKeyToMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 		metadataStore.put("", "PersistWithEmptyKey");
@@ -113,7 +113,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testPersistWithNullKeyToMetadataStore(){
+	public void testPersistWithNullKeyToMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 
@@ -130,7 +130,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testGetValueWithNullKeyFromMetadataStore(){
+	public void testGetValueWithNullKeyFromMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 
@@ -147,7 +147,7 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testRemoveFromMetadataStore(){
+	public void testRemoveFromMetadataStore() {
 		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf);
 
