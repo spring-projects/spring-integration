@@ -21,7 +21,10 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionException;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -33,6 +36,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator implements
@@ -40,15 +44,17 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 	private final static Log logger = LogFactory.getLog(ExpressionEvaluatingSqlParameterSourceFactory.class);
 
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
+
 	private static final Object ERROR = new Object();
 
 	private volatile Map<String, ?> staticParameters;
 
-	private volatile Map<String, String> parameterExpressions;
+	private volatile Map<String, Expression[]> parameterExpressions;
 
 	public ExpressionEvaluatingSqlParameterSourceFactory() {
 		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
-		this.parameterExpressions = Collections.unmodifiableMap(new HashMap<String, String>());
+		this.parameterExpressions = Collections.unmodifiableMap(new HashMap<String, Expression[]>());
 	}
 
 	/**
@@ -98,13 +104,20 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * @param parameterExpressions the parameter expressions to set
 	 */
 	public void setParameterExpressions(Map<String, String> parameterExpressions) {
-		this.parameterExpressions = parameterExpressions;
+		Map<String, Expression[]> paramExpressions = new HashMap<String, Expression[]>(parameterExpressions.size());
+		for (String paramName : parameterExpressions.keySet()) {
+			String expression = parameterExpressions.get(paramName);
+			Expression[] expressions = new Expression[] {
+					PARSER.parseExpression(expression),
+					PARSER.parseExpression("#root.![" + expression + "]")
+			};
+			paramExpressions.put(paramName, expressions);
+		}
+		this.parameterExpressions = paramExpressions;
 	}
 
 	public SqlParameterSource createParameterSource(final Object input) {
-		SqlParameterSource toReturn = new ExpressionEvaluatingSqlParameterSource(input, staticParameters,
-				parameterExpressions);
-		return toReturn;
+		return new ExpressionEvaluatingSqlParameterSource(input, this.staticParameters, this.parameterExpressions);
 	}
 
 	@Override
@@ -119,10 +132,10 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 		private volatile Map<String, Object> values = new HashMap<String, Object>();
 
-		private final Map<String, String> parameterExpressions;
+		private final Map<String, Expression[]> parameterExpressions;
 
 		private ExpressionEvaluatingSqlParameterSource(Object input, Map<String, ?> staticParameters,
-				Map<String, String> parameterExpressions) {
+				Map<String, Expression[]> parameterExpressions) {
 			this.input = input;
 			this.parameterExpressions = parameterExpressions;
 			this.values.putAll(staticParameters);
@@ -132,13 +145,22 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			if (values.containsKey(paramName)) {
 				return values.get(paramName);
 			}
-			String expression = paramName;
-			if (parameterExpressions.containsKey(expression)) {
-				expression = parameterExpressions.get(expression);
+			Expression expression = null;
+
+			if (parameterExpressions.containsKey(paramName)) {
+
+				if (input instanceof Collection<?>) {
+					expression = parameterExpressions.get(paramName)[1];
+				}
+				else {
+					expression = parameterExpressions.get(paramName)[0];
+				}
 			}
-			if (input instanceof Collection<?>) {
-				expression = "#root.![" + expression + "]";
+			else {
+				String expr = input instanceof Collection<?> ? "#root.![" + paramName + "]" : paramName;
+				expression = PARSER.parseExpression(expr);
 			}
+
 			Object value = evaluateExpression(expression, input);
 			values.put(paramName, value);
 			if (logger.isDebugEnabled()) {

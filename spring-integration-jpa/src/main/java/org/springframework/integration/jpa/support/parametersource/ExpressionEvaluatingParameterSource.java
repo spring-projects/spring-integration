@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,11 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionException;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceUtils.ParameterExpressionEvaluator;
 import org.springframework.util.Assert;
@@ -30,6 +34,7 @@ import org.springframework.util.Assert;
 /**
 *
 * @author Gunnar Hillert
+* @author Artem Bilan
 * @since 2.2
 *
 */
@@ -37,15 +42,17 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 
 	private static final Log logger = LogFactory.getLog(ExpressionEvaluatingParameterSource.class);
 
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
+
 	private static final Object ERROR = new Object();
 
 	private final Object input;
 
 	private volatile Map<String, Object> values = new HashMap<String, Object>();
 
-	private final Map<String, String> parameterExpressions;
-
 	private final List<JpaParameter> parameters;
+
+	private final Map<String, JpaParameter> parametersMap;
 
 	private final ParameterExpressionEvaluator expressionEvaluator;
 
@@ -54,7 +61,10 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 		this.input      = input;
 		this.expressionEvaluator = expressionEvaluator;
 		this.parameters = parameters;
-		this.parameterExpressions = ExpressionEvaluatingParameterSourceUtils.convertExpressions(parameters);
+		this.parametersMap = new HashMap<String, JpaParameter>(parameters.size());
+		for (JpaParameter parameter : parameters) {
+			this.parametersMap.put(parameter.getName(), parameter);
+		}
 		this.values.putAll(ExpressionEvaluatingParameterSourceUtils.convertStaticParameters(parameters));
 
 	}
@@ -72,10 +82,10 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 			}
 
 			if (parameter.getExpression() != null) {
-				String expression = parameter.getExpression();
+				Expression expression = parameter.getSpelExpression();
 
 				if (input instanceof Collection<?>) {
-					expression = "#root.![" + expression + "]";
+					expression = parameter.getProjectionExpression();
 				}
 
 				final Object value = this.expressionEvaluator.evaluateExpression(expression, input);
@@ -97,13 +107,24 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 		if (values.containsKey(paramName)) {
 			return values.get(paramName);
 		}
-		String expression = paramName;
-		if (parameterExpressions.containsKey(expression)) {
-			expression = parameterExpressions.get(expression);
+
+		Expression expression = null;
+
+		if (this.parametersMap.containsKey(paramName)) {
+			JpaParameter jpaParameter = this.parametersMap.get(paramName);
+			if (input instanceof Collection<?>) {
+				expression = jpaParameter.getProjectionExpression();
+			}
+			else {
+				expression = jpaParameter.getSpelExpression();
+			}
 		}
-		if (input instanceof Collection<?>) {
-			expression = "#root.![" + expression + "]";
+		else {
+			String expr = input instanceof Collection<?> ? "#root.![" + paramName + "]" : paramName;
+			expression = PARSER.parseExpression(expr);
 		}
+
+
 		final Object value = this.expressionEvaluator.evaluateExpression(expression, input);
 		values.put(paramName, value);
 		if (logger.isDebugEnabled()) {

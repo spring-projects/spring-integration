@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -37,31 +38,6 @@ class ExpressionEvaluatingParameterSourceUtils {
 		throw new AssertionError();
 	}
 
-	/**
-	 * Utility method that converts a Collection of {@link JpaParameter} to
-	 * a Map containing only expression parameters.
-	 *
-	 * @param jpaParameters Must not be null.
-	 * @return Map containing only the Expression bound parameters. Will never be null.
-	 */
-	public static Map<String, String> convertExpressions(Collection<JpaParameter> jpaParameters) {
-
-		Assert.notNull(jpaParameters, "The Collection of jpaParameters must not be null.");
-
-		for (JpaParameter parameter : jpaParameters) {
-			Assert.notNull(parameter, "'jpaParameters' must not contain null values.");
-		}
-
-		final Map<String, String> staticParameters = new HashMap<String, String>();
-
-		for (JpaParameter parameter : jpaParameters) {
-			if (parameter.getExpression() != null) {
-				staticParameters.put(parameter.getName(), parameter.getExpression());
-			}
-		}
-
-		return staticParameters;
-	}
 
 	/**
 	 * Utility method that converts a Collection of {@link JpaParameter} to
@@ -97,7 +73,7 @@ class ExpressionEvaluatingParameterSourceUtils {
 		}
 
 		@Override
-		public Object evaluateExpression(String expression, Object input) {
+		public Object evaluateExpression(Expression expression, Object input) {
 			return super.evaluateExpression(expression, input);
 		}
 
