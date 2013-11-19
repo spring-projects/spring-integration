@@ -38,10 +38,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.metadata.MetadataStore;
+import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.redis.metadata.RedisMetadataStore;
-import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.social.twitter.api.SearchMetadata;
 import org.springframework.social.twitter.api.SearchOperations;
@@ -60,7 +60,7 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 
 	private SourcePollingChannelAdapter twitterSearchAdapter;
 
-	private AbstractTwitterMessageSource twitterMessageSource;
+	private AbstractTwitterMessageSource<?> twitterMessageSource;
 
 	private MetadataStore metadataStore;
 
