@@ -111,6 +111,33 @@
     and an <emphasis>Aggregator</emphasis>. As you can see it is a simple bean configuration, and it expects a
     <classname>MongoDbFactory</classname> as a constructor argument.
     </para>
+	<important>
+		<para>
+			<classname>MongoDbMessageStore</classname> uses custom <classname>MappingMongoConverter</classname> implementation
+			on background to store <interfacename>Message</interfacename>s to MongoDB documents and there is some limitations
+			for properties (<code>payload</code> and <code>headers</code> values) of provided <interfacename>Message</interfacename>.
+			For example <classname>ErrorMessage</classname> can't be converted to the MongoDB document, because it has an
+			<classname>Exception</classname> property, which is recursive by nature. And there is no ability to configure
+			some custom converters for complex domain <code>payload</code>s or <code>headers</code> values.
+			To achieve these capabilities, the separate MongoDB <interfacename>MessageStore</interfacename> implementation has been
+			introduced; see next paragraph.
+		</para>
+	</important>
+	 <para>
+		 <emphasis>Spring Integration 3.0</emphasis> introduced <classname>ConfigurableMongoDbMessageStore</classname> -
+		 <interfacename>MessageStore</interfacename> and <interfacename>MessageGroupStore</interfacename> implementation.
+		 This class can apply as one of constructor argument <classname>MongoTemplate</classname>, with which you can provide
+		 some custom <classname>WriteConcern</classname>, for example. Another constructor requires
+		 <classname>MappingMongoConverter</classname>, alongside with <interfacename>MongoDbFactory</interfacename>,
+		 which allows to provide some custom conversions for <interfacename>Message</interfacename>s and their properties.
+		 Note, by default <classname>ConfigurableMongoDbMessageStore</classname> uses standard Java serialization
+		 to write/read <interfacename>Message</interfacename>s to/from MongoDB and relies on default values of other
+		 properties from <classname>MongoTemplate</classname>, which is built from provided
+		 <interfacename>MongoDbFactory</interfacename> and <classname>MappingMongoConverter</classname>.
+		 The default name for collection of <classname>ConfigurableMongoDbMessageStore</classname> is
+		 <code>configurableStoreMessages</code>. It is recommended to use this implementation for robust and flexible solutions.
+		 The <classname>MongoDbMessageStore</classname> remains for backward compatibility and may be removed in future releases.
+	 </para>
   </section>
 
   <section id="mongodb-inbound-channel-adapter">

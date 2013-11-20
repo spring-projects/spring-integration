@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns="http://www.springframework.org/schema/integration"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <beans:bean id="mongoConnectionFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
+        <beans:constructor-arg>
+            <beans:bean class="com.mongodb.Mongo"/>
+        </beans:constructor-arg>
+        <beans:constructor-arg value="test"/>
+    </beans:bean>
+
+    <beans:bean id="messageStore" class="org.springframework.integration.mongodb.store.ConfigurableMongoDbMessageStore">
+        <beans:constructor-arg ref="mongoConnectionFactory"/>
+    </beans:bean>
+
+    <channel id="output">
+		<queue/>
+	</channel>
+
+	<delayer id="#{T (org.springframework.integration.mongodb.store.DelayerHandlerRescheduleIntegrationTests).DELAYER_ID}"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="10000"
+			 message-store="messageStore"/>
+
+</beans:beans>
