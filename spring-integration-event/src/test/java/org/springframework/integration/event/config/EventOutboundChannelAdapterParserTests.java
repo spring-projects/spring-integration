@@ -20,9 +20,9 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -71,6 +71,7 @@ public class EventOutboundChannelAdapterParserTests {
 	@Test
 	public void validateUsage() {
 		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
+			@Override
 			public void onApplicationEvent(ApplicationEvent event) {
 				Object source = event.getSource();
 				if (source instanceof Message){
@@ -91,6 +92,7 @@ public class EventOutboundChannelAdapterParserTests {
 	public void withAdvice() {
 		receivedEvent = false;
 		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
+			@Override
 			public void onApplicationEvent(ApplicationEvent event) {
 				Object source = event.getSource();
 				if (source instanceof Message){
@@ -112,6 +114,7 @@ public class EventOutboundChannelAdapterParserTests {
 	public void testInsideChain() {
 		receivedEvent = false;
 		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
+			@Override
 			public void onApplicationEvent(ApplicationEvent event) {
 				Object source = event.getSource();
 				if (source instanceof Message){
@@ -128,12 +131,13 @@ public class EventOutboundChannelAdapterParserTests {
 		Assert.assertTrue(receivedEvent);
 	}
 
-	@Test(timeout=2000)
+	@Test(timeout=10000)
 	public void validateUsageWithPollableChannel() throws Exception {
 		receivedEvent = false;
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("EventOutboundChannelAdapterParserTestsWithPollable-context.xml", EventOutboundChannelAdapterParserTests.class);
 		final CyclicBarrier barier = new CyclicBarrier(2);
 		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
+			@Override
 			public void onApplicationEvent(ApplicationEvent event) {
 				Object source = event.getSource();
 				if (source instanceof Message){

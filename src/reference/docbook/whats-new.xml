@@ -180,9 +180,13 @@
 		<section id="3.0-configurable-mongo-MS">
 			<title>MongoDB support: New ConfigurableMongoDbMessageStore</title>
 			<para>
-				To provide more robust and flexible implementation of <interfacename>MessageStore</interfacename>
-				for MongoDB support has been introduced new <classname>ConfigurableMongoDbMessageStore</classname>
-				component. It doesn't have backward compatibility, but it is recommended to use it for new applications.
+				In addition to the existing <classname>eMongoDbMessageStore</classname>, a new
+				<classname>ConfigurableMongoDbMessageStore</classname> has been introduced.
+				This provides a more robust and flexible implementation of <interfacename>MessageStore</interfacename>
+				for MongoDB.
+				It does not have backward compatibility, with the existing store,
+				but it is recommended to use it for new applications. Existing applications can use it, but messages
+				in the old store will not be available.
 				See <xref linkend="mongodb"/> for more information.
 			</para>
 		</section>
