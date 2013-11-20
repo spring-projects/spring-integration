@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.channel;
 
 import java.util.Comparator;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -27,15 +28,18 @@ import org.springframework.integration.util.UpperBound;
 /**
  * A message channel that prioritizes messages based on a {@link Comparator}.
  * The default comparator is based upon the message header's 'priority'.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class PriorityChannel extends QueueChannel {
 
 	private final UpperBound upperBound;
-	
+
 	private final AtomicLong sequenceCounter = new AtomicLong();
+
+	private final boolean externalQueue;
 
 	/**
 	 * Create a channel with the specified queue capacity. If the capacity
@@ -47,6 +51,7 @@ public class PriorityChannel extends QueueChannel {
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
 		super(new PriorityBlockingQueue<Message<?>>(11, new SequenceFallbackComparator(comparator)));
 		this.upperBound = new UpperBound(capacity);
+		this.externalQueue = false;
 	}
 
 	/**
@@ -75,12 +80,20 @@ public class PriorityChannel extends QueueChannel {
 		this(0, null);
 	}
 
+	public PriorityChannel(BlockingQueue<Message<?>> queue) {
+		super(queue);
+		this.upperBound = null;
+		this.externalQueue = true;
+	}
+
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		if (!upperBound.tryAcquire(timeout)) {
+		if (!this.externalQueue && !this.upperBound.tryAcquire(timeout)) {
 			return false;
 		}
-		message = new MessageWrapper(message);
+		if (!this.externalQueue) {
+			message = new MessageWrapper(message);
+		}
 		return super.doSend(message, 0);
 	}
 
@@ -88,16 +101,18 @@ public class PriorityChannel extends QueueChannel {
 	protected Message<?> doReceive(long timeout) {
 		Message<?> message = super.doReceive(timeout);
 		if (message != null) {
-			message = ((MessageWrapper)message).getRootMessage();
-			upperBound.release();
+			if (!this.externalQueue) {
+				message = ((MessageWrapper) message).getRootMessage();
+				this.upperBound.release();
+			}
 		}
 		return message;
 	}
-	
+
 	private static class SequenceFallbackComparator implements Comparator<Message<?>> {
-		
+
 		private final Comparator<Message<?>> targetComparator;
-		
+
 		public SequenceFallbackComparator(Comparator<Message<?>> targetComparator){
 			this.targetComparator = targetComparator;
 		}
@@ -110,12 +125,12 @@ public class PriorityChannel extends QueueChannel {
 			else {
 				Integer priority1 = message1.getHeaders().getPriority();
 				Integer priority2 = message2.getHeaders().getPriority();
-				
+
 				priority1 = priority1 != null ? priority1 : 0;
 				priority2 = priority2 != null ? priority2 : 0;
 				compareResult = priority2.compareTo(priority1);
 			}
-		
+
 			if (compareResult == 0){
 				Long sequence1 = ((MessageWrapper) message1).getSequence();
 				Long sequence2 = ((MessageWrapper) message2).getSequence();
@@ -123,11 +138,13 @@ public class PriorityChannel extends QueueChannel {
 			}
 			return compareResult;
 		}
+
 	}
-	
+
 	//we need this because of INT-2508
-	private class MessageWrapper implements Message<Object>{
+	private class MessageWrapper implements Message<Object> {
 		private final Message<?> rootMessage;
+
 		private final long sequence;
 
 		public MessageWrapper(Message<?> rootMessage){
@@ -150,5 +167,7 @@ public class PriorityChannel extends QueueChannel {
 		long getSequence(){
 			return this.sequence;
 		}
+
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,27 +18,50 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * Contains Oracle-specific queries for the {@link JdbcChannelMessageStore}.
  * Please ensure that the used {@link JdbcTemplate}'s fetchSize property is <code>1</code>.
- *
+ * <p/>
  * Fore more details, please see: http://stackoverflow.com/questions/6117254/force-oracle-to-return-top-n-rows-with-skip-locked
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.2
  */
 public class OracleChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
 
 	@Override
 	public String getPollFromGroupExcludeIdsQuery() {
-		return
-				"SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) order by CREATED_DATE ASC FOR UPDATE SKIP LOCKED";
+		return this.getPollQuery(true, false);
 	}
 
 	@Override
 	public String getPollFromGroupQuery() {
-		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
-				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
-				"order by CREATED_DATE ASC FOR UPDATE SKIP LOCKED";
+		return this.getPollQuery(false, false);
+	}
+
+	@Override
+	public String getPriorityPollFromGroupExcludeIdsQuery() {
+		return this.getPollQuery(true, true);
+	}
+
+	@Override
+	public String getPriorityPollFromGroupQuery() {
+		return this.getPollQuery(false, true);
+	}
+
+	private String getPollQuery(boolean excludeIds, boolean byPriority) {
+		StringBuilder sb = new StringBuilder("SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES " +
+				"from %PREFIX%CHANNEL_MESSAGE " +
+				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region ");
+		if(excludeIds) {
+			sb.append(" and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) ");
+		}
+		sb.append(" order by ");
+		if(byPriority) {
+			sb.append(" PRIORITY DESC, ");
+		}
+		sb.append(" CREATED_DATE ASC ");
+		sb.append("FOR UPDATE SKIP LOCKED");
+
+		return sb.toString();
 	}
 
 }

@@ -249,7 +249,21 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		MessageWrapper messageWrapper = this.template.findAndRemove(whereGroupIdIsOrdered(groupId), MessageWrapper.class, this.collectionName);
+		MessageWrapper messageWrapper = this.template.findAndRemove(whereGroupIdIsOrdered(groupId),
+				MessageWrapper.class, this.collectionName);
+		Message<?> message = null;
+		if (messageWrapper != null) {
+			message = messageWrapper.getMessage();
+		}
+		this.updateGroup(groupId);
+		return message;
+	}
+
+	@Override
+	public Message<?> pollMessageFromGroupByPriority(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		MessageWrapper messageWrapper = this.template.findAndRemove(whereGroupIdIsOrderedByPriority(groupId),
+				MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
 		if (messageWrapper != null) {
 			message = messageWrapper.getMessage();
@@ -289,6 +303,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	private static Query whereGroupIdIsOrdered(Object groupId) {
 		Query q = new Query(where(GROUP_ID_KEY).is(groupId)).limit(1);
 		q.with(new Sort(Direction.ASC, CREATED_DATE));
+		return q;
+	}
+
+	private static Query whereGroupIdIsOrderedByPriority(Object groupId) {
+		Query q = new Query(where(GROUP_ID_KEY).is(groupId)).limit(1);
+		q.with(new Sort(new Sort.Order(Direction.DESC, "headers.priority"), new Sort.Order(CREATED_DATE)));
 		return q;
 	}
 

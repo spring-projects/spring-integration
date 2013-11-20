@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,18 +50,18 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	private static final int DEFAULT_CAPACITY = Integer.MAX_VALUE;
 
-	private final MessageGroupStore messageGroupStore;
+	protected final MessageGroupStore messageGroupStore;
 
-	private final Object groupId;
+	protected final Object groupId;
 
 	private final int capacity;
 
 	//This one could be a global semaphore
 	private final Lock storeLock;
 
-	private final Condition messageStoreNotFull;
+	protected final Condition messageStoreNotFull;
 
-	private final Condition messageStoreNotEmpty;
+	protected final Condition messageStoreNotEmpty;
 
 	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId) {
 		this(messageGroupStore, groupId, DEFAULT_CAPACITY, new ReentrantLock(true));
@@ -266,18 +266,18 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		return message;
 	}
 
-	private Collection<Message<?>> getMessages(){
-		return messageGroupStore.getMessageGroup(groupId).getMessages();
-	}
-
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
 	 * IllegalMonitorStateException may be thrown
 	 */
-	private Message<?> doPoll() {
+	protected Message<?> doPoll() {
 		Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId);
 		this.messageStoreNotFull.signal();
 		return message;
+	}
+
+	private Collection<Message<?>> getMessages(){
+		return messageGroupStore.getMessageGroup(groupId).getMessages();
 	}
 
 	/**

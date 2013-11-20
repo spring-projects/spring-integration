@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,9 +13,13 @@
 
 package org.springframework.integration.store;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -40,6 +44,7 @@ import org.springframework.util.CollectionUtils;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -266,6 +271,38 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		Message<?> message = null;
 		if (!CollectionUtils.isEmpty(messageList)){
 			message = messageList.iterator().next();
+			if (message != null){
+				this.removeMessageFromGroup(groupId, message);
+			}
+		}
+		return message;
+	}
+
+	@Override
+	public Message<?> pollMessageFromGroupByPriority(Object groupId) {
+		Collection<Message<?>> messageList = this.getMessageGroup(groupId).getMessages();
+		Message<?> message = null;
+		if (!CollectionUtils.isEmpty(messageList)){
+			List<Message<?>> messages = new ArrayList<Message<?>>(messageList);
+			Collections.sort(messages, new Comparator<Message<?>>() {
+				@Override
+				public int compare(Message<?> m1, Message<?> m2) {
+					int compareResult = 0;
+					Integer priority1 = m1.getHeaders().getPriority();
+					Long timestamp1 = m1.getHeaders().getTimestamp();
+					Integer priority2 = m2.getHeaders().getPriority();
+					Long timestamp2 = m2.getHeaders().getTimestamp();
+
+					priority1 = priority1 != null ? priority1 : 0;
+					priority2 = priority2 != null ? priority2 : 0;
+					compareResult = priority2.compareTo(priority1);
+					if(compareResult == 0) {
+						compareResult = timestamp1.compareTo(timestamp2);
+					}
+					return compareResult;
+				}
+			});
+			message = messages.get(0);
 			if (message != null){
 				this.removeMessageFromGroup(groupId, message);
 			}

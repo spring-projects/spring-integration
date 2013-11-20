@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.util.List;
@@ -27,9 +28,13 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -37,6 +42,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * @author Mark Fisher
+ * @author Dave Syer
+ * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ * @author Artem Bilan
+ */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode=ClassMode.AFTER_EACH_TEST_METHOD)
@@ -44,6 +56,15 @@ public class JdbcMessageStoreChannelTests {
 
 	@Autowired
 	private MessageChannel input;
+
+	@Autowired
+	private MessageChannel priorityChannel;
+
+	@Autowired
+	private PollableChannel outputChannel;
+
+	@Autowired
+	private Lifecycle bridge;
 
 	@Autowired
 	private JdbcMessageStore messageStore;
@@ -93,6 +114,37 @@ public class JdbcMessageStoreChannelTests {
 		assertEquals(1, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
 
+	@Test
+	public void testInt1870JdbcPriorityChannel() throws Exception {
+		this.priorityChannel.send(MessageBuilder.withPayload("foo").build());
+		Thread.sleep(1);
+		this.priorityChannel.send(MessageBuilder.withPayload("bar").setPriority(3).build());
+		Thread.sleep(1);
+		this.priorityChannel.send(MessageBuilder.withPayload("bar2").setPriority(3).build());
+		Thread.sleep(1);
+		this.priorityChannel.send(MessageBuilder.withPayload("baz").setPriority(2).build());
+
+		assertEquals(4, messageStore.getMessageGroup("messageStore:priorityChannel").size());
+
+		this.bridge.start();
+
+		Message<?> result = this.outputChannel.receive(1000);
+		assertEquals("bar", result.getPayload());
+
+		result = this.outputChannel.receive(1000);
+		assertEquals("bar2", result.getPayload());
+
+		result = this.outputChannel.receive(1000);
+		assertEquals("baz", result.getPayload());
+
+		result = this.outputChannel.receive(1000);
+		assertEquals("foo", result.getPayload());
+
+		assertNull(this.outputChannel.receive(0));
+
+		assertEquals(0, messageStore.getMessageGroup("messageStore:priorityChannel").size());
+	}
+
 	public static class Service {
 		private static boolean fail = false;
 		private static boolean alreadyFailed = false;
@@ -120,6 +172,7 @@ public class JdbcMessageStoreChannelTests {
 			}
 			return input;
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @Ignore
 @ContextConfiguration
@@ -48,6 +49,12 @@ public class MySqlJdbcChannelMessageStoreTests extends AbstractJdbcChannelMessag
 	@Override
 	public void testAddAndGet() throws Exception {
 		super.testAddAndGet();
+	}
+
+	@Test
+	@Override
+	public void testAddAndGetWithPriority() throws Exception {
+		super.testAddAndGetWithPriority();
 	}
 
 }
