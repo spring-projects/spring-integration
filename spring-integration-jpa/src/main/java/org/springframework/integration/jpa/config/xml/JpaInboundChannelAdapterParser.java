@@ -25,6 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
+import org.springframework.util.StringUtils;
 
 /**
  * The JPA Inbound Channel adapter parser
@@ -43,8 +44,24 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 
 		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
+		String maxNumberOfResults = element.getAttribute("max-number-of-results");
+		boolean hasMaxNumberOfResults = StringUtils.hasText(maxNumberOfResults);
+
+		String maxResults = element.getAttribute("max-results");
+		boolean hasMaxResults = StringUtils.hasText(maxResults);
+
+		if (hasMaxNumberOfResults) {
+			parserContext.getReaderContext().warning("'max-number-of-results' is deprecated in favor of 'max-results'", element);
+			if (hasMaxResults) {
+				parserContext.getReaderContext().error("'max-number-of-results' and 'max-results' are mutually exclusive", element);
+			}
+			else {
+				element.setAttribute("max-results", maxNumberOfResults);
+			}
+		}
+
 		BeanDefinition definition = IntegrationNamespaceUtils
-				.createExpressionDefinitionFromValueOrExpression("max-number-of-results", "max-results-expression",
+				.createExpressionDefinitionFromValueOrExpression("max-results", "max-results-expression",
 						parserContext, element, false);
 		if (definition != null) {
 			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", definition);
