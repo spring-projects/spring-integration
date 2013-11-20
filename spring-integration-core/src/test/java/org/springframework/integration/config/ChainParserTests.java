@@ -171,7 +171,7 @@ public class ChainParserTests {
 	public void chainWithAcceptingFilter() {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.filterInput.send(message);
-		Message<?> reply = this.output.receive(0);
+		Message<?> reply = this.output.receive(1000);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
 	}
@@ -188,7 +188,7 @@ public class ChainParserTests {
 	public void chainWithHeaderEnricher() {
 		Message<?> message = MessageBuilder.withPayload(123).build();
 		this.headerEnricherInput.send(message);
-		Message<?> reply = this.replyOutput.receive(0);
+		Message<?> reply = this.replyOutput.receive(1000);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
 		assertEquals("ABC", reply.getHeaders().getCorrelationId());
@@ -239,8 +239,8 @@ public class ChainParserTests {
 		Message<?> message2 = MessageBuilder.withPayload(123).build();
 		this.payloadTypeRouterInput.send(message1);
 		this.payloadTypeRouterInput.send(message2);
-		Message<?> reply1 = this.strings.receive(0);
-		Message<?> reply2 = this.numbers.receive(0);
+		Message<?> reply1 = this.strings.receive(1000);
+		Message<?> reply2 = this.numbers.receive(1000);
 		assertNotNull(reply1);
 		assertNotNull(reply2);
 		assertEquals("test", reply1.getPayload());
@@ -253,8 +253,8 @@ public class ChainParserTests {
 		Message<?> message2 = MessageBuilder.withPayload(123).setHeader("routingHeader", "numbers").build();
 		this.headerValueRouterInput.send(message1);
 		this.headerValueRouterInput.send(message2);
-		Message<?> reply1 = this.strings.receive(0);
-		Message<?> reply2 = this.numbers.receive(0);
+		Message<?> reply1 = this.strings.receive(1000);
+		Message<?> reply2 = this.numbers.receive(1000);
 		assertNotNull(reply1);
 		assertNotNull(reply2);
 		assertEquals("test", reply1.getPayload());
