@@ -65,6 +65,10 @@ class ExpressionEvaluatingParameterSourceUtils {
 		return staticParameters;
 	}
 
+	/**
+	 * Simple {@link AbstractExpressionEvaluator} implementation
+	 * to increase the visibility of protected methods.
+	 */
 	public static class ParameterExpressionEvaluator extends AbstractExpressionEvaluator {
 
 		@Override

@@ -39,9 +39,18 @@ public class JpaParameter {
 
 	private Object value;
 
-	private Expression expression;
+	private String  expression;
+
+	private Expression spelExpression;
 
 	private Expression projectionExpression;
+
+	/**
+	 * Default constructor.
+	 */
+	public JpaParameter() {
+		super();
+	}
 
 	/**
 	 * Instantiates a new Jpa Parameter.
@@ -89,16 +98,11 @@ public class JpaParameter {
 	}
 
 	public String getExpression() {
-		if (this.expression != null) {
-			return this.expression.getExpressionString();
-		}
-		else {
-			return null;
-		}
+		return this.expression;
 	}
 
 	public Expression getSpelExpression() {
-		return this.expression;
+		return this.spelExpression;
 	}
 
 	public Expression getProjectionExpression() {
@@ -106,15 +110,9 @@ public class JpaParameter {
 	}
 
 	public void setExpression(String expression) {
-		this.expression = PARSER.parseExpression(expression);
+		this.expression = expression;
+		this.spelExpression = PARSER.parseExpression(expression);
 		this.projectionExpression = PARSER.parseExpression("#root.![" + expression + "]");
-	}
-
-	/**
-	 * Default constructor.
-	 */
-	public JpaParameter() {
-		super();
 	}
 
 	@Override
@@ -123,7 +121,6 @@ public class JpaParameter {
 		builder.append("JpaParameter [name=").append(this.name)
 								.append(", value=").append(this.value)
 								.append(", expression=").append(this.expression)
-								.append(", projectionExpression=").append(this.projectionExpression)
 								.append("]");
 		return builder.toString();
 	}

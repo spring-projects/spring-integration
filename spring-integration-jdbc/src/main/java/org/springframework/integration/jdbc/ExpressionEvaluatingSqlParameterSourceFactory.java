@@ -50,11 +50,17 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 	private volatile Map<String, ?> staticParameters;
 
+	/**
+	 * The {@link Map} of parameters with expressions.
+	 * {@code key} - parameter name; {@code value} - array of two {@link Expression}s:
+	 * first element - direct {@link Expression},  second - collection projection {@link Expression}.
+	 * Used in case of root object of evaluation is {@link Collection}.
+	 */
 	private volatile Map<String, Expression[]> parameterExpressions;
 
 	public ExpressionEvaluatingSqlParameterSourceFactory() {
 		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
-		this.parameterExpressions = Collections.unmodifiableMap(new HashMap<String, Expression[]>());
+		this.parameterExpressions = new HashMap<String, Expression[]>();
 	}
 
 	/**
@@ -105,13 +111,14 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 */
 	public void setParameterExpressions(Map<String, String> parameterExpressions) {
 		Map<String, Expression[]> paramExpressions = new HashMap<String, Expression[]>(parameterExpressions.size());
-		for (String paramName : parameterExpressions.keySet()) {
-			String expression = parameterExpressions.get(paramName);
+		for (Map.Entry<String, String> entry : parameterExpressions.entrySet()) {
+			String key = entry.getKey();
+			String expression = entry.getValue();
 			Expression[] expressions = new Expression[] {
 					PARSER.parseExpression(expression),
 					PARSER.parseExpression("#root.![" + expression + "]")
 			};
-			paramExpressions.put(paramName, expressions);
+			paramExpressions.put(key, expressions);
 		}
 		this.parameterExpressions = paramExpressions;
 	}
@@ -145,20 +152,23 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			if (values.containsKey(paramName)) {
 				return values.get(paramName);
 			}
+
+			if (!parameterExpressions.containsKey(paramName)) {
+				Expression[] expressions = new Expression[] {
+						PARSER.parseExpression(paramName),
+						PARSER.parseExpression("#root.![" + paramName + "]")
+				};
+				ExpressionEvaluatingSqlParameterSourceFactory.this.parameterExpressions.put(paramName, expressions);
+				this.parameterExpressions.put(paramName, expressions);
+			}
+
 			Expression expression = null;
 
-			if (parameterExpressions.containsKey(paramName)) {
-
-				if (input instanceof Collection<?>) {
-					expression = parameterExpressions.get(paramName)[1];
-				}
-				else {
-					expression = parameterExpressions.get(paramName)[0];
-				}
+			if (input instanceof Collection<?>) {
+				expression = parameterExpressions.get(paramName)[1];
 			}
 			else {
-				String expr = input instanceof Collection<?> ? "#root.![" + paramName + "]" : paramName;
-				expression = PARSER.parseExpression(expr);
+				expression = parameterExpressions.get(paramName)[0];
 			}
 
 			Object value = evaluateExpression(expression, input);
