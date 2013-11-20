@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -805,21 +806,39 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
 		final List<Socket> serverSockets = new ArrayList<Socket>();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
+		final ExecutorService exec = Executors.newCachedThreadPool();
+		exec.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 100);
 					latch.countDown();
 					for (int i = 0; i < 100; i++) {
-						Socket socket = server.accept();
+						final Socket socket = server.accept();
 						serverSockets.add(socket);
-						semaphore.release();
-						byte[] b = new byte[9];
-						readFully(socket.getInputStream(), b);
-						b = ("Reply" + i + "\r\n").getBytes();
-						socket.getOutputStream().write(b);
-						socket.close();
+						final int j = i;
+						exec.execute(new Runnable() {
+
+							@Override
+							public void run() {
+								semaphore.release();
+								byte[] b = new byte[9];
+								try {
+									readFully(socket.getInputStream(), b);
+									b = ("Reply" + j + "\r\n").getBytes();
+									socket.getOutputStream().write(b);
+								}
+								catch (IOException e) {
+									e.printStackTrace();
+								}
+								finally {
+									try {
+										socket.close();
+									}
+									catch (IOException e) { }
+								}
+							}
+						});
 					}
 					server.close();
 				} catch (Exception e) {
@@ -836,7 +855,7 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
-		ccf.setTaskExecutor(Executors.newFixedThreadPool(100));
+		ccf.setTaskExecutor(Executors.newCachedThreadPool());
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);

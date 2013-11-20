@@ -118,15 +118,18 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			this.hostAddress = inetAddress.getHostAddress();
 			if (lookupHost) {
 				this.hostName = inetAddress.getHostName();
-			} else {
+			}
+			else {
 				this.hostName = this.hostAddress;
 			}
 		}
 		int port = socket.getPort();
-		this.connectionId = this.hostName + ":" + port + ":" + UUID.randomUUID().toString();
+		int localPort = socket.getLocalPort();
+		this.connectionId = this.hostName + ":" + port + ":" + localPort + ":" + UUID.randomUUID().toString();
 		try {
 			this.soLinger = socket.getSoLinger();
-		} catch (SocketException e) { }
+		}
+		catch (SocketException e) { }
 		this.applicationEventPublisher = applicationEventPublisher;
 		if (connectionFactoryName != null) {
 			this.connectionFactoryName = connectionFactoryName;
