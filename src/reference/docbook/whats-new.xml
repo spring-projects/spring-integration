@@ -607,10 +607,13 @@
 			<title>JPA Adapters: max-results-expression attribute</title>
 			<para>
 			    Retrieving gateways and inbound adapters now has a flexibility to specify the maximum
-			    number of results in a result set as an expression. We now have <code>max-number-of-results</code>
-			    and <code>max-results-expression</code> attributes which are used to provide the
-			    maximum number of results and the expression to compute the maximum number of results in the
-			    result set respectively. For more information see <xref linkend="jpa"/>.
+			    number of results in a result set as an expression. And, to be convenient, the
+				<code>max-results</code> 'alias' attribute has been introduced too.
+				We now have <code>max-results</code> and <code>max-results-expression</code>
+				attributes which are used to provide the maximum number of results
+				and the expression to compute the maximum number of results in the
+			    result set respectively. The <code>max-number-of-results</code> attribute has been deprecated.
+				For more information see <xref linkend="jpa"/>.
 			</para>
 		</section>
 		<section id="3.0-redis">
@@ -640,7 +643,7 @@
 			<para>
 				New <classname>FileListFilter</classname>s that use a persistent <classname>MetadataStore</classname> are
 				now available. These can be used to prevent duplicate files after a system restart. See
-				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information. 
+				<xref linkend="file-reading"/>, <xref linkend="ftp-inbound"/>, and <xref linkend="sftp-inbound"/> for more information.
 			</para>
 		</section>
 	</section>

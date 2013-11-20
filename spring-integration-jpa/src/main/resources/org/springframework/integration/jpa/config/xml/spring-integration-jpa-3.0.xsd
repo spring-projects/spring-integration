@@ -228,7 +228,7 @@
 						The attribute that is used to set the first result marker while executing the
 						results. A negative value will retrieve from first record in the result set.
 						It is a way for the application to use the gateway to paginate the results in
-						combination with the max-number-of-results attribute. This attribute is mutually
+						combination with the max-results attribute. This attribute is mutually
 						exclusive to first-result-expression attribute
 					</xsd:documentation>
 				</xsd:annotation>
@@ -240,7 +240,7 @@
 						be evaluated to get the first record while executing the JPA query for result
 						A negative value will retrieve from first record in the result set.
 						It is a way for the application to use the gateway to paginate the results in
-						combination with the max-number-of-results attribute. This attribute is mutually
+						combination with the max-results attribute. This attribute is mutually
 						exclusive to first-result attribute
 					</xsd:documentation>
 				</xsd:annotation>
@@ -417,10 +417,20 @@
 		<xsd:attribute name="max-number-of-results">
 			<xsd:annotation>
 				<xsd:documentation>
+					[DEPRECATED] Specifies the maximum number of entities that shall be returned
+					by a JPA Operation. Using this attribute you basically set
+					the 'maxResults' property of the JPA Query object. This attribute is mutually
+					exclusive to 'max-results-expression' and 'max-results' attributes.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-results">
+			<xsd:annotation>
+				<xsd:documentation>
 					Specifies the maximum number of entities that shall be returned
 					by a JPA Operation. Using this attribute you basically set
 					the 'maxResults' property of the JPA Query object. This attribute is mutually
-						exclusive to  max-results-expression attribute.
+					exclusive to 'max-results-expression' and 'max-number-of-results' attributes.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -430,7 +440,7 @@
 						Specifies the expression for the maximum number of entities that shall be returned
 						by a JPA Operation. Using this attribute you basically set
 						the 'maxResults' property of the JPA Query object. This attribute is mutually
-						exclusive to  max-number-of-results attribute.
+						exclusive to  'max-results' attribute.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
