@@ -25,6 +25,8 @@
 		entity-manager-factory="entityManagerFactory"
 		entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 		max-results="13"
+		delete-after-poll="true"
+		flush-after-delete="true"
 		channel="out">
 		<int:poller fixed-rate="5000"/>
 	</int-jpa:inbound-channel-adapter>

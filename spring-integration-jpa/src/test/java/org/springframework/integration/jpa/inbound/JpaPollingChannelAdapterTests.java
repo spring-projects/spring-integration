@@ -278,6 +278,7 @@ public class JpaPollingChannelAdapterTests {
 		jpaExecutor.setJpaQuery("from Student s");
 		jpaExecutor.setDeleteAfterPoll(true);
 		jpaExecutor.setDeleteInBatch(true);
+		jpaExecutor.setFlush(true);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
@@ -306,9 +307,7 @@ public class JpaPollingChannelAdapterTests {
 
 		assertTrue(students.size() == 3);
 
-		Long studentCount = waitForDeletes(students);
-
-		assertEquals(Long.valueOf(0), studentCount);
+		assertEquals(Long.valueOf(0), entityManager.createQuery("select count(*) from Student", Long.class).getSingleResult());
 
 	}
 

@@ -19,6 +19,8 @@
 			entity-class="org.springframework.integration.jpa.test.entity.StudentDomain"
 			jpa-query="from Student"
 			persist-mode="PERSIST"
+			flush-size="10"
+			clear-on-flush="true"
 			order="1"
 			channel="target">
 		<int-jpa:parameter  name="firstName"   value="kenny"  type="java.lang.String"/>
