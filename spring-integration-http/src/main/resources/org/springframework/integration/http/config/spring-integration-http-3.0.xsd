@@ -322,78 +322,14 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							Specify an expression for URI variable placeholder within 'url'.
+							This element is mutually exclusive with 'uri-variables-expression' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
 				<xsd:element name="request-handler-advice-chain" type="integration:adviceChainType" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
-			<xsd:attribute name="url" type="xsd:string" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						<![CDATA[
-	URL to which the requests should be sent. It may include {placeholders} for
-	evaluation against uri-variables.
-					]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="url-expression" type="xsd:string" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						<![CDATA[
-	SpEL Expression resolving to a URL to which the requests should be sent. The resolved
-	value may include {placeholders} for further evaluation against uri-variables.
-					]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="encode-uri" type="xsd:string" default="true">
-				<xsd:annotation>
-					<xsd:documentation>
-						When set to "false", the real URI won't be encoded before the request is sent. This may be useful
-						in some scenarios as it allows user control over the encoding, if needed,
-						for example by using the "url-expression". Default is "true".
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="http-method">
-				<xsd:annotation>
-					<xsd:documentation>
-						The HTTP method to use when executing requests with this adapter Default is POST.
-						This attribute cannot be provided if http-method-expression has a value.
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
-				</xsd:simpleType>
-			</xsd:attribute>
-			<xsd:attribute name="http-method-expression" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						The SpEL expression to determine HTTP method, use when executing requests with this adapter,
-						dynamically. This attribute cannot be provided if http-method has a value.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="rest-template" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.web.client.RestTemplate" />
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-						The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="charset" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specify the charset name to use for converting String-typed payloads to bytes.
-						The default is 'UTF-8'
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
 			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -402,93 +338,6 @@
 						will be serialized.
 						The default value is 'true'.
 					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="expected-response-type" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						The expected type to which the response body should be converted.
-						Default is 'org.springframework.http.ResponseEntity'.
-						This attribute cannot be provided if expected-response-type-expression has a value
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.Class" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="expected-response-type-expression" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						SpEL expression to determine the type for the expected response to which the response body should be converted
-				        The returned value of the expression could be an instance of java.lang.Class or
-				        java.lang.String representing a fully qualified class name.
-						This attribute cannot be provided if expected-response-type has a value
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="message-converters" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
-						all of the default converters that would normally be present on the underlying RestTemplate.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="header-mapper" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Specify a reference to org.springframework.integration.mapping.HeaderMapper
-						implementation bean. Only one of 'header-mapper' or 'mapped-request-headers' attributes
-						can be provided.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="mapped-request-headers" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	Comma-separated list of names of MessageHeaders to be mapped into the HttpHeaders of the HTTP request.
-	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
-	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-	The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
-					]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="request-factory" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
-					]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="error-handler" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	Reference to a ResponseErrorHandler to be used by the underlying RestTemplate.
-					]]></xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.web.client.ResponseErrorHandler" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="order" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	Specifies the order for invocation when this adapter is connected as a subscriber to a SubscribableChannel.
-					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -525,96 +374,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="url" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-			URL to which the requests should be sent. It may include {placeholders} for
-			evaluation against uri-variables.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="url-expression" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								<![CDATA[
-			SpEL Expression resolving to a URL to which the requests should be sent. The resolved
-			value may include {placeholders} for further evaluation against uri-variables.
-							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="encode-uri" type="xsd:string" default="true">
-						<xsd:annotation>
-							<xsd:documentation>
-								When set to "false", the real URI won't be encoded before the request is sent. This may be useful
-								in some scenarios as it allows user control over the encoding, if needed,
-								for example by using the "url-expression". Default is "true".
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="http-method">
-						<xsd:annotation>
-							<xsd:documentation>
-								The HTTP method to use when executing requests with this adapter. Default is POST.
-								This attribute cannot be provided if http-method-expression has a value.
-							</xsd:documentation>
-						</xsd:annotation>
-						<xsd:simpleType>
-							<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
-						</xsd:simpleType>
-					</xsd:attribute>
-					<xsd:attribute name="http-method-expression" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								The SpEL expression to determine HTTP method, use when executing requests with this gateway,
-								dynamically. This attribute cannot be provided if http-method has a value.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="message-converters" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
-								all of the default converters that would normally be present on the underlying RestTemplate.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="header-mapper" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
-								</tool:annotation>
-							</xsd:appinfo>
-							<xsd:documentation>
-								Specifies a reference to org.springframework.integration.mapping.HeaderMapper
-								implementation bean. Only one of 'header-mapper' or 'mapped-request-headers'('mapped-response-headers')
-								attributes
-								can be provided.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="rest-template" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.web.client.RestTemplate" />
-								</tool:annotation>
-								<xsd:documentation>
-									The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
-								</xsd:documentation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="mapped-request-headers" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-	Comma-separated list of names of MessageHeaders to be mapped into the HttpHeaders of the HTTP request.
-	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
-	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-	The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
-							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="mapped-response-headers" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -627,75 +386,12 @@
 					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string">
 						<xsd:annotation>
-						<xsd:documentation>
-							Specifies whether the outbound message's payload should be extracted
-							when preparing the request body. Otherwise the Message instance itself
-							will be serialized.
-							The default value is 'true'.
-						</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="expected-response-type" type="xsd:string">
-						<xsd:annotation>
 							<xsd:documentation>
-								The expected type to which the response body should be converted.
-								Default is 'org.springframework.http.ResponseEntity'.
-								This attribute cannot be provided if expected-response-type-expression has a value
+								Specifies whether the outbound message's payload should be extracted
+								when preparing the request body. Otherwise the Message instance itself
+								will be serialized.
+								The default value is 'true'.
 							</xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="direct">
-									<tool:expected-type type="java.lang.Class" />
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="expected-response-type-expression" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								SpEL expression to determine the type for the expected response to which the response body should be converted
-				                The returned value of the expression could be an instance of java.lang.Class or
-				                java.lang.String representing a fully qualified class name.
-								This attribute cannot be provided if expected-response-type has a value
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="charset" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specify the charset name to use for converting String-typed payloads to bytes.
-								The default is 'UTF-8'
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="request-factory" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
-							]]></xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="error-handler" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-	Reference to a ResponseErrorHandler to be used by the underlying RestTemplate.
-							]]></xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.web.client.ResponseErrorHandler" />
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="order" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-	Specifies the order for invocation when this gateway is connected as a subscriber to a SubscribableChannel.
-							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="transfer-cookies" type="xsd:string" default="false">
@@ -730,6 +426,7 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -872,5 +569,169 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
+	<xsd:attributeGroup name="httpOutboundCommonAttributes">
+		<xsd:attribute name="url" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+	URL to which the requests should be sent. It may include {placeholders} for
+	evaluation against uri-variables.
+					]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="url-expression" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+	SpEL Expression resolving to a URL to which the requests should be sent. The resolved
+	value may include {placeholders} for further evaluation against uri-variables.
+					]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="encode-uri" type="xsd:string" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					When set to "false", the real URI won't be encoded before the request is sent. This may be useful
+					in some scenarios as it allows user control over the encoding, if needed,
+					for example by using the "url-expression". Default is "true".
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="http-method">
+			<xsd:annotation>
+				<xsd:documentation>
+					The HTTP method to use when executing requests with this adapter Default is POST.
+					This attribute cannot be provided if http-method-expression has a value.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="http-method-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The SpEL expression to determine HTTP method, use when executing requests with this adapter,
+					dynamically. This attribute cannot be provided if http-method has a value.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="rest-template" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.web.client.RestTemplate" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="charset" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify the charset name to use for converting String-typed payloads to bytes.
+					The default is 'UTF-8'
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expected-response-type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The expected type to which the response body should be converted.
+					Default is 'org.springframework.http.ResponseEntity'.
+					This attribute cannot be provided if expected-response-type-expression has a value
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="direct">
+						<tool:expected-type type="java.lang.Class" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expected-response-type-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					SpEL expression to determine the type for the expected response to which the response body should be converted
+					The returned value of the expression could be an instance of java.lang.Class or
+					java.lang.String representing a fully qualified class name.
+					This attribute cannot be provided if expected-response-type has a value
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converters" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
+					all of the default converters that would normally be present on the underlying RestTemplate.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="header-mapper" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					Specify a reference to org.springframework.integration.mapping.HeaderMapper
+					implementation bean. Only one of 'header-mapper' or 'mapped-request-headers' attributes
+					can be provided.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mapped-request-headers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Comma-separated list of names of MessageHeaders to be mapped into the HttpHeaders of the HTTP request.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
+					]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="request-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
+					]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="error-handler" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Reference to a ResponseErrorHandler to be used by the underlying RestTemplate.
+					]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.web.client.ResponseErrorHandler" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="order" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specifies the order for invocation when this adapter is connected as a subscriber to a SubscribableChannel.
+					]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="uri-variables-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specifies the SpEL expression to be evaluate as a Map for URI variable placeholders within 'url'.
+	This attribute is mutually exclusive with 'uri-variable' sub-elements.
+					]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
 </xsd:schema>
