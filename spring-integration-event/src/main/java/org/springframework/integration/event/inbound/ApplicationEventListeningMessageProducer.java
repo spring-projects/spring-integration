@@ -56,6 +56,8 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	private volatile long stoppedAt;
 
+	private volatile boolean phaseSet;
+
 	/**
 	 * Set the list of event types (classes that extend ApplicationEvent) that
 	 * this adapter should send to the message channel. By default, all event
@@ -79,6 +81,12 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	@Override
+	public void setPhase(int phase) {
+		super.setPhase(phase);
+		this.phaseSet = true;
+	}
+
+	@Override
 	public String getComponentType() {
 		return "event:inbound-channel-adapter";
 	}
@@ -90,6 +98,9 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 				.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
 		Assert.notNull(this.applicationEventMulticaster,
 				"To use ApplicationListeners the 'applicationEventMulticaster' bean must be supplied within ApplicationContext.");
+		if (!this.phaseSet) {
+			super.setPhase(Integer.MIN_VALUE + 1000);
+		}
 	}
 
 	@Override
