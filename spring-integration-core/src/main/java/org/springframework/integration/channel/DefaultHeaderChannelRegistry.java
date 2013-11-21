@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.channel.registry;
+package org.springframework.integration.channel;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -28,6 +28,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 

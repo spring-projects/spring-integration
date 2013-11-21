@@ -23,7 +23,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.channel.registry.HeaderChannelRegistry;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.Assert;
 
