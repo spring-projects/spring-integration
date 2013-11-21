@@ -26,4 +26,6 @@ public interface IntegrationProperties {
 
 	String LATE_REPLY_LOGGING_LEVEL = "messagingTemplate.lateReply.logging.level";
 
+	String CHANNELS_AUTOCREATE = "channels.autoCreate";
+
 }

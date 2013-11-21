@@ -47,6 +47,7 @@ import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.expression.IntegrationEvaluationContextAwareBeanPostProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -145,7 +146,10 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(CHANNEL_INITIALIZER_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
-			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(ChannelInitializer.class);
+			String channelsAutoCreateExpression = "#{@" +IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME +
+												"['" + IntegrationProperties.CHANNELS_AUTOCREATE + "']}";
+			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(ChannelInitializer.class)
+					.addPropertyValue("autoCreate", channelsAutoCreateExpression);
 			BeanDefinitionHolder channelCreatorHolder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), CHANNEL_INITIALIZER_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(channelCreatorHolder, parserContext.getRegistry());
 		}
