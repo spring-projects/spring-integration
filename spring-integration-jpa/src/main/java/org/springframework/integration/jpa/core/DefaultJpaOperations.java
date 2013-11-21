@@ -203,17 +203,28 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 	@Override
 	public Object merge(Object entity) {
+		return this.merge(entity, 0, false);
+	}
+
+	@Override
+	public Object merge(Object entity, int flushSize, boolean cleanOnFlush) {
 		Assert.notNull(entity, "The object to merge must not be null.");
-		return persistOrMerge(entity, true);
+		return this.persistOrMerge(entity, true, flushSize, cleanOnFlush);
 	}
 
 	@Override
 	public void persist(Object entity) {
-		Assert.notNull(entity, "The object to persist must not be null.");
-		persistOrMerge(entity, false);
+		this.persist(entity, 0, false);
 	}
 
-	private Object persistOrMerge(Object entity, boolean isMerge) {
+	@Override
+	public void persist(Object entity, int flushSize, boolean cleanOnFlush) {
+		Assert.notNull(entity, "The object to persist must not be null.");
+		persistOrMerge(entity, false, flushSize, cleanOnFlush);
+	}
+
+	private Object persistOrMerge(Object entity, boolean isMerge, int flushSize, boolean cleanOnFlush) {
+		Object result = null;
 
 		if (entity instanceof Iterable) {
 
@@ -237,6 +248,12 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 						entityManager.persist(iteratedEntity);
 					}
 					savedEntities++;
+					if (flushSize > 0 && savedEntities % flushSize == 0) {
+						entityManager.flush();
+						if (cleanOnFlush) {
+							entityManager.clear();
+						}
+					}
 				}
 			}
 
@@ -246,30 +263,34 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 			}
 
 			if (isMerge) {
-				return mergedEntities;
-			}
-			else {
-				return null;
+				result = mergedEntities;
 			}
 		}
 		else {
 			if (isMerge) {
-				return entityManager.merge(entity);
+				result = entityManager.merge(entity);
 			}
 			else {
 				entityManager.persist(entity);
-				return null;
 			}
 		}
+
+		if (flushSize > 0) {
+			entityManager.flush();
+			if (cleanOnFlush) {
+				entityManager.clear();
+			}
+		}
+
+		return result;
 	}
 
 	/**
 	 * Given a JPQL query, this method gets all parameters defined in this query and
-	 * use the {@link JPAQLParameterSource} to find their values and set them
+	 * use the {@link ParameterSource} to find their values and set them.
 	 *
 	 */
-	private void setParametersIfRequired(String queryString,
-			ParameterSource source, Query query) {
+	private void setParametersIfRequired(String queryString, ParameterSource source, Query query) {
 		Set<Parameter<?>> parameters = query.getParameters();
 
 		if(parameters != null && !parameters.isEmpty()) {

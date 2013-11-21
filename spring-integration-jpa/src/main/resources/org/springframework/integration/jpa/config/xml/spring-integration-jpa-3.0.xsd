@@ -389,7 +389,7 @@
 		<xsd:attribute name="requires-reply" type="xsd:string" use="optional" default="true">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify whether this outbound gateway must return a non-null value. This value is
+					Specifies whether this outbound gateway must return a non-null value. This value is
 					'true' by default, and a ReplyRequiredException will be thrown when
 					the underlying service returns a null value.
 				</xsd:documentation>
@@ -410,6 +410,33 @@
 			<xsd:simpleType>
 				<xsd:union memberTypes="persistMode xsd:string"/>
 			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="flush" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.flush() should be called after performing persistence operation.
+					If 'flush-size' configured to value greater than '0' this attribute will be ignored.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="flush-size" type="xsd:string" default="0">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the size of batch for EntityManager.flush() after performing persistence operation.
+					Defaults to '0' - 'flush' won't be called.
+					This attribute has precedence over 'flush' attribute, if it is configured to value greater than '0'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="clean-on-flush" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.clean() should be called after EntityManager.flush().
+					Applies only if 'flush-size > 0' or 'flush = true'.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
 
@@ -494,6 +521,15 @@
 			<xsd:simpleType>
 				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="flush-after-delete" type="xsd:string" default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies whether EntityManager.flush() should be called after perform 'delete' for retrieved entities.
+					Applies only if 'delete-after-poll = true'.
+					Defaults to 'false'.
+				</xsd:documentation>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
 

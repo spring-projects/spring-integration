@@ -158,6 +158,8 @@ public interface JpaOperations {
 	 */
 	Object merge(Object entity);
 
+	Object merge(Object entity, int flushSize, boolean cleanOnFlush);
+
 	/**
 	 * Persists the entity. The provided object can also be an {@link Iterable}
 	 * in which case each object of the {@link Iterable} is treated as an entity
@@ -168,5 +170,12 @@ public interface JpaOperations {
 	 *
 	 */
 	void persist(Object entity);
+
+	void persist(Object entity, int flushSize, boolean cleanOnFlush);
+
+	/**
+	 * Executes the {@link javax.persistence.EntityManager#flush()}.
+	 */
+	void flush();
 
 }

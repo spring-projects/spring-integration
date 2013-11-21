@@ -411,7 +411,8 @@
                     max-number-of-results="" ]]><co id="inboundAdapterMaxResults"/><![CDATA[
                     max-results="" ]]><co id="inboundAdapterMaxResults2"/><![CDATA[
                     max-results-expression="" ]]><co id="inboundAdapterMaxResultsExpression"/><![CDATA[
-                    delete-after-poll="true"> ]]><co id="inboundAdapterDeleteAfterPoll"/><![CDATA[
+                    delete-after-poll="true" ]]><co id="inboundAdapterDeleteAfterPoll"/><![CDATA[
+                    flush-after-delete="true"> ]]><co id="inboundAdapterFlushAfterDelete"/><![CDATA[
     <int:poller fixed-rate="2000" >
       <int:transactional propagation="REQUIRED" transaction-manager="transactionManager"/>
     </int:poller>
@@ -483,6 +484,14 @@
                          Otherwise, you may encounter an Exception such as:
                          <emphasis>java.lang.IllegalArgumentException: Removing
                          a detached instance ...</emphasis>
+                     </para>
+                 </callout>
+				 <callout arearefs="inboundAdapterFlushAfterDelete">
+                     <para>
+                         Set this value to <code>true</code> if you want
+                         to flush persistence context immediately after delete received entities
+						 and don't rely on <interfacename>EntityManager</interfacename>'s flushMode.
+						 The default value is set to <code>false</code>.
                      </para>
                  </callout>
 		</calloutlist>
@@ -852,6 +861,9 @@ public class Student {
   order="" ]]><co id="outAdaptOrder"/><![CDATA[
   parameter-source-factory=""  ]]><co id="outAdaptParamSourceFact"/><![CDATA[
   persist-mode="MERGE"  ]]><co id="outAdaptPersistMode"/><![CDATA[
+  flush="true"  ]]><co id="outAdaptFlush"/><![CDATA[
+  flash-size="10"  ]]><co id="outAdaptFlushSize"/><![CDATA[
+  clean-on-flush="true"  ]]><co id="outAdaptCleanOnFlash"/><![CDATA[
   use-payload-as-parameter-source="true"  ]]><co id="outAdaptUserPayloadAsParamSrc"/><![CDATA[
 	<int:poller/>
 	<int-jpa:transactional/>   ]]><co id="outAdaptTransactional"/><![CDATA[
@@ -946,6 +958,37 @@ public class Student {
 						an entity and persisted or merged using the underlying
 						<interfacename>EntityManager</interfacename>.
 						<emphasis>NULL</emphasis> values returned by the iterator are ignored.
+					</para>
+				</callout>
+				<callout arearefs="outAdaptFlush">
+					<para>
+						Set this value to <code>true</code> if you want
+						to flush persistence context immediately after persist, merge or delete operations
+						and don't rely on <interfacename>EntityManager</interfacename>'s flushMode.
+						The default value is set to <code>false</code>. Applies only if <code>flush-size</code>
+						attribute isn't specified. If this attribute is set to <code>true</code>,
+						than 'flush-size' will be set to '1', if it wasn't configured to other value.
+					</para>
+				</callout>
+				<callout arearefs="outAdaptFlushSize">
+					<para>
+						Set this value to greater than '0' if you want
+						to flush persistence context immediately after persist, merge or delete operations
+						and don't rely on <interfacename>EntityManager</interfacename>'s flushMode.
+						The default value is set to <code>0</code> - means 'no flush'.
+						Has value for <interfacename>Iterable</interfacename>
+						payloads, when the underlying persistence operation is applied for each entity in the iterator
+						and <code>entityManager.flush()</code> is called after each <emphasis>batch</emphasis>
+						specified by this attribute and one more time after the entire loop.
+						There is no reason to configure <code>flush</code>
+						attribute, if this is specified to value greater than '0'.
+					</para>
+				</callout>
+				<callout arearefs="outAdaptCleanOnFlash">
+					<para>
+						Set this value to 'true' if you want
+						to clean persistence context immediately after flush operation.
+						Has value (and applied) only if <code>flush = true</code> or <code>flush-size > 0</code>.
 					</para>
 				</callout>
 				<callout arearefs="outAdaptUserPayloadAsParamSrc">

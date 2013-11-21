@@ -67,6 +67,7 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", definition);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-after-poll");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "flush-after-delete", "flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "delete-in-batch");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "expect-single-result");
 

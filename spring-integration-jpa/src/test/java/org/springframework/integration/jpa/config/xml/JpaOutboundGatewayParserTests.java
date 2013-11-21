@@ -80,6 +80,9 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 				TestUtils.getPropertyValue(jpaExecutor, "maxResultsExpression", LiteralExpression.class);
 		assertNotNull(maxResultsExpression);
 		assertEquals("55", TestUtils.getPropertyValue(maxResultsExpression, "literalValue"));
+
+		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "deleteAfterPoll", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "flush", Boolean.class));
 	}
 
 	@Test
@@ -160,6 +163,8 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 		assertEquals(PersistMode.PERSIST, persistMode);
 
+		assertEquals(new Integer(100), TestUtils.getPropertyValue(jpaExecutor, "flushSize", Integer.class));
+		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "cleanOnFlush", Boolean.class));
 	}
 
 	@Test
