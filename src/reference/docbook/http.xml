@@ -549,6 +549,8 @@ where <code>uriVariablesBean</code> is:
 
 }]]></programlisting>
   </para>
+	  Note, a result of evaluation of the <code>uri-variables-expression</code> must be an instance of
+	  <interfacename>Map&lt;String, String&gt;</interfacename> or <interfacename>Map&lt;String, Expression&gt;</interfacename>.
   <para>
     <emphasis>Controlling URI Encoding</emphasis>
   </para>

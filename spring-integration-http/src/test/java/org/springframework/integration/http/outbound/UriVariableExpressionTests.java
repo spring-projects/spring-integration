@@ -31,7 +31,6 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -121,8 +120,8 @@ public class UriVariableExpressionTests {
 		handler.setUriVariablesExpression(new SpelExpressionParser().parseExpression("headers.uriVariables"));
 		handler.afterPropertiesSet();
 
-		Map<String, Expression> expressions = new HashMap<String, Expression>();
-		expressions.put("foo", new LiteralExpression("bar"));
+		Map<String, String> expressions = new HashMap<String, String>();
+		expressions.put("foo", "bar");
 
 		Map<String, ?> expressionsMap = ExpressionEvalMap.from(expressions).usingSimpleCallback().build();
 

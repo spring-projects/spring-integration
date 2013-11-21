@@ -577,15 +577,20 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	@SuppressWarnings("unchecked")
 	private Map<String, ?> determineUriVariables(Message<?> requestMessage) {
+		Map<String, ?> expressions;
+
 		if (this.uriVariablesExpression != null) {
-			return this.uriVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
+			expressions = this.uriVariablesExpression.getValue(this.evaluationContext, requestMessage, Map.class);
 		}
 		else {
-			return ExpressionEvalMap.from(this.uriVariableExpressions)
+			expressions = this.uriVariableExpressions;
+		}
+
+		return ExpressionEvalMap.from(expressions)
 					.usingEvaluationContext(this.evaluationContext)
 					.withRoot(requestMessage)
 					.build();
-		}
+
 	}
 
 }
