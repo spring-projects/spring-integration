@@ -477,6 +477,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	/**
 	 * If set to {@code true} the {@link javax.persistence.EntityManager#flush()} will be called
 	 * after persistence operation.
+	 * Has the same effect, if the {@link #flushSize} is specified to {@code 1}.
+	 * For convenience in cases when the provided entity to persist is not an instance of {@link Iterable}.
 	 *
 	 * @param flush defaults to 'false'.
 	 */
@@ -485,22 +487,28 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	}
 
 	/**
-	 * If the provided value more then 0 the {@link javax.persistence.EntityManager#flush()} will be called
-	 * after persistence and withing 'batch' operations.
+	 * If the provided value is greater than {@code 0}, then {@link javax.persistence.EntityManager#flush()}
+	 * will be called after persistence operations as well as within batch operations.
+	 * This property has precedence over the {@link #flush}, if it is specified to a value greater than {@code 0}.
+	 * If the entity to persist is not an instance of {@link Iterable} and this property is greater than {@code 0},
+	 * then the entity will be flushed as if the {@link #flush} attribute was set to {@code true}.
 	 *
 	 * @param flushSize defaults to '0'.
 	 */
 	public void setFlushSize(int flushSize) {
+		Assert.state(flushSize >= 0, "'flushSize' cannot be less than '0'.");
 		this.flushSize = flushSize;
 	}
 
 	/**
-	 * If set to {@code true} the {@link javax.persistence.EntityManager#clear()} will be called
-	 * after persistence operation and {@link javax.persistence.EntityManager#flush()}.
+	 * If set to {@code true} the {@link javax.persistence.EntityManager#clear()} will be called,
+	 * and only if the {@link javax.persistence.EntityManager#flush()} was called after performing persistence operations.
+	 *
+	 * @see #setFlush(boolean)
+	 * @see #setFlushSize(int)
 	 *
 	 * @param cleanOnFlush defaults to 'false'.
 	 */
-
 	public void setCleanOnFlush(boolean cleanOnFlush) {
 		this.cleanOnFlush = cleanOnFlush;
 	}

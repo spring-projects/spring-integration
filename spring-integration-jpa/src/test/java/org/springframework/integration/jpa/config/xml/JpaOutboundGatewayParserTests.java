@@ -163,7 +163,7 @@ public class JpaOutboundGatewayParserTests extends AbstractRequestHandlerAdvice 
 
 		assertEquals(PersistMode.PERSIST, persistMode);
 
-		assertEquals(new Integer(100), TestUtils.getPropertyValue(jpaExecutor, "flushSize", Integer.class));
+		assertEquals(Integer.valueOf(100), TestUtils.getPropertyValue(jpaExecutor, "flushSize", Integer.class));
 		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "cleanOnFlush", Boolean.class));
 	}
 

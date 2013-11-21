@@ -174,7 +174,7 @@ public interface JpaOperations {
 	void persist(Object entity, int flushSize, boolean cleanOnFlush);
 
 	/**
-	 * Executes the {@link javax.persistence.EntityManager#flush()}.
+	 * Executes {@link javax.persistence.EntityManager#flush()}.
 	 */
 	void flush();
 

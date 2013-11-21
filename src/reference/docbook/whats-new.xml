@@ -380,8 +380,10 @@
 				<interfacename>EntityManager</interfacename>.
 				<emphasis>NULL</emphasis> values returned by the iterator are ignored.
 			</para>
-			<para>JPA adapter now have addition attributes for 'flush' and 'clean' from persistence context
-				after appropriate persistence operations.</para>
+			<para>
+				The JPA adapters now have additional attributes to optionally 'flush' and 'clean'
+				entities from the associated persistence context after performing persistence operations.
+			</para>
 			<para>For more information see <xref linkend="jpa"/>.</para>
 		</section>
 		<section id="3.0-json-transformers">
