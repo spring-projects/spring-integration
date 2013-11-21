@@ -21,8 +21,9 @@ import java.util.Set;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.Ordered;
@@ -40,6 +41,8 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @see ApplicationEventMulticaster
  * @see ExpressionMessageProducerSupport
  */
@@ -50,6 +53,10 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	private ApplicationEventMulticaster applicationEventMulticaster;
 
 	private volatile boolean active;
+
+	private volatile long stoppedAt;
+
+	private volatile boolean phaseSet;
 
 	/**
 	 * Set the list of event types (classes that extend ApplicationEvent) that
@@ -74,6 +81,12 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	}
 
 	@Override
+	public void setPhase(int phase) {
+		super.setPhase(phase);
+		this.phaseSet = true;
+	}
+
+	@Override
 	public String getComponentType() {
 		return "event:inbound-channel-adapter";
 	}
@@ -85,10 +98,15 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 				.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
 		Assert.notNull(this.applicationEventMulticaster,
 				"To use ApplicationListeners the 'applicationEventMulticaster' bean must be supplied within ApplicationContext.");
+		if (!this.phaseSet) {
+			super.setPhase(Integer.MIN_VALUE + 1000);
+		}
 	}
 
+	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (this.active || event instanceof ApplicationContextEvent) {
+		if (this.active || ((event instanceof ContextStoppedEvent || event instanceof ContextClosedEvent)
+								&& this.stoppedRecently())) {
 			if (event.getSource() instanceof Message<?>) {
 				this.sendMessage((Message<?>) event.getSource());
 			}
@@ -99,6 +117,11 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 		}
 	}
 
+	private boolean stoppedRecently() {
+		return this.stoppedAt > System.currentTimeMillis() - 5000;
+	}
+
+	@Override
 	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
 		if (this.eventTypes == null) {
 			return true;
@@ -111,10 +134,12 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 		return false;
 	}
 
+	@Override
 	public boolean supportsSourceType(Class<?> sourceType) {
 		return true;
 	}
 
+	@Override
 	public int getOrder() {
 		return Ordered.LOWEST_PRECEDENCE;
 	}
@@ -126,6 +151,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 
 	@Override
 	protected void doStop() {
+		this.stoppedAt = System.currentTimeMillis();
 		this.active = false;
 	}
 
