@@ -529,28 +529,29 @@ By default the HTTP request will be generated using an instance of <classname>Si
      url="http://foo.host/{foo}/bars/{bar}"
      request-channel="trafficChannel"
      http-method="GET"
-     uri-variables-expression="@uriVariablesBean.populate(#root)"
+     uri-variables-expression="@uriVariablesBean.populate(payload)"
      expected-response-type="java.lang.String"/>]]></programlisting>
 where <code>uriVariablesBean</code> is:
    <programlisting language="java"><![CDATA[public class UriVariablesBean {
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
-        public Map<String, String> populate(Message<?> message) {
-            Map<String, String> variables = new HashMap<String, String>();
-            if (message.getHeaders().get("authenticated", Boolean.class)) {
-               variables.put("foo", "foo1");
-               variables.put("bar", "bar1");
-            }
-            else {
-               variables.put("foo", "anonymous");
-               variables.put("bar", "anonymous");
-            }
-            return variables;
-        }
+	public Map<String, ?> populate(Object payload) {
+		Map<String, Object> variables = new HashMap<String, Object>();
+		if (payload instanceOf String.class)) {
+			variables.put("foo", "foo"));
+		}
+		else {
+			variables.put("foo", EXPRESSION_PARSER.parseExpression("headers.bar"));
+		}
+		return variables;
+	}
 
 }]]></programlisting>
   </para>
-	  Note, a result of evaluation of the <code>uri-variables-expression</code> must be an instance of
-	  <interfacename>Map&lt;String, String&gt;</interfacename> or <interfacename>Map&lt;String, Expression&gt;</interfacename>.
+	  Note, the values of a Map from the evaluation result of <code>uri-variables-expression</code> must be instances of
+	  <interfacename>String</interfacename> or <interfacename>Expression</interfacename>.
+	  This Map is provided to the <classname>ExpressionEvalMap</classname> for further resolution of URI variable placeholders
+	  using those expressions and value in the context of <interfacename>Message</interfacename>.
   <para>
     <emphasis>Controlling URI Encoding</emphasis>
   </para>

@@ -61,8 +61,8 @@ abstract class HttpAdapterParsingUtils {
 
 		if (StringUtils.hasText(uriVariablesExpression)) {
 			if (hasUriVariableExpressions) {
-			parserContext.getReaderContext().error("'uri-variables-expression' attribute " +
-					"and 'uri-variable' sub-elements are mutually exclusive.", element);
+				parserContext.getReaderContext().error("'uri-variables-expression' attribute " +
+						"and 'uri-variable' sub-elements are mutually exclusive.", element);
 			}
 			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
 					.addConstructorArgValue(uriVariablesExpression);

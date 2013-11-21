@@ -24,11 +24,12 @@ import java.util.Set;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.util.Assert;
 
 /**
  * <p>
- * An immutable {@link AbstractMap} implementation that wraps a {@code Map<String, String>}
- * or {@code Map<String, Expression>}
+ * An immutable {@link AbstractMap} implementation that wraps a {@code Map<String, Object>},
+ * where values must be instances of {@link String} or {@link Expression},
  * and evaluates an {@code expression} for the provided {@code key} from the underlying
  * {@code original} Map.
  * </p>
@@ -168,7 +169,13 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public String toString() {
+		return this.original.toString();
+	}
+
 	public static ExpressionEvalMapBuilder from(Map<String, ?> expressions) {
+		Assert.notNull(expressions, "'expressions' must not be null.");
 		return new ExpressionEvalMapBuilder(expressions);
 	}
 
