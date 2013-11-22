@@ -16,14 +16,15 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.beans.factory.xml.XmlReaderContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
 import org.springframework.integration.scripting.RefreshableResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.CollectionUtils;
@@ -32,6 +33,7 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  *
  */
 public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionParser {
@@ -62,13 +64,6 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 		List<Element> variableElements = DomUtils.getChildElementsByTagName(element, "variable");
 		String scriptVariableGeneratorName = element.getAttribute("script-variable-generator");
 
-		if (StringUtils.hasText(scriptText)
-				&& (variableElements.size() > 0 || StringUtils.hasText(scriptVariableGeneratorName))) {
-			parserContext.getReaderContext().error(
-					"Variable bindings or custom ScriptVariableGenerator are not allowed when using an inline groovy script. "
-							+ "Specify location of the script via 'location' attribute instead", element);
-			return;
-		}
 
 		if (StringUtils.hasText(scriptVariableGeneratorName) && variableElements.size() > 0) {
 			parserContext.getReaderContext().error(
@@ -88,33 +83,23 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 				builder.addConstructorArgValue(new StaticScriptSource(scriptText));
 			}
 		}
+
+		BeanMetadataElement scriptVariableGeneratorDef = null;
+
 		if (!StringUtils.hasText(scriptVariableGeneratorName)) {
 			BeanDefinitionBuilder scriptVariableGeneratorBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition("org.springframework.integration.scripting.DefaultScriptVariableGenerator");
-			ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>();
-			for (Element childElement : variableElements) {
-				String variableName = childElement.getAttribute("name");
-				String variableValue = childElement.getAttribute("value");
-				String variableRef = childElement.getAttribute("ref");
-				if (!(StringUtils.hasText(variableValue) ^ StringUtils.hasText(variableRef))) {
-					parserContext.getReaderContext().error(
-							"Exactly one of the 'ref' attribute or 'value' attribute, " + " is required for element "
-									+ IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
-				}
-				if (StringUtils.hasText(variableValue)) {
-					variableMap.put(variableName, variableValue);
-				}
-				else {
-					variableMap.put(variableName, new RuntimeBeanReference(variableRef));
-				}
-			}
+					.genericBeanDefinition(DefaultScriptVariableGenerator.class);
+			ManagedMap<String, Object> variableMap = buildVariablesMap(element, parserContext, variableElements);
 			if (!CollectionUtils.isEmpty(variableMap)) {
 				scriptVariableGeneratorBuilder.addConstructorArgValue(variableMap);
 			}
-			scriptVariableGeneratorName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					scriptVariableGeneratorBuilder.getBeanDefinition(), parserContext.getRegistry());
+			scriptVariableGeneratorDef = scriptVariableGeneratorBuilder.getBeanDefinition();
 		}
-		builder.addConstructorArgReference(scriptVariableGeneratorName);
+		else {
+			scriptVariableGeneratorDef = new RuntimeBeanReference(scriptVariableGeneratorName);
+		}
+
+		builder.addConstructorArgValue(scriptVariableGeneratorDef);
 		postProcess(builder, element, parserContext);
 	}
 
@@ -136,6 +121,58 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 			resourceScriptSourceBuilder.addConstructorArgValue(-1L);
 		}
 		return resourceScriptSourceBuilder.getBeanDefinition();
+	}
+
+	private ManagedMap<String, Object> buildVariablesMap(final Element element, final ParserContext parserContext,
+														 List<Element> variableElements) {
+		@SuppressWarnings("serial")
+		ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>() {
+
+			@Override
+			public Object put(String key, Object value) {
+				if (this.containsKey(key)) {
+					parserContext.getReaderContext().error("Duplicated variable: " + key, element);
+				}
+				return super.put(key, value);
+			}
+
+		};
+
+		for (Element childElement : variableElements) {
+			String variableName = childElement.getAttribute("name");
+			String variableValue = childElement.getAttribute("value");
+			String variableRef = childElement.getAttribute("ref");
+			if (!(StringUtils.hasText(variableValue) ^ StringUtils.hasText(variableRef))) {
+				parserContext.getReaderContext().error(
+						"Exactly one of the 'ref' attribute or 'value' attribute, " + " is required for element "
+								+ IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
+			}
+			if (StringUtils.hasText(variableValue)) {
+				variableMap.put(variableName, variableValue);
+			}
+			else {
+				variableMap.put(variableName, new RuntimeBeanReference(variableRef));
+			}
+		}
+
+		String variables = element.getAttribute("variables");
+		if (StringUtils.hasText(variables)) {
+			String[] variablePairs = StringUtils.commaDelimitedListToStringArray(variables);
+			for (String variablePair : variablePairs) {
+				String[] variableValue = variablePair.split("=");
+				String variable = variableValue[0].trim();
+				String value = variableValue[1];
+				if (variable.endsWith("-ref")) {
+					variable = variable.substring(0, variable.indexOf("-ref"));
+					variableMap.put(variable, new RuntimeBeanReference(value));
+				}
+				else {
+					variableMap.put(variable, value);
+				}
+			}
+		}
+
+		return variableMap;
 	}
 
 }
