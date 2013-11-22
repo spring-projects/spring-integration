@@ -123,8 +123,21 @@ public abstract class AbstractScriptParser extends AbstractSingleBeanDefinitionP
 		return resourceScriptSourceBuilder.getBeanDefinition();
 	}
 
-	private ManagedMap<String, Object> buildVariablesMap(Element element, ParserContext parserContext, List<Element> variableElements) {
-		ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>();
+	private ManagedMap<String, Object> buildVariablesMap(final Element element, final ParserContext parserContext,
+														 List<Element> variableElements) {
+		@SuppressWarnings("serial")
+		ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>() {
+
+			@Override
+			public Object put(String key, Object value) {
+				if (this.containsKey(key)) {
+					parserContext.getReaderContext().error("Duplicated variable: " + key, element);
+				}
+				return super.put(key, value);
+			}
+
+		};
+
 		for (Element childElement : variableElements) {
 			String variableName = childElement.getAttribute("name");
 			String variableValue = childElement.getAttribute("value");

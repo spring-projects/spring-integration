@@ -156,6 +156,17 @@ public class Jsr223ServiceActivatorTests {
 		}
 	}
 
+	@Test
+	public void testDuplicateVariable() throws Exception {
+		try {
+			new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-duplicated-variable-context.xml", this.getClass());
+			fail("BeansException expected.");
+		}
+		catch (BeansException e) {
+			assertThat(e.getMessage(), Matchers.containsString("Duplicated variable: foo"));
+		}
+	}
+
 	public static class SampleScriptVariSource implements ScriptVariableGenerator {
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
