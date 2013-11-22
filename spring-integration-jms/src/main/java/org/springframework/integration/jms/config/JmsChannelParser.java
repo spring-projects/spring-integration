@@ -18,12 +18,13 @@ package org.springframework.integration.jms.config;
 
 import javax.jms.Session;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the 'channel' and 'publish-subscribe-channel' elements of the
@@ -58,12 +59,13 @@ public class JmsChannelParser extends AbstractChannelParser {
 		builder.addPropertyReference("connectionFactory", connectionFactory);
 		if ("channel".equals(element.getLocalName())) {
 			this.parseDestination(element, parserContext, builder, "queue");
-			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
 		else if ("publish-subscribe-channel".equals(element.getLocalName())) {
 			this.parseDestination(element, parserContext, builder, "topic");
-			this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME);
 		}
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-subscribers");
+
 		String containerType = element.getAttribute(CONTAINER_TYPE_ATTRIBUTE);
 		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);
 		if (!StringUtils.hasText(containerClass)) {

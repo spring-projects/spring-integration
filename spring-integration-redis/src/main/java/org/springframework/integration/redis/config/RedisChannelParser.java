@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.springframework.integration.redis.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.redis.channel.SubscribableRedisChannel;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the 'channel' and 'publish-subscribe-channel' elements of the
@@ -52,7 +53,8 @@ public class RedisChannelParser extends AbstractChannelParser {
 		// The following 2 attributes should be added once configurable on the RedisMessageListenerContainer
 		// IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		// IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		this.setMaxSubscribersProperty(parserContext, builder, element, IntegrationNamespaceUtils.DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-subscribers");
+
 		return builder;
 	}
 

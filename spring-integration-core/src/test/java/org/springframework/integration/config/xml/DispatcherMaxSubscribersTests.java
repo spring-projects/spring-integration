@@ -23,10 +23,14 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.2
  *
  */
 public abstract class DispatcherMaxSubscribersTests {
+
+	@Autowired
+	private MessageChannel autoCreateChannel;
 
 	@Autowired
 	private MessageChannel defaultChannel;
@@ -54,20 +58,17 @@ public abstract class DispatcherMaxSubscribersTests {
 	}
 
 	protected void doTestUnicast(int val1, int val2, int val3, int val4, int val5) {
-		Integer defaultMax = TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(defaultChannel, "dispatcher"), "maxSubscribers", Integer.class);
+		Integer autoCreateMax = TestUtils.getPropertyValue(autoCreateChannel, "dispatcher.maxSubscribers", Integer.class);
+		assertEquals(val1, autoCreateMax.intValue());
+		Integer defaultMax = TestUtils.getPropertyValue(defaultChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val1, defaultMax.intValue());
-		Integer defaultMax2 = TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(defaultChannel2, "dispatcher"), "maxSubscribers", Integer.class);
+		Integer defaultMax2 = TestUtils.getPropertyValue(defaultChannel2, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val2, defaultMax2.intValue());
-		Integer explicitMax = TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(explicitChannel, "dispatcher"), "maxSubscribers", Integer.class);
+		Integer explicitMax = TestUtils.getPropertyValue(explicitChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val3, explicitMax.intValue());
-		Integer execMax = TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(executorChannel, "dispatcher"), "maxSubscribers", Integer.class);
+		Integer execMax = TestUtils.getPropertyValue(executorChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val4, execMax.intValue());
-		Integer explicitExecMax = TestUtils.getPropertyValue(
-				TestUtils.getPropertyValue(explicitExecutorChannel, "dispatcher"), "maxSubscribers", Integer.class);
+		Integer explicitExecMax = TestUtils.getPropertyValue(explicitExecutorChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val5, explicitExecMax.intValue());
 	}
 

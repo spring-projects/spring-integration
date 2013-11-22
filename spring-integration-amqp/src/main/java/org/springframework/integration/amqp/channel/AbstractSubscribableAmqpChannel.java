@@ -33,6 +33,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
@@ -43,6 +44,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  */
 abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
@@ -51,11 +53,11 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	private final SimpleMessageListenerContainer container;
 
-	private volatile MessageDispatcher dispatcher;
+	private volatile AbstractDispatcher dispatcher;
 
 	private final boolean isPubSub;
 
-	private volatile int maxSubscribers = Integer.MAX_VALUE;
+	private volatile Integer maxSubscribers;
 
 	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
 		this(channelName, container, amqpTemplate, false);
@@ -79,6 +81,9 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
 		this.maxSubscribers = maxSubscribers;
+		if (this.dispatcher != null) {
+			this.dispatcher.setMaxSubscribers(this.maxSubscribers);
+		}
 	}
 
 	public boolean subscribe(MessageHandler handler) {
@@ -93,9 +98,13 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 	public void onInit() throws Exception {
 		super.onInit();
 		this.dispatcher = this.createDispatcher();
-		if (this.dispatcher instanceof AbstractDispatcher) {
-			((AbstractDispatcher) this.dispatcher).setMaxSubscribers(this.maxSubscribers);
+		if (this.maxSubscribers == null) {
+			this.maxSubscribers = this.getIntegrationProperty(this.isPubSub ?
+					IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
+					IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
+					Integer.class);
 		}
+		this.setMaxSubscribers(this.maxSubscribers);
 		AmqpAdmin admin = new RabbitAdmin(this.container.getConnectionFactory());
 		Queue queue = this.initializeQueue(admin, this.channelName);
 		this.container.setQueues(queue);
@@ -110,7 +119,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 		}
 	}
 
-	protected abstract MessageDispatcher createDispatcher();
+	protected abstract AbstractDispatcher createDispatcher();
 
 	protected abstract Queue initializeQueue(AmqpAdmin admin, String channelName);
 
