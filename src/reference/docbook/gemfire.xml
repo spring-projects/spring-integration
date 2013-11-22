@@ -28,7 +28,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd"]]></programlisting>
     </para>
   </section>
-  <section>
+  <section id="gemfire-inbound">
   	<title>Inbound Channel Adapter</title>
   	<para>
   	The <emphasis>inbound-channel-adapter</emphasis> produces messages on a channel triggered by a GemFire <classname>EntryEvent</classname>. GemFire
@@ -49,7 +49,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	If <code>expression</code> is not provided the message payload will be a GemFire <classname>EntryEvent</classname>
   	</para>
   </section>
-   <section>
+   <section id="gemfire-cq">
   	<title>Continuous Query Inbound Channel Adapter</title>
   	<para>
   	The <emphasis>cq-inbound-channel-adapter</emphasis> produces messages a channel triggered by a GemFire continuous query or <classname>CqEvent</classname> event. Spring GemFire introduced
@@ -90,7 +90,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
   	</para>
   </section>
 
-   <section>
+   <section id="gemfire-outbound">
   	<title>Outbound Channel Adapter</title>
   	<para>
   	The <emphasis>outbound-channel-adapter</emphasis> writes cache entries mapped from the message payload. In its simplest form, it expects a
