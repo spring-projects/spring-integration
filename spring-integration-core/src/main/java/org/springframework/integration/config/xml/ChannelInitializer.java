@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,12 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -55,9 +52,6 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 
 	private volatile boolean autoCreate = true;
 
-	private volatile int defaultMaxUnicastSubscribers = Integer.MAX_VALUE;
-
-	private volatile int defaultMaxBroadcastSubscribers = Integer.MAX_VALUE;
 
 	public void setAutoCreate(boolean autoCreate) {
 		this.autoCreate = autoCreate;
@@ -67,30 +61,40 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_UNICAST_SUBSCRIBERS}
+	 */
+	@Deprecated
 	public int getDefaultMaxUnicastSubscribers() {
-		return defaultMaxUnicastSubscribers;
+		return Integer.MAX_VALUE;
 	}
 
 	/**
 	 * Set the default max-subscribers for all unicasting channels that don't have the
 	 * attribute set on their dispatcher. Default {@link Integer#MAX_VALUE}.
+	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_UNICAST_SUBSCRIBERS}
 	 * @param defaultMaxUnicastSubscribers
 	 */
+	@Deprecated
 	public void setDefaultMaxUnicastSubscribers(int defaultMaxUnicastSubscribers) {
-		this.defaultMaxUnicastSubscribers = defaultMaxUnicastSubscribers;
 	}
 
+	/**
+	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_BROADCAST_SUBSCRIBERS}
+	 */
+	@Deprecated
 	public int getDefaultMaxBroadcastSubscribers() {
-		return defaultMaxBroadcastSubscribers;
+		return Integer.MAX_VALUE;
 	}
 
 	/**
 	 * Set the default max-subscribers for all broadcasting (pub-sub) channels that don't have the
 	 * attribute set. Default {@link Integer#MAX_VALUE}.
+	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_BROADCAST_SUBSCRIBERS}
 	 * @param defaultMaxBroadcastSubscribers
 	 */
+	@Deprecated
 	public void setDefaultMaxBroadcastSubscribers(int defaultMaxBroadcastSubscribers) {
-		this.defaultMaxBroadcastSubscribers = defaultMaxBroadcastSubscribers;
 	}
 
 	public void afterPropertiesSet() throws Exception {
@@ -111,10 +115,7 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 						if (this.logger.isDebugEnabled()){
 							this.logger.debug("Auto-creating channel '" + channelName + "' as DirectChannel");
 						}
-						RootBeanDefinition messageChannel = new RootBeanDefinition();
-						messageChannel.setBeanClass(DirectChannel.class);
-						BeanDefinitionHolder messageChannelHolder = new BeanDefinitionHolder(messageChannel, channelName);
-						BeanDefinitionReaderUtils.registerBeanDefinition(messageChannelHolder, (BeanDefinitionRegistry) this.beanFactory);
+						IntegrationNamespaceUtils.autoCreateDirectChannel(channelName, (BeanDefinitionRegistry) this.beanFactory);
 					}
 				}
 			}

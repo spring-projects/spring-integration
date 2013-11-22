@@ -38,6 +38,8 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.SpelFunctionFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
@@ -73,13 +75,17 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Property name on ChannelInitializer used to configure the default max subscribers for
 	 * unicast channels.
+	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_UNICAST_SUBSCRIBERS}
 	 */
+	@Deprecated
 	public static String DEFAULT_MAX_UNICAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxUnicastSubscribers";
 
 	/**
 	 * Property name on ChannelInitializer used to configure the default max subscribers for
 	 * broadcast channels.
+	 * @deprecated in favor of {@code IntegrationProperties#CHANNELS_MAX_BROADCAST_SUBSCRIBERS}
 	 */
+	@Deprecated
 	public static String DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME = "defaultMaxBroadcastSubscribers";
 
 
@@ -507,10 +513,19 @@ public abstract class IntegrationNamespaceUtils {
 			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
 					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
 		}
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+
+		autoCreateDirectChannel(channelId, parserContext.getRegistry());
+
 		return channelId;
+	}
+
+	public static void autoCreateDirectChannel(String channelName, BeanDefinitionRegistry registry) {
+		String maxSubscribersExpression = "#{@" + IntegrationContextUtils.INTEGRATION_PROPERTIES_BEAN_NAME +
+				"['" + IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS + "']}";
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class)
+				.addPropertyValue("maxSubscribers", maxSubscribersExpression);
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelName);
+		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 	}
 
 }

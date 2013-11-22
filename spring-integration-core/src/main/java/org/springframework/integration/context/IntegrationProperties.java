@@ -28,4 +28,8 @@ public interface IntegrationProperties {
 
 	String CHANNELS_AUTOCREATE = "channels.autoCreate";
 
+	String CHANNELS_MAX_UNICAST_SUBSCRIBERS = "channels.maxUnicastSubscribers";
+
+	String CHANNELS_MAX_BROADCAST_SUBSCRIBERS = "channels.maxBroadcastSubscribers";
+
 }

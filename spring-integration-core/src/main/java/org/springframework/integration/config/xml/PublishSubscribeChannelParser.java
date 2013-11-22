@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.util.StringUtils;
 
 /**
@@ -28,6 +29,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PublishSubscribeChannelParser extends AbstractChannelParser {
 
@@ -42,8 +44,7 @@ public class PublishSubscribeChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-failures");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
-		this.setMaxSubscribersProperty(parserContext, builder, element,
-				IntegrationNamespaceUtils.DEFAULT_MAX_BROADCAST_SUBSCRIBERS_PROPERTY_NAME);
+		this.setMaxSubscribersProperty(builder, element,IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "min-subscribers");
 		return builder;
 	}
