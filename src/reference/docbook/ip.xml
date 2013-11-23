@@ -489,11 +489,15 @@
       or <classname>TcpConnectionExceptionEvent</classname>).
     </para>
     <para>
-      <classname>TcpConnectionEvents</classname> contain:
+      <classname>TcpConnectionEvents</classname> have the following properties:
       <itemizedlist>
-        <listitem>Connection Id (which can be used in a message header to send data to the connection)</listitem>
-        <listitem>Connection Factory Name (the bean name of the connection factory the connection belongs to)</listitem>
-        <listitem>The <classname>Throwable</classname> (for <classname>TcpConnectionExceptionEvent</classname> events only)</listitem>
+        <listitem><code>connectionId</code> - the connection identifier which can be used in a message header
+        to send data to the connection</listitem>
+        <listitem><code>connectionFactoryName</code> - the bean name of the connection factory the connection belongs to</listitem>
+        <listitem><code>throwable</code> - the <classname>Throwable</classname> (for <classname>TcpConnectionExceptionEvent</classname> events only)</listitem>
+        <listitem><code>source</code> - the <interfacename>TcpConnection</interfacename>; this can be
+        used, for example, to determine the remote IP Address with <code>getHostAddress()</code> (cast required)
+        </listitem>
       </itemizedlist>
     </para>
   </section>
