@@ -15,7 +15,7 @@
 			message-converter="testConverter"
 			serializer="serializer"/>
 
-	<int-redis:inbound-channel-adapter channel="receiveChannel" topics="foo"/>
+	<int-redis:inbound-channel-adapter id="fooInbound" channel="receiveChannel" topics="foo"/>
 
 	<int:channel id="receiveChannel">
 		<int:queue/>
