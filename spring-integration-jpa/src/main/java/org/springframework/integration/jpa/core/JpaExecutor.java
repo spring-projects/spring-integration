@@ -89,7 +89,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 
 	private volatile int flushSize = 0;
 
-	private volatile boolean  cleanOnFlush = false;
+	private volatile boolean  clearOnFlush = false;
 
 	private volatile boolean  deleteAfterPoll = false;
 
@@ -243,11 +243,11 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 		else {
 
 			if (PersistMode.PERSIST.equals(this.persistMode)) {
-				this.jpaOperations.persist(message.getPayload(), this.flushSize, this.cleanOnFlush);
+				this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
 				result = message.getPayload();
 			}
 			else if (PersistMode.MERGE.equals(this.persistMode)) {
-				result = this.jpaOperations.merge(message.getPayload(), this.flushSize, this.cleanOnFlush);
+				result = this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
 			}
 			else if (PersistMode.DELETE.equals(this.persistMode)) {
 				this.jpaOperations.delete(message.getPayload());
@@ -507,10 +507,10 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware, Integrat
 	 * @see #setFlush(boolean)
 	 * @see #setFlushSize(int)
 	 *
-	 * @param cleanOnFlush defaults to 'false'.
+	 * @param clearOnFlush defaults to 'false'.
 	 */
-	public void setCleanOnFlush(boolean cleanOnFlush) {
-		this.cleanOnFlush = cleanOnFlush;
+	public void setClearOnFlush(boolean clearOnFlush) {
+		this.clearOnFlush = clearOnFlush;
 	}
 
 	/**

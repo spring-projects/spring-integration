@@ -207,9 +207,9 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
-	public Object merge(Object entity, int flushSize, boolean cleanOnFlush) {
+	public Object merge(Object entity, int flushSize, boolean clearOnFlush) {
 		Assert.notNull(entity, "The object to merge must not be null.");
-		return this.persistOrMerge(entity, true, flushSize, cleanOnFlush);
+		return this.persistOrMerge(entity, true, flushSize, clearOnFlush);
 	}
 
 	@Override
@@ -218,12 +218,12 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
-	public void persist(Object entity, int flushSize, boolean cleanOnFlush) {
+	public void persist(Object entity, int flushSize, boolean clearOnFlush) {
 		Assert.notNull(entity, "The object to persist must not be null.");
-		persistOrMerge(entity, false, flushSize, cleanOnFlush);
+		persistOrMerge(entity, false, flushSize, clearOnFlush);
 	}
 
-	private Object persistOrMerge(Object entity, boolean isMerge, int flushSize, boolean cleanOnFlush) {
+	private Object persistOrMerge(Object entity, boolean isMerge, int flushSize, boolean clearOnFlush) {
 		Object result = null;
 
 		if (entity instanceof Iterable) {
@@ -250,7 +250,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 					savedEntities++;
 					if (flushSize > 0 && savedEntities % flushSize == 0) {
 						entityManager.flush();
-						if (cleanOnFlush) {
+						if (clearOnFlush) {
 							entityManager.clear();
 						}
 					}
@@ -277,7 +277,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		if (flushSize > 0) {
 			entityManager.flush();
-			if (cleanOnFlush) {
+			if (clearOnFlush) {
 				entityManager.clear();
 			}
 		}
@@ -332,4 +332,5 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 
 		}
 	}
+
 }

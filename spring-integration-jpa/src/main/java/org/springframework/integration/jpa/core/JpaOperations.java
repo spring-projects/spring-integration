@@ -158,7 +158,18 @@ public interface JpaOperations {
 	 */
 	Object merge(Object entity);
 
-	Object merge(Object entity, int flushSize, boolean cleanOnFlush);
+	/**
+	 * The entity to be merged with the {@link EntityManager}. The provided object can
+	 * also be an {@link Iterable} in which case each object of the {@link Iterable}
+	 * is treated as an entity and merged with the {@link EntityManager}.
+	 * In addition the {@link javax.persistence.EntityManager#flush()} is called after the merge
+	 * and after each batch, as it is specified using {@code flushSize} parameter and if
+	 * provided object is {@link Iterable}.
+	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
+	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
+	 */
+
+	Object merge(Object entity, int flushSize, boolean clearOnFlush);
 
 	/**
 	 * Persists the entity. The provided object can also be an {@link Iterable}
@@ -171,7 +182,18 @@ public interface JpaOperations {
 	 */
 	void persist(Object entity);
 
-	void persist(Object entity, int flushSize, boolean cleanOnFlush);
+	/**
+	 * Persists the entity. The provided object can also be an {@link Iterable}
+	 * in which case each object of the {@link Iterable} is treated as an entity
+	 * and persisted with the {@link EntityManager}. {@code Null} values returned
+	 * while iterating over the {@link Iterable} are ignored.
+	 * In addition the {@link javax.persistence.EntityManager#flush()} is called after the persist
+	 * and after each batch, as it is specified using {@code flushSize} parameter and if
+	 * provided object is {@link Iterable}.
+	 * {@code clearOnFlush}parameter specifies, if the {@link javax.persistence.EntityManager#clear()}
+	 * should be called after each {@link javax.persistence.EntityManager#flush()}.
+	 */
+	void persist(Object entity, int flushSize, boolean clearOnFlush);
 
 	/**
 	 * Executes {@link javax.persistence.EntityManager#flush()}.

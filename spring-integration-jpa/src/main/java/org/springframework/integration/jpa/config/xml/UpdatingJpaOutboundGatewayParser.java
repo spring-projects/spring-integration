@@ -45,7 +45,7 @@ public class UpdatingJpaOutboundGatewayParser extends AbstractJpaOutboundGateway
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "persist-mode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "flush-size");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "clean-on-flush");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "clear-on-flush");
 
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
 		final String gatewayId = this.resolveId(gatewayElement, jpaOutboundGatewayBuilder.getRawBeanDefinition(), parserContext);
@@ -53,7 +53,7 @@ public class UpdatingJpaOutboundGatewayParser extends AbstractJpaOutboundGateway
 
 		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
 
-		jpaOutboundGatewayBuilder.addConstructorArgValue(jpaExecutorBuilderBeanDefinition);
+		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
 		jpaOutboundGatewayBuilder.addPropertyValue("gatewayType", OutboundGatewayType.UPDATING);
 		return jpaOutboundGatewayBuilder;
 

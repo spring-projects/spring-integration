@@ -75,7 +75,7 @@
 		reply-channel="out"
 		reply-timeout="100"
 		flush-size="100"
-		clean-on-flush="true"
+		clear-on-flush="true"
 		requires-reply="false"/>
 
 	<int-jpa:updating-outbound-gateway id="advised"

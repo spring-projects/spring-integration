@@ -58,7 +58,7 @@ public class JpaOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "persist-mode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "flush-size");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "clean-on-flush");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "clear-on-flush");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "use-payload-as-parameter-source");
 

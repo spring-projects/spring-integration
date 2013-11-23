@@ -83,7 +83,7 @@ public class JpaMessageHandlerParserTests {
 		assertTrue(jpaParameters.size() == 3);
 
 		assertEquals(Integer.valueOf(10), TestUtils.getPropertyValue(jpaExecutor, "flushSize", Integer.class));
-		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "cleanOnFlush", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(jpaExecutor, "clearOnFlush", Boolean.class));
 	}
 
 	@Test

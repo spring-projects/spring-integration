@@ -381,7 +381,7 @@
 				<emphasis>NULL</emphasis> values returned by the iterator are ignored.
 			</para>
 			<para>
-				The JPA adapters now have additional attributes to optionally 'flush' and 'clean'
+				The JPA adapters now have additional attributes to optionally 'flush' and 'clear'
 				entities from the associated persistence context after performing persistence operations.
 			</para>
 			<para>For more information see <xref linkend="jpa"/>.</para>

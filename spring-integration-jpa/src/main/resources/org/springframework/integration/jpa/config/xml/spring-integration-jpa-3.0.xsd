@@ -435,10 +435,10 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="clean-on-flush" type="xsd:string" default="false">
+		<xsd:attribute name="clear-on-flush" type="xsd:string" default="false">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specifies whether EntityManager.clean() should be called after EntityManager.flush().
+					Specifies whether EntityManager.clear() should be called after EntityManager.flush().
 					Applies only if 'flush-size > 0' or 'flush = true'.
 					Defaults to 'false'.
 				</xsd:documentation>
