@@ -53,10 +53,14 @@ public final class IntegrationProperties {
 	 */
 	public static final String CHANNELS_MAX_BROADCAST_SUBSCRIBERS = "channels.maxBroadcastSubscribers";
 
+	/**
+	 * Specifies the value of {@link org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler#poolSize}
+	 * for {@code taskScheduler} bean initialized but Integration infrastructure.
+	 * @see org.springframework.integration.config.xml.DefaultConfiguringBeanFactoryPostProcessor#registerTaskScheduler
+	 */
+	public static final String TASKSCHEDULER_POOLSIZE = "taskScheduler.poolSize";
 
 //	TODO public static final String LATE_REPLY_LOGGING_LEVEL = "messagingTemplate.lateReply.logging.level";
-
-//	TODO public static final String TASKSCHEDULER_POOLSIZE = "taskScheduler.poolSize";
 
 	private static Properties defaults;
 

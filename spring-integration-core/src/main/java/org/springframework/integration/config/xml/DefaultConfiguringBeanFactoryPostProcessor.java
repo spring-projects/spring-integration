@@ -33,6 +33,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 
 /**
  * A {@link BeanFactoryPostProcessor} implementation that provides default beans for the error handling and task
@@ -150,9 +151,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 		BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
-		/* TODO String taskSchedulerPoolSizeExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.TASKSCHEDULER_POOLSIZE);
-		schedulerBuilder.addPropertyValue("poolSize", taskSchedulerPoolSizeExpression);*/
-		schedulerBuilder.addPropertyValue("poolSize", 10);
+		String taskSchedulerPoolSizeExpression = IntegrationProperties.getExpressionFor(IntegrationProperties.TASKSCHEDULER_POOLSIZE);
+		schedulerBuilder.addPropertyValue("poolSize", taskSchedulerPoolSizeExpression);
 		schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
 		schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());
 		BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
